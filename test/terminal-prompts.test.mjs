@@ -11,6 +11,8 @@ import { walletLoginForm } from '../dist/ui/wallet-forms.js';
 // The real prompts on a fake terminal: this process's stdin acts as a TTY and rendered frames are captured.
 const terminal = { ...createTerminalProfile(), pointer: true };
 const frame = { title: 'Check' };
+/** A prompt that never finishes must fail its test, not stall the suite. */
+const LIMIT = { timeout: 15_000 };
 const realWrite = process.stdout.write;
 let written = '';
 
@@ -74,7 +76,7 @@ const state = async (promise) => {
     return Promise.race([promise, Promise.resolve('pending')]);
 };
 
-test('a single-choice picker: a click focuses, a click on the focus confirms, the wheel stops at the ends', async () => {
+test('a single-choice picker: a click focuses, a click on the focus confirms, the wheel stops at the ends', LIMIT, async () => {
     const choices = ['Alpha', 'Beta', 'Gamma', 'Closed'].map((label) => ({ value: label, label, disabled: label === 'Closed' }));
     const picked = selectOne(terminal, { frame, question: 'Pick', choices, defaultValue: 'Alpha' });
     await settle();
@@ -104,7 +106,7 @@ test('a single-choice picker: a click focuses, a click on the focus confirms, th
     assert.match(written, /\x1b\[\?1006l\x1b\[\?1000l/, 'tracking ends with the prompt');
 });
 
-test('checkbox and toggle lists: a click toggles and only Enter confirms', async () => {
+test('checkbox and toggle lists: a click toggles and only Enter confirms', LIMIT, async () => {
     const many = selectMany(terminal, { frame, question: 'Pick many', choices: ['One', 'Two', 'Three'].map((label) => ({ value: label, label })), initial: ['Two'] });
     await settle();
     await answerPosition();
@@ -135,7 +137,7 @@ test('checkbox and toggle lists: a click toggles and only Enter confirms', async
     assert.deepEqual(await toggles, { first: false, second: true });
 });
 
-test('a composer places its cursor by pointer, and neither a click nor the wheel submits', async () => {
+test('a composer places its cursor by pointer, and neither a click nor the wheel submits', LIMIT, async () => {
     const composed = composeRich(terminal, { frame, question: 'Write', initial: 'hello world\nsecond line', attachments: true });
     await settle();
     await answerPosition();
@@ -152,7 +154,7 @@ test('a composer places its cursor by pointer, and neither a click nor the wheel
     assert.equal((await composed).text, 'hello Xworld\nsecond Yline');
 });
 
-test('an optional line accepts an empty value and a required one does not', async () => {
+test('an optional line accepts an empty value and a required one does not', LIMIT, async () => {
     const optional = inputLine(terminal, { frame, question: 'Optional', optional: true });
     await settle();
     await send('\r');
@@ -167,7 +169,7 @@ test('an optional line accepts an empty value and a required one does not', asyn
     assert.equal(await required, CANCELLED);
 });
 
-test('the terminal form for a website login finishes, without additional fields or with them', async () => {
+test('the terminal form for a website login finishes, without additional fields or with them', LIMIT, async () => {
     const fill = async (form, rows) => {
         for (const [waitFor, input] of rows) {
             for (let turn = 0; turn < 200 && !written.includes(waitFor); turn++) await settle();
@@ -190,7 +192,7 @@ test('the terminal form for a website login finishes, without additional fields 
     });
 });
 
-test('the model endpoint is chosen among what the harness can reach; an explicit Official is saved', async () => {
+test('the model endpoint is chosen among what the harness can reach; an explicit Official is saved', LIMIT, async () => {
     const choose = async (variant, keys, endpoint = 'official') => {
         written = '';
         const form = modifyToolForm(terminal, { name: 'tool', type: 'HARNESS', variant, fields: { endpoint } });
@@ -242,7 +244,7 @@ const pressOn = async (screen, text) => {
     await send(`\x1b[<0;${plain[row].indexOf(text) + 1};${row + 1}M`);
 };
 
-test('offered chat answers are selectable however many there are, a draft is never lost, and a failed send stays visible', async () => {
+test('offered chat answers are selectable however many there are, a draft is never lost, and a failed send stays visible', LIMIT, async () => {
     const choices = Array.from({ length: 12 }, (_, index) => `Option ${index + 1}`);
     const sent = [];
     let asked = 1;
@@ -323,7 +325,7 @@ test('offered chat answers are selectable however many there are, a draft is nev
     await chat;
 });
 
-test('the Book editor: a click places the cursor without moving the text, and a failed save stays visible', async () => {
+test('the Book editor: a click places the cursor without moving the text, and a failed save stays visible', LIMIT, async () => {
     const text = Array.from({ length: 60 }, (_, line) => `line ${line}`).join('\n');
     const source = { kind: 'agent', name: 'Writer', path: 'agents/writer.book', text, revision: 'abcdef0123', diagnostics: [], editable: true };
     const screen = fakeScreen();
