@@ -88,7 +88,7 @@ async function resumeService(context: CommandContext, project: Project): Promise
 
 /**
  * Runs the agenda in this terminal (live dashboard when interactive, plain events otherwise). This invocation owns
- * the engine: termination drains gracefully, and a restart starts exactly one replacement here (never a daemon).
+ * the engine: termination settles gracefully, and a restart starts exactly one replacement here (never a daemon).
  */
 async function runForeground(context: CommandContext, project: Project, overrides: Record<string, unknown>, cliHarnesses: readonly string[] | undefined): Promise<number> {
     const { terminal } = context;

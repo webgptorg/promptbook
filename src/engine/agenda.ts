@@ -189,7 +189,7 @@ export type AgendaSummary = {
 };
 
 /**
- * A pending lifecycle request applied once active work settles (draining).
+ * A pending lifecycle request applied once active work settles.
  *
  * @private agenda supervisor
  */
@@ -198,7 +198,7 @@ export type LifecycleIntent = 'pause' | 'stop' | 'restart';
 /**
  * Outcome of a lifecycle operation, shared by CLI, terminal, browser and API.
  *
- * `accepted` means the request is pending (draining) or applied; `completed` that its effect already holds.
+ * `accepted` means the request is pending (work is settling) or applied; `completed` that its effect already holds.
  *
  * @private agenda supervisor
  */
@@ -427,6 +427,8 @@ type WorkUnit = {
     readonly startedAt: number;
     /** The run executing now (its run identifier owns files). */
     owner: string;
+    /** Interruption of this unit's task work by an accepted pause (chat turns never receive it). */
+    readonly interrupt: AbortController;
     /** Live view of the work. */
     current?: CurrentWorkView;
     /** Effective routing of the run and its consultation contexts (for the execution panel). */
@@ -467,7 +469,7 @@ export class Agenda {
     private readonly chatRechecks = new Map<string, { readonly name: string; readonly schedule: ChatReplyRecheck; timer?: NodeJS.Timeout }>();
     /** No new background claim before this time (pause between tasks). */
     private pacingUntil = 0;
-    /** Listeners waiting for an active unit to finish (draining towards stop). */
+    /** Listeners waiting for an active unit to finish (settling towards stop). */
     private readonly unitListeners = new Set<() => void>();
     private waitView?: WaitView;
     private queueView: QueueItemView[] = [];
@@ -486,8 +488,8 @@ export class Agenda {
     private manualPauseSince?: string;
     /** Why the manual pause reason is active (the operator's Pause, a paused start or a conservative restoration). */
     private manualPauseCause: ManualPauseCause = 'operator';
-    /** A pause became effective while background work was still draining (logged once it settles). */
-    private pauseDraining = false;
+    /** A pause became effective while task work was still settling (logged once it has). */
+    private pauseSettling = false;
     /** Pending stop/restart applied once active work settles. */
     private intent?: Exclude<LifecycleIntent, 'pause'>;
     /** When the pending request was accepted (ISO). */
@@ -696,7 +698,7 @@ export class Agenda {
     public async initialize(): Promise<void> {
         const { project } = this.options;
         for (const directory of [project.runtime.state, project.runtime.logs, project.runtime.temporary]) await ensureDirectory(directory);
-        // The operator's accepted manual pause (also one still draining, or one installed by a paused start) survives
+        // The operator's accepted manual pause (also one still settling, or one installed by a paused start) survives
         // crashes and reboots: it holds before any background claim. Health reasons are re-evaluated by the fresh
         // Health sub-engine instead.
         const restored = this.options.mode === 'maintenance' ? undefined : readOperatorIntent(project)?.manualPause;
@@ -971,8 +973,8 @@ export class Agenda {
     }
 
     /**
-     * The live service state: `running`, `pausing` (a pause reason is active while background work drains), `pause`
-     * or `stopping` (draining into exit, including a restart's shutdown phase). After the agenda ended, the observed
+     * The live service state: `running`, `pausing` (a pause reason is active while task work is being interrupted and
+     * settles), `pause` or `stopping` (settling into exit, including a restart's shutdown phase). After the agenda ended, the observed
      * `stopped`/`finished` outcome.
      */
     public get serviceState(): ServiceSnapshot['service']['state'] {
@@ -1004,10 +1006,26 @@ export class Agenda {
         return `Paused by Health: ${summary}.${this.manualPauseSince ? ' A manual pause is also active.' : ''} It resumes automatically once resolved${health.some((reason) => reason.severity === 'soft') ? '; a soft incident can be overridden on the Health page' : ''}.`;
     }
 
+    /**
+     * Requests the supported interruption of all active task work: its turn ends at the nearest safe opportunity, keeping
+     * its checkpoint and its agent's reservation. An operation that cannot be interrupted settles visibly (`pausing`) and
+     * is never force-killed. Chat turns and the shared runtime stay untouched.
+     */
+    private interruptTaskWork(): void {
+        for (const unit of this.units.values()) {
+            if (unit.kind !== 'task' || unit.interrupt.signal.aborted) continue;
+            unit.interrupt.abort();
+            unit.waiter?.resolve('cancelled');
+        }
+    }
+
     /** The Health sub-engine added or removed a pause reason: re-evaluate scheduling immediately. */
     private pauseReasonsChanged(): void {
-        if (this.pauseActive && this.executing) this.pauseDraining = true;
-        if (!this.pauseActive) this.pauseDraining = false;
+        if (this.pauseActive && this.executing) {
+            this.pauseSettling = true;
+            this.interruptTaskWork();
+        }
+        if (!this.pauseActive) this.pauseSettling = false;
         // A paused wait ends so that a resolved reason resumes (or a new one holds) at once.
         this.waiter?.resolve('woken');
         this.touch();
@@ -1069,7 +1087,7 @@ export class Agenda {
     }
 
     /**
-     * Another engine replaced the shared installation this engine runs from: drain active work and restart into the
+     * Another engine replaced the shared installation this engine runs from: settle active work and restart into the
      * installed version, keeping the manual pause (a daemon only; a foreground engine keeps its loaded version).
      */
     public requestUpdateRestart(): LifecycleOutcome {
@@ -1110,7 +1128,7 @@ export class Agenda {
     }
 
     /**
-     * Applies pending intents once work settles: a draining pause settles into `pause` when no background task remains;
+     * Applies pending intents once work settles: a pausing engine settles into `pause` when no task work remains;
      * stop/restart begin the irreversible orderly shutdown once every task and chat turn has settled (the run loop then
      * exits and the owner cleans up).
      */
@@ -1121,21 +1139,22 @@ export class Agenda {
             this.shutdown = this.intent;
             this.log(this.intent === 'restart' ? 'Restarting: shutting down so one replacement can start.' : 'Stopping: shutting down.');
             this.waiter?.resolve('cancelled');
-        } else if (this.pauseDraining && !this.executing) {
-            this.pauseDraining = false;
+        } else if (this.pauseSettling && !this.executing) {
+            this.pauseSettling = false;
             if (this.pauseActive) this.log(this.manualPauseSince ? 'Paused: no task runs until you resume.' : 'Paused by Health: no task runs until the health condition is resolved.');
         }
         this.touch();
     }
 
     /**
-     * Adds the ordinary manual pause reason: no new task is claimed; active background work settles first (`pausing`),
-     * otherwise the service pauses immediately. Replacing a pending stop/restart requires explicit confirmation
+     * Adds the ordinary manual pause reason: no new task is claimed and no open task work continues automatically. Active
+     * task work is interrupted at its nearest safe opportunity and keeps its checkpoint (`pausing` until it has settled);
+     * otherwise the service pauses immediately. Chats stay available. Replacing a pending stop/restart requires explicit confirmation
      * against the decision revision the caller saw (`replaceStop` + `revision`).
      */
     public pause(options: { readonly replaceStop?: boolean; readonly revision?: number } = {}): LifecycleOutcome {
         if (this.shutdown) return this.outcome('pause', false, 'Too late: the service is already shutting down.');
-        if (this.manualPauseSince && !this.intent) return this.outcome('pause', true, this.executing ? 'Pause is already pending: active background work finishes first.' : 'Already paused.');
+        if (this.manualPauseSince && !this.intent) return this.outcome('pause', true, this.executing ? 'Pause is already pending: active task work is settling at its nearest safe point.' : 'Already paused.');
         if (this.intent) {
             if (!options.replaceStop) {
                 throw new PtbkError(`A ${this.intent} is pending; pausing instead would cancel it.`, {
@@ -1152,20 +1171,23 @@ export class Agenda {
             this.decide(undefined, `The pending ${this.intent} was cancelled in favour of pause.`);
         } else {
             this.intentRevision++;
-            this.log(this.executing ? 'Pause requested: active background work finishes first, then no task starts until you resume.' : 'Paused: no task runs until you resume.');
+            this.log(this.executing ? 'Pause requested: active task work is being interrupted at its nearest safe point and keeps its checkpoint; no task continues or starts until you resume. Chats stay available.' : 'Paused: no task runs until you resume.');
         }
         this.setManualPause(new Date().toISOString());
-        if (this.executing) this.pauseDraining = true;
+        if (this.executing) {
+            this.pauseSettling = true;
+            this.interruptTaskWork();
+        }
         this.settle();
         // An idle wait (or a human wait outside task execution) re-evaluates so the pause holds immediately.
         if (!this.executing) this.waiter?.resolve('woken');
         this.touch();
-        return this.outcome('pause', true, this.serviceState === 'pause' ? 'Paused.' : 'Pause pending: active background work finishes first.');
+        return this.outcome('pause', true, this.serviceState === 'pause' ? 'Paused.' : 'Pause pending: active task work is settling at its nearest safe point and keeps its checkpoint.');
     }
 
     /**
-     * Removes the manual pause reason, or cancels a pending stop/restart (and a restart's planned replacement), without
-     * interrupting or replaying active work. Health pause reasons are never removed here: the service returns to
+     * Removes the manual pause reason, or cancels a pending stop/restart (and a restart's planned replacement). Interrupted
+     * task work continues from its checkpoint; nothing is replayed or started twice. Health pause reasons are never removed here: the service returns to
      * `running` only when no other reason remains.
      */
     public resume(): LifecycleOutcome {
@@ -1189,8 +1211,8 @@ export class Agenda {
         const pending = this.executing;
         this.setManualPause(undefined);
         this.intentRevision++;
-        if (!this.pauseActive) this.pauseDraining = false;
-        this.log(this.pauseActive ? `Manual pause removed.${remaining()}` : pending ? 'The pending pause was cancelled; active work continues.' : 'Resumed.');
+        if (!this.pauseActive) this.pauseSettling = false;
+        this.log(this.pauseActive ? `Manual pause removed.${remaining()}` : pending ? 'The pending pause was cancelled; interrupted task work continues from its checkpoint.' : 'Resumed.');
         this.waiter?.resolve('woken');
         this.touch();
         if (this.pauseActive) return this.outcome('resume', true, `Manual pause removed; still paused.${remaining()}`);
@@ -1210,8 +1232,9 @@ export class Agenda {
     }
 
     /**
-     * Requests a graceful stop (`stopping`: all active work settles, then orderly shutdown), a graceful restart (the
-     * same drain, then exactly one replacement) or an immediate force stop of owned work. Repeating a request is
+     * Requests a graceful stop (`stopping`: owned work finishes or checkpoints, then orderly shutdown; work suspended by a
+     * pause is not revived), a graceful restart (the same transition, then exactly one replacement) or an immediate force
+     * stop of owned work. Repeating a request is
      * idempotent; it never escalates to force.
      */
     public requestStop(options: { readonly force?: boolean; readonly restart?: boolean; readonly signal?: boolean; readonly update?: boolean } = {}): LifecycleOutcome {
@@ -1234,17 +1257,17 @@ export class Agenda {
         }
         if (this.shutdown) return this.outcome(action, this.shutdown === (options.restart ? 'restart' : 'stop'), this.shutdown === 'restart' ? 'Already restarting.' : 'Already shutting down.');
         const wanted = options.restart ? 'restart' : 'stop';
-        if (this.intent === wanted) return this.outcome(action, true, `${options.restart ? 'Restart' : 'Stop'} is already pending: active work finishes first.`);
+        if (this.intent === wanted) return this.outcome(action, true, `${options.restart ? 'Restart' : 'Stop'} is already pending: active work finishes or checkpoints first.`);
         if (options.restart && this.options.mode === 'maintenance') throw new PtbkError('A finite maintenance operation cannot be restarted.', { kind: 'usage', next: ['Run it again when it has finished.'] });
         const previous = this.intent ?? (this.manualPauseSince && this.executing ? 'pause' : undefined);
         // An intentional stop replaces the manual pause (resume cancels the stop and returns to running, as before). An
         // OS termination request (e.g. a reboot) and an update's restart keep it, so the replacement restores it.
         if (!this.shutdownBySignal && !options.update) this.setManualPause(undefined);
-        this.pauseDraining = false;
+        this.pauseSettling = false;
         this.decide(
             wanted,
             this.units.size
-                ? `${options.restart ? 'Restart' : 'Stop'} requested${previous ? ` (instead of the pending ${previous})` : ''}: active work finishes first, then the service ${options.restart ? 'restarts' : 'stops'}.`
+                ? `${options.restart ? 'Restart' : 'Stop'} requested${previous ? ` (instead of the pending ${previous})` : ''}: active work finishes or checkpoints first, then the service ${options.restart ? 'restarts' : 'stops'}.`
                 : `${options.restart ? 'Restart' : 'Stop'} requested.`,
         );
         this.settle();
@@ -1252,7 +1275,7 @@ export class Agenda {
         this.waiter?.resolve('cancelled');
         for (const unit of this.units.values()) unit.waiter?.resolve('cancelled');
         this.touch();
-        return this.outcome(action, true, this.shutdown ? (options.restart ? 'Restarting now.' : 'Stopping now.') : `${options.restart ? 'Restart' : 'Stop'} pending: active work finishes first.`);
+        return this.outcome(action, true, this.shutdown ? (options.restart ? 'Restarting now.' : 'Stopping now.') : `${options.restart ? 'Restart' : 'Stop'} pending: active work finishes or checkpoints first.`);
     }
 
     /** Cancels a pending stop/restart that has not taken effect yet (compatibility alias of resume). */
@@ -1261,14 +1284,14 @@ export class Agenda {
         return this.resume();
     }
 
-    /** Lifecycle details for every view: pending intent, its revision and whether work is still draining. */
+    /** Lifecycle details for every view: pending intent, its revision and whether work is still settling. */
     private lifecycleView(): ServiceSnapshot['service']['lifecycle'] {
         const pausing = !this.intent && !this.shutdown && this.pauseActive && this.executing;
         return {
             intent: this.shutdown ? (this.shutdown === 'force' ? 'force-stop' : this.shutdown) : (this.intent ?? (pausing ? 'pause' : undefined)),
             since: this.intent ? this.intentSince : pausing ? this.manualPauseSince : undefined,
             revision: this.intentRevision,
-            draining: (Boolean(this.intent) && this.units.size > 0) || (pausing && this.executing),
+            settling: (Boolean(this.intent) && this.units.size > 0) || (pausing && this.executing),
             shutdown: Boolean(this.shutdown),
             // A pending manual pause is cancelled by Resume; a pause of Health alone resolves by itself.
             cancellable: !this.shutdown && (Boolean(this.intent) || (pausing && Boolean(this.manualPauseSince))),
@@ -1814,7 +1837,7 @@ export class Agenda {
 
     /** Registers an active unit. */
     private registerUnit(input: { readonly id: string; readonly kind: WorkUnit['kind']; readonly label: string; readonly key?: string }): WorkUnit {
-        const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id };
+        const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id, interrupt: new AbortController() };
         this.units.set(unit.id, unit);
         if (unit.key) this.claimedKeys.add(unit.key);
         this.touch();
@@ -1865,7 +1888,7 @@ export class Agenda {
         return false;
     }
 
-    /** Waits until some active unit finishes (draining towards a stop). */
+    /** Waits until some active unit finishes (settling towards a stop). */
     private async untilUnitFinishes(): Promise<void> {
         if (!this.units.size) return;
         await new Promise<void>((resolvePromise) => {
@@ -1921,7 +1944,7 @@ export class Agenda {
         }
         const before = unit.current;
         const outcome = await this.ownership.acquire(unit.owner, label, relative, {
-            signal: this.ownedWork.signal,
+            signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]),
             timeoutMs: CLAIM_WAIT_MS,
             onWait: (conflicts) => {
                 this.updateUnit(unit, { detail: `waits for ${describeConflicts(conflicts)}` });
@@ -2509,8 +2532,8 @@ export class Agenda {
         this.settle();
         if (this.shutdown) return;
         if (this.stopRequested) {
-            // Draining towards stop: nothing new starts; every active task and chat turn settles first.
-            this.waitView = { kind: 'draining', reason: `Stopping: ${this.units.size} active unit${this.units.size === 1 ? '' : 's'} finishing first.`, skippable: false };
+            // Settling towards stop: nothing new starts; every active task and chat turn finishes or checkpoints first.
+            this.waitView = { kind: 'settling', reason: `Stopping: ${this.units.size} active unit${this.units.size === 1 ? '' : 's'} finishing or checkpointing first.`, skippable: false };
             this.touch();
             await this.untilUnitFinishes();
             this.waitView = undefined;
@@ -2552,7 +2575,7 @@ export class Agenda {
         // Chatter's brief is ordinary background work: it never runs while paused.
         await this.refreshReportView();
         await this.refreshLastCommit();
-        if (this.claimable && (await this.reportDue())) this.launch({ label: 'Project brief' }, async () => await this.runReport());
+        if (this.claimable && (await this.reportDue())) this.launch({ label: 'Project brief' }, async (unit) => await this.runReport(unit));
         // While Router cannot run, routing waits (bounded) and its repair or other ready work proceeds.
         const routerProblem = evaluated.some((item) => item.readiness.kind === 'needs-assignment') ? await this.routerProblem() : undefined;
         const now = Date.now();
@@ -3029,7 +3052,9 @@ export class Agenda {
             questionsAllowed: setting<boolean>(this.settings, 'execution.isQuestionsEnabled'),
             timeZone: this.timeZone,
             tasksDirectory: this.tasksDirectory,
-            signal: this.ownedWork.signal,
+            signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]),
+            forceSignal: this.ownedWork.signal,
+            interruptSignal: unit.interrupt.signal,
             env: this.options.env,
             hooks: {
                 emit: (event) => {
@@ -3595,7 +3620,8 @@ export class Agenda {
                 this.resumeAfter.set(item.runId, Date.now() + PERSISTENCE_RETRY_MS);
                 break;
             case 'interrupted':
-                this.log(`"${item.task.title}" was interrupted; its recovery record is preserved.`, 'warning');
+                if (unit.interrupt.signal.aborted && !this.ownedWork.signal.aborted) this.log(`"${item.task.title}" was interrupted by the pause; it keeps its checkpoint and its agent, and continues after resume.`);
+                else this.log(`"${item.task.title}" was interrupted; its recovery record is preserved.`, 'warning');
                 break;
             case 'deferred':
                 break;
@@ -3884,8 +3910,8 @@ export class Agenda {
      */
     private async reportFailed(cause: string, requested: string | undefined): Promise<void> {
         this.reportRequest ??= requested;
-        // A generation interrupted by stopping is no failure: a pending request is written after the restart.
-        if (this.stopRequested || this.ownedWork.signal.aborted) return;
+        // A generation interrupted by stopping or a pause is no failure: a pending request is written after the restart or resume.
+        if (this.stopRequested || this.ownedWork.signal.aborted || this.pauseActive) return;
         const now = Date.now();
         const recheck = nextRecheck(this.reportRecheck, { cause, conditions: this.toolConditions() }, { base: this.reportRecheckBase(), max: RECOVERY_MAX_MS }, now);
         await this.writeReportRecheck(recheck);
@@ -3919,7 +3945,7 @@ export class Agenda {
      * Chatter's paragraph becomes a new timestamped message of root `report.book` with its own scoped commit. Requests
      * made before or during it are covered by this one generation; the previous brief stays readable meanwhile.
      */
-    private async runReport(): Promise<void> {
+    private async runReport(unit: WorkUnit): Promise<void> {
         this.reportGenerating = true;
         const requested = this.reportRequest;
         this.reportRequest = undefined;
@@ -3929,7 +3955,7 @@ export class Agenda {
             const author = await this.catalog.resolve(REPORT_AUTHOR);
             const agent = author.kind === 'agent' ? formatAgentReference(author.definition.name) : REPORT_AUTHOR;
             const composed = await composeProjectBrief(
-                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: this.ownedWork.signal, onActivity: (text) => this.log(text) },
+                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]), onActivity: (text) => this.log(text) },
                 { agent, digest: this.reportDigest(), previous: this.reportView.brief, reportPath: join(this.options.project.root, REPORT_FILE) },
             );
             if (!composed.text) {

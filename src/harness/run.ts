@@ -130,6 +130,7 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
             input: invocation.input,
             timeoutMs: request.timeoutMs,
             signal: request.signal,
+            interruptSignal: request.interruptSignal,
             stallTimeoutMs: request.stallTimeoutMs,
             inputPromptPattern: INPUT_PROMPT_PATTERN,
             onStdoutLine: (line) => {

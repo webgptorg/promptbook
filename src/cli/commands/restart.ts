@@ -16,7 +16,7 @@ function launchChanges(context: CommandContext): string[] {
 }
 
 /**
- * `ptbk restart`: the engine's shared restart — drain like a graceful stop (`stopping` with restart intent), release
+ * `ptbk restart`: the engine's shared restart — settle like a graceful stop (`stopping` with restart intent), release
  * ownership, then exactly one replacement starts with the same project, effective configuration and installation.
  * Newly given flags replace the saved launch overrides of a daemon. Nothing running: starts the daemon. An ordinary
  * interactive terminal then opens the replacement's dashboard.

@@ -1,5 +1,11 @@
 # Unreleased
 
+## Pause: task work stops at its nearest safe point and chats keep working
+
+-   Pausing or stopping the engine now interrupts running task work at the nearest safe point and keeps its checkpoint, instead of waiting for it to finish.
+-   An operation that cannot be interrupted is shown as settling until it reaches its own boundary; nothing new starts meanwhile.
+-   Chats keep answering during a Pause, and stopping from Pause does not wake suspended work.
+
 ## Work: the limit of five things at once is gone
 
 -   Promptbook no longer has a shared limit on tasks and chats running at once. Each agent still works on one started task at a time and can answer any number of chats, so six agents, or more, can work together

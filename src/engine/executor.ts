@@ -139,8 +139,12 @@ export type ExecutionEnvironment = {
     readonly timeZone: string;
     /** Absolute task source directory. */
     readonly tasksDirectory: string;
-    /** Cancellation of owned work. */
+    /** Ends this run's turn at the next opportunity: a force stop of owned work or an accepted task pause. */
     readonly signal: AbortSignal;
+    /** Force stop of owned work (a process that does not exit in time is killed). */
+    readonly forceSignal: AbortSignal;
+    /** Polite interruption by a task pause (never a forced kill; the turn settles at its own pace). */
+    readonly interruptSignal: AbortSignal;
     /** Supervisor services. */
     readonly hooks: ExecutionHooks;
     /** Environment for harnesses and checks. */
@@ -576,7 +580,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         depth: 0,
                         budget,
                         questionsAllowed: environment.questionsAllowed,
-                        signal: environment.signal,
+                        signal: environment.forceSignal,
+                        interruptSignal: environment.interruptSignal,
                         onUserChat: (chat) => {
                             pending.chat = chat;
                         },
@@ -669,7 +674,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         env: acquiredContext?.env ?? environment.env,
                         timeoutMs: TURN_TIMEOUT_MS,
                         stallTimeoutMs: setting<number>(settings, 'execution.stallTimeout'),
-                        signal: environment.signal,
+                        signal: environment.forceSignal,
+                        interruptSignal: environment.interruptSignal,
                         allowCredits: setting<boolean>(settings, 'execution.isCreditFallbackAllowed'),
                         authentication: item.route.inspection.authentication,
                         readableDirectories: agent.name === 'Expert' || agent.chain.includes('Expert') ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
@@ -825,7 +831,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const migrateCommand = setting<string | undefined>(settings, 'execution.migrateCommand');
             if (setting<boolean>(settings, 'execution.isAutoMigrateEnabled') && migrateCommand) {
                 hooks.emit({ type: 'activity', text: `Running migration hook: ${migrateCommand}` });
-                const migration = await runCheck(project.root, migrateCommand, { env: environment.env, signal: environment.signal });
+                const migration = await runCheck(project.root, migrateCommand, { env: environment.env, signal: environment.forceSignal, interruptSignal: environment.interruptSignal });
                 await trace.event('migration-hook', { command: migrateCommand, passed: migration.passed, exitCode: migration.exitCode });
                 if (!migration.passed) {
                     await save({ feedback: `The migration hook \`${migrateCommand}\` failed:\n\n${migration.output}` });
@@ -890,7 +896,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             let result: Awaited<ReturnType<typeof runCheck>>;
             for (let round = 0; ; round++) {
                 const before = await ownedHashes(environment, await changed());
-                result = await runCheck(project.root, check, { env: environment.env, signal: environment.signal });
+                result = await runCheck(project.root, check, { env: environment.env, signal: environment.forceSignal, interruptSignal: environment.interruptSignal });
                 if (environment.signal.aborted) break;
                 const foreign = hooks.foreignChanges?.() ?? [];
                 const names = (path: string): boolean => result.output.includes(path) || (basename(path).length > 3 && result.output.includes(basename(path)));

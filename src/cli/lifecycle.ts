@@ -55,7 +55,7 @@ export async function renderLifecycleOutcome(context: CommandContext, project: P
 
 /**
  * Signal handling of an invocation that owns an engine (foreground start, finite run): the first Ctrl+C/termination
- * request drains gracefully and preserves recovery state; a second Ctrl+C is an explicit force stop (announced, never
+ * request settles gracefully and preserves recovery state; a second Ctrl+C is an explicit force stop (announced, never
  * silent). Returns the removal function.
  *
  * @private CLI lifecycle

@@ -59,7 +59,7 @@ async function main(): Promise<number> {
         launchNonce: launch.launchNonce,
         onEvent: (text, level) => appendServiceLog(eventLog, `${new Date().toISOString()} ${level.toUpperCase()} ${text}\n`),
     });
-    // A catchable OS termination request drains gracefully (the host may still kill the process after its own grace
+    // A catchable OS termination request settles gracefully (the host may still kill the process after its own grace
     // period). It is recorded at once, so the next automatic startup knows the service was neither stopped nor lost.
     const stop = (): void => {
         host.agenda.requestStop({ signal: true });

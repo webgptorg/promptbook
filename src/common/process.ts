@@ -104,8 +104,10 @@ export type RunProcessOptions = {
     readonly input?: string;
     /** Hard timeout; the process tree is terminated when exceeded. */
     readonly timeoutMs?: number;
-    /** Cancellation signal; the process tree is terminated when aborted. */
+    /** Cancellation signal; the process tree is terminated when aborted, forcibly if it does not exit in time. */
     readonly signal?: AbortSignal;
+    /** Requests a polite interruption: the process tree gets a termination request and may settle at its own pace. */
+    readonly interruptSignal?: AbortSignal;
     /** Called for every complete stdout line. */
     readonly onStdoutLine?: (line: string) => void;
     /** Called for every complete stderr line. */
@@ -437,6 +439,14 @@ export async function runProcess(command: string, args: readonly string[], optio
             if (options.signal.aborted) onAbort();
             else options.signal.addEventListener('abort', onAbort, { once: true });
         }
+        const onInterrupt = (): void => {
+            cancelled = true;
+            terminateProcessTree(child);
+        };
+        if (options.interruptSignal) {
+            if (options.interruptSignal.aborted) onInterrupt();
+            else options.interruptSignal.addEventListener('abort', onInterrupt, { once: true });
+        }
         if ((options.stallTimeoutMs ?? 0) > 0 || options.inputPromptPattern) {
             const watchdog = setInterval(
                 () => {
@@ -488,6 +498,7 @@ export async function runProcess(command: string, args: readonly string[], optio
             for (const timer of timers) clearTimeout(timer);
             for (const timer of timers) clearInterval(timer);
             options.signal?.removeEventListener('abort', onAbort);
+            options.interruptSignal?.removeEventListener('abort', onInterrupt);
             stdout.end();
             stderr.end();
             resolvePromise({

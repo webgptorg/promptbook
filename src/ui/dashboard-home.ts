@@ -244,7 +244,7 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
                 .map((action) => `${action.key} ${action.label}`);
             return [
                 `${tone(state)}${why ? style.muted(` ${marks.dot} ${why}`) : ''}`,
-                ...(intent && intent !== 'pause' ? [style.warning(`${intent} pending${snapshot.service.lifecycle?.draining ? ' (current task finishes first)' : ''}`)] : []),
+                ...(intent && intent !== 'pause' ? [style.warning(`${intent} pending${snapshot.service.lifecycle?.settling ? ' (active work is settling)' : ''}`)] : []),
                 ...(snapshot.configuration?.pending ? [style.warning('configuration update pending')] : []),
                 style.muted(keys.join(' · ')),
             ];

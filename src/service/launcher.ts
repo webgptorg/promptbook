@@ -189,7 +189,7 @@ export type StopResult = {
     readonly record?: ProcessRecord;
     /** The owner ended (confirmed by its process and record, not merely a lost endpoint). */
     readonly stopped: boolean;
-    /** The engine's acknowledgement (e.g. `stopping` while the current task drains). */
+    /** The engine's acknowledgement (e.g. `stopping` while active work settles). */
     readonly accepted?: { readonly state?: string; readonly outcome: string };
     readonly message: string;
     /** Force stop could not be confirmed (an owner whose identity could not be verified is never killed). */
@@ -256,7 +256,7 @@ export type RestartResult =
     | { readonly kind: 'unsupported'; readonly previous: ProcessRecord };
 
 /**
- * Restarts the project's running engine through its shared lifecycle: it drains like a graceful stop (with visible
+ * Restarts the project's running engine through its shared lifecycle: it settles like a graceful stop (with visible
  * restart intent), releases ownership and exactly one replacement starts with the same project, saved launch
  * configuration and installation (a daemon's supervisor or the owning foreground invocation). Changed launch overrides
  * of a daemon are saved first; an engine without the restart operation reports `unsupported`.

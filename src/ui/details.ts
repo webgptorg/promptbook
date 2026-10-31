@@ -41,7 +41,7 @@ export function pauseReasonLines(reasons: readonly PauseReasonView[]): string[] 
 }
 
 /**
- * What the current service state means, including a pending intent, whether work is still draining and which pause
+ * What the current service state means, including a pending intent, whether work is still settling and which pause
  * reasons hold it.
  *
  * @private service controls view
@@ -56,13 +56,13 @@ export function lifecycleExplanation(snapshot: ServiceSnapshot): string {
         case 'running':
             return running.length ? 'new tasks start when ready' : 'idle is normal; new tasks start when ready';
         case 'pausing':
-            return health.length ? `${task} finishes first; ${byHealth}` : `${task} finishes first, then no task starts until resumed`;
+            return health.length ? `${task} is settling at its nearest safe point and keeps its checkpoint; ${byHealth}` : `${task} is settling at its nearest safe point and keeps its checkpoint; no task continues until resumed; chats stay available`;
         case 'pause':
-            return health.length ? `${byHealth}; resumes when every reason is cleared` : 'alive and controllable; no task runs or starts';
+            return health.length ? `${byHealth}; resumes when every reason is cleared` : 'alive and controllable; no task runs, continues or starts; chats stay available';
         case 'stopping':
             if (lifecycle?.intent === 'force-stop') return 'force stop: owned work is being interrupted (recoverable)';
             if (lifecycle?.shutdown) return lifecycle.intent === 'restart' ? 'shutting down for a restart (one replacement starts next)' : 'shutting down';
-            return `${task} finishes first, then the service ${lifecycle?.intent === 'restart' ? 'restarts (exactly one replacement)' : 'exits'}`;
+            return `${task} finishes or checkpoints first, then the service ${lifecycle?.intent === 'restart' ? 'restarts (exactly one replacement)' : 'exits'}`;
         case 'stopped':
             return 'no engine is running (an observation, not a live state)';
         case 'finished':
@@ -99,7 +99,7 @@ export function lifecycleActions(snapshot: ServiceSnapshot): LifecycleActionView
         actions.push({ key: 'P', label: 'pause instead', command: 'ptbk pause', action: 'pause', confirm: `Cancel the pending ${lifecycle.intent === 'restart' ? 'restart' : 'stop'} and pause instead?` });
     }
     if (state !== 'stopping' || (lifecycle?.intent === 'restart' && lifecycle.cancellable)) actions.push({ key: 'X', label: state === 'pausing' ? 'stop instead of pause' : 'stop (graceful)', command: 'ptbk stop', action: 'stop' });
-    if (restartable && state !== 'stopping') actions.push({ key: 'R', label: 'restart', command: 'ptbk restart', action: 'restart', confirm: 'Restart the service? The current task finishes first; then exactly one replacement starts with the same configuration.' });
+    if (restartable && state !== 'stopping') actions.push({ key: 'R', label: 'restart', command: 'ptbk restart', action: 'restart', confirm: 'Restart the service? Active work finishes or checkpoints first; then exactly one replacement starts with the same configuration.' });
     if (lifecycle?.intent !== 'force-stop') actions.push({ key: 'F', label: 'force stop', command: 'ptbk stop --force', action: 'force-stop', confirm: 'Force stop now? Owned work is interrupted immediately (recoverable, never marked done).' });
     return actions;
 }

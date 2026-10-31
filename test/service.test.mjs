@@ -320,7 +320,7 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     }, { message: 'the slow task to execute' });
     const harness = await waitFor(async () => JSON.parse(await readFile(join(first.project, '.ptbk', 'service', 'owned.json'), 'utf8').catch(() => '{"processes":[]}')).processes.find((owned) => /codex/.test(owned.label)), { message: 'the owned harness' });
     const paused = await status(second.project, secondEnv);
-    assert.ok(['pausing', 'pause'].includes(paused.service.state), 'a paused (or still draining) engine');
+    assert.ok(['pausing', 'pause'].includes(paused.service.state), 'a paused (or still settling) engine');
     const unrelated = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
     t.after(() => unrelated.kill('SIGKILL'));
 

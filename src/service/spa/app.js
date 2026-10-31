@@ -174,7 +174,7 @@
         if (stateName !== 'stopping' || (lifecycle.intent === 'restart' && lifecycle.cancellable)) {
             actions.push({ action: 'stop', label: stateName === 'pausing' ? 'Stop instead' : 'Stop (graceful)', confirm: 'Stop the service after active work settles? Every viewer shares this engine; closing this page does not stop it.' });
         }
-        if (restartable && stateName !== 'stopping') actions.push({ action: 'restart', label: 'Restart', confirm: 'Restart the service? Active work finishes first; then exactly one replacement starts with the same configuration.' });
+        if (restartable && stateName !== 'stopping') actions.push({ action: 'restart', label: 'Restart', confirm: 'Restart the service? Active work finishes or checkpoints first; then exactly one replacement starts with the same configuration.' });
         if (lifecycle.intent !== 'force-stop') actions.push({ action: 'force-stop', label: 'Force stop', danger: true, confirm: 'Force stop now? Owned work is interrupted immediately (recoverable, never marked done).' });
         return actions;
     }
@@ -203,13 +203,13 @@
             case 'running':
                 return snapshot.current ? 'New tasks start when ready.' : 'Idle is normal; new tasks start when ready.';
             case 'pausing':
-                return health.length ? `${task} finishes first. ${byHealth}.` : `${task} finishes first; then no task starts until you resume.`;
+                return health.length ? `${task} is settling at its nearest safe point and keeps its checkpoint. ${byHealth}.` : `${task} is settling at its nearest safe point and keeps its checkpoint; no task continues until you resume. Chats stay available.`;
             case 'pause':
-                return health.length ? `${byHealth}; scheduling resumes once every reason is gone.` : 'Alive and controllable; no task runs or starts.';
+                return health.length ? `${byHealth}; scheduling resumes once every reason is gone.` : 'Alive and controllable; no task runs, continues or starts. Chats stay available.';
             case 'stopping':
                 if (lifecycle.intent === 'force-stop') return 'Force stop: owned work is being interrupted (recoverable).';
                 if (lifecycle.shutdown) return lifecycle.intent === 'restart' ? 'Shutting down for a restart; one replacement starts next.' : 'Shutting down.';
-                return `${task} finishes first; then the service ${lifecycle.intent === 'restart' ? 'restarts (exactly one replacement)' : 'exits'}.`;
+                return `${task} finishes or checkpoints first; then the service ${lifecycle.intent === 'restart' ? 'restarts (exactly one replacement)' : 'exits'}.`;
             case 'stopped':
                 return 'No engine is running (an observation, not a live state). Start it with ptbk start.';
             default:

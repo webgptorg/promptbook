@@ -156,7 +156,7 @@ export type CheckRun = {
  *
  * @private project checks
  */
-export async function runCheck(cwd: string, command: string, options: { env?: NodeJS.ProcessEnv; signal?: AbortSignal; onLine?: (line: string) => void; timeoutMs?: number } = {}): Promise<CheckRun> {
+export async function runCheck(cwd: string, command: string, options: { env?: NodeJS.ProcessEnv; signal?: AbortSignal; interruptSignal?: AbortSignal; onLine?: (line: string) => void; timeoutMs?: number } = {}): Promise<CheckRun> {
     const shell = process.platform === 'win32' ? { file: process.env.ComSpec || 'cmd.exe', args: ['/d', '/s', '/c', command] } : { file: '/bin/sh', args: ['-c', command] };
     const env = { ...(options.env ?? process.env), CI: options.env?.CI ?? process.env.CI ?? '1', FORCE_COLOR: '0' };
     const result = await runProcess(shell.file, shell.args, {
@@ -164,6 +164,7 @@ export async function runCheck(cwd: string, command: string, options: { env?: No
         env,
         timeoutMs: options.timeoutMs ?? CHECK_TIMEOUT_MS,
         signal: options.signal,
+        interruptSignal: options.interruptSignal,
         onStdoutLine: options.onLine,
         onStderrLine: options.onLine,
         maxOutputBytes: 2 * 1024 * 1024,

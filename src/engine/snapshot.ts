@@ -137,7 +137,7 @@ export type WaitView = {
      * `tools`: the running engine waits for a usable browser/harness (not a lifecycle state, technical pause or stop).
      * `agent`: ready tasks wait because each of their agents already holds one started unfinished task.
      */
-    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools' | 'files' | 'agent' | 'draining';
+    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools' | 'files' | 'agent' | 'settling';
     readonly reason: string;
     /** Next action/opportunity time (ISO). */
     readonly until?: string;
@@ -316,7 +316,7 @@ export type LifecycleView = {
     /** Decision revision; a stop-to-pause confirmation must name the revision it was made against. */
     readonly revision: number;
     /** The current task is still settling before the intent applies. */
-    readonly draining: boolean;
+    readonly settling: boolean;
     /** Irreversible shutdown has begun (cancellation is too late). */
     readonly shutdown: boolean;
     /** The pending intent can still be cancelled (resume). */
@@ -477,7 +477,7 @@ export type BrowserDetailView = {
     readonly savedProfile?: string;
     /** A changed setting applies at the next task boundary. */
     readonly pending?: string;
-    /** The current task keeps its originally acquired configuration (draining/current-work-only). */
+    /** The current task keeps its originally acquired configuration (while it settles/current work only). */
     readonly retained?: boolean;
     /** A task holds this browser now. */
     readonly inUse?: boolean;

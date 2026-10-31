@@ -411,7 +411,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             const body = [
                 style.bold('Lifecycle'),
                 `${style.muted('State     ')} ${service.state === 'running' ? style.success(service.state) : style.warning(service.state)} — ${lifecycleExplanation(snapshot)}`,
-                ...(service.lifecycle?.intent ? [`${style.muted('Pending   ')} ${service.lifecycle.intent}${service.lifecycle.draining ? ' (active work finishes first)' : ''}${service.lifecycle.since ? style.muted(` · since ${time(service.lifecycle.since)}`) : ''}${service.lifecycle.cancellable ? style.muted(' · U cancels') : ''}`] : []),
+                ...(service.lifecycle?.intent ? [`${style.muted('Pending   ')} ${service.lifecycle.intent}${service.lifecycle.settling ? ' (active work is settling)' : ''}${service.lifecycle.since ? style.muted(` · since ${time(service.lifecycle.since)}`) : ''}${service.lifecycle.cancellable ? style.muted(' · U cancels') : ''}`] : []),
                 `${style.muted('Pause     ')} ${reasons.length ? `${reasons.length} active reason${reasons.length === 1 ? '' : 's'}` : style.muted('no pause reason; background work may start')}`,
                 ...pauseReasonLines(reasons).map((line, index) => `  ${reasons[index]!.kind === 'manual' ? style.warning(marks.bullet) : reasons[index]!.severity === 'hard' ? style.error(marks.bullet) : style.warning(marks.bullet)} ${line}${style.muted(` · since ${time(reasons[index]!.since)}`)}`),
                 ...(health.length ? [style.muted('  Resume removes only the manual reason; scheduling continues once every reason is gone. Health reasons are handled on the Health page.')] : []),

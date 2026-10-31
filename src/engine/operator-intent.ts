@@ -23,7 +23,7 @@ export type ManualPauseCause = 'operator' | 'start-paused' | 'inactive' | 'unexp
  */
 export type OperatorIntent = {
     readonly version: 1;
-    /** The accepted manual pause (including one still draining), since when and why. */
+    /** The accepted manual pause (including one still settling), since when and why. */
     readonly manualPause?: { readonly since: string; readonly cause?: ManualPauseCause };
     /**
      * The last owner ended through a catchable host termination request (OS shutdown, logout) while it was neither
@@ -87,7 +87,7 @@ export function installPausedStart(project: Project, cause: Exclude<ManualPauseC
 
 /**
  * Records that the owner received a catchable host termination request (synchronously, because the host may kill the
- * process before its drain completes). It keeps the manual pause, which still restores paused.
+ * process before it has settled). It keeps the manual pause, which still restores paused.
  *
  * @private operator intent
  */

@@ -173,6 +173,11 @@ async function callTool(name, toolArguments) {
 
 async function main() {
     const prompt = readFileSync(0, 'utf8');
+    // $FAKE_CODEX_IGNORE_TERM_FILE: a turn of SLOW_WORK that cannot be interrupted; it notes in that file having run to its end.
+    if (process.env.FAKE_CODEX_IGNORE_TERM_FILE && prompt.includes('SLOW_WORK')) {
+        process.on('SIGTERM', () => undefined);
+        process.on('exit', () => appendFileSync(process.env.FAKE_CODEX_IGNORE_TERM_FILE, 'settled\n'));
+    }
     // Preparatory calls of initialization (not project turns, never logged): the real functional check answers PONG
     // ($FAKE_CODEX_CHECK_FAIL fails it like a broken sandbox) and project naming answers a fixture name derived from the
     // brief's meaning marker NAME_ME:<title> ($FAKE_CODEX_NAME_FAIL fails it).

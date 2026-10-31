@@ -20,7 +20,7 @@ import { readLaunchMetadata, restoreDiscoveryEnvironment } from './records.js';
 export type GlobalAction = 'start' | 'start-paused' | 'stop' | 'force-stop' | 'pause' | 'resume' | 'remove';
 
 /**
- * Per-project outcome of a global action: `completed`, `accepted` (pending: e.g. draining), `unchanged` (already in the
+ * Per-project outcome of a global action: `completed`, `accepted` (pending: e.g. settling), `unchanged` (already in the
  * requested state), `needs-confirmation` (a conflicting pending intent), `not-applicable`, `unconfirmed` or `failed`.
  *
  * @private global controls

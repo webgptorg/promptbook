@@ -165,6 +165,8 @@ export type HarnessRunRequest = {
     readonly timeoutMs?: number;
     /** Cancellation. */
     readonly signal?: AbortSignal;
+    /** Requests a polite interruption of the turn, never a forced kill. */
+    readonly interruptSignal?: AbortSignal;
     /** Explicit paid-credit fallback authorization. */
     readonly allowCredits: boolean;
     /** Authentication observed during inspection. */

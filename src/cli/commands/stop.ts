@@ -10,7 +10,7 @@ import { liveSnapshot, renderServiceResult, stoppedSnapshot } from '../service-v
  * `ptbk stop`: the engine's shared stop operation. Graceful by default (`stopping`: the current task settles, then
  * orderly shutdown and owned cleanup); `--force`/`-F` immediately ends the engine and every execution process it owns,
  * also when the engine does not answer (after verifying its identity). Completion is reported only after the owner
- * ended; a still-draining service is reported as pending and an unverifiable owner as unconfirmed.
+ * ended; a still-settling service is reported as pending and an unverifiable owner as unconfirmed.
  *
  * @private command
  */

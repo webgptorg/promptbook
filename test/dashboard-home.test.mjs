@@ -24,7 +24,7 @@ function snapshot(change = {}) {
         observedAt: new Date().toISOString(),
         project: { name: 'birds', path: `/home/${'very-long-directory/'.repeat(8)}birds` },
         engine: { version: '0.119.0-33', installation: '/usr/lib/node_modules/ptbk', scope: 'global' },
-        service: { mode: 'daemon', state: 'running', pid: 4242, instanceId: 'abcdef123456', startedAt: new Date().toISOString(), persistent: true, commitMode: 'commit', stopRequested: false, lifecycle: { revision: 1, draining: false, shutdown: false, cancellable: false, restartable: true }, pauseReasons: [] },
+        service: { mode: 'daemon', state: 'running', pid: 4242, instanceId: 'abcdef123456', startedAt: new Date().toISOString(), persistent: true, commitMode: 'commit', stopRequested: false, lifecycle: { revision: 1, settling: false, shutdown: false, cancellable: false, restartable: true }, pauseReasons: [] },
         phase: 'executing',
         current: { taskRef: 'tasks/x.book', taskTitle: `Write ${'a very long task title '.repeat(10)}`, kind: 'task', agent: { name: 'Developer', key: 'developer', activity: 'working', face: '', gesture: '', hue: 0 }, harness: 'openai-codex', harnessName: 'OpenAI Codex', modelSource: 'default', phase: 'executing', attempt: 1, attemptBudget: 3, startedAt: new Date().toISOString() },
         health: { status: 'ok', summary: 'System OK', intervalMs: 30000, limits: { disk: 500, memory: 512, source: 'engine defaults' }, disk: { freeMiB: 20000, paths: [] }, memory: { availableMiB: 8000 }, cpu: { cores: 8, load1: 1, state: 'normal' }, network: { state: 'reachable' }, incidents: [], remediation: { cache: { path: '.ptbk/tmp' }, swap: { supported: false, note: '' } } },

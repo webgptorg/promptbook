@@ -57,6 +57,8 @@ export type TeamContext = {
     readonly questionsAllowed: boolean;
     /** Cancellation. */
     readonly signal: AbortSignal;
+    /** Requests a polite interruption of a consultation (a task pause), never a forced kill. */
+    readonly interruptSignal?: AbortSignal;
     /** Records the chat now waiting for the user (the task checkpoints after its turn). */
     readonly onUserChat: (chat: { readonly chat: string; readonly awaited: number }) => void;
     /** Activity reporting. */
@@ -141,6 +143,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                 baseUrl: route.selection.baseUrl,
                 timeoutMs: setting<number>(context.settings, 'team.timeout'),
                 signal: controller.signal,
+                interruptSignal: context.interruptSignal,
                 allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
                 authentication: instanceInspection?.authentication ?? 'unknown',
                 readableDirectories: advisor.name === 'Expert' ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],

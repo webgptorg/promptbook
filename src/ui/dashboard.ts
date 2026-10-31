@@ -92,7 +92,7 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
         if (next.connection.local.url) lines.push(`Local dashboard: ${next.connection.local.url} (same computer only)`);
     } else {
         if (previous.service.state !== next.service.state || previous.service.lifecycle?.intent !== next.service.lifecycle?.intent) {
-            lines.push(`Service ${next.service.state}${next.service.lifecycle?.intent ? ` (${next.service.lifecycle.intent}${next.service.lifecycle.draining ? ' after the current task' : ''})` : ''}`);
+            lines.push(`Service ${next.service.state}${next.service.lifecycle?.intent ? ` (${next.service.lifecycle.intent}${next.service.lifecycle.settling ? ' while active work settles' : ''})` : ''}`);
         }
         const previousBrowser = previous.browser;
         const browser = next.browser;
