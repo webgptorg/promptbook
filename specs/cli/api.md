@@ -10,7 +10,7 @@ Start enables loopback HTTP in either process mode on a free or explicitly selec
 
 ## Observed state and shared operations
 
-Expose project identity, actual engine version, instance/freshness, four live [service states](service-lifecycle.md), pending intent, concurrent task/agent/phase collection, selected detail, shared capacity/queue, results, waits/errors, links, configuration revision/effective sources and commit mode. Resource waits and failed synchronization are not new lifecycle states. An unreachable engine is not proof of a completed stop.
+Expose project identity, actual engine version, instance/freshness, four live [service states](service-lifecycle.md), pending intent, concurrent task/agent/phase collection, selected detail, actual resource waits/queue, results, waits/errors, links, configuration revision/effective sources and commit mode. Resource waits and failed synchronization are not new lifecycle states. An unreachable engine is not proof of a completed stop.
 
 Execution data includes actual named tool, harness variant, model/thinking level and attempt/consultation attribution, with unknown/unsupported distinctions. Tool inventory includes canonical saved records, enabled/usability/in-use state and retained old uses distinct from new defaults. Authorized browser diagnostics identify each named instance's profile source/resolved path, mode, ownership/health and redacted recovery outcome. Ordinary state never exposes cookies, profile contents, resolved API keys or local client credentials.
 
@@ -26,7 +26,7 @@ Credential references are readable, actual credentials are not. Where adding a s
 
 ## Report and project inspection
 
-Expose the shared saved [brief](project-report.md), original time and actual availability/persistence/generation state, without calling Chatter on read. Explicit Refresh coalesces scheduled work subject to pause/capacity. Discuss creates a new normal chat seeded with the displayed snapshot/provenance and ordinary first-User-message MODEL routing.
+Expose the shared saved [brief](project-report.md), original time and actual availability/persistence/generation state, without calling Chatter on read. Explicit Refresh coalesces scheduled work subject to task pause and actual resource availability. Discuss creates a new normal chat seeded with the displayed snapshot/provenance and ordinary first-User-message MODEL routing.
 
 Expose bounded read-only Action log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport.
 
@@ -48,7 +48,7 @@ Use revision/idempotency checks against stale/reconnecting duplicate writes. Exp
 
 Task/chat creation follows [generated names](generated-names.md): opening kind/name, readable creation date/time and normalized collision prevention. Return the final name and actual reference/path rather than asking clients to append timestamps. Retry reconciles the prepared entity instead of creating another. Existing undated names remain unchanged by append/read/recovery. Task trace paths come from [source-filename mapping](traces.md), not client guesses from names.
 
-Expose evolving titles separately from stable opening names, multiple declared participants, progress/final phases and elapsed Thinking data. Accept follow-up input during work with ordered replay/live updates. Expose live task cards, named source links, once-only outcomes and question/mention/main-agent routing through [chat/task operations](chat-tasks.md). A question in chat and task detail shares one answer/state.
+Expose evolving titles separately from stable opening names, multiple declared participants, progress/final phases and elapsed Thinking data. Accept follow-up input during work with ordered replay/live updates. Expose live task cards, named source links, once-only outcomes and question/active-invitation/main-agent routing through [chat/task operations](chat-tasks.md). A question in chat and task detail shares one answer/state.
 
 ## Independence and security
 
@@ -65,3 +65,9 @@ Client failure cannot stop a daemon, reset state or duplicate tasks. The lightwe
 Book-source inspection/editing is available through the shared operations, including source revision checks, nonblocking content warnings, scoped commits and ordinary repair task context. Chat and required first-message routing remain available alongside queued work and during scheduling pause; creating a task then saves it pending. Source edits cannot change engine-owned Expert definitions or overwrite another operation's changes.
 
 Protected local owner flows share [credential import](wallet-import.md) and [word replacement/reset](wallet-recovery.md), including selection/revision safety and explicit destructive confirmation. Raw exports and generated words never enter ordinary responses/agent endpoints; existing local owner-only word-presentation rules remain. Failed audits retry persistence, not completed import/rotation/reset.
+
+## Sessions and contextual work direction
+
+Expose the shared [session inventory/detail](harness-sessions.md), including idle sessions, technical identity, actual agent/task/chat/occurrence context, capabilities, model/account/billing labels, usage freshness, control leases and native-attachment availability. Entry uses the same decline-default watch/control choices and explicit shared-control warning as the dashboard; API transport cannot bypass read-only/exclusive gates or stale-state checks. Detach and termination are separate outcomes.
+
+Expose accepted task changes/reopening/cancellation/retirement and durable per-session Saved/Delivered/Applied receipts through shared [task-control](task-control.md) operations. Reads never issue steering or invitations. Pause blocks task continuation including queued steering, while chat remains available; only supported interrupt/cancel reconciliation may occur without task execution. No per-agent/task/session lifecycle toggle is added by these operations.

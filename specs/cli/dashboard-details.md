@@ -8,13 +8,15 @@ Pages may contain scrollable lists/logs/details. Preserve a concise fixed page i
 
 All page actions call the same engine/domain operations as CLI/API. A page is a UI/controller for its domain, never the place where scheduling, health monitoring, tool recovery or persistence business logic is implemented.
 
-## Execution page
+## Harnesses page
 
-List concurrent active work and let the operator select a task/run without pretending there is only one project-wide current task. For the selected task/run, show the agent, named tool instance, harness variant, effective model identifier/name and thinking level together. These are separate concepts. Include applicable overrides, phase and attempt/consultation attribution. When several harnesses/accounts or models are involved, show actual contexts rather than one misleading project-wide provider label.
+**Harnesses replaces the home Current work tile/log and its Execution page.** List all open harness sessions, including idle ones, with responsible agent, task/occurrence/chat links, actual state/freshness and available statistics. Access retained ended-session evidence separately without presenting it as live. Selecting a row opens the common detail for that same session, independent of native attachment support. Preserve selection through refresh/resize/return; several sessions for one task remain distinct.
 
-Use execution metadata, not merely saved defaults. Preserve provider-native thinking terminology where returned. Distinguish unknown/not reported, unresolved automatic choice and unsupported/not applicable. Refresh with activity; label last-run data as historical and do not invent inference while idle. Raw/API/detail snapshots retain the same information.
+Show actual named tool, harness/version, nonsecret account/billing context, model/thinking level, phase/wait, attempts/turns, output/usage, control mode and outstanding Saved/Delivered/Applied task-change receipts. Unknown, unreported and unsupported values are explicit. Native provider terminology and actual context take precedence over defaults; no misleading single provider label for the whole project. The home tile contains a compact session summary; technical internals live here.
 
-The home Current work tile uses only a bounded agent/task/phase/wait summary and a clear attention state when blocked. Execution/provider internals live here.
+Native entry follows [session control](harness-sessions.md#deliberate-entry-and-control-modes): Do not enter (default), Watch only, Control; then exclusive/shared selection, with another shared-control warning. No automatic mutation merely from opening detail. Native attachment uses the original client on the same live session; unavailable capability leaves the common view usable. The terminal hands off the whole screen and returns to this same selected detail after safe detach, exit or failure, restoring terminal state. Use the adapter's verified return method rather than treating Escape or `/exit` as universally safe.
+
+There are no new separate Pause/Stop lifecycle buttons per agent, task or session. Contextual task instructions remain available through chat; whole-engine controls remain on System. Exclusive ownership gates only the selected session's automatic inputs, not other work or the global lifecycle.
 
 ## Tools page and management
 

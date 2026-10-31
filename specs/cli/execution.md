@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-One project engine executes eligible background tasks and conversational work concurrently under the shared [capacity and per-file ownership contract](concurrency.md). `execution.maxConcurrentWork` defaults to five active units in total. Assignment, teaching, bootstrap, repair and goal-enquiry work use ordinary capacity, not an extra unbounded worker. Chat and its necessary routing/consultations remain eligible during scheduling pause. All work uses one working tree/current branch; dashboards request controls rather than executing their own agenda.
+One project engine executes eligible background tasks and conversational work concurrently under the shared [resource and per-file ownership contract](concurrency.md), without a fixed combined count limit. Each agent holds one unfinished started task; assignment, teaching, bootstrap, repair and goal-enquiry use normal ownership and real resources, not a competing scheduler. Chat and its necessary routing/consultations remain eligible during scheduling pause. All work uses one working tree/current branch; dashboards request controls rather than executing their own agenda.
 
 [System tasks](system-tasks.md) use these same scheduling/lifecycle/recovery mechanisms with their applicable definition, executor and conditions. The source/agent/harness/filename details below describe ordinary source-backed work; they do not require a deterministic system task to invent a Book, agent, MODEL or trace basename. The actual task's meaningful checks and resulting scoped audit still apply.
 
@@ -16,10 +16,14 @@ A task may change project materials, agents and other tasks. Accepted changes, c
 
 Failed real checks cause bounded repair/recheck, not false completion. Persistence retries resume the right phase; failed push never repeats accepted work/effects. Human-waiting/recovery tasks remain unfinished with evidence preserved. Problems use the shared [automatic repair](../concepts/automatic-repair.md) and ordinary Fixer, not another worker or communication channel.
 
-After completion, claim further work only if lifecycle still permits it. Pausing/stopping drain or checkpoint current work without starting follow-ups. Cancelling/replacing pending intent does not restart the task. Force stop interrupts owned execution without false completion and retains available recovery evidence. See [service lifecycle](service-lifecycle.md).
+After completion, claim further work only if lifecycle still permits it. Pause requests supported interruption/checkpoint of active task sessions; Stop finishes/checkpoints owned work and shuts down. Neither starts follow-ups or task continuations after acceptance. Cancelling/replacing pending intent does not restart the task. Force stop interrupts owned execution without false completion and retains available recovery evidence. See [service lifecycle](service-lifecycle.md).
 
-Checkpoint a blocked task and release safe resources/capacity so independent work can proceed; retain any still-required file ownership visibly. Never mix unresolved edits into another result. A human wait is not permission to discard work. Start keeps supervising empty queues and recoverable/resource waits. Shared unsafe ownership blocks affected work, not automatically the whole engine; a network synchronization failure alone does not. File-lock deadlocks are explicitly [known and deferred](known-limitations.md).
+Checkpoint a blocked task and release safe resources so independent work can proceed; retain any still-required file ownership visibly. Never mix unresolved edits into another result. A human wait is not permission to discard work. Start keeps supervising empty queues and recoverable/resource waits. Shared unsafe ownership blocks affected work, not automatically the whole engine; a network synchronization failure alone does not. File-lock deadlocks are explicitly [known and deferred](known-limitations.md).
 
 See [checks](checks.md), [Git persistence](git-persistence.md), [Git synchronization](git-synchronization.md), [recovery](recovery.md), [traces](traces.md) and [task origins](task-origins.md).
 
 External mutations additionally produce durable [action records](action-log.md) under `actions/<task-file-basename>/`, independent of trace inclusion and final task success. Save/commit performed effects promptly and reconcile uncertain outcomes before retry; reads/downloads create no actions.
+
+## Session context and changing instructions
+
+Work uses the existing adapter's [session lifecycle](harness-sessions.md). One task can have several attributed sessions and turns, each bound to actual account/model/ownership. A session is not a task, process or single response. Before an effect and final acceptance, reconcile current source and outstanding [task-control](task-control.md) amendments. Saving a change is not live delivery; receipt confirmation, affected checks and lifecycle govern continuation. A late old-revision result cannot bypass a newer accepted instruction.

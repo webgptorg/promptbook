@@ -15,3 +15,5 @@ Evidence storage is deliberately **filename-based**, independently of logical id
 Engine-defined [system tasks](system-tasks.md) need not have a project source or Book name. Their definition/run observation shares the task contract without inventing source filenames or changing this logical identity rule for real Books. Concrete transport identifiers remain a joint App/engine design question.
 
 Legacy `TASK ID` declarations and Markdown `ptbk-task-id` comments may be read as historical metadata during compatibility/migration, but are not authoritative and are never newly generated. Read-only discovery does not mutate sources. See [traces](traces.md), [migration](migration.md) and [Git persistence](git-persistence.md).
+
+Continuation, correction or amended instructions for the same work retains this task identity even after completion. Append TASK REOPEN/TASK CHANGE with provenance; preserve earlier results. Fundamentally new work gets a new linked task under [task control](task-control.md). Several technical harness-session handles for one task do not create several task identities.

@@ -37,6 +37,6 @@ Do not reopen the latest Chatter thread, copy the whole report history or append
 
 ## Acceptance outcomes
 
-Generate with zero viewers, then open several dashboards/status: all read the same last complete parsed message without generation. Append on cadence/event/explicit refresh and update all clients; preserve earlier messages and scoped commits. A partial append cannot hide the last good brief. Respect pause/capacity and show missing resources honestly.
+Generate with zero viewers, then open several dashboards/status: all read the same last complete parsed message without generation. Append on cadence/event/explicit refresh and update all clients; preserve earlier messages and scoped commits. A partial append cannot hide the last good brief. Respect task pause and actual resource availability and show missing resources honestly.
 
 Discuss an old displayed brief, then generate another: the new normal chat retains the exact earlier Chatter snapshot. Verify learning/customized content and a very long report Book through the shared viewer/editor core.

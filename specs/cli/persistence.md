@@ -10,13 +10,13 @@ Daemon mode is persistent by default. Separate **service availability** from **a
 | --- | --- |
 | Running, no manual pause/stop | Restore service; eligible work may continue after readiness, current Health and safe reconciliation. |
 | Health-only pause | Restore without a manual reason; recheck Health. Work may resume if cleared, otherwise pause for current Health. |
-| Manual pause/draining, with or without Health | Start directly paused, with manual intent active before any task claim. |
+| Manual pause/pausing, with or without Health | Start directly paused, with manual intent active before any task claim. |
 | Stopped, force-stopped, panic or pending shutdown | Start directly paused for inspection/control, never automatically resume the agenda. |
 | Unexpected disappearance or ambiguous external kill | Do not infer work authority from an old running record; any restored service is paused. |
 
 All inactive outcomes can restore as the same paused service; preserving whether it was stopped versus force-stopped is unnecessary. Dashboard/API/local controls and explicit chat remain available, but no queued bootstrap, Router assignment, Fixer, Teacher, discovery, report or other background task starts. This adds no remote transport or weaker API security.
 
-Persist accepted manual pause/resume changes so recovery retains the latest operator intent rather than only the aggregate observed state. Reboot during a manual pause's drain does not erase that intent. Reconcile interrupted work safely without treating reboot as new execution authorization.
+Persist accepted manual pause/resume changes so recovery retains the latest operator intent rather than only the aggregate observed state. Reboot during a manual pause's interruption/checkpoint transition does not erase that intent. Reconcile interrupted work safely without treating reboot as new execution authorization.
 
 **Health pause is independent.** Re-evaluate current conditions through the [Health sub-engine](health-sub-engine.md) before background claims. A historical Health-only pause does not become manual pause, and Health may clear its own reason automatically after recovery. In a combined manual + Health pause, clearing Health leaves the restored manual reason and requires manual Resume.
 
@@ -45,3 +45,7 @@ See [process modes](process-modes.md), [updates](updates.md) and [recovery](reco
 On Linux/macOS/Windows reboot a mixed persistent registry: previously running/Health-only services may work after current checks; manual/combined pause, stop, force stop, panic and ambiguous loss restore paused before even one background claim. Fifty stopped prepared projects become inspectable without executing tasks. Explicit Resume updates future intent.
 
 Health-only conditions are re-evaluated; combined/manual pause stays paused. Stop/panic prevents immediate supervisor replacement. Unexpected worker exit never automatically resumes work. Removed entries, no-persist and foreground opt-outs do not acquire persistent daemons. Preserve pinned installation/environment, data and unattended host-protected Wallet unlock.
+
+## Restored sessions do not independently authorize work
+
+An open/reconnectable harness session is retained execution context, not permission to continue. Before any restored task input, recover current Book amendments, occurrence/reopen state, agent reservations, Saved/Delivered/Applied receipts and control leases under [recovery](recovery.md). Restored manual/combined/inactive outcomes do not send queued automatic inputs; explicit chats remain separate and available. A previous human controller must be verified/reconciled, not silently replaced or assumed live. Native client loss and OS restart cannot duplicate execution, lose a saved amendment or switch accounts/payment paths.

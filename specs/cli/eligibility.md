@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md)
 
-A task is eligible for its own execution only when its definition is valid, it is unfinished and enabled, required predecessors are complete, its not-before and other declared conditions are satisfied, its executor is usable and shared [capacity/ownership](concurrency.md) permits execution. Source-backed tasks additionally require usable agent routing; deterministic [system tasks](system-tasks.md) need neither a fictitious Book nor Router/MODEL. Placeholders and unsupported control syntax cannot become ready work.
+A task is eligible for its own execution only when its definition is valid, it is unfinished and enabled, required predecessors are complete, its not-before and other declared conditions are satisfied, its executor is usable and shared [resource/ownership rules](concurrency.md) permits execution. Source-backed tasks additionally require usable agent routing; deterministic [system tasks](system-tasks.md) need neither a fictitious Book nor Router/MODEL. Placeholders and unsupported control syntax cannot become ready work.
 
 Select higher priorities first, with stable source/reference order for ties. A future high-priority task must not block an eligible lower-priority task. Numeric and natural-language [TASK PRIORITY](../book-language/commitments/task-priority.md) values share an understandable ordering; unresolved interpretation is visible rather than guessed differently by each interface.
 
@@ -13,3 +13,5 @@ List, dry-run, terminal, dashboard, API and actual execution must agree on readi
 See [task relationships](task-relationships.md), [not-before](not-before.md), [recurrence](recurrence.md) and [goal discovery](goal-discovery.md).
 
 Dashboard smart sorting is a presentation of the complete inventory, not another execution order or a reason to discard old/future tasks. See [task views](task-views.md).
+
+A one-off task with a later valid TASK REOPEN is unfinished again despite historical DONE stamps; an unprocessed older DONE cannot hide it. `cancelled`, `failed`, `not-ready` and `retired` remain blockers under their source semantics. Revalidate dependent readiness after reopening without undoing already performed dependent work. Recurring completion/reopening remains occurrence-scoped. Restore the agent's reservation before a reopened task can claim work; no fixed global five-work count gates eligibility.

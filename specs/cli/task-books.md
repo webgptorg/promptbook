@@ -27,3 +27,9 @@ See [task identity](task-identity.md), [relationships](task-relationships.md), [
 ## Purpose and supporting work
 
 The author classifies new work as CONTENT or SYSTEM where context supports it, or leaves it undefined. Router and the executing agent may refine it. Append changed TASK PURPOSE commitments, preserving earlier values in the Book and using the last valid value; this differs from MODEL's in-place refinement contract. A discovered technical prerequisite normally becomes a separate linked system-purpose task, preserving the original content goal. Follow [contextual purpose knowledge](../concepts/minimal-interruption/work-purpose.md) rather than classify by keywords or executor alone.
+
+## Evolving the same task
+
+Append [TASK CHANGE](../book-language/commitments/task-change.md) and typed state/schedule changes chronologically, retaining original task commitments, prior results and source-chat provenance. For the same kind of work after completion, append [TASK REOPEN](../book-language/commitments/task-reopen.md); retain identity and old DONE/result commits. A fundamentally new kind of work creates a linked new task. Cancellation/retirement preserves the Book; physical deletion requires its own explicit intent.
+
+The engine coordinates source revisions and live [task control](task-control.md), including receipt reconciliation in every affected [harness session](harness-sessions.md). A source edit alone does not update a running worker. Reconstruct the current state from chronological task events; no obsolete DONE or completion race may ignore a later accepted amendment.

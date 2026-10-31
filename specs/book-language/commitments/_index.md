@@ -66,3 +66,8 @@ Exactly one of these starts a Book. Its content is the entity's name; subsequent
 ## Historical syntax
 
 [Former ENTITY declaration](entity.md) documents conversion of existing sources only. It is not a canonical commitment or an alternative to the opening AGENT, TASK or CHAT.
+
+## Task amendments and reopening
+
+- [TASK CHANGE](task-change.md): Chronological amendment, scope and optional source chat.
+- [TASK REOPEN](task-reopen.md): Continue the same work while retaining earlier completion.

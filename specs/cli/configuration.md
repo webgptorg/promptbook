@@ -24,7 +24,9 @@ Recovery may retain a particular active use's effective settings without restori
 
 ## Concurrent work
 
-`execution.maxConcurrentWork` is a positive integer, default **5**, shared by active background tasks and chat work together. It is not a per-kind limit; the independent one-started-unfinished-task-per-agent reservation in [concurrency](concurrency.md#one-unfinished-started-task-per-agent) also applies, including checkpointed waits. Chat can still respond for that agent. Refresh it live: a lower value drains excess existing work without termination; a higher value opens capacity. Idle chats, viewers and checkpointed waits do not consume active slots. File conflicts and task dependencies still block affected work even when slots are free. See [concurrency](concurrency.md).
+There is no shared fixed or configurable task/chat work-count limit. One started unfinished task per agent, real host/provider resources, task conditions and per-file ownership follow [concurrency](concurrency.md). Several agents may each run a task while serving multiple chats. Do not emit a five-slot default in generated configuration or help.
+
+The former `execution.maxConcurrentWork` is obsolete compatibility input, not an active scheduling constraint. Preserve its historical value/provenance during normal configuration migration, diagnose it as obsolete and remove it from effective configuration without silently capping work. Read-only inspection never rewrites the file. No other resource setting is a renamed shared slot count.
 
 ## Wallet operation audit
 

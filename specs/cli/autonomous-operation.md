@@ -26,7 +26,7 @@ An agent can ask its team when a problem requires help under its current instruc
 
 Minimal user interruption is a default policy, not permission to ignore explicit review instructions or remove the user from decision-making against their wishes. Authenticated access alone never authorizes unrelated purchases/publication/destruction, extra billing accounts or bypassing safeguards. No consultation policy can invent missing authority or treat silence as approval.
 
-Checkpoint task-local blockers and release resources where safe so independent work can continue under the shared capacity and per-file ownership contract. Waiting is not completion. If shared edits or uncertain external effects make switching unsafe, report the actual affected files/effects instead of overlapping conflicting mutations; keep other safe work, supervision and controls available. A failed synchronization alone is not such a blocker; preserve/defer remote integration safely. Resume the correct phase after repair/reply without another Start/Run action.
+Checkpoint task-local blockers and release resources where safe so independent work can continue under the shared resource and per-file ownership contract. Waiting is not completion. If shared edits or uncertain external effects make switching unsafe, report the actual affected files/effects instead of overlapping conflicting mutations; keep other safe work, supervision and controls available. A failed synchronization alone is not such a blocker; preserve/defer remote integration safely. Resume the correct phase after repair/reply without another Start/Run action.
 
 ## Continuity and acceptance
 

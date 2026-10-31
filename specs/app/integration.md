@@ -34,7 +34,7 @@ The first App natively offers **Start, Pause, Resume, Stop and Restart for the w
 | App presentation | Meaning |
 | --- | --- |
 | Running | Work is allowed; the engine may be active or legitimately idle. |
-| Pausing | The engine is draining background work into pause. |
+| Pausing | The engine has blocked new task claims/continuations and is interrupting/checkpointing active task work at supported boundaries; chat remains available. |
 | Paused | The process remains alive; automatic background work is suspended. Explicit chat, inspection and controls remain available. |
 | Stopping | A graceful stop is still in progress. |
 | Stopped | Absence/stop has been verified; the host service can explicitly start the project. |
