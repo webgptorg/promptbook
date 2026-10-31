@@ -4,6 +4,11 @@
 
 -   The dashboard's form for adding a website login could never finish. At its last step, the optional additional fields, leaving the field empty was refused with "A value is required", and Esc discarded the whole login with the typed password. An empty field now finishes the form and saves the login. Logins saved in the browser were not affected
 
+## Tools: the model endpoint is chosen from a list
+
+-   Changing a harness tool's endpoint in the terminal now shows a list, Default, Official, Local or Another base URL, with only what that harness can reach. Before, you had to type a word or a URL and nothing showed which were valid
+-   Choosing Official, here or with `--base-url official`, now saves that choice. Before, it was treated like Default and nothing was saved
+
 ## Pickers and composers: the mouse now works in the terminal
 
 -   Wizard pickers, toggle lists and the dashboard's new-chat picker now take clicks and the wheel. In a single-choice picker, a click focuses an option and a click on the focused option confirms it, so a stray click cannot choose anything. In a checkbox list or toggle list, a click toggles the option. The keyboard works as before

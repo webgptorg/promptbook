@@ -170,8 +170,8 @@ export function recordFromDraft(draft: ToolDraft): ToolRecord {
             raw.apiKey = environmentReference(draft.apiKeyEnv);
         }
         if (draft.accountProfile !== undefined) raw.accountProfile = draft.accountProfile;
-        // The default choice is the official endpoint, which needs no saved value.
-        if (draft.baseUrl !== undefined && !/^(default|official)$/i.test(draft.baseUrl.trim())) raw.baseUrl = draft.baseUrl;
+        // The default choice is the official endpoint, which needs no saved value; an explicit choice is saved.
+        if (draft.baseUrl !== undefined && !/^default$/i.test(draft.baseUrl.trim())) raw.baseUrl = draft.baseUrl;
     }
     const parsed = parseTools([raw]);
     const errors = parsed.problems.filter((problem) => problem.severity === 'error');

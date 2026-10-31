@@ -94,7 +94,7 @@ function operationOf(context: CommandContext): ToolOperation {
             const changes: ToolChanges = {
                 ...fields,
                 ...(flag(context, 'clear-description') ? { description: null } : {}),
-                ...(/^(default|official)$/i.test(option<string>(context, 'base-url') ?? '') ? { baseUrl: null } : {}),
+                ...(/^default$/i.test(option<string>(context, 'base-url') ?? '') ? { baseUrl: null } : {}),
                 ...(flag(context, 'clear-executable') ? { executable: null } : {}),
             };
             const rename = option<string>(context, 'rename');

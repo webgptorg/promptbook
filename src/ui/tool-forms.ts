@@ -103,6 +103,30 @@ export async function addToolForm(terminal: TerminalProfile): Promise<ToolForm |
 }
 
 /**
+ * Asks for a harness tool's endpoint among what its adapter can reach: `null` is the default, which saves nothing.
+ */
+async function endpointField(terminal: TerminalProfile, frame: WizardFrame, item: ToolView): Promise<string | null> {
+    const endpoints = HARNESS_PLUGINS.find((plugin) => plugin.variant === item.variant)?.endpoints;
+    const custom = /^custom\s+(\S+)/.exec(item.fields.endpoint ?? '')?.[1];
+    const choice = answer(
+        await selectOne<'DEFAULT' | 'OFFICIAL' | 'LOCAL' | 'URL'>(terminal, {
+            frame,
+            question: `Which model endpoint should ${item.name} use?`,
+            choices: [
+                { value: 'DEFAULT', label: 'Default', description: 'the official endpoint, without saving a choice' },
+                { value: 'OFFICIAL', label: 'Official', description: endpoints?.official ?? "the provider's fixed endpoint" },
+                ...(endpoints?.local ? [{ value: 'LOCAL' as const, label: 'Local', description: `on the engine's host (${endpoints.local})` }] : []),
+                ...(endpoints?.custom ? [{ value: 'URL' as const, label: 'Another base URL' }] : []),
+            ],
+            defaultValue: custom ? 'URL' : /^local/i.test(item.fields.endpoint ?? '') ? 'LOCAL' : 'DEFAULT',
+        }),
+    );
+    if (choice === 'DEFAULT') return null;
+    if (choice !== 'URL') return choice;
+    return answer(await inputLine(terminal, { frame, question: 'Base URL of the endpoint:', initial: custom, placeholder: 'https://proxy.example/v1', validate: (value) => (/^https?:\/\/\S+$/i.test(value) ? undefined : 'Enter an http(s) URL.') }));
+}
+
+/**
  * The modify form of one tool (unchanged fields stay as they are).
  *
  * @private dashboard tool forms
@@ -117,7 +141,7 @@ export async function modifyToolForm(terminal: TerminalProfile, item: ToolView):
                 choices: [
                     { value: 'description', label: 'Description' },
                     { value: 'rename', label: 'Name' },
-                    ...(item.type === 'BROWSER' ? [{ value: 'browser', label: 'Profile and window mode' }] : [{ value: 'authentication', label: 'Authentication / API key' }, { value: 'endpoint', label: 'Endpoint (official, local or base URL)' }]),
+                    ...(item.type === 'BROWSER' ? [{ value: 'browser', label: 'Profile and window mode' }] : [{ value: 'authentication', label: 'Authentication / API key' }, { value: 'endpoint', label: 'Model endpoint' }]),
                 ],
                 defaultValue: item.type === 'BROWSER' ? 'browser' : 'authentication',
             }),
@@ -131,8 +155,7 @@ export async function modifyToolForm(terminal: TerminalProfile, item: ToolView):
             return { operation: { kind: 'modify', name: item.name, changes: { description: description === '-' ? null : description } } };
         }
         if (field === 'endpoint') {
-            const endpoint = answer(await inputLine(terminal, { frame, question: 'Endpoint: default (official), local (on the engine\'s host) or a base URL:', initial: 'default' }));
-            return { operation: { kind: 'modify', name: item.name, changes: { baseUrl: /^(default|official)$/i.test(endpoint) ? null : endpoint } } };
+            return { operation: { kind: 'modify', name: item.name, changes: { baseUrl: await endpointField(terminal, frame, item) } } };
         }
         if (field === 'browser') {
             const [source, ...path] = (item.fields.profile ?? 'MANAGED_GLOBAL').split(' ');

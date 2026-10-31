@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { after, before, beforeEach, test } from 'node:test';
+import { planToolOperation } from '../dist/tools/operations.js';
 import { runBookEditor } from '../dist/ui/book-editor.js';
 import { runChatClient } from '../dist/ui/chat-client.js';
 import { CANCELLED, composeRich, inputLine, selectMany, selectOne, toggleList } from '../dist/ui/prompts.js';
 import { createTerminalProfile } from '../dist/ui/terminal.js';
+import { modifyToolForm } from '../dist/ui/tool-forms.js';
 import { walletLoginForm } from '../dist/ui/wallet-forms.js';
 
 // The real prompts on a fake terminal: this process's stdin acts as a TTY and rendered frames are captured.
@@ -186,6 +188,44 @@ test('the terminal form for a website login finishes, without additional fields 
         password: 'secret',
         fields: [{ label: 'PIN', value: '1234' }],
     });
+});
+
+test('the model endpoint is chosen among what the harness can reach; an explicit Official is saved', async () => {
+    const choose = async (variant, keys, endpoint = 'official') => {
+        written = '';
+        const form = modifyToolForm(terminal, { name: 'tool', type: 'HARNESS', variant, fields: { endpoint } });
+        await settle();
+        // The form starts on the authentication; the endpoint is next.
+        await send('\x1b[B');
+        await send('\r');
+        await settle();
+        const offered = latest().lines.join('\n');
+        for (const key of keys) await send(key);
+        return { offered, form };
+    };
+    const local = await choose('OPENAI_CODEX', ['\x1b[B', '\x1b[B', '\r']);
+    assert.match(local.offered, /Default[\s\S]*Official[\s\S]*Local[\s\S]*Another base URL/);
+    assert.equal((await local.form).operation.changes.baseUrl, 'LOCAL');
+
+    const standard = await choose('OPENAI_CODEX', ['\r']);
+    assert.equal((await standard.form).operation.changes.baseUrl, null, 'Default saves nothing');
+
+    const url = await choose('CLAUDE_CODE', ['\x1b[B', '\x1b[B', '\r', 'not a url\r']);
+    await settle();
+    assert.match(latest().lines.join('\n') + written, /Enter an http\(s\) URL/, 'a typed URL is validated');
+    await settle();
+    for (let index = 0; index < 'not a url'.length; index++) await send('\x7f');
+    await send('https://proxy.example/v1\r');
+    assert.equal((await url.form).operation.changes.baseUrl, 'https://proxy.example/v1');
+
+    const limited = await choose('GEMINI', ['\x1b[B', '\r']);
+    assert.doesNotMatch(limited.offered, /Local|Another base URL/, 'a harness without them does not offer them');
+    assert.equal((await limited.form).operation.changes.baseUrl, 'OFFICIAL');
+
+    const plan = (baseUrl) => planToolOperation([], { kind: 'add', tool: { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex', authentication: 'NATIVE', baseUrl } }).tools[0].baseUrl;
+    assert.equal(plan('official'), 'OFFICIAL', 'a concrete choice is saved');
+    assert.equal(plan('default'), undefined, 'the default saves nothing');
+    assert.equal(plan('LOCAL'), 'LOCAL');
 });
 
 /** A screen that keeps the latest frame instead of drawing it. */
