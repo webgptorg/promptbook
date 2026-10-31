@@ -36,8 +36,10 @@ import {
     viewportScript,
     type LoginScan,
     type PageReading,
+    newPasswordFormScript,
+    type NewPasswordScan,
 } from './page-scripts.js';
-import { fieldAnswers, originMatches, type SignInAttempt, type SignInCredentials, type SignInPage } from '../wallet/wallet.js';
+import { fieldAnswers, originMatches, type NewPasswordAttempt, type SignInAttempt, type SignInCredentials, type SignInPage } from '../wallet/wallet.js';
 
 /**
  * Window size of a headless browser (a desktop layout, as a person at a desktop sees websites).
@@ -1256,6 +1258,11 @@ export class TaskBrowser {
             takeOver: async () => (this.browser.headful ? (await this.bringToFront(), this.name) : undefined),
             signIn: async (credentials) => await this.walletSignIn(credentials),
             enterCode: async (origin, code) => await this.walletEnterCode(origin, code),
+            newPasswordForm: async () => {
+                const [scan, form] = [await this.scanLogin(), await this.evaluate<NewPasswordScan>(newPasswordFormScript())];
+                return form.fresh.length ? { asksCurrent: form.current, captcha: scan.captcha, ...(form.minLength ? { minLength: form.minLength } : {}), ...(form.maxLength ? { maxLength: form.maxLength } : {}) } : undefined;
+            },
+            submitNewPassword: async (entry) => await this.walletSubmitNewPassword(entry),
         };
     }
 
@@ -1306,7 +1313,7 @@ export class TaskBrowser {
     }
 
     /** Enters one marked login field by trusted text input. */
-    private async enterLoginField(field: 'username' | 'password' | 'code' | `field-${number}`, value: string): Promise<void> {
+    private async enterLoginField(field: 'username' | 'password' | 'code' | 'current' | `field-${number}` | `new-${number}`, value: string): Promise<void> {
         const { connection, sessionId } = await this.active();
         if (!(await this.evaluate<boolean>(focusLoginFieldScript(field)))) throw new PtbkError(`The ${field.startsWith('field-') ? 'additional' : field} field of the login form disappeared.`, { kind: 'technical' });
         await connection.send('Input.insertText', { text: value }, sessionId);
@@ -1417,6 +1424,34 @@ export class TaskBrowser {
             if (after.password && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site returned to its login form' };
             if (after.approval) return APPROVAL_ASKED;
             return { result: 'signed-in' };
+        } finally {
+            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
+            await this.recorder.resume();
+        }
+    }
+
+    /**
+     * Enters a generated password into the page's form for a new password (with the current one where it asks for it),
+     * only while the page is on the login's origin (not recorded), submits and verifies the result: the same form shown
+     * again means the website did not accept it. Nothing stays readable in the page, also when it was refused.
+     */
+    private async walletSubmitNewPassword(entry: { readonly origin: string; readonly password: string; readonly current?: string }): Promise<NewPasswordAttempt> {
+        await this.recorder.pause('Wallet password entry (the password is not recorded)');
+        try {
+            const scan = await this.scanLogin();
+            const form = await this.evaluate<NewPasswordScan>(newPasswordFormScript());
+            if (!originMatches(entry.origin, form.origin)) return { result: 'no-form', note: `the page moved to ${form.origin}` };
+            if (!form.fresh.length) return { result: 'no-form', note: 'no form for a new password is shown' };
+            if (scan.captcha) return { result: 'rejected', note: 'the form asks to solve a CAPTCHA first' };
+            if (form.current && entry.current === undefined) return { result: 'no-form', note: 'the form asks for the current password, and the Wallet has no saved login for it' };
+            if (form.current) await this.enterLoginField('current', entry.current!);
+            for (const marker of form.fresh) await this.enterLoginField(marker, entry.password);
+            await this.submitLogin();
+            const after = await this.evaluate<NewPasswordScan>(newPasswordFormScript());
+            const next = await this.scanLogin();
+            if (next.captcha) return { result: 'rejected', note: 'the form asks to solve a CAPTCHA first' };
+            if (originMatches(entry.origin, after.origin) && after.path === form.path && after.fresh.length === form.fresh.length) return { result: 'rejected', note: 'the website showed the form again' };
+            return { result: 'accepted', ...(next.otp ? { note: 'the site asks for a one-time code next' } : next.approval ? { note: 'the site asks to approve this in its app or on another device' } : {}) };
         } finally {
             await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
             await this.recorder.resume();

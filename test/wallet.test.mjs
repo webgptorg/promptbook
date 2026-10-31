@@ -10,7 +10,7 @@ import { browserTools } from '../dist/browser/agent-tools.js';
 import { findBrowserExecutable } from '../dist/browser/browser.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
 import { createVerifier, deriveProjectRoot, domainKey, generateRecoveryWords, normalizeRecoveryWords, open, seal, verifyRoot } from '../dist/wallet/crypto.js';
-import { WalletSubEngine, maskAccount, normalizeOrigin, originMatches, walletLabel } from '../dist/wallet/wallet.js';
+import { WalletSubEngine, generatePassword, maskAccount, normalizeOrigin, originMatches, walletLabel } from '../dist/wallet/wallet.js';
 import { commitAudit } from '../dist/project/git.js';
 import { committed, git, GIT_IDENTITY, initializedProject, initRepository, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
@@ -386,6 +386,233 @@ test('Wallet in the real browser: the agent requests a login, never sees the pas
     assert.ok(!result.text.includes('right password 1'));
     result = await call('wallet_login', {});
     assert.match(result.text, /shows no login form/, 'an already signed-in session needs no Wallet login');
+});
+
+test('Wallet generated logins: a new account and a changed password need no confirmation, the agent never sees the password, a refused form changes nothing', async (t) => {
+    const teardown = [];
+    t.after(() => Promise.all(teardown.map((step) => step())));
+    const root = await temporaryDirectory(t, 'ptbk wallet generated', teardown);
+    const logs = [];
+    const audits = [];
+    const audited = new WalletSubEngine({ project: { root, runtime: { root: join(root, '.ptbk'), state: join(root, '.ptbk', 'state') } }, env: { ...process.env, PTBK_HOME: join(root, 'home'), PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, log: (text) => logs.push(text), audit: { isEnabled: () => true, commit: async (subject, body) => void audits.push(`${subject}\n${body}`) } });
+    await audited.initialize();
+    const origin = 'https://service.example';
+    const page = (result = 'accepted', form = { asksCurrent: false }) => {
+        const entered = [];
+        return { entered, page: { browser: 'test-browser', inspect: async () => ({ origin, form: 'password' }), signIn: async () => ({ result: 'rejected' }), newPasswordForm: async () => form, submitNewPassword: async (entry) => (entered.push(entry), { result }) } };
+    };
+
+    const notReady = await audited.createLogin(page().page, { username: 'agent@example.com' });
+    assert.equal(notReady.status, 'failed', 'a Wallet that is not set up cannot keep the password');
+    assert.match(notReady.reason, /not set up/);
+    await audited.beginSetup();
+    await audited.confirmSetup();
+    audits.length = 0;
+
+    const noName = await audited.createLogin(page().page, {});
+    assert.equal(noName.status, 'failed', 'a new login needs its username');
+    assert.equal(audited.view().records.length, 0);
+
+    // A pending request of the site is answered by the new login; the password is strong and reaches only the page.
+    const asked = fakePage(origin);
+    const request = await audited.login(asked.page, { reason: 'sign up' });
+    assert.equal(request.status, 'waiting');
+    const created = page();
+    const saved = await audited.createLogin(created.page, { username: 'agent@example.com', task: 'Register', agent: 'Tester' });
+    assert.equal(saved.status, 'saved');
+    assert.equal(saved.updated, false);
+    const generated = created.entered[0].password;
+    assert.ok(generated.length >= 20, 'a strong password');
+    assert.equal(created.entered[0].current, undefined);
+    assert.ok(!JSON.stringify(saved).includes(generated));
+    assert.deepEqual(audited.view().pending, [], 'the waiting request is resolved');
+    assert.equal(audits.length, 1);
+    assert.match(audits[0], /Wallet - Add login/);
+    assert.match(audits[0], /generated its password on request of Tester for "Register"/);
+    assert.ok(!audits[0].includes(generated));
+    assert.equal(audited.view().records[0].verification, undefined, 'unverified until tested');
+    const signing = fakePage(origin);
+    assert.equal((await audited.login(signing.page, {})).status, 'signed-in');
+    assert.equal(signing.entered[0].password, generated, 'later sign-ins use the generated password');
+    assert.equal(signing.entered[0].username, 'agent@example.com');
+
+    // A refused form restores the earlier state, whether it was a new login or a change.
+    assert.equal((await audited.createLogin(page('rejected').page, { username: 'second@example.com' })).status, 'rejected');
+    assert.equal(audited.view().records.length, 1);
+    const refused = page('rejected', { asksCurrent: true });
+    assert.equal((await audited.createLogin(refused.page, { account: 'agent@example.com' })).status, 'rejected');
+    assert.equal(refused.entered[0].current, generated, 'the current password is entered by the Wallet');
+    const unchanged = fakePage(origin);
+    await audited.login(unchanged.page, {});
+    assert.equal(unchanged.entered[0].password, generated);
+
+    // A form asking for a current password the Wallet does not have, and no form or a CAPTCHA: nothing is entered.
+    const foreign = page('accepted', { asksCurrent: true });
+    assert.equal((await audited.createLogin(foreign.page, { username: 'someone@example.com' })).status, 'no-form');
+    assert.equal(foreign.entered.length, 0);
+    assert.equal((await audited.createLogin({ ...page().page, newPasswordForm: async () => undefined }, { username: 'someone@example.com' })).status, 'no-form');
+    assert.equal((await audited.createLogin(page('accepted', { asksCurrent: false, captcha: true }).page, { username: 'someone@example.com' })).status, 'captcha');
+    assert.equal(audited.view().records.length, 1);
+
+    // A change the website only seemed to take: the first sign-in finds the password that holds and keeps it.
+    const changed = page('accepted', { asksCurrent: true, maxLength: 16 });
+    const updated = await audited.createLogin(changed.page, { account: 'agent@example.com' });
+    assert.equal(updated.status, 'saved');
+    assert.equal(updated.updated, true);
+    const rotated = changed.entered[0].password;
+    assert.equal(rotated.length, 16, 'within the length the form allows');
+    assert.notEqual(rotated, generated);
+    const tried = [];
+    const stale = { browser: 'test-browser', inspect: async () => ({ origin, form: 'password' }), signIn: async (credentials) => (tried.push(credentials), { result: credentials.password === generated ? 'signed-in' : 'rejected' }) };
+    assert.equal((await audited.login(stale, {})).status, 'signed-in');
+    assert.deepEqual(tried.map((credentials) => credentials.password), [rotated, generated]);
+    assert.ok(tried.every((credentials) => !('previousPassword' in credentials)), 'the page receives one password at a time');
+    tried.length = 0;
+    await audited.login(stale, {});
+    assert.deepEqual(tried.map((credentials) => credentials.password), [generated], 'the earlier password is the saved one again');
+
+    // A change that took effect: the earlier password is dropped at its first sign-in, so a later rejection asks the owner.
+    const second = page('accepted', { asksCurrent: true });
+    await audited.createLogin(second.page, { account: 'agent@example.com' });
+    const newest = second.entered[0].password;
+    const good = fakePage(origin);
+    await audited.login(good.page, {});
+    assert.equal(good.entered[0].password, newest);
+    const later = [];
+    const expired = { browser: 'test-browser', inspect: async () => ({ origin, form: 'password' }), signIn: async (credentials) => (later.push(credentials.password), { result: 'rejected' }) };
+    assert.equal((await audited.login(expired, {})).status, 'waiting');
+    assert.deepEqual(later, [newest]);
+
+    // Corrections of nonsecret details: the password and website stay, a new username is unverified again.
+    await audited.dismiss(audited.view().pending[0].id);
+    const before = audited.accounts().accounts[0];
+    assert.equal((await audited.correctLogin({ account: 'nobody' })).applied, false);
+    assert.equal((await audited.correctLogin({ account: before.username, username: before.username })).applied, false, 'a no-op changes nothing');
+    audits.length = 0;
+    const corrected = await audited.correctLogin({ account: before.username, username: 'renamed@example.com' });
+    assert.equal(corrected.applied, true);
+    assert.equal(audits.length, 1);
+    assert.match(audits[0], /technical correction of its username/);
+    const after = audited.accounts().accounts[0];
+    assert.equal(after.username, 'renamed@example.com');
+    assert.equal(after.origin, before.origin);
+    assert.equal(after.label, walletLabel(origin, 'renamed@example.com'), 'a derived label follows the username');
+    assert.equal((await audited.correctLogin({ account: 'renamed@example.com', label: 'Company account' })).applied, true);
+    assert.equal(audited.accounts().accounts[0].label, 'Company account');
+    const renamed = fakePage(origin);
+    await audited.login(renamed.page, { account: 'Company account' });
+    assert.equal(renamed.entered[0].username, 'renamed@example.com');
+    assert.equal(renamed.entered[0].password, newest, 'a correction keeps the password');
+
+    assert.equal(generatePassword({ isSymbolFree: true }).match(/[^a-zA-Z0-9]/), null);
+    assert.ok(generatePassword({ minLength: 40 }).length >= 40);
+    assert.equal(generatePassword({ maxLength: 8 }).length, 8);
+    assert.notEqual(generatePassword(), generatePassword());
+    for (const text of logs) assert.ok(![generated, rotated, newest].some((secret) => text.includes(secret)));
+});
+
+test('Wallet generated logins in the real browser: the agent signs up, changes the password and signs in without ever seeing a password', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    t.after(() => Promise.all(teardown.map((step) => step())));
+    const root = await temporaryDirectory(t, 'ptbk wallet signup', teardown);
+    await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
+    const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    const users = new Map();
+    const page = (title, body) => `<!doctype html><title>${title}</title><h1>${title}</h1>${body}`;
+    const signUp = (error = '') => page('Sign up', `${error}<form method="post" action="/signup"><input name="username" placeholder="Username"><input name="password" type="password" autocomplete="new-password"><input name="confirm" type="password" placeholder="Confirm password"><label><input type="checkbox" name="terms">I agree</label><button>Create account</button></form>`);
+    const change = (error = '') => page('Change password', `${error}<form method="post" action="/change"><input id="current" name="current" type="password"><label for="current">Current password</label><input name="fresh" type="password" autocomplete="new-password"><input name="again" type="password" autocomplete="new-password"><button>Change</button></form>`);
+    const server = createServer((request, response) => {
+        response.setHeader('content-type', 'text/html');
+        const url = new URL(request.url, 'http://localhost');
+        if (request.method !== 'POST') {
+            if (url.pathname === '/signup') return response.end(signUp());
+            if (url.pathname === '/change') return response.end(change());
+            if (url.pathname === '/home') return response.end(page('Home', '<p>Welcome</p>'));
+            return response.end(LOGIN_PAGE);
+        }
+        let body = '';
+        request.on('data', (chunk) => (body += chunk));
+        request.on('end', () => {
+            const fields = new URLSearchParams(body);
+            if (url.pathname === '/signup') {
+                if (fields.get('terms') !== 'on' || fields.get('password') !== fields.get('confirm')) return response.end(signUp('<p>Please agree to the terms.</p>'));
+                users.set(fields.get('username'), fields.get('password'));
+                response.writeHead(302, { Location: '/login' });
+                return response.end();
+            }
+            if (url.pathname === '/change') {
+                const name = [...users.keys()][0];
+                if (users.get(name) !== fields.get('current') || fields.get('fresh') !== fields.get('again')) return response.end(change('<p>Wrong current password.</p>'));
+                users.set(name, fields.get('fresh'));
+                response.writeHead(302, { Location: '/home' });
+                return response.end();
+            }
+            if (users.get(fields.get('username')) === fields.get('password')) {
+                response.writeHead(302, { Location: '/home' });
+                return response.end();
+            }
+            response.end(LOGIN_PAGE.replace('<!--error-->', '<p>Wrong username or password</p>'));
+        });
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
+    const fleet = new BrowserFleet(project, () => settings, env);
+    teardown.push(async () => {
+        await fleet.close();
+        server.closeAllConnections();
+        server.close();
+    });
+    const wallet = new WalletSubEngine({ project, env, onChange: () => undefined, log: () => undefined });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const tools = Object.fromEntries(browserTools(fleet.scope('signup task'), undefined, 'Tester', () => undefined, () => [], { login: (target, request) => wallet.login(target, request), accounts: (site) => wallet.accounts(site), createLogin: (target, request) => wallet.createLogin(target, { ...request, task: 'Register' }), correctLogin: (input) => wallet.correctLogin(input), onWait: () => undefined }).map((tool) => [tool.name, tool]));
+    const call = async (name, input = {}) => await tools[name].handler(input);
+    const readable = async () => (await call('browser_evaluate', { script: "[...document.querySelectorAll('input[type=password]')].map((input) => input.value).join('')" })).text;
+
+    await call('browser_open', { url: `${origin}/signup` });
+    let result = await call('wallet_create_login', { username: 'new-user' });
+    assert.match(result.text, /did not accept the form/, 'the site refused it without the agreed terms; nothing is saved');
+    assert.equal(await readable(), '', 'no entered password stays readable in the page');
+    assert.equal(wallet.accounts().accounts.length, 0);
+
+    const reopened = await call('browser_open', { url: `${origin}/signup` });
+    const elements = reopened.text ?? reopened;
+    const username = /\[(\d+)\][^\n]*(Username|username)/.exec(elements)?.[1];
+    const terms = /\[(\d+)\][^\n]*(I agree|terms)/.exec(elements)?.[1];
+    assert.ok(username && terms, elements);
+    await call('browser_type', { ref: Number(username), text: 'new-user' });
+    await call('browser_click', { ref: Number(terms) });
+    result = await call('wallet_create_login', { username: 'new-user' });
+    assert.ok(!result.isError, result.text);
+    assert.match(result.text, /generated a password/);
+    assert.equal(users.size, 1, 'the website has the new account');
+    const first = users.get('new-user');
+    assert.ok(first.length >= 20);
+    assert.ok(!result.text.includes(first), 'the agent never sees the password');
+    assert.match(result.text, /Sign in/, 'the page after the submission is returned');
+    assert.equal(wallet.accounts().accounts[0].username, 'new-user');
+    assert.equal(wallet.accounts().accounts[0].origin, origin);
+
+    // The site's sign-in form: the Wallet signs in with the generated password.
+    result = await call('wallet_login', {});
+    assert.ok(!result.isError, result.text);
+    assert.match(result.text, /Welcome/);
+
+    // A password change also needs the current password, which only the Wallet can enter.
+    await call('browser_open', { url: `${origin}/change` });
+    result = await call('wallet_create_login', { account: 'new-user' });
+    assert.ok(!result.isError, result.text);
+    const second = users.get('new-user');
+    assert.notEqual(second, first, 'the website changed it');
+    assert.ok(![first, second].some((secret) => result.text.includes(secret)));
+    assert.equal(await readable(), '');
+    await call('browser_open', { url: `${origin}/login` });
+    result = await call('wallet_login', {});
+    assert.ok(!result.isError, result.text);
+    assert.match(result.text, /Welcome/, 'the changed password signs in');
 });
 
 test('Wallet Test in the real browser: a separate login context follows the sign-in link and checks the credential itself, not the existing session, which stays signed in', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {

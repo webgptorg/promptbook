@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { open as openFile, readFile, rename, rm, stat } from 'node:fs/promises';
 import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
@@ -171,7 +171,41 @@ export type SignInPage = {
      * undefined when the browser shows no window (headless). Absent: no takeover here.
      */
     readonly takeOver?: () => Promise<string | undefined>;
+    /** The form for a new password this page shows (sign-up, password change or reset). Absent: none can be filled here. */
+    readonly newPasswordForm?: () => Promise<NewPasswordForm | undefined>;
+    /** Enters and submits a generated password on a page of `origin` (not recorded, never returned) and verifies the result. */
+    readonly submitNewPassword?: (entry: { readonly origin: string; readonly password: string; readonly current?: string }) => Promise<NewPasswordAttempt>;
 };
+
+/**
+ * What the Wallet needs to know about a page's form for a new password: whether it also asks for the current password,
+ * the length it allows and whether an unsolved CAPTCHA would stop its submission.
+ *
+ * @private Wallet
+ */
+export type NewPasswordForm = { readonly asksCurrent: boolean; readonly minLength?: number; readonly maxLength?: number; readonly captcha?: boolean };
+
+/**
+ * Verified result of submitting a generated password: `accepted` when the website went on, `rejected` when it showed the
+ * form again or stopped at a CAPTCHA, `no-form` when nothing could be entered.
+ *
+ * @private Wallet
+ */
+export type NewPasswordAttempt = { readonly result: 'accepted' | 'rejected' | 'no-form'; readonly note?: string };
+
+/**
+ * What the agent learns from a request for a generated password (never the password): the saved login, or why nothing
+ * was saved or changed.
+ *
+ * @private Wallet
+ */
+export type WalletCreateLoginResult =
+    | { readonly status: 'saved'; readonly origin: string; readonly account: string; readonly updated: boolean; readonly note?: string }
+    | { readonly status: 'no-form'; readonly origin: string; readonly note?: string }
+    | { readonly status: 'captcha'; readonly origin: string }
+    | { readonly status: 'rejected'; readonly origin: string; readonly note?: string }
+    | { readonly status: 'ambiguous'; readonly origin: string; readonly accounts: readonly string[] }
+    | { readonly status: 'failed'; readonly reason: string };
 
 /**
  * What the trusted sign-in enters on a page of `origin`: the username, the password and the additional login fields the
@@ -307,6 +341,8 @@ type Credentials = {
     readonly fields?: readonly LoginField[];
     /** Retained legacy TOTP generator data (preserved, never generated or newly imported: that is future scope). */
     readonly totp?: string;
+    /** The password before a generated one replaced it, kept until a sign-in shows which of them the website accepts. */
+    readonly previousPassword?: string;
 };
 
 /**
@@ -1797,11 +1833,21 @@ export class WalletSubEngine {
             } catch (error) {
                 return { status: 'failed', reason: errorMessage(error) };
             }
-            const attempt = await page.signIn(credentials).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            const { previousPassword, ...entered } = credentials;
+            const signIn = async (password: string): Promise<SignInAttempt> => await page.signIn({ ...entered, password }).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            let attempt = await signIn(credentials.password);
             const now = new Date().toISOString();
             const update = (changes: Partial<StoredRecord>): void => {
                 this.records = this.records.map((candidate) => (candidate.id === record.id ? { ...candidate, ...changes } : candidate));
             };
+            // After a generated password change, the first sign-in shows which password the website really holds.
+            if (previousPassword) {
+                const earlier = attempt.result === 'rejected' ? await signIn(previousPassword) : undefined;
+                const keptEarlier = earlier?.result === 'signed-in' || earlier?.result === 'challenge';
+                if (keptEarlier) attempt = earlier!;
+                if (keptEarlier || attempt.result === 'signed-in' || attempt.result === 'challenge') update({ secret: seal(this.key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ ...entered, password: keptEarlier ? previousPassword : credentials.password } satisfies Credentials), 'utf8')) });
+                if (keptEarlier) this.options.log(`Wallet: ${origin} still accepts the earlier password of "${record.account}"; the generated one did not take effect and was dropped.`, 'warning');
+            }
             // Required fields of the form that no saved field answers: nothing was submitted, so the owner adds them.
             if (attempt.result === 'challenge' && attempt.missingFields?.length) {
                 const labels = attempt.missingFields.map((label) => `"${label}"`).join(', ');
@@ -1821,6 +1867,110 @@ export class WalletSubEngine {
                     return { status: 'failed', reason: `The login form of ${origin} could not be filled${attempt.note ? `: ${attempt.note}` : ''}.` };
             }
         });
+    }
+
+    /**
+     * Creates or changes a login for authorized work without another confirmation: on the page's form for a new password
+     * (sign-up, password change or reset) the Wallet generates a strong password, enters and submits it and keeps it
+     * encrypted for the page's actual origin. The agent never receives the password. The record is written before the
+     * submission, so an interruption cannot lose a password the website took; a refused one restores the earlier state,
+     * and a changed login keeps its earlier password until a sign-in shows which one holds.
+     */
+    public async createLogin(page: SignInPage, request: { readonly username?: string; readonly account?: string; readonly label?: string; readonly task?: string; readonly agent?: string; readonly maxLength?: number; readonly isSymbolFree?: boolean }): Promise<WalletCreateLoginResult> {
+        const inspected = await page.inspect();
+        let origin: string;
+        try {
+            origin = normalizeOrigin(inspected.origin);
+        } catch {
+            return { status: 'failed', reason: 'The current tab shows no website; open the sign-up or password form of the site first.' };
+        }
+        const result = await this.mutex.run(async (): Promise<{ readonly result: WalletCreateLoginResult; readonly settled?: number; readonly audit?: Omit<PendingAudit, 'at'> }> => {
+            if (this.state !== 'ready' && this.metadata) await this.unlockWithHost(this.metadata);
+            if (this.state !== 'ready' || !this.key) return { result: { status: 'failed', reason: `The Wallet is ${this.readiness === 'empty' ? 'not set up yet' : 'not available on this computer'}, so it cannot keep a generated password; nothing was entered. Create the account once the owner has set it up on the Wallet page.` } };
+            const name = (request.account ?? request.username)?.trim().toLowerCase();
+            const candidates = this.records.filter((record) => originMatches(record.origin, origin) && (name ? record.account.toLowerCase() === name || this.usernameOf(record)?.toLowerCase() === name : true));
+            if (candidates.length > 1) return { result: { status: 'ambiguous', origin, accounts: candidates.map((record) => record.account) } };
+            // Only a named login is replaced; without any name it is a new one, which needs its username.
+            const existing = name ? candidates[0] : undefined;
+            const username = request.username?.trim() || (existing ? this.usernameOf(existing) : undefined);
+            if (!username) return { result: { status: 'failed', reason: 'Give the username or email of the new login (or the account of a saved login to change); nothing was entered.' } };
+            const form = await page.newPasswordForm?.().catch(() => undefined);
+            if (!form || !page.submitNewPassword) return { result: { status: 'no-form', origin } };
+            if (form.captcha) return { result: { status: 'captcha', origin } };
+            const before = existing ? this.credentials(existing) : undefined;
+            if (form.asksCurrent && !before) return { result: { status: 'no-form', origin, note: 'the form asks for the current password, and the Wallet has no saved login for it' } };
+            const password = generatePassword({ ...(form.minLength ? { minLength: form.minLength } : {}), maxLength: Math.min(form.maxLength ?? Number.MAX_SAFE_INTEGER, request.maxLength ?? Number.MAX_SAFE_INTEGER), isSymbolFree: request.isSymbolFree === true });
+            const previous = this.records;
+            const now = new Date().toISOString();
+            const record: StoredRecord = {
+                id: existing?.id ?? randomBytes(6).toString('hex'),
+                origin,
+                account: request.label?.trim() || existing?.account || walletLabel(origin, username),
+                createdAt: existing?.createdAt ?? now,
+                updatedAt: now,
+                secret: seal(this.key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ ...before, origin, username, password, ...(before ? { previousPassword: before.password } : {}) } satisfies Credentials), 'utf8')),
+            };
+            this.records = existing ? previous.map((candidate) => (candidate.id === existing.id ? record : candidate)) : [...previous, record];
+            await this.writeRecords();
+            const attempt = await page.submitNewPassword({ origin, password, ...(before ? { current: before.password } : {}) }).catch((error: unknown): NewPasswordAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            if (attempt.result !== 'accepted') {
+                this.records = previous;
+                await this.writeRecords();
+                return { result: attempt.result === 'rejected' ? { status: 'rejected', origin, ...(attempt.note ? { note: attempt.note } : {}) } : { status: 'no-form', origin, ...(attempt.note ? { note: attempt.note } : {}) } };
+            }
+            let settled = 0;
+            // A one-time code request stays: a saved password does not answer it.
+            for (const pending of this.actions.filter((candidate) => candidate.state === 'pending' && candidate.problem !== 'code' && originMatches(candidate.origin, origin))) {
+                this.settle(pending.id, 'resolved', record.id);
+                settled++;
+            }
+            if (settled) await this.writeActions();
+            const requester = [request.agent, request.task ? `for "${request.task}"` : ''].filter(Boolean).join(' ');
+            return {
+                result: { status: 'saved', origin, account: record.account, updated: Boolean(existing), ...(attempt.note ? { note: attempt.note } : {}) },
+                settled,
+                audit: auditOf(existing ? 'Update' : 'Add', record, `The Wallet generated its password${requester ? ` on request of ${requester}` : ''} and entered it on the website.`),
+            };
+        });
+        if (result.result.status === 'saved') {
+            this.options.log(`Wallet: ${result.result.updated ? 'Changed' : 'Created'} the login "${result.result.account}" for ${origin} with a generated password.`);
+            this.remember({ action: 'wallet-create-login', applied: true, outcome: `${result.result.updated ? 'Changed' : 'Created'} the login "${result.result.account}" for ${origin} with a generated password.` });
+            if (result.settled) this.options.onSettled?.();
+            await this.recordAudit(result.audit);
+        }
+        this.options.onChange();
+        return result.result;
+    }
+
+    /**
+     * Applies a technical correction an agent requests to a saved login's nonsecret metadata (its username or label),
+     * without another confirmation. The origin never changes: a page cannot redirect a saved password to another website.
+     * A changed username makes the login unverified again.
+     */
+    public async correctLogin(input: { readonly account: string; readonly site?: string; readonly username?: string; readonly label?: string }): Promise<WalletOutcome> {
+        const site = input.site?.trim() ? normalizeOrigin(input.site) : undefined;
+        const name = input.account.trim().toLowerCase();
+        const result = await this.mutex.run(async (): Promise<{ readonly outcome: WalletOutcome; readonly audit?: Omit<PendingAudit, 'at'> }> => {
+            if (this.state !== 'ready' || !this.key) return { outcome: { action: 'wallet-correct', applied: false, outcome: `The Wallet is ${this.readiness} on this computer; nothing was changed.` } };
+            const matches = this.records.filter((record) => (!site || originMatches(record.origin, site)) && (record.account.toLowerCase() === name || this.usernameOf(record)?.toLowerCase() === name));
+            if (matches.length !== 1) return { outcome: { action: 'wallet-correct', applied: false, outcome: matches.length ? `Several saved logins match "${input.account}" (${matches.map((record) => record.origin).join(', ')}); give the site. Nothing was changed.` : `No saved login matches "${input.account}"; nothing was changed.` } };
+            const record = matches[0]!;
+            const credentials = this.credentials(record);
+            const username = input.username?.trim() || credentials.username;
+            const label = input.label?.trim() || (record.account === walletLabel(record.origin, credentials.username) ? walletLabel(record.origin, username) : record.account);
+            const isNewUsername = username !== credentials.username;
+            if (!isNewUsername && label === record.account) return { outcome: { action: 'wallet-correct', applied: false, outcome: `"${record.account}" already says this; nothing was changed.` } };
+            const { verification: _verification, lastOutcome: _lastOutcome, ...verified } = record;
+            const updated: StoredRecord = { ...(isNewUsername ? { ...verified, secret: seal(this.key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ ...credentials, username } satisfies Credentials), 'utf8')) } : record), account: label, updatedAt: new Date().toISOString() };
+            this.records = this.records.map((candidate) => (candidate.id === record.id ? updated : candidate));
+            await this.writeRecords();
+            return { outcome: { action: 'wallet-correct', applied: true, outcome: `Corrected the login "${updated.account}" for ${record.origin}${isNewUsername ? ' (its new username is unverified until used)' : ''}.` }, audit: auditOf('Update', updated, `A technical correction of its ${[isNewUsername ? 'username' : '', label !== record.account ? 'label' : ''].filter(Boolean).join(' and ')} on an agent's request.`) };
+        });
+        if (result.outcome.applied) {
+            this.options.log(`Wallet: ${result.outcome.outcome}`);
+            await this.recordAudit(result.audit);
+        }
+        return this.remember(result.outcome);
     }
 
     /**
@@ -2008,6 +2158,23 @@ export function mergeLoginFields(existing: readonly LoginField[], changes: reado
     }
     if (fields.length > MAX_LOGIN_FIELDS) throw new PtbkError(`A saved login keeps at most ${MAX_LOGIN_FIELDS} additional fields.`, { kind: 'usage', effect: 'Nothing was saved.' });
     return fields;
+}
+
+/**
+ * Generates a strong random password for a website's form: letters, digits and symbols, each present, within the length
+ * the form allows (24 characters when it allows them). A website that refuses symbols gets a longer password without.
+ *
+ * @private Wallet
+ */
+export function generatePassword(limits: { readonly minLength?: number; readonly maxLength?: number; readonly isSymbolFree?: boolean } = {}): string {
+    const letters = 'abcdefghijkmnopqrstuvwxyz';
+    const groups = [letters, letters.toUpperCase(), '23456789', ...(limits.isSymbolFree ? [] : ['-_.!@#%+='])];
+    const length = Math.max(groups.length, Math.min(limits.maxLength ?? Number.MAX_SAFE_INTEGER, Math.max(limits.minLength ?? 0, limits.isSymbolFree ? 28 : 24)));
+    const alphabet = groups.join('');
+    for (;;) {
+        const password = Array.from({ length }, () => alphabet[randomInt(alphabet.length)]!).join('');
+        if (groups.every((group) => [...password].some((character) => group.includes(character)))) return password;
+    }
 }
 
 /**

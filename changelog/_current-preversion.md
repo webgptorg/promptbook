@@ -1,5 +1,12 @@
 # Unreleased
 
+## Wallet: agents create and change logins with a generated password they never see
+
+-   When authorized work needs a new account, or a password change or reset, an agent now fills the form's other fields and calls the new `wallet_create_login` browser tool as the last step. The Wallet generates a strong password within the length the form allows, enters it in every new-password field (and the current password of a saved login when the form asks for it), submits the form and keeps the login encrypted for the page's actual origin. Before, agents could only sign in with saved logins: the Wallet had no way to receive credentials an agent's work created, so the agent had to ask the owner or keep them somewhere unprotected
+-   The agent never sees the password, and nothing stays readable in the page. Nothing asks the owner for a confirmation. A new login stays unverified until it is tested, and each one gets the ordinary nonsecret Wallet audit commit naming the agent and the task
+-   A form the website shows again, or one stopped by a CAPTCHA, restores the Wallet's earlier state. A changed login keeps its earlier password until the first sign-in shows which one the website holds, so a change that only seemed to work cannot lose access
+-   The new `wallet_correct_login` tool corrects a saved login's username or label without asking. Its website and password stay as they are, so a page's text cannot redirect a saved password to another site
+
 ## Releasing: the VS Code extension uses trusted publishing when the Marketplace token is refused
 
 -   The Publish workflow's `vscode-extension` job could not publish to the VS Code Marketplace because the token it falls back to (the organization's `VSCE_TOKEN`) has expired. The same token already stopped the last publication from the former extension repository (1.0.70, "The Personal Access Token used has expired"). The Marketplace listing therefore stays at 1.0.69 until a working credential is available.

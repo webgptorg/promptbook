@@ -1,7 +1,7 @@
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { Mutex } from '../common/mutex.js';
 import type { BridgeTool, ToolResult } from '../engine/bridge.js';
-import type { SignInPage, WalletLoginResult, WalletSubEngine } from '../wallet/wallet.js';
+import type { SignInPage, WalletCreateLoginResult, WalletLoginResult, WalletOutcome, WalletSubEngine } from '../wallet/wallet.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import type { BrowserScope } from './fleet.js';
 import type { PointerTarget } from './browser.js';
@@ -48,6 +48,10 @@ export type AgentWallet = {
     readonly login: (page: SignInPage, request: { readonly account?: string; readonly reason?: string; readonly ignoreRelated?: boolean; readonly requestCode?: boolean }) => Promise<WalletLoginResult>;
     /** Nonsecret metadata of the saved logins (service, label, username/email), optionally for one site. */
     readonly accounts: WalletSubEngine['accounts'];
+    /** A generated password entered into the page's sign-up or password form and saved for the page's actual origin. */
+    readonly createLogin: (page: SignInPage, request: { readonly username?: string; readonly account?: string; readonly label?: string; readonly agent?: string; readonly maxLength?: number; readonly isSymbolFree?: boolean }) => Promise<WalletCreateLoginResult>;
+    /** A technical correction of a saved login's username or label (never its origin or password). */
+    readonly correctLogin: (input: { readonly account: string; readonly site?: string; readonly username?: string; readonly label?: string }) => Promise<WalletOutcome>;
     /** The task now waits for a protected Wallet action (it checkpoints when its turn ends). */
     readonly onWait: (action: string) => void;
 };
@@ -86,6 +90,26 @@ function walletMessage(result: WalletLoginResult): string {
             return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the username or password in a chat. End your turn now with status waiting-for-user: the task resumes once the login is added, then open the login page again and call wallet_login.`;
         case 'failed':
             return `The Wallet could not sign in: ${result.reason}`;
+    }
+}
+
+/**
+ * What the agent learns from a request for a generated password (redacted: never the password).
+ */
+function createdLoginMessage(result: WalletCreateLoginResult): string {
+    switch (result.status) {
+        case 'saved':
+            return `The Wallet generated a password, entered it on ${result.origin}, submitted the form and ${result.updated ? 'updated' : 'saved'} the login "${result.account}" (the password is not available to you)${result.note ? `; ${result.note}` : ''}. Check on the page that the website accepted it, finish its confirmation steps yourself (an emailed link or code you can read) and record the effect with record_external_action. Later sign-ins use wallet_login.`;
+        case 'no-form':
+            return `The current page of ${result.origin} shows no form for a new password that the Wallet can fill${result.note ? ` (${result.note})` : ''}; nothing was saved. Open the sign-up or password page, fill its other fields yourself and call wallet_create_login again.`;
+        case 'captcha':
+            return `The form of ${result.origin} shows an unsolved CAPTCHA, so nothing was entered. Solve it yourself, then call wallet_create_login again.`;
+        case 'rejected':
+            return `${result.origin} did not accept the form${result.note ? ` (${result.note})` : ''}; the Wallet kept its earlier state. Read the page: complete a missing field or solve a CAPTCHA, or call wallet_create_login again with maxLength or noSymbols when the site's password rules require it.`;
+        case 'ambiguous':
+            return `Several saved logins of ${result.origin} match: ${result.accounts.map((account) => `"${account}"`).join(', ')}. Call wallet_create_login again with account set to the one to change.`;
+        case 'failed':
+            return result.reason;
     }
 }
 
@@ -244,7 +268,7 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
                       {
                           name: 'wallet_login',
                           description:
-                              "When the website open in your current tab requires signing in (and is not signed in already): the project's Wallet signs in with a saved login of that page's actual origin, without showing you the credentials. Open the site's login page first. If no saved login fits (or it was rejected), the Wallet asks the owner through its protected interface; never ask for usernames or passwords in a chat and never type them yourself.",
+                              "When the website open in your current tab requires signing in (and is not signed in already): the project's Wallet signs in with a saved login of that page's actual origin, without showing you the credentials. Open the site's login page first. If no saved login fits (or it was rejected), the Wallet asks the owner through its protected interface; never ask for usernames or passwords in a chat and never type them yourself. A new account or a changed password goes through wallet_create_login.",
                           properties: {
                               account: { type: 'string', description: 'Account the task requires (label or username), when the task names one.' },
                               reason: { type: 'string', description: 'Why the task needs this login (shown to the owner).' },
@@ -258,6 +282,50 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
                           if (result.status === 'waiting') wallet.onWait(result.action);
                           const message = walletMessage(result);
                           return result.status === 'signed-in' || result.status === 'code-entered' ? `${message}\n\n${await instance.read()}` : { text: message, isError: result.status === 'failed' };
+                      },
+                  ),
+                  tool(
+                      {
+                          name: 'wallet_create_login',
+                          description:
+                              "When authorized work needs a new account on a website, or a password change or reset: fill the form's other fields yourself (username, email, consent, a CAPTCHA), then call this as the last step instead of typing a password. The Wallet generates a strong password, enters it (with the current one of a saved login when the form asks for it), submits the form and keeps it encrypted for the page's actual origin; you never see it. Nothing needs the owner's confirmation. The account creation is an external action: call begin_external_action before this and record_external_action after it.",
+                          properties: {
+                              username: { type: 'string', description: 'Username or email of the new login (required for a new one).' },
+                              account: { type: 'string', description: 'Label or username of the saved login whose password changes; without it a new login is saved.' },
+                              label: { type: 'string', description: 'Label of the login (optional; derived from the service and username).' },
+                              maxLength: { type: 'number', description: "Longest password the site allows, when its rules say so and the form does not." },
+                              noSymbols: { type: 'boolean', description: 'The site refuses symbols in passwords.' },
+                          },
+                      },
+                      async (input) => {
+                          const instance = await browser(input);
+                          const result = await wallet.createLogin(instance.walletPage(), {
+                              ...(typeof input.username === 'string' ? { username: input.username } : {}),
+                              ...(typeof input.account === 'string' ? { account: input.account } : {}),
+                              ...(typeof input.label === 'string' ? { label: input.label } : {}),
+                              agent,
+                              ...(typeof input.maxLength === 'number' ? { maxLength: input.maxLength } : {}),
+                              isSymbolFree: input.noSymbols === true,
+                          });
+                          const message = createdLoginMessage(result);
+                          return result.status === 'saved' ? `${message}\n\n${await instance.read()}` : { text: message, isError: result.status === 'failed' };
+                      },
+                  ),
+                  tool(
+                      {
+                          name: 'wallet_correct_login',
+                          description: "Correct a saved login's nonsecret details without asking: its username or email (for example after the account's email changed) or its label. Its website and password stay as they are. Find logins with wallet_accounts.",
+                          properties: {
+                              account: { type: 'string', description: 'Label or username of the saved login.' },
+                              site: { type: 'string', description: 'Website of the login, when several logins match (optional).' },
+                              username: { type: 'string', description: 'The correct username or email (optional).' },
+                              label: { type: 'string', description: 'The correct label (optional).' },
+                          },
+                          required: ['account'],
+                      },
+                      async (input) => {
+                          const outcome = await wallet.correctLogin({ account: String(input.account ?? ''), ...(typeof input.site === 'string' ? { site: input.site } : {}), ...(typeof input.username === 'string' ? { username: input.username } : {}), ...(typeof input.label === 'string' ? { label: input.label } : {}) });
+                          return { text: outcome.outcome, isError: !outcome.applied };
                       },
                   ),
               ]

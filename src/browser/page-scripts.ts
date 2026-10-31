@@ -464,12 +464,61 @@ export function loginFormScript(): string {
 }
 
 /**
+ * Result of {@link newPasswordFormScript}.
+ *
+ * @private browser page scripts
+ */
+export type NewPasswordScan = {
+    readonly origin: string;
+    /** Path of the page: a form shown again stays on it, a website that accepted the password usually moves on. */
+    readonly path: string;
+    /** Markers of the fields of the new password (`new-<n>`: the password and its confirmation). */
+    readonly fresh: readonly `new-${number}`[];
+    /** The form also asks for the current password (marked `current`). */
+    readonly current: boolean;
+    readonly minLength?: number;
+    readonly maxLength?: number;
+};
+
+/**
+ * Finds the visible fields of a form for a new password (sign-up, password change or reset) in the current page (top
+ * document) for the Wallet and marks them: the fields of the new password and of the current one, by their autocomplete
+ * purpose or name; without a telling name, three fields start with the current password and fewer are the new password
+ * with its confirmation. A login form's lone current-password field is none of them. Values are never read.
+ *
+ * @private browser page scripts
+ */
+export function newPasswordFormScript(): string {
+    return `(() => {
+        const visible = (element) => { const box = element.getBoundingClientRect(); const style = getComputedStyle(element); return box.width > 0 && box.height > 0 && style.visibility !== 'hidden' && style.display !== 'none' && !element.disabled && !element.readOnly; };
+        const describe = (element) => {
+            const byFor = element.id ? document.querySelector('label[for="' + CSS.escape(element.id) + '"]') : null;
+            const wrapping = element.closest('label');
+            return [element.name, element.id, element.placeholder || '', element.getAttribute('aria-label') || '', (byFor && byFor.textContent) || '', (wrapping && wrapping.textContent) || ''].join(' ');
+        };
+        const otpLike = (element) => /one-time-code/i.test(element.autocomplete || '') || /otp|totp|2fa|mfa|two.?factor|verification.?code|security.?code/i.test(describe(element));
+        const isCurrent = (element) => element.autocomplete === 'current-password' || /current|old.?pass|existing/i.test(describe(element));
+        const isFresh = (element) => element.autocomplete === 'new-password' || /new.?pass|confirm|repeat|retype|re-?enter|again/i.test(describe(element));
+        for (const marked of document.querySelectorAll('[data-ptbk-wallet^="new-"], [data-ptbk-wallet="current"]')) marked.removeAttribute('data-ptbk-wallet');
+        const inputs = [...document.querySelectorAll('input[type="password"]')].filter((element) => visible(element) && !otpLike(element));
+        let current = inputs.find((element) => isCurrent(element) && !isFresh(element)) || null;
+        let fresh = inputs.filter((element) => element !== current && (isFresh(element) || !isCurrent(element)));
+        if (!current && fresh.length > 2 && !isFresh(fresh[0])) { current = fresh[0]; fresh = fresh.slice(1); }
+        if (current && !fresh.length) current = null;
+        if (current) current.setAttribute('data-ptbk-wallet', 'current');
+        fresh.forEach((element, index) => element.setAttribute('data-ptbk-wallet', 'new-' + index));
+        const limit = (name) => { const value = fresh.length ? fresh[0][name] : -1; return value > 0 ? { [name]: value } : {}; };
+        return { origin: location.origin, path: location.pathname, fresh: fresh.map((element, index) => 'new-' + index), current: Boolean(current), ...limit('minLength'), ...limit('maxLength') };
+    })()`;
+}
+
+/**
  * Focuses a login field marked by {@link loginFormScript} and selects its content (trusted text entry replaces it).
  *
  * @private browser page scripts
  */
-export function focusLoginFieldScript(field: 'username' | 'password' | 'code' | `field-${number}`): string {
-    const marker = /^field-\d+$/.test(field) ? field : field === 'password' ? 'password' : field === 'code' ? 'code' : 'username';
+export function focusLoginFieldScript(field: 'username' | 'password' | 'code' | 'current' | `field-${number}` | `new-${number}`): string {
+    const marker = /^(field|new)-\d+$/.test(field) || field === 'current' ? field : field === 'password' ? 'password' : field === 'code' ? 'code' : 'username';
     return `(() => {
         const element = document.querySelector('[data-ptbk-wallet="${marker}"]');
         if (!element) return false;
@@ -486,7 +535,7 @@ export function focusLoginFieldScript(field: 'username' | 'password' | 'code' | 
  */
 export function submitLoginScript(): string {
     return `(() => {
-        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet="username"]') || document.querySelector('[data-ptbk-wallet="code"]') || document.querySelector('[data-ptbk-wallet^="field-"]');
+        const field = document.querySelector('[data-ptbk-wallet="password"]') || document.querySelector('[data-ptbk-wallet^="new-"]') || document.querySelector('[data-ptbk-wallet="username"]') || document.querySelector('[data-ptbk-wallet="code"]') || document.querySelector('[data-ptbk-wallet^="field-"]');
         const form = field && field.form;
         if (!form) return false;
         const button = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
@@ -549,7 +598,7 @@ export function followSignInLinkScript(): string {
 export function clearLoginFieldsScript(): string {
     return `(() => {
         const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-        for (const element of document.querySelectorAll('input[type="password"], [data-ptbk-wallet="password"], [data-ptbk-wallet="code"], [data-ptbk-wallet^="field-"]')) {
+        for (const element of document.querySelectorAll('input[type="password"], [data-ptbk-wallet="password"], [data-ptbk-wallet="current"], [data-ptbk-wallet^="new-"], [data-ptbk-wallet="code"], [data-ptbk-wallet^="field-"]')) {
             if (!element.value) continue;
             setter.call(element, '');
             element.dispatchEvent(new Event('input', { bubbles: true }));
