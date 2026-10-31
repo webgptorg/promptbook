@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { ipcAddress, ipcRequest, startIpcServer } from '../dist/common/ipc.js';
 import { createStyle, terminalSafe } from '../dist/ui/ansi.js';
+import { TextEditor } from '../dist/ui/composer.js';
+import { KeyParser, KeyboardSession, allowsPointer } from '../dist/ui/keys.js';
 import { renderPanel } from '../dist/ui/panels.js';
-import { FullScreen } from '../dist/ui/screen.js';
+import { RichInput } from '../dist/ui/rich-input.js';
+import { FullScreen, InlineRenderer } from '../dist/ui/screen.js';
 import { canShowImage, detectImageProtocol, imageSequence } from '../dist/ui/terminal-images.js';
 
 test('rendered lines keep styling but untrusted names cannot retitle, move, reset or clear the terminal', () => {
@@ -150,4 +153,169 @@ test('terminal images: an image is sent once, and again only after its area was 
     taken();
     full.draw(lines, undefined, image);
     assert.equal(taken(), '', 'a terminal applying back-pressure gets no image either: the newest frame waits');
+});
+
+test('pointer reports become events and can never arrive as typed text', () => {
+    const parser = new KeyParser();
+    assert.deepEqual(parser.parse('\x1b[<0;12;5M'), [{ type: 'pointer', action: 'press', row: 4, column: 11 }]);
+    assert.deepEqual(parser.parse('\x1b[<4;2;3M'), [{ type: 'pointer', action: 'press', row: 2, column: 1 }], 'with a modifier');
+    assert.deepEqual(parser.parse('\x1b[<64;1;1M\x1b[<65;1;1M').map((event) => event.action), ['wheel-up', 'wheel-down']);
+    assert.deepEqual(parser.parse('\x1b[<0;12;5m\x1b[<2;1;1M\x1b[<32;1;1M'), [], 'releases, other buttons and motion are not used');
+    assert.deepEqual(parser.parse('\x1b[M !!'), [], 'the legacy encoding is dropped with its raw bytes');
+
+    assert.deepEqual(parser.parse('a\x1b[<0;12'), [{ type: 'text', text: 'a' }], 'a report cut by a read waits for its rest');
+    assert.deepEqual(parser.parse(';5Mb'), [{ type: 'pointer', action: 'press', row: 4, column: 11 }, { type: 'text', text: 'b' }]);
+    assert.deepEqual(parser.parse('\x1b[1;5Cz'), [{ type: 'key', name: 'right', ctrl: true }, { type: 'text', text: 'z' }], 'modified keys are unchanged');
+
+    const reports = [];
+    assert.deepEqual(parser.parse('\x1b[7;1R'), [], 'without a listener a cursor report is dropped');
+    parser.onCursorReport = (row, column) => reports.push([row, column]);
+    assert.deepEqual(parser.parse('x\x1b[7;'), [{ type: 'text', text: 'x' }]);
+    assert.deepEqual(parser.parse('1Ry'), [{ type: 'text', text: 'y' }], 'an answer of the terminal is not input');
+    assert.deepEqual(reports, [[7, 1]]);
+});
+
+test('pointer tracking is asked for only while wanted, survives a stop and start, and always ends', () => {
+    const writes = [];
+    const listeners = new Set();
+    const input = { isTTY: true, isRaw: false, setRawMode() {}, resume() {}, pause() {}, on: (_, listener) => listeners.add(listener), off: (_, listener) => listeners.delete(listener) };
+    const events = [];
+    const session = new KeyboardSession((event) => events.push(event), input, { write: (text) => writes.push(text) });
+    const send = (text) => {
+        for (const listener of listeners) listener(text);
+    };
+    const taken = () => writes.splice(0).join('');
+
+    session.start();
+    assert.doesNotMatch(taken(), /\?1000/, 'native selection stays until a surface asks');
+    send('\x1b[<0;1;1M');
+    assert.deepEqual(events, [], 'without tracking no surface sees a report');
+
+    session.trackPointer(true);
+    assert.equal(taken(), '\x1b[?1000h\x1b[?1006h');
+    session.trackPointer(true);
+    assert.equal(taken(), '', 'asking again repeats nothing');
+    send('\x1b[<0;2;3M');
+    assert.deepEqual(events.splice(0), [{ type: 'pointer', action: 'press', row: 2, column: 1 }]);
+
+    session.stop();
+    assert.match(taken(), /\x1b\[\?1006l\x1b\[\?1000l/, 'stopping ends tracking');
+    session.start();
+    assert.match(taken(), /\x1b\[\?1000h/, 'a restarted session continues tracking');
+    session.trackPointer(false);
+    assert.equal(taken(), '\x1b[?1006l\x1b[?1000l');
+    session.stop();
+    assert.doesNotMatch(taken(), /\?1000/, 'stopping does not end it twice');
+    assert.equal(process.listeners('exit').filter((listener) => listener.name === 'endPointerOnExit').length, 0, 'no exit hook stays behind');
+    assert.equal(process.listenerCount('SIGTERM'), 0, 'no signal hook stays behind');
+});
+
+test('the pointer is available where the terminal can report it and can be turned off', () => {
+    assert.equal(allowsPointer({}, 'darwin'), true);
+    assert.equal(allowsPointer({}, 'linux'), true);
+    assert.equal(allowsPointer({ PTBK_TERMINAL_POINTER: 'off' }, 'darwin'), false);
+    assert.equal(allowsPointer({}, 'win32'), false, 'a Windows console stays keyboard-only');
+    assert.equal(allowsPointer({ PTBK_TERMINAL_POINTER: 'on' }, 'win32'), true);
+});
+
+test('an inline block knows its screen rows from the answer to its latest position question', () => {
+    const writes = [];
+    const renderer = new InlineRenderer({ columns: 80, rows: 24, write: (text) => writes.push(text) });
+    assert.equal(renderer.rowAt(3), undefined, 'unknown before any answer');
+    renderer.render(['first', 'second', 'third']);
+    renderer.locate();
+    assert.ok(writes.at(-1).endsWith('\x1b[6n'));
+    renderer.located(10);
+    assert.equal(renderer.rowAt(7), 0, 'the cursor stands on the last row, on screen row 9');
+    assert.equal(renderer.rowAt(9), 2);
+    assert.equal(renderer.rowAt(6), undefined);
+    assert.equal(renderer.rowAt(10), undefined);
+
+    renderer.render(['first', 'second', 'third'], { row: 1, column: 0 });
+    renderer.locate();
+    renderer.located(8);
+    assert.equal(renderer.rowAt(6), 0, 'a visible cursor stands on its own row of the block');
+
+    renderer.render(['first', 'second']);
+    renderer.locate();
+    renderer.locate();
+    renderer.located(1);
+    renderer.located(24);
+    assert.equal(renderer.rowAt(23), 1, 'the answer to the latest question settles it, also after a late earlier answer');
+});
+
+test('a pointer position maps to the same cursor position the layout draws', () => {
+    const editor = new TextEditor('hello world\nsecond');
+    const first = editor.layout(40, 10);
+    assert.equal(first.offsetAt(0, 6), 6);
+    editor.placeCursor(first.offsetAt(0, 6));
+    assert.deepEqual(editor.layout(40, 10).cursor, { row: 0, column: 6 });
+    assert.equal(first.offsetAt(0, 30), 11, 'beyond the end of a line: its end, before the newline');
+    assert.equal(first.offsetAt(1, 2), 14);
+    assert.equal(first.offsetAt(5, 0), 18, 'below the text: its end');
+
+    const wrapped = new TextEditor('abcdefghij');
+    const rows = wrapped.layout(4, 10);
+    assert.deepEqual(rows.lines, ['abcd', 'efgh', 'ij']);
+    assert.equal(rows.offsetAt(1, 1), 5);
+    assert.equal(rows.offsetAt(0, 9), 3, 'beyond a wrapped row: stays on that row');
+    assert.equal(rows.offsetAt(2, 9), 10);
+
+    const long = new TextEditor(Array.from({ length: 10 }, (_, line) => `line ${line}`).join('\n'));
+    const scrolled = long.layout(40, 3);
+    assert.equal(scrolled.hiddenAbove, 7);
+    long.placeCursor(scrolled.offsetAt(0, 5));
+    assert.deepEqual(long.layout(40, 3).cursor, { row: 0, column: 5 }, 'visible rows count from the scrolled top');
+
+    const wide = new TextEditor('a界b');
+    const cells = wide.layout(40, 3);
+    assert.equal(cells.offsetAt(0, 1), 1, 'the first cell of a wide character: before it');
+    assert.equal(cells.offsetAt(0, 2), 2, 'its second cell: after it');
+    assert.equal(cells.offsetAt(0, 3), 2);
+
+    const items = new TextEditor('x');
+    items.placeCursor(1);
+    items.paste(Array.from({ length: 8 }, () => 'pasted line').join('\n'));
+    items.handle({ type: 'text', text: 'y' });
+    const tokens = items.layout(60, 3);
+    assert.match(tokens.lines[0], /^x\[Pasted text #1.*\]y$/);
+    assert.equal(tokens.offsetAt(0, 2), 1, 'the start of an item: before it');
+    assert.equal(tokens.offsetAt(0, tokens.lines[0].length - 2), 2, 'its end: after it, never inside the payload');
+    assert.equal(tokens.offsetAt(0, tokens.lines[0].length - 1), 2);
+    assert.equal(tokens.offsetAt(0, 50), 3);
+});
+
+test('the shared input places the cursor by pointer, moves focus between its fields and never submits', () => {
+    const input = new RichInput({ mode: 'flow', attachments: true, refresh: () => undefined, initial: 'hello world' });
+    const editor = input.editor;
+    const field = (row = 5) => ({ row, column: 2, rows: 2, offsetAt: editor.layout(40, 2).offsetAt });
+    const press = (row, column) => ({ type: 'pointer', action: 'press', row, column });
+
+    assert.equal(input.point(press(5, 8), field()), 'changed');
+    assert.deepEqual(editor.layout(40, 2).cursor, { row: 0, column: 6 });
+    assert.equal(input.point(press(5, 0), field()), 'changed', 'on the border: the start of the row');
+    assert.deepEqual(editor.layout(40, 2).cursor, { row: 0, column: 0 });
+    assert.equal(input.point(press(4, 8), field()), 'ignored', 'outside the field nothing moves');
+    assert.equal(input.point(press(7, 8), field()), 'ignored');
+    assert.deepEqual(editor.layout(40, 2).cursor, { row: 0, column: 0 });
+    assert.equal(input.handle(press(5, 8)), 'ignored', 'as a key event a pointer does nothing');
+
+    const multiline = new RichInput({ mode: 'flow', refresh: () => undefined, initial: Array.from({ length: 8 }, (_, line) => `line ${line}`).join('\n') });
+    multiline.point({ type: 'pointer', action: 'wheel-up', row: 0, column: 0 });
+    assert.deepEqual(multiline.editor.layout(40, 20).cursor, { row: 4, column: 6 }, 'the wheel moves through the text');
+    multiline.point({ type: 'pointer', action: 'wheel-down', row: 0, column: 0 });
+    assert.deepEqual(multiline.editor.layout(40, 20).cursor, { row: 7, column: 6 });
+
+    input.handle({ type: 'key', name: 'o', ctrl: true });
+    assert.ok(input.attaching, 'the attach field is open');
+    input.handle({ type: 'text', text: 'path' });
+    const attachField = { row: 9, column: 15, rows: 1, offsetAt: input.attaching.layout(40, 1).offsetAt };
+    assert.equal(input.point(press(9, 16), undefined, attachField), 'changed');
+    assert.deepEqual(input.attaching.layout(40, 1).cursor, { row: 0, column: 1 });
+    assert.equal(input.point(press(3, 3), undefined, attachField), 'ignored', 'with no text field drawn the attach field keeps focus');
+    assert.ok(input.attaching);
+    assert.equal(input.point({ type: 'pointer', action: 'wheel-up', row: 0, column: 0 }, field(), attachField), 'ignored');
+    assert.equal(input.point(press(5, 4), field(), attachField), 'changed', 'a press on the text takes focus back');
+    assert.equal(input.attaching, undefined);
+    assert.equal(editor.value, 'hello world', 'the draft stays');
 });

@@ -4,10 +4,10 @@ import { formatShortTime } from '../common/time.js';
 import { awaitsReply, collapseThinking } from '../chats/chat-book.js';
 import type { ChatAgentChoice, ChatDetail } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
-import { fit, truncate, wrap } from './ansi.js';
+import { fit, stringWidth, truncate, wrap } from './ansi.js';
 import type { ComposedSegment } from './composer.js';
-import { RichInput } from './rich-input.js';
-import { KeyboardSession, type KeyEvent } from './keys.js';
+import { RichInput, type PointerField } from './rich-input.js';
+import { KeyboardSession, type KeyEvent, type PointerInput } from './keys.js';
 import { renderPanel } from './panels.js';
 import { FullScreen } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -74,6 +74,11 @@ export function controlChatSource(request: (method: string, params?: Readonly<Re
 const REFRESH_MS = 1500;
 
 /**
+ * Conversation lines one wheel step scrolls.
+ */
+const WHEEL_LINES = 3;
+
+/**
  * What the chat client opens.
  *
  * @private chat client
@@ -108,6 +113,12 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     const done = new Promise<void>((resolve) => {
         finish = resolve;
     });
+
+    /** Where the input was last drawn, for the pointer. */
+    let field: PointerField | undefined;
+    let attachField: PointerField | undefined;
+    /** The frame row of the first offered answer. */
+    let choicesRow = 0;
 
     const awaited = (): { sender: string; text: string; choices?: readonly string[] } | undefined => (detail?.summary.status === 'waiting-for-user' ? detail.summary.awaiting : undefined);
 
@@ -190,7 +201,15 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         const visible = body.slice(Math.max(0, end - available), end);
         while (visible.length < available) visible.unshift('');
         if (scroll > 0) visible[visible.length - 1] = style.muted(`  ↓ ${scroll} more line(s) below (PgDn)`);
-        screen.draw([...top, ...visible.map((line) => truncate(line, width)), ...composer, legend]);
+        // The composer's text stands below its title border and the offered answers, inside its side border.
+        const textRow = top.length + visible.length + 1 + choiceLines.length;
+        const attachColumn = 2 + stringWidth('Attach file: ');
+        const pathLayout = attaching?.layout(width - 22, 1);
+        field = attaching ? undefined : { row: textRow, column: 2, rows: Math.max(1, layout.lines.length), offsetAt: layout.offsetAt };
+        attachField = pathLayout && { row: textRow, column: attachColumn, rows: 1, offsetAt: pathLayout.offsetAt };
+        choicesRow = textRow - choiceLines.length + 1;
+        const cursor = pathLayout ? { row: textRow, column: attachColumn + pathLayout.cursor.column } : { row: textRow + (editor.empty ? 0 : layout.cursor.row), column: 2 + (editor.empty ? 0 : layout.cursor.column) };
+        screen.draw([...top, ...visible.map((line) => truncate(line, width)), ...composer, legend], cursor);
     };
 
     const refresh = async (): Promise<void> => {
@@ -242,7 +261,20 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         finish?.();
     };
 
+    /** A press places the cursor or sends an offered answer (like its number, with an empty composer); the wheel scrolls the conversation. */
+    const onPointer = (event: PointerInput): void => {
+        if (event.action !== 'press') {
+            scroll = Math.max(0, scroll + (event.action === 'wheel-up' ? WHEEL_LINES : -WHEEL_LINES));
+            return draw();
+        }
+        const choice = awaited()?.choices?.[event.row - choicesRow];
+        if (choice !== undefined && editor.empty && !input.attaching) return void submit(choice);
+        input.point(event, field, attachField);
+        draw();
+    };
+
     const onKey = (event: KeyEvent): void => {
+        if (event.type === 'pointer') return onPointer(event);
         if (event.type === 'key' && event.name === 'c' && event.ctrl) return close();
         if (event.type === 'key' && event.name === 'r' && event.ctrl) {
             showThinking = !showThinking;
@@ -274,6 +306,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     };
     if (ownsScreen) screen.enter();
     else screen.invalidate();
+    if (terminal.pointer) keyboard.trackPointer(true);
     keyboard.start();
     process.stdout.on('resize', onResize);
     const timer = setInterval(() => void refresh(), REFRESH_MS);

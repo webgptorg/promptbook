@@ -3,7 +3,7 @@ import { fit, stringWidth, truncate, wrap } from './ansi.js';
 import { inlineSegments } from './attachments.js';
 import { inlineBadge, type BadgeActivity } from './badges.js';
 import type { ComposedSegment } from './composer.js';
-import { RichInput } from './rich-input.js';
+import { RichInput, type PointerField } from './rich-input.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { InlineRenderer } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -82,6 +82,7 @@ function header(terminal: TerminalProfile, frame: WizardFrame): string[] {
  * `setup` receives a redraw function for asynchronous updates (clipboard reads, dropped files).
  */
 async function interact<T>(
+    terminal: TerminalProfile,
     view: () => { lines: string[]; cursor?: { row: number; column: number } },
     onKey: (event: KeyEvent) => T | undefined,
     setup?: (redraw: () => void) => void,
@@ -93,6 +94,7 @@ async function interact<T>(
             if (finished) return;
             const frame = view();
             renderer.render(frame.lines, frame.cursor);
+            if (terminal.pointer) renderer.locate();
         };
         const finish = (value: T | typeof CANCELLED): void => {
             if (finished) return;
@@ -110,10 +112,14 @@ async function interact<T>(
                 return;
             }
             if (event.type === 'key' && event.name === 'escape') lastCancellation = 'escape';
-            const result = onKey(event);
+            // A press counts in rows of the block (the wheel works anywhere).
+            const row = event.type === 'pointer' && event.action === 'press' ? renderer.rowAt(event.row) : undefined;
+            if (event.type === 'pointer' && event.action === 'press' && row === undefined) return;
+            const result = onKey(event.type === 'pointer' && row !== undefined ? { ...event, row } : event);
             if (result !== undefined) finish(result);
             else redraw();
         });
+        if (terminal.pointer) keyboard.trackPointer(true, (row) => renderer.located(row));
         keyboard.start();
         process.stdout.on('resize', redraw);
         setup?.(redraw);
@@ -154,8 +160,16 @@ export function matchesFilter(text: string, query: string): boolean {
 }
 
 /**
- * Single-choice picker: arrows move focus, Enter confirms; the default is initially focused. A `searchable` picker
- * (long lists such as every agent) also narrows its choices as the user types; Esc clears the filter first.
+ * How a pointer works in a single-choice picker: a stray click only moves focus, like the arrow keys.
+ *
+ * @private terminal prompts
+ */
+export const POINTER_PICK_HINT = 'click focus, again confirm';
+
+/**
+ * Single-choice picker: arrows move focus, Enter confirms; the default is initially focused. A press focuses a choice
+ * and a press on the focused choice confirms it. A `searchable` picker (long lists such as every agent) also narrows
+ * its choices as the user types; Esc clears the filter first.
  *
  * @private terminal prompts
  */
@@ -178,7 +192,10 @@ export async function selectOne<T>(terminal: TerminalProfile, options: { frame: 
         if (visible[focus]?.disabled) moveFocus(1);
     };
     if (visible[focus]?.disabled) moveFocus(1);
+    // The choice drawn on each row of the frame, for the pointer.
+    const targets = new Map<number, number>();
     return await interact<T>(
+        terminal,
         () => {
             const width = terminal.columns();
             // Long questions (e.g. a project path) wrap instead of being clipped.
@@ -189,8 +206,10 @@ export async function selectOne<T>(terminal: TerminalProfile, options: { frame: 
             const available = Math.max(3, terminal.rows() - lines.length - 4);
             const { start, end } = windowAround(visible.length, focus, available);
             if (start > 0) lines.push(style.muted(`    ↑ ${start} more`));
+            targets.clear();
             for (let index = start; index < end; index++) {
                 const choice = visible[index]!;
+                targets.set(lines.length, index);
                 const focused = index === focus;
                 const pointer = focused ? style.accent(marks.pointer) : ' ';
                 const radio = focused ? style.accent(marks.radioOn) : style.muted(marks.radioOff);
@@ -201,10 +220,21 @@ export async function selectOne<T>(terminal: TerminalProfile, options: { frame: 
                 lines.push(truncate(`${prefix}${label}${isDefault}${description}`, width - 1));
             }
             if (end < visible.length) lines.push(style.muted(`    ↓ ${visible.length - end} more`));
-            lines.push('', legend(terminal, ['↑↓ move', 'Enter confirm', ...(options.searchable ? ['type to filter'] : []), options.escapeLabel ?? 'Esc back']));
+            lines.push('', legend(terminal, ['↑↓ move', 'Enter confirm', ...(options.searchable ? ['type to filter'] : []), options.escapeLabel ?? 'Esc back', ...(terminal.pointer ? [POINTER_PICK_HINT] : [])]));
             return { lines };
         },
         (event) => {
+            if (event.type === 'pointer') {
+                if (event.action !== 'press') {
+                    if (event.action === 'wheel-up' ? focus > 0 : focus < visible.length - 1) moveFocus(event.action === 'wheel-up' ? -1 : 1);
+                    return undefined;
+                }
+                const index = targets.get(event.row);
+                if (index === undefined || visible[index]!.disabled) return undefined;
+                if (index === focus) return visible[index]!.value;
+                focus = index;
+                return undefined;
+            }
             if (options.searchable && (event.type === 'text' || event.type === 'paste')) {
                 query += event.text.replace(/[\r\n\t]+/g, ' ');
                 refilter();
@@ -248,7 +278,7 @@ export async function confirm(terminal: TerminalProfile, options: { frame: Wizar
 }
 
 /**
- * Checkbox picker with featured items and a selectable "More…" action; Space toggles, Enter confirms. Typing filters
+ * Checkbox picker with featured items and a selectable "More…" action; Space or a press toggles, Enter confirms. Typing filters
  * the whole catalog (featured or not), so large catalogs stay navigable; Backspace edits and Esc clears the filter.
  *
  * @private terminal prompts
@@ -274,7 +304,10 @@ export async function selectMany<T>(
         if (!expanded) return [...options.choices.filter((choice) => choice.featured).map((choice) => ({ kind: 'choice' as const, choice })), { kind: 'more' as const }];
         return [...options.choices.map((choice) => ({ kind: 'choice' as const, choice })), { kind: 'fewer' as const }];
     };
+    // The row of the list drawn on each row of the frame, for the pointer.
+    const targets = new Map<number, number>();
     const result = await interact<T[]>(
+        terminal,
         () => {
             const width = terminal.columns();
             const list = rows();
@@ -285,8 +318,10 @@ export async function selectMany<T>(
             const available = Math.max(3, terminal.rows() - lines.length - 5);
             const { start, end } = windowAround(list.length, focus, available);
             if (start > 0) lines.push(style.muted(`    ↑ ${start} more`));
+            targets.clear();
             for (let index = start; index < end; index++) {
                 const row = list[index]!;
+                targets.set(lines.length, index);
                 const focused = index === focus;
                 const pointer = focused ? style.accent(marks.pointer) : ' ';
                 if (row.kind !== 'choice') {
@@ -304,10 +339,20 @@ export async function selectMany<T>(
             const count = selected.size;
             lines.push('', `  ${count ? style.success(`${count} selected`) : style.muted(options.noneLabel ?? 'None selected')}${message ? `  ${style.warning(message)}` : ''}`);
             if (!count && options.emptyWarning) for (const line of wrap(`${marks.warn} ${options.emptyWarning}`, Math.max(20, width - 4))) lines.push(`  ${style.warning(line)}`);
-            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', ...(options.bulk ? ['Ctrl+A all', 'Ctrl+U none'] : []), 'Enter confirm', 'type to filter', query ? 'Esc clear filter' : 'Esc back']));
+            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', ...(options.bulk ? ['Ctrl+A all', 'Ctrl+U none'] : []), 'Enter confirm', 'type to filter', query ? 'Esc clear filter' : 'Esc back', ...(terminal.pointer ? ['click toggle'] : [])]));
             return { lines: lines.map((line) => fit(line, Math.max(10, width - 1)).trimEnd()) };
         },
         (event) => {
+            if (event.type === 'pointer') {
+                if (event.action !== 'press') {
+                    focus = Math.max(0, Math.min(rows().length - 1, focus + (event.action === 'wheel-up' ? -1 : 1)));
+                    return undefined;
+                }
+                const index = targets.get(event.row);
+                if (index === undefined) return undefined;
+                focus = index;
+                event = { type: 'key', name: 'space' };
+            }
             if (event.type === 'text' && event.text === ' ') event = { type: 'key', name: 'space' };
             if (event.type === 'text' || event.type === 'paste') {
                 // Space toggles, so the filter takes the other printable characters.
@@ -380,7 +425,7 @@ export type Toggle<K extends string> = { readonly key: K; readonly label: string
 /**
  * Several labeled on/off controls on one screen with a live explanation of their combined effect.
  *
- * Space toggles the focused control, Enter confirms all, Esc goes back without applying.
+ * Space or a press toggles a control, Enter confirms all, Esc goes back without applying.
  *
  * @private terminal prompts
  */
@@ -391,25 +436,41 @@ export async function toggleList<K extends string>(
     const { style } = terminal;
     const values = { ...options.initial } as Record<K, boolean>;
     let focus = 0;
+    // The control drawn on each row of the frame (its explanation included), for the pointer.
+    const targets = new Map<number, number>();
     const result = await interact<Record<K, boolean>>(
+        terminal,
         () => {
             const width = Math.min(terminal.columns() - 1, 110);
             const lines = [...header(terminal, options.frame), style.bold(`${style.accent('?')} ${options.question}`)];
             if (options.intro) for (const line of wrap(options.intro, width - 2)) lines.push(style.muted(`  ${line}`));
             lines.push('');
+            targets.clear();
             options.toggles.forEach((toggle, index) => {
+                const first = lines.length;
                 const box = values[toggle.key] ? (terminal.unicode ? '◉' : '[x]') : terminal.unicode ? '○' : '[ ]';
                 const pointer = index === focus ? style.accent(terminal.unicode ? '❯' : '>') : ' ';
                 const label = index === focus ? style.bold(toggle.label) : toggle.label;
                 lines.push(`${pointer} ${values[toggle.key] ? style.success(box) : box} ${label}  ${style.muted(values[toggle.key] ? 'yes' : 'no')}`);
                 for (const line of wrap(toggle.description, width - 6)) lines.push(style.muted(`      ${line}`));
+                for (let row = first; row < lines.length; row++) targets.set(row, index);
             });
             lines.push('');
             for (const line of options.effect(values)) for (const wrapped of wrap(line, width - 4)) lines.push(`  ${style.accent(wrapped)}`);
-            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', 'Enter confirm', 'Esc back']));
+            lines.push(legend(terminal, ['↑↓ move', 'Space toggle', 'Enter confirm', 'Esc back', ...(terminal.pointer ? ['click toggle'] : [])]));
             return { lines };
         },
         (event) => {
+            if (event.type === 'pointer') {
+                if (event.action !== 'press') {
+                    focus = Math.max(0, Math.min(options.toggles.length - 1, focus + (event.action === 'wheel-up' ? -1 : 1)));
+                    return undefined;
+                }
+                const index = targets.get(event.row);
+                if (index === undefined) return undefined;
+                focus = index;
+                event = { type: 'key', name: 'space' };
+            }
             if (event.type !== 'key') return undefined;
             if (event.name === 'up') focus = (focus + options.toggles.length - 1) % options.toggles.length;
             else if (event.name === 'down' || event.name === 'tab') focus = (focus + 1) % options.toggles.length;
@@ -446,7 +507,11 @@ export async function composeRich(
     const input = new RichInput({ mode: 'flow', initial: options.initial, attachments: options.attachments, singleLine: options.singleLine, required: options.required, refresh: () => refresh() });
     const editor = input.editor;
     const box = terminal.unicode ? { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─', v: '│' } : { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' };
+    // Where the fields were last drawn, for the pointer.
+    let field: PointerField | undefined;
+    let attachField: PointerField | undefined;
     const result = await interact<ComposedInput>(
+        terminal,
         () => {
             const width = Math.min(terminal.columns() - 1, 110);
             const inner = width - 4;
@@ -463,9 +528,12 @@ export async function composeRich(
             for (let row = 0; row < minimum; row++) lines.push(`${style.accent(box.v)} ${fit(content[row] ?? '', inner)} ${style.accent(box.v)}`);
             const scroll = layout.hiddenAbove || layout.hiddenBelow ? ` ${layout.hiddenAbove ? `↑${layout.hiddenAbove}` : ''}${layout.hiddenBelow ? ` ↓${layout.hiddenBelow}` : ''} ` : '';
             lines.push(style.accent(`${box.bl}${box.h.repeat(Math.max(0, width - 2 - stringWidth(scroll)))}${scroll}${box.br}`));
+            field = { row: top, column: 2, rows: minimum, offsetAt: layout.offsetAt };
+            attachField = undefined;
             const attaching = input.attaching;
             if (attaching) {
                 const pathLayout = attaching.layout(width - 18, 1);
+                attachField = { row: lines.length, column: 15, rows: 1, offsetAt: pathLayout.offsetAt };
                 lines.push(`  ${style.bold('Attach file:')} ${pathLayout.lines[0] ?? ''}`);
                 const status = input.status(width - 2);
                 lines.push(status ? `  ${style.warning(status.text)}` : legend(terminal, input.keys()));
@@ -477,6 +545,10 @@ export async function composeRich(
             return { lines, cursor: { row: top + (!editor.empty || editor.value ? layout.cursor.row : 0), column: 2 + (!editor.empty || editor.value ? layout.cursor.column : 0) } };
         },
         (event) => {
+            if (event.type === 'pointer') {
+                input.point(event, field, attachField);
+                return undefined;
+            }
             const action = input.handle(event);
             if (action === 'submit') {
                 const segments = input.segments();

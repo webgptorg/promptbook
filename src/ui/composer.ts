@@ -87,6 +87,8 @@ export class TextEditor {
     private cursor: number;
     private readonly items = new Map<string, ComposerItem>();
     private nextNumber = 1;
+    /** The first row of the view of a long content. */
+    private scrollTop = 0;
     /** Long pastes become compact tokens (multiline fields); single-line fields insert them verbatim. */
     public tokenizePastes = true;
 
@@ -229,6 +231,7 @@ export class TextEditor {
             this.paste(event.text);
             return 'changed';
         }
+        if (event.type === 'pointer') return 'ignored';
         switch (event.name) {
             case 'enter':
                 return 'submit';
@@ -330,12 +333,17 @@ export class TextEditor {
         return this.characters.join('');
     }
 
+    /** Places the cursor at a position (from a layout's `offsetAt`). */
+    public placeCursor(offset: number): void {
+        this.cursor = Math.max(0, Math.min(this.characters.length, offset));
+    }
+
     /**
      * Wraps the text to a width and locates the cursor; long content scrolls to keep the cursor visible. `styleAt`
      * optionally styles the character at a UTF-16 offset of `rawText` (e.g. Book highlighting); widths are measured on
-     * the plain text.
+     * the plain text. `offsetAt` tells which cursor position a visible row and column stand for (see `placeCursor`).
      */
-    public layout(width: number, maxRows: number, styleAt?: (offset: number) => ((text: string) => string) | undefined): { lines: string[]; cursor: { row: number; column: number }; hiddenAbove: number; hiddenBelow: number } {
+    public layout(width: number, maxRows: number, styleAt?: (offset: number) => ((text: string) => string) | undefined): { lines: string[]; cursor: { row: number; column: number }; hiddenAbove: number; hiddenBelow: number; offsetAt: (row: number, column: number) => number } {
         const usable = Math.max(4, width);
         const rows: string[] = [];
         const styledRows: string[] = [];
@@ -353,7 +361,15 @@ export class TextEditor {
             run = '';
             runStyle = undefined;
         };
-        const flush = (): void => {
+        // The character each row begins with, for `offsetAt`.
+        const rowStarts = [0];
+        const shown = (character: string): string => {
+            if (!isToken(character)) return character;
+            const item = this.items.get(character);
+            return truncate(item ? itemLabel(item) : '[?]', usable);
+        };
+        const flush = (next?: number): void => {
+            if (next !== undefined) rowStarts.push(next);
             closeRun();
             rows.push(row);
             styledRows.push(styledRow);
@@ -363,27 +379,23 @@ export class TextEditor {
         };
         for (let index = 0; index <= this.characters.length; index++) {
             if (index === this.cursor) {
-                if (rowWidth >= usable) flush();
+                if (rowWidth >= usable) flush(index);
                 cursorRow = rows.length;
                 cursorColumn = rowWidth;
             }
             if (index === this.characters.length) break;
-            let character = this.characters[index]!;
+            const source = this.characters[index]!;
             const at = offset;
-            offset += character.length;
-            if (character === '\n') {
-                flush();
+            offset += source.length;
+            if (source === '\n') {
+                flush(index + 1);
                 continue;
             }
-            const token = isToken(character);
-            if (token) {
-                const item = this.items.get(character);
-                character = truncate(item ? itemLabel(item) : '[?]', usable);
-            }
+            const character = shown(source);
             const characterWidth = stringWidth(character);
-            if (rowWidth + characterWidth > usable) flush();
+            if (rowWidth + characterWidth > usable) flush(index);
             row += character;
-            const styled = token ? undefined : styleAt?.(at);
+            const styled = isToken(source) ? undefined : styleAt?.(at);
             if (styled !== runStyle) closeRun();
             runStyle = styled;
             run += character;
@@ -391,13 +403,31 @@ export class TextEditor {
         }
         flush();
         const visible = Math.max(1, maxRows);
-        let top = 0;
-        if (rows.length > visible) top = Math.min(Math.max(0, cursorRow - visible + 1), rows.length - visible);
+        // The view stays put while the cursor moves inside it, so a click does not move the text under the pointer.
+        const top = Math.max(0, Math.min(this.scrollTop, cursorRow, rows.length - visible), cursorRow - visible + 1);
+        this.scrollTop = top;
         return {
             lines: styleAt ? styledRows.slice(top, top + visible) : rows.slice(top, top + visible).map((line) => truncate(line, usable)),
             cursor: { row: cursorRow - top, column: cursorColumn },
             hiddenAbove: top,
             hiddenBelow: Math.max(0, rows.length - top - visible),
+            offsetAt: (visibleRow, column) => {
+                const start = rowStarts[top + visibleRow];
+                if (start === undefined) return this.characters.length;
+                const next = rowStarts[top + visibleRow + 1];
+                // Beyond the end of a wrapped row the position stays on that row, not at the start of the next one.
+                const last = next === undefined ? this.characters.length : next - 1;
+                let used = 0;
+                for (let index = start; index < (next ?? this.characters.length); index++) {
+                    const source = this.characters[index]!;
+                    if (source === '\n') return index;
+                    const cells = stringWidth(shown(source));
+                    // The nearer edge of a wide character or an item token.
+                    if (column < used + cells) return column - used < cells / 2 ? index : Math.min(index + 1, last);
+                    used += cells;
+                }
+                return last;
+            },
         };
     }
 }

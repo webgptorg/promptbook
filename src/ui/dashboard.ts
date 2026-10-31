@@ -6,7 +6,7 @@ import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ChatAgentChoice } from '../chats/service.js';
 import { runChatClient, type ChatSource } from './chat-client.js';
 import { singleLineVisual } from './badges.js';
-import { KeyboardSession, type KeyEvent } from './keys.js';
+import { KeyboardSession, type KeyEvent, type PointerInput } from './keys.js';
 import { FullScreen } from './screen.js';
 import { lifecycleActions } from './details.js';
 import { briefText, fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
@@ -40,7 +40,7 @@ import type { WalletImportPreview } from '../wallet/wallet.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
-import { CANCELLED, composeText, inputLine, matchesFilter, windowAround } from './prompts.js';
+import { CANCELLED, POINTER_PICK_HINT, composeText, inputLine, matchesFilter, windowAround } from './prompts.js';
 import { runBookEditor, type BookDraft, type BookSourceClient } from './book-editor.js';
 import { TASK_SORT_FIELDS, taskFilterChoices, type TaskInventoryItem } from '../tasks/views.js';
 import { formatAgentReference } from '../book/references.js';
@@ -302,8 +302,11 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         return picker.agents.filter((agent) => agent.group !== 'chatter' && (!query || matchesFilter(`${agent.name} ${agent.description ?? ''}`, query))).map((agent) => ({ label: agent.name, agent }));
     };
 
+    /** Where the new-chat picker last drew its choices, for the pointer. */
+    let pickerRows: { readonly row: number; readonly first: number; readonly count: number } | undefined;
+
     /** The modal step as a page body. */
-    const overlayBody = (step: Overlay): { title: string; context: string; body: string[]; anchor?: number; legend: string } => {
+    const overlayBody = (step: Overlay): { title: string; context: string; body: string[]; anchor?: number; legend: string; choices?: { readonly bodyRow: number; readonly first: number; readonly count: number } } => {
         const pointer = (focused: boolean): string => (focused ? style.accent(marks.pointer) : ' ');
         if (step.kind === 'confirm') return { title: 'Confirm', context: 'A consequential action needs your confirmation', body: [style.bold(step.question), ...(step.details ?? [])], legend: ' Y confirm · N/Esc keep things as they are' };
         if (step.kind === 'tool-in-use') {
@@ -338,7 +341,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 ...(choices.length ? rows : [style.muted('  No agent matches the filter.')]),
                 ...(end < choices.length ? [style.muted(`  ↓ ${choices.length - end} more`)] : []),
             ],
-            legend: step.stage === 'entry' ? ' ↑↓ choose · Enter confirm (Chatter is the default) · Esc cancel' : ' ↑↓ choose · Enter open a new chat · Esc back',
+            legend: `${step.stage === 'entry' ? ' ↑↓ choose · Enter confirm (Chatter is the default) · Esc cancel' : ' ↑↓ choose · Enter open a new chat · Esc back'}${terminal.pointer ? ` · ${POINTER_PICK_HINT}` : ''}`,
+            choices: { bodyRow: (chatter ? 0 : 1) + (step.stage === 'all' ? 1 : 0) + (start > 0 ? 1 : 0), first: start, count: end - start },
         };
     };
 
@@ -347,8 +351,13 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     const draw = (): void => {
         if (plain || nested) return;
         const attentionCount = attention.size;
+        // Only an open picker takes the pointer: pages stay free for native text selection and scrollback.
+        keyboard.trackPointer(terminal.pointer === true && overlay?.kind === 'agents');
         if (overlay) {
-            screen.draw(renderPage(snapshot, terminal, { ...overlayBody(overlay), scroll: 0, feedback, connectionLost, attention: attentionCount }).lines);
+            const body = overlayBody(overlay);
+            const rendered = renderPage(snapshot, terminal, { ...body, scroll: 0, feedback, connectionLost, attention: attentionCount });
+            pickerRows = body.choices && { ...body.choices, row: rendered.bodyRow + body.choices.bodyRow };
+            screen.draw(rendered.lines);
             return;
         }
         const page = pages[pages.length - 1];
@@ -1226,6 +1235,20 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         draw();
     };
 
+    /** The pointer in the new-chat picker: a press focuses a choice and a press on the focused choice confirms it. */
+    const pickerPointer = (picker: AgentPicker, event: PointerInput): void => {
+        if (event.action !== 'press') {
+            picker.focus = Math.max(0, Math.min(pickerChoices(picker).length - 1, picker.focus + (event.action === 'wheel-up' ? -1 : 1)));
+            return draw();
+        }
+        const offset = pickerRows ? event.row - pickerRows.row : -1;
+        if (!pickerRows || offset < 0 || offset >= pickerRows.count) return;
+        const index = pickerRows.first + offset;
+        if (index === picker.focus) return overlayKey(picker, { type: 'key', name: 'enter' });
+        picker.focus = index;
+        draw();
+    };
+
     /** Keys of the home screen: tiles, letter shortcuts to the same pages/operations, and leaving. */
     const homeKey = (event: KeyEvent): void => {
         if (event.type === 'key') {
@@ -1336,6 +1359,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     const onKey = (event: KeyEvent): void => {
+        if (event.type === 'pointer') {
+            if (overlay?.kind === 'agents') pickerPointer(overlay, event);
+            return;
+        }
         // Shortcuts typed faster than one read arrive as one text chunk: each character is its own key here (the
         // picker's filter takes typed text whole).
         if (event.type === 'text' && [...event.text].length > 1 && overlay?.kind !== 'agents') {

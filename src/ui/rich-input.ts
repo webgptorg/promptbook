@@ -1,7 +1,7 @@
 import { truncate } from './ansi.js';
 import { MAX_ATTACHMENT_BYTES, clipboardText, droppedFile, isImagePath, richClipboard } from './attachments.js';
 import { TextEditor, itemLabel, type ComposedSegment } from './composer.js';
-import type { KeyEvent } from './keys.js';
+import type { KeyEvent, PointerInput } from './keys.js';
 
 /**
  * Interaction policy of an entry point (the editing, paste and attachment behavior itself is shared):
@@ -27,6 +27,27 @@ export type RichInputAction = 'submit' | 'save' | 'cancel' | 'changed' | 'ignore
  * @private rich input
  */
 export const MAX_PASTE_CHARACTERS = 10 * 1024 * 1024;
+
+/**
+ * Text lines one wheel step moves through.
+ */
+const WHEEL_LINES = 3;
+
+/**
+ * Where a surface drew an editing field on its frame, so a pointer press can place the cursor there.
+ *
+ * @private rich input
+ */
+export type PointerField = {
+    /** First row of the field on the frame. */
+    readonly row: number;
+    /** First column of the text on the frame. */
+    readonly column: number;
+    /** Rows of the field. */
+    readonly rows: number;
+    /** The cursor position of a row and column of the field. */
+    readonly offsetAt: (row: number, column: number) => number;
+};
 
 /**
  * Options of a rich input.
@@ -121,11 +142,36 @@ export class RichInput {
         });
     }
 
+    /**
+     * Handles a pointer event (frame coordinates) on the fields as the surface drew them: a press places the cursor
+     * and takes focus, leaving the attach-file field when it lands on the text; the wheel moves through the text. It
+     * never submits.
+     */
+    public point(event: PointerInput, field?: PointerField, attachField?: PointerField): RichInputAction {
+        if (this.busy) return 'ignored';
+        if (event.action !== 'press') {
+            if (this.attachPath) return 'ignored';
+            for (let step = 0; step < WHEEL_LINES; step++) this.editor.handle({ type: 'key', name: event.action === 'wheel-up' ? 'up' : 'down' });
+            return 'changed';
+        }
+        const within = (area: PointerField | undefined): area is PointerField => area !== undefined && event.row >= area.row && event.row < area.row + area.rows;
+        const place = (editor: TextEditor, area: PointerField): RichInputAction => {
+            this.message = '';
+            editor.placeCursor(area.offsetAt(event.row - area.row, Math.max(0, event.column - area.column)));
+            return 'changed';
+        };
+        if (this.attachPath && within(attachField)) return place(this.attachPath, attachField);
+        if (!within(field)) return 'ignored';
+        this.attachPath = undefined;
+        return place(this.editor, field);
+    }
+
     /** Handles one input event under the entry point's policy. */
     public handle(event: KeyEvent): RichInputAction {
         if (this.busy) return 'ignored';
         const multiline = !this.options.singleLine;
         const attachments = this.options.attachments === true && multiline;
+        if (event.type === 'pointer') return 'ignored';
         if (this.attachPath) {
             if (event.type === 'key' && event.name === 'escape') {
                 this.attachPath = undefined;

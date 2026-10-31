@@ -12,6 +12,10 @@ import type { ImageOverlay } from './terminal-images.js';
 export class InlineRenderer {
     private renderedLines = 0;
     private cursorRow = 0;
+    /** The block's row within the block at the latest position question. */
+    private askedAt?: number;
+    /** The block's first row on the screen (0-based), known once the terminal has answered. */
+    private top?: number;
 
     public constructor(private readonly output: NodeJS.WriteStream = process.stdout) {}
 
@@ -44,6 +48,30 @@ export class InlineRenderer {
             this.cursorRow = row;
         }
         this.output.write(output);
+    }
+
+    /**
+     * Asks the terminal where the block now stands: an inline block moves with what was printed before it and scrolls
+     * at the bottom of the screen. The answer arrives on stdin, for `located`.
+     */
+    public locate(): void {
+        this.askedAt = this.cursorRow;
+        this.output.write('\x1b[6n');
+    }
+
+    /**
+     * Takes the terminal's answer (1-based row). Answers come in order, so the one to the latest question settles it,
+     * also after a late answer to the previous prompt.
+     */
+    public located(row: number): void {
+        if (this.askedAt !== undefined) this.top = row - 1 - this.askedAt;
+    }
+
+    /** The row of the block at a screen row (0-based), if the block is there. */
+    public rowAt(screenRow: number): number | undefined {
+        if (this.top === undefined) return undefined;
+        const row = screenRow - this.top;
+        return row >= 0 && row < this.renderedLines ? row : undefined;
     }
 
     /** Finishes the block: leaves the final lines in scrollback and moves below them. */

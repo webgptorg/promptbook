@@ -6,7 +6,22 @@
 export type KeyEvent =
     | { readonly type: 'key'; readonly name: KeyName; readonly ctrl?: boolean; readonly alt?: boolean; readonly shift?: boolean }
     | { readonly type: 'text'; readonly text: string }
-    | { readonly type: 'paste'; readonly text: string };
+    | { readonly type: 'paste'; readonly text: string }
+    | { readonly type: 'pointer'; readonly action: PointerAction; /** 0-based screen row. */ readonly row: number; /** 0-based screen column. */ readonly column: number };
+
+/**
+ * What the pointing device did: the primary button went down, or the wheel turned.
+ *
+ * @private terminal input
+ */
+export type PointerAction = 'press' | 'wheel-up' | 'wheel-down';
+
+/**
+ * A pointer event.
+ *
+ * @private terminal input
+ */
+export type PointerInput = Extract<KeyEvent, { readonly type: 'pointer' }>;
 
 /**
  * Named keys.
@@ -114,19 +129,61 @@ const PASTE_START = '\x1b[200~';
 const PASTE_END = '\x1b[201~';
 
 /**
- * Incremental parser of raw terminal input (keeps an unfinished paste across chunks).
+ * Asks for pointer presses and the wheel (no motion) in the SGR encoding, which has no coordinate limit.
+ */
+const POINTER_ON = '\x1b[?1000h\x1b[?1006h';
+
+/**
+ * Ends pointer reports.
+ */
+const POINTER_OFF = '\x1b[?1006l\x1b[?1000l';
+
+/**
+ * The start of a pointer or cursor report whose rest is in the next chunk (its digits must not arrive as typed text).
+ */
+const UNFINISHED_REPORT = /^\x1b\[(?:<[\d;]*|\d+;\d*)$/;
+
+/**
+ * Whether this terminal gets pointer reports while a picker or composer has focus. `PTBK_TERMINAL_POINTER=off` keeps
+ * native selection and scrollback there, `on` asks for reports anyway. Windows consoles stay keyboard-only unless
+ * asked: Node reads them as key records, so tracking would cost native selection without delivering presses.
+ *
+ * @private terminal input
+ */
+export function allowsPointer(env: NodeJS.ProcessEnv, platform: NodeJS.Platform = process.platform): boolean {
+    const configured = env.PTBK_TERMINAL_POINTER?.trim().toLowerCase();
+    if (configured === 'off' || configured === 'on') return configured === 'on';
+    return platform !== 'win32';
+}
+
+/**
+ * The event of one SGR pointer report: a press of the primary button or a wheel step, with any modifier. Releases,
+ * motion and other buttons are not used.
+ */
+function pointerEvent(code: number, column: number, row: number, pressed: boolean): KeyEvent | undefined {
+    const button = code & ~(4 | 8 | 16);
+    const action = button === 0 ? 'press' : button === 64 ? 'wheel-up' : button === 65 ? 'wheel-down' : undefined;
+    return action && pressed ? { type: 'pointer', action, row: row - 1, column: column - 1 } : undefined;
+}
+
+/**
+ * Incremental parser of raw terminal input (keeps an unfinished paste or report across chunks).
  *
  * @private terminal input
  */
 export class KeyParser {
     private paste?: string;
+    private held = '';
+    /** Receives answers to a cursor position question (1-based), which are not input of the user. */
+    public onCursorReport?: (row: number, column: number) => void;
 
     /**
      * Parses one chunk of raw input into events.
      */
     public parse(chunk: string): KeyEvent[] {
         const events: KeyEvent[] = [];
-        let rest = chunk;
+        let rest = this.held + chunk;
+        this.held = '';
         while (rest.length) {
             if (this.paste !== undefined) {
                 const end = rest.indexOf(PASTE_END);
@@ -144,9 +201,26 @@ export class KeyParser {
                 rest = rest.slice(PASTE_START.length);
                 continue;
             }
+            if (UNFINISHED_REPORT.test(rest)) {
+                this.held = rest;
+                return events;
+            }
             if (rest.startsWith('\x1b[<')) {
-                const match = /^\x1b\[<\d+;\d+;\d+[Mm]/.exec(rest);
+                const match = /^\x1b\[<(\d+);(\d+);(\d+)([Mm])/.exec(rest);
+                const event = match && pointerEvent(Number(match[1]), Number(match[2]), Number(match[3]), match[4] === 'M');
+                if (event) events.push(event);
                 rest = rest.slice(match ? match[0].length : 3);
+                continue;
+            }
+            // A terminal without the SGR encoding reports in three raw bytes, which must not arrive as typed text.
+            if (rest.startsWith('\x1b[M')) {
+                rest = rest.slice(6);
+                continue;
+            }
+            const report = this.onCursorReport && /^\x1b\[(\d+);(\d+)R/.exec(rest);
+            if (report) {
+                this.onCursorReport!(Number(report[1]), Number(report[2]));
+                rest = rest.slice(report[0].length);
                 continue;
             }
             const sequence = SEQUENCES.find(([prefix]) => rest.startsWith(prefix));
@@ -209,6 +283,20 @@ export class KeyboardSession {
     private readonly parser = new KeyParser();
     private listener?: (chunk: Buffer | string) => void;
     private wasRaw = false;
+    private pointer = false;
+    /** No other handler of the termination signal existed when pointer reports began. */
+    private terminationUnhandled = false;
+    /** A crash must not leave the shell receiving pointer reports as typed text. */
+    private readonly endPointerOnExit = (): void => {
+        this.output.write(POINTER_OFF);
+    };
+    /** Neither must being terminated; without another handler the signal still ends the process, as it would have. */
+    private readonly endPointerOnTermination = (): void => {
+        this.output.write(POINTER_OFF);
+        if (!this.terminationUnhandled || process.listenerCount('SIGTERM') > 0) return;
+        this.stop();
+        process.kill(process.pid, 'SIGTERM');
+    };
 
     public constructor(
         private readonly onEvent: (event: KeyEvent) => void,
@@ -224,13 +312,40 @@ export class KeyboardSession {
         this.input.resume();
         this.output.write('\x1b[?2004h');
         this.listener = (chunk: Buffer | string) => {
-            for (const event of this.parser.parse(chunk.toString())) this.onEvent(event);
+            for (const event of this.parser.parse(chunk.toString())) if (event.type !== 'pointer' || this.pointer) this.onEvent(event);
         };
         this.input.on('data', this.listener);
+        if (this.pointer) this.setPointerReports(true);
+    }
+
+    /**
+     * Turns pointer events on or off, also across a stop and a later start. While on, native text selection and
+     * scrollback need a modifier (usually Shift, or Option on macOS), so surfaces ask only while a picker or composer
+     * has focus. `onCursorReport` receives answers to a cursor position question (1-based row).
+     */
+    public trackPointer(on: boolean, onCursorReport?: (row: number) => void): void {
+        if (onCursorReport) this.parser.onCursorReport = onCursorReport;
+        if (on === this.pointer) return;
+        this.pointer = on;
+        if (this.listener) this.setPointerReports(on);
+    }
+
+    /** Asks the terminal to start or end pointer reports. */
+    private setPointerReports(on: boolean): void {
+        this.output.write(on ? POINTER_ON : POINTER_OFF);
+        if (on) {
+            this.terminationUnhandled = process.listenerCount('SIGTERM') === 0;
+            process.once('exit', this.endPointerOnExit);
+            process.once('SIGTERM', this.endPointerOnTermination);
+        } else {
+            process.off('exit', this.endPointerOnExit);
+            process.off('SIGTERM', this.endPointerOnTermination);
+        }
     }
 
     /** Restores the terminal. */
     public stop(): void {
+        if (this.listener && this.pointer) this.setPointerReports(false);
         if (this.listener) this.input.off('data', this.listener);
         this.listener = undefined;
         if (this.input.isTTY) {

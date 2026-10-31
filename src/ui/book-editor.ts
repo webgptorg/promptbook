@@ -6,7 +6,7 @@ import { bookHighlightStyle, fit, truncate } from './ansi.js';
 import type { ComposedSegment } from './composer.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { renderPanel } from './panels.js';
-import { RichInput } from './rich-input.js';
+import { RichInput, type PointerField } from './rich-input.js';
 import { FullScreen } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
@@ -65,6 +65,9 @@ export async function runBookEditor(
     // base revision makes the save a visible conflict instead of silently overwriting another edit.
     let revision = draft?.revision ?? source.revision;
     let input: RichInput;
+    /** Where the fields were last drawn, for the pointer. */
+    let field: PointerField | undefined;
+    let attachField: PointerField | undefined;
     // The text last loaded or saved: the editor is dirty only when its content differs (cursor moves never count).
     // Line endings are edited as LF and restored to the source's own style on save.
     const crlf = source.text.includes('\r\n');
@@ -123,9 +126,11 @@ export async function runBookEditor(
         const attachLines = attaching ? [`  ${style.bold('Attach file:')} ${attaching.layout(width - 18, 1).lines[0] ?? ''}`] : [];
         const available = Math.max(3, height - header.length - warningPanel.length - statusLines.length - attachLines.length - 3);
         const layout = input.editor.layout(width - 4, available, styleAt());
+        const top = header.length + warningPanel.length;
+        field = { row: top, column: 2, rows: available, offsetAt: layout.offsetAt };
+        attachField = attaching && { row: top + available + 1, column: 15, rows: 1, offsetAt: attaching.layout(width - 18, 1).offsetAt };
         const body = layout.lines.map((line) => `  ${line}`);
         while (body.length < available) body.push('');
-        const top = header.length + warningPanel.length;
         const scroll = layout.hiddenAbove || layout.hiddenBelow ? style.muted(fit(`  ${layout.hiddenAbove ? `↑ ${layout.hiddenAbove} line(s) above` : ''}${layout.hiddenBelow ? `  ↓ ${layout.hiddenBelow} below` : ''}`, width)) : '';
         screen.draw([...header, ...warningPanel, ...body, scroll, ...attachLines, ...statusLines, legend], attaching ? undefined : { row: top + layout.cursor.row, column: 2 + layout.cursor.column });
     };
@@ -176,6 +181,10 @@ export async function runBookEditor(
         }
     };
     const onKey = (event: KeyEvent): void => {
+        if (event.type === 'pointer') {
+            input.point(event, field, attachField);
+            return draw();
+        }
         if (event.type === 'key' && event.name === 'c' && event.ctrl) return close();
         if (!source.editable) {
             if (event.type === 'key' && event.name === 'escape') return close();
@@ -200,6 +209,7 @@ export async function runBookEditor(
     };
     if (ownsScreen) screen.enter();
     else screen.invalidate();
+    if (terminal.pointer) keyboard.trackPointer(true);
     keyboard.start();
     process.stdout.on('resize', onResize);
     draw();
