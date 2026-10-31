@@ -342,11 +342,29 @@ const LOCAL_DASHBOARD_MIGRATION: ConfigurationMigration = {
 };
 
 /**
+ * The shared task/chat work-count limit no longer exists. The migration records the historical value in its notes and
+ * removes the setting, which never caps work again.
+ */
+const SHARED_WORK_LIMIT_MIGRATION: ConfigurationMigration = {
+    target: '0.119.0-45',
+    title: 'Retire the shared work-count limit',
+    migrate: (raw) => {
+        const notes: string[] = [];
+        const execution = raw.execution !== null && typeof raw.execution === 'object' && !Array.isArray(raw.execution) ? (raw.execution as Record<string, unknown>) : undefined;
+        if (execution?.maxConcurrentWork !== undefined) {
+            notes.push(`retired execution.maxConcurrentWork (${JSON.stringify(execution.maxConcurrentWork)}); there is no shared work-count limit anymore`);
+            delete execution.maxConcurrentWork;
+        }
+        return { notes, problems: [] };
+    },
+};
+
+/**
  * Every registered configuration migration (sparse: most releases have none).
  *
  * @private configuration migrations
  */
-export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION];
+export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION, SHARED_WORK_LIMIT_MIGRATION];
 
 /**
  * Compares the saved configuration version with the running engine and selects the applicable ordered steps

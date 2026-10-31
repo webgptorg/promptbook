@@ -112,18 +112,16 @@ export type CurrentWorkView = {
 };
 
 /**
- * The shared capacity of active work: background tasks and chat turns together.
+ * Counts of the work in this engine: there is no shared limit, so no denominator exists.
  *
  * @private shared status view model
  */
-export type CapacityView = {
-    /** `execution.maxConcurrentWork`. */
-    readonly limit: number;
+export type WorkloadView = {
     /** Units working now. */
     readonly active: number;
-    /** Checkpointed work waiting for a person or a resource (holds no slot). */
+    /** Checkpointed work waiting for a person or a resource. */
     readonly waiting: number;
-    /** Ready work and chat turns waiting for a free slot or for files another run owns. */
+    /** Ready work waiting for its agent's unfinished task or for files another run owns. */
     readonly queued: number;
     /** Files owned by active or checkpointed work, with their owner. */
     readonly files?: ReadonlyArray<{ readonly path: string; readonly owner: string }>;
@@ -139,7 +137,7 @@ export type WaitView = {
      * `tools`: the running engine waits for a usable browser/harness (not a lifecycle state, technical pause or stop).
      * `agent`: ready tasks wait because each of their agents already holds one started unfinished task.
      */
-    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools' | 'capacity' | 'files' | 'agent' | 'draining';
+    readonly kind: 'pacing' | 'error-backoff' | 'quota' | 'schedule' | 'setup' | 'recovery' | 'workspace' | 'user' | 'discovery' | 'idle' | 'paused' | 'persistence' | 'tools' | 'files' | 'agent' | 'draining';
     readonly reason: string;
     /** Next action/opportunity time (ISO). */
     readonly until?: string;
@@ -627,8 +625,8 @@ export type ServiceSnapshot = {
     readonly current?: CurrentWorkView;
     /** Every active unit of work: background tasks and chat turns, oldest first. */
     readonly active?: readonly CurrentWorkView[];
-    /** Shared capacity, waiting and queued counts. */
-    readonly capacity?: CapacityView;
+    /** Active, waiting and queued counts. */
+    readonly workload?: WorkloadView;
     /** Effective execution configuration for the expandable execution panel (the first active, else the last). */
     readonly execution?: ExecutionDetailView;
     /** Execution details of every active task run (the operator selects one). */

@@ -99,7 +99,7 @@ export function validateCombinations(context: CommandContext): void {
             kind: 'usage',
             reason: 'Tasks and chats now share the project\'s one working tree and current branch. Different files are edited concurrently; work on the same file waits for its current owner (per-file ownership). No branch or worktree is created.',
             effect: 'Nothing was started or changed.',
-            next: [`Run the command again without --isolate (ptbk ${path}).`, 'To serialize all work, set "execution": { "maxConcurrentWork": 1 } in ptbk.json.'],
+            next: [`Run the command again without --isolate (ptbk ${path}).`],
         });
     }
     if (gitChanges === 'continue' && option<string>(context, 'check-before') === 'yes-and-fix') throw usageError('--git-changes continue conflicts with --check-before yes-and-fix.', path);

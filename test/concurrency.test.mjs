@@ -68,17 +68,25 @@ test('concurrent work: independent tasks of different agents overlap in the one 
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
 });
 
-test('concurrent work: execution.maxConcurrentWork 1 serializes tasks', async (t) => {
+test('concurrent work: six independent agents run together without a shared limit; an obsolete saved limit caps nothing', async (t) => {
     const { project, env } = await initializedProject(t);
     await setExecution(project, 'maxConcurrentWork', 1);
-    await addTask(project, env, 'First serial SLOW_WORK');
-    await addTask(project, env, 'Second serial SLOW_WORK');
-    const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '1500' }, async () => Boolean((await committed(project, 'First serial SLOW_WORK')) && (await committed(project, 'Second serial SLOW_WORK'))), { message: 'both serialized results' });
+    const agents = ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((name) => `Worker${name}`);
+    for (const agent of agents) await writeFile(join(project, 'agents', `${agent.toLowerCase()}.book`), `AGENT ${agent}\nGOAL Write what the task asks for.\nMODEL harness=OPENAI_CODEX model=fake-model-1 thinking=medium\n`);
+    await git(project, ['add', 'agents']);
+    await git(project, ['commit', '-q', '-m', 'Add workers']);
+    for (const agent of agents) await addTask(project, env, `Write ${agent} SLOW_WORK`, agent);
+    const titles = agents.map((agent) => `Write ${agent} SLOW_WORK`);
+    const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '6000' }, async () => (await Promise.all(titles.map((title) => committed(project, title)))).every(Boolean), { message: 'all six results', timeoutMs: 180_000 });
     assert.equal(run.code, 0, run.output);
-    const lines = events(run.output);
-    // Every start (Router prerequisites included) follows the previous unit's end: never two at once.
-    assert.doesNotMatch(run.output, /alongside \d+ other active unit/, run.output);
-    assert.ok(lines.filter((line) => /^Starting /.test(line)).length >= 2);
+    const starts = titles.map((title) => position(run.output, new RegExp(`^Starting "${title}`)));
+    const firstCommit = position(run.output, /^Committed \S+ ptbk: `[^`]+` Write Worker/);
+    assert.ok(starts.every((start) => start >= 0) && Math.max(...starts) < firstCommit, `all six started before any result was committed:\n${run.output}`);
+    assert.match(run.output, /alongside 5 other active units/, 'no hidden sixth-work queue');
+    const lint = await ptbk(['lint', '--raw'], { cwd: project, env });
+    assert.match(lint.output, /execution\.maxConcurrentWork[^\n]*obsolete setting/, 'the saved limit is diagnosed');
+    const saved = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
+    assert.equal(saved.execution.maxConcurrentWork, 1, 'read-only inspection never rewrites the file');
 });
 
 test('concurrent work: same-file work waits for the owner of the file and then continues', async (t) => {
@@ -120,7 +128,7 @@ test('removed task worktrees: --isolate is explained before anything changes; a 
     assert.equal(refused.code, 2, refused.output);
     assert.match(refused.output, /--isolate is no longer supported: task worktrees were removed/);
     assert.match(refused.output, /per-file ownership/);
-    assert.match(refused.output, /maxConcurrentWork/);
+    assert.doesNotMatch(refused.output, /maxConcurrentWork/);
     assert.equal((await git(project, ['rev-parse', 'HEAD'])).trim(), head, 'nothing was committed');
     assert.equal((await git(project, ['worktree', 'list', '--porcelain'])).match(/^worktree /gm).length, 1);
     await setExecution(project, 'isIsolated', true);
@@ -129,5 +137,5 @@ test('removed task worktrees: --isolate is explained before anything changes; a 
     const help = await ptbk(['start', '--help'], { cwd: project, env });
     assert.doesNotMatch(help.stdout, /--isolate/, 'the removed option is not offered');
     const status = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
-    assert.ok(!status.settings || status.settings.length === 0 || status.settings.some((item) => item.key === 'execution.maxConcurrentWork'), 'the shared limit is an ordinary setting');
+    assert.ok(!(status.settings ?? []).some((item) => item.key === 'execution.maxConcurrentWork'), 'no shared limit exists as a setting');
 });

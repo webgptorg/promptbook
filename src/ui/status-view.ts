@@ -117,7 +117,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     }
     lines.push(`CHATS: ${snapshot.chats.total} total, ${snapshot.chats.unread} unread message(s), ${waiting.length} waiting for you (ptbk chat --list)`);
     const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
-    lines.push('', `CURRENT WORK${snapshot.capacity ? ` (${snapshot.capacity.active}/${snapshot.capacity.limit} active, ${snapshot.capacity.waiting} waiting, ${snapshot.capacity.queued} queued)` : ''}`);
+    lines.push('', `CURRENT WORK${snapshot.workload ? ` (${snapshot.workload.active} active, ${snapshot.workload.waiting} waiting, ${snapshot.workload.queued} queued)` : ''}`);
     for (const current of active) {
         if (current.kind === 'chat') {
             lines.push(`- chat reply in {${current.taskTitle}}`);
@@ -238,7 +238,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         work.push(`${style.muted('Task ')} ${current.taskRef}${current.kind !== 'task' ? style.muted(` (${current.kind})`) : ''}${current.trace ? style.muted(` · trace ${current.trace}`) : ''}`);
         // Further concurrent work, one line each.
         for (const other of active.filter((item) => item !== current)) work.push(`${style.muted('Also ')} ${other.kind === 'chat' ? `chat reply in {${other.taskTitle}}` : `${other.agent.name} on ${truncate(other.taskTitle, 120)} ${style.muted(`(${other.phase})`)}`}`);
-        if (snapshot.capacity) work.push(style.muted(`${snapshot.capacity.active}/${snapshot.capacity.limit} active · ${snapshot.capacity.waiting} waiting · ${snapshot.capacity.queued} queued`));
+        if (snapshot.workload) work.push(style.muted(`${snapshot.workload.active} active · ${snapshot.workload.waiting} waiting · ${snapshot.workload.queued} queued`));
     } else {
         work.push(snapshot.service.state === 'stopped' ? style.muted('The service is stopped.') : `${style.bold(snapshot.phase)}${snapshot.wait ? ` ${marks.dot} ${snapshot.wait.reason}` : ''}`);
     }

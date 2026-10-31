@@ -52,7 +52,7 @@ export type ReportView = {
     readonly problem?: string;
     /** A brief is being generated now (the saved one stays readable meanwhile). */
     readonly generating?: boolean;
-    /** An explicit Refresh waits for background scheduling (pause, capacity). */
+    /** An explicit Refresh waits for background scheduling (task pause and actual resource availability). */
     readonly requestedAt?: string;
     /** Why the requested or automatic generation waits, when it does. */
     readonly waiting?: string;

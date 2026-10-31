@@ -556,8 +556,8 @@
         const card = h('section', { className: 'card work', 'aria-label': 'Current work' });
         const active = activeWork(snapshot);
         card.append(h('h2', {}, h('span', {}, 'Current work'), pill(snapshot.phase, snapshot.phase === 'blocked' ? 'bad' : active.length ? 'ok' : '')));
-        const capacity = snapshot.capacity;
-        if (capacity) card.append(h('p', { className: 'muted' }, `${capacity.active}/${capacity.limit} active · ${capacity.waiting} waiting · ${capacity.queued} queued (execution.maxConcurrentWork, shared by tasks and chats)`));
+        const workload = snapshot.workload;
+        if (workload) card.append(h('p', { className: 'muted' }, `${workload.active} active · ${workload.waiting} waiting · ${workload.queued} queued`));
         if (active.length > 1) {
             // Concurrent work: one row per unit; selecting one shows its details below.
             card.append(
@@ -1397,8 +1397,8 @@
             case 'work': {
                 const active = activeWork(snapshot);
                 if (active.length > 1) {
-                    const capacity = snapshot.capacity;
-                    return [h('strong', {}, `${active.length}${capacity ? `/${capacity.limit}` : ''} active${capacity && capacity.queued ? ` · ${capacity.queued} queued` : ''}`), ...active.map((item) => (item.kind === 'chat' ? h('span', {}, `Chat: ${item.taskTitle}`) : h('span', { className: 'row' }, badge(item.agent, true), item.taskTitle)))];
+                    const workload = snapshot.workload;
+                    return [h('strong', {}, `${active.length} active${workload && workload.queued ? ` · ${workload.queued} queued` : ''}`), ...active.map((item) => (item.kind === 'chat' ? h('span', {}, `Chat: ${item.taskTitle}`) : h('span', { className: 'row' }, badge(item.agent, true), item.taskTitle)))];
                 }
                 if (current) return [h('span', { className: 'row' }, badge(current.agent, true), h('strong', {}, current.agent.name), h('span', { className: 'muted' }, ACTIVITY_LABEL[current.agent.activity] || current.agent.activity)), current.taskTitle, h('span', { className: 'muted' }, `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}`)];
                 if (snapshot.blockers.length) return [h('strong', { className: 'bad' }, snapshot.blockers[0].title), h('span', { className: 'muted' }, snapshot.blockers[0].action || snapshot.blockers[0].reason)];

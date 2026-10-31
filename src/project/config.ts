@@ -74,13 +74,6 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
         description: 'Run the check before work.',
         application: 'next-task',
     },
-    {
-        key: 'execution.maxConcurrentWork',
-        type: 'positive-integer',
-        default: 5,
-        description: 'Most background tasks and chat turns working at once, together (not per kind or agent); 1 serializes them. Waiting, idle and queued work takes no slot.',
-        application: 'live',
-    },
     { key: 'execution.repairAttempts', type: 'integer', default: 3, description: 'Implementation/repair attempts per task.', application: 'next-task' },
     { key: 'execution.technicalRetries', type: 'integer', default: 3, description: 'Technical retries after the initial attempt.', application: 'next-task' },
     { key: 'execution.waitBetweenPrompts', type: 'duration', default: 0, description: 'Pause between tasks.', application: 'live' },
@@ -579,6 +572,11 @@ export function resolveSettings(layers: SettingsLayers): EffectiveSettings {
     // Task worktrees were removed: work shares the project's one working tree with per-file ownership.
     if (getPath(layers.file, 'execution.isIsolated') !== undefined) {
         diagnostics.push({ location: 'ptbk.json › execution.isIsolated', message: 'obsolete setting (preserved, ignored): task worktrees were removed; tasks and chats share the project\'s working tree and current branch with per-file ownership. Remove it.', severity: 'warning' });
+    }
+    // No shared work-count limit exists anymore: the saved value is diagnosed and never caps work.
+    const maxConcurrentWork = getPath(layers.file, 'execution.maxConcurrentWork');
+    if (maxConcurrentWork !== undefined) {
+        diagnostics.push({ location: 'ptbk.json › execution.maxConcurrentWork', message: `obsolete setting (preserved until the next configuration migration, ignored): the value ${JSON.stringify(maxConcurrentWork)} no longer limits work. Each agent holds one started unfinished task and answers any number of chats; actual resources and file ownership decide the rest.`, severity: 'warning' });
     }
     const routing = layers.file.routing;
     if (routing !== null && typeof routing === 'object' && !Array.isArray(routing)) {

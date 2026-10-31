@@ -362,8 +362,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
         case 'work': {
             const body: string[] = [];
             const active = activeWork(snapshot);
-            const capacity = snapshot.capacity;
-            if (capacity) body.push(`${style.muted('Capacity ')} ${style.bold(`${capacity.active}/${capacity.limit}`)} active${style.muted(` · ${capacity.waiting} waiting · ${capacity.queued} queued (execution.maxConcurrentWork)`)}`);
+            const workload = snapshot.workload;
+            if (workload) body.push(`${style.muted('Work     ')} ${style.bold(String(workload.active))} active${style.muted(` · ${workload.waiting} waiting · ${workload.queued} queued`)}`);
             let anchor: number | undefined;
             if (active.length) {
                 body.push('', style.bold(`Active work (${active.length})`));

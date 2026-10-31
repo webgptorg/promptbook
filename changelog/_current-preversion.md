@@ -1,5 +1,11 @@
 # Unreleased
 
+## Work: the limit of five things at once is gone
+
+-   Promptbook no longer has a shared limit on tasks and chats running at once. Each agent still works on one started task at a time and can answer any number of chats, so six agents, or more, can work together
+-   Screens show plain counts of active, waiting and queued work, with no "3/5" figure. Work that has to wait now says why: its agent is busy or another run is changing a file it needs
+-   A saved `execution.maxConcurrentWork` no longer limits anything. `ptbk lint` reports it as obsolete without changing the file, and the next configuration migration removes it and records its old value
+
 ## Chats: +@Name brings an agent in, and a plain @Name only refers to it
 
 -   In a chat message, `+@Adam`, `+{Adam}` or `+{Frontend Developer}` invites that agent if needed and asks it to reply. An agent that is already a member is not added twice

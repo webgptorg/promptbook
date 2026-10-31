@@ -103,7 +103,7 @@ import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type C
 import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { finishWorktree, isIntegrated } from './isolation.js';
-import { FileOwnership, TurnWindows, WorkCapacity, type FileConflict } from './concurrency.js';
+import { FileOwnership, TurnWindows, type FileConflict } from './concurrency.js';
 import { shortHash, shortId } from '../common/ids.js';
 
 /**
@@ -411,7 +411,7 @@ const MANUAL_PAUSE_RESTORED: Readonly<Record<ManualPauseCause, string>> = {
 };
 
 /**
- * One unit of active work holding a capacity slot: a background task (its runs: Router prerequisite, the task itself,
+ * One unit of active work: a background task (its runs: Router prerequisite, the task itself,
  * a goal enquiry) or one chat turn. Units progress concurrently in the project's one working tree; each run owns the
  * files it changes.
  */
@@ -440,7 +440,7 @@ type WorkUnit = {
 
 /**
  * The project supervisor: concurrent background tasks and chat turns in the project's one working tree, within the
- * shared capacity (`execution.maxConcurrentWork`) and per-file ownership.
+ * one started unfinished task per agent and per-file ownership, without a shared work-count limit.
  *
  * @private agenda supervisor
  */
@@ -450,10 +450,9 @@ export class Agenda {
     private phase: Phase = 'starting';
     /** Observed outcome after the agenda ended (not a live state). */
     private exitState?: 'stopped';
-    /** Active units of work (background tasks and chat turns), each holding one capacity slot. */
+    /** Active units of work (background tasks and chat turns). */
     private readonly units = new Map<string, WorkUnit>();
     /** The shared limit of active tasks and chat turns together. */
-    private readonly capacity: WorkCapacity;
     /** Per-file mutation ownership of active (and checkpointed) runs. */
     private readonly ownership: FileOwnership;
     /** Harness-turn windows (attribution of changes nobody claimed). */
@@ -560,7 +559,6 @@ export class Agenda {
 
     public constructor(private readonly options: AgendaOptions) {
         this.state = new StateStore(options.project.runtime.state);
-        this.capacity = new WorkCapacity(() => (this.settings ? setting<number>(this.settings, 'execution.maxConcurrentWork') : 5));
         this.ownership = new FileOwnership(options.project.root, { onChange: () => this.touch() });
         this.chatBatches = new ChatCommitBatcher(options.project, {
             repositoryRoot: () => this.repositoryRoot,
@@ -1460,9 +1458,9 @@ export class Agenda {
     private readonly chatTurns = new Map<string, Mutex>();
 
     /**
-     * Runs the chat agent's reply as one unit of the shared capacity (read-only; tasks only through ordinary authoring).
-     * Different chats reply concurrently up to the limit; a full capacity queues the turn visibly while input stays
-     * accepted. User messages that arrive during a reply get one follow-up turn at the next safe point.
+     * Runs the chat agent's reply as one unit (read-only; tasks only through ordinary authoring). Different chats reply
+     * concurrently, without a shared work-count limit. User messages that arrive during a reply get one follow-up turn at
+     * the next safe point.
      */
     private queueChatReply(name: string, options: { readonly followUp?: boolean; readonly agent?: string } = {}): void {
         if (this.options.chatReplies === false) return;
@@ -1472,21 +1470,10 @@ export class Agenda {
         void lock
             .run(async () => {
                 if (this.stopRequested) return;
-                const label = `chat {${name}}`;
                 this.touch();
                 // A running self-update replaces the loaded code: the reply starts after it (or in the replacement).
                 await this.untilMaintenanceEnds();
                 if (this.stopRequested) return;
-                try {
-                    await this.capacity.acquire(label, this.ownedWork.signal);
-                } catch {
-                    return;
-                }
-                // Stopping won the race for the slot: the message stays unanswered and gets its reply after restart.
-                if (this.stopRequested) {
-                    this.capacity.release();
-                    return;
-                }
                 const unit = this.registerUnit({ id: `chat:${key}:${shortId(6)}`, kind: 'chat', label: name });
                 let turn: Awaited<ReturnType<typeof replyInChat>> | undefined;
                 let failure: string | undefined;
@@ -1825,7 +1812,7 @@ export class Agenda {
 
     // ── Units of concurrent work ─────────────────────────────────────────────
 
-    /** Registers an active unit (its capacity slot is already taken). */
+    /** Registers an active unit. */
     private registerUnit(input: { readonly id: string; readonly kind: WorkUnit['kind']; readonly label: string; readonly key?: string }): WorkUnit {
         const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id };
         this.units.set(unit.id, unit);
@@ -1835,13 +1822,12 @@ export class Agenda {
     }
 
     /**
-     * Ends a unit: returns its slot, releases the files of its last run unless that run is still recorded (failed,
+     * Ends a unit: releases the files of its last run unless that run is still recorded (failed,
      * waiting for a retry, or checkpointed with changes), and lets pause/stop settle.
      */
     private finishUnit(unit: WorkUnit): void {
         if (!this.units.delete(unit.id)) return;
         if (unit.key) this.claimedKeys.delete(unit.key);
-        this.capacity.release();
         void this.releaseUnlessRecorded(unit.owner).finally(() => this.touch());
         for (const listener of [...this.unitListeners]) listener();
         this.settle();
@@ -1857,11 +1843,9 @@ export class Agenda {
     }
 
     /**
-     * Claims a slot and runs background work as one unit, without waiting for it. Returns false when the capacity is
-     * full (or a chat turn waits for a slot first).
+     * Runs background work as one unit, without waiting for it.
      */
     private launch(input: { readonly label: string; readonly key?: string }, work: (unit: WorkUnit) => Promise<void>): boolean {
-        if (!this.capacity.tryAcquire()) return false;
         const unit = this.registerUnit({ id: shortId(10), kind: 'task', label: input.label, key: input.key });
         void (async () => {
             try {
@@ -1894,7 +1878,7 @@ export class Agenda {
     }
 
     /**
-     * A pacing/backoff wait inside one unit (skippable; ends early on stop). The unit keeps its slot: the wait is part
+     * A pacing/backoff wait inside one unit (skippable; ends early on stop). The unit stays active: the wait is part
      * of its ordinary bounded execution.
      */
     private async unitWait(unit: WorkUnit, ms: number, view: Omit<WaitView, 'until'>): Promise<'elapsed' | 'skipped' | 'cancelled'> {
@@ -2201,7 +2185,7 @@ export class Agenda {
             phase: this.pauseActive && !this.executing && !this.intent && !this.shutdown ? 'paused' : current ? current.phase : this.phase,
             current,
             active,
-            capacity: this.capacityView(),
+            workload: this.workloadView(),
             execution: executions[0],
             executions: executions.filter((execution) => execution.status === 'active'),
             browser: this.options.browsers?.primary(),
@@ -2336,20 +2320,19 @@ export class Agenda {
         return retained;
     }
 
-    /** Ready/queued work that waits for a slot or for files, counted at the last evaluation. */
+    /** Ready/queued work that waits for its agent or for files, counted at the last evaluation. */
     private queuedWork = 0;
 
     /** Checkpointed runs waiting for a person or resource, counted at the last evaluation. */
     private waitingWork = 0;
 
-    /** The shared capacity view. */
-    private capacityView(): ServiceSnapshot['capacity'] {
+    /** The counts of active, waiting and queued work. */
+    private workloadView(): ServiceSnapshot['workload'] {
         if (!this.settings) return undefined;
         return {
-            limit: this.capacity.size,
             active: this.units.size,
             waiting: this.waitingWork,
-            queued: this.queuedWork + this.capacity.queued.length,
+            queued: this.queuedWork,
             files: this.ownership.entries().map((entry) => ({ path: entry.path, owner: entry.label })),
         };
     }
@@ -2518,7 +2501,7 @@ export class Agenda {
     // ── Main iteration ───────────────────────────────────────────────────────
 
     /**
-     * One supervisor step: handle recorded runs (failures, retries, recovery), claim eligible work while capacity and
+     * One supervisor step: handle recorded runs (failures, retries, recovery), claim eligible work while agents and
      * file ownership allow, discover goal work when nothing is left, or wait for a change. Claimed work runs as
      * concurrent units; the loop never waits for one of them.
      */
@@ -2540,7 +2523,6 @@ export class Agenda {
         this.phase = 'evaluating';
         await this.refreshContext();
         await this.refreshChats();
-        this.capacity.drain();
         // A configuration saved by a newer engine: the update its saved policy already allows is the fix (no confirmation);
         // otherwise the project is kept as it is and the real constraint is reported.
         const required = this.settings.migration.kind === 'older-engine' ? this.settings.migration.saved : undefined;
@@ -2567,7 +2549,7 @@ export class Agenda {
         const evaluated = await this.evaluate();
         if (await this.scheduleHealthCheck(evaluated)) return;
         if (await this.scheduleRoutingRepairs(evaluated)) return;
-        // Chatter's brief is ordinary background work: it shares capacity with tasks and never runs while paused.
+        // Chatter's brief is ordinary background work: it never runs while paused.
         await this.refreshReportView();
         await this.refreshLastCommit();
         if (this.claimable && (await this.reportDue())) this.launch({ label: 'Project brief' }, async () => await this.runReport());
@@ -2610,7 +2592,6 @@ export class Agenda {
             const router = candidates.some((candidate) => candidate.readiness.kind === 'needs-assignment') ? (await routerAgent(this.catalog))?.name : undefined;
             const blockedByAgents: Array<{ readonly agent: string; readonly holder: string }> = [];
             for (const candidate of candidates) {
-                if (!this.capacity.claimable) break;
                 // A task whose source another run is changing waits for it (no whole-project serialization).
                 const conflicts = this.ownership.conflicts('', [candidate.task.source.path]);
                 if (conflicts.length) {
@@ -2630,14 +2611,11 @@ export class Agenda {
             }
             this.queuedWork = candidates.length - launched;
             if (launched) return;
-            const full = !this.capacity.claimable;
-            const reason = full
-                ? `${candidates.length} task${candidates.length === 1 ? '' : 's'} wait${candidates.length === 1 ? 's' : ''} for a free slot (${this.capacity.used}/${this.capacity.size} active).`
-                : blockedByFiles.length
-                  ? `Ready work waits for files other work is changing: ${describeConflicts(blockedByFiles)}.`
-                  : `Ready work waits for its agents' unfinished tasks: ${[...new Map(blockedByAgents.map((item) => [item.agent, item.holder])).entries()].map(([agent, holder]) => `${agent} holds "${holder}"`).join('; ')}.`;
+            const reason = blockedByFiles.length
+                ? `Ready work waits for files other work is changing: ${describeConflicts(blockedByFiles)}.`
+                : `Ready work waits for its agents' unfinished tasks: ${[...new Map(blockedByAgents.map((item) => [item.agent, item.holder])).entries()].map(([agent, holder]) => `${agent} holds "${holder}"`).join('; ')}.`;
             this.phase = 'waiting';
-            await this.wait(IDLE_RECHECK_MS, { kind: full ? 'capacity' : blockedByFiles.length ? 'files' : 'agent', reason, skippable: false });
+            await this.wait(IDLE_RECHECK_MS, { kind: blockedByFiles.length ? 'files' : 'agent', reason, skippable: false });
             return;
         }
         this.queuedWork = 0;
@@ -2679,7 +2657,7 @@ export class Agenda {
     /**
      * Handles recorded runs that no live unit executes: a failed run goes to Fixer or asks how to continue, a run
      * waiting for a person is checkpointed, and a resumable run (crash recovery, retry after quota/setup/commit
-     * problems) is resumed as its own unit when its retry time has come and a slot is free. A run left in an older
+     * problems) is resumed as its own unit when its retry time has come. A run left in an older
      * engine's task worktree is checkpointed with an explanation. Returns whether the loop should reevaluate at once.
      */
     private async handleRecordedRuns(): Promise<boolean> {
@@ -2921,7 +2899,7 @@ export class Agenda {
     /**
      * Agents holding a started unfinished task (normalized agent → that task's title and the prerequisites it waits
      * for): every active run and every checkpointed one (waiting for the user, Wallet, a resource, a decision or its
-     * prerequisite tasks). A wait releases its execution slot, never this reservation; it is rebuilt from the persisted
+     * prerequisite tasks). A wait releases its execution resources, never this reservation; it is rebuilt from the persisted
      * records, so it survives restarts. Chat turns are not tasks and never reserve an agent. The supporting work a
      * checkpointed task waits for is part of its chain, not a second independent task of that agent.
      */
@@ -3606,7 +3584,7 @@ export class Agenda {
                     this.log(`${outcome.reason}; continuing with the next ${harnessName(selection.harness)} instance "${fallback.name}" (same-variant fallback).`, 'warning');
                     break;
                 }
-                // A resource wait holds no slot: other work continues and this run resumes after the reset.
+                // A resource wait blocks nothing else: other work continues and this run resumes after the reset.
                 this.log(`${outcome.reason}; "${item.task.title}" resumes in ${formatDuration(outcome.retryAfterMs)}.`, 'warning');
                 this.resumeAfter.set(item.runId, Date.now() + outcome.retryAfterMs);
                 break;
@@ -3659,8 +3637,7 @@ export class Agenda {
 
     /**
      * Continues a recorded run inside its unit (crash recovery, a retry after quota/setup/commit problems, an answered
-     * question). A run that still waits for a person is checkpointed; one that cannot be routed waits visibly without
-     * holding a slot.
+     * question). A run that still waits for a person is checkpointed; one that cannot be routed waits visibly.
      */
     private async continueActive(initialRecord: ActiveRecord, unit: WorkUnit): Promise<void> {
         let record = initialRecord;
@@ -3831,7 +3808,7 @@ export class Agenda {
                     ? 'Background work is paused; the brief is written when it resumes.'
                     : recheck && Date.parse(recheck.nextAt) > Date.now()
                       ? 'it waits for the automatic retry of the failed update'
-                      : 'Waiting for a free slot or a usable harness.'
+                      : 'Waiting for a usable harness.'
                 : undefined;
         return {
             ...this.reportView,
@@ -3938,7 +3915,7 @@ export class Agenda {
     }
 
     /**
-     * Generates and appends one brief as ordinary background Chatter work (shared capacity, harness, usage and Git):
+     * Generates and appends one brief as ordinary background Chatter work (shared harness, usage and Git):
      * Chatter's paragraph becomes a new timestamped message of root `report.book` with its own scoped commit. Requests
      * made before or during it are covered by this one generation; the previous brief stays readable meanwhile.
      */
@@ -4032,7 +4009,7 @@ export class Agenda {
 
     /**
      * Explicit Refresh report: one shared generation request, coalesced across clients and subject to pause and
-     * capacity (it never resumes Chatter secretly). The saved brief stays readable meanwhile.
+     * resources (it never resumes Chatter secretly). The saved brief stays readable meanwhile.
      */
     public async requestReport(): Promise<{ readonly applied: boolean; readonly outcome: string }> {
         if (this.reportGenerating) return { applied: true, outcome: 'A brief is being written now; this request is covered by it.' };
@@ -4453,7 +4430,7 @@ export class Agenda {
     }
 
     /**
-     * Checkpoints a run waiting for a person (an answer or a recovery decision): its slot is released so independent
+     * Checkpoints a run waiting for a person (an answer or a recovery decision): its resources are released so independent
      * work continues, while the files it already changed stay owned by it (work needing them waits visibly, nothing is
      * mixed into another result). Returns whether the run was checkpointed.
      */
@@ -4661,8 +4638,7 @@ export class Agenda {
             route = await routeWithDefaults(await resolveEffectiveAgent(this.catalog, toReference(task.routing.agent)), task.routing.model, this.routing, { tool: options.tool, sources: { agent: 'maintenance (TASK AGENT)' } });
         }
         if (route.kind !== 'routable') throw new PtbkError(`The maintenance task cannot run: ${route.reason}`, { kind: 'setup', next: route.kind === 'blocked' && route.next ? [route.next] : [] });
-        // An explicit maintenance operation is one unit of the shared capacity (it waits for a slot like a chat turn).
-        await this.capacity.acquire(`maintenance "${task.title}"`, this.ownedWork.signal);
+        // An explicit maintenance operation is one unit of active work.
         const unit = this.registerUnit({ id: shortId(10), kind: 'task', label: task.title, key: task.key });
         try {
             return await this.execute({ task, route, kind: 'maintenance', createdPaths: [taskPath], learning: false, check }, unit);

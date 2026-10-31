@@ -291,7 +291,7 @@ export function selectNext(evaluated: readonly EvaluatedTask[], now: number = Da
 /**
  * Every claimable work in claim order: ready tasks and Router assignments by rank. Routing ahead of a task's own start
  * waits behind ready work of the same rank and nearer targets come first, so distant routing never delays urgent
- * executable work. The concurrent scheduler claims from the front while capacity and file ownership allow. Execution
+ * executable work. The concurrent scheduler claims from the front while agent reservations and file ownership allow. Execution
  * order never depends on how a viewer sorts its task list.
  *
  * @private task eligibility

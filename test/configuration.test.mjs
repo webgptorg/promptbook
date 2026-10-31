@@ -168,7 +168,7 @@ test('configuration coordinator: one migration commit; repeated loads are no-ops
 
     const outcome = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0', env: { ...process.env, CODING_AGENT_GIT_NAME: 'Fixture', CODING_AGENT_GIT_EMAIL: 'f@example.test' } });
     assert.equal(outcome.migrated.from, PRE_VERSIONING_BASELINE);
-    assert.deepEqual(outcome.migrated.steps, ['0.119.0-22', '0.119.0-32', '0.119.0-35'], 'every applicable sparse step, in order, in one pass');
+    assert.deepEqual(outcome.migrated.steps, ['0.119.0-22', '0.119.0-32', '0.119.0-35', '0.119.0-45'], 'every applicable sparse step, in order, in one pass');
     assert.deepEqual(await subjects(root), [`ptbk: Migrate project from ${PRE_VERSIONING_BASELINE} to 0.121.0`, 'Legacy project']);
     const body = (await git(root, ['log', '-1', '--format=%B'])).trim();
     assert.match(body, /harnesses\.openai-codex → tools "openai-codex"/);
@@ -338,4 +338,12 @@ test('project migration 0.119.0-32: Manager becomes Router, references follow, t
     assert.equal(migratedConfig.tools[0].model, undefined);
     assert.match((await git(root, ['log', '-1', '--format=%B'])).trim(), /Kept for repair:[\s\S]*tasks\/b\.book/);
     assert.deepEqual(await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.119.0-32', env }), {}, 'a repeated pass is a no-op');
+});
+
+test('the former shared work limit is retired: migration records its value, reading diagnoses it, no setting remains', () => {
+    const plan = planConfigurationMigration({ promptbookVersion: '0.119.0-44', execution: { maxConcurrentWork: 2, repairAttempts: 1 } }, '0.119.0-45');
+    assert.equal(plan.kind, 'migrate');
+    const migrated = applyConfigurationMigration({ promptbookVersion: '0.119.0-44', execution: { maxConcurrentWork: 2, repairAttempts: 1 } }, plan);
+    assert.deepEqual(migrated.raw.execution, { repairAttempts: 1 });
+    assert.ok(migrated.notes.some((note) => note.notes.some((text) => /retired execution\.maxConcurrentWork \(2\)/.test(text))), 'the historical value stays in the migration provenance');
 });

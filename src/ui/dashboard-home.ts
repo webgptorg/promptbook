@@ -208,11 +208,11 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
     switch (tile) {
         case 'work': {
             const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
-            const capacity = snapshot.capacity;
-            if (active.length > 1 || (active.length && capacity && (capacity.queued || capacity.waiting))) {
-                // Concurrent work: shared capacity first, then one line per active unit.
+            const workload = snapshot.workload;
+            if (active.length > 1 || (active.length && workload && (workload.queued || workload.waiting))) {
+                // Concurrent work: the counts first, then one line per active unit.
                 return [
-                    `${style.bold(`${active.length}${capacity ? `/${capacity.limit}` : ''}`)} active${capacity?.waiting ? style.muted(` · ${capacity.waiting} waiting`) : ''}${capacity?.queued ? style.muted(` · ${capacity.queued} queued`) : ''}`,
+                    `${style.bold(String(active.length))} active${workload?.waiting ? style.muted(` · ${workload.waiting} waiting`) : ''}${workload?.queued ? style.muted(` · ${workload.queued} queued`) : ''}`,
                     ...active.map((item) => (item.kind === 'chat' ? `${style.accent('chat')} ${item.taskTitle}` : `${inlineBadge(item.agent.name, item.agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${item.taskTitle}${style.muted(` · ${item.phase}`)}`)),
                 ];
             }
