@@ -1,5 +1,12 @@
 # Unreleased
 
+## Init: selected Wallet logins can be tested before the project is created
+
+-   After you choose logins from a Bitwarden export in `ptbk init`, you can test them with a real sign-in, using the same check as **Test** on the Wallet page. The question defaults to No
+-   Each test runs in a temporary browser outside the project folder, which is removed afterwards. Nothing is written into the project before the final confirmation, and your browser sessions are untouched
+-   You see each step and can enter a one-time code in a protected input. Esc or an empty code stops that test
+-   Every saved login keeps its result. One that was refused or could not finish stays unverified, and init's final notes give the reason
+
 ## Wallet: a credential test looks for an emailed code itself before you have to copy it
 
 -   When **Test** reaches a one-time code step, a short session of Fixer now looks for the code in what agents can already read, such as a signed-in webmail in the project browser. A code it finds is entered once and the test continues without you

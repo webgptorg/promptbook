@@ -1,6 +1,7 @@
 import { emitKeypressEvents, type Key } from 'node:readline';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { CANCELLED, confirm, inputLine, selectMany, type WizardFrame } from './prompts.js';
-import type { LoginField, WalletActionView, WalletImportPreview } from '../wallet/wallet.js';
+import type { LoginField, WalletActionView, WalletImportPreview, WalletTestProgress, WalletVerification } from '../wallet/wallet.js';
 import { FullScreen } from './screen.js';
 import { readConcealed, readOwnerCredential } from './secret.js';
 import type { TerminalProfile } from './terminal.js';
@@ -144,6 +145,69 @@ export async function walletCodeForm(terminal: TerminalProfile, origin: string, 
     terminal.write(`\nEnter the one-time code ${origin} sent you. ${use}\n`);
     const code = await readOwnerCredential(terminal, '  One-time code');
     return code.trim() || undefined;
+}
+
+/**
+ * Time between looks at a running credential test in the terminal.
+ */
+const TEST_FLOW_POLL_MS = 150;
+
+/**
+ * Follows one running credential test in the terminal until it ends: its steps as they happen and the protected input
+ * when it waits for a one-time code (left empty, the test stops). Esc stops the test at any step. A stopped test stays
+ * an honest incomplete result.
+ *
+ * @private dashboard Wallet forms
+ */
+export async function walletTestFlow(terminal: TerminalProfile, origin: string, running: Promise<WalletVerification>, operations: { readonly progress: () => WalletTestProgress | undefined; readonly supplyCode: (code: string) => void; readonly cancel: () => void }): Promise<WalletVerification> {
+    const stdin = process.stdin;
+    let isFinished = false;
+    running.then(
+        () => (isFinished = true),
+        () => (isFinished = true),
+    );
+    const onKey = (_character: string | undefined, key: Key): void => {
+        if (key?.name === 'escape' || (key?.ctrl && key.name === 'c')) operations.cancel();
+    };
+    const listen = (isListening: boolean): void => {
+        if (isListening) {
+            emitKeypressEvents(stdin);
+            stdin.setRawMode?.(true);
+            stdin.on('keypress', onKey);
+            stdin.resume();
+        } else {
+            stdin.off('keypress', onKey);
+            stdin.setRawMode?.(false);
+            stdin.pause();
+        }
+    };
+    let shown: string | undefined;
+    terminal.write(`  ${terminal.style.muted('Esc stops this test')}\n`);
+    listen(true);
+    try {
+        while (!isFinished) {
+            const progress = operations.progress();
+            if (progress?.testing && progress.testing !== shown) {
+                shown = progress.testing;
+                terminal.write(`  ${shown}\n`);
+            }
+            if (progress?.testAwaits === 'code') {
+                listen(false);
+                const code = await walletCodeForm(terminal, origin, 'The test enters it once and it is not saved. Leave it empty to stop this test.').catch(() => undefined);
+                listen(true);
+                try {
+                    if (code) operations.supplyCode(code);
+                    else operations.cancel();
+                } catch {
+                    // The test stopped waiting meanwhile (no code in time): its result says so.
+                }
+            }
+            await sleep(TEST_FLOW_POLL_MS);
+        }
+    } finally {
+        listen(false);
+    }
+    return await running;
 }
 
 /**

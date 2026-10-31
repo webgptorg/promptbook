@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash, hkdfSync, pbkdf2Sync } from 'node:crypto';
 import { cp, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { entropyToMnemonic, mnemonicToSeedSync } from '@scure/bip39';
@@ -9,6 +10,7 @@ import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { browserTools } from '../dist/browser/agent-tools.js';
 import { findBrowserExecutable } from '../dist/browser/browser.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
+import { temporaryLoginContext } from '../dist/browser/temporary-login.js';
 import { createVerifier, deriveProjectRoot, domainKey, generateRecoveryWords, normalizeRecoveryWords, open, seal, verifyRoot } from '../dist/wallet/crypto.js';
 import { WalletSubEngine, generatePassword, maskAccount, normalizeOrigin, originMatches, walletLabel } from '../dist/wallet/wallet.js';
 import { commitAudit } from '../dist/project/git.js';
@@ -1782,6 +1784,103 @@ test('Wallet staged in an initialization draft: words and an import selection st
     const reopened = walletAt(final, join(root, 'computer')).wallet;
     await reopened.initialize();
     assert.equal(reopened.view().records.length, 4);
+});
+
+test('Wallet Test in an initialization draft: a selected login is tested with the same verifier before anything is written, and each honest result reaches its saved login', async (t) => {
+    const keepAlive = setInterval(() => undefined, 1_000);
+    t.after(() => clearInterval(keepAlive));
+    const root = await temporaryDirectory(t, 'ptbk wallet staged test');
+    const proposed = join(root, 'proposed-name');
+    const final = join(root, 'edited-name');
+    const env = { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
+    const at = (path) => ({ root: path, runtime: { root: join(path, '.ptbk'), state: join(path, '.ptbk', 'state') } });
+    const entered = [];
+    const codes = [];
+    const loginContext = async (origin) => {
+        if (origin === 'https://app.example.org') throw new Error('the browser did not start');
+        let step = 'password';
+        return {
+            page: {
+                browser: 'temporary',
+                inspect: async () => ({ origin, form: step }),
+                signIn: async (credentials) => {
+                    entered.push(credentials);
+                    if (credentials.username === 'joe@example.com') return { result: 'rejected' };
+                    if (credentials.password === 'same password') return (step = 'code'), { result: 'challenge', note: 'the site asks for a one-time code' };
+                    return { result: 'signed-in' };
+                },
+                enterCode: async (_origin, code) => (codes.push(code), (step = 'none'), { result: 'signed-in' }),
+            },
+            dispose: async () => undefined,
+        };
+    };
+    const wallet = new WalletSubEngine({ project: at(proposed), env, onChange: () => undefined, log: () => undefined, draftLifetimeMs: Number.POSITIVE_INFINITY, loginContext });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    const preview = await wallet.previewImport({ content: bitwardenExport() });
+    const key = (origin, account) => preview.candidates.find((candidate) => candidate.origin === origin && candidate.account.startsWith(account)).key;
+    const shop = key('https://shop.example.com', 'ja');
+    const app = key('https://app.example.org', 'ja');
+    const same = key('https://example.com', 'ja');
+    const other = key('https://example.com', 'jo');
+    assert.equal(wallet.importedLoginTest(shop), undefined);
+    await assert.rejects(wallet.testImportedLogin({ draft: 'stale', key: shop }), /no longer current/);
+
+    assert.equal((await wallet.testImportedLogin({ draft: preview.draft, key: shop })).state, 'verified');
+    assert.equal(entered.at(-1).password, 'shop secret 1');
+    assert.equal((await wallet.testImportedLogin({ draft: preview.draft, key: other })).state, 'rejected');
+    const unavailable = await wallet.testImportedLogin({ draft: preview.draft, key: app });
+    assert.equal(unavailable.state, 'incomplete');
+    assert.match(unavailable.reason, /could not be opened/);
+
+    // A missing factor is answered like a saved login's test, and cancelling keeps the login unverified.
+    const running = wallet.testImportedLogin({ draft: preview.draft, key: same });
+    await waitFor(() => wallet.importedLoginTest(same)?.testAwaits === 'code', { timeoutMs: 5_000, message: 'the code step' });
+    wallet.supplyTestCode({ id: wallet.importedLoginTest(same).id, code: '271828' });
+    assert.equal((await running).state, 'verified');
+    assert.deepEqual(codes, ['271828']);
+    assert.equal(wallet.importedLoginTest(same), undefined);
+    assert.equal(await stat(proposed).then(() => true, () => false), false, 'testing in the draft writes no project folder');
+
+    wallet.relocate(at(final));
+    assert.equal((await wallet.confirmSetup()).applied, true);
+    assert.equal((await wallet.applyImport({ draft: preview.draft, select: [shop, app, same, other] })).imported, 4);
+    const states = (engine) => Object.fromEntries(engine.view().records.map((record) => [`${record.origin} ${record.account}`, record.verification?.state]));
+    const expected = { 'https://shop.example.com Shop': 'verified', 'https://app.example.org Shop': 'incomplete', 'https://example.com Existing same': 'verified', 'https://example.com Existing other': 'rejected' };
+    assert.deepEqual(states(wallet), expected);
+    const reopened = walletAt(final, join(root, 'computer')).wallet;
+    await reopened.initialize();
+    assert.deepEqual(states(reopened), expected, 'the results survive a restart');
+    for (const file of await filesBelow(final)) for (const secret of ['271828', 'shop secret 1', 'same password']) assert.ok(!file.content.includes(secret), `${file.path} keeps no secret`);
+});
+
+test('Wallet Test in an initialization draft in the real browser: a temporary browser outside the project checks staged logins and is discarded', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet staged browser');
+    const proposed = join(root, 'proposed-name');
+    const browser = await findBrowserExecutable({ variant: 'CHROME' });
+    const env = { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file', CHROME_PATH: browser };
+    const server = loginSite('staged password 3');
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    t.after(() => {
+        server.closeAllConnections();
+        server.close();
+    });
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const temporaryProfiles = async () => (await readdir(tmpdir())).filter((name) => name.startsWith('ptbk-login-test-'));
+    const before = await temporaryProfiles();
+    const wallet = new WalletSubEngine({ project: { root: proposed, runtime: { root: join(proposed, '.ptbk'), state: join(proposed, '.ptbk', 'state') } }, env, onChange: () => undefined, log: () => undefined, draftLifetimeMs: Number.POSITIVE_INFINITY, loginContext: async (site) => await temporaryLoginContext(site, { isHeadless: true, env }) });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    const login = (id, username, password) => ({ id, type: 1, name: id, login: { username, password, totp: null, uris: [{ uri: `${origin}/`, match: null }] } });
+    const preview = await wallet.previewImport({ content: JSON.stringify({ encrypted: false, folders: [], items: [login('right', 'fixture-user', 'staged password 3'), login('wrong', 'joe', 'wrong password 9')] }) });
+    const key = (label) => preview.candidates.find((candidate) => candidate.label === label).key;
+    const right = await wallet.testImportedLogin({ draft: preview.draft, key: key('right') });
+    assert.equal(right.state, 'verified', right.reason);
+    const wrong = await wallet.testImportedLogin({ draft: preview.draft, key: key('wrong') });
+    assert.equal(wrong.state, 'rejected', wrong.reason);
+    assert.ok(!wrong.reason.includes('wrong password 9'));
+    assert.deepEqual((await temporaryProfiles()).filter((name) => !before.includes(name)), [], 'the temporary profile is gone');
+    assert.equal(await stat(proposed).then(() => true, () => false), false, 'nothing is written into the target folder');
 });
 
 test('Wallet recovery: new words re-encrypt everything with a working key; an interrupted switch completes; old words stop working', async (t) => {

@@ -46,8 +46,9 @@ import { HARNESS_PLUGINS, harnessPlugin } from '../../harness/registry.js';
 import { functionalCheck, proposeProjectName, type FunctionalCheck, type PreparatoryCall } from '../../harness/preparation.js';
 import { handOverCreated, intendedUser, missingDirectories, sharedProjectsRoot } from '../../common/user-home.js';
 import { kebabIdentifier } from '../../common/naming.js';
-import { WalletSubEngine } from '../../wallet/wallet.js';
-import { confirmRecoveryWords, walletImportFlow } from '../../ui/wallet-forms.js';
+import { WalletSubEngine, type WalletImportPreview, type WalletVerification } from '../../wallet/wallet.js';
+import { temporaryLoginContext } from '../../browser/temporary-login.js';
+import { confirmRecoveryWords, walletImportFlow, walletTestFlow } from '../../ui/wallet-forms.js';
 import { checkHarnessVersion, installHarness, loginLocation, updateHarness } from '../../harness/maintenance.js';
 import { attendHarnessSignIn, serviceProblemOf } from '../../ui/harness-sign-in.js';
 import { persistentServiceEnvironment } from '../../service/records.js';
@@ -356,7 +357,14 @@ export async function initializeProject(context: CommandContext, options: { proj
          * The staged Wallet: words the owner already wrote down and an optional import selection, held only in this
          * process's memory and created in the project after the final confirmation.
          */
-        walletDraft?: { readonly engine: WalletSubEngine; import?: { readonly draft: string; readonly select: readonly string[]; readonly replace: readonly string[] } };
+        walletDraft?: {
+            readonly engine: WalletSubEngine;
+            import?: { readonly draft: string; readonly select: readonly string[]; readonly replace: readonly string[] };
+            /** The preview the selection was made from. */
+            preview?: WalletImportPreview;
+            /** Results of the selected logins tested in the draft, by label. */
+            tested?: Map<string, WalletVerification>;
+        };
         /** Automatic synchronization: the saved choice and, for a new opt-in, the explicit destination. */
         sync?: { enabled: boolean; choice?: PublicationChoice; reused: boolean };
         /** Whether the destination has no project configuration yet (a new initialization). */
@@ -979,7 +987,15 @@ export async function initializeProject(context: CommandContext, options: { proj
      */
     const stageWallet = async (): Promise<void> => {
         if (!state.walletDraft) {
-            const engine = new WalletSubEngine({ project: projectAt(state.root), env: context.env, onChange: () => undefined, log: () => undefined, draftLifetimeMs: Number.POSITIVE_INFINITY });
+            const engine = new WalletSubEngine({
+                project: projectAt(state.root),
+                env: context.env,
+                onChange: () => undefined,
+                log: () => undefined,
+                draftLifetimeMs: Number.POSITIVE_INFINITY,
+                // A staged login is tested with the shared verifier in a temporary browser outside the target folder.
+                loginContext: async (origin) => await temporaryLoginContext(origin, { isHeadless: state.browserMode !== 'headful', env: context.env }),
+            });
             let words: readonly string[];
             try {
                 await engine.initialize();
@@ -1013,10 +1029,12 @@ export async function initializeProject(context: CommandContext, options: { proj
         );
         if (offer) {
             draft.import = undefined;
+            draft.preview = undefined;
+            draft.tested = undefined;
             const outcome = await walletImportFlow(
                 terminal,
                 {
-                    preview: async (path) => await draft.engine.previewImport({ content: await readFile(path, 'utf8') }),
+                    preview: async (path) => (draft.preview = await draft.engine.previewImport({ content: await readFile(path, 'utf8') })),
                     apply: async (id, select, replace) => {
                         draft.import = { draft: id, select, replace };
                         return { outcome: `${select.length} login${select.length === 1 ? '' : 's'} selected; imported when the project is created.` };
@@ -1026,9 +1044,48 @@ export async function initializeProject(context: CommandContext, options: { proj
                 title,
             );
             if (outcome) say(outcome);
+            await testStagedLogins(draft);
         }
         const count = draft.import?.select.length;
-        answers.set('wallet', `Wallet: created with the project${count ? `, ${count} imported login${count === 1 ? '' : 's'}` : ''}`);
+        const verified = [...(draft.tested?.values() ?? [])].filter((verification) => verification.state === 'verified').length;
+        answers.set('wallet', `Wallet: created with the project${count ? `, ${count} imported login${count === 1 ? '' : 's'}${draft.tested?.size ? ` (${verified} verified, ${count - verified} unverified)` : ''}` : ''}`);
+    };
+
+    /**
+     * Optionally tests the selected logins of the draft with the same verifier as a saved login's Test, in memory: the
+     * owner enters a code the website sends and every result stays visible. Whatever cannot finish is saved unverified.
+     */
+    const testStagedLogins = async (draft: NonNullable<typeof state.walletDraft>): Promise<void> => {
+        const selection = draft.import;
+        if (!selection?.select.length) return;
+        const logins = (draft.preview?.candidates ?? []).filter((candidate) => selection.select.includes(candidate.key));
+        const isTesting = answered(
+            await confirm(terminal, {
+                frame: frame('wallet', 'website logins your agents may need'),
+                question: `Test ${logins.length === 1 ? 'this login' : `these ${logins.length} logins`} with a real sign-in now? Each one opens its website in a temporary browser, and you can enter a one-time code here if it sends one. Nothing is saved before the project is created. A login that cannot finish stays unverified.`,
+                defaultYes: false,
+                yesLabel: 'Yes, test now',
+                noLabel: 'No, keep them unverified for now',
+            }),
+        );
+        if (!isTesting) return;
+        const tested = new Map<string, WalletVerification>();
+        for (const login of logins) {
+            say(`Testing ${login.label} (${login.origin})`);
+            const running = draft.engine.testImportedLogin({ draft: selection.draft, key: login.key });
+            const test = (): ReturnType<WalletSubEngine['importedLoginTest']> => draft.engine.importedLoginTest(login.key);
+            const verification = await walletTestFlow(terminal, login.origin, running, {
+                progress: test,
+                supplyCode: (code) => void draft.engine.supplyTestCode({ id: test()!.id, code }),
+                cancel: () => {
+                    const current = test();
+                    if (current) draft.engine.cancelTest(current.id);
+                },
+            });
+            tested.set(login.label, verification);
+            say(`${login.label}: ${verification.reason}`);
+        }
+        draft.tested = tested;
     };
 
     /**
@@ -1519,7 +1576,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     // The Wallet staged in the draft is created only now, with the words the owner already wrote down, then the selected
     // import is saved (the same protected operations as later Wallet management; no more questions).
     if (state.walletDraft) {
-        const { engine, import: selection } = state.walletDraft;
+        const { engine, import: selection, tested } = state.walletDraft;
         try {
             engine.relocate(project);
             const outcome = await engine.confirmSetup();
@@ -1527,6 +1584,9 @@ export async function initializeProject(context: CommandContext, options: { proj
             if (outcome.applied && selection) {
                 const imported = await engine.applyImport(selection);
                 (imported.applied ? changed : notes).push(`Wallet import: ${imported.outcome}`);
+                for (const [label, verification] of tested ?? []) {
+                    if (verification.state !== 'verified') notes.push(`The imported login "${label}" stays unverified: ${verification.reason} → see it on the Wallet page`);
+                }
             }
         } catch (error) {
             unresolved.push(`Wallet: ${errorMessage(error)} → set it up or import later on the Wallet page`);

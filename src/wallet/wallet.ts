@@ -78,6 +78,28 @@ export type WalletVerification = { readonly state: 'verified' | 'rejected' | 'in
 export type LoginContext = { readonly page: SignInPage; readonly dispose: () => Promise<void> };
 
 /**
+ * The login a credential test checks: a saved record, or a login of an import draft that is not saved yet.
+ */
+type TestTarget = Pick<StoredRecord, 'id' | 'origin' | 'account'>;
+
+/**
+ * What a running credential test does right now, and which owner action it waits for.
+ *
+ * @private Wallet
+ */
+export type WalletTestProgress = {
+    readonly testing?: string;
+    readonly testAwaits?: 'code' | 'approval' | 'takeover';
+};
+
+/**
+ * The id a running test of an import draft's login goes by (it has no saved record yet).
+ */
+function importTestId(key: string): string {
+    return `import-${key}`;
+}
+
+/**
  * Nonsecret view of one pending login request (a protected secret-input action owned by the Wallet).
  *
  * @private Wallet
@@ -632,7 +654,7 @@ export class WalletSubEngine {
     /** New words of a recovery-word replacement, only in memory until confirmed. */
     private rotation?: { readonly words: readonly string[]; readonly salt: Buffer; readonly expiresAt: number };
     /** A parsed import, only in memory until applied or cancelled (the export itself is never copied). */
-    private importDraft?: { readonly id: string; readonly source: string; readonly logins: readonly ImportedLogin[]; readonly skipped: readonly SkippedEntry[]; readonly expiresAt: number };
+    private importDraft?: { readonly id: string; readonly source: string; readonly logins: readonly ImportedLogin[]; readonly skipped: readonly SkippedEntry[]; readonly expiresAt: number; readonly verifications: Map<string, WalletVerification> };
     /** Records on disk while the Wallet is not unlocked (their content stays encrypted, so only the count is known). */
     private lockedRecords = 0;
     /** The records were read from the older format with plaintext labels: rewritten fully encrypted once unlocked. */
@@ -1035,7 +1057,7 @@ export class WalletSubEngine {
             const source = IMPORT_SOURCES[input.source ?? 'bitwarden'];
             if (!source) throw new PtbkError(`Importing from ${input.source} is not supported.`, { kind: 'unsupported', next: ['Use a Bitwarden JSON export.'] });
             const extraction = source.extract(input.content, normalizeOrigin);
-            this.importDraft = { id: randomBytes(6).toString('hex'), source: extraction.source, logins: extraction.logins, skipped: extraction.skipped, expiresAt: this.draftExpiry() };
+            this.importDraft = { id: randomBytes(6).toString('hex'), source: extraction.source, logins: extraction.logins, skipped: extraction.skipped, expiresAt: this.draftExpiry(), verifications: new Map() };
             this.options.onChange();
             return this.importPreview();
         });
@@ -1113,11 +1135,11 @@ export class WalletSubEngine {
                         skipped++;
                         continue;
                     }
-                    const updated: StoredRecord = { ...existing, updatedAt: now, lastOutcome: undefined, verification: undefined, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
+                    const updated: StoredRecord = { ...existing, updatedAt: now, lastOutcome: undefined, verification: draft.verifications.get(login.key), secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
                     this.records = this.records.map((record) => (record.id === existing.id ? updated : record));
                     changed.push(updated);
                 } else {
-                    const record: StoredRecord = { id: randomBytes(6).toString('hex'), origin: login.origin, account: login.label || walletLabel(login.origin, login.username), createdAt: now, updatedAt: now, secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
+                    const record: StoredRecord = { id: randomBytes(6).toString('hex'), origin: login.origin, account: login.label || walletLabel(login.origin, login.username), createdAt: now, updatedAt: now, ...(draft.verifications.has(login.key) ? { verification: draft.verifications.get(login.key)! } : {}), secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify(credentials), 'utf8')) };
                     this.records = [...this.records, record];
                     added.push(record);
                 }
@@ -1430,14 +1452,14 @@ export class WalletSubEngine {
         try {
             const [state, reason] = await this.verify(
                 record,
+                () => this.credentials(record),
                 (text) => {
                     this.testing.set(id, text);
                     this.options.onChange();
                 },
                 secrets,
             );
-            // The secret never reaches the kept report, even through a website's or browser's message.
-            const verification: WalletVerification = { state, at: new Date().toISOString(), reason: secrets.reduce((text, secret) => text.split(secret).join('[redacted]'), redact(reason)) };
+            const verification = this.testReport(state, reason, secrets);
             // A login changed or removed meanwhile keeps no result about values it no longer holds.
             const kept = await this.mutex.run(async () => {
                 if (!this.records.some((candidate) => candidate.id === id && candidate.updatedAt === record.updatedAt)) return false;
@@ -1453,6 +1475,59 @@ export class WalletSubEngine {
             this.testCancelled.delete(id);
             if (this.testing.delete(id)) this.options.onChange();
         }
+    }
+
+    /** The kept report of a test: the secret never reaches it, even through a website's or browser's message. */
+    private testReport(state: WalletVerification['state'], reason: string, secrets: readonly string[]): WalletVerification {
+        return { state, at: new Date().toISOString(), reason: secrets.reduce((text, secret) => text.split(secret).join('[redacted]'), redact(reason)) };
+    }
+
+    /** What the test running under an id does right now. */
+    private testProgress(id: string): WalletTestProgress {
+        return {
+            ...(this.testing.has(id) ? { testing: this.testing.get(id)! } : {}),
+            ...(this.testWaits.has(id) ? { testAwaits: 'code' as const } : this.testApprovals.has(id) ? { testAwaits: 'approval' as const } : this.testTakeovers.has(id) ? { testAwaits: 'takeover' as const } : {}),
+        };
+    }
+
+    /**
+     * Tests one login of the current import draft with the verifier of saved logins, before anything is written:
+     * initialization's protected in-memory draft. The owner follows and answers it through {@link importedLoginTest},
+     * {@link supplyTestCode} and {@link cancelTest}. The result stays with the draft and reaches the login when the
+     * draft is applied, so an unfinished test keeps the login honestly unverified.
+     */
+    public async testImportedLogin(input: { readonly draft: string; readonly key: string }): Promise<WalletVerification> {
+        const draft = this.importDraft;
+        const login = draft?.id === input.draft ? draft.logins.find((candidate) => candidate.key === input.key) : undefined;
+        if (!draft || !login) throw new PtbkError('This import preview is no longer current; read the export again.', { kind: 'conflict', effect: 'Nothing was tested.' });
+        const id = importTestId(login.key);
+        if (this.testing.has(id)) throw new PtbkError('This login is being tested already.', { kind: 'conflict' });
+        this.testing.set(id, 'Starting');
+        const secrets: string[] = [];
+        try {
+            const credentials: Credentials = { origin: login.origin, username: login.username, password: login.password, ...(login.fields?.length ? { fields: login.fields } : {}) };
+            const [state, reason] = await this.verify(
+                { id, origin: login.origin, account: login.label || walletLabel(login.origin, login.username) },
+                () => credentials,
+                (text) => {
+                    this.testing.set(id, text);
+                    this.options.onChange();
+                },
+                secrets,
+            );
+            const verification = this.testReport(state, reason, secrets);
+            draft.verifications.set(login.key, verification);
+            return verification;
+        } finally {
+            this.testCancelled.delete(id);
+            if (this.testing.delete(id)) this.options.onChange();
+        }
+    }
+
+    /** The running test of an import draft's login, with the id that answers it (undefined: none runs). */
+    public importedLoginTest(key: string): ({ readonly id: string } & WalletTestProgress) | undefined {
+        const id = importTestId(key);
+        return this.testing.has(id) ? { id, ...this.testProgress(id) } : undefined;
     }
 
     /**
@@ -1481,7 +1556,7 @@ export class WalletSubEngine {
      * Starts looking for a test's one-time code through an agent; what it finds answers the waiting test like the owner's
      * input would (only once, and never after the owner's own code). Its result never fails the test.
      */
-    private searchTestCode(record: StoredRecord, secrets: string[]): AbortController | undefined {
+    private searchTestCode(record: TestTarget, secrets: string[]): AbortController | undefined {
         if (!this.options.findLoginCode) return undefined;
         const search = new AbortController();
         void this.options
@@ -1520,7 +1595,7 @@ export class WalletSubEngine {
      * current one), or solves a CAPTCHA in the test's browser window; one step may follow another. `sign-in-again`: the
      * login form is shown again after a solved CAPTCHA. Another kind of step stays incomplete.
      */
-    private async testFactorStep(record: StoredRecord, page: SignInPage, step: (text: string) => void, secrets: string[], note?: string): Promise<readonly [WalletVerification['state'], string] | 'sign-in-again'> {
+    private async testFactorStep(record: TestTarget, page: SignInPage, step: (text: string) => void, secrets: string[], note?: string): Promise<readonly [WalletVerification['state'], string] | 'sign-in-again'> {
         const minutes = Math.round((this.options.testCodeWaitMs ?? TEST_CODE_WAIT_MS) / 60_000);
         const within = minutes ? ` within ${minutes} minute${minutes === 1 ? '' : 's'}` : '';
         for (let steps = 0; steps < 3; steps++) {
@@ -1551,7 +1626,7 @@ export class WalletSubEngine {
      * The one-time code step of a credential test: the outcome, or undefined when the website accepted the code and
      * asks to approve the sign-in next.
      */
-    private async testCode(record: StoredRecord, page: SignInPage, enterCode: NonNullable<SignInPage['enterCode']>, step: (text: string) => void, secrets: string[], within: string): Promise<readonly [WalletVerification['state'], string] | undefined> {
+    private async testCode(record: TestTarget, page: SignInPage, enterCode: NonNullable<SignInPage['enterCode']>, step: (text: string) => void, secrets: string[], within: string): Promise<readonly [WalletVerification['state'], string] | undefined> {
         for (let attempt = 1; attempt <= TEST_CODE_ATTEMPTS; attempt++) {
             // The first code is looked for where an agent can already read it; the owner's input stays open meanwhile.
             const search = attempt === 1 ? this.searchTestCode(record, secrets) : undefined;
@@ -1576,7 +1651,7 @@ export class WalletSubEngine {
      * device while the test watches the page (nothing is entered). The page's next state (`approval`: not approved in
      * time), or `cancelled`.
      */
-    private async testApproval(record: StoredRecord, page: SignInPage, step: (text: string) => void): Promise<'cancelled' | SignInForm> {
+    private async testApproval(record: TestTarget, page: SignInPage, step: (text: string) => void): Promise<'cancelled' | SignInForm> {
         const wait = this.options.testCodeWaitMs ?? TEST_CODE_WAIT_MS;
         const until = Date.now() + wait;
         this.testApprovals.add(record.id);
@@ -1599,7 +1674,7 @@ export class WalletSubEngine {
      * window (only a browser that shows windows offers it) while the test watches the page. The page's next state, or the
      * outcome when it is not solved in time, cancelled or impossible here.
      */
-    private async testTakeover(record: StoredRecord, page: SignInPage, step: (text: string) => void, within: string): Promise<readonly [WalletVerification['state'], string] | Exclude<SignInForm, 'captcha'>> {
+    private async testTakeover(record: TestTarget, page: SignInPage, step: (text: string) => void, within: string): Promise<readonly [WalletVerification['state'], string] | Exclude<SignInForm, 'captcha'>> {
         const window = await page.takeOver?.().catch(() => undefined);
         if (!window) return ['incomplete', 'The website asks to solve a CAPTCHA, and the test browser shows no window to take over (it runs headless); the login stays unverified. With a browser that shows its window, you can solve it during the test.'];
         const wait = this.options.testCodeWaitMs ?? TEST_CODE_WAIT_MS;
@@ -1624,7 +1699,7 @@ export class WalletSubEngine {
      * The sign-in of one credential test in a fresh login context: its state and an unredacted reason (`secrets`
      * receives the values the caller must strip from it).
      */
-    private async verify(record: StoredRecord, step: (text: string) => void, secrets: string[]): Promise<readonly [WalletVerification['state'], string]> {
+    private async verify(record: TestTarget, credentialsOf: () => Credentials, step: (text: string) => void, secrets: string[]): Promise<readonly [WalletVerification['state'], string]> {
         step(`Opening ${record.origin} in a separate login context`);
         if (!this.options.loginContext) return ['incomplete', 'No browser is available for a separate login test here; the login stays unverified.'];
         let context: LoginContext;
@@ -1640,7 +1715,7 @@ export class WalletSubEngine {
             step('Looking for the login form');
             const inspected = await context.page.inspect();
             if (inspected.form === 'none') return ['incomplete', `No login form was found on ${inspected.origin || record.origin} (also after following its sign-in link); the login stays unverified.`];
-            const credentials = this.credentials(record);
+            const credentials = credentialsOf();
             secrets.push(credentials.password);
             const before = cancelled();
             if (before) return before;
@@ -2121,8 +2196,7 @@ export class WalletSubEngine {
                     ...(lastUsedAt ? { lastUsedAt } : {}),
                     ...(lastOutcome ? { lastOutcome } : {}),
                     ...(verification ? { verification } : {}),
-                    ...(this.testing.has(id) ? { testing: this.testing.get(id)! } : {}),
-                    ...(this.testWaits.has(id) ? { testAwaits: 'code' as const } : this.testApprovals.has(id) ? { testAwaits: 'approval' as const } : this.testTakeovers.has(id) ? { testAwaits: 'takeover' as const } : {}),
+                    ...this.testProgress(id),
                     // Only the labels: field values stay encrypted like the password.
                     ...(fields.length ? { fields: fields.map((field) => ({ label: field.label, ...(field.uncertain ? { uncertain: true } : {}) })) } : {}),
                 };
