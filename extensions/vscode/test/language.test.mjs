@@ -61,3 +61,14 @@ test('legacy BookC renders JSON as escaped, script-free content and enforces arc
     const bomb = new JSZip().file('index.book.json', ' '.repeat(bookc.MAX_BOOKC_BYTES + 1));
     await assert.rejects(bookc.readBookc(await bomb.generateAsync({ type: 'uint8array', compression: 'DEFLATE' })), /expanded index/);
 });
+
+test('chat action prefixes and task direction use the shared language knowledge', () => {
+    const source = 'CHAT Discussion\nCHAT MEMBER @User\nCHAT MESSAGE @User 2026-10-31T20:00:00+01:00\nPlease ask +@Adam and +{Frontend Developer}, not x+@Nobody.\n';
+    const references = language.referencesIn(source);
+    assert.deepEqual(references.filter((item) => item.active).map((item) => item.name), ['Adam', 'Frontend Developer'], 'the plus stays outside the name');
+    assert.equal(references.some((item) => item.name === 'Nobody'), false);
+    const task = 'TASK Example\nGOAL Work.\nTASK CHANGE 2026-10-31T20:00:00+01:00 task {Discussion}\nChange it.\nTASK REOPEN 2026-10-31T20:00:00+01:00\n';
+    assert.equal(language.analyze(task).diagnostics.length, 0);
+    assert.ok(language.keywordCompletions('TASK Example\nTASK ', 1, 5).some((item) => item.keyword === 'TASK CHANGE'));
+    assert.ok(language.keywordCompletions('TASK Example\nTASK ', 1, 5).some((item) => item.keyword === 'TASK REOPEN'));
+});

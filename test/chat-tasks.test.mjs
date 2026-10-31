@@ -26,11 +26,17 @@ function waiting(agent, runId) {
     return { runId, taskTitle: `Task ${runId}`, routing: { agent }, waitingChat: 'Chat', awaitedMessages: 2, phase: 'awaiting-user' };
 }
 
-test('chat routing: a reply goes to its question, a mention to that participant, otherwise to the main agent', () => {
+test('chat routing: a reply goes to its question, an active address to that participant, otherwise to the main agent', () => {
     const chat = { members: ['@User', '@Chatter', '@Developer', '@Lawyer'] };
     assert.equal(routeUserMessage(chat, 'Yes, keep the order.', [waiting('Developer', 'a')]).answers.runId, 'a', 'the single pending question gets the reply');
-    assert.equal(routeUserMessage(chat, '@Lawyer is this allowed?', [waiting('Developer', 'a')]).agent, '@Lawyer', 'a mention of another participant is not an answer');
-    assert.equal(routeUserMessage(chat, '@Developer yes', [waiting('Developer', 'a'), waiting('Lawyer', 'b')]).answers.runId, 'a', 'a mention picks one of several questions');
+    assert.equal(routeUserMessage(chat, '+@Lawyer is this allowed?', [waiting('Developer', 'a')]).agent, '@Lawyer', 'an address to another participant is not an answer');
+    assert.equal(routeUserMessage(chat, 'Ask @Lawyer later, yes.', [waiting('Developer', 'a')]).answers.runId, 'a', 'a passive mention does not change question routing');
+    assert.equal(routeUserMessage(chat, 'What did @Lawyer say?', []).agent, '@Chatter', 'a passive mention does not switch the responder');
+    assert.equal(routeUserMessage(chat, '+@Developer yes', [waiting('Developer', 'a'), waiting('Lawyer', 'b')]).answers.runId, 'a', 'an address picks one of several questions');
+    const both = routeUserMessage(chat, '+@Developer and +{Lawyer}: yes', [waiting('Developer', 'a'), waiting('Lawyer', 'b')]);
+    assert.equal(both.answers, undefined, 'one message is never applied to two questions');
+    assert.deepEqual(both.addressed, ['@Developer', '@Lawyer'], 'each addressed agent keeps its own request');
+    assert.equal(routeUserMessage(chat, 'Is it @Developer or @Lawyer?', [waiting('Developer', 'a'), waiting('Lawyer', 'b')]).ambiguous, true, 'passive mentions do not pick a question');
     const ambiguous = routeUserMessage(chat, 'Yes', [waiting('Developer', 'a'), waiting('Lawyer', 'b')]);
     assert.equal(ambiguous.answers, undefined, 'one reply is never applied to every wait');
     assert.equal(ambiguous.agent, '@Chatter');
@@ -86,4 +92,16 @@ test('chat-created work: linked both ways, its agent joins and asks in the sourc
     [conversation] = (await chats(project)).filter((item) => item.chat.name === chatName);
     assert.equal(conversation.chat.messages.filter((message) => message.text.startsWith(`Completed {${taskName}}`)).length, 1);
     assert.match(taskName, generated('Task from chat'));
+});
+
+test('a plus address brings the agent into the chat, it replies under its own name, and a plain mention does nothing', async (t) => {
+    const { project, env } = await initializedProject(t, { check: CHECK });
+    const asked = await ptbk(['chat', 'Hello, what does +@Expert think? @Lawyer is only mentioned.', '--raw'], { cwd: project, env });
+    assert.equal(asked.code, 0, asked.stderr);
+    const [chat] = await chats(project);
+    assert.match(chat.source, /CHAT MEMBER @Expert/);
+    assert.doesNotMatch(chat.source, /CHAT MEMBER @Lawyer/);
+    assert.ok(chat.source.indexOf('CHAT MEMBER @Expert') < chat.source.indexOf('CHAT MESSAGE'), 'the join precedes the first message');
+    assert.match(chat.source, /^CHAT MESSAGE @Expert /m, 'the addressed agent replies under its own name');
+    assert.doesNotMatch(chat.source, /^CHAT MESSAGE @Chatter /m, 'the main agent leaves the request to the addressed agent');
 });

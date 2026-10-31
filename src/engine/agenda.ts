@@ -35,7 +35,7 @@ import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
-import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail, type ChatRecheckView } from '../chats/service.js';
+import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView } from '../chats/service.js';
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
 import { composeProjectBrief, findLoginCode, replyInChat, type LiveReply } from '../chats/conversation.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
@@ -761,8 +761,15 @@ export class Agenda {
         if (this.options.mode !== 'maintenance') {
             // User messages written while no service ran (or interrupted replies) still get their agent's reply, once.
             const rechecks = await this.state.readChatRechecks();
+            const addresses = await this.state.readChatAddresses();
             const conditions = this.toolConditions();
             for (const stored of await this.chats.list().catch(() => [])) {
+                // An accepted address keeps its routing across a restart: history is never interpreted again.
+                const address = addresses[stored.chat.name];
+                if (address?.agents.length && isHumanFacing(stored.chat) && stored.chat.status !== 'resolved') {
+                    for (const agent of address.agents) this.queueChatReply(stored.chat.name, { agent, followUp: true });
+                    continue;
+                }
                 if (!isHumanFacing(stored.chat) || !awaitsReply(stored.chat) || stored.chat.status === 'resolved') continue;
                 // An answer a task waits for resumes the task; a clarifying question in a still-waiting chat gets a reply.
                 const awaited = await this.isAwaitedByTask(stored.chat.name);
@@ -1399,8 +1406,30 @@ export class Agenda {
         this.log(`New chat {${written.chat.name}}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.chats.markRead(written.chat.name);
         await this.refreshChats();
-        this.queueChatReply(written.chat.name);
+        const addressed = 'addressed' in written ? (written.addressed as readonly string[]) : [];
+        if (addressed.length) {
+            await this.state.addChatAddress(written.chat.name, { upTo: written.chat.messages.length, agents: addressed });
+            for (const reference of addressed) this.queueChatReply(written.chat.name, { agent: reference, followUp: true });
+        } else this.queueChatReply(written.chat.name);
         return written;
+    }
+
+    /**
+     * Invites an agent into a chat and asks it to reply: the same operation as a `+@Name` address, for an invitation
+     * expressed in natural language. An existing member is addressed without another join.
+     */
+    public async chatInvite(name: string, agent: string): Promise<{ readonly agent: string; readonly joined: boolean }> {
+        const stored = await this.chats.find(name);
+        if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
+        if (!isHumanFacing(stored.chat)) throw new PtbkError('Agent↔agent consultation chats are task records; nobody can be invited into them.', { kind: 'usage' });
+        const { addressed, joining } = await resolveChatInvitations(this.catalog, stored.chat, [toReference(agent)]);
+        const reference = addressed[0]!;
+        if (joining.length) await this.chats.annotate(stored.chat.name, { members: joining });
+        await this.state.addChatAddress(stored.chat.name, { upTo: stored.chat.messages.length, agents: [reference] });
+        this.log(`${reference} was invited into {${stored.chat.name}}.`);
+        await this.refreshChats();
+        this.queueChatReply(stored.chat.name, { agent: reference, followUp: true });
+        return { agent: reference, joined: joining.length > 0 };
     }
 
     /**
@@ -1408,10 +1437,12 @@ export class Agenda {
      * message is a conversation turn the chat's agent replies to.
      */
     public async chatSend(name: string, text: string, options: { readonly expected?: number; readonly via?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
-        const { written, needsReply, replyAgent, waitingTask, answered } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected, segments: options.segments });
+        const { written, needsReply, replyAgent, replyAgents, waitingTask, answered } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected, segments: options.segments, catalog: this.catalog });
         this.log(`Message in {${written.chat.name}}${options.via ? ` via ${options.via}` : ''}${answered && waitingTask ? ` answers ${questionAuthor(waitingTask)}'s question of "${waitingTask.taskTitle}"` : ''}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.refreshChats();
-        if (needsReply) this.queueChatReply(written.chat.name, replyAgent ? { agent: replyAgent } : {});
+        // Each addressed agent keeps its own request; an unaddressed message goes to the routed agent only.
+        if (replyAgents.length) for (const agent of replyAgents) this.queueChatReply(written.chat.name, { agent, followUp: true });
+        else if (needsReply) this.queueChatReply(written.chat.name, replyAgent ? { agent: replyAgent } : {});
         this.wake();
         return written;
     }
@@ -1470,6 +1501,7 @@ export class Agenda {
                             env: this.options.env,
                             signal: this.ownedWork.signal,
                             createTask: async (input) => await this.createChatTask(input),
+                            inviteAgent: async (input) => await this.chatInvite(input.chat, input.agent),
                             scheduleLearning: async (input) => await this.scheduleChatLearning(input),
                             establishedExecution: async (chat) => [...(await this.state.readActiveRecords()), ...(await this.state.readParked())].find((record) => record.waitingChat === chat || record.recoveryChat === chat)?.routing,
                             onLive: (chat, live) => {
@@ -1499,8 +1531,11 @@ export class Agenda {
                         ...(turn.createdTasks.length ? [`created ${turn.createdTasks.map((task) => `{${task}}`).join(', ')}`] : []),
                     ];
                     this.log(`Reply in {${turn.reply.chat.name}}${notes.length ? ` (${notes.join('; ')})` : ''}.`);
-                    // Messages written while the agent was replying are answered next, in order (never dropped).
-                    const later = turn.seen !== undefined ? turn.reply.chat.messages.slice(turn.seen).filter((message) => message.senderKey === 'user') : [];
+                    // Messages written while the agent was replying are answered next, in order (never dropped); a message
+                    // addressed to other agents is theirs to answer.
+                    const covered = (await this.state.readChatAddresses())[turn.reply.chat.name]?.upTo ?? 0;
+                    const later = turn.seen !== undefined ? turn.reply.chat.messages.slice(Math.max(turn.seen, covered)).filter((message) => message.senderKey === 'user') : [];
+                    if (options.agent) await this.state.settleChatAddress(turn.reply.chat.name, options.agent);
                     if (later.length) this.queueChatReply(name, { followUp: true, agent: options.agent });
                 }
                 await this.refreshChats();
@@ -1525,7 +1560,8 @@ export class Agenda {
         // A turn interrupted by stopping is replied to after the restart.
         if (this.stopRequested || this.ownedWork.signal.aborted) return;
         const stored = await this.chats.find(name).catch(() => undefined);
-        if (!stored || !awaitsReply(stored.chat) || stored.chat.status === 'resolved') {
+        const owed = stored && agent ? (await this.state.readChatAddresses())[stored.chat.name]?.agents.includes(agent) : false;
+        if (!stored || (!awaitsReply(stored.chat) && !owed) || stored.chat.status === 'resolved') {
             this.log(`No reply in {${name}}: ${cause}`, 'warning');
             await this.clearChatRecheck(name);
             return;
@@ -1534,6 +1570,7 @@ export class Agenda {
         const schedule: ChatReplyRecheck = {
             ...nextRecheck(this.chatRechecks.get(nameKey(name))?.schedule, { cause, conditions: this.toolConditions() }, { base: Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS, max: CHAT_REPLY_MAX_MS }, now),
             ...(agent ? { agent } : {}),
+            ...(owed ? { followUp: true } : {}),
         };
         const { rounds, equivalent } = schedule;
         this.armChatRecheck(stored.chat.name, schedule);
@@ -1564,7 +1601,7 @@ export class Agenda {
         this.touch();
         if (this.stopRequested) return;
         this.log(`Automatic recheck ${entry.schedule.rounds} of the reply in {${entry.name}} (${reason}).`);
-        this.queueChatReply(entry.name, entry.schedule.agent ? { agent: entry.schedule.agent } : {});
+        this.queueChatReply(entry.name, { ...(entry.schedule.agent ? { agent: entry.schedule.agent } : {}), ...(entry.schedule.followUp ? { followUp: true } : {}) });
     }
 
     /** Changed tools bring waiting chat reply rechecks forward (never sooner than the minimum spacing after scheduling). */

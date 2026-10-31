@@ -1,4 +1,4 @@
-import { findAgentReferences, formatAgentReference, normalizeAgentName, parseReferenceValue, toReference } from '../book/references.js';
+import { findActiveReferences, formatAgentReference, normalizeAgentName, parseReferenceValue, toReference } from '../book/references.js';
 import type { ActiveRecord } from '../engine/state.js';
 import type { TaskPurpose } from '../tasks/purpose.js';
 import { chatAgent, chatAgents, type ChatBook } from './chat-book.js';
@@ -42,6 +42,22 @@ export function chatTaskCommitments(input: ChatTaskInput): string[] {
         `LINK ${formatAgentReference(input.chat)}`,
     ];
 }
+
+/**
+ * Where one accepted user message goes.
+ *
+ * @private chat/task relationships
+ */
+export type UserMessageRoute = {
+    /** Agents the message explicitly addresses, in written order. */
+    readonly addressed: readonly string[];
+    /** The pending question it answers. */
+    readonly answers?: ActiveRecord;
+    /** The first agent to reply (the main agent of an unaddressed message). */
+    readonly agent?: string;
+    /** It could answer several questions, so none of them takes it. */
+    readonly ambiguous?: boolean;
+};
 
 /**
  * The chat a task was created in (its default return conversation), from its `TASK ORIGIN`.
@@ -91,20 +107,23 @@ export function questionAuthor(record: Pick<ActiveRecord, 'routing' | 'handover'
 
 /**
  * Where a user message in a chat goes: the answer to one pending question (its author's waiting run resumes), a reply
- * by an explicitly mentioned participant, or the main agent. A message that could answer several questions (no
- * mention picks one) goes to the main agent instead of being applied to every wait.
+ * by an explicitly addressed participant (`+@Name`, `+{Full Name}`), or the main agent. A plain mention changes nothing.
+ * A message that could answer several questions (no address picks one) goes to the main agent instead of being applied to
+ * every wait, and several addressed agents keep distinct requests instead of a broadcast to every member.
  *
  * @private chat/task relationships
  */
-export function routeUserMessage(chat: Pick<ChatBook, 'members'>, text: string, pending: readonly ActiveRecord[]): { readonly answers?: ActiveRecord; readonly agent?: string; readonly ambiguous?: boolean } {
-    const agents = chatAgents(chat);
-    const mentioned = [...new Set(findAgentReferences(text).map((reference) => reference.normalized))].filter((key) => agents.some((agent) => parseReferenceValue(agent)?.normalized === key));
-    if (mentioned.length === 1) {
-        const key = mentioned[0]!;
-        const answers = pending.find((record) => normalizeAgentName(questionAuthor(record)) === key);
-        if (answers) return { answers };
-        return { agent: agents.find((agent) => parseReferenceValue(agent)?.normalized === key) };
+export function routeUserMessage(chat: Pick<ChatBook, 'members'>, text: string, pending: readonly ActiveRecord[], invited: readonly string[] = []): UserMessageRoute {
+    const agents = [...chatAgents(chat), ...invited];
+    const keyOf = (agent: string): string | undefined => parseReferenceValue(agent)?.normalized;
+    const addressed = findActiveReferences(text).flatMap((reference) => agents.find((agent) => keyOf(agent) === reference.normalized) ?? []);
+    if (addressed.length) {
+        const authors = addressed.filter((agent) => pending.some((record) => normalizeAgentName(questionAuthor(record)) === keyOf(agent)));
+        // One message answers at most one question; several addressed authors keep their distinct waits.
+        const answers = authors.length === 1 ? pending.find((record) => normalizeAgentName(questionAuthor(record)) === keyOf(authors[0]!)) : undefined;
+        const others = addressed.filter((agent) => !answers || keyOf(agent) !== normalizeAgentName(questionAuthor(answers)));
+        return { addressed, ...(answers ? { answers } : {}), ...(others.length ? { agent: others[0] } : {}), ...(authors.length > 1 ? { ambiguous: true } : {}) };
     }
-    if (pending.length === 1) return { answers: pending[0] };
-    return { agent: chatAgent(chat), ambiguous: pending.length > 1 };
+    if (pending.length === 1) return { addressed: [], answers: pending[0] };
+    return { addressed: [], agent: chatAgent(chat), ambiguous: pending.length > 1 };
 }

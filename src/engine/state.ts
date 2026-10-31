@@ -1,6 +1,7 @@
 import { appendFile, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ensureDirectory, listDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
+import { Mutex } from '../common/mutex.js';
 import { normalizeAgentName } from '../book/references.js';
 import { nameKeyPath } from '../tasks/identity.js';
 import type { ThinkingLevel } from '../project/config.js';
@@ -123,6 +124,20 @@ export type RecoverySchedule = RecheckSchedule & {
 export type ChatReplyRecheck = RecheckSchedule & {
     /** The participant the user addressed in the failed turn (otherwise the chat's main agent replies). */
     readonly agent?: string;
+    /** The addressed agent still owes a reply although another agent has already answered the message. */
+    readonly followUp?: boolean;
+};
+
+/**
+ * Agents an accepted chat message explicitly addressed that still owe a reply (`.ptbk/state/chat-addresses.json`).
+ *
+ * @private engine state
+ */
+export type ChatAddress = {
+    /** Number of messages this routing covers: a reply to an older agent's turn does not answer them for it. */
+    readonly upTo: number;
+    /** Addressed agents that have not replied yet. */
+    readonly agents: readonly string[];
 };
 
 /**
@@ -383,6 +398,9 @@ export type HealthState = {
 export class StateStore {
     public constructor(private readonly directory: string) {}
 
+    /** Serializes updates of the persisted chat addresses. */
+    private readonly chatAddressLock = new Mutex();
+
     /** Absolute path of a state file. */
     private file(name: string): string {
         return join(this.directory, name);
@@ -522,6 +540,34 @@ export class StateStore {
     /** Persists the scheduled rechecks of failed chat replies. */
     public async writeChatRechecks(rechecks: Record<string, ChatReplyRecheck>): Promise<void> {
         await writeJsonAtomic(this.file('chat-replies.json'), rechecks);
+    }
+
+    /** Reads the accepted chat addresses whose agents still owe a reply. */
+    public async readChatAddresses(): Promise<Record<string, ChatAddress>> {
+        return (await readJsonIfExists<Record<string, ChatAddress>>(this.file('chat-addresses.json')).catch(() => undefined)) ?? {};
+    }
+
+    /** Persists an accepted address of a chat message, so a restart replies to it without interpreting history again. */
+    public async addChatAddress(chat: string, address: ChatAddress): Promise<void> {
+        await this.chatAddressLock.run(async () => {
+            const addresses = await this.readChatAddresses();
+            const previous = addresses[chat];
+            addresses[chat] = { upTo: Math.max(previous?.upTo ?? 0, address.upTo), agents: [...new Set([...(previous?.agents ?? []), ...address.agents])] };
+            await writeJsonAtomic(this.file('chat-addresses.json'), addresses);
+        });
+    }
+
+    /** Records that an addressed agent has replied. */
+    public async settleChatAddress(chat: string, agent: string): Promise<void> {
+        await this.chatAddressLock.run(async () => {
+            const addresses = await this.readChatAddresses();
+            const previous = addresses[chat];
+            if (!previous?.agents.includes(agent)) return;
+            const agents = previous.agents.filter((item) => item !== agent);
+            if (agents.length) addresses[chat] = { ...previous, agents };
+            else delete addresses[chat];
+            await writeJsonAtomic(this.file('chat-addresses.json'), addresses);
+        });
     }
 
     /** Reads Fixer's health-check bookkeeping. */

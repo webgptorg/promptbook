@@ -2,7 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import { PtbkError } from '../common/errors.js';
 import { hashFileIfExists, toProjectRelative } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
-import { formatAgentReference } from '../book/references.js';
+import { formatAgentReference, toReference } from '../book/references.js';
 import { AgentCatalog, learningPolicyOf } from '../project/agents.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { commitPaths, inspectGit } from '../project/git.js';
@@ -15,7 +15,7 @@ import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
 import { generatedName } from '../tasks/identity.js';
 import type { ChatSource } from '../ui/chat-client.js';
 import { replyInChat } from './conversation.js';
-import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat } from './service.js';
+import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, resolveChatInvitations } from './service.js';
 import { ChatStore } from './store.js';
 import { ChatCommitBatcher } from './batcher.js';
 import { chatTaskCommitments } from './chat-tasks.js';
@@ -101,8 +101,9 @@ export class LocalChats {
     /**
      * Lets the chat's agent reply in this process (read-only; tasks only through ordinary committed authoring).
      */
-    public async reply(name: string, onActivity?: (text: string) => void): Promise<string | undefined> {
+    public async reply(name: string, onActivity?: (text: string) => void, options: { readonly agent?: string; readonly followUp?: boolean } = {}): Promise<string | undefined> {
         await this.reload();
+        const invited: string[] = [];
         if (!this.pool) {
             this.pool = new HarnessPool(this.project.root, this.settings, this.env);
             await this.pool.refresh(undefined, true);
@@ -116,6 +117,17 @@ export class LocalChats {
                 chats: this.store,
                 env: this.env,
                 onActivity,
+                inviteAgent: async (input) =>
+                    await this.locked(async () => {
+                        await this.reload();
+                        const stored = await this.store.find(input.chat);
+                        if (!stored) throw new PtbkError(`No chat named "${input.chat}".`, { kind: 'not-found' });
+                        const { addressed, joining } = await resolveChatInvitations(this.catalog, stored.chat, [toReference(input.agent)]);
+                        if (joining.length) await this.store.annotate(stored.chat.name, { members: joining });
+                        await this.state.addChatAddress(stored.chat.name, { upTo: stored.chat.messages.length, agents: addressed });
+                        invited.push(addressed[0]!);
+                        return { agent: addressed[0]!, joined: joining.length > 0 };
+                    }),
                 createTask: async (input) =>
                     await this.locked(async () => {
                         await this.reload();
@@ -149,8 +161,12 @@ export class LocalChats {
                     }),
             },
             name,
+            options,
         );
-        return turn.error;
+        if (turn.reply && options.agent) await this.state.settleChatAddress(turn.reply.chat.name, options.agent);
+        let error = turn.error;
+        for (const agent of invited) error = (await this.reply(name, onActivity, { agent, followUp: true })) ?? error;
+        return error;
     }
 
     /** Agent replies still being produced in this process. */
@@ -162,11 +178,14 @@ export class LocalChats {
      * A chat source for terminal clients; agent replies run here after each user message that needs one.
      */
     public source(options: { readonly replies: boolean; readonly onActivity?: (text: string) => void; readonly onReplyError?: (error: string) => void }): ChatSource {
-        const respond = (name: string): void => {
+        let turns: Promise<unknown> = Promise.resolve();
+        const respond = (name: string, turn: { readonly agent?: string; readonly followUp?: boolean } = {}): void => {
             if (!options.replies) return;
             // The harness turn runs unlocked (it can take minutes); its writes are scoped commits of their own paths.
+            // Turns of this process run in order, so several addressed agents answer one after another.
             this.inFlight++;
-            void this.reply(name, options.onActivity)
+            turns = turns
+                .then(async () => await this.reply(name, options.onActivity, turn))
                 .then(
                     (error) => error && options.onReplyError?.(error),
                     (error: unknown) => options.onReplyError?.(String(error)),
@@ -191,15 +210,19 @@ export class LocalChats {
                 });
                 await this.store.markRead(written.chat.name);
                 if (options.replies) {
-                    respond(written.chat.name);
+                    const addressed = 'addressed' in written ? (written.addressed as readonly string[]) : [];
+                    if (addressed.length) await this.state.addChatAddress(written.chat.name, { upTo: written.chat.messages.length, agents: addressed });
+                    if (addressed.length) for (const reference of addressed) respond(written.chat.name, { agent: reference, followUp: true });
+                    else respond(written.chat.name);
                     return { name: written.chat.name, persistence: written.persistence };
                 }
                 return { name: written.chat.name, commit: await this.flush(), persistence: 'committed' as const };
             },
             send: async (name, text, expected, segments) => {
-                const result = await this.locked(async () => await appendUserMessage(this.store, this.state, name, text, { expected, segments }));
+                const result = await this.locked(async () => await appendUserMessage(this.store, this.state, name, text, { expected, segments, catalog: this.catalog }));
                 if (result.needsReply && options.replies) {
-                    respond(result.written.chat.name);
+                    if (result.replyAgents.length) for (const agent of result.replyAgents) respond(result.written.chat.name, { agent, followUp: true });
+                    else respond(result.written.chat.name);
                     return { name: result.written.chat.name, persistence: result.written.persistence };
                 }
                 return { name: result.written.chat.name, commit: await this.flush(), persistence: 'committed' as const };

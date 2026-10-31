@@ -1,5 +1,15 @@
 # Unreleased
 
+## Chats: +@Name brings an agent in, and a plain @Name only refers to it
+
+-   In a chat message, `+@Adam`, `+{Adam}` or `+{Frontend Developer}` invites that agent if needed and asks it to reply. An agent that is already a member is not added twice
+-   A plain `@Adam` or `{Adam}` no longer changes who replies or which question an answer goes to, even when Adam is a member
+-   The plus only counts at the start of a message or after a space or opening bracket, so `x+@Adam` does nothing. It also does nothing inside code, quotes, escaped text or examples
+-   A `+` in front of an unknown name, a task or a chat refuses the message and saves nothing, so you can correct it and send it again
+-   Several agents addressed in one message each answer in turn. One message never answers more than one waiting question, and a restart carries on with the same agents without reading old messages again
+-   An agent in a chat can now invite another agent when you ask for it in words, using the same operation
+-   The VS Code extension treats `+@Name` as the same reference, with the plus outside the name, and knows `TASK CHANGE` and `TASK REOPEN`
+
 ## Tasks: a task can be changed, reopened or cancelled by appending to its Book
 
 -   A new `TASK CHANGE <timestamp> <task|occurrence|future> [<chat>]` line adds an amendment under the original instructions, which stay in the Book. Agents receive only the amendments that apply to their run: an `occurrence` change ends with that run, and a `future` change waits for the next run

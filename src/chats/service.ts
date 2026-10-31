@@ -1,12 +1,12 @@
 import type { ComposedSegment } from '../ui/composer.js';
 import { PtbkError } from '../common/errors.js';
 import { commitmentsOf } from '../book/parse.js';
-import { formatAgentReference, normalizeAgentName, toReference } from '../book/references.js';
+import { findActiveReferences, formatAgentReference, normalizeAgentName, parseReferenceValue, toReference } from '../book/references.js';
 import type { AgentCatalog } from '../project/agents.js';
 import { CHATTER_NAME } from '../project/defaults.js';
 import type { ActiveRecord, StateStore } from '../engine/state.js';
-import { isConsultationRecord, isHumanFacing } from './chat-book.js';
-import { routeUserMessage, type ChatTaskCard } from './chat-tasks.js';
+import { chatAgents, isConsultationRecord, isHumanFacing, type ChatBook } from './chat-book.js';
+import { questionAuthor, routeUserMessage, type ChatTaskCard } from './chat-tasks.js';
 import type { LiveReply } from './conversation.js';
 import type { ChatStore, ChatSummary, ChatWrite } from './store.js';
 
@@ -120,11 +120,45 @@ export async function chatDetail(store: ChatStore, name: string): Promise<ChatDe
 }
 
 /**
- * Starts a new user-led chat with exactly one agent (its first message is committed).
+ * Resolves agents to invite or address in a chat through the ordinary typed resolver. Existing members are addressed
+ * without joining again; a wrong kind, an unknown name and an agent that cannot speak are refused, so nothing is added.
  *
  * @private chats
  */
-export async function createUserChat(store: ChatStore, catalog: AgentCatalog, agent: string, text: string, options: { readonly name?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
+export async function resolveChatInvitations(catalog: AgentCatalog | undefined, chat: Pick<ChatBook, 'members'>, references: readonly string[]): Promise<{ readonly addressed: readonly string[]; readonly joining: readonly string[] }> {
+    const addressed: string[] = [];
+    const joining: string[] = [];
+    const members = chatAgents(chat);
+    const keyOf = (reference: string): string | undefined => parseReferenceValue(reference)?.normalized;
+    for (const reference of references) {
+        const member = [...members, ...joining].find((item) => keyOf(item) === keyOf(reference));
+        if (member) {
+            if (!addressed.includes(member)) addressed.push(member);
+            continue;
+        }
+        const refusal = (reason: string): PtbkError => new PtbkError(`${reference} cannot be invited: ${reason}.`, { kind: 'usage', effect: 'Nothing was saved.', next: ['Correct the name, or write it without + to only mention it.'] });
+        if (!catalog) throw refusal('agents cannot be resolved here');
+        const resolution = await catalog.resolve(reference);
+        let name: string;
+        if (resolution.kind === 'agent') name = resolution.definition.name;
+        else if (resolution.kind === 'system-agent' && resolution.name === 'Expert') name = 'Expert';
+        else if (resolution.kind === 'system-agent') throw refusal(`${resolution.name} cannot speak in a chat`);
+        else if (resolution.kind === 'wrong-kind') throw refusal(`${resolution.entry.relativePath} is a ${resolution.entry.kind}, not an agent`);
+        else throw refusal('no such agent');
+        const invited = formatAgentReference(name);
+        joining.push(invited);
+        addressed.push(invited);
+    }
+    return { addressed, joining };
+}
+
+/**
+ * Starts a new user-led chat with exactly one main agent (its first message is committed). Agents the first message
+ * explicitly invites join before it and are the ones to reply.
+ *
+ * @private chats
+ */
+export async function createUserChat(store: ChatStore, catalog: AgentCatalog, agent: string, text: string, options: { readonly name?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite & { readonly addressed?: readonly string[] }> {
     const reference = toReference(agent);
     const resolution = await catalog.resolve(reference);
     if (resolution.kind === 'system-agent' && resolution.name !== 'Expert') throw new PtbkError(`You cannot chat with ${resolution.name}; choose a project agent or @Expert.`, { kind: 'usage' });
@@ -135,21 +169,26 @@ export async function createUserChat(store: ChatStore, catalog: AgentCatalog, ag
     const attachment = options.segments?.find((segment) => segment.type === 'attachment');
     const first = text.split('\n').find((line) => line.trim())?.trim() ?? (attachment?.type === 'attachment' ? attachment.name : undefined);
     if (!first) throw new PtbkError('The first message of a chat cannot be empty.', { kind: 'usage' });
-    return await store.create({
+    const main = formatAgentReference(name);
+    const invitations = await resolveChatInvitations(catalog, { members: [main] }, findActiveReferences(text).map((reference) => reference.raw));
+    const written = await store.create({
         name: options.name?.trim() || `${name}: ${first.slice(0, 60)}`,
-        members: ['@User', formatAgentReference(name)],
+        members: ['@User', main, ...invitations.joining],
         status: 'open',
         messages: [{ sender: '@User', text }],
         taken: catalog.index.names(),
         segments: options.segments,
     });
+    return invitations.addressed.length ? { ...written, addressed: invitations.addressed } : written;
 }
 
 /**
  * Appends the user's message to a chat and routes it: a reply to a pending question goes to that question's author
- * (its waiting run resumes with exactly this message), an explicit mention of a participant goes to that agent, and
- * anything else to the main agent. With several pending questions and no mention picking one, the main agent handles
- * it and every question keeps waiting (one answer is never applied to every wait).
+ * (its waiting run resumes with exactly this message), an explicit address (`+@Name`, `+{Full Name}`) goes to that agent
+ * (joining it first when it is not a member yet), and anything else to the main agent. A plain mention changes nothing.
+ * With several pending questions and no address picking one, the main agent handles it and every question keeps waiting
+ * (one answer is never applied to every wait). The addressed agents are interpreted only here, on the newly accepted
+ * message, and persisted: re-reading history never invites or routes anything again.
  *
  * The question's attention clears as soon as its answer is saved: the chat leaves `waiting-for-user` unless another
  * question still waits, before any agent processing or Git batching. A reply that is not among the offered answers
@@ -163,19 +202,22 @@ export async function appendUserMessage(
     state: StateStore,
     name: string,
     text: string,
-    options: { readonly expected?: number; readonly segments?: readonly ComposedSegment[] } = {},
-): Promise<{ readonly written: ChatWrite; readonly waitingTask?: ActiveRecord; readonly answered: boolean; readonly needsReply: boolean; readonly replyAgent?: string }> {
+    options: { readonly expected?: number; readonly segments?: readonly ComposedSegment[]; readonly catalog?: AgentCatalog } = {},
+): Promise<{ readonly written: ChatWrite; readonly waitingTask?: ActiveRecord; readonly answered: boolean; readonly needsReply: boolean; readonly replyAgent?: string; readonly replyAgents: readonly string[] }> {
     const stored = await store.find(name);
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
     if (isConsultationRecord(stored.chat)) throw new PtbkError('Agent↔agent consultation chats are task records; you cannot write into them.', { kind: 'usage' });
+    // Invalid invitations are refused before anything is saved, so a corrected message can be sent again.
+    const invitations = await resolveChatInvitations(options.catalog, stored.chat, findActiveReferences(text).map((reference) => reference.raw));
     // Another agent-only or reporting thread: the user joins at this point of its chronology (prior authorship and
-    // members stay as they are), in the same write as this first message.
-    const join = isHumanFacing(stored.chat) ? undefined : ['@User'];
+    // members stay as they are), in the same write as this first message. Invited agents join before the message too.
+    const joining = [...(isHumanFacing(stored.chat) ? [] : ['@User']), ...invitations.joining];
+    const join = joining.length ? joining : undefined;
     const active = await state.readActiveRecords();
     const parked = await state.readParked();
     // Questions of runs waiting in this chat (an answer, or a recovery decision after a failure).
     const pending = [...parked, ...active].filter((record) => record.waitingChat === stored.chat.name || (record.phase === 'failed' && record.recoveryChat === stored.chat.name));
-    const route = routeUserMessage(stored.chat, text, pending);
+    const route = routeUserMessage(stored.chat, text, pending, invitations.joining);
     const target = route.answers;
     const awaited = target ? stored.chat.messages[(target.awaitedMessages ?? stored.chat.messages.length) - 1] : undefined;
     const applicable = !awaited?.choices?.length || awaited.choices.includes(text.trim());
@@ -202,5 +244,9 @@ export async function appendUserMessage(
         else await state.writeActive(update);
     }
     await store.markRead(written.chat.name);
-    return { written, waitingTask: target, answered, needsReply: !answered, replyAgent: answered ? undefined : route.agent };
+    // Every addressed agent keeps its own request; the author of the answered question continues in its run instead.
+    const authorKey = target && answered ? normalizeAgentName(questionAuthor(target)) : undefined;
+    const replyAgents = route.addressed.filter((agent) => parseReferenceValue(agent)?.normalized !== authorKey);
+    if (replyAgents.length) await state.addChatAddress(written.chat.name, { upTo: position, agents: replyAgents });
+    return { written, waitingTask: target, answered, needsReply: !answered || replyAgents.length > 0, replyAgent: replyAgents[0] ?? (answered ? undefined : route.agent), replyAgents };
 }
