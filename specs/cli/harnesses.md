@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Unified tools](tools.md) · [Live tool use](tool-runtime.md)
 
-A harness provides model/tool execution, not agent identity or browser website sessions. Supported canonical variants are `OPENAI_CODEX`, `CLAUDE_CODE`, `GITHUB_COPILOT`, `CLINE`, `OPENCODE`, `GEMINI` and `QWEN_CODE`, behind the common [plugin contract](harness-plugins.md). `tools` may contain several named instances of any variant, not just one configuration per provider.
+A harness provides model/tool execution, not agent identity or browser website sessions. Supported canonical variants are `OPENAI_CODEX`, `CLAUDE_CODE`, `GITHUB_COPILOT`, `OPENCODE`, `GEMINI` and `QWEN_CODE`, behind the common [plugin contract](harness-plugins.md). `tools` may contain several named instances of any variant, not just one configuration per provider.
 
 ## Global executables, per-instance authentication
 
@@ -30,7 +30,7 @@ Different variants may be chosen for their strengths even while the first listed
 
 Preserve explicit task/model/account requirements. Respect configured paid-use limits; newly discovered keys do not authorize spending. After a known quota failure, use a configured authorized fallback promptly rather than waiting unnecessarily or retrying the exhausted account forever. If no candidate is usable, retain the actual wait and recheck opportunity. Never replay completed external effects when changing harness/account.
 
-Run the selected global integration over the project with effective [agent context](agent-context.md) in its supported autonomous exec mode. Return actual success, failure, missing login, quota, cancellation and effective model/effort plus the named tool instance. Completion-looking text cannot override a failed turn/process. Unknown provider metadata remains unknown; model catalogs come from integrations, not fixed examples.
+Run the selected global integration over the project with effective [agent context](agent-context.md) through its supported autonomous session transport under [harness sessions](harness-sessions.md). Return actual success, failure, missing login, quota, cancellation and effective model/effort plus the named tool instance. Completion-looking text cannot override a failed turn/process. Unknown provider metadata remains unknown; model catalogs come from integrations, not fixed examples.
 
 ## Codex account login and billing
 
@@ -43,3 +43,5 @@ The unified API tool's explicit `authentication: API_KEY` and configured referen
 Tool setup grants the connection's supported model capabilities without per-instance model/thinking defaults or allowlists. Plugin code owns those defaults; [MODEL](../book-language/commitments/model.md) describes independent execution constraints. Endpoint matching must survive same-variant account fallback; see [harness endpoints](tools.md#harness-endpoints).
 
 Fresh init preselects detected installed/configured usable variants, or OpenAI Codex if none exist, preserving explicit selections/deselections. Every selected adapter then performs a [real request/response check](harness-plugins.md#real-functional-check). At least one must pass before new-project completion; failed additional selections are visible and nonfatal. Native login reuse avoids another sign-in, not this functional check. Small preparatory test/name usage is accepted outside project accounting. Each adapter also supplies finest available [usage and current price-list retrieval](usage.md), with subscription/API distinctions and honest unknowns.
+
+OpenAI Codex and Claude Code are priority integrations. The live [session contract](harness-sessions.md) preserves autonomous operation while allowing continued inputs and actual native attachment where supported. Named tool configuration is distinct from the Harnesses dashboard inventory of sessions; several sessions may use one tool. Neither several names nor several sessions creates separate account quotas.

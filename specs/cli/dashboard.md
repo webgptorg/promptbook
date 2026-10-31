@@ -8,7 +8,7 @@ Load static shell/assets, then obtain live state and send controls only through 
 
 ## Home and pages
 
-Use the same [dashboard home-screen hierarchy](dashboard-layout.md) as the terminal. The browser root is a compact responsive tile cockpit containing PTBK/project/service state, current work, operator attention and entries to operational domains. Do not turn it into a long page that requires scrolling past technical details before the operator can see all core tiles.
+Use the same [dashboard home-screen hierarchy](dashboard-layout.md) as the terminal. The browser root is a compact responsive tile cockpit containing PTBK/project/service state, the replacement Harnesses session summary, operator attention and entries to operational domains. Do not turn it into a long page that requires scrolling past technical details before the operator can see all core tiles.
 
 Adapt across ordinary desktop/window sizes. On smaller surfaces reduce columns and secondary text; on larger surfaces use space without expanding every diagnostic. Focus/selection and attention are distinct visual states. New attention is conspicuous but never forcibly changes the selected tile/page. Persistent unresolved attention remains marked after transient emphasis settles.
 
@@ -39,3 +39,7 @@ Show loading, disconnection, observed service exit and failed/unconfirmed/pendin
 No secret is echoed in ordinary state or diagnostic errors. Local address details live on Connection rather than forcing the home page taller. The browser opens directly on the engine computer using the API's local bootstrap and same-origin safeguards. The global dashboard remains a separate host-wide terminal feature. See [controls](controls.md), [channels](channels.md) and [start](start.md).
 
 Opening the view only reads the shared saved report; no generation occurs. Discuss creates a new ordinary Chatter chat seeded with the exact displayed brief, while explicit Refresh coalesces engine work. Action log, History and read-only Files use shared readers even with autosync off; Book viewing/editing shares a core and supports long sources.
+
+## Session inspection and native entry
+
+The browser shares the **Harnesses** tile/page replacing Current work, common selected-session data and guarded watch/exclusive/shared entry under [harness sessions](harness-sessions.md). A web terminal, if supported, carries the actual native client with enforced input gates; browser rendering does not create native-attachment capability. Keep the common view when unsupported. Closing/detaching the terminal returns to the selected session, without stopping the backend or engine. No additional per-entity lifecycle controls are introduced.

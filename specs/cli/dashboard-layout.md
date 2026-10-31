@@ -25,7 +25,7 @@ Reserve identity plus the concise brief in responsive height/width calculations;
 
 The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
-At minimum preserve the existing domains as compact tiles/pages: Current work, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, **Usage**, **Action log**, **History**, **Files**, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
+At minimum preserve the existing domains as compact tiles/pages: **Harnesses**, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, **Usage**, **Action log**, **History**, **Files**, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
 
 ## Focus and attention are independent
 
@@ -69,7 +69,7 @@ The home screen favors:
 4. compact state of the major domains;
 5. navigation and lifecycle discoverability.
 
-Technical details are not deleted; they move to pages. Wallet owns its encrypted credential labels, protected pending login actions and restoration input; no secret appears in home summaries. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns local HTTP address/readiness. Execution owns harness/model/thinking details. System owns the general operational log; individual task details own their results/errors. There is no standalone Results/Activity tile, page or attention source. Action log and History retain their distinct existing meanings.
+Technical details are not deleted; they move to pages. Wallet owns its encrypted credential labels, protected pending login actions and restoration input; no secret appears in home summaries. The **System page** owns engine/process/configuration/lifecycle detail, generic manual pause/resume and the complete active pause-reason list. The **Health page** owns host-resource measurements, health incidents, allowed soft-incident override and remediation from the [Health sub-engine](health-sub-engine.md); it does not own generic manual pause controls. Tool pages own provider/profile readiness and configuration. Connection owns local HTTP address/readiness. Harnesses owns live/idle session and harness/model/thinking details. System owns the general operational log; individual task details own their results/errors. There is no standalone Results/Activity tile, page or attention source. Action log and History retain their distinct existing meanings.
 
 A concrete blocker may be summarized on the related home tile so the operator knows *where* attention is required. The complete cause, evidence and remediation can live on its page. Long errors, paths, URLs, model names, and version strings must not inflate the root layout.
 
@@ -81,7 +81,7 @@ Pretty one-shot snapshots may reuse the same information hierarchy without prete
 
 When an enabled synchronization domain, tool, chat, health monitor or other subsystem produces an actionable issue, it marks its own tile/page through the shared attention presentation rather than inventing a modal global alarm. Lifecycle/pause state remains summarized in the relevant tiles, with detail on System; do not add another state badge to the identity header. The operator remains in control of navigation.
 
-The brief is a parsed paragraph with original generation time, not raw Book syntax or a history dump. Opening the dashboard never generates it. Reduce secondary tile copy/whitespace to retain the identity/brief/grid without normal scrolling. Discoverable Discuss report opens a new snapshot-seeded chat; Refresh report is an explicit shared generation request, coalesced across viewers and subject to pause/capacity. All viewers read the same saved result without sharing local focus/drafts.
+The brief is a parsed paragraph with original generation time, not raw Book syntax or a history dump. Opening the dashboard never generates it. Reduce secondary tile copy/whitespace to retain the identity/brief/grid without normal scrolling. Discoverable Discuss report opens a new snapshot-seeded chat; Refresh report is an explicit shared generation request, coalesced across viewers and subject to task pause and actual resource availability. All viewers read the same saved result without sharing local focus/drafts.
 
 ## Acceptance outcomes
 
@@ -100,3 +100,7 @@ Keep state/evidence collection independent of presentation. Coalesce superseded 
 When viewing resumes, render the latest coherent snapshot at the current size rather than replay every missed frame. Discard redundant presentation frames only, never actual messages, usage or evidence. No viewer or output stall may stop an independently running engine. This is a required behavior, not a claim that the reported freeze has a confirmed root cause.
 
 Exercise sustained work while a VS Code/other supported terminal is hidden, then restore/resize it: current state and controls appear promptly without a backlog flood, lost events, unbounded memory growth or an engine stall.
+
+## Harnesses replaces Current work
+
+Replace the existing early Current work/log home tile with **Harnesses**, including its navigation target; do not leave the old panel beside it or only rename a detail page. Keep the compact summary in the normal no-scroll grid: open/working/idle/waiting sessions and meaningful attention, with actual agent/task context when space permits. The page lists sessions, including idle open ones, then opens common selected-session detail under [dashboard details](dashboard-details.md#harnesses-page) and [session control](harness-sessions.md). This is not the System log, external Action log, tool catalog or Tasks page.

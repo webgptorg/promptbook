@@ -2,7 +2,7 @@
 
 [Agents](../_index.md) · [Core agents](../core-agents.md) · [Chat entry](../../cli/chat-ui.md) · [TEAM](../../cli/team.md)
 
-**Chatter** is the user's ordinary conversational entry point when they want to inspect, discuss or manually direct a project without knowing which specialist to choose. It is a project-owned core agent, not the engine, the automatic scheduler or a replacement for Tasker, Router and specialist execution. Chatter remains the main agent while teammates advise or execute specialist tasks; those agents can join the same human-facing thread under their own names.
+**Chatter** is the user's ordinary conversational entry point when they want to inspect, discuss or manually direct a project without knowing which specialist to choose. It is the project-owned assistant responsible for arranging outcomes through Tasker, Router and specialist execution, using the engine's shared operations. Chatter remains the main agent while teammates advise or execute specialist tasks; those agents can join the same human-facing thread under their own names.
 
 ## Initialization and ownership
 
@@ -26,8 +26,14 @@ For a new chat without an explicit target, first offer exactly two choices: **Ch
 
 This applies to `ptbk chat`, the dashboard new-chat shortcut and browser/API entry. Existing chats and agent-authored waiting conversations retain their original participants; opening Fixer's question does not redirect it to Chatter. If Chatter is missing or invalid, give an actionable setup/repair diagnostic rather than silently choosing another agent, overwriting a file or initializing a project just by opening a picker.
 
-Chatter is the **project’s spokesperson**: the usual conversational gateway and author of [project briefs](../../cli/project-report.md), not the boss of other agents. Ordinary periodic/event-driven work appends to root `report.book`, with normal editable policy/learning. No Reporter role or privileged worker is added; viewer/status reads never generate work and Discuss report creates a new seeded chat.
+Chatter is the **project’s spokesperson**: the usual conversational gateway and author of [project briefs](../../cli/project-report.md), and a coordinator able to delegate through responsible agents, including further agent hierarchy, within the user's authority. Ordinary periodic/event-driven work appends to root `report.book`, with normal editable policy/learning. No Reporter role or privileged worker is added; viewer/status reads never generate work and Discuss report creates a new seeded chat.
 
 ## Acceptance outcomes
 
 Initialize a project and verify one editable Chatter with all other initialized teammates. Enter through direct chat, terminal shortcut and browser: Enter chooses Chatter; the second option reveals every valid alternative; explicit selection is respected. Ask about status without creating work, consult a specialist with attribution, then create authorized linked tasks through the ordinary queue. Reinit preserves customization, adds missing roles and uses [shared template reconciliation](../core-agents.md#shared-preparation-and-template-updates) for upstream changes rather than replacing project policy. Reopen another agent's waiting chat and verify that its identity, messages and required answer remain unchanged.
+
+## Contextual control of ongoing work
+
+The user need not know the task inventory or session count. Chatter inspects context, locates the responsible agent(s), invites them into the conversation where useful and follows delegated instructions through to an actual or honestly pending outcome. This ability is not a closed list of verbs: status, amendment, cancellation, acceptance of partial work, changed recurrence and completion notification follow intent under [task control](../../cli/task-control.md). A read or notification-only request does not require mutating/duplicating work. Preserve verified user origin/authority across delegation, distinct from agent advice.
+
+The agent/engine appends Book amendments and reconciles every affected live session, rather than claiming success from a source edit. Report Saved, Delivered and Applied truthfully. Continue the same work in its original task, with explicit reopening if needed; fundamentally new work gets a new linked task. Existing authority, file ownership, one unfinished task per agent, lifecycle and human-only approval requirements still apply. “Omnipotent” describes ability to arrange work, not unlimited permissions.

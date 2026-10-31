@@ -48,7 +48,7 @@ Soft/hard are properties of health incidents/pause reasons, not separate lifecyc
 
 Health adds/removes its own pause reasons under the [composable pause model](service-lifecycle.md). It never erases a manual pause reason. After OS startup, re-evaluate current conditions before background claims; unexpected process loss instead follows conservative paused restoration and Health cannot erase that manual reason; historical Health-only pause is not permanent manual intent. Health may clear its recovered condition while separately restored manual pause remains. See [startup persistence](persistence.md).
 
-When a health reason becomes active while background work is running, no new background task is claimed and current work drains under ordinary graceful-pause semantics. When the health condition resolves, Health removes its reason automatically. Scheduling resumes only if **no other pause reason** remains.
+When a health reason becomes active while background work is running, no new background task is claimed and automatic task continuations are also blocked and active task sessions use supported interruption/checkpoint under the shared task-only Pause semantics, leaving chats and unrelated runtime supervision available where resources permit. When the health condition resolves, Health removes its reason automatically. Scheduling resumes only if **no other pause reason** remains.
 
 The Health page does not offer generic manual **Pause all / Resume** controls. Those belong to the System page. Health may only show/operate its own incidents, including allowed soft-incident override.
 

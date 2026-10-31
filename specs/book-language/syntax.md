@@ -67,3 +67,9 @@ Parse standalone AGENT, TASK and CHAT examples with one grammar and no location 
 ## Resilient authoring and repair
 
 The diagnostics above describe whether a source can be interpreted safely, not a prohibition on saving it. Preserve unknown commitment content and user mistakes. The Book editor **warns and permits saving**, including malformed constrained MODEL content; detected problems create an ordinary Fixer repair task. Isolate affected execution instead of fatally failing the engine. Do not guess a runnable task from an ambiguous declaration, silently correct uncertain intent or turn every unusual natural-language sentence into a fatal syntax error. See [Book editor](../cli/book-editor.md).
+
+## Task evolution and chat actions
+
+TASK CHANGE and TASK REOPEN are multiword commitments in this same grammar, with their own timestamp/scope/reference validation. Chronological task amendments retain prior content under [layering](layering.md); source order, not wall-clock sorting, determines transition order. Unsupported/malformed forms remain diagnostics, never guessed executable changes.
+
+In new chat-message content `+@Name`/`+{Full Name}` is an action prefix around an ordinary passive reference, not another commitment keyword or reference identity. Literal quoting, code, escaped syntax, examples and history replay do not invoke actions. See [references](references.md#active-chat-invitation-is-an-action-prefix).

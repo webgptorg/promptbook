@@ -9,3 +9,5 @@
 The initially selected agent is the main agent, represented by the first agent member. Another agent joins by appending its member commitment on a new line before its first message. Preserve prior members/order. Re-adding a normalized participant is idempotent, not another speaker or invitation to answer every arrival. Messages retain actual authors; routing follows [chats](../../cli/chats.md).
 
 Preserve the join's actual position among messages and other events; do not hoist later membership into the initial participant block. See [Book layering](../layering.md).
+
+Plain `@Name`/`{Full Name}` mentions in a new message do not change membership. Explicit `+@Name`/`+{Full Name}` or a contextual natural-language invitation uses the shared invitation operation; existing members are addressed without another join. Quoting syntax or replaying history cannot invite. See [reference actions](../references.md#active-chat-invitation-is-an-action-prefix).

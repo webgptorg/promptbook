@@ -15,3 +15,5 @@ The same syntax and parser apply to every entity kind. The first commitment esta
 - [VS Code extension](vscode.md): Editor support built and released with the same engine vocabulary.
 
 [Agents](../agents/_index.md), [Task Books](../cli/task-books.md) and [Chats](../cli/chats.md) define distinct semantics; common syntax does not make a chat executable or a task inheritable. Plain name headers and `ENTITY` belong to [explicit legacy conversion](../cli/migration.md), not canonical authoring or folder-based type inference.
+
+Task evolution uses [TASK CHANGE](commitments/task-change.md) and [TASK REOPEN](commitments/task-reopen.md) alongside typed status/schedule commitments, preserving earlier source layers. [Reference action prefixes](references.md#active-chat-invitation-is-an-action-prefix) distinguish passive references from active chat invitation without creating another parser or reference identity.

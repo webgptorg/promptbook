@@ -93,3 +93,9 @@ CLOSED
 ## Acceptance outcomes
 
 Create `AGENT Čeněk` at a higher-precedence project path and `AGENT Cenek` in `node_modules`: both `@Cenek` and `{Čeněk}` select the first, with a discoverable collision diagnostic. Create two Book files with the same normalized name in a common folder: stable lookup picks one and does not merge them; Fixer can propose a correction. Resolve every combination of agent/task/chat links, including a task↔chat M:N graph. Test source renames, case/diacritics, duplicate titles, hidden cores, excluded traces, nested projects, tie-breaking paths and wrong-kind targets without creating runtime IDs or rewriting sources during read-only lookup. `@Name` and `{Name}` references agree; `{{Name}}` resolves to nothing and is diagnosed in reference commitments. A Book in `agents/sub/` wins over a same-named Book directly in `tasks/`. Complete generated names resolve without date-aware parsing or title-only fallback.
+
+## Active chat invitation is an action prefix
+
+The two reference forms remain equivalent/passive. In newly accepted chat content, **`+@Adam`** or **`+{Adam}`** adds an explicit invite/address action around the same reference; **`+{Frontend Developer}`** handles a multiword name. Plus is neither part of the name nor a third reference syntax or standalone commitment. Outside chat-message interpretation it grants no invitation/write authority. The target must resolve to a valid speaking agent.
+
+Use [chat rules](../cli/chats.md#references-versus-invitation) for token boundaries, literal/quoted/example exclusions, repeat invitations, multiple targets and history deduplication. Plain `@Adam`/`{Adam}` never by themselves add a member or switch the responder. Natural-language invitation uses the same operation. CHAT MEMBER records an actual accepted join; merely loading a stored reference cannot recreate an invitation.

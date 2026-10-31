@@ -22,10 +22,14 @@ Ordinary task clarification reuses the originating/designated chat. A different 
 
 Chat and task detail show **one logical question**, sharing its answer/state. A response from either surface is saved once and reaches the asking agent. Clear that question's attention immediately on accepted user save, before provider processing/Git batching. Other questions retain their state. Resumption still validates authority, prerequisites, lifecycle and file ownership.
 
-Reply-to-question routes to its author; explicit agent mention targets that participant; otherwise the original main agent handles the message. If no suitable linked chat exists, create/link the ordinary attributed agent-to-User conversation. Never create a duplicate just because a different specialist executes the task.
+Reply-to-question routes to its author; explicit active invitation/address (`+@Name` or `+{Full Name}`) targets that agent; otherwise the original main agent handles the message. If no suitable linked chat exists, create/link the ordinary attributed agent-to-User conversation. Never create a duplicate just because a different specialist executes the task.
 
 ## Acceptance outcomes
 
 Create tasks from a chat, inspect live cards in two dashboards and observe starts/waits/outcomes. Both Books contain full-name links and TASK ORIGIN identifies the source. A specialist joins, asks there, receives an answer from task detail and resumes once when eligible. Attention clears on saved response while another unresolved question stays pending. Change the title and restart during link/message persistence without broken provenance, duplicate outcomes or inline heavy execution.
 
 An agent can answer chat while holding one active or waiting task. Substantial newly requested execution queues as another ordinary task; it cannot bypass the [one-task-per-agent reservation](concurrency.md#one-unfinished-started-task-per-agent). Preserve a quick status/authoring response while the long-running task keeps its ownership and provenance.
+
+## Amend existing work without losing provenance
+
+Follow [task control](task-control.md) to query, delegate, change, accept, cancel or subscribe to work already in progress. Persist verified original user intent and any interpreted instruction; later chats may be linked without overwriting creation TASK ORIGIN. Append TASK CHANGE and applicable state/schedule controls. Reopen the same work with TASK REOPEN rather than manufacturing another task; new fundamental work has a new linked task. Source cards show the actual reopened/cancelled/retired outcome and session receipts. Saved changes still need delivery/application in all affected sessions; pending native takeover/pause/unsupported controls remain visible.

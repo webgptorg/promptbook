@@ -42,3 +42,7 @@ After login, recheck the selected instance through its real non-inference readin
 - Expiry, denial or cancellation preserves incomplete setup and its reason; retry continues the same wizard, while removal requires explicit deselection. No duplicate first task or worker results.
 - Unsupported remote login is explained promptly; local desktop login and explicit method choice still work. Noninteractive setup never waits on unseen human input.
 - Readiness is verified after login in service context. Persisted output/Git contain no tokens, returned sign-in codes or credential-bearing URLs; successful init reaches the ordinary terminal dashboard.
+
+## Preserve authentication across session transports
+
+[Session control](harness-sessions.md) must use the selected instance's supported native subscription or API route. Authentication mechanism and payment model are separate: a key may represent a provider plan rather than generic API billing. Verify eligibility for the chosen CLI/server/SDK and deployment context; native attachment to one backend does not prove SDK/subscription interchangeability. Preserve provider, endpoint, native profile, account and billing provenance on reconnect. Missing capability cannot trigger silent API spending, login replacement or cross-account execution. Viewing common session detail requires no new login by itself.

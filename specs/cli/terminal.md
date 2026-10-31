@@ -45,3 +45,7 @@ O may switch dashboard/plain presentation interactively; End can follow focused 
 ## Raw output
 
 Raw/noninteractive dashboard streams bounded plain state/events without colour, cursor control, animation or hidden prompts. Keep equivalent state/diagnostic meaning, redacted addresses and attributed waiting-chat notices without decorative art. Status/show are one-shot alternatives. Presentation never resubmits work or changes authority. See [process modes](process-modes.md), [channels](channels.md) and [traces](traces.md).
+
+## Native session terminal handoff
+
+Replace the Current work tile/log with Harnesses. Enter its common selected-session detail before the deliberate watch/control confirmation under [harness sessions](harness-sessions.md). A supported actual native TUI temporarily owns the full screen; suspend only the dashboard renderer/input capture, keeping the engine and other sessions alive. Restore terminal modes/rendering and return to the same session detail on detach/client exit/failure. Explain the verified adapter-specific return binding before entry. Escape remains dashboard Back outside this handoff and is not an unconditional native-client detach; `/exit` may have different native effects.

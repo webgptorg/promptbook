@@ -21,3 +21,7 @@ TEAM User initiates/continues an attributed agent↔User chat with immediate sav
 Consultations remain bounded: initial defaults are five minutes, depth four, 24 calls and 128,000 response characters per task or originating bounded chat turn. Reaching limits is a visible outcome, not recursive hidden work. A reciprocal TEAM graph never means unbounded automatic consultation. Human waiting does not hold an MCP call open through think time. Advisors cannot exceed the originator's authority or mutate unrelated task-owned content.
 
 See [channels](channels.md), [system agents](../agents/system-agents.md), [traces](traces.md) and [Git persistence](git-persistence.md).
+
+## Delegated user direction
+
+Chatter may locate/invite the responsible specialist and coordinate further agent hierarchy under [task control](task-control.md). A trusted forwarded user instruction retains original message/source/authority and interpreted scope; ordinary agent advice does not acquire that authority by saying “the user asked.” Preserve actual agent authorship. Bounded consultation is still advice/coordination, while substantial independent new execution gets a task. Changing an existing owned task is reconciled with its actual live sessions and receipt state, never inferred complete from a handoff alone.

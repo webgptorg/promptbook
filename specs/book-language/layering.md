@@ -4,7 +4,7 @@
 
 A Book grows as instructions, knowledge, decisions and events are added. Its ordered commitments are layers describing one evolving entity. This makes a Book understandable as both current context and the history needed to interpret that context.
 
-Layering is not a universal append-only restriction. An authorized edit may revise an agent's instructions, replace a resolved MODEL or correct task content under that commitment's contract and normal Git provenance. Parsing and each commitment's semantics decide whether repeated values accumulate, replace an effective value or are invalid. Do not introduce a second parser or universal last-value-wins rule.
+Layering is not a universal append-only restriction. An authorized edit may revise an agent's instructions, replace a resolved MODEL under that commitment's contract and normal Git provenance. Task direction changes, state transitions, schedule changes, cancellation and reopening append chronological commitments, preserving original task content and history. Parsing and each commitment's semantics decide whether repeated values accumulate, replace an effective value or are invalid. Do not introduce a second parser or universal last-value-wins rule.
 
 ## Chat chronology
 
@@ -41,3 +41,9 @@ Create a chat without a status line: it is open. Append waiting, open and resolv
 ## Task purpose transitions
 
 [TASK PURPOSE](commitments/task-purpose.md) follows chronological source layering: append a changed CONTENT/SYSTEM/UNDEFINED value and use the last valid value, preserving earlier commitments in the Book. This explicit rule does not change MODEL's existing in-place refinement or make all Book fields append-only. Literal/example text and no-op reads produce no transition.
+
+## Task direction and historical outcomes
+
+A task's evolving direction follows an event-like chronological history in its Book: retain original instructions, append [TASK CHANGE](commitments/task-change.md), appropriate typed controls and optional source-chat provenance. Apply explicit amendments in source order with their task/occurrence/future scope. Do not reduce all repeated GOAL/RULE content to an unspecified universal last-value-wins rule; TASK CHANGE states what it amends. Typed task controls use their defined effective-value semantics, retaining prior source layers.
+
+Preserve DONE and result commits when appending [TASK REOPEN](commitments/task-reopen.md). A cancelled one-off task is not successfully complete; retirement stops recurrence and retains past successful occurrences. Reconstruct the same effective task/occurrence state on read, scheduling, restart and completion validation. Git is additional provenance, not the only place earlier task instructions survive. Direct authorized source corrections remain possible, but ordinary work-management operations do not erase history.
