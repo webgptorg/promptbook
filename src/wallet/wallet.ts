@@ -273,6 +273,11 @@ export type WalletOptions = {
     readonly draftLifetimeMs?: number;
     /** How long a credential test waits for the owner's one-time code, approval or takeover at such a step (default ten minutes). */
     readonly testCodeWaitMs?: number;
+    /**
+     * Looks for a credential test's one-time code in a channel an agent can already read, so the owner need not copy it
+     * from there (a short agent session; absent: only the owner can supply the code). Aborted once the code is settled.
+     */
+    readonly findLoginCode?: (request: { readonly origin: string; readonly account: string; readonly signal: AbortSignal }) => Promise<string | undefined>;
 };
 
 /**
@@ -1472,6 +1477,26 @@ export class WalletSubEngine {
         return this.remember({ action: 'wallet-test-cancel', applied: true, outcome: 'The test is cancelled; the login stays unverified.' });
     }
 
+    /**
+     * Starts looking for a test's one-time code through an agent; what it finds answers the waiting test like the owner's
+     * input would (only once, and never after the owner's own code). Its result never fails the test.
+     */
+    private searchTestCode(record: StoredRecord, secrets: string[]): AbortController | undefined {
+        if (!this.options.findLoginCode) return undefined;
+        const search = new AbortController();
+        void this.options
+            .findLoginCode({ origin: record.origin, account: record.account, signal: search.signal })
+            .then((code) => {
+                if (!code || search.signal.aborted) return;
+                secrets.push(code);
+                this.testWaits.get(record.id)?.(code);
+            })
+            .catch((error: unknown) => {
+                if (!search.signal.aborted) this.options.log(`Wallet test: looking for the one-time code failed (${redact(errorMessage(error))}); the owner can enter it.`, 'warning');
+            });
+        return search;
+    }
+
     /** Waits for the owner's code of a test at a code step (undefined: cancelled or not entered in time). */
     private async awaitTestCode(id: string): Promise<string | undefined> {
         if (this.testCancelled.has(id)) return undefined;
@@ -1528,8 +1553,11 @@ export class WalletSubEngine {
      */
     private async testCode(record: StoredRecord, page: SignInPage, enterCode: NonNullable<SignInPage['enterCode']>, step: (text: string) => void, secrets: string[], within: string): Promise<readonly [WalletVerification['state'], string] | undefined> {
         for (let attempt = 1; attempt <= TEST_CODE_ATTEMPTS; attempt++) {
-            step(attempt === 1 ? 'Waiting for the one-time code the website sent; enter it with this login' : 'The website did not accept the code; enter the current one');
+            // The first code is looked for where an agent can already read it; the owner's input stays open meanwhile.
+            const search = attempt === 1 ? this.searchTestCode(record, secrets) : undefined;
+            step(search ? 'Looking for the one-time code in the channels agents can read; you can also enter it with this login' : attempt === 1 ? 'Waiting for the one-time code the website sent; enter it with this login' : 'The website did not accept the code; enter the current one');
             const code = await this.awaitTestCode(record.id);
+            search?.abort();
             if (code === undefined) {
                 return ['incomplete', this.testCancelled.has(record.id) ? 'The test was cancelled at its one-time code step; the login stays unverified.' : `No one-time code was entered${within}; the login stays unverified.`];
             }

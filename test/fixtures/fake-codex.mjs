@@ -191,6 +191,17 @@ async function main() {
         print({ type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 2 } });
         process.exit(0);
     }
+    // The session looking for a Wallet test's one-time code reads the fixture's inbox ($FAKE_INBOX_URL) through the project browser.
+    if (prompt.startsWith('# One-time login code')) {
+        print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
+        print({ type: 'turn.started' });
+        const inbox = process.env.FAKE_INBOX_URL ? await callTool('browser_open', { url: process.env.FAKE_INBOX_URL }) : '';
+        const found = /your code is (\d+)/i.exec(inbox)?.[1];
+        await callTool('report_login_code', found ? { code: found } : {});
+        print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text: 'Reported.' } });
+        print({ type: 'turn.completed', usage: { input_tokens: 30, cached_input_tokens: 0, output_tokens: 3 } });
+        process.exit(0);
+    }
     const reference = /- Reference: (\{[^{}]+\}|\S+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const stamp = /TASK <readable title> — ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]{8})/.exec(prompt)?.[1] ?? '2026-01-01 00:00:00';
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';

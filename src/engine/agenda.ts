@@ -37,7 +37,7 @@ import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, type ChatAgentChoice, type ChatDetail, type ChatRecheckView } from '../chats/service.js';
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
-import { composeProjectBrief, replyInChat, type LiveReply } from '../chats/conversation.js';
+import { composeProjectBrief, findLoginCode, replyInChat, type LiveReply } from '../chats/conversation.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
@@ -150,6 +150,8 @@ export type AgendaOptions = {
     readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
     /** Opens a separate, fresh login context of the project browser for a Wallet credential test. */
     readonly walletLoginContext?: (origin: string) => Promise<LoginContext>;
+    /** Browser tools of a short agent session looking for a Wallet test's one-time code, in their own scope of the project browser. */
+    readonly walletCodeTools?: () => { readonly tools: readonly BridgeTool[]; readonly dispose: () => Promise<void> };
 };
 
 /**
@@ -604,6 +606,7 @@ export class Agenda {
                 retryMs: PERSISTENCE_RETRY_MS,
             },
             ...(options.walletLoginContext ? { loginContext: options.walletLoginContext } : {}),
+            ...(options.walletCodeTools ? { findLoginCode: async (request) => await this.findWalletTestCode(request, options.walletCodeTools!) } : {}),
         });
         this.updater = new EngineUpdater({
             project: options.project,
@@ -3920,6 +3923,23 @@ export class Agenda {
             this.reportGenerating = false;
             await this.refreshReportView();
             this.touch();
+        }
+    }
+
+    /**
+     * A credential test waits for a one-time code: Fixer, the role that offloads such work from the owner, looks for it in
+     * a channel it can already read while the owner's protected input stays open. Not a task, chat, trace or commit.
+     */
+    private async findWalletTestCode(request: { readonly origin: string; readonly account: string; readonly signal: AbortSignal }, codeTools: NonNullable<AgendaOptions['walletCodeTools']>): Promise<string | undefined> {
+        if (!this.settings) return undefined;
+        const session = codeTools();
+        try {
+            return await findLoginCode(
+                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([request.signal, this.ownedWork.signal]), onActivity: (text) => this.log(text) },
+                { agent: formatAgentReference('Fixer'), origin: request.origin, account: request.account, tools: session.tools },
+            );
+        } finally {
+            await session.dispose();
         }
     }
 

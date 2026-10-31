@@ -1,5 +1,12 @@
 # Unreleased
 
+## Wallet: a credential test looks for an emailed code itself before you have to copy it
+
+-   When **Test** reaches a one-time code step, a short session of Fixer now looks for the code in what agents can already read, such as a signed-in webmail in the project browser. A code it finds is entered once and the test continues without you
+-   The protected code input stays open while it looks. Entering the code yourself ends the search, and when it finds nothing the test simply keeps waiting for you. If the website refuses a found code, the test asks you for the current one
+-   The session only reads, gets no Wallet access and never asks you anything. The code is kept nowhere. It is not a task or a chat and adds no trace folder or commit
+-   Its usage counts in the project's usage as `wallet-test` work and is stored in ignored local runtime storage (`.ptbk/usage/usage.jsonl`)
+
 ## Wallet: agents create and change logins with a generated password they never see
 
 -   When authorized work needs a new account, or a password change or reset, an agent now fills the form's other fields and calls the new `wallet_create_login` browser tool as the last step. The Wallet generates a strong password within the length the form allows, enters it in every new-password field (and the current password of a saved login when the form asks for it), submits the form and keeps the login encrypted for the page's actual origin. Before, agents could only sign in with saved logins: the Wallet had no way to receive credentials an agent's work created, so the agent had to ask the owner or keep them somewhere unprotected

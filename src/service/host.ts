@@ -91,7 +91,7 @@ export class ServiceHost {
                     context.chats,
                     context.agent,
                     context.onUserChat,
-                    () => this.agenda.effectiveSettings.tools.flatMap((tool) => (tool.type === 'BROWSER' && tool.isEnabled ? [{ name: tool.name, description: tool.description, profile: describeProfileSource(tool.profile.source, tool.profile.path), isHeadless: tool.isHeadless }] : [])),
+                    () => this.describeBrowsers(),
                     // A login request for the task's page only: the agent never reads a Wallet record.
                     { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title }), accounts: (site) => this.agenda.wallet.accounts(site), createLogin: async (page, request) => await this.agenda.wallet.createLogin(page, { ...request, task: task.title }), correctLogin: async (input) => await this.agenda.wallet.correctLogin(input), onWait: context.onWalletWait },
                 );
@@ -115,6 +115,11 @@ export class ServiceHost {
                     throw error;
                 }
             },
+            // The session looking for a Wallet test's one-time code reads with the project browser's sessions; it has no Wallet.
+            walletCodeTools: () => {
+                const key = `wallet-code-${shortId()}`;
+                return { tools: browserTools(this.browsers.scope(key), undefined, 'Fixer', () => undefined, () => this.describeBrowsers()), dispose: async () => await this.browsers.endScope(key) };
+            },
             browsers: {
                 primary: () => (this.agenda.effectiveSettings ? this.browsers.primary() : undefined),
                 all: () => (this.agenda.effectiveSettings ? this.browsers.inspectAll() : []),
@@ -125,6 +130,13 @@ export class ServiceHost {
     }
 
     /** Engine-owned per-browser diagnosis and recovery shared by every client. */
+    /**
+     * The browsers an agent may open, as its tools describe them (enabled ones of the effective settings).
+     */
+    private describeBrowsers(): Array<{ name: string; description?: string; profile: string; isHeadless: boolean }> {
+        return this.agenda.effectiveSettings.tools.flatMap((tool) => (tool.type === 'BROWSER' && tool.isEnabled ? [{ name: tool.name, description: tool.description, profile: describeProfileSource(tool.profile.source, tool.profile.path), isHeadless: tool.isHeadless }] : []));
+    }
+
     private get browserControls(): BrowserControls {
         return {
             recheck: (name) => this.browsers.control('recheck', name),

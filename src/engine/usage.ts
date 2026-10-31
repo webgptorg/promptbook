@@ -29,7 +29,7 @@ export const USAGE_SCHEMA = 'ptbk-usage/1';
  *
  * @private raw usage
  */
-export type UsageWorkKind = WorkKind | 'chat' | 'chat-routing' | 'consultation';
+export type UsageWorkKind = WorkKind | 'chat' | 'chat-routing' | 'consultation' | 'wallet-test';
 
 /**
  * Who executed, owned and initiated the consumption, and which work it belongs to (named references, never an ID
@@ -226,6 +226,16 @@ export function chatUsageFile(project: Pick<Project, 'root'>, chatPath: string):
 }
 
 /**
+ * Usage file of the short agent sessions of Wallet credential tests: ignored runtime evidence that counts in the project's
+ * totals, because a test has no task, chat or trace directory and creates no Git history of its own.
+ *
+ * @private raw usage
+ */
+export function walletTestUsageFile(project: Pick<Project, 'root'>): string {
+    return join(project.root, '.ptbk', 'usage', USAGE_FILE);
+}
+
+/**
  * One underlying consumption: the observations of one run collapsed without double counting (the last cumulative
  * observation, otherwise the sum of deltas).
  *
@@ -304,8 +314,8 @@ export async function readUsage(project: Pick<Project, 'root'>): Promise<UsageRe
         ...(await readdir(traces, { withFileTypes: true }).catch(() => [])).filter((entry) => entry.isDirectory() && entry.name !== '.chats').map((entry) => join(traces, entry.name)),
         ...(await readdir(join(traces, '.chats'), { withFileTypes: true }).catch(() => [])).filter((entry) => entry.isDirectory()).map((entry) => join(traces, '.chats', entry.name)),
     ];
-    for (const directory of directories) {
-        const text = await readFile(join(directory, USAGE_FILE), 'utf8').catch(() => '');
+    for (const file of [...directories.map((directory) => join(directory, USAGE_FILE)), walletTestUsageFile(project)]) {
+        const text = await readFile(file, 'utf8').catch(() => '');
         for (const line of text.split('\n')) {
             if (!line.trim()) continue;
             try {

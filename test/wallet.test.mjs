@@ -1228,6 +1228,9 @@ test('Wallet Test: exactly the selected login in a fresh context; verified, reje
 });
 
 test('Wallet Test at a one-time code step: the attending owner enters the code through protected input, a refused code asks again, and a test can be cancelled', async (t) => {
+    // The code wait's timer does not hold the process; run alone, this test has nothing else keeping it alive.
+    const keepAlive = setInterval(() => undefined, 1_000);
+    t.after(() => clearInterval(keepAlive));
     const root = await temporaryDirectory(t, 'ptbk wallet test code');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
@@ -1289,6 +1292,145 @@ test('Wallet Test at a one-time code step: the attending owner enters the code t
     assert.equal(record().testing, undefined);
     assert.equal(wallet.cancelTest(id).applied, false, 'nothing runs any more');
     assert.equal(wallet.view().records.length, 1, 'the saved login stays');
+});
+
+test('Wallet Test at a one-time code step: an agent looks for the code in a channel it can read, so the owner need not copy it; the input stays open and the code is kept nowhere', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet test finder');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    const accepted = new Set(['482913', '111222', '555666']);
+    const codes = [];
+    const loginContext = async (origin) => {
+        let step = 'password';
+        return {
+            page: {
+                browser: 'fresh-context',
+                inspect: async () => ({ origin, form: step }),
+                signIn: async () => ((step = 'code'), { result: 'challenge', note: 'the site asks for a one-time code' }),
+                enterCode: async (_origin, code) => (codes.push(code), accepted.has(code) ? ((step = 'none'), { result: 'signed-in' }) : { result: 'rejected', note: 'the site asks for a code again' }),
+            },
+            dispose: async () => undefined,
+        };
+    };
+    const searches = [];
+    let answer = async () => undefined;
+    const logs = [];
+    const wallet = new WalletSubEngine({
+        project: { root: project, runtime: { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state') } },
+        env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' },
+        onChange: () => undefined,
+        log: (text) => logs.push(text),
+        loginContext,
+        testCodeWaitMs: 30_000,
+        findLoginCode: async (request) => (searches.push(request), await answer(request)),
+    });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const { id } = await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'jane secret' });
+    const record = () => wallet.view().records.find((candidate) => candidate.id === id);
+
+    // The agent finds the code: entered once and verified without the owner, kept nowhere.
+    answer = async () => '482913';
+    const found = await wallet.test(id);
+    assert.equal(found.verification.state, 'verified', found.verification.reason);
+    assert.deepEqual(codes, ['482913']);
+    assert.deepEqual(searches.map(({ origin, account }) => [origin, account]), [['https://example.com', 'example.com · ja…@example.com']], 'only the nonsecret masked account');
+    assert.equal(searches[0].signal.aborted, true, 'the session ends with the step');
+
+    // It finds nothing yet: the protected input stays open, and the owner's code ends the search.
+    codes.length = 0;
+    answer = (request) => new Promise((resolve) => request.signal.addEventListener('abort', () => resolve('999999')));
+    const searching = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'code', { timeoutMs: 5_000, message: 'the code step' });
+    assert.match(record().testing, /Looking for the one-time code/);
+    assert.equal(wallet.view().pending.length, 0, 'no request of waiting work');
+    wallet.supplyTestCode({ id, code: '111 222' });
+    assert.equal((await searching).verification.state, 'verified');
+    assert.deepEqual(codes, ['111222'], 'a code arriving after the owner answered is not entered');
+    assert.equal(searches.at(-1).signal.aborted, true);
+
+    // A refused found code asks the owner for the current one; the agent is not started again for it.
+    codes.length = 0;
+    answer = async () => '333444';
+    const searchesBefore = searches.length;
+    const refused = wallet.test(id);
+    await waitFor(() => record().testAwaits === 'code' && /did not accept the code/.test(record().testing), { timeoutMs: 5_000, message: 'the next code step' });
+    wallet.supplyTestCode({ id, code: '555666' });
+    assert.equal((await refused).verification.state, 'verified');
+    assert.deepEqual(codes, ['333444', '555666']);
+    assert.equal(searches.length, searchesBefore + 1);
+
+    // A failing search only logs: the owner can still answer, or cancel.
+    answer = async () => {
+        throw new Error('no harness');
+    };
+    const failing = wallet.test(id);
+    await waitFor(() => logs.some((text) => /looking for the one-time code failed/.test(text)), { timeoutMs: 5_000, message: 'the logged failure' });
+    assert.equal(record().testAwaits, 'code');
+    wallet.cancelTest(id);
+    assert.match((await failing).verification.reason, /cancelled at its one-time code step/);
+
+    for (const file of await filesBelow(project)) for (const code of ['482913', '111222', '333444', '555666']) assert.ok(!file.content.includes(code), `${file.path} keeps no code`);
+    assert.ok(!logs.some((text) => /482913|111222|333444|555666/.test(text)), 'no code in the logs');
+});
+
+test('Wallet Test acceptance: the running engine reads the code from an inbox the agents can read; usage counts, and the test leaves no task, trace or commit', { skip: await realBrowserSkip(), timeout: 300_000 }, async (t) => {
+    const { project, env: baseEnv } = await initializedProject(t, { check: 'process.exit(0);\n' });
+    const browser = await findBrowserExecutable({ variant: 'CHROME' });
+    const CODE = '739152';
+    const server = createServer((request, response) => {
+        response.setHeader('content-type', 'text/html');
+        const url = new URL(request.url, 'http://localhost');
+        if (url.pathname === '/inbox') return response.end(`<title>Inbox</title><p>Your code is ${CODE}</p>`);
+        if (request.method === 'POST' && url.pathname === '/login') return void (request.resume(), response.writeHead(302, { Location: '/code' }), response.end());
+        if (request.method === 'GET' && url.pathname === '/code') return response.end('<title>Code</title><form method="post" action="/code"><input name="otp" autocomplete="one-time-code"><button>Verify</button></form>');
+        if (request.method === 'POST' && url.pathname === '/code') {
+            let body = '';
+            request.on('data', (chunk) => (body += chunk));
+            request.on('end', () => response.end(new URLSearchParams(body).get('otp') === CODE ? '<title>Home</title><h1>Welcome</h1>' : '<title>Code</title><form method="post" action="/code"><input name="otp" autocomplete="one-time-code"><button>Verify</button></form>'));
+            return;
+        }
+        response.end(LOGIN_PAGE);
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    t.after(() => {
+        server.closeAllConnections();
+        server.close();
+    });
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const env = { ...baseEnv, CHROME_PATH: browser, FAKE_INBOX_URL: `${origin}/inbox` };
+    const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
+    config.tools = [...(config.tools ?? []).filter((tool) => tool.type !== 'BROWSER'), { type: 'BROWSER', variant: 'CHROME', name: 'site-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }];
+    await writeFile(join(project, 'ptbk.json'), `${JSON.stringify(config, null, 4)}\n`);
+    await git(project, ['commit', '-q', '-m', 'Fixture browser', '--', 'ptbk.json']);
+    const owner = new WalletSubEngine({ project: { root: project, runtime: { root: join(project, '.ptbk') } }, env, onChange: () => undefined, log: () => undefined });
+    await owner.initialize();
+    await owner.beginSetup();
+    await owner.confirmSetup();
+    const { id } = await owner.save({ origin: `${origin}/login`, username: 'fixture-user', password: 'saved password 1' });
+
+    assert.equal((await ptbk(['start', '--no-persist', '--raw', '--paused'], { cwd: project, env })).code, 0);
+    const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const call = async (path, body) => {
+        const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+        return await response.json();
+    };
+    const commits = await git(project, ['rev-list', '--count', 'HEAD']);
+    await call('api/wallet', { action: 'wallet-test', id });
+    const verification = await waitFor(async () => (await call('api/wallet')).records.find((record) => record.id === id && !record.testing && record.verification)?.verification, { timeoutMs: 120_000, message: 'the finished test' });
+    assert.equal(verification.state, 'verified', verification.reason);
+    assert.match(verification.reason, /one-time code/);
+    assert.ok(!JSON.stringify(verification).includes(CODE));
+
+    const usage = await readFile(join(project, '.ptbk', 'usage', 'usage.jsonl'), 'utf8');
+    assert.match(usage, /"wallet-test"/);
+    const counted = await call('api/usage?days=1&group=work');
+    assert.ok(JSON.stringify(counted).includes('wallet-test'), 'the session counts in the project usage');
+    assert.equal(await git(project, ['rev-list', '--count', 'HEAD']), commits, 'no commit');
+    assert.deepEqual((await call('api/tasks')).tasks.filter((task) => /wallet|login|code/i.test(task.title)), [], 'no task');
+    assert.ok(!(await readdir(join(project, 'traces')).catch(() => [])).some((name) => /wallet|code/i.test(name)), 'no trace directory');
 });
 
 test('Wallet Test at an approval step: it waits while the page waits, and ends incomplete when not approved in time or cancelled; a code may come first', async (t) => {
