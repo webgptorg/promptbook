@@ -1,5 +1,9 @@
 # Unreleased
 
+## Releasing: a failed VS Code Marketplace publication shows its reason
+
+-   When the Publish workflow's `vscode-extension` job cannot publish the Book extension to the VS Code Marketplace, its log now shows `vsce`'s own messages, which also appear as annotations, for example an expired or insufficient access token. Before, `vsce` reported them on its captured output, which was dropped, so the 0.119.0-44 job ended with only "Command failed: … vsce publish …". A successful publication now shows `vsce`'s output too.
+
 ## Releasing: stale installed packages stop a release at once, with the cause
 
 -   `npm version …` (and so `npm run release:prerelease`) now checks before any release check that the installed direct dependencies match `package-lock.json`, and that the lockfile matches `package.json`. Otherwise it stops at once, names each affected package and asks for `npm ci`. No version is changed. Before, a pull or merge that added packages without a following install failed the release minutes later inside `check:full`. The VS Code extension's new type library, for example, failed as `TS2688: Cannot find type definition file for 'vscode'`.

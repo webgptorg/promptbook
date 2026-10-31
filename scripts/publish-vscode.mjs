@@ -48,7 +48,13 @@ async function publishMarketplace(path, bytes, version) {
     }
     const args = [join(root, 'node_modules/@vscode/vsce/vsce'), 'publish', '--packagePath', path];
     if (!process.env.VSCE_PAT) args.push('--oidc');
-    await execute(process.execPath, args, { cwd: root, maxBuffer: 8 * 1024 * 1024, timeout: 180000 });
+    // In GitHub Actions vsce reports its errors on stdout (as ::error:: annotations); keep them in the job log.
+    const { stdout } = await execute(process.execPath, args, { cwd: root, maxBuffer: 8 * 1024 * 1024, timeout: 180000 }).catch((error) => {
+        process.stdout.write(error.stdout ?? '');
+        process.stderr.write(error.stderr ?? '');
+        throw new Error(`vsce publish failed${error.code === undefined ? '' : ` (exit code ${error.code})`}; its messages are above.`);
+    });
+    process.stdout.write(stdout);
     for (let attempt = 0; attempt < 6; attempt++) {
         const published = await marketplaceBytes(version);
         if (published) {
