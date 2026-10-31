@@ -1,4 +1,5 @@
 import { createStyle, type Style } from './ansi.js';
+import { detectImageProtocol, type ImageProtocol } from './terminal-images.js';
 import { isTerminalTitleDisabled, TerminalTitle, titleRestoration } from './terminal-title.js';
 
 /**
@@ -25,6 +26,8 @@ export type TerminalProfile = {
     readonly writeError: (text: string) => void;
     /** Reduced motion requested. */
     readonly reducedMotion: boolean;
+    /** How this terminal shows images inline (absent: it shows file information instead). */
+    readonly images?: ImageProtocol;
     /** Self-naming terminal title (inert outside interactive pretty terminals or when opted out). */
     readonly title: TerminalTitle;
 };
@@ -90,6 +93,7 @@ export function createTerminalProfile(options: TerminalOptions = {}): TerminalPr
             process.stderr.write(text);
         },
         reducedMotion: Boolean(env.PTBK_REDUCED_MOTION || env.NO_MOTION),
+        ...(pretty && interactive && detectImageProtocol(env) ? { images: detectImageProtocol(env) } : {}),
         title: new TerminalTitle({ enabled: pretty && interactive && !isTerminalTitleDisabled(env, options.terminalTitle), unicode, restoration: titleRestoration(env), write }),
     };
 }

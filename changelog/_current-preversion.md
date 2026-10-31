@@ -1,5 +1,12 @@
 # Unreleased
 
+## Files: the terminal dashboard shows images where the terminal can
+
+-   Opening an image on the Files page now displays it in terminals with an inline image protocol: iTerm2, WezTerm and mintty (PNG, JPEG, GIF and WebP) and kitty and Ghostty (PNG). Before, every terminal only said that the browser dashboard shows the image
+-   Other terminals keep showing the file's type and size. So do tmux and screen, which do not pass images through. An unsupported type or an image above the existing 4 MiB limit gets a note saying why it is not shown, and a GIF is not played under reduced motion
+-   VS Code's terminal shows images only with its `terminal.integrated.enableImages` setting, which ptbk cannot see. After you turn that on, set `PTBK_TERMINAL_IMAGES=iterm`. Set `PTBK_TERMINAL_IMAGES=off` to turn images off in any terminal
+-   The image is sent once and again only after its area was repainted, for example after a resize, so live updates stay light. Only base64 image data reaches the terminal unfiltered
+
 ## Usage: calculated costs now use real current prices
 
 -   The engine now reads each harness's current token prices once a day and keeps them under `.ptbk/pricing/`. Before, nothing ever downloaded a price list, so the Usage page could never show a calculated API cost or a token-price equivalent outside hand-written fixtures

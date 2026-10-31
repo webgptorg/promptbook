@@ -1,4 +1,5 @@
 import { terminalSafe, truncate } from './ansi.js';
+import type { ImageOverlay } from './terminal-images.js';
 
 /**
  * Renders a block of lines in place (wizard steps, pickers) without flooding scrollback.
@@ -74,8 +75,10 @@ export class FullScreen {
      * The latest frame not written yet because the terminal is applying back-pressure (hidden, minimized, throttled or
      * slow): only the newest one is kept, obsolete frames are discarded, and it is written once the output drains.
      */
-    private pending?: { readonly lines: readonly string[]; readonly cursor?: { row: number; column: number } };
+    private pending?: { readonly lines: readonly string[]; readonly cursor?: { row: number; column: number }; readonly image?: ImageOverlay };
     private waitingForDrain = false;
+    /** The image currently shown over the frame, which is sent once and again only after its area was repainted. */
+    private shownImage?: ImageOverlay;
 
     public constructor(private readonly output: NodeJS.WriteStream = process.stdout) {}
 
@@ -92,7 +95,7 @@ export class FullScreen {
             this.waitingForDrain = false;
             const pending = this.pending;
             this.pending = undefined;
-            if (pending) this.draw(pending.lines, pending.cursor);
+            if (pending) this.draw(pending.lines, pending.cursor, pending.image);
         });
     }
 
@@ -102,6 +105,7 @@ export class FullScreen {
         this.active = true;
         this.output.write('\x1b[?1049h\x1b[?25l\x1b[2J\x1b[H');
         this.previous = [];
+        this.shownImage = undefined;
     }
 
     /** Leaves the alternate screen and restores the cursor. */
@@ -109,13 +113,15 @@ export class FullScreen {
         if (!this.active) return;
         this.active = false;
         this.pending = undefined;
-        this.output.write('\x1b[?25h\x1b[?1049l');
+        this.output.write(`${this.shownImage?.clear ?? ''}\x1b[?25h\x1b[?1049l`);
+        this.shownImage = undefined;
     }
 
     /** Forces a full repaint on the next render (after resize). */
     public invalidate(): void {
         this.previous = [];
-        if (this.active) this.output.write('\x1b[2J');
+        if (this.active) this.output.write(`${this.shownImage?.clear ?? ''}\x1b[2J`);
+        this.shownImage = undefined;
     }
 
     /**
@@ -123,24 +129,30 @@ export class FullScreen {
      * pending one; after the drain the latest frame is rendered at the then-current size. Presentation never blocks
      * the caller, and real events stay in the engine's state, not in discarded frames.
      */
-    public draw(lines: readonly string[], cursor?: { row: number; column: number }): void {
+    public draw(lines: readonly string[], cursor?: { row: number; column: number }, image?: ImageOverlay): void {
         if (!this.active) return;
         if (this.backpressured) {
-            this.pending = { lines, cursor };
+            this.pending = { lines, cursor, image };
             this.awaitDrain();
             return;
         }
+        // A replaced or removed image goes with one full repaint: blank cells of the next frame would not erase it.
+        if (this.shownImage && this.shownImage.key !== image?.key) this.invalidate();
         const height = Math.max(5, this.output.rows || 24);
         const width = Math.max(20, this.output.columns || 80);
         const frame = lines.slice(0, height).map((line) => truncate(terminalSafe(line), width));
         let output = '\x1b[?25l';
+        let imageErased = !this.shownImage;
         for (let row = 0; row < height; row++) {
             const line = frame[row] ?? '';
             if (this.previous[row] === line) continue;
             output += `\x1b[${row + 1};1H\x1b[2K${line}`;
+            if (image && row >= image.row && row < image.row + image.rows) imageErased = true;
         }
         this.previous = [...frame];
         while (this.previous.length < height) this.previous.push('');
+        if (image && imageErased) output += `${image.clear ?? ''}\x1b[${image.row + 1};${image.column + 1}H${image.sequence}`;
+        this.shownImage = image;
         if (cursor) output += `\x1b[${cursor.row + 1};${cursor.column + 1}H\x1b[?25h`;
         if (this.output.write(output) === false) this.awaitDrain();
     }

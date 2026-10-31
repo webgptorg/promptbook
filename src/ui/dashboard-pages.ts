@@ -21,6 +21,7 @@ import {
 } from './details.js';
 import { billingMix, compactCount, outcomeText, type HomeTile } from './dashboard-home.js';
 import type { UsageFilter, UsageRow, UsageSummary, UsageTotals } from '../engine/usage.js';
+import { canShowImage, imageSequence, type ImageOverlay } from './terminal-images.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { HistoryDetail, HistoryView } from '../project/history.js';
@@ -35,15 +36,43 @@ import type { FileView, FolderView } from '../project/files.js';
 export type CommitDetailView = HistoryDetail & { readonly links: { readonly tasks: ReadonlyArray<{ readonly name: string; readonly path?: string }>; readonly chats: ReadonlyArray<{ readonly name: string; readonly exists: boolean }> } };
 
 /**
+ * The last placed image of an opened file: encoding it again on every repaint of a live page would be wasted work.
+ */
+const placedImages = new WeakMap<FileView, ImageOverlay>();
+
+/**
+ * The image of an opened file, over the blank area below its information line, where this terminal can show it.
+ *
+ * @private terminal dashboard pages
+ */
+export function fileImageOverlay(view: FileView | undefined, terminal: TerminalProfile, page: { readonly bodyRow: number; readonly bodyRows: number }): ImageOverlay | undefined {
+    if (!view || !terminal.images || !canShowImage(view.image, terminal)) return undefined;
+    const area = { columns: Math.max(1, terminal.columns() - 2), rows: page.bodyRows - 2 };
+    if (area.rows < 1) return undefined;
+    const key = `${view.path}:${view.size}:${page.bodyRow}:${area.columns}x${area.rows}`;
+    const placed = placedImages.get(view);
+    if (placed?.key === key) return placed;
+    const shown = imageSequence(view.image, terminal.images, area);
+    if (!shown) return undefined;
+    const overlay: ImageOverlay = { key, row: page.bodyRow + 2, column: 1, rows: area.rows, ...shown };
+    placedImages.set(view, overlay);
+    return overlay;
+}
+
+/**
  * Readable terminal lines of a project file: Markdown with emphasized headings, JSON with colored keys, text as it is
  * (always made terminal-safe; formatting never changes the file). Images and videos are identified honestly.
  *
  * @private terminal dashboard pages
  */
-export function fileLines(view: FileView, terminal: TerminalProfile, width: number): string[] {
+export function fileLines(view: FileView, terminal: Pick<TerminalProfile, 'style' | 'images' | 'reducedMotion'>, width: number): string[] {
     const { style } = terminal;
     const size = formatBytes(view.size);
-    if (view.kind === 'image') return [`${view.mime ?? 'Image'} · ${size}`, style.muted('This terminal view shows file information only; the browser dashboard displays the image.')];
+    if (view.kind === 'image') {
+        const info = `${view.mime ?? 'Image'} · ${size}`;
+        if (canShowImage(view.image, terminal)) return [info];
+        return [info, style.muted(terminal.images ? (view.image ? 'This terminal cannot show this image type; the browser dashboard displays it.' : 'This image is too large to show; the file itself is unchanged.') : 'This terminal view shows file information only; the browser dashboard displays the image.')];
+    }
     if (view.kind === 'video') return [`Video · ${size}`, style.muted('Video playback is not part of Files; the file is identified only.')];
     if (view.kind === 'binary' || view.text === undefined) return [`Binary file · ${size}`, style.muted('Not shown as text.')];
     const text = view.text.replace(/\r\n?/g, '\n');

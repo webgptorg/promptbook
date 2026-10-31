@@ -11,6 +11,7 @@ import { FullScreen } from './screen.js';
 import { lifecycleActions } from './details.js';
 import { briefText, fitLegend, homeLayout, homeTiles, renderHome, renderPage, tileAttention, type HomeTile } from './dashboard-home.js';
 import {
+    fileImageOverlay,
     keepSelection,
     pageBody,
     pageForTile,
@@ -356,7 +357,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             const built = pageBody(page, pageContext());
             const rendered = renderPage(snapshot, terminal, { ...built, legend: ` ${built.legend}`, scroll: page.scroll, feedback, connectionLost, attention: attentionCount });
             page.scroll = rendered.scroll;
-            screen.draw(rendered.lines);
+            screen.draw(rendered.lines, undefined, page.kind === 'file' ? fileImageOverlay(page.view, terminal, rendered) : undefined);
             return;
         }
         const controlNote = source.owning && ownerStopRequested && snapshot.service.state === 'stopping' ? 'This view closes when the engine has stopped.' : undefined;

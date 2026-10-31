@@ -540,7 +540,7 @@ export function renderPage(
     snapshot: ServiceSnapshot,
     terminal: TerminalProfile,
     page: { readonly title: string; readonly context?: string; readonly body: readonly string[]; readonly anchor?: number; readonly scroll: number; readonly legend: string; readonly feedback?: string; readonly connectionLost?: string; readonly attention: number },
-): { readonly lines: string[]; readonly scroll: number } {
+): { readonly lines: string[]; readonly scroll: number; readonly bodyRow: number; readonly bodyRows: number } {
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
     const width = Math.max(20, terminal.columns());
@@ -562,6 +562,9 @@ export function renderPage(
     const footer = page.feedback ? `${page.legend}   ${style.accent(marks.arrow)} ${page.feedback}` : page.legend;
     return {
         scroll,
+        // The header, the context line and the upper rule stand above the body.
+        bodyRow: header.length + 2,
+        bodyRows: room,
         lines: [
             ...header,
             style.muted(truncate(` ${page.context ?? ''}`, width)),
