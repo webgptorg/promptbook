@@ -1,6 +1,6 @@
 import { runProcess } from '../../../common/process.js';
 import { stripAnsi } from '../../../ui/ansi.js';
-import { baseInspection, helpText, numericUsage, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
+import { baseInspection, helpText, numericUsage, observedSessionSupport, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginFailure, LoginLocation, ParserState } from '../../types.js';
 
 /**
@@ -136,11 +136,13 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
     const env: NodeJS.ProcessEnv = api ? { ...request.env, CODEX_API_KEY: request.env.CODEX_API_KEY ?? request.env.OPENAI_API_KEY } : withoutApiKeys(request.env);
     // A local or custom endpoint selected through the tool (the official endpoint needs no override).
     if (request.baseUrl) env.OPENAI_BASE_URL = request.baseUrl;
-    const args = ['exec', '--json', '--color', 'never', '--skip-git-repo-check', '--sandbox', request.readOnly ? 'read-only' : 'workspace-write'];
+    // `exec resume` keeps the same options through configuration: it has no --sandbox or --color of its own.
+    const resume = request.resumeSessionId;
+    const args = resume ? ['exec', 'resume', '--json', '--skip-git-repo-check', '-c', `sandbox_mode=${toml(request.readOnly ? 'read-only' : 'workspace-write')}`] : ['exec', '--json', '--color', 'never', '--skip-git-repo-check', '--sandbox', request.readOnly ? 'read-only' : 'workspace-write'];
     args.push('-c', 'approval_policy="never"', '-c', `forced_login_method=${toml(api ? 'api' : 'chatgpt')}`);
     if (!request.readOnly) args.push('-c', 'sandbox_workspace_write.network_access=true');
-    for (const directory of request.readableDirectories) if (execHelp.includes('--add-dir') && !request.readOnly) args.push('--add-dir', directory);
-    if (!api && !request.allowCredits) {
+    for (const directory of request.readableDirectories) if (execHelp.includes('--add-dir') && !request.readOnly && !resume) args.push('--add-dir', directory);
+    if (!api && !request.allowCredits && !resume) {
         // Apply a native credit restriction only when the installed CLI actually supports one.
         if (execHelp.includes('--no-credits')) args.push('--no-credits');
         else if (execHelp.includes('--disable-credits')) args.push('--disable-credits');
@@ -168,6 +170,7 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
             'mcp_servers.ptbk.default_tools_approval_mode="approve"',
         );
     }
+    if (resume) args.push(resume);
     args.push('-');
     return { args, input: request.prompt, env };
 }
@@ -257,6 +260,12 @@ export const plugin: HarnessPlugin = {
     classifyLogin,
     inspect,
     listModels: listCodexModels,
+    sessions: observedSessionSupport({
+        executable: 'codex',
+        help: ['exec', 'resume', '--help'],
+        continueFlag: 'SESSION_ID',
+        client: { help: ['resume', '--help'], flag: 'SESSION_ID', args: (providerId) => ['resume', providerId], returnHint: 'Leave with /quit or Ctrl+C in Codex: that closes only the client, and this session stays resumable.' },
+    }),
     buildInvocation,
     parseLine,
 };

@@ -1,4 +1,4 @@
-import { baseInspection, helpText, parseStreamJson, probe, withAuthentication } from '../../shared.js';
+import { baseInspection, helpText, observedSessionSupport, parseStreamJson, probe, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginLocation } from '../../types.js';
 
 /**
@@ -58,6 +58,7 @@ async function loginMethods(context: HarnessContext, location: LoginLocation): P
  */
 async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvocation> {
     const args = ['-p', '--output-format', 'stream-json', '--verbose'];
+    if (request.resumeSessionId) args.push('--resume', request.resumeSessionId);
     if (request.readOnly) {
         args.push('--permission-mode', 'dontAsk', '--tools', 'Read,Grep,Glob', '--strict-mcp-config');
         if (request.mcp) args.push('--allowedTools', 'mcp__ptbk__*');
@@ -106,4 +107,10 @@ export const plugin: HarnessPlugin = {
     listModels,
     buildInvocation,
     parseLine: parseStreamJson,
+    sessions: observedSessionSupport({
+        executable: 'claude',
+        help: ['--help'],
+        continueFlag: '--resume',
+        client: { help: ['--help'], flag: '--resume', args: (providerId) => ['--resume', providerId], returnHint: 'Leave with /exit or Ctrl+D in Claude Code: that closes only the client, and this session stays resumable.' },
+    }),
 };

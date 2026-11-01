@@ -33,7 +33,11 @@ export type ControlAction =
     | 'health-recheck'
     | 'health-override'
     | 'health-clean-cache'
-    | 'health-swap';
+    | 'health-swap'
+    | 'session-entry'
+    | 'session-acquire'
+    | 'session-renew'
+    | 'session-release';
 
 /**
  * Every control action name (for request validation).
@@ -59,6 +63,10 @@ export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>([
     'health-override',
     'health-clean-cache',
     'health-swap',
+    'session-entry',
+    'session-acquire',
+    'session-renew',
+    'session-release',
 ]);
 
 /**
@@ -92,6 +100,20 @@ export type BrowserControls = {
  */
 export async function applyControlAction(agenda: Agenda, action: string, params: Readonly<Record<string, unknown>> = {}, browser?: BrowserControls): Promise<ControlOutcome> {
     switch (action) {
+        case 'session-entry':
+            return { action, outcome: 'Session entry options.', applied: false, data: agenda.sessionEntry(String(params.handle ?? '')) };
+        case 'session-acquire': {
+            const taken = agenda.acquireSession(String(params.handle ?? ''), { holder: String(params.holder ?? 'a client'), mode: params.mode === 'shared' ? 'shared' : 'exclusive', ...(typeof params.clientPid === 'number' ? { clientPid: params.clientPid } : {}) });
+            return taken.ok ? { action, outcome: 'Control taken: automatic input to this session waits.', applied: true, data: taken.client } : { action, outcome: taken.reason, applied: false };
+        }
+        case 'session-renew': {
+            const held = agenda.renewSession(String(params.handle ?? ''), String(params.holder ?? ''), typeof params.clientPid === 'number' ? params.clientPid : undefined);
+            return { action, outcome: held ? 'Control kept.' : 'Control of this session was lost.', applied: held };
+        }
+        case 'session-release': {
+            const released = agenda.releaseSession(String(params.handle ?? ''), String(params.holder ?? ''), typeof params.detail === 'string' ? params.detail : undefined);
+            return { action, outcome: released ? 'Control returned to Promptbook.' : 'This client held no control of the session.', applied: released };
+        }
         case 'pause':
             return agenda.pause({ replaceStop: params.replaceStop === true, revision: typeof params.revision === 'number' ? params.revision : undefined });
         case 'resume':

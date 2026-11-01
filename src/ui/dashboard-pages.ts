@@ -1,15 +1,17 @@
 import { join } from 'node:path';
 import { formatShortTime } from '../common/time.js';
+import type { HarnessSessionRecord } from '../harness/sessions.js';
 import type { CachePreview, SwapPlan } from '../engine/health.js';
 import { formatBytes, formatMiB } from '../engine/health.js';
 import type { CurrentWorkView, ServiceSnapshot } from '../engine/snapshot.js';
 import { TASK_SORT_FIELDS, describeTaskFilter, filterTasks, groupSupportingWork, isSupportingWork, isTaskFilterActive, sortTasks, type TaskFilter, type TaskInventoryItem, type TaskSortField } from '../tasks/views.js';
 import { highlightKinds } from '../book/highlight.js';
 import { bookHighlightStyle, terminalSafe, truncate, wrap } from './ansi.js';
-import { activityLabel, framedBadge, inlineBadge, type BadgeActivity } from './badges.js';
+import { activityLabel, inlineBadge, type BadgeActivity } from './badges.js';
 import {
     browserDetailLines,
-    executionDetailLines,
+    sessionDetailLines,
+    sessionRowLine,
     healthDetailLines,
     healthPauseReasons,
     lifecycleActions,
@@ -129,7 +131,7 @@ export type TeamSortField = (typeof TEAM_SORT_FIELDS)[number];
  * @private terminal dashboard pages
  */
 export type DashboardPage =
-    | { readonly kind: 'work'; scroll: number; focus: number; selected?: string }
+    | { readonly kind: 'harnesses'; scroll: number; focus: number; selected?: string; ended: boolean; detail: boolean }
     | { readonly kind: 'system'; scroll: number }
     | { readonly kind: 'health'; scroll: number; cache?: CachePreview; swap?: SwapPlan }
     | { readonly kind: 'wallet'; scroll: number; focus: number; selected?: string }
@@ -229,8 +231,8 @@ export function describeUsageFilter(filter: UsageFilter): string {
  */
 export function pageForTile(tile: HomeTile): DashboardPage {
     switch (tile) {
-        case 'work':
-            return { kind: 'work', scroll: 0, focus: 0 };
+        case 'harnesses':
+            return { kind: 'harnesses', scroll: 0, focus: 0, ended: false, detail: false };
         case 'tools':
             return { kind: 'tools', scroll: 0, focus: 0 };
         case 'wallet':
@@ -277,7 +279,7 @@ export type PageContext = {
 export type PageBody = { readonly title: string; readonly context: string; readonly body: string[]; readonly anchor?: number; readonly legend: string };
 
 /**
- * Recent errors listed on the Current work page.
+ * Recent errors listed on the Harnesses page.
  */
 const RECENT_ERRORS = 5;
 
@@ -359,49 +361,47 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
     const width = Math.max(20, terminal.columns() - 2);
     const back = 'Esc back';
     switch (page.kind) {
-        case 'work': {
+        case 'harnesses': {
             const body: string[] = [];
-            const active = activeWork(snapshot);
-            const workload = snapshot.workload;
-            if (workload) body.push(`${style.muted('Work     ')} ${style.bold(String(workload.active))} active${style.muted(` · ${workload.waiting} waiting · ${workload.queued} queued`)}`);
+            const inventory = snapshot.harnessSessions;
+            const rows = page.ended ? (inventory?.ended ?? []) : (inventory?.open ?? []);
+            const selected = rows[Math.max(0, Math.min(page.focus, rows.length - 1))];
+            const legend = (entry: boolean): string => ` ↑↓ select · Enter ${page.detail ? 'back to the list' : 'details'}${entry ? ' · N enter the session…' : ''} · E ${page.ended ? 'open sessions' : 'ended sessions'} · ${back}`;
+            if (page.detail && selected) {
+                body.push(...sessionDetailLines(selected, style, sessionReceiptLines(snapshot, selected)));
+                return { title: 'Harnesses', context: `The session of ${selected.agent}. Opening this is inspection only; nothing was entered.`, body, legend: legend(!selected.endedAt) };
+            }
+            const counts = inventory?.counts;
+            if (counts) body.push(`${style.muted('Sessions ')} ${style.bold(String(counts.open))} open${style.muted(` · ${counts.working} working · ${counts.idle} idle · ${counts.waiting} waiting${inventory?.ended.length ? ` · ${inventory.ended.length} ended (retained)` : ''}`)}`);
             let anchor: number | undefined;
-            if (active.length) {
-                body.push('', style.bold(`Active work (${active.length})`));
-                active.forEach((item, index) => {
-                    if (index === page.focus) anchor = body.length;
-                    const label = item.kind === 'chat' ? `${style.accent('chat')} ${item.taskTitle}` : `${inlineBadge(item.agent.name, item.agent.activity, style, terminal.reducedMotion ? 0 : context.frame)} ${item.taskTitle}`;
-                    body.push(`${pointer(index === page.focus)} ${label}${style.muted(` · ${item.phase}${item.attempt ? ` ${item.attempt}/${item.attemptBudget}` : ''}${item.detail ? ` · ${item.detail}` : ''}`)}`);
-                });
-                const selected = active[Math.max(0, Math.min(page.focus, active.length - 1))]!;
-                body.push('', style.bold(selected.kind === 'chat' ? 'Selected chat turn' : 'Selected work'));
-                if (selected.kind !== 'chat') {
-                    const badge = framedBadge(selected.agent.name, selected.agent.activity, style, terminal.unicode, terminal.reducedMotion ? 0 : context.frame);
-                    const info = [`${style.bold(selected.agent.name)} ${style.muted(activityLabel(selected.agent.activity))}`, selected.taskTitle, style.muted(`${selected.kind}${selected.target ? ` → ${selected.target.title}` : ''}`)];
-                    for (let row = 0; row < 3; row++) body.push(`${badge[row]}  ${info[row]}`);
-                } else body.push(selected.taskTitle);
-                body.push(`${style.muted('Phase  ')} ${selected.phase}${selected.attempt ? ` · attempt ${selected.attempt}/${selected.attemptBudget}` : ''}${selected.detail ? style.muted(` · ${selected.detail}`) : ''}`);
-                body.push(`${style.muted('Task   ')} ${selected.taskRef}${selected.trace ? style.muted(` · trace ${selected.trace}`) : ''}`);
-                if (selected.files?.length) body.push(`${style.muted('Files  ')} ${selected.files.join(', ')}`);
-                if (selected.wait) body.push(`${style.warning(marks.wait)} ${selected.wait.reason}${selected.wait.until ? style.muted(` · until ${time(selected.wait.until)}`) : ''}${selected.wait.skippable ? style.muted(' · S skips this wait') : ''}`);
-                const execution = snapshot.executions?.find((candidate) => candidate.task.ref === selected.taskRef) ?? (index0(active, selected) ? snapshot.execution : undefined);
-                if (selected.kind !== 'chat') body.push('', style.bold('Execution'), ...(snapshot.phase === 'unknown' ? [style.muted('Unavailable: the service runs another ptbk version.')] : executionDetailLines(execution, style)));
-            } else {
-                body.push(`${style.bold(snapshot.phase)}${snapshot.wait ? ` ${marks.dot} ${snapshot.wait.reason}` : ''}`);
-                body.push('', style.bold('Execution'), ...(snapshot.phase === 'unknown' ? [style.muted('Unavailable: the service runs another ptbk version.')] : executionDetailLines(snapshot.execution, style)));
+            body.push('', style.bold(page.ended ? `Ended sessions, retained as evidence (${rows.length})` : `Open sessions (${rows.length})`));
+            if (!rows.length) body.push(style.muted(page.ended ? 'No ended session retained.' : snapshot.phase === 'unknown' ? 'Unavailable: the service runs another ptbk version.' : 'No session is open. A session opens when an agent starts work or replies in a chat.'));
+            rows.forEach((session, index) => {
+                if (index === page.focus) anchor = body.length;
+                body.push(`${pointer(index === page.focus)} ${sessionRowLine(session, style)}`);
+            });
+            if (!page.ended) {
+                const active = activeWork(snapshot).filter((item) => item.kind !== 'chat');
+                if (active.length) {
+                    body.push('', style.bold('Work in progress'));
+                    for (const item of active) body.push(`  ${inlineBadge(item.agent.name, item.agent.activity, style, terminal.reducedMotion ? 0 : context.frame)} ${item.taskTitle} ${style.muted(`· ${item.phase}${item.attempt ? ` ${item.attempt}/${item.attemptBudget}` : ''}${item.detail ? ` · ${item.detail}` : ''}${item.trace ? ` · trace ${item.trace}` : ''}`)}`);
+                }
+                const workload = snapshot.workload;
+                if (workload && (workload.waiting || workload.queued)) body.push(style.muted(`  ${workload.waiting} waiting · ${workload.queued} queued`));
+                if (snapshot.wait) {
+                    body.push('', `${style.warning(marks.wait)} ${snapshot.wait.reason}${snapshot.wait.until ? style.muted(` · until ${time(snapshot.wait.until)}`) : ''}${snapshot.wait.skippable ? style.muted(' · S skips the wait') : ''}`);
+                    if (snapshot.wait.action) body.push(`${style.accent(marks.arrow)} ${snapshot.wait.action}`);
+                }
+                for (const blocker of snapshot.blockers) {
+                    body.push('', `${style.error(marks.fail)} ${style.bold(blocker.title)}: ${blocker.reason}`);
+                    if (blocker.action) body.push(`  ${style.accent(marks.arrow)} ${blocker.action}${blocker.recheckAt ? style.muted(` · recheck ${time(blocker.recheckAt)}`) : ''}`);
+                }
+                const failing = (snapshot.browsers?.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : []).filter((browser) => (browser.state === 'failed' || browser.recovery?.state === 'blocked') && browser.lastFailure);
+                for (const browser of failing) body.push('', `${style.error(marks.fail)} ${style.bold(`Browser ${browser.name}`)}: ${browser.lastFailure!.summary}${style.muted(' · T opens Tools')}`);
+                const errors = snapshot.errors.slice(-RECENT_ERRORS);
+                if (errors.length) body.push('', style.bold('Recent errors'), ...errors.flatMap((error) => [`${style.muted(time(error.at))} ${style.error(error.summary)}`, ...(error.next ? [style.muted(`  ${error.next}`)] : [])]));
             }
-            if (snapshot.wait) {
-                body.push('', `${style.warning(marks.wait)} ${snapshot.wait.reason}${snapshot.wait.until ? style.muted(` · until ${time(snapshot.wait.until)}`) : ''}${snapshot.wait.skippable ? style.muted(' · S skips this wait') : ''}`);
-                if (snapshot.wait.action) body.push(`${style.accent(marks.arrow)} ${snapshot.wait.action}`);
-            }
-            for (const blocker of snapshot.blockers) {
-                body.push(`${style.error(marks.fail)} ${style.bold(blocker.title)}: ${blocker.reason}`);
-                if (blocker.action) body.push(`  ${style.accent(marks.arrow)} ${blocker.action}${blocker.recheckAt ? style.muted(` · recheck ${time(blocker.recheckAt)}`) : ''}`);
-            }
-            const failing = (snapshot.browsers?.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : []).filter((browser) => (browser.state === 'failed' || browser.recovery?.state === 'blocked') && browser.lastFailure);
-            for (const browser of failing) body.push('', `${style.error(marks.fail)} ${style.bold(`Browser ${browser.name}`)}: ${browser.lastFailure!.summary}${style.muted(' · T opens Tools')}`);
-            const errors = snapshot.errors.slice(-RECENT_ERRORS);
-            if (errors.length) body.push('', style.bold('Recent errors'), ...errors.flatMap((error) => [`${style.muted(time(error.at))} ${style.error(error.summary)}`, ...(error.next ? [style.muted(`      next: ${error.next}`)] : [])]));
-            return { title: 'Current work', context: 'Concurrent tasks and chat turns, their phases, waits and the actual harness/model/thinking context of the selected run', body, anchor, legend: `${active.length > 1 ? '↑↓ choose · ' : ''}S skip a pacing wait · ${back}` };
+            return { title: 'Harnesses', context: 'Every open harness session of your agents, including idle ones; Enter shows one in detail', body, anchor, legend: legend(false) };
         }
         case 'system': {
             const { service, engine } = snapshot;
@@ -856,8 +856,8 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
             return teamOrder(context.snapshot, page.sort, context.inventory).map((agent) => agent.key);
         case 'chats':
             return context.snapshot.chats.recent.map((chat) => chat.name);
-        case 'work':
-            return activeWork(context.snapshot).map((item) => item.unit ?? item.taskRef);
+        case 'harnesses':
+            return ((page.ended ? context.snapshot.harnessSessions?.ended : context.snapshot.harnessSessions?.open) ?? []).map((session) => session.handle);
         case 'tasks':
             return taskOrder(context, page).map((item) => item.ref);
         case 'usage':
@@ -890,17 +890,21 @@ export function keepSelection(page: DashboardPage, context: Pick<PageContext, 's
 }
 
 /**
+ * Outstanding instruction receipts of one session, in the words of its common detail.
+ *
+ * @private terminal dashboard pages
+ */
+export function sessionReceiptLines(snapshot: ServiceSnapshot, session: HarnessSessionRecord): string[] {
+    void snapshot;
+    void session;
+    return [];
+}
+
+/**
  * Every active unit of a snapshot (an older engine reports only its single current task).
  *
  * @private terminal dashboard pages
  */
 export function activeWork(snapshot: ServiceSnapshot): readonly CurrentWorkView[] {
     return snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
-}
-
-/**
- * Whether an item is the first of a list (an older engine's single execution belongs to it).
- */
-function index0(items: readonly CurrentWorkView[], item: CurrentWorkView): boolean {
-    return items[0] === item;
 }

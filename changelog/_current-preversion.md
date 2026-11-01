@@ -1,5 +1,12 @@
 # Unreleased
 
+## Harnesses: every agent session is visible, and you can deliberately step into one
+
+-   The Harnesses tile and page replace Current work in the terminal and the browser: they list every open harness session, including idle ones, with its agent, task or chat, state, tool, billing path, model and usage; ended sessions stay available as evidence, not as live work.
+-   Selecting a session always opens the same read-only detail, even when its harness has no client to open.
+-   Entering a session asks first: Do not enter is the default, Watch only uses the read-only view, and Control offers an exclusive takeover of that one session while other work continues.
+-   Work interrupted by a pause now continues in its own harness session, keeping its context, where the installed harness release supports it.
+
 ## Pause: task work stops at its nearest safe point and chats keep working
 
 -   Pausing or stopping the engine now interrupts running task work at the nearest safe point and keeps its checkpoint, instead of waiting for it to finish.

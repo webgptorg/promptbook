@@ -1,5 +1,5 @@
 import { readJsonIfExists } from '../../../common/fs.js';
-import { anyExists, baseInspection, homePath, parseStreamJson, withAuthentication } from '../../shared.js';
+import { anyExists, baseInspection, homePath, observedSessionSupport, parseStreamJson, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest } from '../../types.js';
 
 /**
@@ -49,5 +49,6 @@ export const plugin: HarnessPlugin = {
     loginHint: 'Start `gemini` once and choose “Login with Google”, or set GEMINI_API_KEY.',
     inspect,
     buildInvocation,
+    sessions: observedSessionSupport({ executable: 'gemini', help: ['--help'], continueNote: 'Gemini CLI resumes only by position in its own list, which is not a stable identity of this session: a next input starts a new session.' }),
     parseLine: parseStreamJson,
 };

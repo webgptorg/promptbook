@@ -22,7 +22,7 @@ export type HomeTile = DashboardDomain;
  * @private terminal dashboard home
  */
 export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
-    work: 'Current work',
+    harnesses: 'Harnesses',
     system: 'System',
     health: 'Health',
     chats: 'Chats',
@@ -45,7 +45,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
  */
 export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
     // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
-    return ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+    return ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
 }
 
 /**
@@ -206,29 +206,18 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
     const marks = symbols(terminal.unicode);
     const time = (iso?: string): string => (iso ? formatShortTime(Date.parse(iso)) : '');
     switch (tile) {
-        case 'work': {
-            const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
-            const workload = snapshot.workload;
-            if (active.length > 1 || (active.length && workload && (workload.queued || workload.waiting))) {
-                // Concurrent work: the counts first, then one line per active unit.
-                return [
-                    `${style.bold(String(active.length))} active${workload?.waiting ? style.muted(` · ${workload.waiting} waiting`) : ''}${workload?.queued ? style.muted(` · ${workload.queued} queued`) : ''}`,
-                    ...active.map((item) => (item.kind === 'chat' ? `${style.accent('chat')} ${item.taskTitle}` : `${inlineBadge(item.agent.name, item.agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${item.taskTitle}${style.muted(` · ${item.phase}`)}`)),
-                ];
-            }
-            const current = active[0];
-            if (current) {
-                return [
-                    current.kind === 'chat' ? `${style.accent('chat')} ${style.muted('replying')}` : `${inlineBadge(current.agent.name, current.agent.activity, style, terminal.reducedMotion ? 0 : frame)} ${style.muted(activityLabel(current.agent.activity))}`,
-                    current.taskTitle,
-                    style.muted(`${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}`),
-                    ...(current.wait ? [style.warning(`${marks.wait} ${current.wait.reason}`)] : snapshot.wait ? [style.warning(`${marks.wait} ${snapshot.wait.reason}`)] : []),
-                ];
-            }
-            if (snapshot.service.state === 'stopped') return [style.muted('The service is stopped.')];
+        case 'harnesses': {
+            const sessions = snapshot.harnessSessions;
             const blocker = snapshot.blockers[0];
+            const counts = sessions?.counts;
+            const summary = counts
+                ? [`${style.bold(String(counts.open))} open${style.muted(`${counts.working ? ` · ${counts.working} working` : ''}${counts.idle ? ` · ${counts.idle} idle` : ''}${counts.waiting ? ` · ${counts.waiting} waiting` : ''}`)}${counts.attention ? style.error(` · ${counts.attention} failed`) : ''}`]
+                : [];
+            if (snapshot.service.state === 'stopped') return [...summary, style.muted('The service is stopped.')];
             return [
-                `${style.bold(snapshot.phase)}${snapshot.wait && !blocker ? style.muted(` ${marks.dot} ${snapshot.wait.reason}`) : ''}`,
+                ...summary,
+                ...(sessions?.open ?? []).filter((session) => session.state !== 'idle').map((session) => `${inlineBadge(session.agent, session.state === 'working' ? 'working' : 'idle', style, terminal.reducedMotion ? 0 : frame)} ${session.work.kind === 'task' ? session.work.task : session.work.kind === 'chat' ? `{${session.work.chat}}` : session.work.purpose}`),
+                ...(counts?.open ? [] : [`${style.bold(snapshot.phase)}${snapshot.wait && !blocker ? style.muted(` ${marks.dot} ${snapshot.wait.reason}`) : ''}`]),
                 ...(blocker ? [style.error(`${marks.fail} ${blocker.title}`), style.muted(blocker.action ?? blocker.reason)] : []),
                 ...(snapshot.wait?.until && !blocker ? [style.muted(`next ${time(snapshot.wait.until)}${snapshot.wait.skippable ? ' · S skips' : ''}`)] : []),
             ];

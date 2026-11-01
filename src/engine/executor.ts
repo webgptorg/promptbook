@@ -15,7 +15,8 @@ import { agentSubject, commitPaths, findCommitWithTrailer, gitStatus, prefixedSu
 import type { Project } from '../project/workspace.js';
 import type { HarnessToolRecord } from '../tools/model.js';
 import { nativeSignInAction } from '../tools/readiness.js';
-import { runHarness, type HarnessRunResult } from '../harness/run.js';
+import { type HarnessRunResult } from '../harness/run.js';
+import { runHarnessInSession, type HarnessSessions } from '../harness/sessions.js';
 import { readTaskBook, stampBookCompletion } from '../tasks/book-task.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
 import { assignmentText, isRecurring, type Task } from '../tasks/model.js';
@@ -145,6 +146,8 @@ export type ExecutionEnvironment = {
     readonly forceSignal: AbortSignal;
     /** Polite interruption by a task pause (never a forced kill; the turn settles at its own pace). */
     readonly interruptSignal: AbortSignal;
+    /** The engine's harness session inventory. */
+    readonly sessions?: HarnessSessions;
     /** Supervisor services. */
     readonly hooks: ExecutionHooks;
     /** Environment for harnesses and checks. */
@@ -660,7 +663,20 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             resetPending();
             hooks.turn?.('begin');
             try {
-                lastResult = await runHarness(
+                lastResult = await runHarnessInSession(
+                    environment.sessions,
+                    {
+                        key: `task:${record.runId}`,
+                        agent: agent.name,
+                        work: { kind: 'task', task: task.title, ref: task.ref, source: task.source.relativePath, ...(record.occurrence ? { occurrence: record.occurrence } : {}), run: record.runId, workKind: item.kind },
+                        tool: selection.tool,
+                        harnessVersion: item.route.inspection.version,
+                        model: selection.model,
+                        thinkingLevel: selection.thinkingLevel,
+                        authentication: item.route.inspection.authentication,
+                        account: instance?.accountProfile,
+                        redact: bridge ? (text) => text.split(bridge.secret).join('[REDACTED]') : undefined,
+                    },
                     plugin,
                     {
                         projectRoot: project.root,
@@ -688,6 +704,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         onOutput: (stream, line) => trace.output(stream, bridge ? line.split(bridge.secret).join('[REDACTED]') : line),
                     },
                     item.route.inspection.executablePath ?? plugin.executable,
+                    // Interrupted work continues in its own provider session, keeping its context; a repair starts fresh.
+                    { detail: `Attempt ${attempt}/${repairBudget}`, continueSession: record.history[record.history.length - 1]?.outcome === 'cancelled' },
                 );
             } finally {
                 hooks.turn?.('end');

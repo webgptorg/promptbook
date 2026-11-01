@@ -42,6 +42,7 @@ import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
 import { HARNESS_PLUGINS, harnessName } from '../harness/registry.js';
+import { HarnessSessions, type SessionClientLaunch, type SessionEntryView } from '../harness/sessions.js';
 import { readTaskBook } from '../tasks/book-task.js';
 import { WALLET_WAIT, evaluateQueue, isUnfinished, selectCandidates, type EvaluatedTask, type RouteCheck, type SelectedTask } from '../tasks/eligibility.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
@@ -65,7 +66,7 @@ import {
     validateAssignment,
     workKindOf,
 } from './generated.js';
-import { HarnessPool } from './harnesses.js';
+import { HarnessPool, instanceEnvironment } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
 import { WalletSubEngine, type LoginContext } from '../wallet/wallet.js';
@@ -214,6 +215,11 @@ export type LifecycleOutcome = {
  * Maximal activity lines kept in memory.
  */
 const MAX_ACTIVITY = 300;
+
+/**
+ * How often session leases and idle retention are reconciled.
+ */
+const SESSION_RECONCILE_MS = 5_000;
 
 /**
  * Recheck interval of setup/workspace/recovery blockers.
@@ -559,8 +565,16 @@ export class Agenda {
     /** When the last commit was read (epoch ms). */
     private lastCommitReadAt = 0;
 
+    /** The harness session inventory of this engine. */
+    private readonly sessions: HarnessSessions;
+
     public constructor(private readonly options: AgendaOptions) {
         this.state = new StateStore(options.project.runtime.state);
+        this.sessions = new HarnessSessions({
+            save: async (records) => await this.state.writeHarnessSessions(records),
+            changed: () => this.touch(),
+            log: (message, level) => this.log(message, level),
+        });
         this.ownership = new FileOwnership(options.project.root, { onChange: () => this.touch() });
         this.chatBatches = new ChatCommitBatcher(options.project, {
             repositoryRoot: () => this.repositoryRoot,
@@ -911,6 +925,10 @@ export class Agenda {
      */
     public async run(): Promise<AgendaSummary> {
         this.touch();
+        // Sessions are restored before any claim: retained context, never permission to continue.
+        this.sessions.restore(await this.state.readHarnessSessions());
+        const reconciling = setInterval(() => this.sessions.reconcile(), SESSION_RECONCILE_MS);
+        reconciling.unref?.();
         // The host serves this engine now (control endpoint and process record): an update restart into it is verified.
         await this.updater.confirmServing();
         this.startWatching();
@@ -928,6 +946,8 @@ export class Agenda {
                 this.settle();
             }
         } finally {
+            clearInterval(reconciling);
+            await this.sessions.flush();
             this.stopWatching();
             // A graceful stop or restart commits saved chat messages; a force stop leaves them to recovery.
             if (this.shutdown !== 'force') await this.chatBatches.flush().catch(() => undefined);
@@ -962,6 +982,63 @@ export class Agenda {
     /** Whether the stop that ended the agenda was an intentional user request (not a restart or an OS signal). */
     public get intentionalStop(): boolean {
         return (this.shutdown === 'stop' || this.shutdown === 'force') && !this.shutdownBySignal;
+    }
+
+    // ── Harness session entry (shared by terminal, browser and API) ──────────
+
+    /**
+     * What entering one session can offer now. Inspecting it never needs this; everything is decided from the adapter's
+     * observed capabilities and the session's current state, again at every confirmation.
+     */
+    public sessionEntry(handle: string): SessionEntryView {
+        const session = this.sessions.byHandle(handle);
+        if (!session || session.endedAt) return { available: false, reason: 'This session has ended; its evidence stays inspectable here.' };
+        const unavailable = (reason: string): SessionEntryView => ({ available: false, reason });
+        if (session.lease) return unavailable(`Another client controls this session since ${session.lease.acquiredAt}; control cannot be taken over silently.`);
+        if (session.capabilities?.nativeClient !== true) return unavailable(`${session.harnessName}: no native client of this release can open this session, so the common view stays the way to inspect it.`);
+        if (!session.providerIds.length) return unavailable(`${session.harnessName} reported no session identifier, so its client could only start something else.`);
+        if (session.state === 'working' || session.state === 'opening' || session.state === 'interrupt-requested' || session.state === 'reconnecting') return unavailable('A turn is running in this session and its transport cannot be joined. Enter once it reached its boundary; the common view shows it meanwhile.');
+        const tool = session.tool ? this.pool.instance(session.tool) : undefined;
+        if (!tool) return unavailable('Its named tool is no longer configured, and no other account may continue this session.');
+        if (tool.authentication !== 'NATIVE') return unavailable('This tool uses an API key, which is not handed to a terminal client; no other account or billing path may stand in for it.');
+        if (tool.baseUrl) return unavailable('This tool uses a custom endpoint, which the native client would not keep; no other endpoint may stand in for it.');
+        if (session.work.kind === 'task' && (this.pauseActive || this.shutdown || this.intent)) return unavailable('The engine is not running task work now, and control of a task session would advance that work. It stays inspectable; enter after Resume.');
+        return {
+            available: true,
+            watch: { native: false, reason: 'Its client cannot be kept from sending input, so Watch only opens the common read-only event view.' },
+            exclusive: { available: true },
+            shared: session.capabilities.sharedControl ? { available: true } : { available: false, reason: 'Unavailable: this client and Promptbook cannot order their inputs.' },
+            returnHint: session.nativeReturn ?? 'Leave the client normally; its effects on this session are not known.',
+        };
+    }
+
+    /** Takes control of a session after a deliberate confirmation (revalidated here) and names its actual native client. */
+    public acquireSession(handle: string, request: { readonly holder: string; readonly mode: 'exclusive' | 'shared'; readonly clientPid?: number }): { readonly ok: true; readonly client: SessionClientLaunch } | { readonly ok: false; readonly reason: string } {
+        const entry = this.sessionEntry(handle);
+        if (!entry.available) return { ok: false, reason: entry.reason };
+        const session = this.sessions.byHandle(handle)!;
+        const plugin = HARNESS_PLUGINS.find((candidate) => candidate.id === session.harness);
+        const args = plugin?.sessions?.nativeClientArgs?.(session.providerIds[session.providerIds.length - 1]!);
+        if (!plugin || !args) return { ok: false, reason: `${session.harnessName} has no verified native client.` };
+        const taken = this.sessions.acquireLease(handle, request);
+        if (!taken.ok) return taken;
+        const tool = this.pool.instance(session.tool!)!;
+        const environment = instanceEnvironment(plugin, tool, undefined, this.options.env);
+        const account = plugin.accountHomeVariable && tool.accountProfile ? environment[plugin.accountHomeVariable] : undefined;
+        this.log(`${request.holder} took ${request.mode} control of the session of ${session.agent}; automatic input to it waits.`);
+        return { ok: true, client: { command: plugin.executable, args, cwd: this.options.project.root, env: account ? { [plugin.accountHomeVariable!]: account } : {}, returnHint: entry.returnHint } };
+    }
+
+    /** Keeps control while its client is alive; false: control was lost and this client must not write. */
+    public renewSession(handle: string, holder: string, clientPid?: number): boolean {
+        return this.sessions.renewLease(handle, holder, clientPid);
+    }
+
+    /** Returns control after the client left; automatic inputs are decided anew from the current state, never replayed. */
+    public releaseSession(handle: string, holder: string, detail?: string): boolean {
+        const released = this.sessions.releaseLease(handle, holder, detail);
+        if (released) this.log(`Control of a session returned to Promptbook${detail ? `: ${detail}` : '.'}`);
+        return released;
     }
 
     // ── Lifecycle controls (shared by CLI, terminal, browser and API) ────────
@@ -1501,6 +1578,9 @@ export class Agenda {
                 let turn: Awaited<ReturnType<typeof replyInChat>> | undefined;
                 let failure: string | undefined;
                 try {
+                    // A person controlling this agent's session in this chat holds its automatic input back.
+                    const controlled = this.sessions.view().open.find((session) => session.lease && session.work.kind === 'chat' && session.work.chat === name && (!options.agent || normalizeAgentName(session.agent) === normalizeAgentName(options.agent.replace(/[@{}]/g, ''))));
+                    if (controlled) await this.sessions.untilAutomaticInput(controlled.key, `Reply in {${name}}`, this.ownedWork.signal);
                     turn = await replyInChat(
                         {
                             project: this.options.project,
@@ -1510,6 +1590,7 @@ export class Agenda {
                             chats: this.chats,
                             env: this.options.env,
                             signal: this.ownedWork.signal,
+                            sessions: this.sessions,
                             createTask: async (input) => await this.createChatTask(input),
                             inviteAgent: async (input) => await this.chatInvite(input.chat, input.agent),
                             scheduleLearning: async (input) => await this.scheduleChatLearning(input),
@@ -2209,6 +2290,7 @@ export class Agenda {
             current,
             active,
             workload: this.workloadView(),
+            harnessSessions: this.sessions.view(),
             execution: executions[0],
             executions: executions.filter((execution) => execution.status === 'active'),
             browser: this.options.browsers?.primary(),
@@ -3055,6 +3137,7 @@ export class Agenda {
             signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]),
             forceSignal: this.ownedWork.signal,
             interruptSignal: unit.interrupt.signal,
+            sessions: this.sessions,
             env: this.options.env,
             hooks: {
                 emit: (event) => {
@@ -3493,6 +3576,14 @@ export class Agenda {
             return { kind: 'interrupted' };
         }
         const runId = item.resume?.runId ?? item.runId ?? shortId(10);
+        // A person controlling this run's session holds its automatic input back; other work continues.
+        if (!this.sessions.automaticInputAllowed(`task:${runId}`)) {
+            const reason = `"${item.task.title}" waits: a person is controlling its session.`;
+            this.logOnce(reason, 'info');
+            await withdraw();
+            this.claimDeferred.set(item.task.key, Date.now() + 5_000);
+            return { kind: 'deferred', reason };
+        }
         unit.owner = runId;
         const taken = this.ownership.tryAcquire(runId, item.task.title, [item.task.source.path, ...item.createdPaths, ...files]);
         if (!taken.ok) {
@@ -3549,6 +3640,7 @@ export class Agenda {
         } finally {
             await this.options.afterWork?.(item.task).catch(() => undefined);
         }
+        this.settleSession(item, outcome);
         // A finished run's unreported intents may have taken effect: they become durable uncertain records.
         if (outcome.kind === 'completed' || outcome.kind === 'failed' || outcome.kind === 'persistence-failed') await this.actions.settle(item.task.source.relativePath).catch(() => undefined);
         switch (outcome.kind) {
@@ -3627,6 +3719,34 @@ export class Agenda {
                 break;
         }
         return outcome;
+    }
+
+    /** Records what a run's outcome means for its harness session: finished work ends it, a wait keeps it open. */
+    private settleSession(item: WorkItem & { readonly runId: string }, outcome: ExecutionOutcome): void {
+        const key = `task:${item.runId}`;
+        switch (outcome.kind) {
+            case 'completed':
+                this.sessions.close(key, 'Its task work finished.');
+                break;
+            case 'failed':
+                this.sessions.close(key, outcome.reason, true);
+                break;
+            case 'interrupted':
+                this.sessions.waiting(key, 'Interrupted: it keeps its checkpoint and continues only when work may resume.', 'interrupted');
+                break;
+            case 'awaiting-user':
+                this.sessions.waiting(key, `Waiting for your reply in the chat {${outcome.chat}}.`);
+                break;
+            case 'awaiting-wallet':
+            case 'awaiting-task':
+            case 'quota':
+            case 'setup':
+            case 'persistence-failed':
+                this.sessions.waiting(key, 'reason' in outcome && outcome.reason ? outcome.reason : 'Waiting for what it needs before it continues.');
+                break;
+            case 'deferred':
+                break;
+        }
     }
 
     /**

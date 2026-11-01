@@ -7,7 +7,7 @@ import { setting, type EffectiveSettings } from '../project/config.js';
 import { resolveEffectiveAgent, type AgentCatalog } from '../project/agents.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import type { Project } from '../project/workspace.js';
-import { runHarness } from '../harness/run.js';
+import { runHarnessInSession, type HarnessSessions } from '../harness/sessions.js';
 import { ToolBridge, type BridgeTool, type ToolResult } from './bridge.js';
 import type { HarnessPool } from './harnesses.js';
 import { readOnlyRoute } from './routing.js';
@@ -59,6 +59,8 @@ export type TeamContext = {
     readonly signal: AbortSignal;
     /** Requests a polite interruption of a consultation (a task pause), never a forced kill. */
     readonly interruptSignal?: AbortSignal;
+    /** The engine's harness session inventory. */
+    readonly sessions?: HarnessSessions;
     /** Records the chat now waiting for the user (the task checkpoints after its turn). */
     readonly onUserChat: (chat: { readonly chat: string; readonly awaited: number }) => void;
     /** Activity reporting. */
@@ -128,7 +130,21 @@ async function consultAgent(context: TeamContext, reference: string, question: s
     const abort = (): void => controller.abort();
     context.signal.addEventListener('abort', abort, { once: true });
     try {
-        const result = await runHarness(
+        const result = await runHarnessInSession(
+            context.sessions,
+            {
+                // A consultation is its own short session of the advisor, attributed to the asking work.
+                key: `consultation:${context.agentName}:${advisor.name}:${shortId(6)}`,
+                agent: advisor.name,
+                work: { kind: 'helper', purpose: `Consultation asked by ${context.agentName}` },
+                tool: instance.name,
+                harnessVersion: instanceInspection?.version,
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                authentication: instanceInspection?.authentication ?? 'unknown',
+                account: instance.accountProfile,
+                ephemeral: true,
+            },
             plugin,
             {
                 projectRoot: context.project.root,

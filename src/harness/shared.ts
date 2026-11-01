@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { pathExists } from '../common/fs.js';
 import { runProcess, which } from '../common/process.js';
 import { extractVersion } from '../common/semver.js';
-import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessPlugin, ParserState } from './types.js';
+import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessPlugin, HarnessSessionSupport, ParserState } from './types.js';
 
 /**
  * Timeout of read-only metadata probes (`--version`, login status, help).
@@ -40,6 +40,49 @@ export function helpText(context: HarnessContext, executable: string, args: read
         helpCache.set(key, cached);
     }
     return cached;
+}
+
+/**
+ * Session support observed from the installed release's own help, so each capability holds for the version actually
+ * in use. Turn-by-turn adapters take input between turns only: a change to a running turn interrupts it first.
+ *
+ * @private harness plugin helpers
+ */
+export function observedSessionSupport(options: {
+    /** Executable. */
+    readonly executable: string;
+    /** Help command to read. */
+    readonly help: readonly string[];
+    /** Text of the help that shows continuation of a session by its identifier (absent: none is integrated). */
+    readonly continueFlag?: string;
+    /** Why continuation is unavailable, when no flag exists. */
+    readonly continueNote?: string;
+    /** Help text showing a client that opens a session by identifier. */
+    readonly client?: { readonly help: readonly string[]; readonly flag: string; readonly args: (providerId: string) => readonly string[]; readonly returnHint: string };
+}): HarnessSessionSupport {
+    return {
+        capabilities: async (context) => {
+            const help = options.continueFlag ? await helpText(context, options.executable, options.help) : '';
+            const continueInput = Boolean(options.continueFlag && help.includes(options.continueFlag));
+            const clientHelp = options.client ? await helpText(context, options.executable, options.client.help) : '';
+            const nativeClient = Boolean(options.client && clientHelp.includes(options.client.flag));
+            return {
+                continueInput,
+                liveSteering: false,
+                interrupt: true,
+                nativeClient,
+                nativeWatch: false,
+                sharedControl: false,
+                notes: [
+                    ...(continueInput ? [] : [options.continueNote ?? 'This release cannot continue a session by its identifier: a next input starts a new session.']),
+                    'A running turn takes no further input: a change interrupts it at its safe point and work continues with the change.',
+                    ...(nativeClient ? ['The native client opens this session only while no turn runs in it; a running autonomous turn cannot be joined.'] : ['No native client of this release can open this session, so the common view stays the way to inspect it.']),
+                    ...(nativeClient ? ['Its client cannot be kept from sending input, so Watch only uses the common read-only event view.', 'Its client and Promptbook cannot order their inputs in one session, so shared control is unavailable.'] : []),
+                ],
+            };
+        },
+        ...(options.client ? { nativeClientArgs: options.client.args, nativeReturn: options.client.returnHint } : {}),
+    };
 }
 
 /**

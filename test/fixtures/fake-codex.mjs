@@ -82,11 +82,28 @@ if (args[0] === 'login' && args[1] === 'status') {
     process.stderr.write('Logged in using ChatGPT\n');
     process.exit(0);
 }
-if (args[0] === 'exec' && args.includes('--help')) {
+// Session lifecycle: `exec resume <id> -` continues a provider session and `resume <id>` is the actual client; it logs
+// to $FAKE_CODEX_NATIVE_LOG and waits for a line of input before leaving ($FAKE_CODEX_NO_RESUME hides both).
+if (args[0] === 'exec' && args[1] === 'resume' && args.includes('--help')) {
+    print(process.env.FAKE_CODEX_NO_RESUME ? 'Usage: codex exec resume' : 'Usage: codex exec resume [OPTIONS] [SESSION_ID] [PROMPT]');
+    process.exit(0);
+}
+if (args[0] === 'resume' && args.includes('--help')) {
+    print(process.env.FAKE_CODEX_NO_RESUME ? 'Usage: codex resume' : 'Usage: codex resume [OPTIONS] [SESSION_ID] [PROMPT]');
+    process.exit(0);
+}
+if (args[0] === 'resume') {
+    if (process.env.FAKE_CODEX_NATIVE_LOG) appendFileSync(process.env.FAKE_CODEX_NATIVE_LOG, `${JSON.stringify({ args, home: process.env.CODEX_HOME ?? null, tty: Boolean(process.stdin.isTTY) })}\n`);
+    process.stdout.write(`FAKE_NATIVE_CLIENT ${args[1]}\n`);
+    process.stdin.once('data', () => process.exit(Number(process.env.FAKE_CODEX_NATIVE_EXIT ?? 0)));
+    process.stdin.resume();
+} else if (args[0] === 'exec' && args.includes('--help')) {
     print('Usage: codex exec [OPTIONS] [PROMPT]\n  --json\n  --sandbox <MODE>\n  --add-dir <DIR>\n  --skip-git-repo-check');
     process.exit(0);
 }
-if (args[0] === 'app-server') {
+if (args[0] === 'resume') {
+    // The client above stays alive until its input.
+} else if (args[0] === 'app-server') {
     process.stdin.setEncoding('utf8');
     let buffer = '';
     process.stdin.on('data', (chunk) => {
@@ -212,12 +229,14 @@ async function main() {
     const title = /- Name: (.+)/.exec(prompt)?.[1]?.trim() ?? 'unknown';
     const agent = /You are \*\*([^*]+)\*\*/.exec(prompt)?.[1] ?? 'unknown';
     const chat = prompt.startsWith('# Conversation');
+    // `exec resume <id> -` continues that thread: the id is what stands before the final `-`.
+    const resumedThread = args[1] === 'resume' ? args[args.length - 2] : undefined;
     const attempt = /## Feedback from attempt (\d+)/.exec(prompt) ? Number(/## Feedback from attempt (\d+)/.exec(prompt)[1]) + 1 : 1;
     // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
     const api = Boolean(process.env.CODEX_API_KEY);
     const brief = prompt.startsWith('# Project brief');
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
-    print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
+    print({ type: 'thread.started', thread_id: resumedThread ?? `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     // Routing work only names the target: its markers apply to the target's own execution.
     // Quota markers apply to the task's own turns, not to other prompts that merely list its title (e.g. a brief).

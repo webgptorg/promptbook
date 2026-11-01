@@ -1,4 +1,4 @@
-import { baseInspection, helpText, numericUsage, parseJsonLine, probe, editedFiles, summarizeToolInput, withAuthentication } from '../../shared.js';
+import { baseInspection, helpText, numericUsage, observedSessionSupport, parseJsonLine, probe, editedFiles, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest, ParserState } from '../../types.js';
 
 /**
@@ -38,7 +38,7 @@ async function listModels(context: HarnessContext): Promise<string[]> {
  */
 async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvocation> {
     const help = await helpText({ projectRoot: request.projectRoot, env: request.env }, 'opencode', ['run', '--help']);
-    const args = ['run', '--format', 'json'];
+    const args = ['run', '--format', 'json', ...(request.resumeSessionId ? ['--session', request.resumeSessionId] : [])];
     if (help.includes('--auto') && !request.readOnly) args.push('--auto');
     if (request.model) args.push('--model', request.model);
     if (request.thinkingLevel && help.includes('--variant')) args.push('--variant', request.thinkingLevel);
@@ -55,8 +55,12 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
 function parseLine(line: string, state: ParserState): HarnessEvent[] {
     const event = parseJsonLine(line);
     if (!event) return [];
-    void state;
     const part = (event.part ?? {}) as Record<string, unknown>;
+    // Every event names its session; the first one is the session's identity.
+    if (typeof event.sessionID === 'string' && !state.sessionReported) {
+        state.sessionReported = true;
+        return [{ type: 'session', id: event.sessionID }, ...parseLine(line, state)];
+    }
     switch (event.type) {
         case 'text':
             return typeof part.text === 'string' && part.text.trim() ? [{ type: 'message', text: part.text }] : [];
@@ -115,4 +119,5 @@ export const plugin: HarnessPlugin = {
     listModels,
     buildInvocation,
     parseLine,
+    sessions: observedSessionSupport({ executable: 'opencode', help: ['run', '--help'], continueFlag: '--session' }),
 };

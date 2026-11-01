@@ -1,5 +1,6 @@
 import type { ChatRecheckView } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
+import type { HarnessSessionsView } from '../harness/sessions.js';
 import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
 import type { WalletView } from '../wallet/wallet.js';
@@ -578,7 +579,7 @@ export type SyncView = {
  *
  * @private shared status view model
  */
-export type DashboardDomain = 'work' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'usage' | 'actions' | 'history' | 'files' | 'connection' | 'sync';
+export type DashboardDomain = 'harnesses' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'usage' | 'actions' | 'history' | 'files' | 'connection' | 'sync';
 
 /**
  * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
@@ -627,6 +628,8 @@ export type ServiceSnapshot = {
     readonly active?: readonly CurrentWorkView[];
     /** Active, waiting and queued counts. */
     readonly workload?: WorkloadView;
+    /** Harness sessions: every open one including idle ones, and retained ended evidence. */
+    readonly harnessSessions?: HarnessSessionsView;
     /** Effective execution configuration for the expandable execution panel (the first active, else the last). */
     readonly execution?: ExecutionDetailView;
     /** Execution details of every active task run (the operator selects one). */

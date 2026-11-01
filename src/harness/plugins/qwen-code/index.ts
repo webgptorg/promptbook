@@ -1,5 +1,5 @@
 import { readJsonIfExists } from '../../../common/fs.js';
-import { anyExists, baseInspection, homePath, parseStreamJson, withAuthentication } from '../../shared.js';
+import { anyExists, baseInspection, homePath, observedSessionSupport, parseStreamJson, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest } from '../../types.js';
 
 /**
@@ -19,7 +19,7 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
  * Builds one-shot `qwen` in YOLO (or read-only plan) approval mode.
  */
 async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvocation> {
-    const args = ['--output-format', 'stream-json', '--approval-mode', request.readOnly ? 'plan' : 'yolo'];
+    const args = ['--output-format', 'stream-json', '--approval-mode', request.readOnly ? 'plan' : 'yolo', ...(request.resumeSessionId ? ['--resume', request.resumeSessionId] : [])];
     if (request.model) args.push('--model', request.model);
     for (const directory of request.readableDirectories) args.push('--include-directories', directory);
     args.push(`Read the complete task instructions in the file ${request.promptFile} and follow them exactly.`);
@@ -48,5 +48,6 @@ export const plugin: HarnessPlugin = {
     loginHint: 'Start `qwen` once and complete its login, or set DASHSCOPE_API_KEY.',
     inspect,
     buildInvocation,
+    sessions: observedSessionSupport({ executable: 'qwen', help: ['--help'], continueFlag: '--resume' }),
     parseLine: parseStreamJson,
 };

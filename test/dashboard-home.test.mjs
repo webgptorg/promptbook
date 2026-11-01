@@ -44,7 +44,7 @@ function snapshot(change = {}) {
     };
 }
 
-const view = (change = {}) => ({ focus: 'work', attention: new Map(), frame: 0, legend: ' Q leave', ...change });
+const view = (change = {}) => ({ focus: 'harnesses', attention: new Map(), frame: 0, legend: ' Q leave', ...change });
 
 test('the home screen fits standard, narrowed and fullscreen terminals completely, without scrolling', () => {
     for (const [columns, rows] of [[120, 30], [80, 24], [100, 25], [60, 18], [200, 50], [140, 40], [50, 14]]) {
@@ -52,7 +52,7 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
         assert.equal(lines.length, rows, `${columns}x${rows}: exactly the surface height`);
         for (const line of lines) assert.ok(stringWidth(line) <= columns, `${columns}x${rows}: no line wider than the terminal`);
         const text = lines.map(stripAnsi).join('\n');
-        for (const title of ['Current work', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Wallet', 'Connection']) assert.match(text, new RegExp(title), `${columns}x${rows}: ${title} is visible`);
+        for (const title of ['Harnesses', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Wallet', 'Connection']) assert.match(text, new RegExp(title), `${columns}x${rows}: ${title} is visible`);
         assert.doesNotMatch(text, /Results/, `${columns}x${rows}: no standalone Results/Activity tile`);
         const header = headerRows(rows);
         if (header === 2) {
@@ -91,7 +91,7 @@ test('attention is independent from focus and distinguishable from it; reduced m
     assert.equal(tileAttention(snapshot(), 'chats'), undefined);
 
     const lines = renderHome(waiting, terminal(120, 30), view({ attention: new Map([['chats', 'new']]) })).map(stripAnsi).join('\n');
-    assert.match(lines, /╔═ Current work/, 'focus stays where the operator left it');
+    assert.match(lines, /╔═ Harnesses/, 'focus stays where the operator left it');
     assert.match(lines, /▲ Chats/, 'the attention tile is marked');
     assert.doesNotMatch(lines, /╔═ ▲ Chats/);
     assert.match(lines, /1 needs attention/);
@@ -107,9 +107,9 @@ test('attention is independent from focus and distinguishable from it; reduced m
     assert.deepEqual(tileAttention(snapshot({ health: { ...snapshot().health, status: 'hard', summary: 'Disk full', incidents: [exhausted] } }), 'health'), { key: 'disk-hard-1', tone: 'error' });
     // Old errors, failed tasks, automatic waits and repairs do not ask anyone; a task question does.
     const quiet = snapshot({ errors: [{ at: new Date().toISOString(), summary: 'Harness crashed' }], queue: [{ ref: 'f', title: 'Failed', readiness: 'failed', reason: 'x', priority: 0, source: 'tasks/f.book' }], blockers: [{ kind: 'tools', title: 'Waiting for tools', reason: 'Quota', automatic: true }, { kind: 'setup', title: 'Router cannot route', reason: 'x', automatic: true }], tools: { ...snapshot().tools, waiting: { reason: 'Quota', action: 'Wait', automatic: true } } });
-    for (const domain of ['work', 'tasks', 'tools', 'system']) assert.equal(tileAttention(quiet, domain), undefined, `${domain}: inspectable without attention`);
+    for (const domain of ['harnesses', 'tasks', 'tools', 'system']) assert.equal(tileAttention(quiet, domain), undefined, `${domain}: inspectable without attention`);
     assert.ok(tileAttention(snapshot({ queue: [{ ref: 'q', title: 'Asks', readiness: 'awaiting-user', reason: 'x', priority: 0, source: 'tasks/q.book' }] }), 'tasks'), 'a task question is a genuine human request');
-    assert.ok(tileAttention(snapshot({ blockers: [{ kind: 'harness', title: 'OpenAI Codex needs setup', reason: 'Signed out' }] }), 'work'), 'a sign-in only the operator can do');
+    assert.ok(tileAttention(snapshot({ blockers: [{ kind: 'harness', title: 'OpenAI Codex needs setup', reason: 'Signed out' }] }), 'harnesses'), 'a sign-in only the operator can do');
 });
 
 test('content work comes first: the Tasks tile and status show supporting system work after it, muted', () => {
@@ -130,7 +130,7 @@ test('focus is a double-line border and bold heading that never changes tile geo
     const single = { '╔': '╭', '╗': '╮', '╚': '╰', '╝': '╯', '═': '─', '║': '│' };
     const normalized = (focus) => renderHome(snapshot(), terminal(120, 30), view({ focus })).map(stripAnsi).map((line) => line.replace(/[╔╗╚╝═║]/g, (char) => single[char]));
     const tiles = homeTiles(snapshot());
-    const reference = normalized('work');
+    const reference = normalized('harnesses');
     for (const tile of tiles) {
         const lines = renderHome(snapshot(), terminal(120, 30), view({ focus: tile })).map(stripAnsi);
         assert.equal(lines.filter((line) => /[╔╗╚╝]/.test(line)).length, 2, `${tile}: exactly one tile has the double border`);
@@ -152,7 +152,7 @@ test('pages replace the home grid, keep context and legend fixed and scroll thei
     const text = rendered.lines.map(stripAnsi);
     assert.match(text[0], /Promptbook · PTBK {3}birds · System/, 'pages keep the shared header with their title');
     assert.match(text[1], /^━+$/);
-    assert.doesNotMatch(text.join('\n'), /Current work|╭─ System/, 'the root grid is not rendered around the page');
+    assert.doesNotMatch(text.join('\n'), /╭─ System/, 'the root grid is not rendered around the page');
     assert.match(text[3], /↑ \d+ more/, 'a long page shows what is above');
     assert.match(text.at(-3), /activity line 79/, 'System keeps the operational log; its end shows the newest line');
     assert.match(text.at(-1), /Esc back/);

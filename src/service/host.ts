@@ -331,6 +331,10 @@ export class ServiceHost {
             case 'health-override':
             case 'health-clean-cache':
             case 'health-swap':
+            case 'session-entry':
+            case 'session-acquire':
+            case 'session-renew':
+            case 'session-release':
                 return await applyControlAction(agenda, method, params, this.browserControls);
             case 'tool-operation':
                 return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli');

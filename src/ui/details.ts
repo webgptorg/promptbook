@@ -1,3 +1,4 @@
+import type { HarnessSessionRecord, HarnessSessionState } from '../harness/sessions.js';
 import { formatShortTime } from '../common/time.js';
 import { formatMiB } from '../engine/health.js';
 import type { ReportView } from '../engine/report.js';
@@ -155,7 +156,91 @@ export function executionOneLine(execution: ExecutionDetailView): string {
 }
 
 /**
- * Lines of the execution details on the Current work page (also the raw EXECUTION section).
+ * Plain label of an observed session state.
+ *
+ * @private harness sessions view
+ */
+export function sessionStateLabel(state: HarnessSessionState): string {
+    switch (state) {
+        case 'interrupt-requested':
+            return 'interrupt requested';
+        case 'interrupted':
+            return 'interrupted (checkpointed)';
+        case 'idle':
+            return 'idle (ready)';
+        default:
+            return state;
+    }
+}
+
+/**
+ * What a session serves, in one phrase.
+ *
+ * @private harness sessions view
+ */
+export function sessionWorkLabel(session: Pick<HarnessSessionRecord, 'work'>): string {
+    const { work } = session;
+    if (work.kind === 'task') return `task "${work.task}"${work.occurrence ? ` (occurrence ${work.occurrence})` : ''}${work.workKind !== 'task' ? ` · ${work.workKind}` : ''}`;
+    if (work.kind === 'chat') return `chat {${work.chat}}`;
+    return `${work.purpose}${work.chat ? ` in {${work.chat}}` : ''}${work.task ? ` for "${work.task}"` : ''}`;
+}
+
+/**
+ * One line of a session in a list.
+ *
+ * @private harness sessions view
+ */
+export function sessionRowLine(session: HarnessSessionRecord, style?: Style): string {
+    const muted = style?.muted ?? ((text: string) => text);
+    return `${session.agent} · ${sessionWorkLabel(session)} ${muted(`· ${sessionStateLabel(session.state)}${session.lease ? ` · ${session.lease.mode} control` : ''} · ${session.harnessName}${session.tool ? ` (${session.tool})` : ''}`)}`;
+}
+
+/**
+ * Billing path a session's authentication means; unknown stays unknown.
+ */
+function billingLabel(session: HarnessSessionRecord): string {
+    if (session.authentication === 'account') return `native account${session.account ? ` (${session.account})` : ''}, its plan pays`;
+    if (session.authentication === 'api') return 'API key, billed through it';
+    if (session.authentication === 'none') return 'no authentication';
+    return 'unknown';
+}
+
+/**
+ * The common selected-session detail shared by the Harnesses page and the raw status. It always exists, whatever the
+ * adapter's native support; unknown values stay unknown rather than zero.
+ *
+ * @private harness sessions view
+ */
+export function sessionDetailLines(session: HarnessSessionRecord, style?: Style, receipts: readonly string[] = []): string[] {
+    const muted = style?.muted ?? ((text: string) => text);
+    const bold = style?.bold ?? ((text: string) => text);
+    const at = (iso?: string): string => (iso ? formatShortTime(Date.parse(iso)) : 'unknown');
+    const lines = [
+        `${muted('Agent    ')} ${bold(session.agent)}`,
+        `${muted('Serves   ')} ${sessionWorkLabel(session)}${session.work.kind === 'task' ? muted(` · ${session.work.source}`) : ''}`,
+        `${muted('State    ')} ${sessionStateLabel(session.state)}${muted(` · observed ${at(session.observedAt)}`)}${session.endedAt ? muted(` · ended ${at(session.endedAt)}`) : ''}`,
+        ...(session.detail ? [`${muted('Now      ')} ${session.detail}`] : []),
+        ...(session.endReason ? [`${muted('Ended    ')} ${session.endReason}`] : []),
+        `${muted('Tool     ')} ${session.tool ?? 'no named tool'} ${muted(`· ${session.harnessName}${session.harnessVersion ? ` ${session.harnessVersion}` : ''}`)}`,
+        `${muted('Billing  ')} ${billingLabel(session)}`,
+        `${muted('Model    ')} ${session.model ? `${session.model} ${muted('(reported)')}` : session.requestedModel ? `${session.requestedModel} ${muted('(requested)')}` : 'harness default'}${session.thinkingLevel ? muted(` · thinking ${session.thinkingLevel}`) : ''}`,
+        `${muted('Turns    ')} ${session.turns}${session.lastOutcome ? muted(` · latest ${session.lastOutcome}`) : ''}${muted(` · opened ${at(session.openedAt)}`)}`,
+        `${muted('Usage    ')} ${session.usage && Object.keys(session.usage).length ? `${Object.entries(session.usage).map(([field, value]) => `${field} ${value}`).join(' · ')} ${muted('(latest turn, as the provider reported it)')}` : 'unknown for the latest turn'}${session.costUsd !== undefined ? ` · $${session.costUsd.toFixed(4)}` : ''}`,
+        `${muted('Control  ')} ${session.lease ? `${session.lease.mode} by ${session.lease.holder}${muted(` · since ${at(session.lease.acquiredAt)}`)}` : 'Promptbook (autonomous)'}`,
+        ...(session.heldInputs?.length ? [`${muted('Held     ')} ${session.heldInputs.join('; ')}`] : []),
+        ...(receipts.length ? ['', bold('Instructions'), ...receipts] : []),
+        ...(session.providerIds.length ? [`${muted('Provider ')} ${session.providerIds.join(', ')}`] : [`${muted('Provider ')} no session identifier reported`]),
+        ...(session.predecessor ? [`${muted('Replaces ')} ${session.predecessor.handle}: ${session.predecessor.reason}`] : []),
+        ...(session.capabilities?.notes.length ? ['', bold('What this harness can do here'), ...session.capabilities.notes.map((note) => `- ${note}`)] : []),
+        '',
+        bold('Events'),
+        ...(session.output.length ? session.output : [muted('No events observed yet.')]),
+    ];
+    return lines;
+}
+
+/**
+ * Lines of the execution details on the Harnesses page (also the raw EXECUTION section).
  *
  * @private execution details view
  */

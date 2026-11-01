@@ -1,5 +1,5 @@
 import { readTextIfExists } from '../../../common/fs.js';
-import { baseInspection, helpText, homePath, withAuthentication } from '../../shared.js';
+import { baseInspection, helpText, homePath, observedSessionSupport, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessPlugin, HarnessRunRequest } from '../../types.js';
 
 /**
@@ -35,6 +35,7 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
     const help = await helpText({ projectRoot: request.projectRoot, env: request.env }, 'copilot', ['--help']);
     const args = ['-p', `Read the complete task instructions in the file ${request.promptFile} and follow them exactly.`, '--allow-all-tools'];
     if (help.includes('--no-color')) args.push('--no-color');
+    if (request.resumeSessionId) args.push(`--resume=${request.resumeSessionId}`);
     if (request.model) args.push('--model', request.model);
     if (request.mcp && help.includes('--additional-mcp-config')) {
         args.push('--additional-mcp-config', JSON.stringify({ mcpServers: { ptbk: { type: 'local', command: request.mcp.command, args: request.mcp.args, env: request.mcp.env, tools: ['*'] } } }));
@@ -65,5 +66,6 @@ export const plugin: HarnessPlugin = {
     inspect,
     buildInvocation,
     parseLine: () => [],
+    sessions: observedSessionSupport({ executable: 'copilot', help: ['--help'], continueNote: 'Copilot prints plain text here and reports no session identifier to continue: a next input starts a new session.' }),
     finalMessageFromOutput: (stdout) => stdout.replace(/\n\s*Total usage est[\s\S]*$/i, '').trim(),
 };

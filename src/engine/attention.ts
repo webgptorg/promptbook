@@ -3,7 +3,7 @@ import type { DashboardDomain, DomainAttention, ServiceSnapshot } from './snapsh
 /**
  * Every dashboard domain that can need the operator's attention.
  */
-const DOMAINS: readonly DashboardDomain[] = ['work', 'health', 'wallet', 'chats', 'tasks', 'tools', 'sync'];
+const DOMAINS: readonly DashboardDomain[] = ['harnesses', 'health', 'wallet', 'chats', 'tasks', 'tools', 'sync'];
 
 /**
  * Whether one domain needs a concrete human decision, input or action now, derived from its own state. Failures,
@@ -12,7 +12,7 @@ const DOMAINS: readonly DashboardDomain[] = ['work', 'health', 'wallet', 'chats'
  */
 function attentionOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: DashboardDomain): DomainAttention | undefined {
     switch (domain) {
-        case 'work': {
+        case 'harnesses': {
             const blockers = snapshot.blockers.filter((blocker) => !blocker.automatic && blocker.kind !== 'recovery');
             return blockers.length ? { key: blockers.map((blocker) => `${blocker.kind}:${blocker.title}`).join('|'), tone: 'error' } : undefined;
         }

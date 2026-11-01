@@ -60,6 +60,43 @@ export type HarnessCapabilities = {
 };
 
 /**
+ * What the installed release of a harness verifiably supports for one session through its current integration. Each
+ * capability is separate: streaming output does not establish continuing input, steering or a native client.
+ *
+ * @private harness plugin contract
+ */
+export type HarnessSessionCapabilities = {
+    /** A later input can continue the same provider session after a turn ended (the process need not stay alive). */
+    readonly continueInput: boolean;
+    /** Input can reach a turn while it is running. */
+    readonly liveSteering: boolean;
+    /** A running turn can be asked to stop at its own boundary. */
+    readonly interrupt: boolean;
+    /** The actual provider client can open this very session while no turn runs in it. */
+    readonly nativeClient: boolean;
+    /** The native client can be kept from sending any input (none of the current clients can). */
+    readonly nativeWatch: boolean;
+    /** Human and engine inputs can be serialized and attributed in one session. */
+    readonly sharedControl: boolean;
+    /** Why a capability is missing, in the words shown to the operator. */
+    readonly notes: readonly string[];
+};
+
+/**
+ * The session part of the plugin contract. Provider transport stays inside the adapter.
+ *
+ * @private harness plugin contract
+ */
+export type HarnessSessionSupport = {
+    /** Observes the installed release (bounded, read-only, never a model call). */
+    readonly capabilities: (context: HarnessContext) => Promise<HarnessSessionCapabilities>;
+    /** Arguments opening the actual provider client on this provider session. */
+    readonly nativeClientArgs?: (providerId: string) => readonly string[];
+    /** The verified way back from the native client and its known effect, shown before entry. */
+    readonly nativeReturn?: string;
+};
+
+/**
  * Inputs shared by inspection and maintenance operations.
  *
  * @private harness plugin contract
@@ -167,6 +204,8 @@ export type HarnessRunRequest = {
     readonly signal?: AbortSignal;
     /** Requests a polite interruption of the turn, never a forced kill. */
     readonly interruptSignal?: AbortSignal;
+    /** Provider-native session this input continues (only with `continueInput`; absent: a new session). */
+    readonly resumeSessionId?: string;
     /** Explicit paid-credit fallback authorization. */
     readonly allowCredits: boolean;
     /** Authentication observed during inspection. */
@@ -328,6 +367,8 @@ export type HarnessPlugin = {
     readonly buildInvocation: (request: HarnessRunRequest) => Promise<HarnessInvocation>;
     /** Parses one stdout line into events. */
     readonly parseLine: (line: string, state: ParserState) => HarnessEvent[];
+    /** Session lifecycle of this integration (absent: every invocation is a new session, nothing else is promised). */
+    readonly sessions?: HarnessSessionSupport;
     /** Final assistant message when the format has no explicit message events (plain-text output). */
     readonly finalMessageFromOutput?: (stdout: string) => string;
 };

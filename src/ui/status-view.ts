@@ -21,7 +21,7 @@ function flow(items: readonly string[], width: number, separator: string): strin
 }
 import { activityLabel, framedBadge, inlineBadge } from './badges.js';
 import { groupSupportingWork, type TaskInventoryItem } from '../tasks/views.js';
-import { briefRecoveryParts, browserDetailLines, executionDetailLines, executionOneLine, healthDetailLines, healthOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, pauseReasonLines, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
+import { briefRecoveryParts, browserDetailLines, executionDetailLines, executionOneLine, sessionRowLine, healthDetailLines, healthOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, pauseReasonLines, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
@@ -116,8 +116,12 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
         lines.push(`  Answer: ptbk answer "${chat.name}" "<answer>" · discuss: ptbk chat --open "${chat.name}"`);
     }
     lines.push(`CHATS: ${snapshot.chats.total} total, ${snapshot.chats.unread} unread message(s), ${waiting.length} waiting for you (ptbk chat --list)`);
+    const harnessSessions = snapshot.harnessSessions;
+    lines.push('', `HARNESSES${harnessSessions ? ` (${harnessSessions.counts.open} open, ${harnessSessions.counts.working} working, ${harnessSessions.counts.idle} idle, ${harnessSessions.counts.waiting} waiting, ${harnessSessions.ended.length} ended retained)` : ''}:`);
+    for (const session of harnessSessions?.open ?? []) lines.push(`- ${sessionRowLine(session)}`);
+    if (!harnessSessions?.open.length) lines.push('- none open');
     const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
-    lines.push('', `CURRENT WORK${snapshot.workload ? ` (${snapshot.workload.active} active, ${snapshot.workload.waiting} waiting, ${snapshot.workload.queued} queued)` : ''}`);
+    lines.push('', `WORK IN PROGRESS${snapshot.workload ? ` (${snapshot.workload.active} active, ${snapshot.workload.waiting} waiting, ${snapshot.workload.queued} queued)` : ''}`);
     for (const current of active) {
         if (current.kind === 'chat') {
             lines.push(`- chat reply in {${current.taskTitle}}`);
@@ -226,8 +230,13 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     ];
     output.push(...renderPanel({ title: 'System', titleRight: snapshot.service.mode, lines: controls, width: total, tone: snapshot.service.state === 'running' ? 'default' : 'attention', unicode, style }));
 
-    // Current work.
+    // Harnesses: open sessions first, then what the work is doing.
     const work: string[] = [];
+    const sessionInventory = snapshot.harnessSessions;
+    if (sessionInventory) {
+        work.push(`${style.bold(String(sessionInventory.counts.open))} open${style.muted(` · ${sessionInventory.counts.working} working · ${sessionInventory.counts.idle} idle · ${sessionInventory.counts.waiting} waiting`)}`);
+        for (const session of sessionInventory.open) work.push(`  ${sessionRowLine(session, style)}`);
+    }
     const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
     const current = active.find((item) => item.kind !== 'chat');
     if (current) {
@@ -334,12 +343,12 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     if (total >= WIDE_SNAPSHOT) {
         const rightWidth = Math.round(total * CONNECTION_SHARE);
         const leftWidth = total - rightWidth - 1;
-        const left = [...renderPanel({ title: 'Current work', lines: work, width: leftWidth, tone: current ? 'accent' : 'default', unicode, style }), ...toolsPanel(leftWidth)];
+        const left = [...renderPanel({ title: 'Harnesses', lines: work, width: leftWidth, tone: current ? 'accent' : 'default', unicode, style }), ...toolsPanel(leftWidth)];
         const sync = syncPanel(rightWidth);
         const right = [...sync, ...renderPanel({ title: 'Connection', lines: connectionLines(rightWidth - 4), width: rightWidth, unicode, style, minHeight: Math.max(0, left.length - 2 - sync.length) })];
         output.push(...sideBySide([left, right], [leftWidth, rightWidth]));
     } else {
-        output.push(...renderPanel({ title: 'Current work', lines: work, width: total, tone: current ? 'accent' : 'default', unicode, style }), ...toolsPanel(total), ...syncPanel(total));
+        output.push(...renderPanel({ title: 'Harnesses', lines: work, width: total, tone: current ? 'accent' : 'default', unicode, style }), ...toolsPanel(total), ...syncPanel(total));
     }
     output.push(...inventoryPanels(total));
     output.push(...renderPanel({ title: 'Results and activity', lines: results, width: total, unicode, style }));

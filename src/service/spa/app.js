@@ -30,9 +30,10 @@
         /** The open dashboard page (null: the home screen); mirrored in the URL fragment for Back. */
         page: null,
         /** The home tile holding the operator's focus (never moved by attention). */
-        focus: 'work',
+        focus: 'harnesses',
         /** The active unit selected on the work page (concurrent work). */
-        workSelected: null,
+        sessionSelected: undefined,
+        sessionsEnded: false,
         /** Viewer-local attention: domain → { key, tone, since, seen } (seen once the operator was clearly active). */
         attention: new Map(),
         /** Meaningful interactions with this page (keys, clicks) since it opened. */
@@ -546,58 +547,69 @@
         return snapshot.active || (snapshot.current ? [snapshot.current] : []);
     }
 
-    /** The active unit the operator selected on the work page (the first by default). */
-    function selectedWork(snapshot) {
-        const active = activeWork(snapshot);
-        return active.find((item) => (item.unit || item.taskRef) === state.workSelected) || active[0];
+    /** What a harness session serves, in one phrase. */
+    function sessionWorkLabel(session) {
+        const work = session.work;
+        if (work.kind === 'task') return `task "${work.task}"${work.occurrence ? ` (occurrence ${work.occurrence})` : ''}`;
+        if (work.kind === 'chat') return `chat {${work.chat}}`;
+        return work.purpose;
     }
 
-    function renderWork(snapshot) {
-        const card = h('section', { className: 'card work', 'aria-label': 'Current work' });
-        const active = activeWork(snapshot);
-        card.append(h('h2', {}, h('span', {}, 'Current work'), pill(snapshot.phase, snapshot.phase === 'blocked' ? 'bad' : active.length ? 'ok' : '')));
-        const workload = snapshot.workload;
-        if (workload) card.append(h('p', { className: 'muted' }, `${workload.active} active · ${workload.waiting} waiting · ${workload.queued} queued`));
-        if (active.length > 1) {
-            // Concurrent work: one row per unit; selecting one shows its details below.
+    /** The common selected-session detail: it exists for every session, whatever its native support. Unknown stays unknown. */
+    function renderSessionDetail(session) {
+        const usage = session.usage && Object.keys(session.usage).length ? Object.entries(session.usage).map(([field, value]) => `${field} ${value}`).join(' · ') : 'unknown for the latest turn';
+        const billing = session.authentication === 'account' ? `native account${session.account ? ` (${session.account})` : ''}, its plan pays` : session.authentication === 'api' ? 'API key, billed through it' : session.authentication === 'none' ? 'no authentication' : 'unknown';
+        const rows = [
+            ['Agent', session.agent],
+            ['Serves', sessionWorkLabel(session)],
+            ['State', `${session.state} · observed ${time(session.observedAt)}${session.endedAt ? ` · ended ${time(session.endedAt)}` : ''}`],
+            ...(session.detail ? [['Now', session.detail]] : []),
+            ...(session.endReason ? [['Ended', session.endReason]] : []),
+            ['Tool', `${session.tool || 'no named tool'} · ${session.harnessName}${session.harnessVersion ? ` ${session.harnessVersion}` : ''}`],
+            ['Billing', billing],
+            ['Model', session.model ? `${session.model} (reported)` : session.requestedModel ? `${session.requestedModel} (requested)` : 'harness default'],
+            ...(session.thinkingLevel ? [['Thinking', session.thinkingLevel]] : []),
+            ['Turns', `${session.turns}${session.lastOutcome ? ` · latest ${session.lastOutcome}` : ''}`],
+            ['Usage', usage],
+            ['Control', session.lease ? `${session.lease.mode} by ${session.lease.holder}` : 'Promptbook (autonomous)'],
+            ...(session.heldInputs && session.heldInputs.length ? [['Held', session.heldInputs.join('; ')]] : []),
+            ['Provider', session.providerIds.length ? session.providerIds.join(', ') : 'no session identifier reported'],
+            ...(session.predecessor ? [['Replaces', `${session.predecessor.handle}: ${session.predecessor.reason}`]] : []),
+        ];
+        return [
+            h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
+            session.capabilities && session.capabilities.notes.length ? h('ul', { className: 'list' }, session.capabilities.notes.map((note) => h('li', { className: 'muted' }, note))) : null,
+            h('p', { className: 'muted' }, 'The browser has no terminal of the actual harness client: this read-only view is what it offers. Native entry is available in the terminal dashboard where the harness supports it.'),
+            h('h3', {}, 'Events'),
+            session.output.length ? h('pre', {}, session.output.join('\n')) : h('p', { className: 'muted' }, 'No events observed yet.'),
+        ];
+    }
+
+    /** The Harnesses page: open sessions, retained ended evidence and the common detail of the selected one. */
+    function renderHarnesses(snapshot) {
+        const card = h('section', { className: 'card work', 'aria-label': 'Harnesses' });
+        const inventory = snapshot.harnessSessions || { open: [], ended: [], counts: { open: 0, working: 0, idle: 0, waiting: 0 } };
+        const rows = state.sessionsEnded ? inventory.ended : inventory.open;
+        const selected = rows.find((session) => session.handle === state.sessionSelected) || rows[0];
+        card.append(h('h2', {}, h('span', {}, state.sessionsEnded ? 'Ended sessions (retained evidence)' : 'Open sessions'), pill(`${inventory.counts.open} open`, inventory.counts.open ? 'ok' : '')));
+        card.append(h('p', { className: 'muted' }, `${inventory.counts.working} working · ${inventory.counts.idle} idle · ${inventory.counts.waiting} waiting · `, h('a', { href: '#', onclick: (event) => (event.preventDefault(), (state.sessionsEnded = !state.sessionsEnded), (state.sessionSelected = undefined), render()) }, state.sessionsEnded ? 'Show open sessions' : `Show ended sessions (${inventory.ended.length})`)));
+        if (rows.length) {
             card.append(
                 h(
                     'ul',
                     { className: 'list work-units' },
-                    active.map((item) =>
+                    rows.map((session) =>
                         h(
                             'li',
-                            { className: (item.unit || item.taskRef) === ((selectedWork(snapshot) || {}).unit || (selectedWork(snapshot) || {}).taskRef) ? 'selected' : '' },
-                            h('a', { href: '#', className: 'title', onclick: (event) => (event.preventDefault(), (state.workSelected = item.unit || item.taskRef), render(state.snapshot)) }, item.kind === 'chat' ? `Chat: ${item.taskTitle}` : item.taskTitle, h('span', { className: 'why' }, `${item.kind === 'chat' ? 'reply' : item.agent.name} · ${item.phase}${item.detail ? ` · ${item.detail}` : ''}`)),
+                            { className: selected && session.handle === selected.handle ? 'selected' : '' },
+                            h('a', { href: '#', className: 'title', onclick: (event) => (event.preventDefault(), (state.sessionSelected = session.handle), render()) }, `${session.agent} · ${sessionWorkLabel(session)}`),
+                            h('span', { className: 'muted' }, ` ${session.state}${session.lease ? ` · ${session.lease.mode} control` : ''} · ${session.harnessName}${session.tool ? ` (${session.tool})` : ''}`),
                         ),
                     ),
                 ),
             );
-        }
-        const current = selectedWork(snapshot);
-        if (current) {
-            card.append(
-                h(
-                    'div',
-                    { className: 'agent' },
-                    badge(current.agent),
-                    h('div', {}, h('div', {}, h('strong', {}, current.agent.name), ' ', h('span', { className: 'muted' }, ACTIVITY_LABEL[current.agent.activity] || current.agent.activity)), h('div', { className: 'title' }, current.taskTitle)),
-                ),
-            );
-            const rows = [
-                ['Task', `${current.taskRef}${current.kind !== 'task' ? ` (${current.kind})` : ''}`],
-                ...(current.tool ? [['Tool', `${current.harnessName} · ${current.tool}`]] : []),
-                ...(current.trace ? [['Trace', current.trace]] : []),
-                ['Phase', `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}${current.detail ? ` · ${current.detail}` : ''}`],
-                ['Since', time(current.startedAt)],
-            ];
-            if (current.target) rows.push(['Assigning', current.target.ref]);
-            if (current.files && current.files.length) rows.push(['Files', current.files.join(', ')]);
-            if (current.wait) rows.push(['Waiting', `${current.wait.reason}${current.wait.until ? ` · until ${time(current.wait.until)}` : ''}`]);
-            card.append(h('dl', { className: 'kv', style: 'margin-top:12px' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])));
-        } else {
-            card.append(h('p', {}, snapshot.service.state === 'stopped' ? 'The service is stopped.' : snapshot.wait ? snapshot.wait.reason : 'Idle.'));
-        }
+        } else card.append(h('p', { className: 'muted' }, state.sessionsEnded ? 'No ended session retained.' : 'No session is open. A session opens when an agent starts work or replies in a chat.'));
+        if (selected) card.append(...renderSessionDetail(selected).filter(Boolean));
         if (snapshot.wait) {
             card.append(
                 h(
@@ -624,7 +636,6 @@
         return card;
     }
 
-    /** Labels of a model in one execution context (reported/requested/automatic/unknown stay distinct). */
     function modelText(model) {
         if (model.status === 'reported') return `${model.value} (reported by the harness)`;
         if (model.status === 'requested') return `${model.value} (requested; not yet confirmed)`;
@@ -648,25 +659,6 @@
             state.details[key] = element.open;
         });
         return element;
-    }
-
-    function renderExecutionDetails(snapshot) {
-        // The selected unit's run among concurrent work (the first active one by default).
-        const selected = selectedWork(snapshot);
-        const execution = (selected && (snapshot.executions || []).find((candidate) => candidate.task.ref === selected.taskRef)) || snapshot.execution;
-        if (!execution) return h('p', { className: 'muted' }, 'No execution yet in this service.');
-        const rows = [
-            [execution.status === 'active' ? 'Current run' : 'Last run (historical)', execution.status === 'active' ? `${execution.task.kind} · phase ${execution.phase || 'unknown'}${execution.attempt ? ` · attempt ${execution.attempt}/${execution.attemptBudget}` : ''}` : `${execution.outcome || ''} ${execution.endedAt ? `at ${time(execution.endedAt)}` : ''} — not running now`],
-            ['Task', `${execution.task.title}${execution.task.source ? ` · ${execution.task.source}` : ''}`],
-            ['Agent', `${execution.agent.name}${execution.agent.source ? ` · ${execution.agent.source}` : ''}`],
-        ];
-        for (const context of execution.contexts) {
-            const prefix = context.role === 'consultation' ? `${context.by || '?'} → ${context.agent} (${context.state}): ` : '';
-            rows.push([context.role === 'consultation' ? 'Consultation' : 'Harness', `${prefix}${context.harness.name}${context.harness.version ? ` ${context.harness.version}` : ''}${context.harness.tool ? ` · tool ${context.harness.tool}` : ''}`]);
-            rows.push(['Model', `${prefix}${modelText(context.model)}${context.model.source ? ` · ${context.model.source}` : ''}`]);
-            rows.push(['Thinking', `${prefix}${thinkingText(context.thinkingLevel)}${context.thinkingLevel.source ? ` · ${context.thinkingLevel.source}` : ''}`]);
-        }
-        return h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)]));
     }
 
     /** Every named browser tool the engine reports (older engines: the single project browser). */
@@ -1004,9 +996,9 @@
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
     // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
-    const DOMAINS = ['work', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', 'sync'];
+    const DOMAINS = ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', 'sync'];
 
-    const TITLES = { work: 'Current work', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', usage: 'Usage', actions: 'Action log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { harnesses: 'Harnesses', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', usage: 'Usage', actions: 'Action log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
 
     /** Loads the History window (read-only: the engine never fetches or changes Git for it). */
     async function loadHistory() {
@@ -1394,15 +1386,16 @@
     function tileSummary(snapshot, domain) {
         const current = snapshot.current;
         switch (domain) {
-            case 'work': {
-                const active = activeWork(snapshot);
-                if (active.length > 1) {
-                    const workload = snapshot.workload;
-                    return [h('strong', {}, `${active.length} active${workload && workload.queued ? ` · ${workload.queued} queued` : ''}`), ...active.map((item) => (item.kind === 'chat' ? h('span', {}, `Chat: ${item.taskTitle}`) : h('span', { className: 'row' }, badge(item.agent, true), item.taskTitle)))];
-                }
-                if (current) return [h('span', { className: 'row' }, badge(current.agent, true), h('strong', {}, current.agent.name), h('span', { className: 'muted' }, ACTIVITY_LABEL[current.agent.activity] || current.agent.activity)), current.taskTitle, h('span', { className: 'muted' }, `${current.phase}${current.attempt ? ` · attempt ${current.attempt}/${current.attemptBudget}` : ''}`)];
-                if (snapshot.blockers.length) return [h('strong', { className: 'bad' }, snapshot.blockers[0].title), h('span', { className: 'muted' }, snapshot.blockers[0].action || snapshot.blockers[0].reason)];
-                return [h('strong', {}, snapshot.phase), snapshot.wait ? h('span', { className: 'muted' }, snapshot.wait.reason) : null];
+            case 'harnesses': {
+                const sessions = snapshot.harnessSessions;
+                const counts = sessions && sessions.counts;
+                const busy = sessions ? sessions.open.filter((session) => session.state !== 'idle') : [];
+                return [
+                    counts ? h('strong', {}, `${counts.open} open${counts.working ? ` · ${counts.working} working` : ''}${counts.idle ? ` · ${counts.idle} idle` : ''}${counts.waiting ? ` · ${counts.waiting} waiting` : ''}`) : h('strong', {}, snapshot.phase),
+                    ...busy.slice(0, 3).map((session) => h('span', { className: 'muted' }, `${session.agent}: ${sessionWorkLabel(session)}`)),
+                    snapshot.blockers.length ? h('strong', { className: 'bad' }, snapshot.blockers[0].title) : null,
+                    snapshot.blockers.length ? h('span', { className: 'muted' }, snapshot.blockers[0].action || snapshot.blockers[0].reason) : snapshot.wait ? h('span', { className: 'muted' }, snapshot.wait.reason) : null,
+                ];
             }
             case 'system': {
                 const stateName = snapshot.service.state;
@@ -1557,7 +1550,7 @@
     /** The no-scroll home screen: the saved brief, compact tiles, a focused tile (operator's cursor) and independent attention. */
     function renderHome(snapshot) {
         const tiles = homeTiles(snapshot);
-        if (!tiles.includes(state.focus)) state.focus = 'work';
+        if (!tiles.includes(state.focus)) state.focus = 'harnesses';
         const columns = homeColumns(tiles.length);
         const lines = tileLineBudget(tiles.length);
         const grid = h('section', { className: 'home', role: 'grid', 'aria-label': 'Dashboard home', style: `--columns:${columns};--rows:${Math.ceil(tiles.length / columns)}` });
@@ -2526,8 +2519,8 @@
     /** One domain page. */
     function renderPage(snapshot, domain) {
         switch (domain) {
-            case 'work':
-                return pageFrame('work', 'Agent, task, phase, waits and the actual harness/model/thinking of this run', renderWork(snapshot), detailPanel('execution', 'Execution details — agent, harness tool, model, thinking level', renderExecutionDetails(snapshot)));
+            case 'harnesses':
+                return pageFrame('harnesses', 'Every open harness session of your agents, including idle ones; selecting one shows it in detail', renderHarnesses(snapshot));
             case 'system':
                 return renderSystemPage(snapshot);
             case 'health':

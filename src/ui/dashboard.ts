@@ -1,3 +1,5 @@
+import { spawn } from 'node:child_process';
+import type { SessionClientLaunch, SessionEntryView } from '../harness/sessions.js';
 import { errorMessage } from '../common/errors.js';
 import { terminalSafe } from './ansi.js';
 import { clockTime, formatShortTime } from '../common/time.js';
@@ -156,7 +158,24 @@ type ToolAcknowledgement = { readonly kind: 'tool-in-use'; readonly request: Too
 /**
  * A modal step drawn as its own page (Esc returns to the page or home screen below it).
  */
-type Overlay = AgentPicker | Confirmation | ToolAcknowledgement;
+type Overlay = AgentPicker | Confirmation | ToolAcknowledgement | SessionEntry;
+
+/**
+ * The deliberate entry into one harness session: Do not enter is always the focused default, plain Enter included.
+ */
+type SessionEntry = {
+    readonly kind: 'session-entry';
+    /** The session being entered. */
+    readonly handle: string;
+    /** Which question is open. */
+    stage: 'entry' | 'control' | 'shared';
+    /** The focused choice. */
+    focus: number;
+    /** What the engine said can be offered. */
+    readonly offer: Extract<SessionEntryView, { available: true }>;
+    /** Why the last choice did nothing. */
+    note?: string;
+};
 
 /**
  * Meaningful key presses after a new attention item appeared that show the operator is actively using this viewer;
@@ -168,6 +187,11 @@ const ATTENTION_SETTLE_KEYS = 3;
  * Cadence of the home animation (badge gesture and the blink of new attention).
  */
 const HOME_FRAME_MS = 500;
+
+/**
+ * How often a held session lease is renewed while its native client runs.
+ */
+const SESSION_RENEW_MS = 10_000;
 
 /**
  * How long action feedback stays in the legend.
@@ -204,7 +228,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let feedback = '';
     let feedbackTimer: NodeJS.Timeout | undefined;
     // Viewer-local navigation: the home focus, the open page stack, a modal step, the task inventory and Book drafts.
-    let focus: HomeTile = 'work';
+    let focus: HomeTile = 'harnesses';
     const pages: DashboardPage[] = [];
     let overlay: Overlay | undefined;
     let inventory: TaskInventoryItem[] | undefined;
@@ -309,6 +333,20 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     const overlayBody = (step: Overlay): { title: string; context: string; body: string[]; anchor?: number; legend: string; choices?: { readonly bodyRow: number; readonly first: number; readonly count: number } } => {
         const pointer = (focused: boolean): string => (focused ? style.accent(marks.pointer) : ' ');
         if (step.kind === 'confirm') return { title: 'Confirm', context: 'A consequential action needs your confirmation', body: [style.bold(step.question), ...(step.details ?? [])], legend: ' Y confirm · N/Esc keep things as they are' };
+        if (step.kind === 'session-entry') {
+            const choices = sessionEntryChoices(step);
+            return {
+                title: 'Enter this session',
+                context: step.stage === 'shared' ? 'Both you and Promptbook could send inputs to this session' : 'Nothing happens unless you choose so',
+                body: [
+                    ...(step.stage === 'shared' ? [style.warning('In shared control both you and Promptbook can send inputs to this session.')] : []),
+                    ...(step.stage !== 'entry' ? [style.bold('How to come back'), step.offer.returnHint, ''] : []),
+                    ...choices.map((choice, index) => `${pointer(index === step.focus)} ${choice.label}${choice.reason ? style.muted(` — ${choice.reason}`) : ''}`),
+                    ...(step.note ? ['', style.warning(step.note)] : []),
+                ],
+                legend: ' ↑↓ choose · Enter confirm · Esc cancel',
+            };
+        }
         if (step.kind === 'tool-in-use') {
             return {
                 title: 'Tool in use',
@@ -371,6 +409,115 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         }
         const controlNote = source.owning && ownerStopRequested && snapshot.service.state === 'stopping' ? 'This view closes when the engine has stopped.' : undefined;
         screen.draw(renderHome(snapshot, terminal, { focus, attention: attentionView(), frame, legend: homeLegend(), feedback, connectionLost, controlNote }));
+    };
+
+    /** The choices of the open question of a session entry; the first one is always the harmless default. */
+    const sessionEntryChoices = (step: SessionEntry): Array<{ readonly label: string; readonly value: 'none' | 'watch' | 'control' | 'exclusive' | 'shared' | 'shared-confirm'; readonly reason?: string }> => {
+        if (step.stage === 'entry') return [{ label: 'Do not enter', value: 'none' }, { label: 'Watch only', value: 'watch', ...(step.offer.watch.native ? {} : { reason: step.offer.watch.reason }) }, { label: 'Control', value: 'control' }];
+        if (step.stage === 'control') return [{ label: 'Do not enter', value: 'none' }, { label: 'Exclusive takeover', value: 'exclusive', ...(step.offer.exclusive.reason ? { reason: step.offer.exclusive.reason } : {}) }, { label: 'Shared control', value: 'shared', ...(step.offer.shared.reason ? { reason: step.offer.shared.reason } : {}) }];
+        return [{ label: 'Do not enter', value: 'none' }, { label: 'Yes, share control with Promptbook', value: 'shared-confirm' }];
+    };
+
+    /** Asks the engine what entering this session can offer; an unavailable entry explains itself and changes nothing. */
+    const beginSessionEntry = async (handle: string | undefined): Promise<void> => {
+        if (!handle) return;
+        const result = await runAction('session-entry', { handle });
+        const offer = result?.data as SessionEntryView | undefined;
+        if (!offer) return;
+        if (!offer.available) {
+            notify(offer.reason);
+            return;
+        }
+        overlay = { kind: 'session-entry', handle, stage: 'entry', focus: 0, offer };
+        draw();
+    };
+
+    /** Keys of the entry question. Cancelling at any stage has no effect at all. */
+    const sessionEntryKey = (step: SessionEntry, event: KeyEvent): void => {
+        if (event.type !== 'key') return;
+        const choices = sessionEntryChoices(step);
+        if (event.name === 'escape') {
+            overlay = undefined;
+            notify('Not entered; nothing changed.');
+            draw();
+            return;
+        }
+        if (event.name === 'up' || event.name === 'down') {
+            step.focus = (step.focus + (event.name === 'up' ? -1 : 1) + choices.length) % choices.length;
+            step.note = undefined;
+            draw();
+            return;
+        }
+        if (event.name !== 'enter') return;
+        const choice = choices[step.focus]!;
+        switch (choice.value) {
+            case 'none':
+                overlay = undefined;
+                notify('Not entered; nothing changed.');
+                break;
+            case 'watch':
+                // The native client cannot be kept read-only here: the common read-only event view is what stays open.
+                overlay = undefined;
+                notify(step.offer.watch.reason ?? 'Watching.');
+                break;
+            case 'control':
+                step.stage = 'control';
+                step.focus = 0;
+                break;
+            case 'exclusive':
+                if (!step.offer.exclusive.available) step.note = step.offer.exclusive.reason;
+                else {
+                    overlay = undefined;
+                    void enterSession(step.handle, 'exclusive');
+                }
+                break;
+            case 'shared':
+                if (!step.offer.shared.available) step.note = step.offer.shared.reason;
+                else {
+                    step.stage = 'shared';
+                    step.focus = 0;
+                }
+                break;
+            case 'shared-confirm':
+                overlay = undefined;
+                void enterSession(step.handle, 'shared');
+                break;
+        }
+        draw();
+    };
+
+    /**
+     * Hands the full screen to the actual native client under a session lease; the engine and other sessions keep
+     * running. Whatever happens to the client, the terminal is restored to this same session detail and the actual
+     * outcome is reported.
+     */
+    const enterSession = async (handle: string, mode: 'exclusive' | 'shared'): Promise<void> => {
+        const holder = `terminal ${process.pid}`;
+        const acquired = await runAction('session-acquire', { handle, holder, mode });
+        const client = acquired?.applied ? (acquired.data as SessionClientLaunch | undefined) : undefined;
+        if (!client) return;
+        let outcome = '';
+        await outside(async () => {
+            process.stdout.write(`\n${client.returnHint}\n\n`);
+            outcome = await new Promise<string>((resolve) => {
+                const child = spawn(client.command, [...client.args], { cwd: client.cwd, env: { ...process.env, ...client.env }, stdio: 'inherit' });
+                const renew = (): void => void source.action('session-renew', { handle, holder, ...(child.pid ? { clientPid: child.pid } : {}) }).catch(() => undefined);
+                renew();
+                const renewal = setInterval(renew, SESSION_RENEW_MS);
+                child.once('error', (error) => {
+                    clearInterval(renewal);
+                    resolve(`The native client could not start: ${errorMessage(error)}`);
+                });
+                child.once('close', (code, signal) => {
+                    clearInterval(renewal);
+                    resolve(code === 0 ? 'The native client closed; this session stays open.' : `The native client ended with ${signal ?? `exit code ${String(code)}`}; this session stays inspectable here.`);
+                });
+            });
+            return undefined;
+        });
+        await source.action('session-release', { handle, holder, detail: outcome }).catch(() => undefined);
+        notify(outcome);
+        draw();
     };
 
     const leave = (reason: 'left' | 'ended'): void => {
@@ -956,7 +1103,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keepSelection(page, context);
         const keys = pageItemKeys(page, context);
         const count = keys.length;
-        const list = ['work', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'usage', 'actions', 'history', 'files'].includes(page.kind);
+        const list = ['harnesses', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'usage', 'actions', 'history', 'files'].includes(page.kind);
         const room = Math.max(1, terminal.rows() - 5);
         if (event.type === 'key') {
             if (event.name === 'escape') {
@@ -1028,7 +1175,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     draw();
                     return;
                 }
-                if (page.kind === 'agents' || page.kind === 'tasks') page.detail = !page.detail;
+                if (page.kind === 'agents' || page.kind === 'tasks' || page.kind === 'harnesses') page.detail = !page.detail;
             }
             draw();
             return;
@@ -1061,9 +1208,13 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 }
                 return;
             }
-            case 'work':
+            case 'harnesses':
                 if (key === 's') void runAction('skip-wait');
                 else if (key === 't') openPage({ kind: 'tools', scroll: 0, focus: 0 });
+                else if (key === 'e') {
+                    Object.assign(page, { ended: !page.ended, focus: 0, selected: undefined, detail: false, scroll: 0 });
+                    draw();
+                } else if (key === 'n' && page.detail) void beginSessionEntry(page.selected);
                 return;
             case 'health':
                 healthKey(page, key);
@@ -1194,6 +1345,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             draw();
             return;
         }
+        if (step.kind === 'session-entry') {
+            sessionEntryKey(step, event);
+            return;
+        }
         if (step.kind === 'confirm') {
             if (event.type === 'text' && event.text.toLowerCase() === 'y') {
                 overlay = undefined;
@@ -1292,7 +1447,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 openTile('chats');
                 return;
             case 'e':
-                openTile('work');
+                openTile('harnesses');
                 return;
             case 'i':
                 openTile('system');
@@ -1422,7 +1577,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 previous = next;
                 snapshot = next;
                 if (focusRequest >= snapshot.chats.waiting.length) focusRequest = 0;
-                if (!homeTiles(snapshot).includes(focus)) focus = 'work';
+                if (!homeTiles(snapshot).includes(focus)) focus = 'harnesses';
                 // A page of a domain that disappeared (autosync turned off) returns to the home screen.
                 if (pages.some((page) => page.kind === 'sync') && !snapshot.sync) pages.length = 0;
                 updateAttention();

@@ -1,3 +1,4 @@
+import type { HarnessSessionRecord } from '../harness/sessions.js';
 import { appendFile, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ensureDirectory, listDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
@@ -540,6 +541,16 @@ export class StateStore {
     /** Persists the scheduled rechecks of failed chat replies. */
     public async writeChatRechecks(rechecks: Record<string, ChatReplyRecheck>): Promise<void> {
         await writeJsonAtomic(this.file('chat-replies.json'), rechecks);
+    }
+
+    /** Reads the harness session inventory (open sessions and retained ended evidence). */
+    public async readHarnessSessions(): Promise<HarnessSessionRecord[]> {
+        return (await readJsonIfExists<HarnessSessionRecord[]>(this.file('harness-sessions.json')).catch(() => undefined)) ?? [];
+    }
+
+    /** Persists the harness session inventory. */
+    public async writeHarnessSessions(records: readonly HarnessSessionRecord[]): Promise<void> {
+        await writeJsonAtomic(this.file('harness-sessions.json'), records);
     }
 
     /** Reads the accepted chat addresses whose agents still owe a reply. */

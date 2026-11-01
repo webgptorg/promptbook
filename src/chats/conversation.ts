@@ -9,7 +9,7 @@ import { resolveEffectiveAgent, type AgentCatalog, type EffectiveAgent } from '.
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
 import type { Project } from '../project/workspace.js';
-import { runHarness } from '../harness/run.js';
+import { runHarnessInSession, type HarnessSessions } from '../harness/sessions.js';
 import type { HarnessEvent } from '../harness/types.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
 import { instanceEnvironment, type HarnessPool } from '../engine/harnesses.js';
@@ -61,6 +61,8 @@ export type ConversationContext = {
     readonly chats: ChatStore;
     readonly env: NodeJS.ProcessEnv;
     readonly signal?: AbortSignal;
+    /** The engine's harness session inventory (absent outside an engine). */
+    readonly sessions?: HarnessSessions;
     /** Creates and commits an ordinary task through normal authoring (linked to the chat); returns its name. */
     readonly createTask: (input: ChatTaskInput) => Promise<string>;
     /** Invites an agent into the chat and asks it to reply: the same operation as a `+@Name` address (absent: not available here). */
@@ -175,7 +177,20 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
     const instance = context.pool.instance(routerRoute.selection.tool!)!;
     let result;
     try {
-        result = await runHarness(
+        result = await runHarnessInSession(
+            context.sessions,
+            {
+                key: `chat-routing:${stored.chat.name}:${shortId(6)}`,
+                agent: routerAgentDefinition.name,
+                work: { kind: 'helper', purpose: 'Choosing how a chat is answered', chat: stored.chat.name },
+                tool: instance.name,
+                harnessVersion: routerRoute.inspection.version,
+                model: routerRoute.selection.model,
+                thinkingLevel: routerRoute.selection.thinkingLevel,
+                authentication: routerRoute.inspection.authentication,
+                account: instance.accountProfile,
+                ephemeral: true,
+            },
             routerRoute.plugin,
             {
                 projectRoot: context.project.root,
@@ -407,7 +422,21 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const progress = new ReplyProgress(context, chat.name, formatAgentReference(agent.name));
     let result;
     try {
-        result = await runHarness(
+        result = await runHarnessInSession(
+            context.sessions,
+            {
+                // Each agent keeps its own attributed context in each chat.
+                key: `chat:${chat.name}:${agent.name}`,
+                agent: agent.name,
+                work: { kind: 'chat', chat: chat.name },
+                tool: instance.name,
+                harnessVersion: inspection.version,
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                authentication: inspection.authentication,
+                account: instance.accountProfile,
+                redact: bridge ? (text) => text.split(bridge.secret).join('[REDACTED]') : undefined,
+            },
             plugin,
             {
                 projectRoot: context.project.root,
@@ -485,7 +514,7 @@ export type BriefComposition = { readonly text?: string; readonly error?: string
  *
  * @private chats
  */
-export async function composeProjectBrief(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity'>, input: { readonly agent: string; readonly digest: string; readonly previous?: { readonly text: string; readonly at: string }; readonly reportPath: string }): Promise<BriefComposition> {
+export async function composeProjectBrief(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>, input: { readonly agent: string; readonly digest: string; readonly previous?: { readonly text: string; readonly at: string }; readonly reportPath: string }): Promise<BriefComposition> {
     const agent = await resolveEffectiveAgent(context.catalog, input.agent);
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { error: `${input.agent} cannot write the brief: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
@@ -519,7 +548,20 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
     context.onActivity?.(`${agent.name} is writing the project brief`);
     let result;
     try {
-        result = await runHarness(
+        result = await runHarnessInSession(
+            context.sessions,
+            {
+                key: `project-brief:${shortId(6)}`,
+                agent: agent.name,
+                work: { kind: 'helper', purpose: 'Writing the project brief' },
+                tool: instance.name,
+                harnessVersion: route.inspection.version,
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                authentication: route.inspection.authentication,
+                account: instance.accountProfile,
+                ephemeral: true,
+            },
             plugin,
             {
                 projectRoot: context.project.root,
@@ -573,7 +615,7 @@ const LOGIN_CODE_TIMEOUT_MS = 3 * 60_000;
  *
  * @private chats
  */
-export async function findLoginCode(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity'>, input: { readonly agent: string; readonly origin: string; readonly account: string; readonly tools: readonly BridgeTool[] }): Promise<string | undefined> {
+export async function findLoginCode(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>, input: { readonly agent: string; readonly origin: string; readonly account: string; readonly tools: readonly BridgeTool[] }): Promise<string | undefined> {
     const agent = await resolveEffectiveAgent(context.catalog, input.agent);
     if (agent.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) return undefined;
     const route = await readOnlyRoute(agent, undefined, { catalog: context.catalog, pool: context.pool, settings: context.settings });
@@ -609,7 +651,21 @@ export async function findLoginCode(context: Pick<ConversationContext, 'project'
     context.onActivity?.(`${agent.name} looks for the one-time code of a Wallet test of ${input.origin}`);
     let result;
     try {
-        result = await runHarness(
+        result = await runHarnessInSession(
+            context.sessions,
+            {
+                key: `login-code:${shortId(6)}`,
+                agent: agent.name,
+                work: { kind: 'helper', purpose: `Finding the one-time code of a Wallet test of ${input.origin}` },
+                tool: instance.name,
+                harnessVersion: route.inspection.version,
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                authentication: route.inspection.authentication,
+                account: instance.accountProfile,
+                ephemeral: true,
+                redact: (text) => text.split(bridge.secret).join('[REDACTED]'),
+            },
             plugin,
             {
                 projectRoot: context.project.root,
