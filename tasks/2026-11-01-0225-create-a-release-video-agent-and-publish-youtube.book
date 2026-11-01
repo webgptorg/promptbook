@@ -1,5 +1,8 @@
 TASK Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03
 GOAL Original user request: "After each version, publish a video on my personal YouTube about this version. Start with version 0.119.0-45 create a new agent for this responsibility." Create a dedicated persistent project agent responsible for producing and publishing a video about every released version, beginning with 0.119.0-45. Preserve this brief and source conversation. Establish ordinary ongoing release-triggered work using existing project mechanisms, preventing duplicate uploads. Ground each video's content in verified release changes and demonstrations; do not invent the owner's preferences. Prepare and publish the first video for 0.119.0-45 on the owner's personal YouTube, using available authorized access; resolve channel identity from context or ask the owner only if genuinely ambiguous or access is unavailable. Publication is authorized by this request. Record actual publication evidence and report truthful status. Add project changes to changelog/_current-preversion.md; follow project specs and leave commits/completion stamps to the engine. Keep the new agent editable and involve it in this chat once created.
 TASK AGENT @Expert
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK ORIGIN Chat {Chatter: After each version, publish a video on my personal YouTube a — 2026-11-01 02:24:36}
 LINK {Chatter: After each version, publish a video on my personal YouTube a — 2026-11-01 02:24:36}
+TASK NOTE Router: Release videos support communication and promotion of Promptbook, whose primary scope is the agent CLI.
+TASK PURPOSE SYSTEM

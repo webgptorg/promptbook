@@ -1,0 +1,8 @@
+TASK Assign routing: Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03 — 2026-11-01 02:25:06
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PURPOSE SYSTEM
+TASK PARENT {Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03}
+TASK ORIGIN assignment for {Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03}
+TASK DONE 2026-11-01T02:55:27+01:00
