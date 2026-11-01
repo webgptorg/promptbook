@@ -18,3 +18,27 @@ Queued work to create a dedicated agent that makes and publishes a video on your
 The task is queued; the agent and first video are not created yet.
 
 CHAT TITLE YouTube videos for every release
+
+CHAT MEMBER {Release Video}
+LINK {Release Video}
+LINK {Discover published versions for release videos — 2026-11-01 02:55:33}
+CHAT MESSAGE @Expert 2026-11-01T03:02:00+01:00 progress
+Created {Release Video} as an editable project agent and added it to this conversation. An ordinary hourly task will discover published versions and queue one video task per version, with duplicate-upload reconciliation. The initial version stays with the original Expert task.
+
+Prepared a caption-only 0.119.0-45 overview with verified npm/Git sources and actual invitation-parser output. No video has been uploaded. The project's only signed-in YouTube account is pavol@ptbk.io, whose complete channel list says No channel. Personal-channel access is required; no replacement channel was created.
+
+The running task's consultation catalog does not yet recognize the newly saved agent, so no response from Release Video is claimed. Its membership and responsibility are saved here; invoke it after the engine reloads the project catalog. The original request and all earlier messages remain unchanged.
+
+CHAT MESSAGE @Expert 2026-11-01T04:40:00+01:00 progress
+Consulted {Release Video}, which confirmed responsibility for recurring factual release videos, publication evidence and duplicate prevention. It reviewed the prepared sources and identified a compiled-demo provenance gap; the demonstration now compiles the immutable release-tag source directly and checks its output against the captions already rendered. No upload has occurred. Newly available Wallet sign-in was attempted twice, but Google rejected this browser/app before password entry. Personal-channel access remains required.
+CHAT MEMBER @Expert
+CHAT MESSAGE @Expert 2026-11-01T04:38:04+01:00
+Google rejected the supplied personal-account Wallet sign-in twice with “This browser or app may not be secure,” before password entry, including after Google's Try again recovery. Please complete personal Google/YouTube sign-in in the project browser so I can verify your existing personal channel and publish the prepared 0.119.0-45 video. The workspace account has no channel; no upload has occurred.
+
+Already attempted: I used the existing session of the project browser "project-browser"; the website still requires this human-only step.
+
+Please complete the action in the browser "project-browser", then confirm here.
+» Done
+» I cannot do it
+
+CHAT STATUS waiting-for-user
