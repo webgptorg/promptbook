@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { normalizeAgentName } from '../../../src/book/references.js';
-import { analyze, highlightBook, isLiteral, keywordCompletions, matchCommitmentKeyword, parseBook, referencesIn } from './language.js';
+import { analyze, declarationIn, highlightBook, isLiteral, keywordCompletions, matchCommitmentKeyword, parseBook, referenceAt, referenceHighlights } from './language.js';
 import { MAX_BOOKC_BYTES, previewHtml, readBookc } from './bookc.js';
 
 /** Connect the bundled engine language services to VS Code without starting an engine or an AI harness. */
@@ -101,29 +100,53 @@ export function activate(context: vscode.ExtensionContext): void {
     }));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(selector, {
         async provideDefinition(document, position, token) {
-            const offset = document.offsetAt(position);
-            const reference = referencesIn(document.getText()).find((item) => offset >= item.index && offset < item.index + item.raw.length);
+            const reference = referenceAt(document.getText(), document.offsetAt(position));
             if (!reference) return;
+            const originSelectionRange = new vscode.Range(document.positionAt(reference.index), document.positionAt(reference.index + reference.raw.length));
             const folder = vscode.workspace.getWorkspaceFolder(document.uri);
-            if (!folder) return;
-            const files = await vscode.workspace.findFiles(
+            const files = folder ? await vscode.workspace.findFiles(
                 new vscode.RelativePattern(folder, '**/*.{book,book.md,ptbk,ptbk.md}'),
-                '**/{node_modules,.git,.ptbk,traces,dist,dist-vscode}/**', undefined, token,
-            );
-            const locations: vscode.Location[] = [];
-            for (const uri of files) {
+                '**/{node_modules,.git,.ptbk,traces,actions,dist,dist-vscode}/**', undefined, token,
+            ) : [];
+            // Newly created/unsaved Books are not necessarily returned by findFiles; editor buffers win over disk.
+            const candidates = new Map(files.map((uri) => [uri.toString(), uri]));
+            for (const open of vscode.workspace.textDocuments) {
+                if (open.languageId !== 'book' || open.isClosed) continue;
+                if (open.uri.toString() === document.uri.toString() || (folder &&
+                    vscode.workspace.getWorkspaceFolder(open.uri)?.uri.toString() === folder.uri.toString())) {
+                    candidates.set(open.uri.toString(), open.uri);
+                }
+            }
+            candidates.set(document.uri.toString(), document.uri);
+            const locations: vscode.DefinitionLink[] = [];
+            for (const uri of candidates.values()) {
                 if (token.isCancellationRequested) return;
                 try {
                     const open = vscode.workspace.textDocuments.find((candidate) => candidate.uri.toString() === uri.toString());
                     const source = open ? open.getText() : new TextDecoder().decode(await vscode.workspace.fs.readFile(uri));
-                    const parsed = parseBook(source);
-                    if (!['agent', 'task', 'chat'].includes(parsed.kind) || normalizeAgentName(parsed.name) !== reference.normalized) continue;
-                    locations.push(new vscode.Location(uri, new vscode.Range(parsed.headerLine, 0, parsed.headerLine, parsed.lines[parsed.headerLine]!.length)));
+                    const declaration = declarationIn(source);
+                    if (!declaration || declaration.normalized !== reference.normalized) continue;
+                    const lines = source.slice(0, declaration.index).split('\n');
+                    const line = lines.length - 1;
+                    const start = lines[line]!.length;
+                    locations.push({
+                        originSelectionRange, targetUri: uri,
+                        targetRange: new vscode.Range(line, 0, line, start + declaration.raw.length),
+                        targetSelectionRange: new vscode.Range(line, start, line, start + declaration.raw.length),
+                    });
                 } catch {
                     // A file can disappear or become unreadable during a workspace search.
                 }
             }
             return locations;
+        },
+    }));
+    context.subscriptions.push(vscode.languages.registerDocumentHighlightProvider(selector, {
+        provideDocumentHighlights(document, position) {
+            return referenceHighlights(document.getText(), document.offsetAt(position)).map((item) => new vscode.DocumentHighlight(
+                new vscode.Range(document.positionAt(item.index), document.positionAt(item.index + item.raw.length)),
+                item.declaration ? vscode.DocumentHighlightKind.Write : vscode.DocumentHighlightKind.Read,
+            ));
         },
     }));
     context.subscriptions.push(vscode.window.registerCustomEditorProvider('bookc.preview', {

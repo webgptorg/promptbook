@@ -1,5 +1,10 @@
 # Unreleased
 
+## VS Code: reference navigation and occurrence highlighting
+
+-   Ctrl+click/Cmd+click, F12 and Peek Definition use the full `@Name` or `{Name}` reference as a link and select the target agent, task or chat name, including changes in open and newly created Book files.
+-   Selecting a reference or its declaration highlights equivalent names in both reference syntaxes, using the engine's case, accent and separator normalization. Reference colors follow the editor theme; code, escaped lines and emails stay literal.
+
 ## Chats: work can move to another agent
 
 -   Asking a chat to give a task to someone else moves it: the previous agent stops at its nearest safe point, and the new one takes over only once it is free, so a task never has two owners and no agent holds two tasks.
