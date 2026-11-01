@@ -48,4 +48,8 @@ You are logged in manually
 CHAT MESSAGE @Chatter 2026-11-01T10:59:11+01:00 progress
 - $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md'
 - ptbk.task_status Create a release video agent
+- ptbk.change_task
+
+CHAT MESSAGE @Chatter 2026-11-01T10:59:31+01:00 final
+I’ve passed your login confirmation to the existing task so it can verify your personal channel and continue publishing the 0.119.0-45 video. The update is saved but hasn’t been applied by the worker yet; publication is not confirmed.
 
