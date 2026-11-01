@@ -3,8 +3,8 @@
 - **Outcome:** success
 - **Impact:** 2
 - **Action time:** 2026-11-01T21:08:26+01:00
-- **Recorded:** 2026-11-01T21:09:21+01:00
-- **Attempts:** 3
+- **Recorded:** 2026-11-01T21:09:54+01:00
+- **Attempts:** 4
 - **Agent:** Release Video
 - **Task:** Publish the Promptbook 0.119.0-47 release video - 2026-11-01 21:04:12
 - **Task source:** tasks/2026-11-01-release-video-0-119-0-47.book (revision 5e3a540bda30)
@@ -22,7 +22,7 @@ releases/videos/0.119.0-47/script.md; video.mp4 SHA-256 2e10993212631487ae081dde
 
 ## Observed outcome
 
-Studio shows Video zveřejněno (Video published), title Promptbook 0.119.0-47: external-action impact and priority, 2:31 duration, date 2026-11-01, public radio selected, canonical video ID jdSEZ5OJEho, verified channel UCH76EQk6XKI6WF7k_Pdh2GA. Exactly one upload performed. Watch-page playback verification follows; copyright checks still running at publication.
+Verified at 2026-11-01T20:09:30.131Z: Studio confirmed Video zveřejněno and its unfiltered content list shows exactly two videos, one for 0.119.0-45 and one for 0.119.0-47, both Veřejné/Publikováno. Public watch player reports videoId jdSEZ5OJEho, correct title and channelId UCH76EQk6XKI6WF7k_Pdh2GA, isPrivate false, isUnlisted false, playability OK, publishDate 2026-11-01T12:09:14-08:00. Playback advanced to 5.086 seconds, duration 151.041, readyState 4, quality small. Copyright checks still running at publication; HD completion not independently verified. One upload, no duplicate.
 
 ## Impact
 
@@ -45,3 +45,4 @@ Methodology:
 - 2026-11-01T21:09:09+01:00 — another attempt of the same action begun (attempt nfqtqg642r-a1)
 - 2026-11-01T21:09:14+01:00 — pending: Clicked Publish once for existing video jdSEZ5OJEho with public visibility selected. Awaiting post-click acknowledgement and watch-page/Studio verification. Copyright checks were still running at subm (attempt nfqtqg642r-a1)
 - 2026-11-01T21:09:21+01:00 — success: Studio shows Video zveřejněno (Video published), title Promptbook 0.119.0-47: external-action impact and priority, 2:31 duration, date 2026-11-01, public radio selected, canonical video ID jdSEZ5OJEho (attempt nfqtqg642r-a1)
+- 2026-11-01T21:09:54+01:00 — success: Verified at 2026-11-01T20:09:30.131Z: Studio confirmed Video zveřejněno and its unfiltered content list shows exactly two videos, one for 0.119.0-45 and one for 0.119.0-47, both Veřejné/Publikováno. P (attempt nfqtqg642r-a1)
