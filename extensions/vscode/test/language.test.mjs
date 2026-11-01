@@ -148,3 +148,43 @@ test('the registered highlight and semantic providers agree on complete referenc
         assert.equal(editor.highlights.provideDocumentHighlights(document, document.positionAt(offset)).length, 0);
     }
 });
+
+test('references are visibly colored on activation without requesting semantic tokens', (t) => {
+    const document = bookDocument('/project/agents/developer.book', '\uFEFFAGENT Developer\r\nFROM @Adam\r\nGOAL 👋 Ask +{Frontend Developer} and @Writer.\r\nNOTE `@Code` user@example.com {{Template}}\r\n\\@Escaped\r\n```book\r\n{Fenced}\r\n```');
+    const editor = activateEditor([document]);
+    t.after(() => editor.dispose());
+    const [style] = editor.decorationTypes;
+    assert.ok(style, 'reference colors must work independently of whether semantic highlighting runs');
+    assert.equal(style.options.color.id, 'textLink.foreground', 'use a theme color rather than a hardcoded dark-theme color');
+    const ranges = editor.editors[0].decorations.get(style);
+    assert.deepEqual(ranges.map((range) => document.text.slice(document.offsetAt(range.start), document.offsetAt(range.end))),
+        ['@Adam', '{Frontend Developer}', '@Writer']);
+    assert.deepEqual([ranges[0].start.line, ranges[0].start.character, ranges[0].end.character], [1, 5, 10], 'FROM @Adam from the reported screenshot');
+});
+
+test('reference colors follow edits, removal, split editors and newly visible files', async (t) => {
+    const document = bookDocument('/project/developer.book', 'AGENT Developer\nFROM @Adam');
+    const other = bookDocument('/project/task.ptbk.md', 'TASK Export\nGOAL Ask {Frontend Developer}.');
+    const plain = bookDocument('/project/notes.txt', 'FROM @Adam');
+    plain.languageId = 'plaintext';
+    const editor = activateEditor([document, other, plain], new Map(), [document, document]);
+    t.after(() => editor.dispose());
+    const [style] = editor.decorationTypes;
+    /** Read what the actual bundle sent to each visible editor, without invoking its semantic provider. */
+    const colored = () => editor.editors.map((view) => (view.decorations.get(style) ?? []).map((range) =>
+        view.document.text.slice(view.document.offsetAt(range.start), view.document.offsetAt(range.end))));
+    assert.deepEqual(colored(), [['@Adam'], ['@Adam']]);
+    document.text = 'AGENT Developer\nGOAL 👋 Ask {Writer}.';
+    editor.change(document);
+    await new Promise((resolve) => setTimeout(resolve, 175));
+    assert.deepEqual(colored(), [['{Writer}'], ['{Writer}']], 'unsaved edits update both views');
+    document.text = 'AGENT Developer\nGOAL No references.';
+    editor.change(document);
+    await new Promise((resolve) => setTimeout(resolve, 175));
+    assert.deepEqual(colored(), [[], []], 'deleting the last reference removes its color');
+    other.text = 'TASK Export\nGOAL Ask @NewWriter.';
+    editor.show(other, plain);
+    assert.deepEqual(colored(), [['@NewWriter'], []], 'tab changes use the current buffer and leave non-Books alone');
+    editor.dispose();
+    assert.ok(style.disposed, 'deactivation disposes reference styling');
+});
