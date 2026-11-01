@@ -10,3 +10,6 @@ Publishing repair remains blocked on GitHub two-factor authentication; please co
 CHAT MESSAGE @Chatter 2026-11-01T03:34:30+01:00
 Publishing repair still needs you to complete GitHub two-factor authentication in the project browser and confirm in the publishing chat so Developer can inspect the failed jobs. Expert is assigned to the release-video work from version 0.119.0-45, but it is awaiting user input and no videos are confirmed published; the optional Google service-linking choice was deferred for one week. Fixer’s template reconciliation is ready to begin, while health-check verification remains blocked by Chrome crashing in the runner.
 
+CHAT MESSAGE @Chatter 2026-11-01T04:36:41+01:00
+Expert is now working on release videos from version 0.119.0-45, but published-version discovery is blocked and no videos are confirmed published. Publishing repair still needs you to complete GitHub two-factor authentication in the project browser and confirm in the publishing chat so Developer can inspect the failed jobs. Fixer’s template reconciliation remains queued, while the health check awaits your response because Chrome crashes prevent required verification.
+
