@@ -5,3 +5,8 @@ CHAT MEMBER @Chatter
 CHAT MESSAGE @User 2026-11-01T02:24:36+01:00
 After each version, publish a video on my personal YouTube about this version. Start with version 0.119.0-45 create a new agent for this responsibility. 
 
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
+
+CHAT MESSAGE @Chatter 2026-11-01T02:24:49+01:00 progress
+- $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md'
+
