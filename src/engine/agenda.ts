@@ -155,6 +155,8 @@ export type AgendaOptions = {
     readonly walletLoginContext?: (origin: string) => Promise<LoginContext>;
     /** Browser tools of a short agent session looking for a Wallet test's one-time code, in their own scope of the project browser. */
     readonly walletCodeTools?: () => { readonly tools: readonly BridgeTool[]; readonly dispose: () => Promise<void> };
+    /** Longest wait before records of one bulk external operation are committed together. */
+    readonly actionGroupCommitMs?: number;
 };
 
 /**
@@ -612,6 +614,8 @@ export class Agenda {
             onConflict: async (conflict) => await this.scheduleSyncConflict(conflict),
             onIntegrated: async () => {
                 await this.refreshContext();
+                // Records of another machine arrive here as ordinary project files.
+                await this.actions.refresh().catch(() => undefined);
                 this.wake();
             },
             onChange: () => this.touch(),
@@ -625,6 +629,11 @@ export class Agenda {
             onChange: () => this.touch(),
             log: (text, level) => this.log(text, level),
             retryMs: PERSISTENCE_RETRY_MS,
+            ...(options.actionGroupCommitMs === undefined ? {} : { groupCommitMs: options.actionGroupCommitMs }),
+            reserve: (paths) => {
+                for (const path of paths) this.authoredPaths.add(path);
+            },
+            sessionKnown: (handle) => this.sessions.byHandle(handle) !== undefined,
         });
         this.wallet = new WalletSubEngine({
             project: options.project,
@@ -955,6 +964,8 @@ export class Agenda {
             this.stopWatching();
             // A graceful stop or restart commits saved chat messages; a force stop leaves them to recovery.
             if (this.shutdown !== 'force') await this.chatBatches.flush().catch(() => undefined);
+            // The same for saved records of a bulk external operation.
+            if (this.shutdown !== 'force') await this.actions.flush().catch(() => 0);
             this.chatBatches.dispose();
         }
         this.exitState = 'stopped';
@@ -2077,14 +2088,17 @@ export class Agenda {
      * of trace inclusion and of the task's later success (never absorbing other work). In an explicit no-commit workflow
      * it stays saved and visibly uncommitted. Until committed it is engine-authored, never attributed to a task.
      */
-    private async persistActionRecord(record: { readonly path: string; readonly subject: { readonly agent: string; readonly taskName: string }; readonly operation: string; readonly service: string }): Promise<'committed' | 'uncommitted'> {
-        this.authoredPaths.add(record.path);
+    private async persistActionRecord(record: { readonly path: string; readonly paths?: readonly string[]; readonly count?: number; readonly subject: { readonly agent: string; readonly taskName: string }; readonly operation: string; readonly service: string }): Promise<'committed' | 'uncommitted'> {
+        const paths = record.paths ?? [record.path];
+        for (const path of paths) this.authoredPaths.add(path);
         if (!this.repositoryRoot || !this.settings || !this.commitMode) {
-            await this.state.addOwnedUncommitted({ [toProjectRelative(this.options.project.root, record.path)]: null });
+            await this.state.addOwnedUncommitted(Object.fromEntries(paths.map((path) => [toProjectRelative(this.options.project.root, path), null])));
             return 'uncommitted';
         }
-        await this.commitAuthoring([record.path], agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}`), { 'Task-Name': record.subject.taskName || undefined });
-        this.authoredPaths.delete(record.path);
+        // One bulk operation's records share a commit that says how many it covers.
+        const count = record.count ?? 1;
+        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`), { 'Task-Name': record.subject.taskName || undefined });
+        for (const path of paths) this.authoredPaths.delete(path);
         return 'committed';
     }
 
@@ -3371,7 +3385,7 @@ export class Agenda {
                 excludedPaths: () => new Set([...this.authoredPaths, ...this.ownership.heldByOthers(unit.owner)]),
                 extraTools: (context) => [
                     // External mutations are recorded durably by the engine, whatever trace policy applies.
-                    ...this.actions.tools({ taskName: task.title, source: task.source.relativePath, occurrence: context.occurrence, agent: context.agent, attempt: context.attempt, trace: context.trace.relativeDirectory }),
+                    ...this.actions.tools({ taskName: task.title, source: task.source.relativePath, occurrence: context.occurrence, agent: context.agent, attempt: context.attempt, trace: context.trace.relativeDirectory, ...(context.methodology ? { methodology: context.methodology } : {}) }, { session: () => (unit.owner ? this.sessions.byKey(`task:${unit.owner}`)?.handle : undefined) }),
                     ...(this.options.extraTools?.(task, context) ?? []),
                 ],
                 actionContext: async () => await this.actions.taskContext(task.source.relativePath).catch(() => undefined),

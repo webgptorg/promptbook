@@ -1,5 +1,14 @@
 # Unreleased
 
+## External actions: impact, failed attempts and bulk operations
+
+-   Each external action now carries the executing agent's own impact estimate and short reason: the consequence if it succeeds, whatever its outcome, as a number on a decimal logarithmic scale that can be fractional or above 6. "Unknown" is a separate answer, never treated as 0, and records from before this release stay unknown without being rescored.
+-   Meaningful attempts that fail, such as a refused payment, and reads that change something, such as opening an email that marks it read, are now recorded. The outcome names are `success`, `failed`, `pending`, `partial`, `uncertain` and `not-performed`; earlier `confirmed` records read as `success`.
+-   Retries of one intended action stay one record with an attempt count. Two effects that really happened stay two records and can reference each other.
+-   One bulk operation, such as a 1,000-email campaign, keeps one record per recipient and marks them with a shared group. Their records are saved at once and share one commit within about 15 seconds, at the end of the task or at a graceful stop, so history is not flooded and a crash loses nothing.
+-   Each record states which methodology the estimate relied on: source URL, release, hash and retrieval time, or that the source was unavailable, plus the local Book revisions. A copy of the methodology is kept in `actions/.methodology/`, so a later change of the remote source cannot erase that evidence. A changed estimate stays attributable, with the original kept in the record's history.
+-   Fixed: records of the engine's own operations under `actions/.engine/` were saved but never listed.
+
 ## Knowledge: a Book can reference shared knowledge by URL
 
 -   `KNOWLEDGE <url ending in .book>` now loads that Book as knowledge through a cached snapshot under `.ptbk/knowledge/`. Only its `RULE` and `KNOWLEDGE` text counts: it never registers or runs another agent, adds teammates or changes a model, and it grants no authority.
