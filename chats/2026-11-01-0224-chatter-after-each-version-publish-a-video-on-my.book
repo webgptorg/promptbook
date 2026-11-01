@@ -53,3 +53,7 @@ CHAT MESSAGE @Chatter 2026-11-01T10:59:11+01:00 progress
 CHAT MESSAGE @Chatter 2026-11-01T10:59:31+01:00 final
 I’ve passed your login confirmation to the existing task so it can verify your personal channel and continue publishing the 0.119.0-45 video. The update is saved but hasn’t been applied by the worker yet; publication is not confirmed.
 
+CHAT MESSAGE @User 2026-11-01T14:09:36+01:00
+Do it to this channel ![Image 1](_assets/2026-11-01-0224-chatter-after-each-version-publish-a-video-on-my/10/image-1.png)
+
+CHAT STATUS open
