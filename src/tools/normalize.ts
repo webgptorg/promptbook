@@ -86,9 +86,15 @@ function canonicalKeys(entry: Record<string, unknown>, known: readonly string[],
 }
 
 /**
+ * Harness variants Promptbook once supported and has since removed. An existing record stays in `ptbk.json` and gets a
+ * diagnostic saying so, instead of reading as a typo or quietly losing the configured tool.
+ */
+const RETIRED_HARNESS_VARIANTS: Readonly<Record<string, string>> = { CLINE: 'Cline' };
+
+/**
  * Canonicalizes an enum field in place (tolerant input, canonical saved output).
  */
-function canonicalEnumField<T extends string>(entry: Record<string, unknown>, field: string, allowed: readonly T[], location: string, corrections: ConfigCorrection[], problems: ConfigProblem[], options: { required?: boolean; describe?: string } = {}): T | undefined {
+function canonicalEnumField<T extends string>(entry: Record<string, unknown>, field: string, allowed: readonly T[], location: string, corrections: ConfigCorrection[], problems: ConfigProblem[], options: { required?: boolean; describe?: string; retired?: Readonly<Record<string, string>> } = {}): T | undefined {
     const raw = entry[field];
     if (raw === undefined) {
         if (options.required) problems.push({ location: `${location}.${field}`, message: `missing ${options.describe ?? field}`, severity: 'error' });
@@ -96,7 +102,11 @@ function canonicalEnumField<T extends string>(entry: Record<string, unknown>, fi
     }
     const value = matchEnum(raw, allowed);
     if (!value) {
-        problems.push({ location: `${location}.${field}`, message: `unknown ${options.describe ?? field} ${JSON.stringify(raw)} (expected one of ${allowed.join(', ')})`, severity: 'error' });
+        const retired = options.retired ? matchEnum(raw, Object.keys(options.retired)) : undefined;
+        const message = retired
+            ? `${options.retired![retired]} (variant ${retired}) is no longer supported by Promptbook, so this record is unusable. It is kept as written; remove it or replace it with one of ${allowed.join(', ')}`
+            : `unknown ${options.describe ?? field} ${JSON.stringify(raw)} (expected one of ${allowed.join(', ')})`;
+        problems.push({ location: `${location}.${field}`, message, severity: 'error' });
         return undefined;
     }
     if (value !== raw) {
@@ -152,7 +162,7 @@ export function parseTools(raw: unknown): ParsedTools {
         const type = matchEnum(typeKey ? original[typeKey] : undefined, TOOL_TYPES) as ToolType | undefined;
         const entry = canonicalKeys(original, type ? TOOL_FIELDS[type] : TOOL_FIELDS.HARNESS.concat(TOOL_FIELDS.BROWSER.slice(5)), location, pending, problems);
         const resolvedType = canonicalEnumField(entry, 'type', TOOL_TYPES, location, pending, problems, { required: true, describe: 'tool type' });
-        const variant = resolvedType ? canonicalEnumField(entry, 'variant', resolvedType === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS, location, pending, problems, { required: true, describe: `${resolvedType.toLowerCase()} variant` }) : undefined;
+        const variant = resolvedType ? canonicalEnumField(entry, 'variant', resolvedType === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS, location, pending, problems, { required: true, describe: `${resolvedType.toLowerCase()} variant`, retired: resolvedType === 'HARNESS' ? RETIRED_HARNESS_VARIANTS : undefined }) : undefined;
         let name: string | undefined;
         const rawName = entry.name;
         if (typeof rawName !== 'string' || !rawName.trim()) problems.push({ location: `${location}.name`, message: 'missing tool name', severity: 'error' });

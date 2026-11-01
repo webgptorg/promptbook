@@ -48,7 +48,7 @@ export type BrowserVariant = (typeof BROWSER_VARIANTS)[number];
  *
  * @private shared tool contract
  */
-export const HARNESS_VARIANTS = ['OPENAI_CODEX', 'CLAUDE_CODE', 'GITHUB_COPILOT', 'CLINE', 'OPENCODE', 'GEMINI', 'QWEN_CODE'] as const;
+export const HARNESS_VARIANTS = ['OPENAI_CODEX', 'CLAUDE_CODE', 'GITHUB_COPILOT', 'OPENCODE', 'GEMINI', 'QWEN_CODE'] as const;
 
 /**
  * One harness adapter.

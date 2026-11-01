@@ -1,5 +1,4 @@
 import { plugin as claudeCode } from './plugins/claude-code/index.js';
-import { plugin as cline } from './plugins/cline/index.js';
 import { plugin as gemini } from './plugins/gemini/index.js';
 import { plugin as githubCopilot } from './plugins/github-copilot/index.js';
 import { plugin as openaiCodex } from './plugins/openai-codex/index.js';
@@ -12,7 +11,7 @@ import type { HarnessPlugin } from './types.js';
  *
  * @private harness registry
  */
-export const HARNESS_PLUGINS: readonly HarnessPlugin[] = [openaiCodex, claudeCode, githubCopilot, cline, opencode, gemini, qwenCode];
+export const HARNESS_PLUGINS: readonly HarnessPlugin[] = [openaiCodex, claudeCode, githubCopilot, opencode, gemini, qwenCode];
 
 /**
  * Finds a plugin by identifier.

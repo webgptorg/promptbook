@@ -1,5 +1,10 @@
 # Unreleased
 
+## Harnesses: Cline is no longer a supported harness
+
+-   Cline can no longer be selected or added, and it is gone from the harness lists in help and setup.
+-   A `CLINE` record already in `ptbk.json` stays there as written, and Promptbook says plainly that it is no longer supported and how to remove or replace it. Promptbook never swaps in a different tool on its own.
+
 ## Chats: ask about, change, cancel or follow existing work in plain words
 
 -   Chatter can now look up what is going on, change running or finished work, accept a partial result, cancel work, stop a recurring task and tell you when something is done, without you naming tasks, agents or sessions.

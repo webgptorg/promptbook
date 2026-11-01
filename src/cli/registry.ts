@@ -43,7 +43,7 @@ const START_OPTIONS: OptionGroup = {
 const TOOL_IDENTITY_OPTIONS: OptionGroup = {
     title: 'Identity',
     options: [
-        { name: 'variant', type: 'string', valueName: '<variant>', description: 'Adapter: CHROME, CHROMIUM, EDGE; or OPENAI_CODEX, CLAUDE_CODE, GITHUB_COPILOT, CLINE, OPENCODE, GEMINI, QWEN_CODE.' },
+        { name: 'variant', type: 'string', valueName: '<variant>', description: 'Adapter: CHROME, CHROMIUM, EDGE; or OPENAI_CODEX, CLAUDE_CODE, GITHUB_COPILOT, OPENCODE, GEMINI, QWEN_CODE.' },
         { name: 'name', type: 'string', valueName: '<name>', description: 'Unique kebab-case tool name, e.g. work-browser or codex-company.' },
         { name: 'description', type: 'string', valueName: '<text>', description: 'Optional free text (helps agents choose the right browser/account).' },
     ],
@@ -138,7 +138,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 title: 'Installation and harnesses',
                 options: [
                     { name: 'installation', type: 'enum', values: ['local', 'global'], valueName: '<scope>', description: "Use the global CLI (preferred) or install ptbk in the project's dependencies (exact running version).", defaultText: 'global (asked interactively)' },
-                    { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Select a harness (repeatable): openai-codex, claude-code, github-copilot, cline, opencode, gemini, qwen-code. Each becomes a native harness tool; more instances/accounts are added later with `ptbk tool add`.' },
+                    { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Select a harness (repeatable): openai-codex, claude-code, github-copilot, opencode, gemini, qwen-code. Each becomes a native harness tool; more instances/accounts are added later with `ptbk tool add`.' },
                     { name: 'no-harness', type: 'boolean', description: 'Explicitly select no harness (no model work can run and Router gets no initial MODEL; the agenda waits for tools).' },
                     { name: 'install-harnesses', type: 'boolean', description: 'Authorize global installation of missing selected harness CLIs (unattended).' },
                     { name: 'update-harnesses', type: 'enum', values: ['keep', 'update'], valueName: '<decision>', description: 'Outdated selected harnesses: keep current versions or update them.', defaultText: 'asked interactively; keep when unattended' },

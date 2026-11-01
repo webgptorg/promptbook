@@ -143,6 +143,21 @@ test('naming: canonical input round-trips unchanged; tolerant spellings are corr
     assert.ok(colliding.problems.every((problem) => !problem.message.includes('sk-live-123')), 'secrets never appear in diagnostics');
 });
 
+test('a retired Cline record stays in the configuration with an honest diagnostic and is never swapped for another tool', () => {
+    const parsed = parseTools([
+        { type: 'HARNESS', variant: 'CLINE', name: 'my-cline', description: 'Kept by hand' },
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex' },
+    ]);
+    assert.deepEqual(parsed.tools.map((tool) => tool.name), ['codex'], 'the retired record is not used and no replacement is selected');
+    assert.deepEqual(parsed.canonical[0], { type: 'HARNESS', variant: 'CLINE', name: 'my-cline', description: 'Kept by hand' }, 'the record is preserved as written');
+    const problem = parsed.problems.find((candidate) => candidate.location.endsWith('tools[0].variant'));
+    assert.equal(problem?.severity, 'error');
+    assert.match(problem.message, /Cline \(variant CLINE\) is no longer supported/);
+    assert.match(problem.message, /remove it or replace it/);
+    assert.ok(!problem.message.split('replace it with one of')[1].includes('CLINE'), 'the removed variant is not offered as an option');
+    assert.ok(parseTools([{ type: 'HARNESS', variant: 'TOTALLY_NEW', name: 'x' }]).problems.some((candidate) => /unknown harness variant/.test(candidate.message)), 'a typo still reads as unknown');
+});
+
 test('configuration coordinator: one migration commit; repeated loads are no-ops; no-commit, dirty edits and older engines never write', async (t) => {
     const root = await temporaryDirectory(t);
     await initRepository(root);
