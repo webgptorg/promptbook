@@ -37,7 +37,7 @@
 ## Release videos: a dedicated agent and ordinary recurring discovery
 
 -   Added the editable Release Video agent for the owner's authorized personal-YouTube release videos, starting with 0.119.0-45, and an hourly ordinary task that discovers published versions and queues one publication task per version.
--   Added release evidence, a reproducible invitation-parser demonstration and sources for the first caption-only video. Publication requires verified personal-channel access; the existing workspace account has no channel, and Google rejected the newly supplied personal-account Wallet sign-in before password entry. No upload is claimed.
+-   Added release evidence, a reproducible invitation-parser demonstration and sources for the first caption-only video. After the owner selected the channel and completed access, published 0.119.0-45 on Pavol Hejný's specified channel (`UCH76EQk6XKI6WF7k_Pdh2GA`): https://www.youtube.com/watch?v=lMl8T_zR2hs. Verified public visibility in Studio and playable watch-page metadata; retained the publication receipt and earlier access history.
 -   Documented per-version ownership, Studio/action-record reconciliation and confirmed video receipts to prevent duplicate uploads after retries or restarts. Preserved the source conversation and added the agent as a participant.
 ## Git: Wallet operations stay out of project history
 

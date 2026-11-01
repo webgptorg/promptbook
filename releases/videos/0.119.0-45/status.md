@@ -1,6 +1,21 @@
 # 0.119.0-45 publication status
 
-State: video prepared locally; waiting for personal-channel access. No upload attempted and no publication confirmed.
+State: publicly published and verified on 2026-11-01T21:01:22+01:00. Do not upload this version again.
+
+- Channel: Pavol Hejný, `UCH76EQk6XKI6WF7k_Pdh2GA`, handle `@ptbkio`. The owner explicitly selected this channel in the source chat with a Studio screenshot; the live Studio channel ID matched it.
+- Video: `lMl8T_zR2hs`, https://www.youtube.com/watch?v=lMl8T_zR2hs
+- Title: Promptbook 0.119.0-45: invite agents and keep task history
+- Publication timestamp from YouTube: `2026-11-01T12:01:05-08:00` (21:01:05 Europe/Prague).
+- Visibility: public. Studio confirmed “Video zveřejněno”, then listed exactly one video as “Veřejné” and “Publikováno”. Checks completed with no problems.
+- Watch-page verification: correct video/channel IDs, `isPrivate: false`, `isUnlisted: false`, playability `OK`; playback advanced, readyState 4, duration 155.981 seconds. The initial playback used 240p; full HD completion was not separately verified.
+- External-action receipt: `act-f52mpbqxkw`, `actions/2026-11-01-0225-create-a-release-video-agent-and-publish-youtube/2026-11-01-2100-upload-and-publicly-publish-release-video-youtube.md` (success). Upload, metadata and publication were one intended operation; no second upload occurred.
+- Before upload, the unfiltered Studio video list was empty and task/action records contained no earlier upload for this version.
+- Revalidation: immutable-release parser demo passed, the media hash matched the reviewed artifact, and `npm run check` passed (exit 0).
+- YouTube noted that clickable external description links require one-time channel verification; the source URLs remain in the description. Publication itself succeeded.
+
+## Earlier preparation and access history
+
+The observations below describe the earlier blocked attempts and are retained as history, not the current publication state.
 
 Release: npm `ptbk@0.119.0-45`, matching Git tag/revision `v0.119.0-45` / `039c470bb6f11275e2c0cbc64363c676ffb3f1cd` verified on 2026-11-01.
 
