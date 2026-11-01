@@ -1,5 +1,5 @@
 {
-    "promptbookVersion": "0.119.0-36",
+    "promptbookVersion": "0.119.0-45",
     "execution": {
         "check": "npm run check"
     },
