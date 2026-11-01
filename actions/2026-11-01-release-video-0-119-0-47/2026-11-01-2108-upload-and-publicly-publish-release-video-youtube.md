@@ -3,7 +3,7 @@
 - **Outcome:** pending
 - **Impact:** 2
 - **Action time:** 2026-11-01T21:08:26+01:00
-- **Recorded:** 2026-11-01T21:08:32+01:00
+- **Recorded:** 2026-11-01T21:08:37+01:00
 - **Attempts:** 1
 - **Agent:** Release Video
 - **Task:** Publish the Promptbook 0.119.0-47 release video - 2026-11-01 21:04:12
@@ -11,6 +11,7 @@
 - **Service:** YouTube
 - **Account:** Pavol Hejný / UCH76EQk6XKI6WF7k_Pdh2GA
 - **Target:** UCH76EQk6XKI6WF7k_Pdh2GA
+- **External reference:** https://www.youtube.com/watch?v=jdSEZ5OJEho
 - **Evidence:** traces/2026-11-01-release-video-0-119-0-47/
 - **Harness session:** hs-mvy9f8wp-b
 - **Action ID:** act-xuv6n4cd72
@@ -21,7 +22,7 @@ releases/videos/0.119.0-47/script.md; video.mp4 SHA-256 2e10993212631487ae081dde
 
 ## Observed outcome
 
-Selected the reviewed video.mp4 once in Studio upload on channel UCH76EQk6XKI6WF7k_Pdh2GA. Upload chooser disabled after attachment; processing acknowledgement/video ID not yet shown. Do not reattach or retry upload without reconciliation.
+Studio confirms upload complete and assigns video jdSEZ5OJEho on verified channel UCH76EQk6XKI6WF7k_Pdh2GA. Processing not yet started; not publicly published. Continue this existing upload only.
 
 ## Impact
 
@@ -38,3 +39,4 @@ Methodology:
 
 - 2026-11-01T21:08:26+01:00 — intent recorded before the request (attempt nfqtqg642r-a1)
 - 2026-11-01T21:08:32+01:00 — pending: Selected the reviewed video.mp4 once in Studio upload on channel UCH76EQk6XKI6WF7k_Pdh2GA. Upload chooser disabled after attachment; processing acknowledgement/video ID not yet shown. Do not reattach  (attempt nfqtqg642r-a1)
+- 2026-11-01T21:08:37+01:00 — pending: Studio confirms upload complete and assigns video jdSEZ5OJEho on verified channel UCH76EQk6XKI6WF7k_Pdh2GA. Processing not yet started; not publicly published. Continue this existing upload only. (attempt nfqtqg642r-a1)
