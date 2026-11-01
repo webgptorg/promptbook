@@ -588,7 +588,6 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const attemptLabel = `${record.runId}-a${attempt}${record.technicalRetries ? `-t${record.technicalRetries}` : ''}`;
             // Referenced knowledge is resolved once per attempt, so its rules cannot change halfway through its evaluations.
             const knowledge = await resolveAgentKnowledge(project, environment.env, agent, { inline: true });
-            if (knowledge.evidence.sources.length) await trace.event('knowledge', { runId: record.runId, attempt, sources: knowledge.evidence.sources });
             const conversations: Array<{ chat: string; messages: Array<{ sender: string; text: string }> }> = [];
             for (const name of record.chats ?? []) {
                 const stored = await environment.chats.find(name);
@@ -688,6 +687,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 thinkingLevel: selection.thinkingLevel ?? null,
                 engineVersion: ENGINE_VERSION,
             });
+            if (knowledge.evidence.sources.length) await trace.event('knowledge', { runId: record.runId, attempt, sources: knowledge.evidence.sources });
             resetPending();
             hooks.turn?.('begin');
             let inputAccepted = false;

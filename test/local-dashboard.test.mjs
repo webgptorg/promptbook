@@ -25,7 +25,8 @@ test('retired dashboard settings migrate and normalize without changing local se
     const original = withRemoteSettings({ promptbookVersion: '0.119.0-34', server: { port: 43123 } });
     const plan = planConfigurationMigration(original);
     assert.equal(plan.kind, 'migrate');
-    assert.deepEqual(plan.steps.map((step) => step.target), ['0.119.0-35']);
+    // Later migrations also apply as the engine's version grows, so only this one's presence is stated.
+    assert.ok(plan.steps.some((step) => step.target === '0.119.0-35'), 'the retirement step applies');
     const migrated = applyConfigurationMigration(original, plan);
     assert.deepEqual(migrated.problems, []);
     assert.deepEqual(migrated.raw.server, { port: 43123, isEnabled: false });
