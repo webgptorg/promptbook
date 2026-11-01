@@ -49,7 +49,7 @@ export type AgentWallet = {
     /** Nonsecret metadata of the saved logins (service, label, username/email), optionally for one site. */
     readonly accounts: WalletSubEngine['accounts'];
     /** A generated password entered into the page's sign-up or password form and saved for the page's actual origin. */
-    readonly createLogin: (page: SignInPage, request: { readonly username?: string; readonly account?: string; readonly label?: string; readonly agent?: string; readonly maxLength?: number; readonly isSymbolFree?: boolean }) => Promise<WalletCreateLoginResult>;
+    readonly createLogin: (page: SignInPage, request: { readonly username?: string; readonly account?: string; readonly label?: string; readonly maxLength?: number; readonly isSymbolFree?: boolean }) => Promise<WalletCreateLoginResult>;
     /** A technical correction of a saved login's username or label (never its origin or password). */
     readonly correctLogin: (input: { readonly account: string; readonly site?: string; readonly username?: string; readonly label?: string }) => Promise<WalletOutcome>;
     /** The task now waits for a protected Wallet action (it checkpoints when its turn ends). */
@@ -303,7 +303,6 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
                               ...(typeof input.username === 'string' ? { username: input.username } : {}),
                               ...(typeof input.account === 'string' ? { account: input.account } : {}),
                               ...(typeof input.label === 'string' ? { label: input.label } : {}),
-                              agent,
                               ...(typeof input.maxLength === 'number' ? { maxLength: input.maxLength } : {}),
                               isSymbolFree: input.noSymbols === true,
                           });

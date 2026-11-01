@@ -188,19 +188,19 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 - **N06:** All shared inputs support existing Ctrl+V and macOS Command+V/native paste, including available image/document payloads. Text-only paste does not falsely pass rich-clipboard acceptance. Preserve full content and ordered assets across navigation/resize using one implementation and an explicit file fallback.
 - **N07:** Adam's default common rules request ordinary hyphens in generated prose without rewriting literal user input or changing parser syntax.
 
-## Wallet completion, autonomy and audit
+## Wallet completion and autonomy
 
 - **N08:** Init Wallet defaults No. Yes and later dashboard setup share protected encryption/recovery-word operations, resume safely and never replace an existing vault. Username is initially visible, password initially masked with typing feedback; independent reveal preserves values and never submits.
 - **N09:** A saved password/form submission is not completed login. Preserve one request through verification, rejected input, extra fields, TOTP, mobile approval and manual takeover; only verified requested-account access resumes dependent work once. Restart retains the exact step and links without duplicate accounts/prompts.
 - **N10:** Obtain an emailed verification code autonomously when the agent already has inbox access; otherwise request a one-off SMS/email/TOTP code or physical approval through protected Wallet input. One-time values are ephemeral, never durable credentials or chat/Git/traces. Mobile SMS integration and Wallet-owned TOTP-generator import/generation are future scope; preserve legacy encrypted data without claiming those capabilities.
 - **N11:** Authorized technical Wallet updates proceed autonomously. Truly needed human input/decisions use Wallet's own protected notice. Account creation for authorized work is an example, not a new registration subsystem. Browser instructions allow autonomous CAPTCHA solving where supported, with human help only when needed.
-- **N12:** Wallet mutations have separate nonsecret audit commits, empty when needed; default `wallet.isAuditCommitted: true` can be disabled. Labels derive from service/account and remain editable. No secret or encrypted vault file enters Git. Audit failure does not replay successful external work.
+- **N12:** Wallet mutations persist only in protected storage and create no Git commits. Labels derive from service/account and remain editable. No secret or encrypted vault file enters Git. Successful external work is not replayed.
 
 ## Work reservations, chronology and logical history
 
 - **N13:** At least six independent agents may run tasks concurrently without a fixed global work-count limit. A single agent with an active or waiting task cannot start a second task through another harness/account, but can answer chat. Recover the reservation before new claims; release of safe execution resources is not release of task ownership.
 - **N14:** A new chat has implicit open state and no initial status line. Append actual status/title transitions and member joins at their chronological positions; latest valid status/title wins. Reading/no-ops do not append or answer. Restart/source editing and Git batches retain the same history.
-- **N15:** Runtime subjects use lowercase `ptbk: `, backtick-quoted textual agent visual only for real agent work, and a meaningful summary. System commits invent no agent/date. Bodies may describe detailed work. Newly captured external task work has its Markdown action records; other eligible file-free operations can use an empty audit commit; inspection/no-ops cannot. Compatible chat saves batch while file/message persistence remains immediate and unrelated work stays separate.
+- **N15:** Runtime subjects use lowercase `ptbk: `, backtick-quoted textual agent visual only for real agent work, and a meaningful summary. System commits invent no agent/date. Bodies may describe detailed work. Newly captured external task work has its Markdown action records; every commit requires changes to eligible versioned files. Compatible chat saves batch while file/message persistence remains immediate and unrelated work stays separate.
 
 ## Usage and responsive dashboard
 

@@ -1,5 +1,10 @@
 # Unreleased
 
+## Git: Wallet operations stay out of project history
+
+-   Wallet changes, imports, recovery-word replacement and reset no longer create metadata-only Git commits. Account labels and service URLs stay out of commit messages.
+-   Remove the Wallet audit setting, pending queue and retry mechanism, and the Git helper for intentional empty commits. Ordinary scoped commits still record changes to versioned files, including external-action records.
+
 ## Windows installer
 
 - Automatically prepare a verified private Node.js runtime when Node or npm is missing or incompatible, retaining existing tools.
@@ -123,7 +128,7 @@
 ## Wallet: agents create and change logins with a generated password they never see
 
 -   When authorized work needs a new account, or a password change or reset, an agent now fills the form's other fields and calls the new `wallet_create_login` browser tool as the last step. The Wallet generates a strong password within the length the form allows, enters it in every new-password field (and the current password of a saved login when the form asks for it), submits the form and keeps the login encrypted for the page's actual origin. Before, agents could only sign in with saved logins: the Wallet had no way to receive credentials an agent's work created, so the agent had to ask the owner or keep them somewhere unprotected
--   The agent never sees the password, and nothing stays readable in the page. Nothing asks the owner for a confirmation. A new login stays unverified until it is tested, and each one gets the ordinary nonsecret Wallet audit commit naming the agent and the task
+-   The agent never sees the password, and nothing stays readable in the page. Nothing asks the owner for a confirmation. A new login stays unverified until it is tested
 -   A form the website shows again, or one stopped by a CAPTCHA, restores the Wallet's earlier state. A changed login keeps its earlier password until the first sign-in shows which one the website holds, so a change that only seemed to work cannot lose access
 -   The new `wallet_correct_login` tool corrects a saved login's username or label without asking. Its website and password stay as they are, so a page's text cannot redirect a saved password to another site
 
@@ -215,7 +220,7 @@
 -   Each saved login on the Wallet page (terminal and web) offers **Test** next to Update and Remove (`T` in the terminal). Only that one account is tested, not every account of the service. The test opens the website in a separate, fresh browser login context with no existing sessions, follows an evident "Sign in" link when the page shows no form, and signs in with the same trusted Wallet sign-in and verified-result check as ordinary work. An existing signed-in session therefore cannot make a wrong password look valid, and that session is neither signed out nor replaced.
 -   Adding or updating a login from the Wallet page runs the same test after saving. Saving and verifying are separate outcomes: the login is kept whatever the test finds.
 -   Progress is shown live with the login. Afterwards it shows **verified**, **test rejected** or **unverified (test incomplete)** with the time and a concise reason, for example when no login form was found, the site asks for another step such as a code, or the website or browser is unavailable. A temporary outage is never reported as a bad password, and a login never tested reads as unverified. The latest result is stored inside the login's encrypted record (ignored local Wallet state, never in Git), with passwords and other secrets redacted, and it survives a restart. Updating the login clears it, and a result about values changed during the test is dropped.
--   A test is not a task, run or credential mutation: it creates no task Book, trace, Wallet audit or commit.
+-   A test is not a task, run or credential mutation: it creates no task Book, trace or commit.
 -   When the website asks for a one-time code after the password, the test waits with its login for up to ten minutes: **Enter the code** on the web, or Enter on the login in the terminal (masked input). The code is entered once into the test's own login context and never stored or kept in the result. A refused code asks for the current one, up to three codes. A running test can be cancelled (`X` in the terminal, **Cancel test** on the web). A missing code or a cancellation ends the test as unverified (incomplete), never as a bad password.
 -   Not covered yet: codes the test obtains from an inbox by itself (the test runs without an agent).
 

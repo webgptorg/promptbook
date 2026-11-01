@@ -93,7 +93,7 @@ export class ServiceHost {
                     context.onUserChat,
                     () => this.describeBrowsers(),
                     // A login request for the task's page only: the agent never reads a Wallet record.
-                    { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title }), accounts: (site) => this.agenda.wallet.accounts(site), createLogin: async (page, request) => await this.agenda.wallet.createLogin(page, { ...request, task: task.title }), correctLogin: async (input) => await this.agenda.wallet.correctLogin(input), onWait: context.onWalletWait },
+                    { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title }), accounts: (site) => this.agenda.wallet.accounts(site), createLogin: async (page, request) => await this.agenda.wallet.createLogin(page, request), correctLogin: async (input) => await this.agenda.wallet.correctLogin(input), onWait: context.onWalletWait },
                 );
             },
             finalizeEvidence: async (task) => await this.browsers.scope(task.key).finishEvidence(),

@@ -4,7 +4,7 @@
 
 ## Meaning and storage
 
-An external action changes state outside the repository: sending email or a data-box message, submitting an accounting document, publishing a post, or creating/updating/deleting a remote document or record. Classify by actual effect, never just HTTP method. Reading/searching pages and ordinary file downloads are not actions; local source edits have Git and local Wallet mutations have their separate audit. Record meaningful operations, not every click, request or retry.
+An external action changes state outside the repository: sending email or a data-box message, submitting an accounting document, publishing a post, or creating/updating/deleting a remote document or record. Classify by actual effect, never just HTTP method. Reading/searching pages and ordinary file downloads are not actions; local source edits have Git and local Wallet mutations stay in protected storage. Record meaningful operations, not every click, request or retry.
 
 Store records under root **`actions/<task-file-basename>/`**, using exactly the same literal source-filename mapping, collision, rename and provenance rules as [traces](traces.md#literal-source-filename-mapping). **One Markdown file represents one logical external action**; a task may have any number. Use readable collision-safe filenames inside the directory. Reconciliation/retries of the same action update its record, not create a duplicate. Recurring occurrences retain separate attribution under the same source directory. No external actions means no task action directory. Capture prospectively for new tasks; do not backfill historical tasks or invent old actions from traces.
 

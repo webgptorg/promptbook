@@ -84,8 +84,6 @@ test('update policy: saved in ptbk.json under updates, default on, explicit fals
     const saved = interpretConfig(parseConfigText(JSON.stringify({ updates: { isAutoUpdateEnabled: false, versionRange: '0.119.0' } })));
     assert.deepEqual(updatePolicyOf(saved), { isAutoUpdateEnabled: false, versionRange: '0.119.0' });
     assert.ok(!saved.diagnostics.some((diagnostic) => diagnostic.location.includes('updates')), 'updates is a known section');
-    const wallet = interpretConfig(parseConfigText(JSON.stringify({ wallet: { isAuditCommitted: false } })));
-    assert.ok(!wallet.diagnostics.some((diagnostic) => diagnostic.location.includes('wallet')), 'wallet is a known section too');
     const invalid = interpretConfig(parseConfigText(JSON.stringify({ updates: { versionRange: 'newest please' } })));
     assert.ok(invalid.diagnostics.some((diagnostic) => diagnostic.location === 'ptbk.json › updates.versionRange' && diagnostic.severity === 'error'));
 });
