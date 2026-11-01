@@ -18,6 +18,7 @@ import { nativeSignInAction } from '../tools/readiness.js';
 import { type HarnessRunResult } from '../harness/run.js';
 import { runHarnessInSession, type HarnessSessions } from '../harness/sessions.js';
 import { readTaskBook, stampBookCompletion } from '../tasks/book-task.js';
+import { applicableChanges } from '../tasks/task-direction.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
 import { assignmentText, isRecurring, type Task } from '../tasks/model.js';
 import { parseBook } from '../book/parse.js';
@@ -73,8 +74,10 @@ export type ExecutionHooks = {
     readonly emit: (event: ExecutionEvent) => void;
     /** Skippable wait honoring stop/cancellation. */
     readonly wait: (ms: number, info: ExecutionWait) => Promise<'elapsed' | 'skipped' | 'cancelled'>;
-    /** Serializes Git operations with concurrent authoring. */
+    /** Serializes Git operations with concurrent authoring; an accepted task change is written under it too. */
     readonly gitLock: <T>(action: () => Promise<T>) => Promise<T>;
+    /** Evidence about the task changes the current turn received. */
+    readonly instructions?: (evidence: 'delivered' | 'applied' | 'uncertain', changes: readonly string[], source: string) => void;
     /** Absolute paths written by concurrent authoring (never attributed to the task). */
     readonly excludedPaths: () => ReadonlySet<string>;
     /** Additional tools (project browser, external-action records); a human-only step becomes a chat waiting for the user, like `ask_user`. */
@@ -548,6 +551,27 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
         record = { ...record, feedback: 'A previous attempt was interrupted. The working tree may contain its partial changes: inspect them and continue. Do not repeat external actions without verifying their current state and the action records listed above.' };
     }
 
+    // The changes this run's instructions contain; the Book read at the claim is what its prompt was built from.
+    const startedAt = Date.parse(record.startedAt);
+    const receivedChanges = new Set(applicableChanges(task, { startedAt }).map((change) => change.id));
+    /** Whether the Book now holds a change this run has not worked from, or ended this work: the result would be stale. */
+    const instructionsMovedOn = async (): Promise<boolean> => {
+        if (!task.source.path.endsWith('.book')) return false;
+        const current = readTaskBook({ source: await readFile(task.source.path, 'utf8'), path: task.source.path, relativePath: task.source.relativePath, order: 0, timeZone: environment.timeZone });
+        if (!current) return false;
+        if ((current.status === 'cancelled' || current.status === 'retired') && current.statusScope !== 'future') return true;
+        return applicableChanges(current, { startedAt }).some((change) => !receivedChanges.has(change.id));
+    };
+    /** Leaves the run checkpointed so that its continuation starts from the current Book, spending no attempt. */
+    const stopAtStaleResult = async (): Promise<ExecutionOutcome> => {
+        hooks.emit({ type: 'activity', text: `"${task.title}" holds its result: a newer change to the task was accepted, so it continues from the current instructions.` });
+        await trace.event('stale-result', { runId: record.runId });
+        await revertCompletionOf?.();
+        await save({ phase: 'executing', attempt: Math.max(0, record.attempt - 1), feedback: 'A newer change to this task arrived before its result was recorded. Inspect the work so far and bring it in line with the current instructions.' });
+        return { kind: 'interrupted' };
+    };
+    let revertCompletionOf: (() => Promise<void>) | undefined;
+
     for (;;) {
         if (environment.signal.aborted) {
             await save({});
@@ -662,6 +686,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             });
             resetPending();
             hooks.turn?.('begin');
+            let inputAccepted = false;
             try {
                 lastResult = await runHarnessInSession(
                     environment.sessions,
@@ -696,6 +721,11 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         authentication: item.route.inspection.authentication,
                         readableDirectories: agent.name === 'Expert' || agent.chain.includes('Expert') ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
                         onEvent: (event) => {
+                            // The first event of the provider shows that it accepted this turn's exact input.
+                            if (receivedChanges.size && !inputAccepted) {
+                                inputAccepted = true;
+                                hooks.instructions?.('delivered', [...receivedChanges], task.source.relativePath);
+                            }
                             if (event.type === 'activity') hooks.emit({ type: 'activity', text: event.text });
                             else if (event.type === 'files') hooks.edited?.(event.paths);
                             else if (event.type === 'error') hooks.emit({ type: 'activity', text: event.text, level: 'warning' });
@@ -712,6 +742,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 await bridge?.close();
                 await rm(promptFile, { force: true });
             }
+            // A completed turn that received the changes is their processing acknowledgement; a broken one proves nothing.
+            if (receivedChanges.size && inputAccepted) hooks.instructions?.(lastResult.outcome === 'completed' ? 'applied' : 'uncertain', [...receivedChanges], task.source.relativePath);
             // Raw usage of every attempt (failed and interrupted ones too) is durable evidence next to the trace.
             await appendUsage(
                 taskUsageFile(trace.directory),
@@ -889,16 +921,21 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 created.push(relativeKey(environment, learning.path));
                 hooks.own?.([learning.path]);
             }
-            await save({ completionApplied: true, completionBackup: { source: originalSource, created }, createdPaths: [...new Set([...record.createdPaths, ...created])] });
+            await save({ completionApplied: true, completionBackup: { source: originalSource, created, stamped: await readFile(task.source.path, 'utf8').catch(() => undefined) }, createdPaths: [...new Set([...record.createdPaths, ...created])] });
         }
         const revertCompletion = async (): Promise<void> => {
             const backup = record.completionBackup;
             if (backup) {
-                await writeFile(task.source.path, backup.source);
+                // Anything appended after the completion stamp (a task change accepted meanwhile) is kept.
+                const now = await readFile(task.source.path, 'utf8').catch(() => undefined);
+                const stamped = backup.stamped?.trimEnd();
+                const appended = stamped && now?.startsWith(stamped) ? now.slice(stamped.length) : '';
+                await writeFile(task.source.path, appended.trim() ? `${backup.source.trimEnd()}${appended}` : backup.source);
                 for (const path of backup.created) await rm(resolve(project.root, path), { force: true });
             }
             await save({ completionApplied: false, completionBackup: undefined, createdPaths: record.createdPaths.filter((path) => !backup?.created.includes(path)) });
         };
+        revertCompletionOf = revertCompletion;
 
         if (check && isCheckPlaceholder(check)) {
             // The informational placeholder is not validation: it is never run or reported as a passed check.
@@ -949,6 +986,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             hooks.emit({ type: 'activity', text: `Check passed (${Math.round(result.durationMs / 1000)}s)` });
         }
 
+        if (await instructionsMovedOn()) return await stopAtStaleResult();
         // Persist: one scoped commit with the result, completion, follow-ups and policy-eligible traces.
         const owned = await changed();
         if (environment.commit) {
@@ -963,8 +1001,9 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     const names = await commitTaskNames(environment, task, owned, item.relatedTaskNames ?? []);
                     await trace.event('committing', { runId: record.runId, paths: owned, createdTasks: names.created, relatedTasks: names.related });
                     const evidence = await traceCommitPaths(environment, trace);
-                    const outcome = await hooks.gitLock(() =>
-                        commitPaths({
+                    // A change is accepted under this same lock, so a late completion cannot race past it.
+                    const outcome = await hooks.gitLock(async () =>
+                        (await instructionsMovedOn()) ? ({ committed: false, stale: true } as const) : await commitPaths({
                             projectRoot: project.root,
                             repositoryRoot: environment.repositoryRoot,
                             paths: [...owned.map((path) => resolve(project.root, path)), ...evidence],
@@ -981,6 +1020,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             env: environment.env,
                         }),
                     );
+                    if ('stale' in outcome) return await stopAtStaleResult();
                     sha = outcome.committed ? outcome.sha : undefined;
                 } catch (error) {
                     const reason = errorMessage(error);

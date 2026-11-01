@@ -43,6 +43,7 @@ import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
 import { HARNESS_PLUGINS, harnessName } from '../harness/registry.js';
 import { HarnessSessions, type SessionClientLaunch, type SessionEntryView } from '../harness/sessions.js';
+import { isOutstandingReceipt, receiptLine, TaskControlStore, type TaskControlOperation, type TaskControlOrigin, type TaskControlOutcome, type TaskStatusView } from './task-control.js';
 import { readTaskBook } from '../tasks/book-task.js';
 import { WALLET_WAIT, evaluateQueue, isUnfinished, selectCandidates, type EvaluatedTask, type RouteCheck, type SelectedTask } from '../tasks/eligibility.js';
 import { setMarkdownControl } from '../tasks/markdown.js';
@@ -568,8 +569,12 @@ export class Agenda {
     /** The harness session inventory of this engine. */
     private readonly sessions: HarnessSessions;
 
+    /** Accepted task control requests, instruction receipts and completion notifications. */
+    private readonly taskControlStore: TaskControlStore;
+
     public constructor(private readonly options: AgendaOptions) {
         this.state = new StateStore(options.project.runtime.state);
+        this.taskControlStore = new TaskControlStore(this.state);
         this.sessions = new HarnessSessions({
             save: async (records) => await this.state.writeHarnessSessions(records),
             changed: () => this.touch(),
@@ -927,6 +932,7 @@ export class Agenda {
         this.touch();
         // Sessions are restored before any claim: retained context, never permission to continue.
         this.sessions.restore(await this.state.readHarnessSessions());
+        await this.taskControlStore.load();
         const reconciling = setInterval(() => this.sessions.reconcile(), SESSION_RECONCILE_MS);
         reconciling.unref?.();
         // The host serves this engine now (control endpoint and process record): an update restart into it is verified.
@@ -982,6 +988,183 @@ export class Agenda {
     /** Whether the stop that ended the agenda was an intentional user request (not a restart or an OS signal). */
     public get intentionalStop(): boolean {
         return (this.shutdown === 'stop' || this.shutdown === 'force') && !this.shutdownBySignal;
+    }
+
+    // ── Directing existing work (shared by chats, terminal, browser and API) ─
+
+    /** The current state of work matching a description; it changes nothing and creates nothing. */
+    public async taskStatus(query = ''): Promise<TaskStatusView[]> {
+        const needle = query.trim().toLowerCase();
+        // A status answer reads the Books as they are now, also while nothing is being scheduled.
+        if (this.catalog) await this.evaluate().catch(() => undefined);
+        const inventory = await this.taskInventory();
+        const matching = inventory.filter((item) => !needle || item.title.toLowerCase().includes(needle) || (item.agent ?? '').toLowerCase().includes(needle));
+        const sessions = this.sessions.view().open;
+        return matching.slice(0, 40).map((item) => ({
+            task: item.title,
+            state: item.readiness,
+            ...(item.reason ? { reason: item.reason } : {}),
+            ...(item.agent ? { agent: item.agent } : {}),
+            sessions: sessions.filter((session) => session.work.kind === 'task' && session.work.ref === item.ref).map((session) => `${session.agent}: ${session.state}${session.detail ? ` (${session.detail})` : ''}`),
+            receipts: item.source ? this.taskControlStore.receiptsOf(item.source).filter(isOutstandingReceipt).map(receiptLine) : [],
+            ...(this.recentResults.find((result) => nameKey(result.title) === nameKey(item.title)) ? { result: this.recentResults.find((result) => nameKey(result.title) === nameKey(item.title))!.summary } : {}),
+        }));
+    }
+
+    /**
+     * Accepts one change to existing work: appended to its Book under the same lock as result commits, then reconciled
+     * with the running work. Saving alone is not delivery, and every receipt states what is actually known.
+     */
+    public async taskControl(request: { readonly task: string; readonly operation: TaskControlOperation; readonly instruction: string; readonly scope?: 'task' | 'occurrence' | 'future'; readonly origin: TaskControlOrigin }): Promise<TaskControlOutcome> {
+        if (request.origin.authority === 'agent') throw new PtbkError('Only a verified request of the user can change work; an agent\'s proposal stays advice.', { kind: 'usage', next: ['Ask the user, then act on their answer.'] });
+        const instruction = request.instruction.replace(/\s+/g, ' ').trim();
+        if (!instruction) throw new PtbkError('A change needs its instruction in words.', { kind: 'usage' });
+        const task = await this.controlledTask(request.task);
+        if (!task.source.relativePath.endsWith('.book')) throw new PtbkError(`{${task.title}} is written in a Markdown task list, which has no change history; edit it directly.`, { kind: 'usage' });
+        const scope = request.scope ?? (request.operation === 'retire' ? 'future' : 'task');
+        const now = formatIsoWithOffset(Date.now(), this.timeZone);
+        const chat = request.origin.chat ? ` {${request.origin.chat}}` : '';
+        const closed = task.status === 'done' || task.status === 'cancelled';
+        const reopening = (request.operation === 'amend' || request.operation === 'reopen') && closed && scope !== 'future';
+        const text = request.operation === 'accept' ? `The current result is accepted as sufficient: validate it against this revised goal and finish without further work beyond it. ${instruction}` : instruction;
+        await this.gitMutex.run(async () => {
+            let source = await readFile(task.source.path, 'utf8');
+            if (reopening) source = appendCommitment(source, 'TASK REOPEN', `${now}${chat}`);
+            source = appendCommitment(source, 'TASK CHANGE', `${now} ${scope}${chat}\n${text}`);
+            if (reopening && task.status === 'cancelled') source = appendCommitment(source, 'TASK STATUS', 'todo');
+            if (request.operation === 'cancel') source = appendCommitment(source, 'TASK STATUS', 'cancelled');
+            if (request.operation === 'retire') source = appendCommitment(source, 'TASK STATUS', 'retired');
+            await writeFile(task.source.path, source);
+        });
+        const saved = readTaskBook({ source: await readFile(task.source.path, 'utf8'), path: task.source.path, relativePath: task.source.relativePath, order: 0, timeZone: this.timeZone })!;
+        const change = saved.changes[saved.changes.length - 1]!;
+        const sessions = this.sessions.view().open.filter((session) => session.work.kind === 'task' && session.work.source === task.source.relativePath);
+        await this.taskControlStore.recordControl({ id: shortId(10), operation: request.operation, task: task.title, source: task.source.relativePath, scope, change: change.id, instruction, origin: request.origin, agent: task.routing.agent, sessions: sessions.map((session) => session.handle), at: now });
+        const persistence = this.commitMode
+            ? await this.commitAuthoring([task.source.path], `Change task - ${task.title}`, { 'Task-Name': task.title })
+                  .then(() => 'committed' as const)
+                  .catch((error: unknown) => {
+                      this.log(`The change of {${task.title}} is saved; its commit waits: ${errorMessage(error)}`, 'warning');
+                      return 'pending' as const;
+                  })
+            : ('pending' as const);
+        if (request.origin.chat) await this.chats.annotate(request.origin.chat, { links: [formatAgentReference(task.title)] }, { trailers: { 'Task-Name': task.title } }).catch(() => undefined);
+        const delivery = await this.reconcileChange(task, { change: change.id, task: task.title, source: task.source.relativePath, order: change.line }, request.operation, scope);
+        this.log(`{${task.title}}: ${request.operation} accepted${request.origin.chat ? ` from {${request.origin.chat}}` : ''}. ${delivery}`);
+        this.wake();
+        this.touch();
+        return { task: task.title, operation: request.operation, scope, change: change.id, reopened: reopening, persistence, delivery };
+    }
+
+    /** Remembers to report when work ends, without touching it and without anything staying open meanwhile. */
+    public async taskNotify(input: { readonly task: string; readonly chat: string; readonly by: string }): Promise<{ readonly task: string; readonly state: string }> {
+        const task = await this.controlledTask(input.task);
+        await this.taskControlStore.subscribe({ id: shortId(10), task: task.title, source: task.source.relativePath, chat: input.chat, by: input.by, cycle: task.cycle, at: formatIsoWithOffset(Date.now(), this.timeZone) });
+        await this.chats.annotate(input.chat, { links: [formatAgentReference(task.title)] }, { trailers: { 'Task-Name': task.title } }).catch(() => undefined);
+        this.wake();
+        return { task: task.title, state: task.status };
+    }
+
+    /** The one task a request names. Ambiguity is the caller's to resolve, never a guess. */
+    private async controlledTask(name: string): Promise<Task> {
+        const wanted = name.replace(/^[@{]+|[}]+$/g, '').trim();
+        const key = nameKey(wanted);
+        const { tasks } = await this.readQueue();
+        const exact = tasks.filter((task) => task.key === key && !task.shadowedBy);
+        if (exact.length === 1) return exact[0]!;
+        // Engine-made supporting work (routing, learning) names the task it serves: the task itself is what is meant.
+        const matching = tasks.filter((task) => !task.shadowedBy && task.title.toLowerCase().includes(wanted.toLowerCase()));
+        const ordinary = matching.filter((task) => workKindOf(task) === 'task');
+        const partial = ordinary.length ? ordinary : matching;
+        if (partial.length === 1) return partial[0]!;
+        if (partial.length > 1) throw new PtbkError(`"${wanted}" matches several tasks: ${partial.slice(0, 8).map((task) => `{${task.title}}`).join(', ')}.`, { kind: 'usage', next: ['Name one of them.'] });
+        throw new PtbkError(`No task matches "${wanted}".`, { kind: 'not-found', next: ['Look at the current tasks first.'] });
+    }
+
+    /**
+     * Brings the running work in line with an accepted change and returns the plain statement of what happened. A running
+     * turn cannot take input, so it is interrupted at its safe point and continued from the current Book; paused or
+     * human-held work waits, and work no session runs receives it at its next start.
+     */
+    private async reconcileChange(task: Task, change: { readonly change: string; readonly task: string; readonly source: string; readonly order: number }, operation: TaskControlOperation, scope: string): Promise<string> {
+        const openSessions = this.sessions.view().open.filter((session) => session.work.kind === 'task' && session.work.source === task.source.relativePath);
+        const stopping = operation === 'cancel' || (operation === 'retire' && scope !== 'future');
+        if (scope === 'future') {
+            await this.taskControlStore.mark(change, undefined, 'saved', 'It applies only to later occurrences.', 'The next occurrence works from it; the current one is unaffected.');
+            return 'Saved for later occurrences; the current one is unaffected.';
+        }
+        const running = [...this.units.values()].filter((unit) => unit.kind === 'task' && unit.current?.taskTitle && nameKey(unit.current.taskTitle) === nameKey(task.title));
+        const held = openSessions.find((session) => session.lease);
+        if (held) {
+            await this.taskControlStore.mark(change, held.handle, 'queued', 'A person controls this session now.', 'It is delivered after control returns to Promptbook.');
+            return `Saved. Delivery waits: a person controls the session of ${held.agent}.`;
+        }
+        if (running.length) {
+            for (const unit of running) {
+                const session = unit.owner ? this.sessions.byKey(`task:${unit.owner}`) : undefined;
+                await this.taskControlStore.mark(change, session?.handle, 'queued', 'Its running turn is interrupted at its safe point; any action already under way may still finish.', stopping ? 'The run ends at that point.' : 'Work continues with this change.');
+                unit.interrupt.abort();
+                unit.waiter?.resolve('cancelled');
+            }
+            return stopping ? 'Saved. The running turn was asked to stop at its safe point; it has not necessarily stopped yet, and anything already under way may still finish.' : 'Saved. The running turn was asked to stop at its safe point and continues with this change; it is not applied yet.';
+        }
+        const checkpointed = [...(await this.state.readActiveRecords()), ...(await this.state.readParked())].filter((record) => record.sourcePath === task.source.relativePath);
+        if (stopping) {
+            for (const record of checkpointed) await this.endCancelledRun(record, task);
+            await this.taskControlStore.mark(change, undefined, 'applied', checkpointed.length ? 'No turn was running; its checkpoint ended.' : 'Nothing was running; it does not start.');
+            return 'Done: nothing was running, and this work does not start.';
+        }
+        if (this.pauseActive || this.stopRequested) {
+            await this.taskControlStore.mark(change, openSessions[0]?.handle, 'deferred', 'The engine is paused: inputs that would advance task work wait.', 'It is delivered after Resume.');
+            return 'Saved. Delivery waits until the engine resumes.';
+        }
+        await this.taskControlStore.mark(change, openSessions[0]?.handle, 'saved', 'No turn is running.', 'Its next start receives it.');
+        return 'Saved. No turn is running; its next start receives it.';
+    }
+
+    /** Ends a run its task no longer wants: its partial work and Book stay, nothing is reverted, and no success is claimed. */
+    private async endCancelledRun(record: ActiveRecord, task: Task): Promise<void> {
+        await this.state.clearActive(record.runId).catch(() => undefined);
+        await this.state.dropParked(record.taskTitle).catch(() => undefined);
+        await this.releaseUnlessRecorded(record.runId);
+        this.sessions.close(`task:${record.runId}`, task.status === 'retired' ? 'Its work was retired.' : 'Its work was cancelled.');
+        await this.taskControlStore.settleSource(task.source.relativePath, 'applied', 'The run ended at its checkpoint.');
+        this.log(`"${task.title}" ended without completing (${task.status}); its Book and any partial changes stay.`);
+    }
+
+    /** Tells waiting chats about finished work, once each, also after a restart. */
+    private async deliverTaskNotifications(): Promise<void> {
+        const waiting = this.taskControlStore.waiting();
+        if (!waiting.length) return;
+        const { tasks } = await this.readQueue();
+        for (const notification of waiting) {
+            const task = tasks.find((candidate) => candidate.source.relativePath === notification.source);
+            const result = this.recentResults.find((candidate) => nameKey(candidate.title) === nameKey(notification.task));
+            const outcome = !task
+                ? 'its task no longer exists'
+                : task.cycle > notification.cycle || task.status === 'done'
+                  ? `is done${result?.summary ? `: ${result.summary}` : ''}${result?.commit ? ` (result commit ${result.commit.slice(0, 8)})` : ''}`
+                  : task.status === 'cancelled'
+                    ? 'was cancelled without completing'
+                    : task.status === 'failed'
+                      ? 'failed'
+                      : task.status === 'retired'
+                        ? 'was retired'
+                        : undefined;
+            if (!outcome) continue;
+            const stored = await this.chats.find(notification.chat);
+            if (stored) {
+                const marker = `Update on {${notification.task}}`;
+                // The Book is the durable record: a restart between saving and bookkeeping never repeats the message.
+                const already = stored.chat.messages.some((message) => message.text.startsWith(marker) && Date.parse(message.at) >= Date.parse(notification.at));
+                if (!already) {
+                    await this.chats.append(stored.chat.name, { sender: formatAgentReference(notification.by), text: `${marker}: it ${outcome}.` }, { trailers: { 'Task-Name': notification.task } });
+                    await this.refreshChats();
+                }
+            }
+            await this.taskControlStore.delivered(notification.id, outcome);
+            this.log(`Told {${notification.chat}} that "${notification.task}" ${outcome}.`);
+        }
     }
 
     // ── Harness session entry (shared by terminal, browser and API) ──────────
@@ -1451,11 +1634,19 @@ export class Agenda {
         const chatKey = nameKey(chat);
         const tasks = inventory.filter((item) => linked.has(nameKey(item.title)) || nameKey(chatOriginOf(item.origin) ?? '') === chatKey);
         const active = this.activeViews();
+        const receipts = (item: TaskInventoryItem): Pick<ChatTaskCard, 'receipts'> => {
+            const lines = item.source ? this.taskControlStore.receiptsOf(item.source).filter(isOutstandingReceipt).map(receiptLine) : [];
+            return lines.length ? { receipts: lines } : {};
+        };
         return tasks.map((item): ChatTaskCard => {
             const running = active.find((view) => view.kind !== 'chat' && nameKey(view.taskTitle) === nameKey(item.title));
             const result = this.recentResults.find((candidate) => nameKey(candidate.title) === nameKey(item.title));
-            if (running) return { name: item.title, ref: item.ref, state: running.phase === 'awaiting-user' ? 'waiting' : 'running', detail: `${running.phase}${running.detail ? ` · ${running.detail}` : ''}`, agent: running.agent.name };
+            if (running) return { ...receipts(item), name: item.title, ref: item.ref, state: running.phase === 'awaiting-user' ? 'waiting' : 'running', detail: `${running.phase}${running.detail ? ` · ${running.detail}` : ''}`, agent: running.agent.name };
             switch (item.readiness) {
+                case 'cancelled':
+                    return { name: item.title, ref: item.ref, state: 'cancelled', detail: item.reason, agent: item.agent, ...receipts(item) };
+                case 'retired':
+                    return { name: item.title, ref: item.ref, state: 'retired', detail: item.reason, agent: item.agent, ...receipts(item) };
                 case 'done':
                     return { name: item.title, ref: item.ref, state: 'completed', detail: result?.summary, agent: result?.agent ?? item.agent, commit: result?.commit };
                 case 'awaiting-user':
@@ -1467,7 +1658,7 @@ export class Agenda {
                 case 'incompatible':
                     return { name: item.title, ref: item.ref, state: 'blocked', detail: item.reason, agent: item.agent };
                 default:
-                    return { name: item.title, ref: item.ref, state: 'queued', detail: item.reason, agent: item.agent };
+                    return { name: item.title, ref: item.ref, state: 'queued', detail: item.reason, agent: item.agent, ...receipts(item) };
             }
         });
     }
@@ -1591,6 +1782,11 @@ export class Agenda {
                             env: this.options.env,
                             signal: this.ownedWork.signal,
                             sessions: this.sessions,
+                            taskControl: {
+                                status: async (query) => await this.taskStatus(query),
+                                change: async (input) => await this.taskControl(input),
+                                notify: async (input) => await this.taskNotify(input),
+                            },
                             createTask: async (input) => await this.createChatTask(input),
                             inviteAgent: async (input) => await this.chatInvite(input.chat, input.agent),
                             scheduleLearning: async (input) => await this.scheduleChatLearning(input),
@@ -2291,6 +2487,7 @@ export class Agenda {
             active,
             workload: this.workloadView(),
             harnessSessions: this.sessions.view(),
+            taskControl: this.taskControlStore.view(),
             execution: executions[0],
             executions: executions.filter((execution) => execution.status === 'active'),
             browser: this.options.browsers?.primary(),
@@ -2613,6 +2810,7 @@ export class Agenda {
     private async iteration(): Promise<void> {
         this.settle();
         if (this.shutdown) return;
+        await this.deliverTaskNotifications().catch((error: unknown) => this.log(`A completion notification waits: ${errorMessage(error)}`, 'warning'));
         if (this.stopRequested) {
             // Settling towards stop: nothing new starts; every active task and chat turn finishes or checkpoints first.
             this.waitView = { kind: 'settling', reason: `Stopping: ${this.units.size} active unit${this.units.size === 1 ? '' : 's'} finishing or checkpointing first.`, skippable: false };
@@ -3140,6 +3338,11 @@ export class Agenda {
             sessions: this.sessions,
             env: this.options.env,
             hooks: {
+                instructions: (evidence, changes, source) => {
+                    const session = unit.owner ? this.sessions.byKey(`task:${unit.owner}`)?.handle : undefined;
+                    const reason = evidence === 'delivered' ? 'The harness accepted the turn that contains it.' : evidence === 'applied' ? 'The turn that received it completed.' : 'The turn that received it ended without completing; whether it took effect is unknown.';
+                    void this.taskControlStore.advance(source, changes, session, evidence, reason).catch(() => undefined);
+                },
                 emit: (event) => {
                     if (event.type === 'activity') this.log(event.text, event.level);
                     else if (event.type === 'phase' && unit.current) {
@@ -3712,7 +3915,8 @@ export class Agenda {
                 this.resumeAfter.set(item.runId, Date.now() + PERSISTENCE_RETRY_MS);
                 break;
             case 'interrupted':
-                if (unit.interrupt.signal.aborted && !this.ownedWork.signal.aborted) this.log(`"${item.task.title}" was interrupted by the pause; it keeps its checkpoint and its agent, and continues after resume.`);
+                if (unit.interrupt.signal.aborted && !this.ownedWork.signal.aborted && !this.pauseActive) this.log(`"${item.task.title}" stopped at its safe point for a change to the task; it continues from its checkpoint.`);
+                else if (unit.interrupt.signal.aborted && !this.ownedWork.signal.aborted) this.log(`"${item.task.title}" was interrupted by the pause; it keeps its checkpoint and its agent, and continues after resume.`);
                 else this.log(`"${item.task.title}" was interrupted; its recovery record is preserved.`, 'warning');
                 break;
             case 'deferred':
@@ -3809,6 +4013,11 @@ export class Agenda {
         }
         if (!task) {
             await this.state.writeActive({ ...record, phase: 'failed', failure: `The task source ${record.sourcePath} moved or disappeared during execution.` });
+            return;
+        }
+        // Cancelled or retired while it was running: its checkpoint ends here, its Book and partial work stay.
+        if ((task.status === 'cancelled' || task.status === 'retired') && task.statusScope !== 'future' && record.phase !== 'committed' && record.phase !== 'synchronizing') {
+            await this.endCancelledRun(record, task);
             return;
         }
         // After a takeover, Fixer continues the task within the task's own MODEL constraints.

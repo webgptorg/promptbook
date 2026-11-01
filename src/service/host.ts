@@ -335,6 +335,9 @@ export class ServiceHost {
             case 'session-acquire':
             case 'session-renew':
             case 'session-release':
+            case 'task-status':
+            case 'task-change':
+            case 'task-notify':
                 return await applyControlAction(agenda, method, params, this.browserControls);
             case 'tool-operation':
                 return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli');

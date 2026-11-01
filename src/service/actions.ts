@@ -37,7 +37,10 @@ export type ControlAction =
     | 'session-entry'
     | 'session-acquire'
     | 'session-renew'
-    | 'session-release';
+    | 'session-release'
+    | 'task-status'
+    | 'task-change'
+    | 'task-notify';
 
 /**
  * Every control action name (for request validation).
@@ -67,6 +70,9 @@ export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>([
     'session-acquire',
     'session-renew',
     'session-release',
+    'task-status',
+    'task-change',
+    'task-notify',
 ]);
 
 /**
@@ -100,6 +106,18 @@ export type BrowserControls = {
  */
 export async function applyControlAction(agenda: Agenda, action: string, params: Readonly<Record<string, unknown>> = {}, browser?: BrowserControls): Promise<ControlOutcome> {
     switch (action) {
+        case 'task-status':
+            return { action, outcome: 'Task state.', applied: false, data: await agenda.taskStatus(String(params.query ?? '')) };
+        case 'task-change': {
+            const scope = params.scope === 'task' || params.scope === 'occurrence' || params.scope === 'future' ? params.scope : undefined;
+            const operation = params.operation === 'accept' || params.operation === 'cancel' || params.operation === 'retire' || params.operation === 'reopen' ? params.operation : 'amend';
+            const outcome = await agenda.taskControl({ task: String(params.task ?? ''), operation, instruction: String(params.instruction ?? ''), ...(scope ? { scope } : {}), origin: { authority: 'operator', via: typeof params.via === 'string' ? params.via : 'client' } });
+            return { action, outcome: outcome.delivery, applied: true, data: outcome };
+        }
+        case 'task-notify': {
+            if (typeof params.chat !== 'string' || !params.chat) throw new PtbkError('A notification needs the chat to tell.', { kind: 'usage' });
+            return { action, outcome: 'The chat is told when this work ends.', applied: true, data: await agenda.taskNotify({ task: String(params.task ?? ''), chat: params.chat, by: typeof params.by === 'string' ? params.by : 'Chatter' }) };
+        }
         case 'session-entry':
             return { action, outcome: 'Session entry options.', applied: false, data: agenda.sessionEntry(String(params.handle ?? '')) };
         case 'session-acquire': {

@@ -1,5 +1,12 @@
 # Unreleased
 
+## Chats: ask about, change, cancel or follow existing work in plain words
+
+-   Chatter can now look up what is going on, change running or finished work, accept a partial result, cancel work, stop a recurring task and tell you when something is done, without you naming tasks, agents or sessions.
+-   Each change is appended to the task's Book, and the dashboards and the chat show separately whether it is Saved, Delivered or Applied, or why it is waiting.
+-   A running turn is interrupted at its safe point and continues with the change; a pause or a person controlling that session holds delivery back, and a task never records a result against instructions that have since changed.
+-   Cancelling keeps the Book, prior results and any partial changes, and is never reported as success; asking about status or to be told when something is done changes nothing.
+
 ## Harnesses: every agent session is visible, and you can deliberately step into one
 
 -   The Harnesses tile and page replace Current work in the terminal and the browser: they list every open harness session, including idle ones, with its agent, task or chat, state, tool, billing path, model and usage; ended sessions stay available as evidence, not as live work.

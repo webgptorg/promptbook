@@ -400,6 +400,7 @@
                             { className: `task-card ${task.state}` },
                             h('div', { className: 'row' }, pill(task.state, task.state === 'completed' ? 'ok' : task.state === 'failed' || task.state === 'blocked' ? 'bad' : task.state === 'waiting' ? 'warn' : ''), h('strong', {}, task.name)),
                             task.detail || task.agent ? h('div', { className: 'muted' }, [task.agent, task.detail ? task.detail.split('\n')[0] : null, task.commit ? `commit ${task.commit.slice(0, 8)}` : null].filter(Boolean).join(' · ')) : null,
+                            ...(task.receipts || []).map((receipt) => h('div', { className: 'muted' }, receipt)),
                             h('a', { href: '#/tasks', onclick: () => openPage('tasks') }, 'Open in Tasks'),
                         ),
                     ),
@@ -557,6 +558,7 @@
 
     /** The common selected-session detail: it exists for every session, whatever its native support. Unknown stays unknown. */
     function renderSessionDetail(session) {
+        const receiptsOf = (target) => ((state.snapshot && state.snapshot.taskControl && state.snapshot.taskControl.receipts) || []).filter((receipt) => receipt.session === target.handle || (!receipt.session && target.work.kind === 'task' && receipt.source === target.work.source));
         const usage = session.usage && Object.keys(session.usage).length ? Object.entries(session.usage).map(([field, value]) => `${field} ${value}`).join(' · ') : 'unknown for the latest turn';
         const billing = session.authentication === 'account' ? `native account${session.account ? ` (${session.account})` : ''}, its plan pays` : session.authentication === 'api' ? 'API key, billed through it' : session.authentication === 'none' ? 'no authentication' : 'unknown';
         const rows = [
@@ -578,6 +580,7 @@
         ];
         return [
             h('dl', { className: 'kv' }, rows.map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
+            ...(receiptsOf(session).length ? [h('h3', {}, 'Instructions'), h('ul', { className: 'list' }, receiptsOf(session).map((receipt) => h('li', {}, `${receipt.state}: ${receipt.reason || ''}${receipt.next ? ` Next: ${receipt.next}` : ''}`)))] : []),
             session.capabilities && session.capabilities.notes.length ? h('ul', { className: 'list' }, session.capabilities.notes.map((note) => h('li', { className: 'muted' }, note))) : null,
             h('p', { className: 'muted' }, 'The browser has no terminal of the actual harness client: this read-only view is what it offers. Native entry is available in the terminal dashboard where the harness supports it.'),
             h('h3', {}, 'Events'),

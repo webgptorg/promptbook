@@ -125,8 +125,8 @@ test('core preparation: an exact earlier Chatter template (its unknown `RULE A` 
     await prepareCoreAgents(project.root, 'agents', { runtimeRoot: project.runtimeRoot });
     const current = await project.read('.core/chatter.book');
     const teammates = [...current.matchAll(/@[A-Z][A-Za-z]*/g)].map((match) => match[0]).filter((reference) => reference !== '@Expert');
-    const previous = CHATTER_PREVIOUS_BOOKS[0](teammates);
-    assert.match(previous, /^RULE A project brief/m);
+    const previous = CHATTER_PREVIOUS_BOOKS.map((book) => book(teammates)).find((book) => /^RULE A project brief/m.test(book));
+    assert.ok(previous, 'the template with the unknown `RULE A` line is still recognized');
     // A copy without the ignored baselines (e.g. a fresh clone) still recognizes the exact earlier template.
     await rm(project.runtimeRoot, { recursive: true, force: true });
     await writeFile(join(project.root, 'agents', '.core', 'chatter.book'), previous);
@@ -181,7 +181,7 @@ test('core preparation: OPEN limits are anchors; the project\'s own limits or a 
 test('anchors: task and learning prompts forbid moving OPEN/CLOSED boundaries or limits and bypassing them through another agent or task', async (t) => {
     const project = await projectWith(t, { 'publisher.book': 'AGENT Publisher\nFROM @Void\nGOAL Publish one infographic every day at 08:00 Europe/Prague.\nOPEN Learn research and composition methods; the GOAL stays fixed.\n' });
     const agent = await resolveEffectiveAgent(await AgentCatalog.load(project.root, 'agents'), '@Publisher');
-    const task = { title: 'Publish today', ref: '{Publish today}', text: 'TASK Publish today\nGOAL Publish.\n', source: { relativePath: 'tasks/publish-today.book', kind: 'book' } };
+    const task = { title: 'Publish today', ref: '{Publish today}', text: 'TASK Publish today\nGOAL Publish.\n', source: { relativePath: 'tasks/publish-today.book', kind: 'book' }, changes: [], cycle: 0 };
     const prompt = buildTaskPrompt({ agent, task, projectRoot: project.root, tasksDirectory: 'tasks', tools: { team: false, askUser: false, browser: false }, attempt: 1 });
     assert.match(prompt, /OPEN\/CLOSED declarations and learning limits in agent Books are the user's anchors/);
     assert.match(prompt, /move a prohibited change into another agent or task/);

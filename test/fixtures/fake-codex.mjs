@@ -235,7 +235,7 @@ async function main() {
     // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
     const api = Boolean(process.env.CODEX_API_KEY);
     const brief = prompt.startsWith('# Project brief');
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, changeMarkers: prompt.match(/CHANGE_MARKER_\w+/g) ?? [], assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
     print({ type: 'thread.started', thread_id: resumedThread ?? `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     // Routing work only names the target: its markers apply to the target's own execution.
@@ -276,6 +276,25 @@ async function main() {
             process.exit(1);
         }
         let text = `Fixture reply to: ${last}`;
+        // Directing existing work: CHANGE_TASK[name|operation|instruction|scope], TASK_STATUS[query], NOTIFY_TASK[name].
+        const changing = /CHANGE_TASK\[([^|\]]*)\|([^|\]]*)\|([^|\]]*)(?:\|([^\]]*))?\]/.exec(last);
+        if (changing) {
+            print({ type: 'item.completed', item: { type: 'agent_message', text: `Change result: ${await callTool('change_task', { task: changing[1], operation: changing[2], instruction: changing[3], ...(changing[4] ? { scope: changing[4] } : {}) })}` } });
+            print({ type: 'turn.completed', usage: { input_tokens: 10, output_tokens: 5 } });
+            return;
+        }
+        const asking = /TASK_STATUS\[([^\]]*)\]/.exec(last);
+        if (asking) {
+            print({ type: 'item.completed', item: { type: 'agent_message', text: `Status result: ${await callTool('task_status', { query: asking[1] })}` } });
+            print({ type: 'turn.completed', usage: { input_tokens: 10, output_tokens: 5 } });
+            return;
+        }
+        const noting = /NOTIFY_TASK\[([^\]]*)\]/.exec(last);
+        if (noting) {
+            print({ type: 'item.completed', item: { type: 'agent_message', text: `Notify result: ${await callTool('notify_when_done', { task: noting[1] })}` } });
+            print({ type: 'turn.completed', usage: { input_tokens: 10, output_tokens: 5 } });
+            return;
+        }
         if (last.includes('CREATE_TASK')) {
             const created = await callTool('create_task', { title: 'Task from chat', description: `Requested in a chat: ${last}`, agent: '@Developer', priority: 4, ...(last.includes('SUPPORTING_WORK') ? { purpose: 'system' } : {}) });
             text += `\n${created}`;

@@ -1,3 +1,4 @@
+import { receiptLine } from '../engine/task-control.js';
 import { join } from 'node:path';
 import { formatShortTime } from '../common/time.js';
 import type { HarnessSessionRecord } from '../harness/sessions.js';
@@ -895,9 +896,8 @@ export function keepSelection(page: DashboardPage, context: Pick<PageContext, 's
  * @private terminal dashboard pages
  */
 export function sessionReceiptLines(snapshot: ServiceSnapshot, session: HarnessSessionRecord): string[] {
-    void snapshot;
-    void session;
-    return [];
+    const source = session.work.kind === 'task' ? session.work.source : undefined;
+    return (snapshot.taskControl?.receipts ?? []).filter((receipt) => receipt.session === session.handle || (source && !receipt.session && receipt.source === source)).map(receiptLine);
 }
 
 /**

@@ -1,3 +1,4 @@
+import { receiptLine } from '../engine/task-control.js';
 import { formatShortTime } from '../common/time.js';
 import { formatMiB } from '../engine/health.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
@@ -120,6 +121,8 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     lines.push('', `HARNESSES${harnessSessions ? ` (${harnessSessions.counts.open} open, ${harnessSessions.counts.working} working, ${harnessSessions.counts.idle} idle, ${harnessSessions.counts.waiting} waiting, ${harnessSessions.ended.length} ended retained)` : ''}:`);
     for (const session of harnessSessions?.open ?? []) lines.push(`- ${sessionRowLine(session)}`);
     if (!harnessSessions?.open.length) lines.push('- none open');
+    const receipts = (snapshot.taskControl?.receipts ?? []).filter((receipt) => receipt.state !== 'applied' && receipt.state !== 'rejected');
+    if (receipts.length) lines.push('', `INSTRUCTIONS (${receipts.length} outstanding):`, ...receipts.map((receipt) => `- ${receiptLine(receipt)}`));
     const active = snapshot.active ?? (snapshot.current ? [snapshot.current] : []);
     lines.push('', `WORK IN PROGRESS${snapshot.workload ? ` (${snapshot.workload.active} active, ${snapshot.workload.waiting} waiting, ${snapshot.workload.queued} queued)` : ''}`);
     for (const current of active) {

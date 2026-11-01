@@ -75,7 +75,7 @@ export function chatOriginOf(origin: string | undefined): string | undefined {
  *
  * @private chat/task relationships
  */
-export type ChatTaskState = 'queued' | 'running' | 'waiting' | 'blocked' | 'completed' | 'failed';
+export type ChatTaskState = 'queued' | 'running' | 'waiting' | 'blocked' | 'completed' | 'failed' | 'cancelled' | 'retired';
 
 /**
  * A live task card of a chat: the readable task, its actual state and what to open for details.
@@ -94,6 +94,10 @@ export type ChatTaskCard = {
     readonly agent?: string;
     /** Result commit of a completed task. */
     readonly commit?: string;
+    /** It was reopened after an earlier completion or cancellation. */
+    readonly reopened?: boolean;
+    /** Instruction receipts still outstanding, in plain words. */
+    readonly receipts?: readonly string[];
 };
 
 /**

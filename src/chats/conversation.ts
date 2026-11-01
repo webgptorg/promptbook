@@ -1,3 +1,4 @@
+import type { TaskControlOperation, TaskControlOrigin, TaskControlOutcome, TaskStatusView } from '../engine/task-control.js';
 import { rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
@@ -63,6 +64,15 @@ export type ConversationContext = {
     readonly signal?: AbortSignal;
     /** The engine's harness session inventory (absent outside an engine). */
     readonly sessions?: HarnessSessions;
+    /** Operations on existing work, shared with every other client (absent outside an engine). */
+    readonly taskControl?: {
+        /** Reports work matching a description; changes nothing. */
+        readonly status: (query?: string) => Promise<readonly TaskStatusView[]>;
+        /** Accepts one change to existing work. */
+        readonly change: (input: { readonly task: string; readonly operation: TaskControlOperation; readonly instruction: string; readonly scope?: 'task' | 'occurrence' | 'future'; readonly origin: TaskControlOrigin }) => Promise<TaskControlOutcome>;
+        /** Remembers to report when work ends. */
+        readonly notify: (input: { readonly task: string; readonly chat: string; readonly by: string }) => Promise<{ readonly task: string; readonly state: string }>;
+    };
     /** Creates and commits an ordinary task through normal authoring (linked to the chat); returns its name. */
     readonly createTask: (input: ChatTaskInput) => Promise<string>;
     /** Invites an agent into the chat and asks it to reply: the same operation as a `+@Name` address (absent: not available here). */
@@ -349,6 +359,65 @@ export async function replyInChat(context: ConversationContext, chatName: string
             },
         });
     }
+    if (plugin.capabilities.mcp && context.taskControl) {
+        const control = context.taskControl;
+        // The engine, not the model, says who asked: the real latest user message of this chat. A quote inside it or an
+        // agent's claim that "the user wants" changes nothing about that.
+        const latestUser = [...chat.messages].reverse().findIndex((message) => message.senderKey === 'user');
+        const userIndex = latestUser < 0 ? undefined : chat.messages.length - 1 - latestUser;
+        const origin: TaskControlOrigin = userIndex === undefined ? { authority: 'agent', chat: chat.name, via: 'chat', by: agent.name } : { authority: 'user', chat: chat.name, message: chat.messages[userIndex]!.text, messageIndex: userIndex, via: 'chat', by: agent.name };
+        tools.push(
+            {
+                name: 'task_status',
+                description: 'Look at the current tasks: state, responsible agent, open harness sessions, outstanding instruction receipts and latest result. It changes nothing and creates nothing, so use it for any status question, and to find which task the user means.',
+                inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Part of a task name or an agent name; empty lists current work' } } },
+                handler: async (input) => {
+                    try {
+                        return { text: JSON.stringify(await control.status(String(input.query ?? ''))) };
+                    } catch (error) {
+                        return { text: `Task state is not available: ${errorMessage(error)}`, isError: true };
+                    }
+                },
+            },
+            {
+                name: 'change_task',
+                description:
+                    'Change existing work because the user asked for it. amend: new instructions for the same work, also after it finished (it is reopened). accept: the current result is enough. cancel: stop unfinished work without calling it successful. retire: no further repetition of a recurring task. reopen: continue the same finished work. Fundamentally new work is a new task instead. The reply says what was actually achieved: report that, not more; a saved change is not yet applied and a stop request is not yet a stop.',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        task: { type: 'string', description: 'The task, by its name' },
+                        operation: { type: 'string', enum: ['amend', 'accept', 'cancel', 'retire', 'reopen'] },
+                        instruction: { type: 'string', description: 'The change in plain words, as you understood the user' },
+                        scope: { type: 'string', enum: ['task', 'occurrence', 'future'], description: 'task: the definition and current work. occurrence: this run only ("this time"). future: later runs only. Default: task (future for retire)' },
+                    },
+                    required: ['task', 'operation', 'instruction'],
+                },
+                handler: async (input) => {
+                    try {
+                        const scope = input.scope === 'task' || input.scope === 'occurrence' || input.scope === 'future' ? input.scope : undefined;
+                        const outcome = await control.change({ task: String(input.task ?? ''), operation: String(input.operation ?? 'amend') as TaskControlOperation, instruction: String(input.instruction ?? ''), ...(scope ? { scope } : {}), origin });
+                        return { text: `{${outcome.task}}: ${outcome.delivery}${outcome.reopened ? ' It was reopened; its earlier result stays in its history.' : ''}${outcome.persistence === 'pending' ? ' It is saved in its Book; its commit is still pending.' : ''}` };
+                    } catch (error) {
+                        return { text: `Nothing was changed: ${errorMessage(error)}`, isError: true };
+                    }
+                },
+            },
+            {
+                name: 'notify_when_done',
+                description: 'Remember to tell this chat when a task ends, with its actual outcome. It leaves the work untouched and needs nothing kept open: end your turn normally.',
+                inputSchema: { type: 'object', properties: { task: { type: 'string', description: 'The task, by its name' } }, required: ['task'] },
+                handler: async (input) => {
+                    try {
+                        const noted = await control.notify({ task: String(input.task ?? ''), chat: chat.name, by: agent.name });
+                        return { text: `This chat is told when {${noted.task}} ends (now: ${noted.state}).` };
+                    } catch (error) {
+                        return { text: `No notification was set: ${errorMessage(error)}`, isError: true };
+                    }
+                },
+            },
+        );
+    }
     // Raw usage of this chat's work is the chat's own evidence (never a task invented to hold it).
     const usageFile = chatUsageFile(context.project, stored.path);
     // Conversation-scoped TEAM consultation: bounded read-only advice, recorded as linked two-agent chats with their own
@@ -405,6 +474,11 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
             ...(tools.some((tool) => tool.name === 'consult')
                 ? ['- For a specialist question, call the `consult` tool with a teammate from your TEAM (or @Expert for Promptbook itself) and tell the user whose advice you relay. Advice is not executed work: specialist work goes through `create_task`.']
+                : []),
+            ...(tools.some((tool) => tool.name === 'change_task')
+                ? [
+                      '- The user need not know task names, agents or sessions. Use `task_status` to find what they mean and answer status questions; use `change_task` when they want running or finished work changed, accepted, cancelled or stopped from repeating, and `notify_when_done` for "tell me when it is done". Interpret words such as "enough" from the context, and ask only if a real ambiguity remains. Report exactly what the tool said was achieved.',
+                  ]
                 : []),
             ...(tools.some((tool) => tool.name === 'invite_agent') ? ['- A plain @Name or {Full Name} in a message only refers to someone; only `+@Name`, `+{Full Name}` or your `invite_agent` tool brings them in. When the user asks you in words to invite or involve an agent, or the responsible specialist should answer here, call `invite_agent`.'] : []),
             '- If the user corrected you or stated a lasting, project-specific preference relevant to your role, add a final line `PTBK_LEARN <one sentence>` (it is removed from your reply).',

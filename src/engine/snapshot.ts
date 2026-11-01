@@ -1,6 +1,7 @@
 import type { ChatRecheckView } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import type { HarnessSessionsView } from '../harness/sessions.js';
+import type { TaskControlView } from './task-control.js';
 import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
 import type { WalletView } from '../wallet/wallet.js';
@@ -630,6 +631,8 @@ export type ServiceSnapshot = {
     readonly workload?: WorkloadView;
     /** Harness sessions: every open one including idle ones, and retained ended evidence. */
     readonly harnessSessions?: HarnessSessionsView;
+    /** Instruction receipts and completion notifications of task control. */
+    readonly taskControl?: TaskControlView;
     /** Effective execution configuration for the expandable execution panel (the first active, else the last). */
     readonly execution?: ExecutionDetailView;
     /** Execution details of every active task run (the operator selects one). */

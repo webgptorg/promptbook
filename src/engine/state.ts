@@ -200,7 +200,7 @@ export type ActiveRecord = {
     /** Completion stamp/follow-ups were written. */
     readonly completionApplied: boolean;
     /** Task source before the completion edits and the follow-ups they created (to revert after a failed check). */
-    readonly completionBackup?: { readonly source: string; readonly created: readonly string[] };
+    readonly completionBackup?: { readonly source: string; readonly created: readonly string[]; readonly stamped?: string };
     /** Result commit. */
     readonly commitSha?: string;
     /** Chat waiting for the user's reply (agent-authored question of this task). */
@@ -541,6 +541,16 @@ export class StateStore {
     /** Persists the scheduled rechecks of failed chat replies. */
     public async writeChatRechecks(rechecks: Record<string, ChatReplyRecheck>): Promise<void> {
         await writeJsonAtomic(this.file('chat-replies.json'), rechecks);
+    }
+
+    /** Reads task control records, instruction receipts and notifications. */
+    public async readTaskControl(): Promise<unknown> {
+        return await readJsonIfExists<unknown>(this.file('task-control.json')).catch(() => undefined);
+    }
+
+    /** Persists task control records, instruction receipts and notifications. */
+    public async writeTaskControl(state: unknown): Promise<void> {
+        await writeJsonAtomic(this.file('task-control.json'), state);
     }
 
     /** Reads the harness session inventory (open sessions and retained ended evidence). */

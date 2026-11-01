@@ -150,9 +150,9 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
               ]
             : [`${style.bold(`New chat with ${target.kind === 'new' ? target.agent.reference : name}`)}`, style.muted('Write the first message; the chat is saved when you send it (and committed shortly after).')];
         // Live task cards: work this chat created or links, with its actual state (details on the Tasks page).
-        const cards = (detail?.tasks ?? []).slice(-4).map((card) => {
+        const cards = (detail?.tasks ?? []).slice(-4).flatMap((card) => {
             const tone = card.state === 'completed' ? style.success : card.state === 'failed' || card.state === 'blocked' ? style.error : card.state === 'waiting' ? style.warning : style.accent;
-            return `${tone(`${card.state === 'completed' ? marks.ok : card.state === 'failed' ? marks.fail : card.state === 'waiting' ? marks.warn : marks.bullet} ${card.state}`)} ${truncate(`{${card.name}}`, Math.max(20, width - 30))}${card.detail ? style.muted(` · ${truncate(card.detail.split('\n')[0]!, 60)}`) : ''}`;
+            return [`${tone(`${card.state === 'completed' ? marks.ok : card.state === 'failed' ? marks.fail : card.state === 'waiting' ? marks.warn : marks.bullet} ${card.state}`)} ${truncate(`{${card.name}}`, Math.max(20, width - 30))}${card.detail ? style.muted(` · ${truncate(card.detail.split('\n')[0]!, 60)}`) : ''}`, ...(card.receipts ?? []).map((receipt) => style.muted(`  ${truncate(receipt, Math.max(20, width - 8))}`))];
         });
         if ((detail?.tasks?.length ?? 0) > cards.length) cards.unshift(style.muted(`${detail!.tasks!.length - cards.length} earlier task(s) on the Tasks page`));
         const top = renderPanel({ title: `${marks.bullet} Chat`, titleRight: options.embedded ? 'Esc back to dashboard' : 'Ctrl+C close', lines: [...header, ...cards], width, tone: detail?.summary.status === 'waiting-for-user' ? 'attention' : 'accent', unicode: terminal.unicode, style });
