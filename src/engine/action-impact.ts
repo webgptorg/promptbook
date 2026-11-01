@@ -373,13 +373,14 @@ function countOf(members: readonly ActionSummary[], keyOf: (action: ActionSummar
 
 /**
  * The impact of a set for display: rounding happens only here. A filtered subset and a known subtotal say what they are;
- * an all-unknown set has no invented number.
+ * an all-unknown set has no invented number, and an empty set has no impact.
  *
  * @private external action impact
  */
 export function formatImpact(totals: Pick<ActionTotals, 'impact' | 'unknown' | 'incomplete' | 'filtered'>): string {
     const known = totals.impact === undefined ? undefined : totals.impact.toFixed(2).replace(/\.?0+$/, '') || '0';
-    const value = known === undefined ? 'unknown' : totals.incomplete ? `${known}+ (${totals.unknown} unknown)` : known;
+    // Without any member there is no impact at all, which differs from both 0 and unknown.
+    const value = known === undefined ? (totals.incomplete ? 'unknown' : 'none') : totals.incomplete ? `${known}+ (${totals.unknown} unknown)` : known;
     return totals.filtered ? `${value} filtered` : value;
 }
 

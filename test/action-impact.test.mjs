@@ -113,6 +113,7 @@ test('unknown: separate from zero, always visible, without an invented total', (
     assert.equal(allUnknown.impact, undefined);
     assert.equal(allUnknown.incomplete, true);
     assert.equal(formatImpact(allUnknown), 'unknown');
+    assert.equal(actionTotals([], NOW).display, 'none', 'an empty set has no impact: neither 0 nor unknown');
     const mixed = actionTotals([action({ impact: 2 }), action({ impact: undefined })], NOW);
     near(mixed.impact, 2, 'known subtotal');
     assert.equal(mixed.unknown, 1);
