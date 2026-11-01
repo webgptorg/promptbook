@@ -38,7 +38,10 @@ async function publishInstaller(installerPath) {
         await writeFile(checksumPath, `${digest}  ${name}\n`);
         const exists = await gh(['release', 'view', tag, '--json', 'tagName,assets'])
             .then((output) => JSON.parse(output))
-            .catch(() => undefined);
+            .catch((error) => {
+                if (!/release not found/i.test(error.stderr ?? error.message)) throw error;
+                return undefined;
+            });
         if (!exists) {
             const prerelease = release.version.includes('-');
             const notes = [
@@ -47,7 +50,11 @@ async function publishInstaller(installerPath) {
                 `- **npm:** \`npm install -g ptbk@${release.version}\` (the ordinary CLI installation).`,
                 `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally and creates an empty first-project folder. It then opens a terminal running \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
             ].join('\n');
-            await gh(['release', 'create', tag, '--verify-tag', '--title', `ptbk ${release.version}`, '--notes', notes, ...(prerelease ? ['--prerelease'] : [])]);
+            await gh(['release', 'create', tag, '--verify-tag', '--title', `ptbk ${release.version}`, '--notes', notes, ...(prerelease ? ['--prerelease'] : [])])
+                .catch(async (creationError) => {
+                    // The extension may have created this release after our initial lookup.
+                    try { await gh(['release', 'view', tag, '--json', 'tagName']); } catch { throw creationError; }
+                });
         }
         const assets = exists?.assets ?? [];
         const existing = assets.find((asset) => asset.name === name);
