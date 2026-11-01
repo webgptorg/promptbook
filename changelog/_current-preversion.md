@@ -1,5 +1,10 @@
 # Unreleased
 
+## Release videos: discover the next published version
+
+-   Checked all published npm versions, including prereleases, and queued one ordinary Release Video task for `0.119.0-47`, preserving registry metadata, matching Git revisions, the published `0.119.0-45` baseline and the owner's recurring authorization. No `0.119.0-46` publication exists in the observed registry.
+-   Saved discovery and duplicate-reconciliation evidence under `releases/videos/0.119.0-47/status.md`. The already published `0.119.0-45` remains with its initial task; discovery performed no upload and added no scheduler.
+
 ## VS Code: visible reference colors
 
 -   `@Name` and `{Full Name}` references now use the active theme's link color independently of semantic token styling, including `FROM @Adam`. Colors update while editing and when showing another file or a split editor; code, escaped lines and emails stay literal.
