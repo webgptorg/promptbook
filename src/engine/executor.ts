@@ -26,6 +26,7 @@ import { normalizeAgentName } from '../book/references.js';
 import { ToolBridge, type BridgeTool } from './bridge.js';
 import { createLearningTask, isTeacher } from './generated.js';
 import { QUOTA_BACKOFF_MS, type HarnessPool } from './harnesses.js';
+import { resolveAgentKnowledge, type MethodologyEvidence } from './knowledge.js';
 import { buildTaskPrompt } from './prompt.js';
 import type { ChatStore } from '../chats/store.js';
 import { taskChats } from '../chats/task-chats.js';
@@ -81,7 +82,7 @@ export type ExecutionHooks = {
     /** Absolute paths written by concurrent authoring (never attributed to the task). */
     readonly excludedPaths: () => ReadonlySet<string>;
     /** Additional tools (project browser, external-action records); a human-only step becomes a chat waiting for the user, like `ask_user`. */
-    readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string; readonly occurrence?: string }) => BridgeTool[];
+    readonly extraTools?: (context: { readonly chats: ReturnType<typeof taskChats>; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string; readonly occurrence?: string; readonly methodology?: MethodologyEvidence }) => BridgeTool[];
     /** What this task already recorded as external actions (given to each attempt for reconciliation before retries). */
     readonly actionContext?: () => Promise<string | undefined>;
     /** State of a Wallet login request this run waits for (undefined: unknown, which never blocks). */
@@ -585,6 +586,9 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             hooks.emit({ type: 'phase', phase: attempt > 1 ? 'repairing' : 'executing', detail: attempt > 1 ? `repair attempt ${attempt}/${repairBudget}` : undefined });
             hooks.emit({ type: 'attempt', attempt, budget: repairBudget });
             const attemptLabel = `${record.runId}-a${attempt}${record.technicalRetries ? `-t${record.technicalRetries}` : ''}`;
+            // Referenced knowledge is resolved once per attempt, so its rules cannot change halfway through its evaluations.
+            const knowledge = await resolveAgentKnowledge(project, environment.env, agent, { inline: true });
+            if (knowledge.evidence.sources.length) await trace.event('knowledge', { runId: record.runId, attempt, sources: knowledge.evidence.sources });
             const conversations: Array<{ chat: string; messages: Array<{ sender: string; text: string }> }> = [];
             for (const name of record.chats ?? []) {
                 const stored = await environment.chats.find(name);
@@ -616,7 +620,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         onConsultation: (consultation) => hooks.emit({ type: 'consultation', ...consultation }),
                         usage: { file: taskUsageFile(trace.directory), parent: { kind: 'task', name: task.title } },
                     }),
-                    ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), onWalletWait: (action) => (pending.wallet = action), trace, attempt: attemptLabel, occurrence: record.occurrence }) ?? []),
+                    ...(hooks.extraTools?.({ chats, agent: agent.name, onUserChat: (chat) => (pending.chat = chat), onWalletWait: (action) => (pending.wallet = action), trace, attempt: attemptLabel, occurrence: record.occurrence, methodology: knowledge.evidence }) ?? []),
                 );
                 if (hooks.claimFiles) tools.push(claimFilesTool(hooks.claimFiles));
                 if (hooks.createPrerequisite) {
@@ -635,7 +639,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 }
             }
             const prompt = buildTaskPrompt({
-                agent,
+                agent: knowledge.agent,
                 task,
                 projectRoot: project.root,
                 tasksDirectory: toProjectRelative(project.root, environment.tasksDirectory),

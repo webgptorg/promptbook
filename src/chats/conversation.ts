@@ -14,6 +14,7 @@ import { runHarnessInSession, type HarnessSessions } from '../harness/sessions.j
 import type { HarnessEvent } from '../harness/types.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
 import { instanceEnvironment, type HarnessPool } from '../engine/harnesses.js';
+import { resolveAgentKnowledge } from '../engine/knowledge.js';
 import { renderAgentInstructions } from '../engine/prompt.js';
 import { chatRoutingPrompt, routerAgent, validateAssignment } from '../engine/generated.js';
 import { parseAgentReport } from '../engine/result.js';
@@ -461,7 +462,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     }
     const prompt = [
         `# Conversation\n\nYou are **${agent.name}**, talking with the user (the project owner) in the persistent chat {${chat.name}} of the project at \`${context.project.root}\`.${isMain ? '' : ` You were addressed or invited directly; ${mainReference} is the chat's main agent and stays so. Answer the request meant for you, under your own name, and leave requests meant for other agents to them.`}`,
-        `## Your role\n\n${renderAgentInstructions(agent) || '_No additional instructions._'}`,
+        `## Your role\n\n${renderAgentInstructions((await resolveAgentKnowledge(context.project, context.env, agent, { inline: false })).agent) || '_No additional instructions._'}`,
         projectInstructions ? `## Project instructions (${contextFile})\n\n${projectInstructions.slice(0, 16_000)}` : '',
         chat.links.length ? `## Linked Books\n\n${chat.links.join(', ')}` : '',
         `## Conversation so far\n\n${transcript}`,

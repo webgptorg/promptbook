@@ -11,6 +11,7 @@ import { runHarnessInSession, type HarnessSessions } from '../harness/sessions.j
 import { ToolBridge, type BridgeTool, type ToolResult } from './bridge.js';
 import type { HarnessPool } from './harnesses.js';
 import { readOnlyRoute } from './routing.js';
+import { resolveAgentKnowledge } from './knowledge.js';
 import { renderAgentInstructions } from './prompt.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import { validateChoices } from '../chats/chat-book.js';
@@ -118,7 +119,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
         context.scope === 'conversation'
             ? `# Consultation\n\nYou are **${advisor.name}**, consulted by ${context.agentName} who is answering the project owner in the chat "${context.task.title}" of the project at \`${context.project.root}\`. Your advice is relayed and attributed to you; you do not perform work here.`
             : `# Consultation\n\nYou are **${advisor.name}**, consulted by ${context.agentName} who is working on the task "${context.task.title}" in the project at \`${context.project.root}\`.`,
-        `## Your role\n\n${renderAgentInstructions(advisor)}`,
+        `## Your role\n\n${renderAgentInstructions((await resolveAgentKnowledge(context.project, context.pool.environment(instance), advisor, { inline: false })).agent)}`,
         `## Question\n\n${question}`,
         '## Rules\n\n- You are read-only: inspect files if useful, but never modify anything or run write operations.\n- Answer directly and concisely within your own role. You cannot grant permissions beyond the task.\n- No completion line is needed.',
     ].join('\n\n');

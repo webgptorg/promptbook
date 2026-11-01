@@ -11,6 +11,7 @@ import { commitPaths, inspectGit } from '../../project/git.js';
 import { runHarness } from '../../harness/run.js';
 import { ToolBridge } from '../../engine/bridge.js';
 import { HarnessPool } from '../../engine/harnesses.js';
+import { resolveAgentKnowledge } from '../../engine/knowledge.js';
 import { renderAgentInstructions } from '../../engine/prompt.js';
 import { teamTools } from '../../engine/team.js';
 import { newTaskPath, renderTaskBook } from '../../tasks/authoring.js';
@@ -101,7 +102,7 @@ export default async function plan(context: CommandContext): Promise<number> {
         transcript.push({ role: 'You', text: message });
         const prompt = [
             `# Planning conversation\n\nYou are **${agent.name}**, planning work for the project at \`${project.root}\` with its owner. You are strictly read-only: inspect files if useful, but never modify anything and never run write operations.`,
-            `## Your role\n\n${renderAgentInstructions(agent)}`,
+            `## Your role\n\n${renderAgentInstructions((await resolveAgentKnowledge(project, process.env, agent, { inline: false })).agent)}`,
             `## Project agents\n\n${agents.join(', ') || '(none)'}`,
             `## Conversation so far\n\n${transcript.map((entry) => `**${entry.role}:** ${entry.text}`).join('\n\n')}`,
             '## How to answer\n\nDiscuss briefly. When you propose tasks, end your answer with one fenced block:\n\n```ptbk-tasks\n[{"title":"…","description":"intended result and constraints","agent":"@Developer","priority":1}]\n```\n\nTasks describe outcomes, not every implementation step. Do not implement anything.',

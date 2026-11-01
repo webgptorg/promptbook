@@ -18,6 +18,7 @@ import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
 import { agentSubject, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
 import { ActionLog } from './action-log.js';
+import type { MethodologyEvidence } from './knowledge.js';
 import { appendBrief, findBrief, readLatestBrief, REPORT_AUTHOR, REPORT_FILE, REPORT_NAME, type ReportView } from './report.js';
 import { classifySubject, readCommit, readHistory, type HistoryDetail, type HistoryView } from '../project/history.js';
 import { listFolder, readProjectFile, type FileView, type FolderView } from '../project/files.js';
@@ -141,7 +142,7 @@ export type AgendaOptions = {
     /** Plain event stream (raw/noninteractive output). */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
     /** Additional tools for agents (project browser); `trace`/`attempt` identify the evidence they belong to. */
-    readonly extraTools?: (task: Task, context: { readonly chats: TaskChats; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string; readonly occurrence?: string }) => BridgeTool[];
+    readonly extraTools?: (task: Task, context: { readonly chats: TaskChats; readonly agent: string; readonly onUserChat: (chat: { chat: string; awaited: number }) => void; readonly onWalletWait: (action: string) => void; readonly trace: TaskTrace; readonly attempt: string; readonly occurrence?: string; readonly methodology?: MethodologyEvidence }) => BridgeTool[];
     /** Answers a user message in a human-led chat (an agent turn outside the task queue). */
     readonly chatReplies?: boolean;
     /** Finalizes a task's evidence produced outside the harness (its browser video) before its result commit. */

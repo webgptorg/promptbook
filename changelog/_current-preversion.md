@@ -1,5 +1,12 @@
 # Unreleased
 
+## Knowledge: a Book can reference shared knowledge by URL
+
+-   `KNOWLEDGE <url ending in .book>` now loads that Book as knowledge through a cached snapshot under `.ptbk/knowledge/`. Only its `RULE` and `KNOWLEDGE` text counts: it never registers or runs another agent, adds teammates or changes a model, and it grants no authority.
+-   Task turns receive the text. Chat replies and consultations get its source, release and hash with where to read it, so the source is not loaded into every request.
+-   The latest URL is revalidated at most hourly, an immutable release such as `.../1.0.0.book` is never requested again once held, and a new release reaches the next task attempt without a new engine.
+-   During an outage the verified earlier content stays in use and is labelled as a cached copy. An unavailable source is stated plainly, and agents are told its rules were not applied. Set `PTBK_KNOWLEDGE_SOURCES=off` to stop retrieving, keeping what is already held.
+
 ## Expert and Teacher: your project's Adam now reaches them too
 
 -   Expert now builds on your project's own Adam and adds the running engine's expertise on top. Teacher, and any local specialization of Expert, receive your project's rules and knowledge through it. Two projects with different Adams therefore have different effective Experts on the same engine.
