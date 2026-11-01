@@ -22,9 +22,9 @@ The initial installer may download dependencies and the package; a fully offline
 
 ## Prerequisite preparation
 
-Inspect Node.js, npm and Git individually in the environment of the user who will run Promptbook. Verify executable usability and compatibility with the target package's declared requirements; finding a filename alone is insufficient. Reuse compatible existing installations without reinstalling them. Install only missing prerequisites, including npm when absent, using official distributions and validated downloads. Do not install a duplicate Node.js merely because npm is missing or an existing executable needs to be made available to the new terminal.
+Inspect Node.js, npm and Git individually in the environment of the user who will run Promptbook. Verify executable usability and compatibility with the target package's declared requirements; finding a filename alone is insufficient. Reuse compatible existing installations without reinstalling them. When Node.js or npm is missing, unusable or incompatible, automatically prepare a verified per-user Node.js 22 runtime including npm without removing the existing installation. Reuse that compatible runtime on retries. Install missing Git from its official distribution with download verification.
 
-An unusable or incompatible existing installation needs an understandable repair/update decision, not a silent replacement of the user's toolchain. Preserve unrelated tools, package-manager settings, PATH entries and Git configuration. Do not invent a Git author or require a GitHub account in the installer; project Git setup belongs to init.
+An incompatible Node.js installation remains intact; the installer selects its private compatible runtime for Promptbook. An unusable Git installation needs an understandable repair decision. Preserve unrelated tools, package-manager settings, PATH entries and Git configuration. Do not invent a Git author or require a GitHub account in the installer; project Git setup belongs to init.
 
 Prepare a usable global `ptbk` installation for the initiating user. Show concise progress and the planned dependencies/changes; technical output can be available as diagnostics rather than the main interface. Ordinary OS permission prompts are allowed where needed, but use elevation only for operations that require it. Project creation and CLI handoff run as the original user, not as an elevated administrator or a different administrator account.
 
@@ -65,3 +65,7 @@ Repeating setup rechecks and reuses satisfied prerequisites, the requested packa
 - **Interrupted/repeated setup:** Download failure, denied elevation, cancellation and a second installer run retain progress safely. No required failed step is reported as successful, no user data is removed, and retries do not duplicate projects or launches.
 - **Handoff or skip:** The normal path executes init and keeps its terminal open; launch failure supplies a visible recovery action. Skipping project creation installs the CLI without initializing any directory. Closing the bootstrapper leaves an already-handed-off terminal/engine alone.
 - **Release integration:** Every published version has a downloadable matching installer as well as the existing npm package. A missing, corrupt or mismatched artifact makes the release incomplete; clean-machine checks and retry behavior follow [release publication](releasing.md).
+
+## Windows discovery and completion
+
+Show the Promptbook logo and license acceptance before installation. Create Start menu shortcuts named `Promptbook` and `ptbk`, launching the ordinary context-aware `ptbk` command from the user home with the verified runtime. Preserve lowercase `ptbk` in command examples. Failed or declined preparation must change the final page to an explicit incomplete result and return a nonzero setup exit code. Codex and Claude Code remain choices in ordinary init.
