@@ -82,6 +82,7 @@ jobs:
           choco install innosetup --no-progress -y | Out-Null
           $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $iscc) { throw 'The Inno Setup compiler (ISCC.exe) was not found after its installation.' }
+          & ./installer/windows/prepare-artwork.ps1
           & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$env:PTBK_NUMERIC_VERSION" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
       - name: The bootstrap installs and reports the exact published ptbk version
