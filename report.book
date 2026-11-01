@@ -4,3 +4,6 @@ CHAT MEMBER @Chatter
 CHAT MESSAGE @Chatter 2026-11-01T02:23:54+01:00
 Publishing repair remains blocked on GitHub two-factor authentication, so the failed Windows installer release has not yet been diagnosed or fixed. Please complete authentication in the project browser, then confirm in the publishing chat so Developer can continue. Health-check verification also remains unresolved because Chrome crashes in the runner, while reconciliation of the Fixer and Chatter template updates is queued for assignment.
 
+CHAT MESSAGE @Chatter 2026-11-01T02:55:40+01:00
+Publishing repair remains blocked on GitHub two-factor authentication; please complete it in the project browser and confirm in the publishing chat so Developer can investigate the failed release. Router is assigning the new release-video work, starting with version 0.119.0-45; no videos are confirmed published. Fixer’s template reconciliation is ready to begin, while health-check verification remains unresolved because Chrome crashes in the runner.
+
