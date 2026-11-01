@@ -47,4 +47,5 @@ You are logged in manually
 
 CHAT MESSAGE @Chatter 2026-11-01T10:59:11+01:00 progress
 - $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md'
+- ptbk.task_status Create a release video agent
 
