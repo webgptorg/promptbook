@@ -1,9 +1,9 @@
 # Upload and publicly publish release video · YouTube
 
-- **Outcome:** pending
+- **Outcome:** success
 - **Impact:** 2
 - **Action time:** 2026-11-01T21:00:14+01:00
-- **Recorded:** 2026-11-01T21:00:30+01:00
+- **Recorded:** 2026-11-01T21:01:10+01:00
 - **Attempts:** 1
 - **Agent:** Expert
 - **Task:** Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03
@@ -22,7 +22,7 @@ releases/videos/0.119.0-45/script.md; video.mp4 SHA-256 256704ad8008701b81aab7fd
 
 ## Observed outcome
 
-Upload completed to specified channel UCH76EQk6XKI6WF7k_Pdh2GA. Studio assigned video lMl8T_zR2hs; processing pending and visibility not yet published.
+Studio confirmed Video zveřejněno (Video published), publication 1 November 2026, Public selected, duration 2:36. Checks completed with no problems. Channel UCH76EQk6XKI6WF7k_Pdh2GA.
 
 ## Impact
 
@@ -39,3 +39,4 @@ Methodology:
 
 - 2026-11-01T21:00:14+01:00 — intent recorded before the request (attempt gapeq53tg5-a1)
 - 2026-11-01T21:00:30+01:00 — pending: Upload completed to specified channel UCH76EQk6XKI6WF7k_Pdh2GA. Studio assigned video lMl8T_zR2hs; processing pending and visibility not yet published. (attempt gapeq53tg5-a1)
+- 2026-11-01T21:01:10+01:00 — success: Studio confirmed Video zveřejněno (Video published), publication 1 November 2026, Public selected, duration 2:36. Checks completed with no problems. Channel UCH76EQk6XKI6WF7k_Pdh2GA. (attempt gapeq53tg5-a1)
