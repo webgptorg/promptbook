@@ -1,9 +1,9 @@
 # Upload and publicly publish release video · YouTube
 
-- **Outcome:** pending
+- **Outcome:** success
 - **Impact:** 2
 - **Action time:** 2026-11-01T21:08:26+01:00
-- **Recorded:** 2026-11-01T21:09:14+01:00
+- **Recorded:** 2026-11-01T21:09:21+01:00
 - **Attempts:** 3
 - **Agent:** Release Video
 - **Task:** Publish the Promptbook 0.119.0-47 release video - 2026-11-01 21:04:12
@@ -22,7 +22,7 @@ releases/videos/0.119.0-47/script.md; video.mp4 SHA-256 2e10993212631487ae081dde
 
 ## Observed outcome
 
-Clicked Publish once for existing video jdSEZ5OJEho with public visibility selected. Awaiting post-click acknowledgement and watch-page/Studio verification. Copyright checks were still running at submission; do not upload or republish again without reconciliation.
+Studio shows Video zveřejněno (Video published), title Promptbook 0.119.0-47: external-action impact and priority, 2:31 duration, date 2026-11-01, public radio selected, canonical video ID jdSEZ5OJEho, verified channel UCH76EQk6XKI6WF7k_Pdh2GA. Exactly one upload performed. Watch-page playback verification follows; copyright checks still running at publication.
 
 ## Impact
 
@@ -44,3 +44,4 @@ Methodology:
 - 2026-11-01T21:08:55+01:00 — pending: Existing uploaded video jdSEZ5OJEho now has the release title and description entered. Audience corrected to not made for kids for this technical overview (a stale reference had briefly selected the o (attempt nfqtqg642r-a1)
 - 2026-11-01T21:09:09+01:00 — another attempt of the same action begun (attempt nfqtqg642r-a1)
 - 2026-11-01T21:09:14+01:00 — pending: Clicked Publish once for existing video jdSEZ5OJEho with public visibility selected. Awaiting post-click acknowledgement and watch-page/Studio verification. Copyright checks were still running at subm (attempt nfqtqg642r-a1)
+- 2026-11-01T21:09:21+01:00 — success: Studio shows Video zveřejněno (Video published), title Promptbook 0.119.0-47: external-action impact and priority, 2:31 duration, date 2026-11-01, public radio selected, canonical video ID jdSEZ5OJEho (attempt nfqtqg642r-a1)
