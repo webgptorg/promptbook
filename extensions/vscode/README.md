@@ -6,7 +6,7 @@ Write agents, tasks and chats in the Book language used by [Promptbook](https://
 - Keyword completion, hover explanations, agent/task/chat snippets, document outline and folding.
 - Live syntax and MODEL diagnostics from the engine's own parser. Saving remains possible.
 - Ctrl+click (Cmd+click on macOS), F12 and Peek Definition navigate `@Name` and `{Name}` references to the declared agent, task or chat name. The whole reference is the link, including multiword names; open editor changes are used before saved files. Multiple matching names remain multiple results; runtime-only entities do not have editor definitions.
-- References use the theme's variable colors. Selecting one highlights every equivalent `@Name`/`{Name}` occurrence in the document and its local declaration, ignoring case, accents and word separators just like the engine.
+- References use the active theme's link color, even when semantic highlighting is disabled or the theme leaves variables uncolored. Selecting one highlights every equivalent `@Name`/`{Name}` occurrence in the document and its local declaration, ignoring case, accents and word separators just like the engine.
 - Read-only previews of historical `.bookc` archives, with no scripts or active archive content.
 
 ```book

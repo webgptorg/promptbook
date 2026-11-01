@@ -37,11 +37,23 @@ export function bookDocument(path, text) {
 }
 
 /** Activate the actual release bundle with a small editor boundary; no alternate provider implementation is tested. */
-export function activateEditor(documents, disk = new Map()) {
+export function activateEditor(documents, disk = new Map(), visibleDocuments = documents) {
     const providers = {};
     const searches = [];
+    const listeners = {};
+    const decorationTypes = [];
     const folder = { uri: { toString: () => 'file:///project' } };
     const disposable = () => ({ dispose() {} });
+    /** Record the editor boundary without implementing any reference parsing or styling. */
+    const textEditor = (document) => ({
+        document, decorations: new Map(),
+        setDecorations(type, ranges) { this.decorations.set(type, Array.from(ranges)); },
+    });
+    /** Capture the actual extension listeners so tests can deliver workspace and visibility events. */
+    const listen = (name) => (listener) => {
+        listeners[name] = listener;
+        return { dispose() { delete listeners[name]; } };
+    };
     const registrations = Object.fromEntries([
         ['registerDocumentSemanticTokensProvider', 'tokens'], ['registerCompletionItemProvider', 'completion'],
         ['registerHoverProvider', 'hover'], ['registerDocumentSymbolProvider', 'symbols'],
@@ -50,6 +62,8 @@ export function activateEditor(documents, disk = new Map()) {
     ].map(([method, name]) => [method, (_selector, provider) => { providers[name] = provider; return disposable(); }]));
     const vscode = {
         Range, DiagnosticSeverity: { Error: 0, Warning: 1 }, DocumentHighlightKind: { Read: 1, Write: 2 },
+        ThemeColor: class { constructor(id) { this.id = id; } },
+        DecorationRangeBehavior: { ClosedClosed: 1 },
         Diagnostic: class { constructor(range, message) { this.range = range; this.message = message; } },
         DocumentHighlight: class { constructor(range, kind) { this.range = range; this.kind = kind; } },
         SemanticTokensLegend: class {},
@@ -72,9 +86,18 @@ export function activateEditor(documents, disk = new Map()) {
                 if (!disk.has(uri.toString())) throw new Error('File disappeared');
                 return new TextEncoder().encode(disk.get(uri.toString()));
             } },
-            onDidOpenTextDocument: disposable, onDidChangeTextDocument: disposable, onDidCloseTextDocument: disposable,
+            onDidOpenTextDocument: listen('open'), onDidChangeTextDocument: listen('change'), onDidCloseTextDocument: listen('close'),
         },
-        window: { registerCustomEditorProvider: disposable },
+        window: {
+            visibleTextEditors: visibleDocuments.map(textEditor),
+            createTextEditorDecorationType(options) {
+                const type = { options, disposed: false, dispose() { this.disposed = true; } };
+                decorationTypes.push(type);
+                return type;
+            },
+            onDidChangeVisibleTextEditors: listen('visible'),
+            registerCustomEditorProvider: disposable,
+        },
     };
     const entry = new URL('../../../dist-vscode/extension/out/extension.cjs', import.meta.url);
     const require = createRequire(entry);
@@ -85,5 +108,14 @@ export function activateEditor(documents, disk = new Map()) {
     }, { filename: entry.pathname });
     const context = { subscriptions: [] };
     module.exports.activate(context);
-    return { ...providers, searches };
+    return {
+        ...providers, searches, decorationTypes,
+        get editors() { return vscode.window.visibleTextEditors; },
+        change(document) { listeners.change?.({ document }); },
+        show(...visible) {
+            vscode.window.visibleTextEditors = visible.map(textEditor);
+            listeners.visible?.(vscode.window.visibleTextEditors);
+        },
+        dispose() { for (const subscription of context.subscriptions) subscription.dispose(); },
+    };
 }

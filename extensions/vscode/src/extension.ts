@@ -1,13 +1,31 @@
 import * as vscode from 'vscode';
-import { analyze, declarationIn, highlightBook, isLiteral, keywordCompletions, matchCommitmentKeyword, parseBook, referenceAt, referenceHighlights } from './language.js';
+import { analyze, declarationIn, highlightBook, isLiteral, keywordCompletions, matchCommitmentKeyword, parseBook, referenceAt, referenceHighlights, referencesIn } from './language.js';
 import { MAX_BOOKC_BYTES, previewHtml, readBookc } from './bookc.js';
 
 /** Connect the bundled engine language services to VS Code without starting an engine or an AI harness. */
 export function activate(context: vscode.ExtensionContext): void {
     const selector: vscode.DocumentSelector = { language: 'book' };
     const diagnostics = vscode.languages.createDiagnosticCollection('book');
+    // A generic variable token can remain plain text in a theme or with semantic highlighting disabled.
+    // Use the theme's link foreground for cross-references; ThemeColor also follows theme changes automatically.
+    const referenceColor = vscode.window.createTextEditorDecorationType({
+        color: new vscode.ThemeColor('textLink.foreground'),
+        rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+    });
+    /** Color the same complete references used by navigation, including in split and newly visible editors. */
+    const colorReferences = (editor: vscode.TextEditor): void => {
+        const { document } = editor;
+        const ranges = document.languageId === 'book' && !document.isClosed
+            ? referencesIn(document.getText()).map((reference) => new vscode.Range(
+                document.positionAt(reference.index), document.positionAt(reference.index + reference.raw.length),
+            )) : [];
+        editor.setDecorations(referenceColor, ranges);
+    };
     const timers = new Map<string, ReturnType<typeof setTimeout>>();
     const update = (document: vscode.TextDocument): void => {
+        for (const editor of vscode.window.visibleTextEditors) {
+            if (editor.document.uri.toString() === document.uri.toString()) colorReferences(editor);
+        }
         if (document.languageId !== 'book' || document.isClosed) return;
         diagnostics.set(document.uri, analyze(document.getText()).diagnostics.map((problem) => {
             const line = document.lineAt(Math.max(0, Math.min(document.lineCount - 1, problem.line - 1)));
@@ -17,10 +35,13 @@ export function activate(context: vscode.ExtensionContext): void {
             return diagnostic;
         }));
     };
-    context.subscriptions.push(diagnostics, { dispose: () => {
+    context.subscriptions.push(diagnostics, referenceColor, { dispose: () => {
         for (const timer of timers.values()) clearTimeout(timer);
         timers.clear();
     } });
+    context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors((editors) => {
+        for (const editor of editors) colorReferences(editor);
+    }));
     context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(update));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(({ document }) => {
         if (document.languageId !== 'book') return;

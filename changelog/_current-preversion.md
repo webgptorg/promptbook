@@ -1,5 +1,9 @@
 # Unreleased
 
+## VS Code: visible reference colors
+
+-   `@Name` and `{Full Name}` references now use the active theme's link color independently of semantic token styling, including `FROM @Adam`. Colors update while editing and when showing another file or a split editor; code, escaped lines and emails stay literal.
+
 ## External activity log: find what mattered in a long history
 
 -   The Action log tile and page are now the **External activity log**, in the terminal and the browser.
