@@ -1,5 +1,12 @@
 # Unreleased
 
+## Windows installer
+
+- Automatically prepare a verified private Node.js runtime when Node or npm is missing or incompatible, retaining existing tools.
+- Add Promptbook branding, license acceptance and Start menu entries for Promptbook and ptbk.
+- Report incomplete setup on the final page and through a nonzero installer exit code.
+
+
 ## VS Code: reference navigation and occurrence highlighting
 
 -   Ctrl+click/Cmd+click, F12 and Peek Definition use the full `@Name` or `{Name}` reference as a link and select the target agent, task or chat name, including changes in open and newly created Book files.
