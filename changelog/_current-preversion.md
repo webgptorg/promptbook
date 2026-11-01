@@ -1,5 +1,9 @@
 # Unreleased
 
+## Release video 0.119.0-47
+
+-   Published https://www.youtube.com/watch?v=jdSEZ5OJEho on the owner-selected personal channel and verified public Studio status and watch-page playback. Prepared a factual, caption-only release video on external-action impact, batch totals and aging priority, using the immutable npm-matched revision and a disposable synthetic fixture. Preserved reproducible sources and 11 passing release tests under `releases/videos/0.119.0-47/`; publication state and receipts are recorded there.
+
 ## Release videos: discover the next published version
 
 -   Checked all published npm versions, including prereleases, and queued one ordinary Release Video task for `0.119.0-47`, preserving registry metadata, matching Git revisions, the published `0.119.0-45` baseline and the owner's recurring authorization. No `0.119.0-46` publication exists in the observed registry.

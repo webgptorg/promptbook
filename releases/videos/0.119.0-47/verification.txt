@@ -1,0 +1,27 @@
+ACTUAL RELEASE OUTPUT / SYNTHETIC FIXTURE
+1,000 actions at impact 1 => 4
+Default view => 1 batch row
+Outcomes => {"failed":10,"success":990}
+Batch drill-down => 1000 records
+Impact 4 after 30 days => priority 3
+Missing impact => unknown
+✔ impact: aggregation follows the decimal logarithmic examples of the specification (0.746791ms)
+✔ impact: aggregation is associative when unrounded and numerically stable at the extremes (3.744417ms)
+✔ priority: one point per 30 days, saved impact unchanged, and each member is aged before summing (0.914917ms)
+✔ priority: outcome plays no part, and equal priorities tie on a stable order (0.645958ms)
+✔ views: a 1,000-email batch is one important row, then all 1,000 separate records with their outcomes (8.179208ms)
+✔ cutoff: applied after aggregation; ungrouping alone hides subthreshold rows; Show all is independent of grouping (0.29225ms)
+✔ unknown: separate from zero, always visible, without an invented total (0.141375ms)
+✔ views: default, ungrouped, by task and by agent count each action once; a task under an agent has only that agent’s actions (0.388542ms)
+✔ filter: outcomes select individual actions and the subtotal says it is filtered (0.158667ms)
+✔ sort: time uses a group’s latest member, impact the unaged total, smart the aged total (0.154083ms)
+✔ display: rounding happens only in the display, and queries from untrusted strings fall back to defaults (0.187459ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.266042
+

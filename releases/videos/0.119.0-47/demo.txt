@@ -1,0 +1,7 @@
+ACTUAL RELEASE OUTPUT / SYNTHETIC FIXTURE
+1,000 actions at impact 1 => 4
+Default view => 1 batch row
+Outcomes => {"failed":10,"success":990}
+Batch drill-down => 1000 records
+Impact 4 after 30 days => priority 3
+Missing impact => unknown

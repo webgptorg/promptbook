@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Promptbook 0.119.0-47",
+    "seconds": 17,
+    "narration": "This release adds impact reporting to the External activity log. This caption-only overview demonstrates selected changes using the released code and synthetic records. No emails are sent. There is no spoken or synthetic narration."
+  },
+  {
+    "title": "Verified release and baseline",
+    "seconds": 22,
+    "narration": "The public npm registry confirms this exact version and its Git revision. Version forty six is absent, so the comparison starts at forty five. The new impact module and its release tests provide the evidence for this demonstration. This video does not cover every release change."
+  },
+  {
+    "title": "Impact adds in weights",
+    "seconds": 25,
+    "narration": "An extra impact point means ten times the weight. The executing agent estimates the consequence if an action succeeds; outcome is recorded separately. Batches combine their members without adding the batch again. The example is a synthetic campaign, not an actual mailing."
+  },
+  {
+    "title": "Actual release output",
+    "seconds": 35,
+    "narration": "This is actual output from the immutable release module. One thousand fixture records become one batch row, with 990 successful and 10 failed outcomes. Opening that batch exposes all 1,000 records. The fixture tests calculations and view construction; it is not a recording of the dashboard."
+  },
+  {
+    "title": "Priority ages; saved impact stays",
+    "seconds": 27,
+    "narration": "Smart ordering lowers each action's priority by one point per 30 elapsed days, then combines the aged weights. Saved impact stays unchanged. Unknown impact is shown explicitly. The default impact cutoff is 1, applied after grouping; Show all removes that cutoff. Outcome does not lower the impact estimate."
+  },
+  {
+    "title": "Reproduce the demonstration",
+    "seconds": 25,
+    "narration": "The demonstration compiles the impact module directly from the exact release revision. It also runs that revision's own tests in a disposable local fixture. Package, source and comparison links are in the description. No private project records, credentials or browser footage appear in this video."
+  }
+]
