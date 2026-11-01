@@ -73,3 +73,12 @@ test('Windows installer bootstrap reuses the Node.js, npm and Git that are prese
     }
     if (!probed) t.skip('no PowerShell is installed');
 });
+
+test('the installer check expects what the installer plans: its asserted texts exist in the bootstrap', async () => {
+    // The check itself runs only on Windows, where a stale text blocks publishing; this catches it before a release.
+    const workflow = await readFile(join(ROOT, '.github', 'workflows', 'check.yml'), 'utf8');
+    const bootstrap = await readFile(join(ROOT, 'installer', 'windows', 'bootstrap.ps1'), 'utf8');
+    const expected = [...workflow.matchAll(/-notmatch '(PLAN: [^']+)'/g)].map((match) => match[1]);
+    assert.ok(expected.length >= 2, 'the check still asserts the planned prerequisites');
+    for (const text of expected) assert.ok(bootstrap.includes(text), `the bootstrap no longer plans "${text}"`);
+});

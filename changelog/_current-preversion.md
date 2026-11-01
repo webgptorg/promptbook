@@ -46,6 +46,7 @@
 
 ## Windows installer
 
+- Fixed a release blocker: the Windows check still expected the wording from before the private Node.js runtime, so it failed even though the installer was right, and that failure stopped publishing. A new test on every platform now compares the two.
 - Automatically prepare a verified private Node.js runtime when Node or npm is missing or incompatible, retaining existing tools.
 - Add Promptbook branding, license acceptance and Start menu entries for Promptbook and ptbk.
 - Report incomplete setup on the final page and through a nonzero installer exit code.

@@ -84,7 +84,7 @@ jobs:
           $env:Path = "$env:SystemRoot\System32;$env:SystemRoot;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
           $output = & .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -ProjectsRoot (Join-Path $env:RUNNER_TEMP 'Plan Projects') -ProjectName 'first project' -Plan -IsolatedPath 6>&1 | Out-String
           Write-Output $output
-          if ($output -notmatch 'PLAN: Node.js is missing') { throw 'missing Node.js was not detected' }
+          if ($output -notmatch 'PLAN: prepare a verified per-user Node.js') { throw 'missing Node.js was not detected' }
           if ($output -notmatch 'PLAN: Git is missing') { throw 'missing Git was not detected' }
       - name: Compatible prerequisites are reused; the candidate installs and the handoff is prepared (spaces, Unicode, special characters)
         shell: powershell
