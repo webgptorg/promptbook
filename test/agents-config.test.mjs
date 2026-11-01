@@ -134,10 +134,57 @@ test('inheritance: implicit Adam, FROM chains, Expert foundation, cycles and FRO
     assert.ok(doubled.diagnostics.some((diagnostic) => /FROM "\{\{Loop Beta\}\}" is not a valid reference\. References use single braces: \{Loop Beta\}/.test(diagnostic.message)), 'FROM {{…}} is malformed and points to {…}');
     assert.ok((await resolveEffectiveAgent(catalog, '@Bad')).diagnostics.some((diagnostic) => /User cannot be an inheritance parent/.test(diagnostic.message)));
     const modified = await resolveEffectiveAgent(catalog, '{Modified Expert}');
-    assert.deepEqual(modified.chain, ['Modified Expert', 'Expert']);
+    assert.deepEqual(modified.chain, ['Modified Expert', 'Expert', 'Adam'], 'Expert inherits this project\'s Adam');
+    assert.ok(modified.instructions.some((instruction) => instruction.text === 'Be careful.' && instruction.agent === 'Adam'), 'the project rule reaches a specialization of Expert');
     const diagnostics = await validateAgents(catalog);
     assert.ok(diagnostics.some((diagnostic) => /Teacher must end with CLOSED/.test(diagnostic.message)));
     assert.equal((await resolveEffectiveAgent(catalog, '@Developer')).learning.open, true);
+});
+
+test('Expert inherits the project Adam: different Adams, the composition order, cycles, opt-out and a missing Adam', async (t) => {
+    const project = async (adam, more = {}) => {
+        const root = await temporaryDirectory(t);
+        await initRepository(root);
+        await files(root, { ...(adam === undefined ? {} : { 'agents/.core/adam.book': adam }), ...more });
+        return await AgentCatalog.load(root);
+    };
+    const texts = (agent) => agent.instructions.map((instruction) => instruction.text);
+    const first = await resolveEffectiveAgent(await project('AGENT Adam\nFROM @Void\nRULE First project rule.\nKNOWLEDGE https://ptbk.io/book/external-action-impact.book\nCLOSED\n'), '@Expert');
+    const second = await resolveEffectiveAgent(await project('AGENT Adam\nFROM @Void\nRULE Second project rule.\nCLOSED\n'), '@Expert');
+    assert.deepEqual(first.chain, ['Expert', 'Adam']);
+    assert.ok(texts(first).includes('First project rule.') && !texts(first).includes('Second project rule.'), 'the same engine has a different effective Expert in another project');
+    assert.ok(texts(second).includes('Second project rule.'));
+    assert.deepEqual(first.diagnostics.filter((diagnostic) => diagnostic.severity === 'error'), []);
+    assert.deepEqual(first.instructions.map((instruction) => instruction.agent), ['Adam', 'Adam', 'Expert'], 'foundation first: referenced knowledge -> Adam -> Expert');
+    assert.equal(first.instructions.at(-1).source, 'engine', 'the expertise stays attributed to the engine');
+    assert.equal(first.instructions.at(-1).keyword, 'PERSONA', 'asked directly, Expert is the role');
+    assert.equal(first.definition, undefined, 'no Expert file in the project is required');
+    assert.equal(first.learning.open, false);
+
+    const teacher = await resolveEffectiveAgent(await project('AGENT Adam\nFROM @Void\nKNOWLEDGE https://ptbk.io/book/external-action-impact/1.0.0.book\nCLOSED\n', { 'agents/.core/teacher.book': 'AGENT Teacher\nFROM @Expert\nRULE Teach.\nCLOSED\n', 'agents/special.book': 'AGENT Special Expert\nFROM @Expert\nRULE Twist.\n', 'agents/.core/teacher2.book': 'AGENT Local Teacher\nFROM {Special Expert}\nCLOSED\n' }), '{Local Teacher}');
+    assert.deepEqual(teacher.chain, ['Local Teacher', 'Special Expert', 'Expert', 'Adam']);
+    assert.ok(teacher.instructions.some((instruction) => instruction.keyword === 'KNOWLEDGE' && instruction.text.endsWith('1.0.0.book') && instruction.agent === 'Adam'), 'a pinned release reaches a local specialization through Expert');
+
+    // Adam -> Expert -> Adam is an ordinary cycle, also through a local layer; project Adam is never bypassed to hide it.
+    const cyclic = await project('AGENT Adam\nFROM @Expert\nRULE Mine.\n', { 'agents/dev.book': 'AGENT Developer\nRULE Build.\n' });
+    for (const reference of ['@Expert', '@Adam', '@Developer']) assert.ok((await resolveEffectiveAgent(cyclic, reference)).diagnostics.some((diagnostic) => diagnostic.severity === 'error' && /Inheritance cycle: .*Expert.*Adam|Inheritance cycle: .*Adam.*Expert/.test(diagnostic.message)), `${reference} reports the cycle`);
+    const through = await project('AGENT Adam\nFROM {Local Base}\n', { 'agents/base.book': 'AGENT Local Base\nFROM @Expert\n' });
+    assert.ok((await resolveEffectiveAgent(through, '@Adam')).diagnostics.some((diagnostic) => /Inheritance cycle: Adam → Local Base → Expert → Adam/.test(diagnostic.message)));
+
+    // An agent that opts out of the chain stays out of it.
+    const optOut = await resolveEffectiveAgent(await project('AGENT Adam\nFROM @Void\nRULE Shared.\nCLOSED\n', { 'agents/own.book': 'AGENT Independent\nFROM @Void\nRULE Only mine.\n' }), '@Independent');
+    assert.deepEqual(optOut.chain, ['Independent']);
+    assert.deepEqual(texts(optOut), ['Only mine.']);
+
+    // A removed knowledge reference and DELETE in a descendant are respected.
+    const withdrawn = await resolveEffectiveAgent(await project('AGENT Adam\nFROM @Void\nKNOWLEDGE https://ptbk.io/book/external-action-impact.book\nCLOSED\n', { 'agents/own.book': 'AGENT Without Link\nDELETE KNOWLEDGE https://ptbk.io/book/external-action-impact.book\n' }), '{Without Link}');
+    assert.ok(!texts(withdrawn).some((text) => text.includes('ptbk.io')), 'a project may withdraw the source');
+
+    // No Adam yet: the engine expertise stays usable and the gap is reported, with no substituted foundation.
+    const orphan = await resolveEffectiveAgent(await project(undefined), '@Expert');
+    assert.deepEqual(orphan.chain, ['Expert']);
+    assert.ok(orphan.diagnostics.some((diagnostic) => diagnostic.severity === 'warning' && /inherits this project's Adam, which is not available/.test(diagnostic.message)));
+    assert.ok(!orphan.diagnostics.some((diagnostic) => diagnostic.severity === 'error'));
 });
 
 test('repair deadlock: Fixer repair work runs despite a problematic MODEL inherited from Adam; other work stays blocked', async (t) => {
@@ -212,7 +259,7 @@ test('reference examples: @ and brace forms everywhere, normalized names, built-
     }
     for (const reference of ['{{Adam}}', '{{Frontend Developer}}', '{{Expert}}']) assert.equal((await catalog.resolve(reference)).kind, 'invalid', `${reference} is not a reference`);
     assert.deepEqual((await resolveEffectiveAgent(catalog, '@Adam')).chain, ['Adam'], 'FROM @Void ends inheritance');
-    assert.deepEqual((await resolveEffectiveAgent(catalog, '@Teacher')).chain, ['Teacher', 'Expert']);
+    assert.deepEqual((await resolveEffectiveAgent(catalog, '@Teacher')).chain, ['Teacher', 'Expert', 'Adam'], 'Teacher receives project Adam through Expert');
     const developer = await resolveEffectiveAgent(catalog, '@Developer');
     assert.deepEqual(developer.chain, ['Developer', 'Adam'], 'implicit Adam; the NOTE text is not a FROM');
     assert.deepEqual(teamReferences(developer), ['@Expert']);

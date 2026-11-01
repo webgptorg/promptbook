@@ -44,6 +44,42 @@ test('core preparation: init/start create every missing role once and record bas
     assert.match(await project.read('.core/router.book'), /MODEL harness=OPENAI_CODEX/, 'an existing Router keeps its MODEL');
 });
 
+test('core preparation: Adam references shared knowledge; a kept, pinned, replaced or removed source survives template updates', async (t) => {
+    const LINK = 'KNOWLEDGE https://ptbk.io/book/external-action-impact.book';
+    assert.ok(ADAM_BOOK.split('\n').includes(LINK), 'the materialized Adam references the public Book');
+    assert.match(ADAM_BOOK, /^RULE When evaluating an external action, estimate its impact using the referenced external-action impact methodology and the action's actual context\.$/m, 'a RULE says when to apply it');
+    assert.match(ADAM_BOOK, /External activity log/);
+    // The materialized Book never carries the methodology itself: it evolves without rewriting Adam.
+    assert.doesNotMatch(ADAM_BOOK, /log10|10\^/);
+
+    // An unchanged earlier default receives the link.
+    const unchanged = await projectWith(t, { '.core/adam.book': ADAM_PREVIOUS_BOOKS[0] });
+    await prepareCoreAgents(unchanged.root, 'agents', { runtimeRoot: unchanged.runtimeRoot });
+    assert.equal(await unchanged.read('.core/adam.book'), ADAM_BOOK);
+
+    // Deliberate customizations made after adopting the template are never reverted by later preparation.
+    for (const custom of [
+        ADAM_BOOK.replace(`${LINK}\n`, ''),
+        ADAM_BOOK.replace(LINK, 'KNOWLEDGE https://ptbk.io/book/external-action-impact/1.0.0.book'),
+        ADAM_BOOK.replace(LINK, 'KNOWLEDGE https://books.example.test/our-impact-fork.book'),
+        ADAM_BOOK.replace(LINK, 'KNOWLEDGE Our own scale: one point is ten times the weight.'),
+    ]) {
+        const project = await projectWith(t, { '.core/adam.book': ADAM_BOOK });
+        await prepareCoreAgents(project.root, 'agents', { runtimeRoot: project.runtimeRoot });
+        await writeFile(join(project.root, 'agents', '.core/adam.book'), custom);
+        const again = await prepareCoreAgents(project.root, 'agents', { runtimeRoot: project.runtimeRoot });
+        assert.deepEqual([again.updated, again.conflicts, again.held], [[], [], []]);
+        assert.equal(await project.read('.core/adam.book'), custom);
+    }
+
+    // A customized CLOSED Adam of an older baseline is held, not rewritten: the link is not forced into it.
+    const customized = ADAM_PREVIOUS_BOOKS[0].replace('PERSONA', 'RULE Our own rule.\nPERSONA');
+    const held = await projectWith(t, { '.core/adam.book': customized });
+    const preparation = await prepareCoreAgents(held.root, 'agents', { runtimeRoot: held.runtimeRoot });
+    assert.deepEqual(preparation.held.map((book) => book.name), ['Adam']);
+    assert.equal(await held.read('.core/adam.book'), customized);
+});
+
 test('core preparation: older unchanged Adams receive the new rules; a changed CLOSED Adam is held and reported once; reopened or overlapping edits go to Fixer', async (t) => {
     // Keep the overlapping-edit fixture on the historical template whose changed CLOSED line borders the additions.
     const previous = ADAM_PREVIOUS_BOOKS.find((book) => !book.includes('KNOWLEDGE Minimal interruption.'));

@@ -162,7 +162,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                 interruptSignal: context.interruptSignal,
                 allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
                 authentication: instanceInspection?.authentication ?? 'unknown',
-                readableDirectories: advisor.name === 'Expert' ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
+                readableDirectories: advisor.chain.includes('Expert') ? [EXPERT_DOCUMENTATION_DIRECTORY] : [],
                 onEvent: (event) => {
                     if (event.type === 'activity') context.onActivity(`${advisor.name}: ${event.text}`);
                 },

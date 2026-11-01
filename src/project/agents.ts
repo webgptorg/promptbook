@@ -161,7 +161,7 @@ export type EffectiveAgent = {
     readonly name: string;
     /** Normalized identity (stable across moves). */
     readonly normalized: string;
-    /** Definition for project agents; undefined for Expert. */
+    /** Definition for project agents; undefined for Expert, whose own layer is engine-owned. */
     readonly definition?: AgentDefinition;
     /** Inheritance chain from the agent to its foundation. */
     readonly chain: readonly string[];
@@ -208,15 +208,16 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
     const resolution = await catalog.resolve(reference);
     if (resolution.kind === 'system-agent') {
         if (resolution.name === 'Expert') {
+            const inherited = await inheritanceOf(catalog, 'Expert', diagnostics);
             return {
                 name: 'Expert',
                 normalized: 'expert',
-                chain: ['Expert'],
-                instructions: [{ keyword: 'PERSONA', text: await expertInstructions(), agent: 'Expert', source: 'engine' }],
+                chain: inherited.chain,
+                instructions: applyDeletions(inherited.layers.reverse().flat(), 'engine', diagnostics),
                 goals: [],
-                team: [],
+                team: inherited.team,
                 learning: { open: false },
-                model: UNCONSTRAINED,
+                model: inherited.model,
                 diagnostics,
             };
         }
@@ -239,17 +240,51 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         };
     }
     const target = resolution.definition;
+    const inherited = await inheritanceOf(catalog, target, diagnostics);
+    return {
+        name: target.name,
+        normalized: target.normalized,
+        definition: target,
+        chain: inherited.chain,
+        instructions: applyDeletions(inherited.layers.reverse().flat(), target.relativePath, diagnostics),
+        goals: commitmentsOf(target.document, 'GOAL').map((goal) => goal.body),
+        team: inherited.team,
+        learning: learningPolicyOf(target.document),
+        model: inherited.model,
+        diagnostics,
+    };
+}
+
+/**
+ * Walks one FROM chain from its start to its foundation. The engine-owned Expert is an ordinary step of that chain:
+ * it adds the running engine's expertise on top of **this project's Adam** (never a separate universal Adam), so
+ * knowledge referenced by Adam reaches Expert and everything inheriting it, and Adam -> Expert -> Adam is a cycle.
+ */
+async function inheritanceOf(catalog: AgentCatalog, start: AgentDefinition | 'Expert', diagnostics: AgentDiagnostic[]): Promise<{ chain: string[]; layers: EffectiveInstruction[][]; team: string[]; model: ModelConstraint }> {
     let model: ModelConstraint = UNCONSTRAINED;
     const chain: string[] = [];
     const layers: EffectiveInstruction[][] = [];
-    const teams: string[] = [];
+    const team: string[] = [];
     const visited = new Set<string>();
-    let current: AgentDefinition | 'Expert' | undefined = target;
+    let current: AgentDefinition | 'Expert' | undefined = start;
     while (current) {
         if (current === 'Expert') {
+            if (visited.has('expert')) {
+                diagnostics.push({ path: 'engine', line: 0, message: `Inheritance cycle: ${[...chain, 'Expert'].join(' → ')}.`, severity: 'error' });
+                break;
+            }
+            visited.add('expert');
+            // Asked directly, Expert is the role itself; below a project agent its layer is inherited knowledge.
+            layers.push([{ keyword: chain.length ? 'KNOWLEDGE' : 'PERSONA', text: await expertInstructions(), agent: 'Expert', source: 'engine' }]);
             chain.push('Expert');
-            layers.push([{ keyword: 'KNOWLEDGE', text: await expertInstructions(), agent: 'Expert', source: 'engine' }]);
-            break;
+            const adam = await catalog.resolve('Adam');
+            if (adam.kind !== 'agent') {
+                // Engine expertise stays usable to repair the project, but no unrelated Adam is substituted silently.
+                diagnostics.push({ path: 'engine', line: 0, message: `Expert inherits this project's Adam, which is not available: ${describeResolution('Adam', adam) ?? 'it is not a project agent.'}`, severity: 'warning' });
+                break;
+            }
+            current = adam.definition;
+            continue;
         }
         if (visited.has(current.normalized)) {
             diagnostics.push({ path: current.relativePath, line: 0, message: `Inheritance cycle: ${[...chain, current.name].join(' → ')}.`, severity: 'error' });
@@ -258,7 +293,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         visited.add(current.normalized);
         chain.push(current.name);
         layers.push(await localInstructions(catalog, current, diagnostics, new Set([current.normalized])));
-        for (const team of commitmentsOf(current.document, 'TEAM')) teams.push(team.body);
+        for (const commitment of commitmentsOf(current.document, 'TEAM')) team.push(commitment.body);
         const own = modelOfDocument(current.document);
         for (const diagnostic of own.diagnostics) diagnostics.push({ path: current.relativePath, line: diagnostic.line, message: diagnostic.message, severity: diagnostic.severity, commitment: 'MODEL' });
         model = intersectModels(model, own.constraint);
@@ -291,19 +326,7 @@ export async function resolveEffectiveAgent(catalog: AgentCatalog, reference: st
         }
         current = parent.definition;
     }
-    const instructions = applyDeletions(layers.reverse().flat(), target, diagnostics);
-    return {
-        name: target.name,
-        normalized: target.normalized,
-        definition: target,
-        chain,
-        instructions,
-        goals: commitmentsOf(target.document, 'GOAL').map((goal) => goal.body),
-        team: teams,
-        learning: learningPolicyOf(target.document),
-        model,
-        diagnostics,
-    };
+    return { chain, layers, team, model };
 }
 
 /**
@@ -350,7 +373,7 @@ function comparable(text: string): string {
 /**
  * Applies DELETE instructions to earlier instructions.
  */
-function applyDeletions(instructions: EffectiveInstruction[], target: AgentDefinition, diagnostics: AgentDiagnostic[]): EffectiveInstruction[] {
+function applyDeletions(instructions: EffectiveInstruction[], path: string, diagnostics: AgentDiagnostic[]): EffectiveInstruction[] {
     const result: EffectiveInstruction[] = [];
     for (const instruction of instructions) {
         if (instruction.keyword !== 'DELETE') {
@@ -363,9 +386,9 @@ function applyDeletions(instructions: EffectiveInstruction[], target: AgentDefin
             .map((item, index) => ({ item, index }))
             .filter(({ item }) => (!keyword || item.keyword === keyword) && comparable(item.text) === text);
         if (candidates.length === 0) {
-            diagnostics.push({ path: target.relativePath, line: 0, message: `DELETE "${instruction.text}" matches no earlier commitment.`, severity: 'warning' });
+            diagnostics.push({ path, line: 0, message: `DELETE "${instruction.text}" matches no earlier commitment.`, severity: 'warning' });
         } else if (new Set(candidates.map(({ item }) => item.keyword)).size > 1) {
-            diagnostics.push({ path: target.relativePath, line: 0, message: `DELETE "${instruction.text}" is ambiguous; prefix it with the commitment keyword.`, severity: 'error' });
+            diagnostics.push({ path, line: 0, message: `DELETE "${instruction.text}" is ambiguous; prefix it with the commitment keyword.`, severity: 'error' });
         } else {
             for (const { index } of candidates.reverse()) result.splice(index, 1);
         }

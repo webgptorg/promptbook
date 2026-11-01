@@ -1,5 +1,12 @@
 # Unreleased
 
+## Expert and Teacher: your project's Adam now reaches them too
+
+-   Expert now builds on your project's own Adam and adds the running engine's expertise on top. Teacher, and any local specialization of Expert, receive your project's rules and knowledge through it. Two projects with different Adams therefore have different effective Experts on the same engine.
+-   `Adam -> Expert -> Adam` is reported as an inheritance cycle. If a project has no Adam yet, Expert stays usable to repair it and says that Adam is missing, without substituting another one.
+-   New and unchanged Adams now reference the shared impact methodology through `KNOWLEDGE https://ptbk.io/book/external-action-impact.book`, with a rule saying when to apply it. A customized Adam is left as you wrote it, and removing, pinning, replacing or inlining the source survives later updates.
+-   Fixed: an older unchanged core Book could lose template rules during an update, because it could merge against a newer template than its own and read the rules it never had as your deletions.
+
 ## Release videos: a dedicated agent and ordinary recurring discovery
 
 -   Added the editable Release Video agent for the owner's authorized personal-YouTube release videos, starting with 0.119.0-45, and an hourly ordinary task that discovers published versions and queues one publication task per version.

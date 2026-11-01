@@ -266,7 +266,9 @@ export async function prepareCoreAgents(
         // Limits that differ from every template's declaration were written by the project: only judgment can show
         // that an upstream change keeps their meaning.
         const ownLimits = modified && policy.open && policy.limits !== undefined && bases.every((base) => learningDeclarationOf(base) !== declaration);
-        const merges = ownLimits ? [] : bases.map((base) => ({ base, merged: threeWayMerge(base, current, template) }));
+        // An unchanged earlier default merges against its own template only: against a newer one, the rules it never had
+        // would look like the user's deliberate removals.
+        const merges = ownLimits ? [] : (modified ? bases : [current]).map((base) => ({ base, merged: threeWayMerge(base, current, template) }));
         const clean = merges.find((candidate) => candidate.merged.clean && (!modified || learningDeclarationOf(candidate.merged.text) === declaration));
         if (clean?.merged.clean) {
             if (clean.merged.text !== current) {
