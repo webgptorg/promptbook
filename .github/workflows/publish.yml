@@ -82,6 +82,7 @@ jobs:
           choco install innosetup --no-progress -y | Out-Null
           $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $iscc) { throw 'The Inno Setup compiler (ISCC.exe) was not found after its installation.' }
+          & ./installer/windows/prepare-artwork.ps1
           & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$env:PTBK_NUMERIC_VERSION" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
       - name: The bootstrap installs and reports the exact published ptbk version
@@ -107,10 +108,10 @@ jobs:
         shell: pwsh
         run: node scripts/publish-windows-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
   vscode-extension:
-    # Wait for installer release creation to avoid two jobs racing to create the same GitHub Release.
-    # Still publish the extension if the installer failed, provided npm publication itself succeeded.
-    if: ${{ always() && !cancelled() && github.repository == 'webgptorg/promptbook' && needs.publish.result == 'success' }}
-    needs: [publish, windows-installer]
+    # The extension is built from source and needs neither npm nor the installer.
+    # Both asset publishers tolerate concurrent creation of the matching GitHub Release.
+    if: github.repository == 'webgptorg/promptbook'
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

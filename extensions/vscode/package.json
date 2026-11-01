@@ -56,6 +56,19 @@
         "virtualWorkspaces": true
     },
     "contributes": {
+        "configurationDefaults": {
+            "[book]": {
+                "editor.semanticHighlighting.enabled": true
+            }
+        },
+        "semanticTokenScopes": [
+            {
+                "language": "book",
+                "scopes": {
+                    "variable": ["variable.other.reference.book", "variable.other.readwrite"]
+                }
+            }
+        ],
         "languages": [
             {
                 "id": "book",

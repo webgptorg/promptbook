@@ -16,7 +16,7 @@ Protected owner preview shows useful service/account labels and compatible/unsup
 
 Preserve existing items. Match actual service/account identity, not label alone; reuse/skip identical duplicates and require an explicit replacement choice for conflicting values, optionally for a batch. Do not overwrite a different account or duplicate items on retries. Report imported/reused/skipped/conflicted/failed outcomes.
 
-Use shared revision-safe Wallet writes with recoverable batch application. Unlock/setup is required; import must not silently reset a locked Wallet. Encrypt entire records including labels/origins/usernames, with no plaintext account index. Interruption/audit failure retains completed writes and protected recovery information, without corrupting unrelated items or importing twice. The default-on disableable [Wallet audit](storage-and-git.md#wallet-operation-audit) can have one scoped nonsecret batch summary; raw exports/secrets never enter Git, and no-op selection produces no commit.
+Use shared revision-safe Wallet writes with recoverable batch application. Unlock/setup is required; import must not silently reset a locked Wallet. Encrypt entire records including labels/origins/usernames, with no plaintext account index. Interruption retains completed writes and protected recovery information, without corrupting unrelated items or importing twice. Import stays in protected Wallet storage and creates no Git commit; raw exports/secrets never enter Git.
 
 ## Init and dashboard parity
 
@@ -26,6 +26,6 @@ Correctly completed attended initialization with required selected integrations/
 
 ## Acceptance outcomes
 
-Import subsets/all/none through init and Wallet with one implementation. Exercise cancel, repeats, multiple origins/accounts, unsupported TOTP-generator fields, malformed/unsupported/encrypted exports, conflicts, concurrent edits and interrupted writes/audits. Preserve old records and accurate outcomes, exclude source/secrets from ordinary surfaces/Git/agent context, and finish chosen routine setup without later configuration or invented login success.
+Import subsets/all/none through init and Wallet with one implementation. Exercise cancel, repeats, multiple origins/accounts, unsupported TOTP-generator fields, malformed/unsupported/encrypted exports, conflicts, concurrent edits and interrupted writes. Preserve old records and accurate outcomes, exclude source/secrets from ordinary surfaces/Git/agent context, and finish chosen routine setup without later configuration or invented login success.
 
 During new-project initialization, preview/selection and pending imports remain in the protected in-memory draft until [final confirmation](initialization.md#draft-confirmation-and-project-creation); cancellation before that point creates no project-local vault/files. Use the same importer with staged persistence, not a copied init implementation.

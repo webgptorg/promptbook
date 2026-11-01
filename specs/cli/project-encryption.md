@@ -34,7 +34,7 @@ The trusted engine/Wallet boundary may decrypt for authorized operations. Agent 
 
 ## Recovery-word replacement and explicit reset
 
-[Wallet recovery](wallet-recovery.md) distinguishes two paths. With a valid available decryption key, fresh random 12 words derive a new root and re-encrypt all records, replacing ciphertext/metadata/current-host envelope consistently and preserving interruption recovery. Old words cannot unlock the updated generation; historical ciphertext is unaffected. With no valid key/phrase, no old record metadata/password can be recovered: only explicit strongly confirmed reset may create a new empty encrypted generation and host binding. Never weaken host protection, retain a plaintext account list or rotate/reset again just to retry an audit. Preserve unrelated project state.
+[Wallet recovery](wallet-recovery.md) distinguishes two paths. With a valid available decryption key, fresh random 12 words derive a new root and re-encrypt all records, replacing ciphertext/metadata/current-host envelope consistently and preserving interruption recovery. Old words cannot unlock the updated generation; historical ciphertext is unaffected. With no valid key/phrase, no old record metadata/password can be recovered: only explicit strongly confirmed reset may create a new empty encrypted generation and host binding. Never weaken host protection, retain a plaintext account list or repeat a completed rotation/reset. Preserve unrelated project state.
 
 ## Acceptance outcomes
 

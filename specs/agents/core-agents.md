@@ -27,7 +27,7 @@ At Chatter creation, its readable TEAM relationships include all other initializ
 
 Core roles are excluded from ordinary automatic goal discovery, while remaining selectable, assignable and referenceable. The explicit dashboard Agents/team inventory includes them all. **New human-chat entry also promotes a core role:** promote Chatter as the default first choice and offer Choose another agent to open the full valid target list, including other cores and Expert. This does not make all core agents ordinary goal-discovery candidates. Hidden status is not access control.
 
-Expert is a comprehensive version-matched engine-defined system agent, never a project core file. See [Fixer](core-agents/fixer.md), [Chatter](core-agents/chatter.md), [Teacher](core-agents/teacher.md), [inheritance](../book-language/inheritance.md) and [system agents](system-agents.md).
+Expert is a comprehensive version-matched engine-defined system agent, never a project core file. Its internal Book inherits **this project's Adam**; Teacher consequently receives Adam through Expert. Adam's initial [common-knowledge](../concepts/common-knowledge.md) links let centrally maintained rules evolve independently of engine templates without overwriting materialized Books. Knowledge replacement/removal, pins and inline forks are deliberate customizations preserved by template reconciliation. See [Fixer](core-agents/fixer.md), [Chatter](core-agents/chatter.md), [Teacher](core-agents/teacher.md), [inheritance](../book-language/inheritance.md) and [system agents](system-agents.md).
 
 ## Shared preparation and template updates
 

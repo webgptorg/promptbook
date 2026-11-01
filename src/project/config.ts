@@ -104,13 +104,6 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'traces.isCommitted', type: 'boolean', default: false, description: 'Include task traces (traces/<task-file-basename>/) in result commits; false ignores the whole traces/ tree.', application: 'next-task' },
     { key: 'traces.isVideoIgnored', type: 'boolean', default: true, description: 'Keep trace videos out of Git even when traces are committed.', application: 'next-task' },
     { key: 'traces.isVideoRecordingEnabled', type: 'boolean', default: true, description: 'Record attributable activity of browser tools used by tasks.', application: 'next-task' },
-    {
-        key: 'wallet.isAuditCommitted',
-        type: 'boolean',
-        default: true,
-        description: 'Record each meaningful Wallet change (a saved, updated or removed login) as its own nonsecret audit commit, empty when no file changes; false disables only this audit, never Wallet storage or automatic use.',
-        application: 'live',
-    },
     { key: 'server.isEnabled', type: 'boolean', default: true, description: 'Serve the local HTTP API and browser dashboard.', application: 'restart' },
     { key: 'server.port', type: 'port', default: undefined, description: 'Local HTTP port (automatic from 3000 when omitted).', application: 'restart' },
     { key: 'service.isPersistent', type: 'boolean', default: true, description: 'Restart automatically after crashes and reboots.', application: 'restart' },
@@ -363,7 +356,7 @@ export const SUPERSEDED_ROUTING_KEYS = ['harness', 'model', 'thinkingLevel', 'pr
 /**
  * Known top-level keys of `ptbk.json` (canonical spellings).
  */
-const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'wallet', 'server', 'service', 'updates', 'discovery', 'learning', 'team', 'limit', 'timezone', 'initialized'];
+const KNOWN_TOP_LEVEL_KEYS = ['$schema', 'promptbookVersion', 'isAutoSync', 'tools', 'paths', 'routing', 'execution', 'traces', 'server', 'service', 'updates', 'discovery', 'learning', 'team', 'limit', 'timezone', 'initialized'];
 
 /**
  * Known property names per configuration object path (for tolerant key canonicalization).

@@ -39,17 +39,23 @@ OutputBaseFilename=Promptbook-Setup-{#Version}-windows-x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=promptbook.ico
+WizardImageFile=wizard.bmp
+WizardSmallImageFile=wizard-small.bmp
+LicenseFile=..\..\LICENSE.md
 SetupLogging=yes
 UninstallDisplayName=Promptbook installer {#Version} (your projects and tools are kept)
 
 [Messages]
-WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n- installs Node.js, npm and Git only if they are missing,%n- installs the Promptbook command-line tool (ptbk {#Version}),%n- creates an empty folder for your first project and opens the setup assistant in a terminal.%n%nThe setup assistant then asks what you are working on. Nothing else on your computer is replaced.
+WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n- prepares compatible Node.js, npm and Git automatically,%n- installs the Promptbook command-line tool (ptbk {#Version}),%n- creates an empty folder for your first project and opens the setup assistant in a terminal.%n%nThe setup assistant then asks what you are working on. Nothing else on your computer is replaced.
 
 [Files]
 Source: "bootstrap.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "promptbook.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Code]
 var
+  BootstrapSucceeded: Boolean;
   RootPage: TInputDirWizardPage;
   ProjectPage: TInputQueryWizardPage;
   SkipBox: TNewCheckBox;
@@ -165,13 +171,14 @@ begin
       Continue;
     end;
     case Code of
-      0: Done := True;
+      0: begin BootstrapSucceeded := True; Done := True; end;
       2: begin
+           BootstrapSucceeded := True;
            MsgBox('Promptbook is installed. No project was created; to start one, open a terminal in an empty folder and run: ptbk init', mbInformation, MB_OK);
            Done := True;
          end;
       3: begin
-           if (not AllowReplace) and (MsgBox('A decision is needed (see the terminal window): an incompatible prerequisite or another installed ptbk version was found.' + #13#10#13#10 +
+           if (not AllowReplace) and (MsgBox('A decision is needed (see the terminal window): another installed ptbk version was found.' + #13#10#13#10 +
                'If it is another ptbk version: replace the global ptbk with {#Version}? (Project-local installations are never touched.)', mbConfirmation, MB_YESNO) = IDYES) then
              AllowReplace := True
            else
@@ -185,4 +192,18 @@ begin
         Done := True;
     end;
   end;
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if (CurPageID = wpFinished) and not BootstrapSucceeded then
+  begin
+    WizardForm.FinishedHeadingLabel.Caption := 'Promptbook installation was not completed';
+    WizardForm.FinishedLabel.Caption := 'Promptbook is not ready. Run the installer again to retry. Diagnostics: ' + ExpandConstant('{localappdata}\Promptbook\installer');
+  end;
+end;
+
+function GetCustomSetupExitCode: Integer;
+begin
+  if BootstrapSucceeded then Result := 0 else Result := 1;
 end;

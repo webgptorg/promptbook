@@ -52,7 +52,7 @@ When a human's decision or action is actually required, use Wallet's own attribu
 
 For example, an agent may create a new service account needed for authorized work and have its generated credentials saved by trusted Wallet operations without an extra routine confirmation. This is an example of Wallet use, not a separately specified account-registration subsystem.
 
-Management adds/updates/removes records through shared operations with atomic recovery and no unrelated-record changes. Meaningful mutations follow the default-on, disableable [nonsecret Git audit](storage-and-git.md#wallet-operation-audit); failures in audit persistence never cause a successful service action to repeat.
+Management adds/updates/removes records through shared operations with atomic recovery and no unrelated-record changes. Mutations stay in protected storage and create no Git commits.
 
 ## Initialization and presentation
 
@@ -72,4 +72,4 @@ Test init No/Yes/later setup with one implementation. Username starts visible, p
 
 Exercise stored and missing credentials, rejection, extra login fields, accessible emailed code, protected manual TOTP/SMS input, reusable/uncertain additional fields, one-off code, mobile approval and manual takeover. Repeated attempts keep one request/record and accurate step state. Saving a password clears only that input attention; failed/unverified access never releases dependent work. Verified access resumes once after restart and keeps unrelated work running.
 
-Verify origin/account matching and exclusion of all secret material from Git, ordinary API/status, model tools, browser observations and recordings. Perform authorized technical updates without automatic approval prompts; genuinely necessary human steps use protected Wallet input. Audit meaningful mutations separately, including empty commits and disabled audit, without versioning the vault or rerunning successful external effects.
+Verify origin/account matching and exclusion of all secret material from Git, ordinary API/status, model tools, browser observations and recordings. Perform authorized technical updates without automatic approval prompts; genuinely necessary human steps use protected Wallet input. Keep Wallet mutations in protected storage without creating Git commits or rerunning successful external effects.

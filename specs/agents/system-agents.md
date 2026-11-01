@@ -10,7 +10,7 @@ This is the product term replacing "non-agents". Distinguish ordinary content ag
 | --- | --- | --- |
 | `@Void`, alias `@Null` (also the legacy `0`) | Ends inheritance; supplies no instructions. | Valid no-op; no consultation or error. |
 | `@User` | Invalid; inheritance must fail with a clear diagnostic. | Starts or continues a durable human-facing chat for the required question or action. |
-| `@Expert` | Supplies Promptbook expertise from the running engine. | Consults that runtime's Promptbook expert. |
+| `@Expert` | Inherits this project's Adam and adds running-engine Promptbook expertise. | Consults the runtime expert with this project's effective foundation. |
 
 The brace forms `{Void}`, `{Null}`, `{User}` and `{Expert}` are the same references. These built-ins are checked before any project file, as the first tier of [resolution](../book-language/references.md#ordered-resolution).
 

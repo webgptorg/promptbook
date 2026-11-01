@@ -25,6 +25,8 @@ test('staged identity, engine version, aliases, grammar and entry point come fro
     assert.equal(manifest.main, './out/extension.cjs');
     assert.ok((await readFile(new URL(manifest.main, stage))).length > 1000);
     assert.deepEqual(manifest.contributes.languages[0].extensions, ['.book', '.book.md', '.ptbk', '.ptbk.md']);
+    assert.equal(manifest.contributes.configurationDefaults['[book]']['editor.semanticHighlighting.enabled'], true);
+    assert.ok(manifest.contributes.semanticTokenScopes.some((item) => item.language === 'book' && item.scopes.variable.includes('variable.other.readwrite')));
     const grammar = JSON.parse(await readFile(new URL('syntaxes/book.tmLanguage.json', stage)));
     const keywords = grammar.patterns.find((item) => item.name === 'keyword.control.commitment.book').match;
     for (const keyword of language.commitmentKeywords()) assert.ok(keywords.includes(keyword.replaceAll(' ', '[ \\t]+')), keyword);

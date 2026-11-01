@@ -280,12 +280,6 @@ export type WalletOptions = {
     readonly log: (text: string, level?: 'info' | 'warning' | 'error') => void;
     /** Host facility (tests inject one). */
     readonly unlock?: HostUnlock;
-    /**
-     * Nonsecret Git audit of meaningful mutations (`wallet.isAuditCommitted`, default on). `isEnabled` is read at each
-     * mutation; `commit` creates one scoped audit commit, empty when no file changes. A failed commit is retried after
-     * `retryMs` (default one minute) until it succeeds.
-     */
-    readonly audit?: { readonly isEnabled: () => boolean; readonly commit: (subject: string, body: string) => Promise<void>; readonly retryMs?: number };
     /** Opens a separate, fresh login context at a website for a credential test (absent: tests cannot run here). */
     readonly loginContext?: (origin: string) => Promise<LoginContext>;
     /**
@@ -301,12 +295,6 @@ export type WalletOptions = {
      */
     readonly findLoginCode?: (request: { readonly origin: string; readonly account: string; readonly signal: AbortSignal }) => Promise<string | undefined>;
 };
-
-/**
- * A nonsecret audit record of a successful Wallet mutation whose commit is still pending (retried without repeating
- * the mutation).
- */
-type PendingAudit = { readonly subject: string; readonly body: string; readonly at: string; readonly failure?: string };
 
 /**
  * Write-once encryption metadata of a project (`.ptbk/encryption/project.json`): everything except the 12 words that
@@ -936,7 +924,6 @@ export class WalletSubEngine {
      * over an existing vault) and provisions this host's automatic unlock.
      */
     public async confirmSetup(): Promise<WalletOutcome> {
-        const reset = Boolean(this.draft?.reset);
         const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
             const draft = this.draft;
             if (!draft || draft.expiresAt < Date.now()) {
@@ -987,7 +974,6 @@ export class WalletSubEngine {
             }
         });
         if (outcome.applied) this.options.log(`Wallet: set up with automatic unlock through ${this.unlock.facility}.`);
-        if (outcome.applied && reset) await this.recordAudit({ subject: 'Wallet - Reset to a new empty Wallet', body: 'Replaced a Wallet that no key or recovery words could unlock with a new, empty encrypted Wallet and new 12 words for recovery.\nThe old saved logins could not be read and were discarded. Words, keys and the encrypted vault are never committed.' });
         return this.remember(outcome);
     }
 
@@ -1091,8 +1077,7 @@ export class WalletSubEngine {
 
     /**
      * Applies the owner's selection of one import draft in one revision-safe write: new logins are added, identical
-     * duplicates reused, conflicting ones replaced only when the owner chose replacement, everything else kept. One
-     * nonsecret audit summarizes the import; a selection that changes nothing creates none.
+     * duplicates reused, conflicting ones replaced only when the owner chose replacement, everything else kept.
      */
     public async applyImport(input: { readonly draft: string; readonly select: readonly string[]; readonly replace?: readonly string[] }): Promise<WalletOutcome & { readonly imported: number; readonly reused: number; readonly skipped: number; readonly replaced: number }> {
         const result = await this.mutex.run(async () => {
@@ -1159,23 +1144,10 @@ export class WalletSubEngine {
             const unsupported = draft.logins.filter((login) => selected.has(login.key) && login.unsupported?.length).length;
             const notImported = unsupported ? ` TOTP generators were not imported for ${count(unsupported, 'login')} (not supported yet; a code is entered when a login needs it).` : '';
             const outcome = parts.length ? `${draft.source}: ${parts.join(', ')}.${notImported}${settled ? ` ${settled === 1 ? 'A waiting request was' : `${settled} waiting requests were`} resolved.` : ''} Delete the export file safely now; Promptbook kept no copy. Imported logins are used automatically, but a login is only verified when a website accepts it.` : `${draft.source}: nothing was imported.${notImported}`;
-            const audit =
-                added.length || changed.length
-                    ? {
-                          subject: `Wallet - Import ${count(added.length + changed.length, 'login')} from ${draft.source}`,
-                          body: [
-                              `Imported into the encrypted project Wallet from a ${draft.source} export:`,
-                              ...[...added.map((record) => `- added "${record.account}" for ${record.origin}`), ...changed.map((record) => `- replaced "${record.account}" for ${record.origin}`)],
-                              ...(reused || skipped ? [`Reused ${reused} identical and kept ${skipped} conflicting saved login(s).`] : []),
-                              'The export, secret values and the encrypted vault are never committed.',
-                          ].join('\n'),
-                      }
-                    : undefined;
-            return { outcome: { action: 'wallet-import', applied: Boolean(added.length || changed.length), outcome, imported: added.length, reused, skipped, replaced: changed.length }, settled, audit };
+            return { outcome: { action: 'wallet-import', applied: Boolean(added.length || changed.length), outcome, imported: added.length, reused, skipped, replaced: changed.length }, settled };
         });
         if (result.outcome.applied) this.options.log(`Wallet: ${result.outcome.outcome}`);
         if (result.settled) this.options.onSettled?.();
-        if (result.audit) await this.recordAudit(result.audit);
         this.remember(result.outcome);
         return result.outcome;
     }
@@ -1295,7 +1267,6 @@ export class WalletSubEngine {
         });
         if (outcome.applied) {
             this.options.log('Wallet: replaced the 12 words for recovery (all saved logins re-encrypted).');
-            await this.recordAudit({ subject: 'Wallet - Replace the recovery words', body: 'Generated new 12 words for recovery and re-encrypted every saved login under them; this computer keeps its automatic unlock.\nThe words, keys, secret values and the encrypted vault are never committed.' });
         }
         return this.remember(outcome);
     }
@@ -1359,7 +1330,7 @@ export class WalletSubEngine {
      * and never returned. Pending requests for that website are resolved, so waiting work resumes.
      */
     public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string; readonly fields?: readonly LoginField[] }): Promise<WalletOutcome & { readonly id?: string }> {
-        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; id: string; settled: number; audit: Omit<PendingAudit, 'at'> }> => {
+        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; id: string; settled: number }> => {
             const key = this.requireReady();
             const action = input.action ? this.actions.find((candidate) => candidate.id === input.action) : undefined;
             const origin = normalizeOrigin(input.origin || action?.origin || '');
@@ -1392,12 +1363,10 @@ export class WalletSubEngine {
                 id: record.id,
                 outcome: { action: 'wallet-save', applied: true, outcome: `${existing ? 'Updated' : 'Saved'} the login "${record.account}" for ${origin}.${settled ? ` ${settled === 1 ? 'The waiting request was' : `${settled} waiting requests were`} resolved; the work resumes.` : ''}` },
                 settled,
-                audit: auditOf(existing ? 'Update' : 'Add', record, [fields.length ? `With ${fields.length} additional login field${fields.length === 1 ? '' : 's'} (values encrypted).` : '', settled ? `Resolved ${settled === 1 ? 'one waiting login request' : `${settled} waiting login requests`}.` : ''].filter(Boolean).join('\n') || undefined),
             };
         });
         this.options.log(`Wallet: ${result.outcome.outcome}`);
         if (result.settled) this.options.onSettled?.();
-        await this.recordAudit(result.audit);
         return { ...this.remember(result.outcome), id: result.id };
     }
 
@@ -1441,7 +1410,7 @@ export class WalletSubEngine {
     /**
      * Tests exactly one saved login through a real sign-in in a separate, fresh login context with the same trusted
      * sign-in as ordinary login (an existing session cannot prove that this credential works, and it is not signed out).
-     * The latest redacted result is kept with the encrypted record; the test is not a task, trace, audit or commit
+     * The latest redacted result is kept with the encrypted record; the test is not a task, trace or commit
      * (it is no credential mutation), and an incomplete test leaves the saved login as it is, unverified.
      */
     public async test(id: string): Promise<WalletOutcome & { readonly verification: WalletVerification }> {
@@ -1755,78 +1724,16 @@ export class WalletSubEngine {
 
     /** Removes a saved login (other records are preserved). */
     public async remove(id: string): Promise<WalletOutcome> {
-        let removed: StoredRecord | undefined;
         const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
             this.requireReady();
             const record = this.records.find((candidate) => candidate.id === id);
             if (!record) return { action: 'wallet-remove', applied: false, outcome: 'No saved login has that id.' };
             this.records = this.records.filter((candidate) => candidate.id !== id);
             await this.writeRecords();
-            removed = record;
             return { action: 'wallet-remove', applied: true, outcome: `Removed the login "${record.account}" for ${record.origin}.` };
         });
         if (outcome.applied) this.options.log(`Wallet: ${outcome.outcome}`);
-        if (removed) await this.recordAudit(auditOf('Remove', removed));
         return this.remember(outcome);
-    }
-
-    /** `.ptbk/state/wallet-audit.json`: audits of successful mutations whose commit is still pending. */
-    private get auditFile(): string {
-        return join(this.project.runtime.state, 'wallet-audit.json');
-    }
-
-    /** Serializes audit persistence (independent of record mutations, which never wait for Git). */
-    private readonly auditMutex = new Mutex();
-
-    /** The scheduled retry of pending audit commits. */
-    private auditRetry?: NodeJS.Timeout;
-
-    /**
-     * Records a successful mutation's nonsecret audit (when enabled) and commits every pending audit in order. A Git
-     * failure keeps the audit pending for a later retry; the mutation itself is never repeated or undone.
-     */
-    private async recordAudit(audit?: Omit<PendingAudit, 'at'>): Promise<void> {
-        // Disabled (or an explicitly uncommitted workflow): no audit; earlier pending ones wait until it is enabled.
-        if (!this.options.audit?.isEnabled()) return;
-        const commit = this.options.audit.commit;
-        await this.auditMutex.run(async () => {
-            const pending = ((await readJsonIfExists<PendingAudit[]>(this.auditFile).catch(() => undefined)) ?? []).slice();
-            if (audit) pending.push({ ...audit, at: new Date().toISOString() });
-            if (!pending.length) return;
-            const remaining: PendingAudit[] = [];
-            for (const entry of pending) {
-                // Order is kept: after one failure the later audits wait behind it.
-                if (remaining.length) {
-                    remaining.push(entry);
-                    continue;
-                }
-                try {
-                    await commit(entry.subject, entry.body);
-                } catch (error) {
-                    const failure = errorMessage(error);
-                    if (entry.failure !== failure) this.options.log(`Wallet: the audit commit "${entry.subject}" is pending (${failure}); the change itself is saved and is not repeated.`, 'warning');
-                    remaining.push({ ...entry, failure });
-                }
-            }
-            await ensureDirectory(this.project.runtime.state);
-            await writeJsonAtomic(this.auditFile, remaining);
-            if (remaining.length) this.scheduleAuditRetry();
-        });
-    }
-
-    /** Retries pending audit commits later without waiting for another mutation or a restart (persistence only). */
-    private scheduleAuditRetry(): void {
-        if (this.auditRetry) return;
-        this.auditRetry = setTimeout(() => {
-            this.auditRetry = undefined;
-            void this.retryAudits().catch(() => undefined);
-        }, this.options.audit?.retryMs ?? 60_000);
-        this.auditRetry.unref?.();
-    }
-
-    /** Retries audit commits an earlier attempt or process could not create (e.g. after a hook failure). */
-    public async retryAudits(): Promise<void> {
-        await this.recordAudit();
     }
 
     /** Dismisses a pending login request: the waiting work resumes without it. */
@@ -1979,7 +1886,7 @@ export class WalletSubEngine {
      * submission, so an interruption cannot lose a password the website took; a refused one restores the earlier state,
      * and a changed login keeps its earlier password until a sign-in shows which one holds.
      */
-    public async createLogin(page: SignInPage, request: { readonly username?: string; readonly account?: string; readonly label?: string; readonly task?: string; readonly agent?: string; readonly maxLength?: number; readonly isSymbolFree?: boolean }): Promise<WalletCreateLoginResult> {
+    public async createLogin(page: SignInPage, request: { readonly username?: string; readonly account?: string; readonly label?: string; readonly maxLength?: number; readonly isSymbolFree?: boolean }): Promise<WalletCreateLoginResult> {
         const inspected = await page.inspect();
         let origin: string;
         try {
@@ -1987,7 +1894,7 @@ export class WalletSubEngine {
         } catch {
             return { status: 'failed', reason: 'The current tab shows no website; open the sign-up or password form of the site first.' };
         }
-        const result = await this.mutex.run(async (): Promise<{ readonly result: WalletCreateLoginResult; readonly settled?: number; readonly audit?: Omit<PendingAudit, 'at'> }> => {
+        const result = await this.mutex.run(async (): Promise<{ readonly result: WalletCreateLoginResult; readonly settled?: number }> => {
             if (this.state !== 'ready' && this.metadata) await this.unlockWithHost(this.metadata);
             if (this.state !== 'ready' || !this.key) return { result: { status: 'failed', reason: `The Wallet is ${this.readiness === 'empty' ? 'not set up yet' : 'not available on this computer'}, so it cannot keep a generated password; nothing was entered. Create the account once the owner has set it up on the Wallet page.` } };
             const name = (request.account ?? request.username)?.trim().toLowerCase();
@@ -2028,18 +1935,15 @@ export class WalletSubEngine {
                 settled++;
             }
             if (settled) await this.writeActions();
-            const requester = [request.agent, request.task ? `for "${request.task}"` : ''].filter(Boolean).join(' ');
             return {
                 result: { status: 'saved', origin, account: record.account, updated: Boolean(existing), ...(attempt.note ? { note: attempt.note } : {}) },
                 settled,
-                audit: auditOf(existing ? 'Update' : 'Add', record, `The Wallet generated its password${requester ? ` on request of ${requester}` : ''} and entered it on the website.`),
             };
         });
         if (result.result.status === 'saved') {
             this.options.log(`Wallet: ${result.result.updated ? 'Changed' : 'Created'} the login "${result.result.account}" for ${origin} with a generated password.`);
             this.remember({ action: 'wallet-create-login', applied: true, outcome: `${result.result.updated ? 'Changed' : 'Created'} the login "${result.result.account}" for ${origin} with a generated password.` });
             if (result.settled) this.options.onSettled?.();
-            await this.recordAudit(result.audit);
         }
         this.options.onChange();
         return result.result;
@@ -2053,27 +1957,24 @@ export class WalletSubEngine {
     public async correctLogin(input: { readonly account: string; readonly site?: string; readonly username?: string; readonly label?: string }): Promise<WalletOutcome> {
         const site = input.site?.trim() ? normalizeOrigin(input.site) : undefined;
         const name = input.account.trim().toLowerCase();
-        const result = await this.mutex.run(async (): Promise<{ readonly outcome: WalletOutcome; readonly audit?: Omit<PendingAudit, 'at'> }> => {
-            if (this.state !== 'ready' || !this.key) return { outcome: { action: 'wallet-correct', applied: false, outcome: `The Wallet is ${this.readiness} on this computer; nothing was changed.` } };
+        const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
+            if (this.state !== 'ready' || !this.key) return { action: 'wallet-correct', applied: false, outcome: `The Wallet is ${this.readiness} on this computer; nothing was changed.` };
             const matches = this.records.filter((record) => (!site || originMatches(record.origin, site)) && (record.account.toLowerCase() === name || this.usernameOf(record)?.toLowerCase() === name));
-            if (matches.length !== 1) return { outcome: { action: 'wallet-correct', applied: false, outcome: matches.length ? `Several saved logins match "${input.account}" (${matches.map((record) => record.origin).join(', ')}); give the site. Nothing was changed.` : `No saved login matches "${input.account}"; nothing was changed.` } };
+            if (matches.length !== 1) return { action: 'wallet-correct', applied: false, outcome: matches.length ? `Several saved logins match "${input.account}" (${matches.map((record) => record.origin).join(', ')}); give the site. Nothing was changed.` : `No saved login matches "${input.account}"; nothing was changed.` };
             const record = matches[0]!;
             const credentials = this.credentials(record);
             const username = input.username?.trim() || credentials.username;
             const label = input.label?.trim() || (record.account === walletLabel(record.origin, credentials.username) ? walletLabel(record.origin, username) : record.account);
             const isNewUsername = username !== credentials.username;
-            if (!isNewUsername && label === record.account) return { outcome: { action: 'wallet-correct', applied: false, outcome: `"${record.account}" already says this; nothing was changed.` } };
+            if (!isNewUsername && label === record.account) return { action: 'wallet-correct', applied: false, outcome: `"${record.account}" already says this; nothing was changed.` };
             const { verification: _verification, lastOutcome: _lastOutcome, ...verified } = record;
             const updated: StoredRecord = { ...(isNewUsername ? { ...verified, secret: seal(this.key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ ...credentials, username } satisfies Credentials), 'utf8')) } : record), account: label, updatedAt: new Date().toISOString() };
             this.records = this.records.map((candidate) => (candidate.id === record.id ? updated : candidate));
             await this.writeRecords();
-            return { outcome: { action: 'wallet-correct', applied: true, outcome: `Corrected the login "${updated.account}" for ${record.origin}${isNewUsername ? ' (its new username is unverified until used)' : ''}.` }, audit: auditOf('Update', updated, `A technical correction of its ${[isNewUsername ? 'username' : '', label !== record.account ? 'label' : ''].filter(Boolean).join(' and ')} on an agent's request.`) };
+            return { action: 'wallet-correct', applied: true, outcome: `Corrected the login "${updated.account}" for ${record.origin}${isNewUsername ? ' (its new username is unverified until used)' : ''}.` };
         });
-        if (result.outcome.applied) {
-            this.options.log(`Wallet: ${result.outcome.outcome}`);
-            await this.recordAudit(result.audit);
-        }
-        return this.remember(result.outcome);
+        if (outcome.applied) this.options.log(`Wallet: ${outcome.outcome}`);
+        return this.remember(outcome);
     }
 
     /**
@@ -2097,7 +1998,7 @@ export class WalletSubEngine {
     /**
      * Takes the one-time code for a pending code request from protected owner input. It is held in memory only (never
      * written, logged or shown to agents), entered once by the next sign-in on that website within ten minutes, and is
-     * no reusable credential (no audit). The waiting work resumes.
+     * no reusable credential. The waiting work resumes.
      */
     public async supplyCode(input: { readonly request: string; readonly code: string }): Promise<WalletOutcome> {
         const result = await this.mutex.run(async (): Promise<WalletOutcome> => {
@@ -2121,7 +2022,7 @@ export class WalletSubEngine {
      * work resumes and signs in again.
      */
     public async supplyFields(input: { readonly request: string; readonly fields: readonly LoginField[] }): Promise<WalletOutcome> {
-        const result = await this.mutex.run(async () => {
+        const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
             const key = this.requireReady();
             const action = this.actions.find((candidate) => candidate.id === input.request && candidate.state === 'pending' && candidate.problem === 'field');
             if (!action) throw new PtbkError('This field request is no longer waiting.', { kind: 'not-found', effect: 'Nothing was saved.' });
@@ -2137,12 +2038,11 @@ export class WalletSubEngine {
             this.settle(action.id, 'resolved', record.id);
             await this.writeActions();
             const count = `${supplied.length} additional login field${supplied.length === 1 ? '' : 's'}`;
-            return { outcome: { action: 'wallet-field', applied: true, outcome: `Added ${count} to "${record.account}" for ${record.origin}; the waiting work signs in again.` }, audit: auditOf('Update', updated, `Added ${count} (values encrypted) that the website's login form asked for.`) };
+            return { action: 'wallet-field', applied: true, outcome: `Added ${count} to "${record.account}" for ${record.origin}; the waiting work signs in again.` };
         });
-        this.options.log(`Wallet: ${result.outcome.outcome}`);
+        this.options.log(`Wallet: ${outcome.outcome}`);
         this.options.onSettled?.();
-        await this.recordAudit(result.audit);
-        return this.remember(result.outcome);
+        return this.remember(outcome);
     }
 
     /**
@@ -2277,16 +2177,4 @@ export function generatePassword(limits: { readonly minLength?: number; readonly
         const password = Array.from({ length }, () => alphabet[randomInt(alphabet.length)]!).join('');
         if (groups.every((group) => [...password].some((character) => group.includes(character)))) return password;
     }
-}
-
-/**
- * The nonsecret audit of a mutation: the operation and the item's editable label and service, never a username,
- * password, generator secret, code or key.
- */
-function auditOf(operation: 'Add' | 'Update' | 'Remove', record: Pick<StoredRecord, 'origin' | 'account'>, detail?: string): Omit<PendingAudit, 'at'> {
-    const verb = operation === 'Add' ? 'Add' : operation === 'Update' ? 'Update' : 'Remove';
-    return {
-        subject: `Wallet - ${verb} login "${record.account}"`,
-        body: [`${verb === 'Add' ? 'Added' : verb === 'Update' ? 'Updated' : 'Removed'} the saved login "${record.account}" for ${record.origin} in the encrypted project Wallet.`, detail, 'Secret values and the encrypted vault are never committed.'].filter(Boolean).join('\n'),
-    };
 }

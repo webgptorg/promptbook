@@ -12,11 +12,11 @@ An already signed-in session alone cannot prove that this particular stored cred
 
 ## Incomplete verification and latest outcome
 
-Saving a credential and verifying it are separate outcomes. Preserve newly supplied records as **unverified** if verification is cancelled, a factor is unfinished or the service is temporarily unavailable. Record the actual incomplete/failure reason rather than delete usable user input or label a temporary outage as a proven bad password. Ordinary credential mutations retain their existing protected storage/audit contract.
+Saving a credential and verifying it are separate outcomes. Preserve newly supplied records as **unverified** if verification is cancelled, a factor is unfinished or the service is temporarily unavailable. Record the actual incomplete/failure reason rather than delete usable user input or label a temporary outage as a proven bad password. Ordinary credential mutations retain their existing protected storage contract.
 
 Keep the latest redacted test result, timestamp and concise failure/incompletion reason per item in ignored local Wallet state, outside Git. Reopening the page can inspect it; protect it consistently with the item's account metadata. Never retain passwords, codes, secret responses or raw sensitive page text in that report. Last-tested success is historical evidence, not a guarantee that a service session remains valid forever.
 
-The test is not a project task, queued run or Git-recorded execution. Do not create a task Book, task trace directory or test-only Git commit. It may use a short agent session and incur actual usage; unlike pre-project initialization calls, an existing project's available usage follows the ordinary attribution contract without inventing a task identity. Saving new/revised credentials still uses the separate normal Wallet mutation audit; a test outcome is not a credential mutation.
+The test is not a project task, queued run or Git-recorded execution. Do not create a task Book, task trace directory or test-only Git commit. It may use a short agent session and incur actual usage; unlike pre-project initialization calls, an existing project's available usage follows the ordinary attribution contract without inventing a task identity. Saving new/revised credentials uses protected Wallet storage; a test outcome is not a credential mutation.
 
 ## Initialization and acceptance
 

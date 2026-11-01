@@ -52,7 +52,7 @@ The Chats page lists all conversations, unread/actionable states and new Chatter
 
 The Tasks page uses the [complete task view](task-views.md), with smart default order and user-selected sorting independent of engine scheduling. Tasker remains the task-authoring entry.
 
-Remove the standalone Results/Activity tile, page and attention source. Keep the general operational event/error/recovery log on System and each task's outcomes, errors and execution evidence in its own detail. Historic failure or completion alone does not request attention. Action log remains the external-effect audit and History remains Git history.
+Remove the standalone Results/Activity tile, page and attention source. Keep the general operational event/error/recovery log on System and each task's outcomes, errors and execution evidence in its own detail. Historic failure or completion alone does not request attention. External activity log remains the external-effect audit and History remains Git history.
 
 ## Usage page
 
@@ -86,9 +86,9 @@ Expose Promptbook-project cache cleanup and supported Linux swap remediation thr
 
 Do **not** put generic manual Pause/Resume or a "Pause all" control on Health. Manual pause belongs to System. Merely viewing/acknowledging the tile/page does not resolve a health incident.
 
-## Action log, History, Files and report
+## External activity log, History, Files and report
 
-Provide distinct compact tiles/full pages, independently of autosync: [Action log](action-log-ui.md) reads external Markdown mutations/outcomes and verified task/evidence links; [History](history.md) reads Git messages and available branch/merge topology, with recognized agent formatting and verified links; [Files](files.md) is confined read-only project browsing with the narrow hidden-agent-directory exception with formatted Markdown/JSON/Book and supported images. Video playback is deferred. These complement the operational log on System and per-task outcomes; they are not names for one log. Shared readers preserve selection/scroll and never create audits, reports, commits or provider calls. Book viewing/editing shares its long-document core.
+Provide distinct compact tiles/full pages, independently of autosync: [External activity log](action-log-ui.md) reads external Markdown mutations/outcomes and verified task/evidence links; [History](history.md) reads Git messages and available branch/merge topology, with recognized agent formatting and verified links; [Files](files.md) is confined read-only project browsing with the narrow hidden-agent-directory exception with formatted Markdown/JSON/Book and supported images. Video playback is deferred. These complement the operational log on System and per-task outcomes; they are not names for one log. Shared readers preserve selection/scroll and never create audits, reports, commits or provider calls. Book viewing/editing shares its long-document core.
 
 The full-width [brief](project-report-ui.md) above the home grid reads only the last complete Chatter message. Discuss creates a new seeded chat; Refresh explicitly requests shared generation. Earlier briefs remain inspectable in `report.book` through Files.
 

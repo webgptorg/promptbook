@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash, hkdfSync, pbkdf2Sync } from 'node:crypto';
-import { cp, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { chmod, cp, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -13,7 +13,6 @@ import { BrowserFleet } from '../dist/browser/fleet.js';
 import { temporaryLoginContext } from '../dist/browser/temporary-login.js';
 import { createVerifier, deriveProjectRoot, domainKey, generateRecoveryWords, normalizeRecoveryWords, open, seal, verifyRoot } from '../dist/wallet/crypto.js';
 import { WalletSubEngine, generatePassword, maskAccount, normalizeOrigin, originMatches, walletLabel } from '../dist/wallet/wallet.js';
-import { commitAudit } from '../dist/project/git.js';
 import { committed, git, GIT_IDENTITY, initializedProject, initRepository, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
@@ -280,66 +279,79 @@ function loginSite(password) {
 const LOGIN_PAGE = `<!doctype html><title>Sign in</title><h1>Sign in</h1><!--error-->
 <form method="post" action="/login"><input name="username" autocomplete="username" placeholder="Username"><input name="password" type="password" autocomplete="current-password"><button>Sign in</button></form>`;
 
-test('Wallet audit: each meaningful mutation is its own nonsecret (empty) commit, retried automatically without repeating the change, and can be disabled', async (t) => {
-    const root = await temporaryDirectory(t, 'ptbk wallet audit');
+test('Wallet mutations persist and survive restart without committing or disturbing user work', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet persistence');
     const project = join(root, 'project');
+    const home = join(root, 'computer');
     await mkdir(project, { recursive: true });
     await initRepository(project);
+    await writeFile(join(project, '.gitignore'), '.ptbk/\n');
     await writeFile(join(project, 'base.txt'), 'base\n');
     await git(project, ['add', '.']);
     await git(project, ['commit', '-qm', 'base']);
     await writeFile(join(project, 'staged.txt'), 'user staged\n');
     await git(project, ['add', 'staged.txt']);
     await writeFile(join(project, 'base.txt'), 'user edit\n');
-    const env = { ...process.env, ...GIT_IDENTITY, PTBK_HOME: join(root, 'home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
-    let isEnabled = true;
-    let failNext = false;
-    const runtime = { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state'), temporary: join(project, '.ptbk', 'tmp') };
-    const logs = [];
-    const wallet = new WalletSubEngine({
-        project: { root: project, runtime },
-        env,
-        onChange: () => undefined,
-        log: (text) => logs.push(text),
-        audit: {
-            isEnabled: () => isEnabled,
-            commit: async (subject, body) => {
-                if (failNext) {
-                    failNext = false;
-                    throw new Error('hook says no');
-                }
-                await commitAudit({ projectRoot: project, repositoryRoot: project, subject, body, temporaryDirectory: runtime.temporary, env });
-            },
-            retryMs: 200,
-        },
-    });
+    const head = await git(project, ['rev-parse', 'HEAD']);
+    const status = await git(project, ['status', '--porcelain']);
+    const staged = await git(project, ['diff', '--cached']);
+    // A failed attempt would leave evidence even if an implementation swallowed the hook failure.
+    const hook = join(project, '.git', 'hooks', 'pre-commit');
+    await writeFile(hook, '#!/bin/sh\nprintf attempted > wallet-hook-attempted\nexit 1\n');
+    await chmod(hook, 0o755);
+    /** Every protected operation must leave Git and the user's files untouched. */
+    const unchanged = async () => {
+        assert.equal(await git(project, ['rev-parse', 'HEAD']), head);
+        assert.equal(await git(project, ['status', '--porcelain']), status);
+        assert.equal(await git(project, ['diff', '--cached']), staged);
+        assert.equal(await readFile(join(project, 'base.txt'), 'utf8'), 'user edit\n');
+        assert.equal(await stat(join(project, 'wallet-hook-attempted')).then(() => true, () => false), false);
+    };
+    const { wallet } = walletAt(project, home);
     await wallet.initialize();
     await wallet.beginSetup();
-    await wallet.confirmSetup();
-    await wallet.save({ origin: 'example.com', username: 'jane.doe@example.com', password: 'correct horse battery' });
-    assert.equal((await git(project, ['log', '-1', '--format=%s'])).trim(), 'ptbk: Wallet - Add login "example.com · ja…@example.com"');
-    assert.equal((await git(project, ['show', '--name-only', '--format=', 'HEAD'])).trim(), '', 'an empty audit commit: the vault is never committed');
-    const status = await git(project, ['status', '--porcelain']);
-    assert.match(status, /^A  staged\.txt$/m, 'user staging is neither committed nor disturbed');
-    assert.match(status, /^ M base\.txt$/m);
-    const id = wallet.view().records[0].id;
-    failNext = true;
-    await wallet.save({ origin: 'example.com', username: 'jane.doe@example.com', password: 'new password 2', id });
-    assert.equal(wallet.view().records.length, 1, 'the update itself succeeded');
-    assert.match(logs.join('\n'), /audit commit .* is pending/);
-    assert.equal(JSON.parse(await readFile(join(runtime.state, 'wallet-audit.json'), 'utf8')).length, 1);
-    // Neither another mutation nor a restart is needed: the pending audit is committed by its scheduled retry.
-    await waitFor(async () => JSON.parse(await readFile(join(runtime.state, 'wallet-audit.json'), 'utf8')).length === 0, { timeoutMs: 10_000, message: 'the scheduled audit retry' });
-    assert.equal((await git(project, ['log', '-1', '--format=%s'])).trim(), 'ptbk: Wallet - Update login "example.com · ja…@example.com"', 'the pending audit is committed later');
-    await wallet.retryAudits();
-    const count = Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim());
-    isEnabled = false;
-    await wallet.remove(id);
-    assert.equal(wallet.view().records.length, 0, 'removal works with the audit disabled');
-    assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), count, 'no audit commit while disabled; no repeated audit either');
-    const history = await git(project, ['log', '-p', '--all']);
-    for (const secret of ['correct horse battery', 'new password 2', 'jane.doe@example.com']) assert.ok(!history.includes(secret), `no secret in Git (${secret.length} chars)`);
-    assert.doesNotMatch(await git(project, ['ls-files']), /\.ptbk/);
+    assert.ok((await wallet.confirmSetup()).applied);
+    await unchanged();
+    const { id } = await wallet.save({ origin: 'example.com', username: 'jane@example.com', password: 'initial secret' });
+    await unchanged();
+    await wallet.save({ id, origin: 'example.com', username: 'jane@example.com', password: 'updated secret' });
+    await unchanged();
+    assert.ok((await wallet.correctLogin({ account: 'jane@example.com', label: 'Personal login' })).applied);
+    await unchanged();
+    const page = fakePage('https://example.com');
+    page.page.signIn = async () => ({ result: 'challenge', missingFields: ['Security answer'] });
+    const waiting = await wallet.login(page.page, {});
+    assert.equal(waiting.problem, 'field');
+    assert.ok((await wallet.supplyFields({ request: waiting.action, fields: [{ label: 'Security answer', value: 'heron' }] })).applied);
+    await unchanged();
+    const preview = await wallet.previewImport({ content: bitwardenExport() });
+    assert.equal((await wallet.applyImport({ draft: preview.draft, select: preview.candidates.filter((item) => ['https://shop.example.com', 'https://app.example.org'].includes(item.origin)).map((item) => item.key) })).imported, 2);
+    await unchanged();
+    const created = fakePage('https://new.example');
+    const entered = [];
+    created.page.newPasswordForm = async () => ({ asksCurrent: false });
+    created.page.submitNewPassword = async (input) => (entered.push(input), { result: 'accepted' });
+    assert.equal((await wallet.createLogin(created.page, { username: 'new@example.com' })).status, 'saved');
+    await unchanged();
+    const { words } = await wallet.beginRotation();
+    assert.ok((await wallet.confirmRotation()).applied);
+    await unchanged();
+    const reopened = walletAt(project, home).wallet;
+    await reopened.initialize();
+    const login = fakePage('https://new.example');
+    assert.equal((await reopened.login(login.page, {})).status, 'signed-in');
+    assert.equal(login.entered[0].password, entered[0].password);
+    assert.ok((await reopened.remove(id)).applied);
+    await unchanged();
+    const locked = walletAt(project, join(root, 'other computer')).wallet;
+    await locked.initialize();
+    assert.equal(locked.view().state, 'locked');
+    const { words: resetWords } = await locked.beginReset({ confirm: 'RESET' });
+    assert.notDeepEqual(resetWords, words);
+    assert.ok((await locked.confirmSetup()).applied);
+    assert.equal(locked.view().records.length, 0);
+    await unchanged();
+    assert.doesNotMatch(await git(project, ['log', '-p', '--all']), /jane@example|Personal login|updated secret|shop\.example/);
 });
 
 test('Wallet in the real browser: the agent requests a login, never sees the password, a wrong one is cleared and the right one signs in', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
@@ -395,70 +407,64 @@ test('Wallet generated logins: a new account and a changed password need no conf
     t.after(() => Promise.all(teardown.map((step) => step())));
     const root = await temporaryDirectory(t, 'ptbk wallet generated', teardown);
     const logs = [];
-    const audits = [];
-    const audited = new WalletSubEngine({ project: { root, runtime: { root: join(root, '.ptbk'), state: join(root, '.ptbk', 'state') } }, env: { ...process.env, PTBK_HOME: join(root, 'home'), PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, log: (text) => logs.push(text), audit: { isEnabled: () => true, commit: async (subject, body) => void audits.push(`${subject}\n${body}`) } });
-    await audited.initialize();
+    const wallet = new WalletSubEngine({ project: { root, runtime: { root: join(root, '.ptbk'), state: join(root, '.ptbk', 'state') } }, env: { ...process.env, PTBK_HOME: join(root, 'home'), PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, log: (text) => logs.push(text) });
+    await wallet.initialize();
     const origin = 'https://service.example';
     const page = (result = 'accepted', form = { asksCurrent: false }) => {
         const entered = [];
         return { entered, page: { browser: 'test-browser', inspect: async () => ({ origin, form: 'password' }), signIn: async () => ({ result: 'rejected' }), newPasswordForm: async () => form, submitNewPassword: async (entry) => (entered.push(entry), { result }) } };
     };
 
-    const notReady = await audited.createLogin(page().page, { username: 'agent@example.com' });
+    const notReady = await wallet.createLogin(page().page, { username: 'agent@example.com' });
     assert.equal(notReady.status, 'failed', 'a Wallet that is not set up cannot keep the password');
     assert.match(notReady.reason, /not set up/);
-    await audited.beginSetup();
-    await audited.confirmSetup();
-    audits.length = 0;
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
 
-    const noName = await audited.createLogin(page().page, {});
+    const noName = await wallet.createLogin(page().page, {});
     assert.equal(noName.status, 'failed', 'a new login needs its username');
-    assert.equal(audited.view().records.length, 0);
+    assert.equal(wallet.view().records.length, 0);
 
     // A pending request of the site is answered by the new login; the password is strong and reaches only the page.
     const asked = fakePage(origin);
-    const request = await audited.login(asked.page, { reason: 'sign up' });
+    const request = await wallet.login(asked.page, { reason: 'sign up' });
     assert.equal(request.status, 'waiting');
     const created = page();
-    const saved = await audited.createLogin(created.page, { username: 'agent@example.com', task: 'Register', agent: 'Tester' });
+    const saved = await wallet.createLogin(created.page, { username: 'agent@example.com' });
     assert.equal(saved.status, 'saved');
     assert.equal(saved.updated, false);
     const generated = created.entered[0].password;
     assert.ok(generated.length >= 20, 'a strong password');
     assert.equal(created.entered[0].current, undefined);
     assert.ok(!JSON.stringify(saved).includes(generated));
-    assert.deepEqual(audited.view().pending, [], 'the waiting request is resolved');
-    assert.equal(audits.length, 1);
-    assert.match(audits[0], /Wallet - Add login/);
-    assert.match(audits[0], /generated its password on request of Tester for "Register"/);
-    assert.ok(!audits[0].includes(generated));
-    assert.equal(audited.view().records[0].verification, undefined, 'unverified until tested');
+    assert.deepEqual(wallet.view().pending, [], 'the waiting request is resolved');
+    assert.equal(wallet.view().records[0].verification, undefined, 'unverified until tested');
     const signing = fakePage(origin);
-    assert.equal((await audited.login(signing.page, {})).status, 'signed-in');
+    assert.equal((await wallet.login(signing.page, {})).status, 'signed-in');
     assert.equal(signing.entered[0].password, generated, 'later sign-ins use the generated password');
     assert.equal(signing.entered[0].username, 'agent@example.com');
 
     // A refused form restores the earlier state, whether it was a new login or a change.
-    assert.equal((await audited.createLogin(page('rejected').page, { username: 'second@example.com' })).status, 'rejected');
-    assert.equal(audited.view().records.length, 1);
+    assert.equal((await wallet.createLogin(page('rejected').page, { username: 'second@example.com' })).status, 'rejected');
+    assert.equal(wallet.view().records.length, 1);
     const refused = page('rejected', { asksCurrent: true });
-    assert.equal((await audited.createLogin(refused.page, { account: 'agent@example.com' })).status, 'rejected');
+    assert.equal((await wallet.createLogin(refused.page, { account: 'agent@example.com' })).status, 'rejected');
     assert.equal(refused.entered[0].current, generated, 'the current password is entered by the Wallet');
     const unchanged = fakePage(origin);
-    await audited.login(unchanged.page, {});
+    await wallet.login(unchanged.page, {});
     assert.equal(unchanged.entered[0].password, generated);
 
     // A form asking for a current password the Wallet does not have, and no form or a CAPTCHA: nothing is entered.
     const foreign = page('accepted', { asksCurrent: true });
-    assert.equal((await audited.createLogin(foreign.page, { username: 'someone@example.com' })).status, 'no-form');
+    assert.equal((await wallet.createLogin(foreign.page, { username: 'someone@example.com' })).status, 'no-form');
     assert.equal(foreign.entered.length, 0);
-    assert.equal((await audited.createLogin({ ...page().page, newPasswordForm: async () => undefined }, { username: 'someone@example.com' })).status, 'no-form');
-    assert.equal((await audited.createLogin(page('accepted', { asksCurrent: false, captcha: true }).page, { username: 'someone@example.com' })).status, 'captcha');
-    assert.equal(audited.view().records.length, 1);
+    assert.equal((await wallet.createLogin({ ...page().page, newPasswordForm: async () => undefined }, { username: 'someone@example.com' })).status, 'no-form');
+    assert.equal((await wallet.createLogin(page('accepted', { asksCurrent: false, captcha: true }).page, { username: 'someone@example.com' })).status, 'captcha');
+    assert.equal(wallet.view().records.length, 1);
 
     // A change the website only seemed to take: the first sign-in finds the password that holds and keeps it.
     const changed = page('accepted', { asksCurrent: true, maxLength: 16 });
-    const updated = await audited.createLogin(changed.page, { account: 'agent@example.com' });
+    const updated = await wallet.createLogin(changed.page, { account: 'agent@example.com' });
     assert.equal(updated.status, 'saved');
     assert.equal(updated.updated, true);
     const rotated = changed.entered[0].password;
@@ -466,43 +472,40 @@ test('Wallet generated logins: a new account and a changed password need no conf
     assert.notEqual(rotated, generated);
     const tried = [];
     const stale = { browser: 'test-browser', inspect: async () => ({ origin, form: 'password' }), signIn: async (credentials) => (tried.push(credentials), { result: credentials.password === generated ? 'signed-in' : 'rejected' }) };
-    assert.equal((await audited.login(stale, {})).status, 'signed-in');
+    assert.equal((await wallet.login(stale, {})).status, 'signed-in');
     assert.deepEqual(tried.map((credentials) => credentials.password), [rotated, generated]);
     assert.ok(tried.every((credentials) => !('previousPassword' in credentials)), 'the page receives one password at a time');
     tried.length = 0;
-    await audited.login(stale, {});
+    await wallet.login(stale, {});
     assert.deepEqual(tried.map((credentials) => credentials.password), [generated], 'the earlier password is the saved one again');
 
     // A change that took effect: the earlier password is dropped at its first sign-in, so a later rejection asks the owner.
     const second = page('accepted', { asksCurrent: true });
-    await audited.createLogin(second.page, { account: 'agent@example.com' });
+    await wallet.createLogin(second.page, { account: 'agent@example.com' });
     const newest = second.entered[0].password;
     const good = fakePage(origin);
-    await audited.login(good.page, {});
+    await wallet.login(good.page, {});
     assert.equal(good.entered[0].password, newest);
     const later = [];
     const expired = { browser: 'test-browser', inspect: async () => ({ origin, form: 'password' }), signIn: async (credentials) => (later.push(credentials.password), { result: 'rejected' }) };
-    assert.equal((await audited.login(expired, {})).status, 'waiting');
+    assert.equal((await wallet.login(expired, {})).status, 'waiting');
     assert.deepEqual(later, [newest]);
 
     // Corrections of nonsecret details: the password and website stay, a new username is unverified again.
-    await audited.dismiss(audited.view().pending[0].id);
-    const before = audited.accounts().accounts[0];
-    assert.equal((await audited.correctLogin({ account: 'nobody' })).applied, false);
-    assert.equal((await audited.correctLogin({ account: before.username, username: before.username })).applied, false, 'a no-op changes nothing');
-    audits.length = 0;
-    const corrected = await audited.correctLogin({ account: before.username, username: 'renamed@example.com' });
+    await wallet.dismiss(wallet.view().pending[0].id);
+    const before = wallet.accounts().accounts[0];
+    assert.equal((await wallet.correctLogin({ account: 'nobody' })).applied, false);
+    assert.equal((await wallet.correctLogin({ account: before.username, username: before.username })).applied, false, 'a no-op changes nothing');
+    const corrected = await wallet.correctLogin({ account: before.username, username: 'renamed@example.com' });
     assert.equal(corrected.applied, true);
-    assert.equal(audits.length, 1);
-    assert.match(audits[0], /technical correction of its username/);
-    const after = audited.accounts().accounts[0];
+    const after = wallet.accounts().accounts[0];
     assert.equal(after.username, 'renamed@example.com');
     assert.equal(after.origin, before.origin);
     assert.equal(after.label, walletLabel(origin, 'renamed@example.com'), 'a derived label follows the username');
-    assert.equal((await audited.correctLogin({ account: 'renamed@example.com', label: 'Company account' })).applied, true);
-    assert.equal(audited.accounts().accounts[0].label, 'Company account');
+    assert.equal((await wallet.correctLogin({ account: 'renamed@example.com', label: 'Company account' })).applied, true);
+    assert.equal(wallet.accounts().accounts[0].label, 'Company account');
     const renamed = fakePage(origin);
-    await audited.login(renamed.page, { account: 'Company account' });
+    await wallet.login(renamed.page, { account: 'Company account' });
     assert.equal(renamed.entered[0].username, 'renamed@example.com');
     assert.equal(renamed.entered[0].password, newest, 'a correction keeps the password');
 
@@ -570,7 +573,7 @@ test('Wallet generated logins in the real browser: the agent signs up, changes t
     await wallet.initialize();
     await wallet.beginSetup();
     await wallet.confirmSetup();
-    const tools = Object.fromEntries(browserTools(fleet.scope('signup task'), undefined, 'Tester', () => undefined, () => [], { login: (target, request) => wallet.login(target, request), accounts: (site) => wallet.accounts(site), createLogin: (target, request) => wallet.createLogin(target, { ...request, task: 'Register' }), correctLogin: (input) => wallet.correctLogin(input), onWait: () => undefined }).map((tool) => [tool.name, tool]));
+    const tools = Object.fromEntries(browserTools(fleet.scope('signup task'), undefined, 'Tester', () => undefined, () => [], { login: (target, request) => wallet.login(target, request), accounts: (site) => wallet.accounts(site), createLogin: (target, request) => wallet.createLogin(target, request), correctLogin: (input) => wallet.correctLogin(input), onWait: () => undefined }).map((tool) => [tool.name, tool]));
     const call = async (name, input = {}) => await tools[name].handler(input);
     const readable = async () => (await call('browser_evaluate', { script: "[...document.querySelectorAll('input[type=password]')].map((input) => input.value).join('')" })).text;
 
@@ -1131,19 +1134,17 @@ function loginContexts(script) {
     return { loginContext, opened, entered, disposed: () => disposed };
 }
 
-test('Wallet Test: exactly the selected login in a fresh context; verified, rejected and incomplete results are kept redacted across a restart, without an audit or commit', async (t) => {
+test('Wallet Test: exactly the selected login in a fresh context; verified, rejected and incomplete results are kept redacted across a restart, without a commit', async (t) => {
     const root = await temporaryDirectory(t, 'ptbk wallet test');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
     let behaviour = {};
     const contexts = loginContexts(() => behaviour);
-    const audits = [];
     const options = (extra = {}) => ({
         project: { root: project, runtime: { root: join(project, '.ptbk'), state: join(project, '.ptbk', 'state') } },
         env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' },
         onChange: () => undefined,
         log: () => undefined,
-        audit: { isEnabled: () => true, commit: async (subject) => void audits.push(subject) },
         loginContext: contexts.loginContext,
         ...extra,
     });
@@ -1155,7 +1156,6 @@ test('Wallet Test: exactly the selected login in a fresh context; verified, reje
     const joe = await wallet.save({ origin: 'https://example.com', username: 'joe@example.com', password: 'joe secret 2' });
     const record = (id) => wallet.view().records.find((candidate) => candidate.id === id);
     const [jane] = wallet.view().records;
-    const audited = audits.length;
     assert.equal(record(joe.id).verification, undefined, 'a saved login is unverified until tested');
 
     // Exactly the selected account is tested, in a fresh context opened at its website.
@@ -1209,8 +1209,7 @@ test('Wallet Test: exactly the selected login in a fresh context; verified, reje
     assert.match((await during).outcome, /changed or removed during the test, so this result was not kept/);
     assert.equal(record(joe.id).verification, undefined, 'new values are unverified');
 
-    // Tests are no credential mutation: no audit (no commit) and no task; the latest result survives a restart.
-    assert.equal(audits.length, audited + 1, 'only the update was audited');
+    // Tests are no credential mutation: no commit and no task; the latest result survives a restart.
     const reopened = new WalletSubEngine(options());
     await reopened.initialize();
     const kept = reopened.view().records.find((candidate) => candidate.id === jane.id).verification;
@@ -1557,15 +1556,13 @@ test('Wallet additional login fields: encrypted with the login, kept through upd
     const root = await temporaryDirectory(t, 'ptbk wallet fields');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
-    const { wallet, audits } = auditedWalletAt(project, join(root, 'computer'));
+    const { wallet } = walletAt(project, join(root, 'computer'));
     await wallet.initialize();
     await wallet.beginSetup();
     await wallet.confirmSetup();
     const { id } = await wallet.save({ origin: 'https://bank.example', username: 'jane', password: 'bank secret', fields: [{ label: 'Date of birth', value: '02.01.1990' }] });
     assert.deepEqual(wallet.view().records[0].fields, [{ label: 'Date of birth' }], 'only labels are visible');
     assert.doesNotMatch(JSON.stringify(wallet.view()), /02\.01\.1990/);
-    assert.match(audits.at(-1).body, /With 1 additional login field \(values encrypted\)/);
-    assert.doesNotMatch(audits.at(-1).body, /02\.01\.1990/);
     // A password update keeps the field; an empty value removes one; an equal label replaces it.
     await wallet.save({ id, origin: 'https://bank.example', username: 'jane', password: 'bank secret 2', fields: [{ label: 'Customer number', value: 'C-77' }] });
     await wallet.save({ id, origin: 'https://bank.example', username: 'jane', password: 'bank secret 2', fields: [{ label: 'customer  NUMBER', value: '' }, { label: 'date of birth', value: '03.01.1990', uncertain: true }] });
@@ -1573,7 +1570,7 @@ test('Wallet additional login fields: encrypted with the login, kept through upd
     await assert.rejects(wallet.save({ id, origin: 'https://bank.example', username: 'jane', password: 'x', fields: [{ label: ' ', value: 'v' }] }), /needs a name/);
     // Kept encrypted across a restart.
     assert.doesNotMatch(await readFile(join(project, '.ptbk', 'wallet', 'records.json'), 'utf8'), /03\.01\.1990|date of birth/i);
-    const reopened = auditedWalletAt(project, join(root, 'computer')).wallet;
+    const reopened = walletAt(project, join(root, 'computer')).wallet;
     await reopened.initialize();
     const signIns = [];
     const page = (result) => ({ browser: 'b', inspect: async () => ({ origin: 'https://bank.example', form: 'password' }), signIn: async (credentials) => (signIns.push(credentials), result) });
@@ -1634,16 +1631,6 @@ test('Wallet additional login fields: encrypted with the login, kept through upd
 });
 
 /**
- * A Wallet with an audit recorder (the audit commits it would create).
- */
-function auditedWalletAt(root, home) {
-    const project = { root, runtime: { root: join(root, '.ptbk'), state: join(root, '.ptbk', 'state') } };
-    const audits = [];
-    const wallet = new WalletSubEngine({ project, env: { ...process.env, PTBK_HOME: home, PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, log: () => undefined, audit: { isEnabled: () => true, commit: async (subject, body) => void audits.push({ subject, body }) } });
-    return { wallet, audits };
-}
-
-/**
  * A Bitwarden JSON export with logins, duplicates, conflicts and unsupported entries.
  */
 function bitwardenExport() {
@@ -1667,7 +1654,7 @@ test('Wallet records are encrypted completely; records of the older format are m
     const home = join(root, 'computer');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
-    const { wallet } = auditedWalletAt(project, home);
+    const { wallet } = walletAt(project, home);
     await wallet.initialize();
     const { words } = await wallet.beginSetup();
     await wallet.confirmSetup();
@@ -1681,7 +1668,7 @@ test('Wallet records are encrypted completely; records of the older format are m
     const key = domainKey(deriveProjectRoot(words, salt), salt, 'wallet');
     const legacy = { format: metadata.format, projectKeyId: metadata.projectKeyId, records: [{ id: 'legacy1', origin: 'https://legacy.example.com', account: 'legacy.example.com · old', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', secret: seal(key, 'wallet', Buffer.from(JSON.stringify({ origin: 'https://legacy.example.com', username: 'old', password: 'legacy password' }))) }] };
     await writeFile(join(project, '.ptbk', 'wallet', 'records.json'), JSON.stringify(legacy));
-    const reopened = auditedWalletAt(project, home);
+    const reopened = walletAt(project, home);
     await reopened.wallet.initialize();
     assert.deepEqual(reopened.wallet.view().records.map((record) => record.account), ['legacy.example.com · old']);
     assert.doesNotMatch(await readFile(join(project, '.ptbk', 'wallet', 'records.json'), 'utf8'), /legacy\.example\.com|old/, 'migrated to whole-record encryption');
@@ -1691,7 +1678,7 @@ test('Wallet records are encrypted completely; records of the older format are m
     // Locked on another computer: only the number of encrypted logins is known.
     const copy = join(root, 'copy');
     await cp(project, copy, { recursive: true });
-    const other = auditedWalletAt(copy, join(root, 'computer two'));
+    const other = walletAt(copy, join(root, 'computer two'));
     await other.wallet.initialize();
     assert.equal(other.wallet.view().state, 'locked');
     assert.deepEqual(other.wallet.view().records, [], 'no labels without a key');
@@ -1699,11 +1686,11 @@ test('Wallet records are encrypted completely; records of the older format are m
     assert.match(other.wallet.view().summary, /1 saved login \(encrypted\)/);
 });
 
-test('Wallet import: one Bitwarden preview with individual/all/none selection, duplicates and conflicts, no secret in previews or audits', async (t) => {
+test('Wallet import: one Bitwarden preview with individual/all/none selection, duplicates and conflicts, no secret in previews', async (t) => {
     const root = await temporaryDirectory(t, 'ptbk wallet import');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
-    const { wallet, audits } = auditedWalletAt(project, join(root, 'computer'));
+    const { wallet } = walletAt(project, join(root, 'computer'));
     await wallet.initialize();
     await assert.rejects(wallet.previewImport({ content: bitwardenExport() }), /Set up the Wallet first/, 'import never silently creates or resets a Wallet');
     await wallet.beginSetup();
@@ -1715,7 +1702,6 @@ test('Wallet import: one Bitwarden preview with individual/all/none selection, d
     assert.equal((await wallet.login(fakePage('https://shop.example.com').page, { reason: 'checkout' })).status, 'related');
     const waiting = await wallet.login(fakePage('https://shop.example.com').page, { reason: 'checkout', ignoreRelated: true });
     assert.equal(waiting.status, 'waiting');
-    audits.length = 0;
     await assert.rejects(wallet.previewImport({ content: JSON.stringify({ encrypted: true, encKeyValidation_DO_NOT_EDIT: 'x', data: 'y' }) }), /encrypted .*cannot be read here/);
     await assert.rejects(wallet.previewImport({ content: 'not json' }), /not a Bitwarden JSON export/);
     const preview = await wallet.previewImport({ content: bitwardenExport() });
@@ -1727,10 +1713,9 @@ test('Wallet import: one Bitwarden preview with individual/all/none selection, d
     assert.equal(state('https://example.com', 'Existing other'), 'conflict');
     assert.deepEqual(preview.candidates.find((candidate) => candidate.origin === 'https://shop.example.com').unsupported, ['TOTP generator'], 'a TOTP generator is reported as not imported, never claimed usable');
     assert.deepEqual(preview.skipped.map((entry) => entry.label), ['A note', 'No address', 'Android only'], 'unsupported entries are reported honestly');
-    // None selected: nothing changes and no audit.
+    // None selected: nothing changes.
     const none = await wallet.applyImport({ draft: preview.draft, select: [] });
     assert.equal(none.applied, false);
-    assert.equal(audits.length, 0, 'a no-op selection creates no commit');
     await assert.rejects(wallet.applyImport({ draft: preview.draft, select: [] }), /no longer current/, 'an applied preview cannot be replayed');
     // All selected, the conflict kept: new logins added once, the duplicate reused, the conflicting saved login untouched.
     const again = await wallet.previewImport({ content: bitwardenExport() });
@@ -1743,9 +1728,6 @@ test('Wallet import: one Bitwarden preview with individual/all/none selection, d
     const joe = fakePage('https://example.com');
     assert.equal((await wallet.login(joe.page, { account: 'Joe' })).status, 'signed-in');
     assert.equal(joe.entered[0].password, 'old password', 'a conflict is never overwritten without the owner choosing it');
-    assert.equal(audits.length, 1, 'one nonsecret summary for the import');
-    assert.match(audits[0].subject, /^Wallet - Import 2 logins from Bitwarden$/);
-    assert.doesNotMatch(`${audits[0].subject}\n${audits[0].body}`, /shop secret|password 1|JBSWY|jane@example\.com/);
     // Repeating the import with the conflict explicitly replaced: no duplicates, the chosen value is used.
     const third = await wallet.previewImport({ content: bitwardenExport() });
     const conflict = third.candidates.find((candidate) => candidate.state === 'conflict');
@@ -1888,21 +1870,20 @@ test('Wallet recovery: new words re-encrypt everything with a working key; an in
     const home = join(root, 'computer');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
-    const { wallet, audits } = auditedWalletAt(project, home);
+    const { wallet } = walletAt(project, home);
     await wallet.initialize();
     const { words: oldWords } = await wallet.beginSetup();
     await wallet.confirmSetup();
     await wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'kept password' });
     const preview = await wallet.previewImport({ content: bitwardenExport() });
     await wallet.applyImport({ draft: preview.draft, select: preview.candidates.filter((candidate) => candidate.origin === 'https://shop.example.com').map((candidate) => candidate.key) });
-    audits.length = 0;
     const before = join(root, 'before');
     await cp(project, before, { recursive: true });
     // Prepared files without a journal (interrupted before the switch) are discarded: the old generation stays.
     const early = join(root, 'early');
     await cp(before, early, { recursive: true });
     await writeFile(join(early, '.ptbk', 'wallet', 'records.next.json'), '{"partial":');
-    const kept = auditedWalletAt(early, home);
+    const kept = walletAt(early, home);
     await kept.wallet.initialize();
     assert.equal(kept.wallet.view().state, 'ready');
     assert.equal(kept.wallet.view().records.length, 2);
@@ -1915,11 +1896,8 @@ test('Wallet recovery: new words re-encrypt everything with a working key; an in
     const { words } = await wallet.beginRotation();
     const rotated = await wallet.confirmRotation();
     assert.ok(rotated.applied, rotated.outcome);
-    assert.deepEqual(audits.map((audit) => audit.subject), ['Wallet - Replace the recovery words']);
-    // Neither the phrase nor any two of its words in order: a single word list entry such as "secret" may occur in prose.
-    for (let index = 1; index < words.length; index++) assert.ok(!audits[0].body.includes(`${words[index - 1]} ${words[index]}`), 'the audit never contains the recovery words');
     assert.equal(wallet.view().records.length, 2, 'every record is preserved');
-    const rebooted = auditedWalletAt(project, home);
+    const rebooted = walletAt(project, home);
     await rebooted.wallet.initialize();
     assert.equal(rebooted.wallet.view().state, 'ready', 'this computer still unlocks it after a restart');
     const shop = fakePage('https://shop.example.com');
@@ -1928,7 +1906,7 @@ test('Wallet recovery: new words re-encrypt everything with a working key; an in
     // Another computer: the old words no longer open it, the new ones do.
     const copy = join(root, 'copy');
     await cp(project, copy, { recursive: true });
-    const other = auditedWalletAt(copy, join(root, 'computer two'));
+    const other = walletAt(copy, join(root, 'computer two'));
     await other.wallet.initialize();
     await assert.rejects(other.wallet.restore(oldWords.join(' ')), /do not belong/);
     assert.ok((await other.wallet.restore(words.join(' '))).applied);
@@ -1938,24 +1916,24 @@ test('Wallet recovery: new words re-encrypt everything with a working key; an in
     await cp(before, interrupted, { recursive: true });
     for (const [directory, name] of [['wallet', 'records'], ['encryption', 'hosts'], ['encryption', 'project']]) await cp(join(project, '.ptbk', directory, `${name}.json`), join(interrupted, '.ptbk', directory, `${name}.next.json`));
     await writeFile(join(interrupted, '.ptbk', 'encryption', 'generation.json'), JSON.stringify({ at: new Date().toISOString() }));
-    const resumed = auditedWalletAt(interrupted, home);
+    const resumed = walletAt(interrupted, home);
     await resumed.wallet.initialize();
     assert.equal(resumed.wallet.view().state, 'ready');
     assert.equal(resumed.wallet.view().records.length, 2, 'one coherent new generation');
     await assert.rejects(stat(join(interrupted, '.ptbk', 'encryption', 'generation.json')));
 });
 
-test('Wallet reset after total key loss: strongly confirmed, declinable, empty and audited without old labels', async (t) => {
+test('Wallet reset after total key loss: strongly confirmed, declinable, empty and protected', async (t) => {
     const root = await temporaryDirectory(t, 'ptbk wallet reset');
     const project = join(root, 'project');
     await mkdir(project, { recursive: true });
-    const first = auditedWalletAt(project, join(root, 'computer'));
+    const first = walletAt(project, join(root, 'computer'));
     await first.wallet.initialize();
     await first.wallet.beginSetup();
     await first.wallet.confirmSetup();
     await first.wallet.save({ origin: 'https://example.com', username: 'jane@example.com', password: 'lost password', label: 'Lost login' });
     // Another computer without the words: nothing can unlock it.
-    const { wallet, audits } = auditedWalletAt(project, join(root, 'computer two'));
+    const { wallet } = walletAt(project, join(root, 'computer two'));
     await wallet.initialize();
     assert.equal(wallet.view().state, 'locked');
     const { resetWarning, ...management } = wallet.view().management;
@@ -1980,14 +1958,12 @@ test('Wallet reset after total key loss: strongly confirmed, declinable, empty a
     assert.deepEqual(wallet.view().records, [], 'a new empty Wallet');
     assert.equal(wallet.action(waiting.action).state, 'pending');
     assert.match(wallet.view().pending[0].reason, /was reset and has none/, 'requests now wait for a login to be added');
-    assert.deepEqual(audits.map((audit) => audit.subject), ['Wallet - Reset to a new empty Wallet']);
-    assert.doesNotMatch(audits[0].body, /Lost login|example\.com/, 'the audit never reads old labels');
-    const reopened = auditedWalletAt(project, join(root, 'computer two'));
+    const reopened = walletAt(project, join(root, 'computer two'));
     await reopened.wallet.initialize();
     assert.equal(reopened.wallet.view().state, 'ready', 'the new Wallet unlocks automatically here');
     const elsewhere = join(root, 'elsewhere');
     await cp(project, elsewhere, { recursive: true });
-    const third = auditedWalletAt(elsewhere, join(root, 'computer three'));
+    const third = walletAt(elsewhere, join(root, 'computer three'));
     await third.wallet.initialize();
     assert.ok((await third.wallet.restore(words.join(' '))).applied, 'the new words open the new Wallet');
 });

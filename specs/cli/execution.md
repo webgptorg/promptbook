@@ -22,7 +22,7 @@ Checkpoint a blocked task and release safe resources so independent work can pro
 
 See [checks](checks.md), [Git persistence](git-persistence.md), [Git synchronization](git-synchronization.md), [recovery](recovery.md), [traces](traces.md) and [task origins](task-origins.md).
 
-External mutations additionally produce durable [action records](action-log.md) under `actions/<task-file-basename>/`, independent of trace inclusion and final task success. Save/commit performed effects promptly and reconcile uncertain outcomes before retry; reads/downloads create no actions.
+Meaningful external operations, including rejected attempts, additionally produce durable [action records](action-log.md) under `actions/<task-file-basename>/`, independent of trace inclusion and final task success. Save/commit performed effects promptly and reconcile uncertain outcomes before retry; pure reads/downloads create no actions, while state-changing reads do.
 
 ## Session context and changing instructions
 

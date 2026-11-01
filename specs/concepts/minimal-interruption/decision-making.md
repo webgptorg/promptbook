@@ -20,6 +20,6 @@ Long lack of useful progress must be diagnosed rather than hidden by a live proc
 
 ## Observe, audit and resume
 
-The operator can always voluntarily inspect work through the existing dashboard. Keep diagnostics and outcomes even when they cause no notification. Git records versioned changes; remote state changes not inherently represented by project files use the existing [Action log](../../cli/action-log.md), including publication of a helper application or an authorized infrastructure resize. Technical intent does not exempt an external effect from audit. Reconcile uncertain effects before retrying them.
+The operator can always voluntarily inspect work through the existing dashboard. Keep diagnostics and outcomes even when they cause no notification. Git records versioned changes; remote state changes not inherently represented by project files use the existing [External activity log](../../cli/action-log.md), including publication of a helper application or an authorized infrastructure resize. Technical intent does not exempt an external effect from audit. Reconcile uncertain effects before retrying them.
 
 Checkpoint the affected operation and resume the correct phase after repair or verified human action, without another generic Start/Retry prompt. Do not turn one waiting credential, task or domain into a global work stop. Actual host exhaustion, deliberate pause/stop and unsafe shared ownership retain their existing lifecycle rules.

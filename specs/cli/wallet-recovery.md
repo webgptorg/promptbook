@@ -10,7 +10,7 @@ If existing host-protected binding or another valid available key actually decry
 
 Generate fresh cryptographically random words with the existing derivation mechanism, derive a new root, and consistently re-encrypt all records/update metadata and the current-host wrapped envelope. Preserve origins, usernames, labels, passwords, additional login fields and any retained legacy TOTP data. Provision the new host unlock and display words only through protected owner input; unattended reboot still works and no plaintext phrase/key is stored.
 
-New words unlock the updated generation and old words do not. Historical ciphertext copies are not retroactively revoked; never promise otherwise. Interrupted/failed replacement leaves a coherent recoverable old or new generation, not mismatched ciphertext/keys. Repeated completion/audit retries never silently rotate again.
+New words unlock the updated generation and old words do not. Historical ciphertext copies are not retroactively revoked; never promise otherwise. Interrupted/failed replacement leaves a coherent recoverable old or new generation, not mismatched ciphertext/keys. Repeated completion never silently rotates again.
 
 ## Empty reset when every key is lost
 
@@ -24,6 +24,6 @@ Scope reset to Wallet/encryption state; preserve project Books/configuration, ot
 
 ## Persistence and acceptance
 
-Use the existing default-on disableable nonsecret Wallet audit for successful replacement/reset. Never commit ciphertext, keys, words, raw import exports or protected account data. A locked reset audit identifies the operation without reading old labels; audit retry repeats persistence only.
+Persist replacement/reset only in protected Wallet/encryption storage. Never create Git commits for these operations or commit ciphertext, keys, words, raw import exports or protected account data.
 
-Forget old words while host unlock works: replace words, preserve every record/factor, verify new versus old recovery on updated data and reboot unattended. Interrupt key/ciphertext/envelope writes without mixed generations/data loss. With all keys lost, decline reset unchanged, then explicitly confirm all-data loss and create an empty encrypted Wallet with fresh words. No plaintext index/decryption bypass appears; reimport selected Bitwarden entries once. Exercise stale/concurrent actions, pending-login reconciliation and failed writes/audits without secret exposure.
+Forget old words while host unlock works: replace words, preserve every record/factor, verify new versus old recovery on updated data and reboot unattended. Interrupt key/ciphertext/envelope writes without mixed generations/data loss. With all keys lost, decline reset unchanged, then explicitly confirm all-data loss and create an empty encrypted Wallet with fresh words. No plaintext index/decryption bypass appears; reimport selected Bitwarden entries once. Exercise stale/concurrent actions, pending-login reconciliation and failed writes without secret exposure.

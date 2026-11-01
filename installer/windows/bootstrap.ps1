@@ -5,12 +5,12 @@
 
 .DESCRIPTION
     A thin onboarding layer, not a second engine or initializer: project setup, tools, login, Git and the background
-    start all stay with `ptbk init`. Existing compatible prerequisites are reused; only missing ones are installed from
+    start all stay with `ptbk init`. Existing compatible prerequisites are reused; missing or incompatible Node.js is prepared privately from
     official distributions. Nothing is silently replaced or downgraded. Re-running is safe: satisfied steps are reused,
     a nonempty folder is never treated as a new empty project, and PATH entries are not duplicated.
 
     Exit codes: 0 handed off (or prepared with -NoLaunch); 2 CLI installed, project skipped; 3 a decision is needed
-    (incompatible prerequisite or a different installed ptbk version); 4 project folder problem; 5 download or
+    (a different installed ptbk version); 4 project folder problem; 5 download or
     installation failure; 6 terminal handoff failure.
 #>
 [CmdletBinding()]
@@ -132,17 +132,28 @@ function Get-VerifiedDownload([string] $Url, [string] $ExpectedSha256, [string] 
     return $target
 }
 
+# Keep existing Node installations intact; use a verified per-user runtime when needed.
 function Install-NodeFromNodejsOrg {
-    # The official Node.js 22 LTS MSI, verified against the release's SHASUMS256.txt.
     $base = 'https://nodejs.org/dist/latest-v22.x/'
     $sums = (Invoke-WebRequest -UseBasicParsing -Uri ($base + 'SHASUMS256.txt')).Content
-    $line = ($sums -split "`n") | Where-Object { $_ -match 'node-v22\.\d+\.\d+-x64\.msi$' } | Select-Object -First 1
-    if (-not $line) { throw 'The Node.js release index has no x64 MSI.' }
+    $line = ($sums -split "`n") | Where-Object { $_ -match 'node-v22\.\d+\.\d+-win-x64\.zip$' } | Select-Object -First 1
+    if (-not $line) { throw 'The Node.js release index has no Windows x64 archive.' }
     $parts = $line.Trim() -split '\s+'
-    $msi = Get-VerifiedDownload ($base + $parts[1]) $parts[0] $parts[1]
-    Write-Detail 'Installing Node.js (Windows asks for permission)...'
-    $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i', ('"{0}"' -f $msi), '/qn', '/norestart') -Verb RunAs -Wait -PassThru
-    if ($process.ExitCode -ne 0) { throw "The Node.js installer exited with $($process.ExitCode)." }
+    $archive = Get-VerifiedDownload ($base + $parts[1]) $parts[0] $parts[1]
+    $runtimeRoot = Join-Path $env:LOCALAPPDATA 'Promptbook\runtime'
+    New-Item -ItemType Directory -Force -Path $runtimeRoot | Out-Null
+    Expand-Archive -LiteralPath $archive -DestinationPath $runtimeRoot -Force
+    $runtime = Join-Path $runtimeRoot ([System.IO.Path]::GetFileNameWithoutExtension($parts[1]))
+    $env:Path = $runtime + ';' + $env:Path
+    Add-UserPath $runtime
+}
+
+# Persist each required command directory once, without replacing the user's other tools.
+function Add-UserPath([string] $Directory) {
+    $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+    if ($Directory -notin ($userPath -split ';')) {
+        [Environment]::SetEnvironmentVariable('Path', ($Directory + ';' + $userPath), 'User')
+    }
 }
 
 function Install-GitFromGitForWindows {
@@ -175,35 +186,23 @@ Write-Host "Promptbook $PromptbookVersion - preparing your computer" -Foreground
 Write-Host 'This installs what ptbk needs, then opens the setup assistant (ptbk init) in a terminal.'
 Write-Host ''
 
-# 1. Node.js and npm (reused when compatible; never a duplicate Node.js just to obtain npm).
+# 1. Reuse compatible Node and npm, otherwise prepare a private runtime.
 Write-Step 'Node.js and npm'
 Update-SessionPath
 $node = Get-Tool 'node' @('--version')
-if ($node -and $node.Usable -and -not (Test-NodeCompatible $node.Version)) {
-    Stop-Bootstrap 3 'Node.js' "Node.js $($node.Version) at $($node.Path) is installed, but ptbk needs ^22.13.0 or 24 and newer." 'Update Node.js yourself (https://nodejs.org) or remove it, then run this installer again. Your installation was not changed.'
-}
-if ($node -and -not $node.Usable) {
-    Stop-Bootstrap 3 'Node.js' "Node.js at $($node.Path) does not run." 'Repair or reinstall Node.js, then run this installer again. Nothing was changed.'
-}
-if (-not $node) {
-    if ($Plan) { Write-Detail 'PLAN: Node.js is missing and would be installed (winget OpenJS.NodeJS.LTS, else the verified nodejs.org MSI).' }
+$npm = Get-Tool 'npm.cmd' @('--version')
+if (-not $node -or -not $node.Usable -or -not (Test-NodeCompatible $node.Version) -or -not $npm -or -not $npm.Usable -or $npm.Version.Major -lt 10) {
+    if ($Plan) { Write-Detail 'PLAN: prepare a verified per-user Node.js 22 runtime including npm; existing Node.js stays unchanged.' }
     else {
-        try {
-            if (-not (Install-WithWinget 'OpenJS.NodeJS.LTS' 'Node.js LTS')) { Install-NodeFromNodejsOrg }
-        } catch { Stop-Bootstrap 5 'Node.js installation' $_.Exception.Message 'Check the network connection and click Retry (installed tools are reused).' }
-        Update-SessionPath
+        try { Install-NodeFromNodejsOrg } catch { Stop-Bootstrap 5 'Node.js installation' $_.Exception.Message 'Check the network connection and click Retry.' }
         $node = Get-Tool 'node' @('--version')
-        if (-not $node -or -not $node.Usable) { Stop-Bootstrap 5 'Node.js installation' 'Node.js is still not available after its installation.' 'Restart Windows if the Node.js installer asked for it, then click Retry.' }
+        $npm = Get-Tool 'npm.cmd' @('--version')
+        if (-not $node -or -not $node.Usable -or -not (Test-NodeCompatible $node.Version) -or -not $npm -or -not $npm.Usable -or $npm.Version.Major -lt 10) {
+            Stop-Bootstrap 5 'Node.js installation' 'The prepared Node.js and npm could not be verified.' 'Click Retry.'
+        }
     }
 }
 if ($node) { Write-Detail "Node.js $($node.Version) at $($node.Path)" }
-$npm = Get-Tool 'npm.cmd' @('--version')
-if ($node -and -not $npm) {
-    Stop-Bootstrap 3 'npm' "Node.js is installed at $($node.Path), but npm is missing from it." 'Reinstall Node.js including npm (https://nodejs.org), then run this installer again. Node.js was not changed.'
-}
-if ($npm -and $npm.Version.Major -lt 10) {
-    Stop-Bootstrap 3 'npm' "npm $($npm.Version) is older than the required npm 10." 'Update npm (npm install -g npm@latest) or Node.js, then run this installer again.'
-}
 if ($npm) { Write-Detail "npm $($npm.Version)" }
 
 # 2. Git (reused when present; the installer never configures a Git identity or requires a GitHub account).
@@ -250,6 +249,26 @@ if (-not $Plan) {
     $reported = (Invoke-Native { & $ptbk --version 2>$null } | Out-String)
     if ($reported -notmatch [regex]::Escape($PromptbookVersion)) { Stop-Bootstrap 5 'ptbk verification' "$ptbk reports '$($reported.Trim())' instead of $PromptbookVersion." 'Click Retry.' }
     Write-Detail "Verified $ptbk ($PromptbookVersion)"
+    Add-UserPath $prefix
+    $launcher = Join-Path $script:LogDirectory 'launch.ps1'
+    $launchLines = @(
+        ('$env:Path = ' + (ConvertTo-PowerShellLiteral ((Split-Path $node.Path) + ';' + $prefix + ';')) + ' + $env:Path'),
+        'Set-Location -LiteralPath $env:USERPROFILE',
+        ('& ' + (ConvertTo-PowerShellLiteral $ptbk))
+    )
+    Set-Content -LiteralPath $launcher -Value $launchLines -Encoding UTF8
+    $shell = New-Object -ComObject WScript.Shell
+    $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'Promptbook'
+    New-Item -ItemType Directory -Force -Path $menu | Out-Null
+    foreach ($name in @('Promptbook', 'ptbk')) {
+        $shortcut = $shell.CreateShortcut((Join-Path $menu ($name + '.lnk')))
+        $shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $shortcut.Arguments = '-NoExit -NoProfile -ExecutionPolicy Bypass -File "' + $launcher + '"'
+        $shortcut.WorkingDirectory = $env:USERPROFILE
+        $shortcut.IconLocation = (Join-Path $script:LogDirectory 'promptbook.ico')
+        $shortcut.Save()
+    }
+
 }
 
 # 4. The projects folder: an ordinary container, never a project or Git repository itself.

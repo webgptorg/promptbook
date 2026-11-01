@@ -1,10 +1,10 @@
 import { commitmentKeywords, matchCommitmentKeyword } from '../../../src/book/commitments.js';
 import { modelOfDocument } from '../../../src/book/model.js';
 import { fenceMarker, parseBook } from '../../../src/book/parse.js';
-import { findAgentReferences } from '../../../src/book/references.js';
+import { highlightBook as engineHighlightBook } from '../../../src/book/highlight.js';
+import { findAgentReferences, normalizeAgentName, type AgentReference } from '../../../src/book/references.js';
 
 export { commitmentKeywords, matchCommitmentKeyword, parseBook };
-export { highlightBook } from '../../../src/book/highlight.js';
 
 /** Analyze editor text with the same syntax and MODEL checks as the engine, without executing anything. */
 export function analyze(source: string) {
@@ -57,4 +57,50 @@ export function referencesIn(source: string) {
         return match ? ' '.repeat(match.written.length) + line.slice(match.written.length) : line;
     });
     return findAgentReferences(masked.join('\n'));
+}
+
+/** The declared entity name, with offsets in the original editor text (including a possible BOM and CRLF). */
+export function declarationIn(source: string): AgentReference | undefined {
+    const document = parseBook(source);
+    if (!['agent', 'task', 'chat'].includes(document.kind) || !document.name) return;
+    const lines = source.split('\n');
+    const line = lines[document.headerLine]!;
+    const opening = matchCommitmentKeyword(line.replace(/^\uFEFF/, ''))!;
+    const start = line.indexOf(document.name, opening.written.length);
+    const index = lines.slice(0, document.headerLine).reduce((length, text) => length + text.length + 1, 0) + start;
+    return { raw: document.name, name: document.name, normalized: normalizeAgentName(document.name), index };
+}
+
+/** The complete reference under the cursor; punctuation, code and escaped text never become navigation links. */
+export function referenceAt(source: string, offset: number): AgentReference | undefined {
+    return referencesIn(source).find((item) => offset >= item.index && offset < item.index + item.raw.length);
+}
+
+/** All uses of the selected name in this document, regardless of @/brace spelling, plus its local declaration. */
+export function referenceHighlights(source: string, offset: number) {
+    const references = referencesIn(source);
+    const declaration = declarationIn(source);
+    const selected = [...references, ...(declaration ? [declaration] : [])]
+        .find((item) => offset >= item.index && offset < item.index + item.raw.length);
+    if (!selected) return [];
+    return [
+        ...references.filter((item) => item.normalized === selected.normalized).map((item) => ({ ...item, declaration: false })),
+        ...(declaration?.normalized === selected.normalized ? [{ ...declaration, declaration: true }] : []),
+    ].sort((a, b) => a.index - b.index);
+}
+
+/** Shared engine token ranges with the exact reference ranges used by navigation and occurrence highlighting. */
+export function highlightBook(source: string) {
+    const spans = engineHighlightBook(source).filter((span) => span.kind !== 'reference')
+        .map((span) => source.startsWith('\uFEFF') && span.line === 0
+            ? { ...span, start: span.start + 1, end: span.end + 1 } : span);
+    const starts = [0];
+    for (let index = 0; index < source.length; index++) if (source[index] === '\n') starts.push(index + 1);
+    let line = 0;
+    for (const reference of referencesIn(source)) {
+        while (line + 1 < starts.length && starts[line + 1]! <= reference.index) line++;
+        const start = reference.index - starts[line]!;
+        spans.push({ line, start, end: start + reference.raw.length, kind: 'reference' });
+    }
+    return spans.sort((a, b) => a.line - b.line || a.start - b.start);
 }
