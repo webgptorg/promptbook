@@ -37,3 +37,7 @@ CHAT MESSAGE @Teacher 2026-10-26T23:50:57+01:00
 Completed {Retry learning from Project health check — 2026-10-26 22:46:04}: Added the verified health-check lesson to Fixer and recorded it in the changelog.
 Result commit 6f834e80.
 
+CHAT MESSAGE @Teacher 2026-11-01T02:50:22+01:00
+No reply is needed anymore: Promptbook rechecks {Learn from: Project health check — 2026-10-23 19:08:09 — 2026-10-23 19:26:49} automatically (scheduled after the failure). `ptbk recover` can still acknowledge the failure.
+
+CHAT STATUS resolved
