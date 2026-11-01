@@ -20,7 +20,7 @@ Adapters must distinguish a received control input from a processed one under [t
 
 ## Common view and actual native client
 
-The **Harnesses** home tile and page replace the former **Current work** tile/log and its execution detail. They show all open sessions, including idle ones, and access to retained ended-session evidence. Agents, Chats, Tasks, Tools, System operational log and the external Action log remain distinct views. The common selected-session detail always exists, even if native attachment is unavailable.
+The **Harnesses** home tile and page replace the former **Current work** tile/log and its execution detail. They show all open sessions, including idle ones, and access to retained ended-session evidence. Agents, Chats, Tasks, Tools, System operational log and the External activity log remain distinct views. The common selected-session detail always exists, even if native attachment is unavailable.
 
 Show the responsible agent, task/chat links, observed state and freshness, tool/harness/account labels, actual model/effort, current phase/wait, available output and statistics, control mode and outstanding instruction receipts. Usage follows [usage](usage.md): unsupported/unknown is not zero, cumulative data is not counted twice and shared-account sessions do not receive independent quotas. Do not invent progress, hidden reasoning or a universal context/cost statistic.
 

@@ -10,7 +10,7 @@ This is a foundational product principle across agents, chats, tasks, Wallet, He
 
 Treat the operator like the head of a company: they set strategy, goals and limits, retain the final say and can inspect or change work whenever they choose. Staff resolve routine execution details. Before interrupting, consider whether a competent subordinate would interrupt the head's important meeting for this particular missing decision or action. Installing an ordinary dependency or reading an accessible verification email normally does not justify that interruption.
 
-The dashboard, project Books, Git history and Action log already provide inspection and control. Recording progress and making it available for voluntary inspection is different from actively demanding attention. This principle strengthens that distinction; it does not introduce a replacement dashboard, remove visibility or transfer final authority away from the operator.
+The dashboard, project Books, Git history and External activity log already provide inspection and control. Recording progress and making it available for voluntary inspection is different from actively demanding attention. This principle strengthens that distinction; it does not introduce a replacement dashboard, remove visibility or transfer final authority away from the operator.
 
 ## Reading and applying the principle
 

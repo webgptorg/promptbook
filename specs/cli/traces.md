@@ -38,7 +38,7 @@ Local `.ptbk/` holds live ownership/recovery, read markers and system diagnostic
 
 Redact before storing/displaying. Never version browser profiles/credentials; warn that permitted project/page content may still be sensitive. Retention/truncation is visible and protects pending-work evidence before optional capture.
 
-The independent [action log](action-log.md) uses this exact source-basename mapping under `actions/`, with one Markdown record per external mutation. Its audit is versioned even with ignored traces and survives later task failure. Traces may link it but are not its sole durable replacement. Reads/downloads remain ordinary evidence.
+The independent [external activity log](action-log.md) uses this exact source-basename mapping under `actions/`, with one Markdown record per logical external action, including meaningful failed attempts. Its audit is versioned even with ignored traces and survives later task failure. Traces may link it but are not its sole durable replacement. Pure reads/downloads remain ordinary evidence; reading that changes external state, such as marking an email read, is a logged action.
 
 ## Acceptance outcomes
 

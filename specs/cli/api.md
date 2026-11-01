@@ -28,7 +28,7 @@ Credential references are readable, actual credentials are not. Where adding a s
 
 Expose the shared saved [brief](project-report.md), original time and actual availability/persistence/generation state, without calling Chatter on read. Explicit Refresh coalesces scheduled work subject to task pause and actual resource availability. Discuss creates a new normal chat seeded with the displayed snapshot/provenance and ordinary first-User-message MODEL routing.
 
-Expose bounded read-only Action log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport.
+Expose bounded read-only External activity log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport.
 
 ## Wallet and encryption boundary
 
@@ -71,3 +71,5 @@ Protected local owner flows share [credential import](wallet-import.md) and [wor
 Expose the shared [session inventory/detail](harness-sessions.md), including idle sessions, technical identity, actual agent/task/chat/occurrence context, capabilities, model/account/billing labels, usage freshness, control leases and native-attachment availability. Entry uses the same decline-default watch/control choices and explicit shared-control warning as the dashboard; API transport cannot bypass read-only/exclusive gates or stale-state checks. Detach and termination are separate outcomes.
 
 Expose accepted task changes/reopening/cancellation/retirement and durable per-session Saved/Delivered/Applied receipts through shared [task-control](task-control.md) operations. Reads never issue steering or invitations. Pause blocks task continuation including queued steering, while chat remains available; only supported interrupt/cancel reconciliation may occur without task execution. No per-agent/task/session lifecycle toggle is added by these operations.
+
+The External activity log API shares the [view contract](action-log-ui.md): default/ungrouped/task/agent grouping, explicit batch membership, outcome filtering, post-aggregation impact cutoff and time/impact/smart sorting. Return bounded members, complete/incomplete known subtotals and actual methodology evidence. Inspection uses derived caches and never calls a model or mutates actions.

@@ -12,6 +12,6 @@
 | Disk is low and owned disposable cache can be reclaimed | Use the shared Health remediation, preserve credentials/sessions/recovery data and verify capacity. Show progress in the dashboard without attention merely because automatic remediation is running. |
 | Disk is exhausted, no safe cleanup remains and provider administration is unavailable | Apply the genuine health/lifecycle limit and request the needed capacity/host action. Explain impact and what autonomous remedies were exhausted. |
 | A cable is physically disconnected with no usable alternative | Keep appropriate local supervision and request physical help through an available channel; do not claim a disconnected host delivered a remote notification. |
-| Infrastructure can be resized under existing authority | Perform the authorized change, record its external effect in Action log and verify the actual resulting capacity. Otherwise request the missing decision/access rather than assume spending authority. |
+| Infrastructure can be resized under existing authority | Perform the authorized change, record its external effect in External activity log and verify the actual resulting capacity. Otherwise request the missing decision/access rather than assume spending authority. |
 
 Apply these examples with project context. Building a parser/server may instead be content work in a software-product project. A month-long agenda should retain evidence of useful work and recovery, not silently stop after one day on a problem it could have solved by another method.
