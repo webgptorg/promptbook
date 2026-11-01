@@ -39,6 +39,7 @@ New engine template:
 
 Reference: @Expert knows the current Book syntax.
 TASK AGENT @Fixer
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK PURPOSE SYSTEM
 TASK ORIGIN maintenance: core agent template update
 LINK @Fixer
