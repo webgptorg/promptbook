@@ -1,3 +1,4 @@
+import { parseActionViewQuery } from '../engine/action-impact.js';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { highlightBook } from '../book/highlight.js';
 import { parseUsageRequest } from '../engine/usage.js';
@@ -284,6 +285,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         if (url.pathname === '/api/actions' && method === 'GET') {
             // Saved external-action records (read-only: never a retry, provider call or commit).
             sendJson(response, 200, await agenda.actions.refresh());
+            return;
+        }
+        if (url.pathname === '/api/actions/view' && method === 'GET') {
+            // One level of the External activity log, from saved records and derived caches only.
+            sendJson(response, 200, await agenda.actions.activity(parseActionViewQuery((name) => url.searchParams.get(name) ?? undefined)));
             return;
         }
         if (url.pathname === '/api/actions/record' && method === 'GET') {

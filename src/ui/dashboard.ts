@@ -1,3 +1,6 @@
+import type { ActionView } from '../engine/action-impact.js';
+import type { ActionSummary } from '../engine/action-log.js';
+import { traceBasenameOf } from '../tasks/identity.js';
 import { spawn } from 'node:child_process';
 import type { SessionClientLaunch, SessionEntryView } from '../harness/sessions.js';
 import { errorMessage } from '../common/errors.js';
@@ -30,6 +33,12 @@ import {
     type PageContext,
     USAGE_PAGE_GROUPINGS,
     lastUsageView,
+    ACTION_GROUPINGS,
+    ACTION_SORTS,
+    actionsPage,
+    lastActionView,
+    nextActionChoice,
+    nextActionOutcome,
     type CommitDetailView,
 } from './dashboard-pages.js';
 import type { HistoryView } from '../project/history.js';
@@ -199,6 +208,16 @@ const SESSION_RENEW_MS = 10_000;
 const FEEDBACK_MS = 6000;
 
 /**
+ * Rows of the External activity log asked for at a time.
+ */
+const ACTION_VIEW_STEP = 200;
+
+/**
+ * Rows left below the selection when the log asks for its next rows.
+ */
+const ACTION_VIEW_MARGIN = 20;
+
+/**
  * How long an observed service exit or lost connection stays visible before the viewer closes.
  */
 const ENDED_VISIBLE_MS = 1500;
@@ -306,7 +325,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 'T tools',
                 'W wallet',
                 'M usage',
-                'K actions',
+                'K activity',
                 'V history',
                 'D files',
                 'J report…',
@@ -547,6 +566,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         // History and Files read on opening (the History tile's latest commit tells when to reread).
         if (page.kind === 'history' && !page.view) void loadHistory(page);
         if (page.kind === 'usage') loadUsage(page);
+        if (page.kind === 'actions') loadActionView(page);
         if (page.kind === 'files' && !page.view && page.path === '') {
             void source.inspect('files-list', { path: '' }).then(
                 (value) => {
@@ -601,6 +621,35 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         );
     };
 
+    /**
+     * Loads one level of the External activity log (read-only, from saved records and derived caches). A reload keeps at
+     * least the rows already shown, so an arrival does not move the viewer; `more` appends the next rows.
+     */
+    const loadActionView = (page: Extract<DashboardPage, { kind: 'actions' }>, more = false): void => {
+        const shown = page.view?.rows.length ?? 0;
+        if (more && page.loadingMore) return;
+        if (more) page.loadingMore = true;
+        else page.seen = snapshot?.actions?.revision;
+        const request = (page.request = (page.request ?? 0) + 1);
+        const query = { grouping: page.grouping, sort: page.sort, showAll: page.showAll, ...(page.outcome ? { outcome: page.outcome } : {}), ...(page.agent ? { agent: page.agent } : {}), ...(page.task ? { task: page.task } : {}), ...(page.batch ? { batch: page.batch } : {}), offset: more ? shown : 0, limit: more ? ACTION_VIEW_STEP : Math.max(ACTION_VIEW_STEP, shown) };
+        void source.inspect('action-view', query).then(
+            (value) => {
+                if (request !== page.request) return;
+                const view = value as ActionView;
+                page.view = more && page.view ? { ...view, rows: [...page.view.rows, ...view.rows] } : view;
+                page.problem = undefined;
+                page.loadingMore = false;
+                draw();
+            },
+            (error: unknown) => {
+                if (request !== page.request) return;
+                page.problem = errorMessage(error);
+                page.loadingMore = false;
+                draw();
+            },
+        );
+    };
+
     /** Opens one saved external-action record as a nested page (read-only; loaded from the engine's shared reader). */
     const openActionRecord = (path: string): void => {
         const page: Extract<DashboardPage, { kind: 'action' }> = { kind: 'action', scroll: 0, path };
@@ -608,6 +657,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         void source.inspect('action-read', { path }).then(
             (record) => {
                 page.content = (record as { content: string }).content;
+                page.summary = (record as { summary?: ActionSummary }).summary;
                 page.links = (record as { links?: ActionLinks }).links;
                 draw();
             },
@@ -1114,6 +1164,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             if (list && 'focus' in page && (event.name === 'up' || event.name === 'down')) {
                 if (count) page.focus = (page.focus + (event.name === 'up' ? -1 : 1) + count) % count;
                 page.selected = keys[page.focus];
+                // A long group stays bounded per response, and all its members stay reachable.
+                if (page.kind === 'actions' && page.view && page.view.rows.length < page.view.totalRows && page.focus >= page.view.rows.length - ACTION_VIEW_MARGIN) loadActionView(page, true);
             } else if (event.name === 'up' || event.name === 'down' || event.name === 'pageup' || event.name === 'pagedown') {
                 const step = event.name === 'pageup' || event.name === 'pagedown' ? room : 1;
                 page.scroll = Math.max(0, page.scroll + (event.name === 'up' || event.name === 'pageup' ? -step : step));
@@ -1132,8 +1184,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     return;
                 }
                 if (page.kind === 'actions') {
-                    const item = snapshot.actions?.recent[page.focus];
-                    if (item) openActionRecord(item.path);
+                    const row = page.view?.rows[page.focus];
+                    if (row?.action) openActionRecord(row.action.path);
+                    else if (row) openPage(actionsPage({ ...(row.agent ?? page.agent ? { agent: row.agent ?? page.agent } : {}), ...(row.task ?? page.task ? { task: row.task ?? page.task } : {}), ...(row.batch ? { batch: row.batch } : {}) }, page));
                     return;
                 }
                 if (page.kind === 'history') {
@@ -1249,10 +1302,27 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 else if (key === 'c' && chat) void (chat.name === 'Report' ? openBook({ path: 'report.book' }, { readOnly: true }) : openChat({ kind: 'existing', name: chat.name }));
                 return;
             }
+            case 'actions': {
+                const top = page.agent === undefined && page.task === undefined && page.batch === undefined;
+                // Viewer-local presentation choices, remembered for the next visit in this dashboard; a changed view
+                // has different rows, while the same rows keep their selection.
+                if (key === 'g' && top) Object.assign(page, { grouping: nextActionChoice(ACTION_GROUPINGS, page.grouping), focus: 0, selected: undefined, scroll: 0, view: undefined });
+                else if (key === 's') page.sort = nextActionChoice(ACTION_SORTS, page.sort);
+                else if (key === 'a' && top) page.showAll = !page.showAll;
+                else if (key === 'f') page.outcome = nextActionOutcome(page.outcome);
+                else if (key === 'x' && page.outcome) page.outcome = undefined;
+                else return;
+                Object.assign(lastActionView, { grouping: top ? page.grouping : lastActionView.grouping, sort: page.sort, showAll: top ? page.showAll : lastActionView.showAll, outcome: page.outcome });
+                loadActionView(page);
+                draw();
+                return;
+            }
             case 'action': {
-                // Verified links of the record (its task Book, its evidence in Files); viewing never retries the action.
+                // Verified links of the record (its task Book, its evidence in Files, its session); viewing never retries the action.
                 const evidence = page.links?.evidence;
-                if (key === 'e' && page.links?.task) void openBook({ path: page.links.task });
+                const harness = page.links?.harness;
+                if (key === 'h' && harness) openPage({ kind: 'harnesses', scroll: 0, focus: 0, selected: harness, detail: true, ended: Boolean(snapshot.harnessSessions?.ended.some((session) => session.handle === harness)) });
+                else if (key === 'e' && page.links?.task) void openBook({ path: page.links.task });
                 else if (key === 't' && evidence) openInspected<Extract<DashboardPage, { kind: 'files' }>>({ kind: 'files', scroll: 0, focus: 0, path: evidence }, 'files-list', { path: evidence }, (target, value) => (target.view = value as FolderView));
                 return;
             }
@@ -1287,6 +1357,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 else if (key === 't') void chatWith('Tasker');
                 // Only a task with a project source has a Book to edit (an engine-owned task has none).
                 else if (key === 'e' && task?.source) void openBook({ path: task.source });
+                else if (key === 'o' && task?.source && task.kind !== 'engine' && traceBasenameOf(task.source)) {
+                    openPage(actionsPage({ task: traceBasenameOf(task.source)! }, { grouping: 'task', sort: lastActionView.sort, showAll: lastActionView.showAll }));
+                    return;
+                }
                 // One question, one answer: the task's pending question opens in its chat.
                 else if (key === 'a' && task?.waitingChat) {
                     void openChat({ kind: 'existing', name: task.waitingChat });
@@ -1588,6 +1662,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 // A new commit rereads an open History page (its selection stays on the same commit).
                 const history = pages.find((page): page is Extract<DashboardPage, { kind: 'history' }> => page.kind === 'history');
                 if (history && snapshot.history?.last.sha && snapshot.history.last.sha !== historySeen) void loadHistory(history);
+                // Arrivals reread the open External activity log levels (grouping, filter, order and selection stay).
+                for (const page of pages) if (page.kind === 'actions' && snapshot.actions?.revision !== undefined && page.seen !== snapshot.actions.revision) loadActionView(page);
                 if (['stopped', 'finished'].includes(snapshot.service.state)) {
                     // The engine ended (observed): show it briefly, never start a replacement.
                     await new Promise((resolve) => setTimeout(resolve, ENDED_VISIBLE_MS));

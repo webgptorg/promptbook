@@ -84,6 +84,8 @@ export type ActionTotals = {
     readonly unfiltered: number;
     /** A filter selected only some members, so these figures describe that subset. */
     readonly filtered: boolean;
+    /** The impact in words for every client; rounding happens only here. */
+    readonly display: string;
 };
 
 /**
@@ -113,7 +115,9 @@ export function actionTotals(actions: readonly ActionSummary[], nowMs: number, u
     const impact = aggregateImpact(impacts);
     const priority = aggregateImpact(priorities);
     const unknown = actions.length - impacts.length;
-    return { count: actions.length, known: impacts.length, unknown, ...(impact === undefined ? {} : { impact }), incomplete: unknown > 0, ...(priority === undefined ? {} : { priority }), ...(latestAt ? { latestAt } : {}), outcomes, unfiltered, filtered: actions.length < unfiltered };
+    const filtered = actions.length < unfiltered;
+    const incomplete = unknown > 0;
+    return { count: actions.length, known: impacts.length, unknown, ...(impact === undefined ? {} : { impact }), incomplete, ...(priority === undefined ? {} : { priority }), ...(latestAt ? { latestAt } : {}), outcomes, unfiltered, filtered, display: formatImpact({ ...(impact === undefined ? {} : { impact }), unknown, incomplete, filtered }) };
 }
 
 /**

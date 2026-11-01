@@ -1,5 +1,16 @@
 # Unreleased
 
+## External activity log: find what mattered in a long history
+
+-   The Action log tile and page are now the **External activity log**, in the terminal and the browser.
+-   It opens on the actions that matter most: a smart order that weighs impact against age, losing one impact point per 30 days. You can also sort by time or by impact, and saved impact itself never decays.
+-   Choose the default view with collapsed batches, a fully ungrouped list, or summaries by task or by agent, and press Enter to go down a level. A task under an agent lists only that agent's actions, each action is counted once, and operations without a task stay in their own branch.
+-   A 1,000-email campaign appears as one row with its aggregate impact and its counts of each outcome, never a claim that everything succeeded. Opening it shows every separate record.
+-   Rows below impact 1 are hidden after aggregation, so ten impact-0 actions still form a visible impact-1 group. **Show all** removes the cutoff in any view, and actions with unknown impact stay visible in their own labelled place, with no invented number.
+-   Filter by outcome to get a subtotal labelled as filtered. Back or Escape returns one level with your selection kept, and arrivals do not move you.
+-   A record's detail shows what was done, the reason for its estimate, the methodology evidence, its attempts and verified links to the task, evidence, harness session and receipt. You can also reach a task's activity from the task itself (`O` in the terminal, **External activity** in the browser).
+-   Clients read `GET /api/actions/view` with `grouping`, `sort`, `showAll`, `outcome`, `agent`, `task`, `batch`, `offset` and `limit`. Viewing only reads saved records and a rebuildable cache: it never retries anything, calls a model or commits.
+
 ## External actions: impact, failed attempts and bulk operations
 
 -   Each external action now carries the executing agent's own impact estimate and short reason: the consequence if it succeeds, whatever its outcome, as a number on a decimal logarithmic scale that can be fractional or above 6. "Unknown" is a separate answer, never treated as 0, and records from before this release stay unknown without being rescored.

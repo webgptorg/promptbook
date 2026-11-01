@@ -31,7 +31,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
     tools: 'Tools',
     wallet: 'Wallet',
     usage: 'Usage',
-    actions: 'Action log',
+    actions: 'External activity log',
     history: 'History',
     files: 'Files',
     connection: 'Connection',
@@ -190,8 +190,9 @@ export function billingMix(totals: UsageTotals): string {
  * @private terminal dashboard home
  */
 export function outcomeText(outcome: string, style: TerminalProfile['style']): string {
-    if (outcome === 'confirmed') return style.success('confirmed');
-    if (outcome === 'partial' || outcome === 'uncertain') return style.warning(outcome);
+    if (outcome === 'success') return style.success(outcome);
+    if (outcome === 'failed') return style.error(outcome);
+    if (outcome === 'partial' || outcome === 'uncertain' || outcome === 'pending') return style.warning(outcome);
     if (outcome === 'not-performed') return style.muted('not performed');
     return style.muted(outcome);
 }

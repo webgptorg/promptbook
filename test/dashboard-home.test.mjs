@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import { buildActionView } from '../dist/engine/action-impact.js';
 import { test } from 'node:test';
 import { headerRows, homeLayout, homeTiles, renderHome, renderPage, tileAttention, tileLines } from '../dist/ui/dashboard-home.js';
 import { renderStatusPretty, renderStatusRaw } from '../dist/ui/status-view.js';
-import { keepSelection, pageBody, pageForTile } from '../dist/ui/dashboard-pages.js';
+import { keepSelection, pageBody, pageForTile, pageItemKeys } from '../dist/ui/dashboard-pages.js';
 import { stringWidth, stripAnsi } from '../dist/ui/ansi.js';
 import { createTerminalProfile } from '../dist/ui/terminal.js';
 
@@ -273,23 +274,54 @@ test('Usage tile and page: a seven-day summary with grouping-specific labels, vi
     assert.doesNotMatch(byHarness, /^[❯> ] Developer/m);
 });
 
-test('Action log tile and page: saved external actions with explicit partial/uncertain outcomes and pending persistence', () => {
+test('External activity log tile and page: saved external actions with explicit partial/uncertain outcomes and pending persistence', () => {
     // Today's time keeps the short clock form, so the tile layout does not depend on the date the suite runs.
     const at = new Date().toISOString();
-    const record = (change) => ({ path: 'actions/2026-10-29-news/2026-10-29-1015-send-email-gmail.md', task: '2026-10-29-news', taskName: 'Weekly news', source: 'tasks/2026-10-29-news.book', operation: 'Send email', service: 'Gmail', target: 'reader@example.test', outcome: 'confirmed', at, agent: '@Developer', ...change });
-    const actions = { total: 2, recent: [record({ path: 'actions/2026-10-29-news/b.md', operation: 'Publish post', service: 'LinkedIn', outcome: 'uncertain', pending: true }), record({})], pending: 1, unresolved: 0 };
+    const record = (change) => ({ path: 'actions/2026-10-29-news/2026-10-29-1015-send-email-gmail.md', task: '2026-10-29-news', taskName: 'Weekly news', source: 'tasks/2026-10-29-news.book', operation: 'Send email', service: 'Gmail', target: 'reader@example.test', outcome: 'success', at, agent: '@Developer', impact: 2, ...change });
+    const records = [record({ path: 'actions/2026-10-29-news/b.md', operation: 'Publish post', service: 'LinkedIn', outcome: 'uncertain', pending: true, impact: 3.5, attempts: 2 }), record({})];
+    const actions = { total: 2, recent: records, pending: 1, unresolved: 0, revision: 7 };
     const view = terminal(120, 40);
     const tile = renderHome(snapshot({ actions }), view, { focus: 'actions', attention: new Map(), frame: 0, legend: '' }).map(stripAnsi).join('\n');
-    assert.match(tile, /Action log/);
+    assert.match(tile, /External activity log/);
     assert.match(tile, /2 external actions recorded/);
     assert.match(tile, /uncertain Publish post/, 'the outcome comes first and stays visible');
     assert.match(tile, /1 not committed yet/);
-    const page = pageBody(pageForTile('actions'), { snapshot: snapshot({ actions }), terminal: view, frame: 0, owning: false });
+    const open = (query = {}, source = records) => pageBody({ ...pageForTile('actions'), ...query, view: buildActionView(source, query) }, { snapshot: snapshot({ actions }), terminal: view, frame: 0, owning: false });
+    const page = open();
     const body = page.body.map(stripAnsi).join('\n');
-    assert.match(page.context, /2 external actions · saved Markdown records in actions\/, independent of traces · 1 not committed/);
-    assert.match(body, /Publish post · LinkedIn → reader@example\.test uncertain · not committed · @Developer · Weekly news/);
-    assert.match(body, /Send email · Gmail → reader@example\.test confirmed/);
-    const empty = pageBody(pageForTile('actions'), { snapshot: snapshot({ actions: { total: 0, recent: [], pending: 0, unresolved: 0 } }), terminal: view, frame: 0, owning: false }).body.map(stripAnsi).join('\n');
+    assert.equal(page.title, 'External activity log');
+    assert.match(page.context, /View default \(batches collapsed\) · order smart \(impact and age\) · impact ≥ 1 · 2 actions, impact 3\.51 · 1 not committed/);
+    assert.match(body, /impact 3\.5 Publish post · LinkedIn → reader@example\.test uncertain · 2 attempts · not committed · @Developer · Weekly news/);
+    assert.match(body, /impact 2 Send email · Gmail → reader@example\.test success/);
+    assert.match(page.legend, /G view · S order · A show all · F outcome/);
+    assert.deepEqual(pageItemKeys({ ...pageForTile('actions'), view: buildActionView(records, {}) }, {}), [`action:${records[0].path}`, `action:${records[1].path}`]);
+
+    // A batch is one row whose counts never claim all members succeeded; Enter shows all its separate records.
+    const emails = Array.from({ length: 1000 }, (_, index) => record({ path: `actions/2026-10-29-news/${index}.md`, target: `reader${index}@example.test`, group: 'autumn', impact: 1, outcome: index < 3 ? 'failed' : 'success' }));
+    const batch = open({}, emails);
+    assert.equal(batch.body.length, 1);
+    assert.match(stripAnsi(batch.body[0]), /latest .* impact 4 Batch autumn 1000 actions 3 failed, 997 success/);
+    const members = open({ batch: 'autumn', limit: 5000 }, emails);
+    assert.equal(members.title, 'External activity log › Batch autumn');
+    assert.equal(members.body.length, 1000);
+    assert.doesNotMatch(members.legend, /G view|show all/, 'the view and cutoff belong to the top level; opening a group shows every member');
+    const bounded = open({ batch: 'autumn' }, emails);
+    assert.match(stripAnsi(bounded.body.at(-1)), /… 800 more load as you move down/);
+
+    // Unknown has a labelled position, and the cutoff says what it hides.
+    const mixed = [record({ path: 'actions/a/1.md', impact: 0 }), record({ path: 'actions/a/2.md', impact: undefined }), record({ path: 'actions/a/3.md', impact: 4 })];
+    const unknown = open({}, mixed);
+    assert.deepEqual(unknown.body.map(stripAnsi).filter(Boolean).map((line) => /impact \S+|Unknown impact/.exec(line)[0]), ['impact 4', 'Unknown impact', 'impact unknown']);
+    assert.match(unknown.context, /impact ≥ 1 \(1 below\)/);
+    assert.match(open({ grouping: 'ungrouped' }, [record({ impact: 0 })]).body.map(stripAnsi).join(), /1 row is below impact 1; A shows all/);
+    assert.match(stripAnsi(open({ outcome: 'failed' }, [record({ path: 'actions/a/1.md', group: 'g', impact: 1 }), record({ path: 'actions/a/2.md', group: 'g', impact: 1, outcome: 'failed' })]).body[0]), /1 of 2 actions 1 failed/);
+    assert.match(open({ outcome: 'failed' }, [record({ impact: 2 })]).body.map(stripAnsi).join(), /No action has the outcome failed; X clears the filter/);
+    assert.match(open({ outcome: 'failed' }, [record({ path: 'actions/a/1.md', outcome: 'failed' }), record({ path: 'actions/a/2.md' })]).context, /only failed · 1 of 2 actions, impact 2 filtered/);
+
+    // Not loaded yet, or refused: the page says so.
+    assert.match(pageBody(pageForTile('actions'), { snapshot: snapshot({ actions }), terminal: view, frame: 0, owning: false }).body.map(stripAnsi).join(), /Loading/);
+    assert.match(pageBody({ ...pageForTile('actions'), problem: 'refused' }, { snapshot: snapshot({ actions }), terminal: view, frame: 0, owning: false }).body.map(stripAnsi).join(), /could not be read: refused/);
+    const empty = open({}, []).body.map(stripAnsi).join('\n');
     assert.match(empty, /earlier tasks may have external work without a record/, 'empty prospective history is not a claim that nothing happened');
     // An opened record offers only its verified links: the task Book and evidence, and the receipt in its context.
     const opened = (links) => pageBody({ kind: 'action', scroll: 0, path: record({}).path, content: '# Send email', links }, { snapshot: snapshot({ actions }), terminal: view, frame: 0, owning: false });
@@ -297,7 +329,8 @@ test('Action log tile and page: saved external actions with explicit partial/unc
     assert.match(linked.legend, /E open the task Book · T open the evidence/);
     assert.match(linked.context, /receipt https:\/\/mail\.example\.test\/sent\/42/);
     const unverified = opened({});
-    assert.doesNotMatch(unverified.legend, /task Book|evidence/, 'a task or evidence no longer in the project is not offered');
+    assert.doesNotMatch(unverified.legend, /task Book|evidence|harness/, 'a task, evidence or session no longer known is not offered');
+    assert.match(opened({ harness: 'codex/abc' }).legend, /H open the harness session/);
     assert.doesNotMatch(unverified.context, /receipt/);
 });
 

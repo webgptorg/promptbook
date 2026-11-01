@@ -28,7 +28,8 @@ import { canShowImage, imageSequence, type ImageOverlay } from './terminal-image
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { HistoryDetail, HistoryView } from '../project/history.js';
-import type { ActionLinks } from '../engine/action-log.js';
+import { ACTION_GROUPINGS, ACTION_SORTS, type ActionGrouping, type ActionRow, type ActionSort, type ActionView } from '../engine/action-impact.js';
+import type { ActionLinks, ActionSummary } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 
 /**
@@ -142,8 +143,28 @@ export type DashboardPage =
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean; showSupporting: boolean }
     | { readonly kind: 'usage'; scroll: number; focus: number; selected?: string; grouping: UsagePageGrouping; inclusive: boolean; filter: UsageFilter; view?: UsageSummary; problem?: string }
-    | { readonly kind: 'actions'; scroll: number; focus: number; selected?: string }
-    | { readonly kind: 'action'; scroll: number; readonly path: string; content?: string; links?: ActionLinks; problem?: string }
+    | {
+          readonly kind: 'actions';
+          scroll: number;
+          focus: number;
+          selected?: string;
+          grouping: ActionGrouping;
+          sort: ActionSort;
+          showAll: boolean;
+          outcome?: string;
+          /** The drilled-down position of this level. */
+          readonly agent?: string;
+          readonly task?: string;
+          readonly batch?: string;
+          view?: ActionView;
+          problem?: string;
+          /** The snapshot revision this level last asked for (a change reloads it). */
+          seen?: number;
+          /** The latest load, so an answer that arrives late never replaces a newer one. */
+          request?: number;
+          loadingMore?: boolean;
+      }
+    | { readonly kind: 'action'; scroll: number; readonly path: string; summary?: ActionSummary; content?: string; links?: ActionLinks; problem?: string }
     | { readonly kind: 'history'; scroll: number; focus: number; selected?: string; view?: HistoryView; problem?: string }
     | { readonly kind: 'commit'; scroll: number; readonly sha: string; detail?: CommitDetailView; problem?: string }
     | { readonly kind: 'files'; scroll: number; focus: number; selected?: string; readonly path: string; view?: FolderView; problem?: string }
@@ -185,6 +206,64 @@ export type UsagePageGrouping = (typeof USAGE_PAGE_GROUPINGS)[number];
  * @private terminal dashboard pages
  */
 export const lastUsageView: { grouping: UsagePageGrouping; inclusive: boolean; filter: UsageFilter } = { grouping: 'agent', inclusive: false, filter: {} };
+
+/**
+ * The External activity log's last presentation choices (viewer-local, for the next visit in this dashboard).
+ *
+ * @private terminal dashboard pages
+ */
+export const lastActionView: { grouping: ActionGrouping; sort: ActionSort; showAll: boolean; outcome?: string } = { grouping: 'default', sort: 'smart', showAll: false };
+
+/**
+ * Outcomes the External activity log can filter by, in the order the F key cycles them (the actions worth a look first).
+ *
+ * @private terminal dashboard pages
+ */
+export const ACTION_OUTCOME_FILTERS = ['failed', 'uncertain', 'pending', 'partial', 'success', 'not-performed'] as const;
+
+/**
+ * Names of the log's views in words.
+ */
+const ACTION_GROUPING_LABELS: Readonly<Record<ActionGrouping, string>> = { default: 'default (batches collapsed)', ungrouped: 'fully ungrouped', task: 'by task', agent: 'by agent' };
+
+/**
+ * Names of the log's orders in words.
+ */
+const ACTION_SORT_LABELS: Readonly<Record<ActionSort, string>> = { smart: 'smart (impact and age)', time: 'time', impact: 'impact' };
+
+/**
+ * The page of the External activity log at one position, with the choices it starts from.
+ *
+ * @private terminal dashboard pages
+ */
+export function actionsPage(position: { readonly agent?: string; readonly task?: string; readonly batch?: string } = {}, choices: { readonly grouping: ActionGrouping; readonly sort: ActionSort; readonly showAll: boolean; readonly outcome?: string } = lastActionView): Extract<DashboardPage, { kind: 'actions' }> {
+    return { kind: 'actions', scroll: 0, focus: 0, grouping: choices.grouping, sort: choices.sort, showAll: choices.showAll, ...(choices.outcome ? { outcome: choices.outcome } : {}), ...position };
+}
+
+/**
+ * Next value of a viewer choice, wrapping around.
+ *
+ * @private terminal dashboard pages
+ */
+export function nextActionChoice<T>(values: readonly T[], current: T): T {
+    return values[(values.indexOf(current) + 1) % values.length]!;
+}
+
+/**
+ * The next outcome filter: every value in turn, then no filter.
+ *
+ * @private terminal dashboard pages
+ */
+export function nextActionOutcome(current: string | undefined): string | undefined {
+    return current === undefined ? ACTION_OUTCOME_FILTERS[0] : ACTION_OUTCOME_FILTERS[ACTION_OUTCOME_FILTERS.indexOf(current as (typeof ACTION_OUTCOME_FILTERS)[number]) + 1];
+}
+
+/**
+ * Re-exported choices the key handler cycles.
+ *
+ * @private terminal dashboard pages
+ */
+export { ACTION_GROUPINGS, ACTION_SORTS };
 
 /**
  * Whether a Usage page needs the engine's on-demand summary (a filter, or a grouping the snapshot does not carry).
@@ -247,7 +326,7 @@ export function pageForTile(tile: HomeTile): DashboardPage {
         case 'usage':
             return { kind: 'usage', scroll: 0, focus: 0, grouping: lastUsageView.grouping, inclusive: lastUsageView.inclusive, filter: lastUsageView.filter };
         case 'actions':
-            return { kind: 'actions', scroll: 0, focus: 0 };
+            return actionsPage();
         case 'history':
             return { kind: 'history', scroll: 0, focus: 0 };
         case 'files':
@@ -599,31 +678,56 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
         }
         case 'actions': {
             const actions = snapshot.actions;
-            if (!actions) return { title: 'Action log', context: 'This engine does not report external actions yet.', body: [style.muted('Not available.')], legend: back };
-            const body = actions.recent.map((item, index) => {
-                const head = `${pointer(index === page.focus)} ${style.muted(item.at ? formatShortTime(Date.parse(item.at)) : '—')} ${item.operation}${item.service ? style.muted(` · ${item.service}`) : ''}${item.target ? style.muted(` → ${item.target}`) : ''} ${outcomeText(item.outcome, style)}${item.pending ? style.warning(' · not committed') : ''}`;
-                // An engine-owned operation has no task: it is named as itself, never as an agent or task.
-                return `${head}${style.muted(` · ${item.system ? `engine · ${item.system}` : `${item.agent ?? 'unknown agent'} · ${item.taskName ?? item.task}`}`)}`;
+            const view = page.view;
+            const title = ['External activity log', ...(view?.path ?? []).map((item) => terminalSafe(item.label))].join(' › ');
+            if (!actions) return { title, context: 'This engine does not report external actions yet.', body: [style.muted('Not available.')], legend: back };
+            if (page.problem) return { title, context: 'Saved external action records', body: [style.warning(`The log could not be read: ${page.problem}`)], legend: back };
+            if (!view) return { title, context: 'Reading saved records…', body: [style.muted('Loading…')], legend: back };
+            const body: string[] = [];
+            let anchor = 0;
+            let unranked = false;
+            view.rows.forEach((row, index) => {
+                // Unknown has its own labelled position instead of a fabricated rank.
+                if (view.sort !== 'time' && !unranked && (view.sort === 'smart' ? row.totals.priority : row.totals.impact) === undefined) {
+                    unranked = true;
+                    if (index) body.push('');
+                    body.push(style.muted('Unknown impact · not ranked by a number'));
+                }
+                if (index === page.focus) anchor = body.length;
+                body.push(actionRowLine(row, index === page.focus, pointer, style));
             });
-            if (!actions.recent.length) body.push(style.muted('No external action has been recorded. Records are captured from now on; earlier tasks may have external work without a record.'));
-            if (actions.total > actions.recent.length) body.push('', style.muted(`… ${actions.total - actions.recent.length} older record(s) are in actions/ (Files).`));
+            if (!view.rows.length) {
+                if (view.hidden) body.push(style.muted(`${view.hidden} row${view.hidden === 1 ? ' is' : 's are'} below impact ${view.cutoff}; A shows all.`));
+                else if (view.outcome) body.push(style.muted(`No action has the outcome ${view.outcome}; X clears the filter.`));
+                else body.push(style.muted('No external action has been recorded. Records are captured from now on; earlier tasks may have external work without a record.'));
+            }
+            if (view.rows.length < view.totalRows) body.push('', style.muted(`… ${view.totalRows - view.rows.length} more load as you move down`));
+            const top = !view.path.length;
             return {
-                title: 'Action log',
-                context: `${actions.total} external action${actions.total === 1 ? '' : 's'} · saved Markdown records in actions/, independent of traces${actions.pending ? ` · ${actions.pending} not committed` : ''}${actions.unresolved ? ` · ${actions.unresolved} without a reported outcome` : ''}`,
+                title,
+                context: [
+                    ...(top ? [`View ${ACTION_GROUPING_LABELS[view.grouping]}`] : []),
+                    `order ${ACTION_SORT_LABELS[view.sort]}`,
+                    ...(top ? [view.cutoff === undefined ? 'every impact' : `impact ≥ ${view.cutoff}${view.hidden ? ` (${view.hidden} below)` : ''}`] : []),
+                    ...(view.outcome ? [`only ${view.outcome}`] : []),
+                    `${view.totals.filtered ? `${view.totals.count} of ${view.totals.unfiltered}` : view.totals.count} action${view.totals.unfiltered === 1 ? '' : 's'}, impact ${view.totals.display}`,
+                    ...(actions.pending ? [`${actions.pending} not committed`] : []),
+                    ...(actions.unresolved ? [`${actions.unresolved} without a reported outcome`] : []),
+                ].join(' · '),
                 body,
-                anchor: page.focus,
-                legend: `↑↓ choose · Enter open the record · ${back}`,
+                anchor,
+                legend: `↑↓ choose · Enter open · ${top ? 'G view · ' : ''}S order · ${top ? `A ${view.showAll ? 'apply the cutoff' : 'show all'} · ` : ''}F outcome${view.outcome ? ' · X clear filter' : ''} · ${back}`,
             };
         }
         case 'action': {
-            const item = snapshot.actions?.recent.find((candidate) => candidate.path === page.path);
+            const item = page.summary;
             const body = page.problem ? [style.warning(page.problem)] : page.content === undefined ? [style.muted('Loading…')] : page.content.split(/\r?\n/).flatMap((line) => wrap(terminalSafe(line), Math.max(20, width - 2)));
             return {
-                title: `Action log › ${item?.operation ?? page.path.split('/').pop()}`,
+                title: `External activity log › ${item ? terminalSafe(item.operation) : page.path.split('/').pop()}`,
                 context: `${page.path}${item?.pending ? ' · saved, not committed yet' : ''}${page.links?.receipt ? ` · receipt ${terminalSafe(page.links.receipt)}` : ''}`,
                 body,
-                // Only verified links: a task Book or evidence no longer in the project is not offered.
-                legend: `↑↓ scroll · ${page.links?.task ? 'E open the task Book · ' : ''}${page.links?.evidence ? 'T open the evidence · ' : ''}${back}`,
+                // Only verified links: a task Book, evidence or session no longer known is not offered.
+                legend: `↑↓ scroll · ${page.links?.task ? 'E open the task Book · ' : ''}${page.links?.evidence ? 'T open the evidence · ' : ''}${page.links?.harness ? 'H open the harness session · ' : ''}${back}`,
             };
         }
         case 'history': {
@@ -754,7 +858,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 context: `${filtered ? `${items.length} of ${context.inventory.length} tasks · filtered by ${describeTaskFilter(page.filter)}` : `${items.length} tasks${presentation.supporting && presentation.firstSupporting === undefined ? ` + ${presentation.supporting} supporting` : ''}`} · ${page.sort === 'smart' ? 'smart order: current, coming up, recent, distant, history' : `sorted by ${page.sort}`}${page.descending ? ' (reversed)' : ''} · viewer order only, never scheduling`,
                 body,
                 anchor,
-                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · F find · R status · G agent · K kind · P purpose · W ${page.showSupporting ? 'hide' : 'show'} system work${filtered ? ' · X clear filter' : ''} · T Tasker · ${back}`,
+                legend: `↑↓ choose · Enter ${page.detail ? 'hide' : 'show'} details · ${items[page.focus]?.waitingChat ? 'A answer · ' : ''}${items[page.focus]?.source ? 'E edit source · O external activity · ' : ''}S sort (${TASK_SORT_FIELDS.length}) · D reverse · F find · R status · G agent · K kind · P purpose · W ${page.showSupporting ? 'hide' : 'show'} system work${filtered ? ' · X clear filter' : ''} · T Tasker · ${back}`,
             };
         }
         case 'usage': {
@@ -845,6 +949,31 @@ export function engineUpdateLines(update: NonNullable<ServiceSnapshot['update']>
 }
 
 /**
+ * One row of the External activity log: an action with its observed outcome, or a summary whose counts never claim that
+ * all its members succeeded and whose time is visibly the group's latest.
+ */
+function actionRowLine(row: ActionRow, focused: boolean, pointer: (focused: boolean) => string, style: TerminalProfile['style']): string {
+    const { totals, action } = row;
+    const when = totals.latestAt ? formatShortTime(Date.parse(totals.latestAt)) : '—';
+    const label = terminalSafe(row.label);
+    if (action) {
+        const who = action.system ? `engine · ${action.system}` : `${action.agent ?? 'unknown agent'} · ${action.taskName ?? action.task}`;
+        return [
+            `${pointer(focused)} ${style.muted(when)} ${style.muted(`impact ${totals.display}`)} ${label} ${outcomeText(action.outcome, style)}`,
+            action.attempts && action.attempts > 1 ? style.muted(` · ${action.attempts} attempts`) : '',
+            action.pending ? style.warning(' · not committed') : '',
+            style.muted(` · ${terminalSafe(who)}`),
+        ].join('');
+    }
+    const outcomes = Object.entries(totals.outcomes)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([outcome, count]) => `${count} ${outcomeText(outcome, style)}`)
+        .join(style.muted(', '));
+    const count = totals.filtered ? `${totals.count} of ${totals.unfiltered} actions` : `${totals.count} action${totals.count === 1 ? '' : 's'}`;
+    return `${pointer(focused)} ${style.muted(`latest ${when}`)} ${style.muted(`impact ${totals.display}`)} ${style.bold(label)} ${style.muted(count)} ${outcomes}${row.note ? style.muted(` · ${row.note}`) : ''}`;
+}
+
+/**
  * Identities of the selectable rows of a list page, in displayed order (empty for other pages).
  *
  * @private terminal dashboard pages
@@ -866,7 +995,7 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
         case 'wallet':
             return context.snapshot.wallet ? walletItems(context.snapshot.wallet).map((item) => `${item.kind}:${item.id}`) : [];
         case 'actions':
-            return (context.snapshot.actions?.recent ?? []).map((item) => item.path);
+            return (page.view?.rows ?? []).map((row) => row.key);
         case 'history':
             return (page.view?.rows ?? []).flatMap((row) => (row.commit ? [row.commit.sha] : []));
         case 'files':

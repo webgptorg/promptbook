@@ -1052,3 +1052,48 @@ button.link {
     max-width: 100%;
     height: auto;
 }
+
+/* External activity log: a row stacks its heading, details and opened record, and nothing is clipped on a phone. */
+.list li.activity-row {
+    display: block;
+    min-width: 0;
+}
+
+.page-body > .list:has(.activity-row),
+.page-body > .activity-controls {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.activity-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin-bottom: 4px;
+}
+
+.activity-head button {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+
+.activity-row .log {
+    margin-top: 8px;
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.activity-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.activity-controls select {
+    max-width: 100%;
+}

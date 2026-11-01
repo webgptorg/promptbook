@@ -1001,7 +1001,7 @@
     // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
     const DOMAINS = ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', 'sync'];
 
-    const TITLES = { harnesses: 'Harnesses', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', usage: 'Usage', actions: 'Action log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { harnesses: 'Harnesses', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', usage: 'Usage', actions: 'External activity log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
 
     /** Loads the History window (read-only: the engine never fetches or changes Git for it). */
     async function loadHistory() {
@@ -1141,11 +1141,11 @@
 
     /** An external action's outcome as a styled word (partial and uncertain stay explicit). */
     function outcomeBadge(outcome) {
-        const className = outcome === 'confirmed' ? 'ok' : outcome === 'partial' || outcome === 'uncertain' ? 'warn' : 'muted';
+        const className = outcome === 'success' ? 'ok' : outcome === 'failed' ? 'bad' : outcome === 'partial' || outcome === 'uncertain' || outcome === 'pending' ? 'warn' : 'muted';
         return h('span', { className }, outcome === 'not-performed' ? 'not performed' : outcome);
     }
 
-    /** Loads one saved external-action record for the Action log page (read-only). */
+    /** Loads one saved external-action record for the External activity log page (read-only). */
     async function openActionRecord(path) {
         state.actionRecord = { path, loading: true };
         render(state.snapshot);
@@ -1168,35 +1168,209 @@
         const items = [
             links.task ? h('button', { onclick: () => void openBook({ path: links.task }) }, 'Task Book') : null,
             links.evidence ? h('button', { onclick: () => show(links.evidence, 'folder') }, 'Evidence') : null,
+            links.harness ? h('button', { onclick: () => openActionSession(links.harness) }, 'Harness session') : null,
             links.receipt ? h('a', { href: links.receipt, target: '_blank', rel: 'noopener noreferrer' }, 'Receipt') : null,
         ].filter(Boolean);
         return items.length ? h('div', { className: 'row', role: 'group', 'aria-label': 'Record links' }, ...items) : null;
     }
 
-    /** The Action log page: saved records of external task actions, separate from runtime activity, traces and Git history. */
+    /** Opens the harness session of an action record, wherever it is listed now. */
+    function openActionSession(handle) {
+        const sessions = (state.snapshot && state.snapshot.harnessSessions) || { ended: [] };
+        state.sessionsEnded = sessions.ended.some((session) => session.handle === handle);
+        state.sessionSelected = handle;
+        openPage('harnesses');
+    }
+
+    /** The views of the External activity log. */
+    const ACTIVITY_VIEWS = { default: 'Default (batches collapsed)', ungrouped: 'Fully ungrouped', task: 'By task', agent: 'By agent' };
+
+    /** The orders of the External activity log; smart is the default. */
+    const ACTIVITY_ORDERS = { smart: 'Smart (impact and age)', time: 'Time', impact: 'Impact' };
+
+    /** The observed outcomes the log can filter by. */
+    const ACTIVITY_OUTCOMES = ['success', 'failed', 'pending', 'partial', 'uncertain', 'not-performed'];
+
+    /** Rows asked for at a time. */
+    const ACTIVITY_STEP = 200;
+
+    /** The External activity log's state in this viewer; its choices are restored from the last visit (storage may be unavailable). */
+    function activityState() {
+        if (state.activity) return state.activity;
+        let saved = {};
+        try {
+            saved = JSON.parse(localStorage.getItem('ptbk-activity-view') || '{}') || {};
+        } catch {
+            // Private windows may refuse storage; the default view still works.
+        }
+        state.activity = {
+            grouping: saved.grouping in ACTIVITY_VIEWS ? saved.grouping : 'default',
+            sort: saved.sort in ACTIVITY_ORDERS ? saved.sort : 'smart',
+            showAll: saved.showAll === true,
+            outcome: ACTIVITY_OUTCOMES.includes(saved.outcome) ? saved.outcome : '',
+            position: {},
+            stack: [],
+            view: null,
+            error: null,
+            loaded: null,
+            loading: false,
+        };
+        return state.activity;
+    }
+
+    /** Identity of what the log should currently show: a change of choice, position or saved records reloads it. */
+    function activityWanted(activity, revision) {
+        return JSON.stringify([activity.grouping, activity.sort, activity.showAll, activity.outcome, activity.position, revision]);
+    }
+
+    /** Loads rows of the current level (read-only: saved records and derived caches, never a retry, model call or commit). */
+    async function loadActivity(more) {
+        const activity = activityState();
+        if (activity.loading) return;
+        activity.loading = true;
+        const revision = state.snapshot && state.snapshot.actions ? state.snapshot.actions.revision : undefined;
+        const wanted = activityWanted(activity, revision);
+        const shown = activity.view ? activity.view.rows.length : 0;
+        // A task reached directly (from its detail) lists its own batches and actions, whatever the top view is.
+        const grouping = activity.position.task && !activity.position.agent ? 'task' : activity.grouping;
+        const query = new URLSearchParams({ grouping, sort: activity.sort, offset: String(more ? shown : 0), limit: String(more ? ACTIVITY_STEP : Math.max(ACTIVITY_STEP, shown)) });
+        if (activity.showAll) query.set('showAll', 'true');
+        if (activity.outcome) query.set('outcome', activity.outcome);
+        for (const [name, value] of Object.entries(activity.position)) query.set(name, value);
+        try {
+            const view = await api(`/api/actions/view?${query}`);
+            activity.view = more && activity.view ? { ...view, rows: [...activity.view.rows, ...view.rows] } : view;
+            activity.error = null;
+        } catch (error) {
+            activity.error = error.message;
+        }
+        activity.loaded = wanted;
+        activity.loading = false;
+        render(state.snapshot);
+    }
+
+    /** Changes a presentation choice and remembers it locally (never a project setting). */
+    function changeActivity(change) {
+        const activity = activityState();
+        Object.assign(activity, change);
+        try {
+            localStorage.setItem('ptbk-activity-view', JSON.stringify({ grouping: activity.grouping, sort: activity.sort, showAll: activity.showAll, outcome: activity.outcome }));
+        } catch {
+            // Private windows may refuse storage; the view still works.
+        }
+        render(state.snapshot);
+    }
+
+    /** Opens the next level of the log; the browser's Back, the page's Back and Escape return one level. */
+    function activityInto(row) {
+        const activity = activityState();
+        activity.stack.push({ position: activity.position, view: activity.view, loaded: activity.loaded, scroll: window.scrollY, selected: row.key });
+        activity.position = { ...activity.position, ...(row.agent ? { agent: row.agent } : {}), ...(row.task ? { task: row.task } : {}), ...(row.batch ? { batch: row.batch } : {}) };
+        activity.view = null;
+        activity.loaded = null;
+        state.actionRecord = null;
+        history.pushState({ page: 'actions', depth: activity.stack.length }, '', '#/actions');
+        render(state.snapshot);
+        window.scrollTo(0, 0);
+    }
+
+    /** Returns the log to a level, with its rows, selection and scroll as they were. */
+    function activityBackTo(depth) {
+        const activity = state.activity;
+        if (!activity || activity.stack.length <= depth) return;
+        let level;
+        while (activity.stack.length > depth) level = activity.stack.pop();
+        Object.assign(activity, { position: level.position, view: level.view, loaded: level.loaded });
+        state.actionRecord = null;
+        render(state.snapshot);
+        window.scrollTo(0, level.scroll);
+        const row = app.querySelector(`[data-activity="${CSS.escape(`row:${level.selected}`)}"]`);
+        if (row) row.focus({ preventScroll: true });
+    }
+
+    /** The External activity log of one task, reachable from its detail. */
+    function openTaskActivity(source) {
+        const task = source.split('/').pop().replace(/\.(book|md)$/i, '');
+        const activity = activityState();
+        openPage('actions');
+        Object.assign(activity, { position: { task }, stack: [{ position: {}, view: null, loaded: null, scroll: 0, selected: `task:${task}` }], view: null, loaded: null });
+        history.replaceState({ page: 'actions', depth: 1 }, '', '#/actions');
+        render(state.snapshot);
+    }
+
+    /** One row of the log: an action with its observed outcome, or a summary that never claims all its members succeeded. */
+    function activityRow(row, open) {
+        const totals = row.totals;
+        if (row.action) {
+            const item = row.action;
+            const isOpen = open && open.path === item.path;
+            return h(
+                'li',
+                { className: 'activity-row' },
+                h(
+                    'div',
+                    { className: 'activity-head' },
+                    h('button', { 'data-activity': `row:${row.key}`, className: isOpen ? 'primary' : '', 'aria-expanded': String(Boolean(isOpen)), onclick: () => (isOpen ? ((state.actionRecord = null), render(state.snapshot)) : openActionRecord(item.path)) }, row.label),
+                    h('span', {}, outcomeBadge(item.outcome), item.pending ? h('span', { className: 'warn' }, ' · not committed yet') : null),
+                ),
+                h('div', { className: 'muted' }, [item.at ? time(item.at) : '', `impact ${totals.display}`, item.attempts > 1 ? `${item.attempts} attempts` : '', ...(item.system ? [`engine · ${item.system}`] : [item.agent || '', item.taskName || item.task])].filter(Boolean).join(' · ')),
+                isOpen ? h('pre', { className: 'log', 'aria-label': `Record ${item.path}` }, open.loading ? 'Loading…' : open.error ? `The record could not be read: ${open.error}` : open.content) : null,
+                isOpen && open.links ? actionLinks(open.links) : null,
+            );
+        }
+        const outcomes = Object.entries(totals.outcomes)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .flatMap(([outcome, count], index) => [index ? ', ' : '', `${count} `, outcomeBadge(outcome)]);
+        const count = totals.filtered ? `${totals.count} of ${totals.unfiltered} actions` : `${totals.count} action${totals.count === 1 ? '' : 's'}`;
+        return h(
+            'li',
+            { className: 'activity-row' },
+            h('div', { className: 'activity-head' }, h('button', { 'data-activity': `row:${row.key}`, onclick: () => activityInto(row) }, row.label), h('span', {}, h('span', { className: 'muted' }, `${count} · `), ...outcomes)),
+            h('div', { className: 'muted' }, [totals.latestAt ? `latest ${time(totals.latestAt)}` : '', `impact ${totals.display}`, row.note || ''].filter(Boolean).join(' · ')),
+        );
+    }
+
+    /** The External activity log page: saved records of external actions, separate from runtime activity, traces and Git history. */
     function renderActionsPage(snapshot) {
         const actions = snapshot.actions;
-        if (!actions) return pageFrame('actions', 'External actions of tasks', h('p', { className: 'muted' }, 'This engine does not report external actions yet.'));
-        const open = state.actionRecord;
-        const items = actions.recent.map((item) =>
-            h(
-                'li',
-                {},
-                h('button', { className: open && open.path === item.path ? 'primary' : '', 'aria-expanded': String(Boolean(open && open.path === item.path)), onclick: () => (open && open.path === item.path ? ((state.actionRecord = null), render(state.snapshot)) : openActionRecord(item.path)) }, `${item.operation}${item.service ? ` · ${item.service}` : ''}`),
-                ' ',
-                outcomeBadge(item.outcome),
-                item.pending ? h('span', { className: 'warn' }, ' · not committed yet') : null,
-                h('div', { className: 'muted' }, [item.at ? time(item.at) : '', item.target ? `→ ${item.target}` : '', ...(item.system ? [`engine · ${item.system}`] : [item.agent || '', item.taskName || item.task])].filter(Boolean).join(' · ')),
-                open && open.path === item.path ? h('pre', { className: 'log', 'aria-label': `Record ${item.path}` }, open.loading ? 'Loading…' : open.error ? `The record could not be read: ${open.error}` : open.content) : null,
-                open && open.path === item.path && open.links ? actionLinks(open.links) : null,
-            ),
+        if (!actions) return pageFrame('actions', 'External actions', h('p', { className: 'muted' }, 'This engine does not report external actions yet.'));
+        const activity = activityState();
+        if (!activity.loading && activity.loaded !== activityWanted(activity, actions.revision)) void loadActivity();
+        const view = activity.view;
+        const top = !activity.stack.length;
+        const select = (label, name, options, value, disabled) => h('label', { className: 'field' }, h('span', {}, label), h('select', { 'aria-label': label, 'data-activity': name, disabled: disabled || undefined, onchange: (event) => changeActivity({ [name]: event.target.value }) }, options.map(([key, text]) => h('option', { value: key, selected: key === value || undefined }, text))));
+        const controls = h(
+            'div',
+            { className: 'activity-controls', role: 'group', 'aria-label': 'View of the log' },
+            top ? select('View', 'grouping', Object.entries(ACTIVITY_VIEWS), activity.grouping) : null,
+            select('Order', 'sort', Object.entries(ACTIVITY_ORDERS), activity.sort),
+            select('Outcome', 'outcome', [['', 'Every outcome'], ...ACTIVITY_OUTCOMES.map((outcome) => [outcome, outcome === 'not-performed' ? 'not performed' : outcome])], activity.outcome),
+            top ? h('button', { 'data-activity': 'show-all', 'aria-pressed': String(activity.showAll), onclick: () => changeActivity({ showAll: !activity.showAll }) }, activity.showAll ? 'Showing all impacts' : 'Show all') : null,
         );
-        const summary = `${actions.total} recorded · saved Markdown in actions/, independent of traces${actions.pending ? ` · ${actions.pending} not committed` : ''}${actions.unresolved ? ` · ${actions.unresolved} without a reported outcome` : ''}`;
+        const pendingNotes = `${actions.pending ? ` · ${actions.pending} not committed` : ''}${actions.unresolved ? ` · ${actions.unresolved} without a reported outcome` : ''}`;
+        if (activity.error) return pageFrame('actions', `Saved Markdown in actions/${pendingNotes}`, controls, h('p', { className: 'bad' }, `The log could not be read: ${activity.error}`));
+        if (!view) return pageFrame('actions', 'Reading saved records…', controls, h('p', { className: 'muted' }, 'Loading…'));
+        const totals = view.totals;
+        const summary = `${totals.filtered ? `${totals.count} of ${totals.unfiltered}` : totals.count} action${totals.unfiltered === 1 ? '' : 's'}, impact ${totals.display}${view.cutoff === undefined ? '' : ` · impact ≥ ${view.cutoff}${view.hidden ? ` (${view.hidden} below)` : ''}`}${pendingNotes}`;
+        const items = [];
+        let unranked = false;
+        for (const row of view.rows) {
+            // Unknown has its own labelled position instead of a fabricated rank.
+            if (view.sort !== 'time' && !unranked && (view.sort === 'smart' ? row.totals.priority : row.totals.impact) === undefined) {
+                unranked = true;
+                items.push(h('li', { className: 'group-heading' }, 'Unknown impact · not ranked by a number'));
+            }
+            items.push(activityRow(row, state.actionRecord));
+        }
+        const empty = view.hidden ? `${view.hidden} row${view.hidden === 1 ? ' is' : 's are'} below impact ${view.cutoff}. Show all lists them.` : view.outcome ? `No action has the outcome ${view.outcome}.` : 'No external action has been recorded. Records are captured from now on; earlier tasks may have external work without a record.';
+        const left = view.totalRows - view.rows.length;
         return pageFrame(
             'actions',
             summary,
-            items.length ? h('ul', { className: 'list' }, ...items) : h('p', { className: 'muted' }, 'No external action has been recorded. Records are captured from now on; earlier tasks may have external work without a record.'),
-            actions.total > actions.recent.length ? h('p', { className: 'muted' }, `${actions.total - actions.recent.length} older record(s) are in actions/.`) : null,
+            view.path.length ? h('p', { className: 'muted', 'aria-label': 'Position in the log' }, view.path.map((level) => level.label).join(' › ')) : null,
+            controls,
+            items.length ? h('ul', { className: 'list' }, ...items) : h('p', { className: 'muted' }, empty),
+            left > 0 ? h('button', { 'data-activity': 'more', onclick: () => void loadActivity(true) }, `Show more (${left} left)`) : null,
         );
     }
 
@@ -1339,6 +1513,8 @@
         history.pushState({ page: domain }, '', `#/${domain}`);
         if (domain === 'tasks') loadTasks(true);
         if (domain === 'usage') loadUsage(true);
+        // Opening the log starts at its top level, with the viewer's choices.
+        if (domain === 'actions' && state.activity && state.activity.stack.length) Object.assign(state.activity, { position: {}, stack: [], view: null, loaded: null });
         render(state.snapshot);
         window.scrollTo(0, 0);
     }
@@ -2472,6 +2648,7 @@
                         item.waitingChat ? h('button', { className: 'primary', onclick: () => openChat(item.waitingChat) }, 'Answer') : null,
                         // Only a task with a project source has a Book to edit (an engine-owned task has none).
                         item.kind !== 'engine' && item.source ? h('button', { onclick: () => void openBook({ path: item.source }) }, 'Source') : null,
+                        item.kind !== 'engine' && item.source ? h('button', { onclick: () => openTaskActivity(item.source) }, 'External activity') : null,
                         pill(item.readiness, tone[item.readiness]),
                     ),
                 ]),
@@ -2562,6 +2739,7 @@
         const active = document.activeElement;
         const focusDraft = active && active.getAttribute && active.getAttribute('data-draft');
         const focusTile = active && active.getAttribute && active.getAttribute('data-tile');
+        const focusActivity = active && active.getAttribute && active.getAttribute('data-activity');
         const selection = focusDraft ? [active.selectionStart, active.selectionEnd] : null;
         const scroll = window.scrollY;
         document.body.classList.toggle('home-view', !state.page);
@@ -2575,6 +2753,10 @@
         } else if (focusTile && !state.page) {
             const tile = app.querySelector(`[data-tile="${CSS.escape(state.focus)}"]`);
             if (tile) tile.focus();
+        } else if (focusActivity) {
+            // Arrivals rebuild the page: keyboard selection stays on the same row or control.
+            const control = app.querySelector(`[data-activity="${CSS.escape(focusActivity)}"]`);
+            if (control) control.focus({ preventScroll: true });
         }
         if (state.page) window.scrollTo(0, scroll);
         // The sticky page header sits right below the (possibly wrapped) top bar.
@@ -2657,6 +2839,8 @@
             if (state.page === 'tasks') loadTasks(true);
             if (state.page === 'usage') loadUsage(true);
             render(state.snapshot);
+            // Within the External activity log, Back returns one level with its selection and scroll.
+            if (state.page === 'actions') activityBackTo((history.state && history.state.depth) || 0);
         });
         // The home grid follows the viewport (also when only its height changes).
         let layout = '';

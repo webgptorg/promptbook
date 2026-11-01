@@ -1,3 +1,4 @@
+import { parseActionViewQuery } from '../engine/action-impact.js';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import type { ComposedSegment } from '../ui/composer.js';
 import { secretToken, shortId } from '../common/ids.js';
@@ -378,6 +379,8 @@ export class ServiceHost {
                 return await agenda.actions.refresh();
             case 'action-read':
                 return await agenda.actions.read(String(params.path ?? ''));
+            case 'action-view':
+                return await agenda.actions.activity(parseActionViewQuery((name) => params[name]));
             case 'settings':
                 return await applySettings(agenda, params);
             case 'update-view':

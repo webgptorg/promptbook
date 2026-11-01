@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { ActionLog, parseActionRecord, renderActionRecord, saveEngineAction } from '../dist/engine/action-log.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { actionDirectoryOf, traceDirectoryOf } from '../dist/tasks/identity.js';
-import { drive, findGenerated, git, initializedProject, messages, ptbk, rawSubjects, subjects, temporaryDirectory } from './helpers.mjs';
+import { drive, findGenerated, git, initializedProject, messages, ptbk, rawSubjects, subjects, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
  * Fails the check while any output contains BROKEN.
@@ -131,6 +131,58 @@ test('external activity: a bulk operation shares one commit, and the task result
     assert.equal(audits.length, 1, `one scoped commit for the whole operation: ${audits.join(' | ')}`);
     assert.match(audits[0], / Action - Send email · Gmail \(3 records\)$/);
     assert.equal((await git(project, ['show', '--name-only', '--format=', audits[0].split(' ')[0]])).trim().split('\n').length, 3);
+});
+
+test('external activity: the API shares the views, stays read-only, and a batch opens into its separate records', async (t) => {
+    const { project, env } = await initializedProject(t);
+    const started = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(started.code, 0, started.output);
+    const { http } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
+    const { csrf } = await (await fetch(`${http.url}api/session`, { headers: { 'X-PTBK-Client': 'dashboard' } })).json();
+    const get = async (path) => {
+        const response = await fetch(`${http.url}${path}`, { headers: { 'X-PTBK-CSRF': csrf } });
+        return { status: response.status, data: await response.json() };
+    };
+    assert.equal((await fetch(`${http.url}api/actions/view`)).status, 401, 'inspection needs a session');
+    await addTask(project, env, 'Run the campaign EXTERNAL_BATCH');
+    await waitFor(async () => (await messages(project)).some((message) => / Action - Send email · Gmail \(3 records\)/.test(message.split('\n')[0])), { timeoutMs: 90_000, message: 'the shared commit of the campaign' });
+
+    const before = await git(project, ['rev-parse', 'HEAD']);
+    const top = (await get('api/actions/view')).data;
+    assert.equal(top.grouping, 'default');
+    assert.equal(top.sort, 'smart');
+    assert.equal(top.cutoff, 1);
+    assert.equal(top.rows.length, 1);
+    const [batch] = top.rows;
+    assert.deepEqual({ kind: batch.kind, batch: batch.batch, count: batch.totals.count, outcomes: batch.totals.outcomes }, { kind: 'batch', batch: 'fixture-campaign', count: 3, outcomes: { failed: 1, success: 2 } });
+    assert.equal(batch.totals.impact.toFixed(6), (1 + Math.log10(3)).toFixed(6));
+    assert.equal(batch.totals.display, '1.48');
+
+    const members = (await get('api/actions/view?batch=fixture-campaign')).data;
+    assert.equal(members.rows.length, 3);
+    assert.ok(members.rows.every((row) => row.kind === 'action'));
+    assert.equal((await get('api/actions/view?grouping=ungrouped')).data.rows.length, 3);
+    assert.equal((await get('api/actions/view?grouping=task')).data.rows[0].kind, 'task');
+    const agents = (await get('api/actions/view?grouping=agent')).data;
+    assert.equal(agents.rows[0].kind, 'agent');
+    assert.equal((await get(`api/actions/view?grouping=agent&agent=${agents.rows[0].agent}`)).data.rows[0].kind, 'task');
+    const failed = (await get('api/actions/view?outcome=failed')).data;
+    assert.deepEqual([failed.rows[0].totals.count, failed.rows[0].totals.unfiltered, failed.rows[0].totals.filtered], [1, 3, true]);
+    assert.equal((await get('api/actions/view?grouping=bogus')).data.grouping, 'default', 'an unknown choice falls back to its default');
+
+    const path = members.rows.find((row) => row.action.outcome === 'failed').action.path;
+    const record = await get(`api/actions/record?path=${encodeURIComponent(path)}`);
+    assert.equal(record.status, 200);
+    assert.equal(record.data.impactReason, 'One newsletter reader.');
+    assert.ok(record.data.links.task);
+    assert.match(record.data.content, /^- \*\*Group:\*\* fixture-campaign$/m);
+
+    assert.equal(await git(project, ['rev-parse', 'HEAD']), before, 'inspection creates no commit');
+    assert.equal((await git(project, ['status', '--porcelain', '--', 'actions'])).trim(), '');
+    const snapshot = (await get('api/state')).data;
+    assert.equal(snapshot.actions.total, 3);
+    assert.equal(typeof snapshot.actions.revision, 'number');
+    assert.equal((await ptbk(['stop', '--force', '--raw'], { cwd: project, env })).code, 0);
 });
 
 test('action records: an engine-owned operation records its effect under actions/.engine/ without an invented task', async (t) => {
