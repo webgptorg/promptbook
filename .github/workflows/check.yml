@@ -133,5 +133,6 @@ jobs:
           $numeric = ($env:PTBK_VERSION -replace '-.*$', '') + '.' + (($env:PTBK_VERSION -replace '^[^-]*-?', '') -replace '\D', '' | ForEach-Object { if ($_) { $_ } else { '0' } })
           $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $iscc) { throw 'The Inno Setup compiler (ISCC.exe) was not found after its installation.' }
+          & ./installer/windows/prepare-artwork.ps1
           & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$numeric" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
