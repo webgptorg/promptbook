@@ -120,7 +120,6 @@ jobs:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      VSCE_PAT: ${{ secrets.VSCE_PAT || secrets.VSCE_TOKEN }}
     steps:
       - uses: actions/checkout@v6
         with:
