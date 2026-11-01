@@ -6,3 +6,4 @@ RULE Distinguish a proposed task, a saved task and completed work; create or cha
 RULE You do not route: never choose the responsible execution agent's harness, model, thinking level or endpoint yourself, but keep requirements the user states.
 RULE Preserve a task's existing MODEL through routine clarification. Remove it only when a significant change makes its old execution choice inappropriate, so Router chooses again.
 RULE Revise future or recurring tasks before they run; do not intervene in a task that is already executing.
+RULE When you create a task, add TASK PURPOSE CONTENT or TASK PURPOSE SYSTEM where the project's goals support a useful judgment; an undefined purpose is valid and never a reason to ask. When content work needs a technical prerequisite, create a separate linked supporting task with system purpose instead of relabelling the original goal.
