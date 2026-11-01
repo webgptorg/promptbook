@@ -442,70 +442,77 @@ export class ActionLog {
      * keeps the original in the record's history.
      */
     public async record(subject: ActionSubject, input: Readonly<Record<string, unknown>>): Promise<ToolResult> {
-        return await this.serial.run(async () => {
-            const outcome = OUTCOMES.find((value) => value === normalizeOutcome(input.outcome));
-            if (!outcome) return { text: `outcome must be one of ${OUTCOMES.join(', ')}.`, isError: true };
-            const estimate = this.estimate(input);
-            if (estimate.problem) return { text: estimate.problem, isError: true };
-            const id = typeof input.id === 'string' ? input.id.trim() : '';
-            let intent = id ? await this.intent(id) : undefined;
-            if (id && !intent) {
-                const located = await this.locate(id);
-                if (!located) return { text: `No external action ${id} is known to this project. Omit id to record a new action.`, isError: true };
-                return await this.amend(located, subject, outcome, input, estimate);
-            }
-            if (!intent) {
-                const operation = this.text(input.operation);
-                const service = this.text(input.service);
-                if (!operation || !service) return { text: 'Without an id, operation and service are required.', isError: true };
-                intent = { version: 1, id: newActionId(), subject, operation, service, account: this.text(input.account), target: this.text(input.target), content: this.text(input.content, true), startedAt: this.now(), ...this.relations(input), history: [], closed: false };
-            }
-            const observed = this.text(input.observed, true);
-            const reference = this.text(input.reference);
-            const relations = this.relations(input);
-            const lines: string[] = [];
-            const changed = estimate.impact !== undefined && intent.impact !== undefined && estimate.impact !== intent.impact;
-            if (changed) lines.push(`${this.now()} — impact reassessed from ${intent.impact} to ${estimate.impact}${estimate.reason ? `: ${estimate.reason.replace(/\s+/g, ' ').slice(0, 200)}` : ''} (attempt ${subject.attempt}${intent.impactReason ? `; the original reason was: ${intent.impactReason.replace(/\s+/g, ' ').slice(0, 200)}` : ''})`);
-            lines.push(`${this.now()} — ${outcome}${observed ? `: ${observed.replace(/\s+/g, ' ').slice(0, 200)}` : ''} (attempt ${subject.attempt})`);
-            // Reconciling an uncertain or pending result finds out what one attempt did; it is not another attempt.
-            const reconciling = intent.outcome === 'uncertain' || intent.outcome === 'pending';
-            const attempts = intent.awaiting || reconciling ? (intent.attempts ?? 1) : (intent.attempts ?? 0) + 1;
-            const estimatedNow = estimate.impact !== undefined && (changed || intent.impact === undefined);
-            const updated: ActionIntent = {
-                ...intent,
-                // The methodology belongs to the estimate: a later attempt that does not re-estimate leaves it unchanged.
-                subject: { ...intent.subject, attempt: subject.attempt, ...(subject.session ? { session: subject.session } : {}), ...(estimatedNow && subject.methodology ? { methodology: subject.methodology } : {}) },
-                account: intent.account ?? this.text(input.account),
-                target: intent.target ?? this.text(input.target),
-                content: intent.content ?? this.text(input.content, true),
-                outcome,
-                observed: observed ?? intent.observed,
-                reference: reference ?? intent.reference,
-                impact: estimate.impact ?? intent.impact ?? 'unknown',
-                ...(estimate.reason ?? intent.impactReason ? { impactReason: estimate.reason ?? intent.impactReason } : {}),
-                // An action belongs to at most one batch: its first membership stays.
-                ...(intent.group ?? relations.group ? { group: intent.group ?? relations.group } : {}),
-                ...(intent.related ?? relations.related ? { related: intent.related ?? relations.related } : {}),
-                attempts,
-                awaiting: false,
-                history: [...intent.history, ...lines],
-                closed: outcome !== 'uncertain' && outcome !== 'pending',
-            };
-            if (outcome === 'not-performed' && !intent.record) {
-                // No real attempt happened: no record is fabricated; the trace keeps the setup failure.
-                await this.saveIntent(updated);
-                this.touch();
-                return { text: `Closed ${updated.id} without a record (no real attempt happened).` };
-            }
-            const path = intent.record ?? (await this.allocate(updated));
-            const saved: ActionIntent = { ...updated, record: path };
-            const snapshots = await this.write(saved);
-            await this.saveIntent(saved);
-            const persistence = await this.persist(path, saved, snapshots);
-            return {
-                text: `Saved ${path} (${outcome}, id ${saved.id}, impact ${saved.impact}${persistence === 'committed' ? ', committed' : persistence === 'uncommitted' ? ', saved without a commit' : ', commit pending'}).${outcome === 'uncertain' || outcome === 'pending' ? ` Reconcile it with the service and update it with id "${saved.id}" once the actual result is known; do not repeat the request blindly.` : ''}${outcome === 'failed' ? ` A retry of this same intended action keeps id "${saved.id}", and its record stays one action.` : ''}`,
-            };
-        });
+        // Another agent's slow commit never delays saving this record.
+        const step = await this.serial.run(async () => await this.saveReported(subject, input));
+        if ('text' in step) return step;
+        const { path, saved, snapshots, outcome } = step;
+        const persistence = await this.persist(path, saved, snapshots);
+        return {
+            text: `Saved ${path} (${outcome}, id ${saved.id}, impact ${saved.impact}${persistence === 'committed' ? ', committed' : persistence === 'uncommitted' ? ', saved without a commit' : ', commit pending'}).${outcome === 'uncertain' || outcome === 'pending' ? ` Reconcile it with the service and update it with id "${saved.id}" once the actual result is known; do not repeat the request blindly.` : ''}${outcome === 'failed' ? ` A retry of this same intended action keeps id "${saved.id}", and its record stays one action.` : ''}`,
+        };
+    }
+
+    /** Validates a reported outcome and saves its record, returning what remains to be committed (or the tool's answer). */
+    private async saveReported(subject: ActionSubject, input: Readonly<Record<string, unknown>>): Promise<ToolResult | { readonly path: string; readonly saved: ActionIntent; readonly snapshots: readonly string[]; readonly outcome: ActionOutcome }> {
+        const outcome = OUTCOMES.find((value) => value === normalizeOutcome(input.outcome));
+        if (!outcome) return { text: `outcome must be one of ${OUTCOMES.join(', ')}.`, isError: true };
+        const estimate = this.estimate(input);
+        if (estimate.problem) return { text: estimate.problem, isError: true };
+        const id = typeof input.id === 'string' ? input.id.trim() : '';
+        let intent = id ? await this.intent(id) : undefined;
+        if (id && !intent) {
+            const located = await this.locate(id);
+            if (!located) return { text: `No external action ${id} is known to this project. Omit id to record a new action.`, isError: true };
+            return await this.amend(located, subject, outcome, input, estimate);
+        }
+        if (!intent) {
+            const operation = this.text(input.operation);
+            const service = this.text(input.service);
+            if (!operation || !service) return { text: 'Without an id, operation and service are required.', isError: true };
+            intent = { version: 1, id: newActionId(), subject, operation, service, account: this.text(input.account), target: this.text(input.target), content: this.text(input.content, true), startedAt: this.now(), ...this.relations(input), history: [], closed: false };
+        }
+        const observed = this.text(input.observed, true);
+        const reference = this.text(input.reference);
+        const relations = this.relations(input);
+        const lines: string[] = [];
+        const changed = estimate.impact !== undefined && intent.impact !== undefined && estimate.impact !== intent.impact;
+        if (changed) lines.push(`${this.now()} — impact reassessed from ${intent.impact} to ${estimate.impact}${estimate.reason ? `: ${estimate.reason.replace(/\s+/g, ' ').slice(0, 200)}` : ''} (attempt ${subject.attempt}${intent.impactReason ? `; the original reason was: ${intent.impactReason.replace(/\s+/g, ' ').slice(0, 200)}` : ''})`);
+        lines.push(`${this.now()} — ${outcome}${observed ? `: ${observed.replace(/\s+/g, ' ').slice(0, 200)}` : ''} (attempt ${subject.attempt})`);
+        // Reconciling an uncertain or pending result finds out what one attempt did; it is not another attempt.
+        const reconciling = intent.outcome === 'uncertain' || intent.outcome === 'pending';
+        const attempts = intent.awaiting || reconciling ? (intent.attempts ?? 1) : (intent.attempts ?? 0) + 1;
+        const estimatedNow = estimate.impact !== undefined && (changed || intent.impact === undefined);
+        const updated: ActionIntent = {
+            ...intent,
+            // The methodology belongs to the estimate: a later attempt that does not re-estimate leaves it unchanged.
+            subject: { ...intent.subject, attempt: subject.attempt, ...(subject.session ? { session: subject.session } : {}), ...(estimatedNow && subject.methodology ? { methodology: subject.methodology } : {}) },
+            account: intent.account ?? this.text(input.account),
+            target: intent.target ?? this.text(input.target),
+            content: intent.content ?? this.text(input.content, true),
+            outcome,
+            observed: observed ?? intent.observed,
+            reference: reference ?? intent.reference,
+            impact: estimate.impact ?? intent.impact ?? 'unknown',
+            ...(estimate.reason ?? intent.impactReason ? { impactReason: estimate.reason ?? intent.impactReason } : {}),
+            // An action belongs to at most one batch: its first membership stays.
+            ...(intent.group ?? relations.group ? { group: intent.group ?? relations.group } : {}),
+            ...(intent.related ?? relations.related ? { related: intent.related ?? relations.related } : {}),
+            attempts,
+            awaiting: false,
+            history: [...intent.history, ...lines],
+            closed: outcome !== 'uncertain' && outcome !== 'pending',
+        };
+        if (outcome === 'not-performed' && !intent.record) {
+            // No real attempt happened: no record is fabricated; the trace keeps the setup failure.
+            await this.saveIntent(updated);
+            this.touch();
+            return { text: `Closed ${updated.id} without a record (no real attempt happened).` };
+        }
+        const path = intent.record ?? (await this.allocate(updated));
+        const saved: ActionIntent = { ...updated, record: path };
+        const snapshots = await this.write(saved);
+        await this.saveIntent(saved);
+        return { path, saved, snapshots, outcome };
     }
 
     /** Updates a versioned record whose local intent is not available (another host or a cleaned runtime). */
@@ -685,8 +692,10 @@ export class ActionLog {
         // hides its unsuccessful members; its records say exactly who was already reached.
         const batches = new Map<string, ActionSummary[]>();
         for (const summary of records) if (summary.group) batches.set(summary.group, [...(batches.get(summary.group) ?? []), summary]);
+        const singles = records.filter((summary) => !summary.group);
         const lines = [
-            ...records.filter((summary) => !summary.group).slice(0, CONTEXT_LIMIT).map(line),
+            ...singles.slice(0, CONTEXT_LIMIT).map(line),
+            ...(singles.length > CONTEXT_LIMIT ? [`- … ${singles.length - CONTEXT_LIMIT} older records of this task are in \`${directory}/\`; read them before repeating anything`] : []),
             ...[...batches].flatMap(([group, members]) => {
                 const outcomes = new Map<string, number>();
                 for (const member of members) outcomes.set(member.outcome, (outcomes.get(member.outcome) ?? 0) + 1);
@@ -989,7 +998,7 @@ export function renderActionRecord(intent: ActionIntent, revision?: string): str
     const impact = intent.impact ?? 'unknown';
     const methodology = methodologyLines(intent.subject.methodology);
     return [
-        `# ${intent.operation} · ${intent.service}`,
+        `# ${intent.operation.replace(/\s+/g, ' ')} · ${intent.service.replace(/\s+/g, ' ')}`,
         '',
         ...field('Outcome', normalizeOutcome(intent.outcome) ?? 'uncertain'),
         ...field('Impact', impact),
@@ -1054,7 +1063,8 @@ function methodologyLines(methodology: MethodologyEvidence | undefined): string[
  */
 function sectionOf(content: string, heading: string): string {
     const lines = content.split(/\r?\n/);
-    const start = lines.indexOf(`## ${heading}`);
+    // The last one: the free-form sections above it could contain the same heading.
+    const start = lines.lastIndexOf(`## ${heading}`);
     if (start < 0) return '';
     const end = lines.findIndex((line, index) => index > start && line.startsWith('## '));
     return lines.slice(start + 1, end < 0 ? undefined : end).join('\n');
