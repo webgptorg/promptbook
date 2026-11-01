@@ -235,7 +235,7 @@ async function main() {
     // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
     const api = Boolean(process.env.CODEX_API_KEY);
     const brief = prompt.startsWith('# Project brief');
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, changeMarkers: prompt.match(/CHANGE_MARKER_\w+/g) ?? [], assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, changeMarkers: prompt.match(/CHANGE_MARKER_\w+/g) ?? [], reassigned: prompt.includes('## Taking over a reassigned task'), assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
     print({ type: 'thread.started', thread_id: resumedThread ?? `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     // Routing work only names the target: its markers apply to the target's own execution.

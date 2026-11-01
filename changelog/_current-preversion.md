@@ -1,5 +1,11 @@
 # Unreleased
 
+## Chats: work can move to another agent
+
+-   Asking a chat to give a task to someone else moves it: the previous agent stops at its nearest safe point, and the new one takes over only once it is free, so a task never has two owners and no agent holds two tasks.
+-   The new agent starts its own session and continues from the partial work. The earlier agent stays in the task's Book, and the new session shows which one it replaced.
+-   A name that matches no agent is refused and nothing changes. Moving only later occurrences of a recurring task is not supported yet and is refused with an explanation.
+
 ## Harnesses: Cline is no longer a supported harness
 
 -   Cline can no longer be selected or added, and it is gone from the harness lists in help and setup.

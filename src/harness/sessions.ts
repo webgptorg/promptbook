@@ -306,10 +306,10 @@ export class HarnessSessions {
         const current = this.byKey(descriptor.key);
         if (descriptor.ephemeral) this.ephemeral.add(descriptor.key);
         if (descriptor.redact) this.redactors.set(descriptor.key, descriptor.redact);
-        if (current && (current.tool === descriptor.tool || !descriptor.tool) && current.harness === descriptor.plugin.id) {
+        if (current && current.agent === descriptor.agent && (current.tool === descriptor.tool || !descriptor.tool) && current.harness === descriptor.plugin.id) {
             return this.update(current.handle, { requestedModel: descriptor.model, thinkingLevel: descriptor.thinkingLevel, harnessVersion: descriptor.harnessVersion ?? current.harnessVersion, revision: descriptor.revision ?? current.revision });
         }
-        const replaced = current ? this.close(descriptor.key, `Replaced: work continues with the tool ${descriptor.tool ?? descriptor.plugin.displayName}.`) : undefined;
+        const replaced = current ? this.close(descriptor.key, current.agent !== descriptor.agent ? `Replaced: the work moved to ${descriptor.agent}.` : `Replaced: work continues with the tool ${descriptor.tool ?? descriptor.plugin.displayName}.`) : undefined;
         const at = new Date().toISOString();
         const record: HarnessSessionRecord = {
             handle: `hs-${Date.now().toString(36)}-${(this.sequence++).toString(36)}`,

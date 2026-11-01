@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -204,6 +204,59 @@ test('engine: a chat queries, changes and subscribes without inventing work, and
     assert.equal(final.filter((message) => message.text.startsWith('Update on {Weekly report')).length, 1, 'delivered once');
     assert.equal((await status(project, env)).taskControl.notifications.length, 0);
     await ptbk(['stop', '--raw'], { cwd: project, env });
+});
+
+test('engine: reassigning moves work to the new agent after a checkpoint; one owner at a time, and an invalid target changes nothing', { timeout: 240_000 }, async (t) => {
+    const { project, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
+    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '3500' };
+    await writeFile(join(project, 'agents', 'reviewer.book'), 'AGENT Reviewer\n\nPERSONA Reviews the work.\n');
+    await git(project, ['add', '.']);
+    await git(project, ['commit', '-m', 'Add Reviewer']);
+    await ptbk(['add', 'Moved work SLOW_WORK', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const first = await waitFor(async () => (await status(project, env)).harnessSessions?.open.find((session) => session.work.kind === 'task' && session.work.task.startsWith('Moved work') && session.state === 'working' && session.providerIds.length), { message: 'the running session', timeoutMs: 60_000 });
+    assert.equal(first.agent, 'Developer');
+
+    const before = (await bookOf(project, 'Moved work')).text;
+    await assert.rejects(control(project, 'task-change', { task: 'Moved work', operation: 'amend', instruction: 'Let nobody take it.', agent: 'Nobody', via: 'test' }), /No agent matches/);
+    await assert.rejects(control(project, 'task-change', { task: 'Moved work', operation: 'amend', instruction: 'Only later.', agent: 'Reviewer', scope: 'future', via: 'test' }), /later occurrences/);
+    assert.equal((await bookOf(project, 'Moved work')).text, before, 'a refused reassignment leaves the Book untouched');
+
+    const outcome = await control(project, 'task-change', { task: 'Moved work', operation: 'amend', instruction: 'Reviewer takes this over.', agent: 'Reviewer', via: 'test' });
+    assert.equal(outcome.applied, true, outcome.outcome);
+    const book = (await bookOf(project, 'Moved work')).text;
+    assert.match(book, /TASK AGENT \{?@?Developer\}?[\s\S]*TASK CHANGE \S+ task\nReviewer takes this over\.\s+TASK AGENT \{?@?Reviewer\}?/, 'the previous owner stays and the new one is appended after the change');
+
+    const second = await waitFor(async () => (await status(project, env)).harnessSessions?.open.find((session) => session.work.kind === 'task' && session.work.task.startsWith('Moved work') && session.agent === 'Reviewer'), { message: 'the session of the new agent', timeoutMs: 60_000 });
+    assert.notEqual(second.handle, first.handle, 'the context of the previous agent is not continued by the new one');
+    assert.equal(second.predecessor?.handle, first.handle, 'the replacement names its predecessor');
+    assert.match(second.predecessor.reason, /moved to Reviewer/);
+    const taken = await waitFor(async () => (await turns(log)).find((entry) => entry.title?.startsWith('Moved work') && entry.reassigned), { message: 'the turn of the new agent', timeoutMs: 60_000 });
+    assert.equal(taken.resumedThread ?? null, null, 'the new agent starts its own provider session');
+    assert.equal(taken.agent, 'Reviewer', 'the turn is run by the new agent');
+    assert.ok((await waitFor(async () => findGenerated(await subjects(project), 'Moved work SLOW_WORK', 'ptbk: '), { message: 'the result of the new agent', timeoutMs: 90_000 })));
+    await ptbk(['stop', '--raw'], { cwd: project, env });
+});
+
+test('engine: reassigned work waits for its new agent to finish what it holds, so no agent runs two tasks', { timeout: 240_000 }, async (t) => {
+    const { project, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
+    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '8000' };
+    await writeFile(join(project, 'agents', 'reviewer.book'), 'AGENT Reviewer\nGOAL Write what the task asks for.\nMODEL harness=OPENAI_CODEX model=fake-model-1 thinking=medium\n');
+    await git(project, ['add', '.']);
+    await git(project, ['commit', '-m', 'Add Reviewer']);
+    await ptbk(['add', 'Busy review SLOW_WORK', '--agent', 'Reviewer', '--priority', '9', '--raw'], { cwd: project, env });
+    await ptbk(['add', 'Waiting move SLOW_WORK', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => {
+        const open = (await status(project, env)).harnessSessions?.open.filter((session) => session.work.kind === 'task' && session.state === 'working' && session.providerIds.length) ?? [];
+        return ['Busy review', 'Waiting move'].every((start) => open.some((session) => session.work.task.startsWith(start))) ? open : undefined;
+    }, { message: 'both tasks to run', timeoutMs: 60_000 });
+
+    await control(project, 'task-change', { task: 'Waiting move', operation: 'amend', instruction: 'Reviewer takes this over.', agent: 'Reviewer', via: 'test' });
+    const taken = await waitFor(async () => (await turns(log)).find((entry) => entry.title?.startsWith('Waiting move') && entry.reassigned), { message: 'the turn of the new agent', timeoutMs: 90_000 });
+    assert.equal(taken.agent, 'Reviewer');
+    assert.ok(findGenerated(await subjects(project), 'Busy review SLOW_WORK', 'ptbk: '), 'the new agent finished the task it held before taking this one');
+    await ptbk(['stop', '--force', '--raw'], { cwd: project, env });
 });
 
 test('engine: a late completion cannot race past an accepted change', { timeout: 240_000 }, async (t) => {

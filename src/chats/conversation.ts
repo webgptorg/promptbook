@@ -69,7 +69,7 @@ export type ConversationContext = {
         /** Reports work matching a description; changes nothing. */
         readonly status: (query?: string) => Promise<readonly TaskStatusView[]>;
         /** Accepts one change to existing work. */
-        readonly change: (input: { readonly task: string; readonly operation: TaskControlOperation; readonly instruction: string; readonly scope?: 'task' | 'occurrence' | 'future'; readonly origin: TaskControlOrigin }) => Promise<TaskControlOutcome>;
+        readonly change: (input: { readonly task: string; readonly operation: TaskControlOperation; readonly instruction: string; readonly agent?: string; readonly scope?: 'task' | 'occurrence' | 'future'; readonly origin: TaskControlOrigin }) => Promise<TaskControlOutcome>;
         /** Remembers to report when work ends. */
         readonly notify: (input: { readonly task: string; readonly chat: string; readonly by: string }) => Promise<{ readonly task: string; readonly state: string }>;
     };
@@ -389,6 +389,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
                         task: { type: 'string', description: 'The task, by its name' },
                         operation: { type: 'string', enum: ['amend', 'accept', 'cancel', 'retire', 'reopen'] },
                         instruction: { type: 'string', description: 'The change in plain words, as you understood the user' },
+                        agent: { type: 'string', description: 'With amend or reopen: the agent who takes this work over. Its previous agent stops at a checkpoint first.' },
                         scope: { type: 'string', enum: ['task', 'occurrence', 'future'], description: 'task: the definition and current work. occurrence: this run only ("this time"). future: later runs only. Default: task (future for retire)' },
                     },
                     required: ['task', 'operation', 'instruction'],
@@ -396,7 +397,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 handler: async (input) => {
                     try {
                         const scope = input.scope === 'task' || input.scope === 'occurrence' || input.scope === 'future' ? input.scope : undefined;
-                        const outcome = await control.change({ task: String(input.task ?? ''), operation: String(input.operation ?? 'amend') as TaskControlOperation, instruction: String(input.instruction ?? ''), ...(scope ? { scope } : {}), origin });
+                        const outcome = await control.change({ task: String(input.task ?? ''), operation: String(input.operation ?? 'amend') as TaskControlOperation, instruction: String(input.instruction ?? ''), ...(typeof input.agent === 'string' && input.agent.trim() ? { agent: input.agent } : {}), ...(scope ? { scope } : {}), origin });
                         return { text: `{${outcome.task}}: ${outcome.delivery}${outcome.reopened ? ' It was reopened; its earlier result stays in its history.' : ''}${outcome.persistence === 'pending' ? ' It is saved in its Book; its commit is still pending.' : ''}` };
                     } catch (error) {
                         return { text: `Nothing was changed: ${errorMessage(error)}`, isError: true };

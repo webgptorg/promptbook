@@ -111,7 +111,7 @@ export async function applyControlAction(agenda: Agenda, action: string, params:
         case 'task-change': {
             const scope = params.scope === 'task' || params.scope === 'occurrence' || params.scope === 'future' ? params.scope : undefined;
             const operation = params.operation === 'accept' || params.operation === 'cancel' || params.operation === 'retire' || params.operation === 'reopen' ? params.operation : 'amend';
-            const outcome = await agenda.taskControl({ task: String(params.task ?? ''), operation, instruction: String(params.instruction ?? ''), ...(scope ? { scope } : {}), origin: { authority: 'operator', via: typeof params.via === 'string' ? params.via : 'client' } });
+            const outcome = await agenda.taskControl({ task: String(params.task ?? ''), operation, instruction: String(params.instruction ?? ''), ...(typeof params.agent === 'string' && params.agent.trim() ? { agent: params.agent } : {}), ...(scope ? { scope } : {}), origin: { authority: 'operator', via: typeof params.via === 'string' ? params.via : 'client' } });
             return { action, outcome: outcome.delivery, applied: true, data: outcome };
         }
         case 'task-notify': {

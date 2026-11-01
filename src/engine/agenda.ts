@@ -233,6 +233,11 @@ const USAGE_REFRESH_MS = 60_000;
 const BLOCKER_RECHECK_MS = 5 * 60_000;
 
 /**
+ * How often reassigned work looks again whether its new agent is free. Nothing is running meanwhile, so it stays cheap.
+ */
+const REASSIGNMENT_RECHECK_MS = 15_000;
+
+/**
  * Recheck interval while the running engine waits for usable tools (file changes and tool commands wake it sooner).
  */
 const TOOLS_RECHECK_MS = 2 * 60_000;
@@ -1015,7 +1020,7 @@ export class Agenda {
      * Accepts one change to existing work: appended to its Book under the same lock as result commits, then reconciled
      * with the running work. Saving alone is not delivery, and every receipt states what is actually known.
      */
-    public async taskControl(request: { readonly task: string; readonly operation: TaskControlOperation; readonly instruction: string; readonly scope?: 'task' | 'occurrence' | 'future'; readonly origin: TaskControlOrigin }): Promise<TaskControlOutcome> {
+    public async taskControl(request: { readonly task: string; readonly operation: TaskControlOperation; readonly instruction: string; readonly agent?: string; readonly scope?: 'task' | 'occurrence' | 'future'; readonly origin: TaskControlOrigin }): Promise<TaskControlOutcome> {
         if (request.origin.authority === 'agent') throw new PtbkError('Only a verified request of the user can change work; an agent\'s proposal stays advice.', { kind: 'usage', next: ['Ask the user, then act on their answer.'] });
         const instruction = request.instruction.replace(/\s+/g, ' ').trim();
         if (!instruction) throw new PtbkError('A change needs its instruction in words.', { kind: 'usage' });
@@ -1025,12 +1030,15 @@ export class Agenda {
         const now = formatIsoWithOffset(Date.now(), this.timeZone);
         const chat = request.origin.chat ? ` {${request.origin.chat}}` : '';
         const closed = task.status === 'done' || task.status === 'cancelled';
+        const assignee = request.agent?.trim() ? await this.reassignmentTarget(task, request.agent, request.operation, scope) : undefined;
         const reopening = (request.operation === 'amend' || request.operation === 'reopen') && closed && scope !== 'future';
         const text = request.operation === 'accept' ? `The current result is accepted as sufficient: validate it against this revised goal and finish without further work beyond it. ${instruction}` : instruction;
         await this.gitMutex.run(async () => {
             let source = await readFile(task.source.path, 'utf8');
             if (reopening) source = appendCommitment(source, 'TASK REOPEN', `${now}${chat}`);
             source = appendCommitment(source, 'TASK CHANGE', `${now} ${scope}${chat}\n${text}`);
+            // The new owner is a later layer: the previous one stays in the Book, and the last valid value is effective.
+            if (assignee) source = appendCommitment(source, 'TASK AGENT', formatAgentReference(assignee));
             if (reopening && task.status === 'cancelled') source = appendCommitment(source, 'TASK STATUS', 'todo');
             if (request.operation === 'cancel') source = appendCommitment(source, 'TASK STATUS', 'cancelled');
             if (request.operation === 'retire') source = appendCommitment(source, 'TASK STATUS', 'retired');
@@ -1063,6 +1071,20 @@ export class Agenda {
         await this.chats.annotate(input.chat, { links: [formatAgentReference(task.title)] }, { trailers: { 'Task-Name': task.title } }).catch(() => undefined);
         this.wake();
         return { task: task.title, state: task.status };
+    }
+
+    /**
+     * The agent a change moves a task to. Anything that could not take effect is refused before the Book is touched, so
+     * invalid input never changes active work.
+     */
+    private async reassignmentTarget(task: Task, requested: string, operation: TaskControlOperation, scope: string): Promise<string> {
+        if (operation !== 'amend' && operation !== 'reopen') throw new PtbkError('Only an amendment or a reopening can also move work to another agent.', { kind: 'usage' });
+        if (scope === 'future') throw new PtbkError('Moving only later occurrences to another agent is not supported.', { kind: 'usage', next: ['Use the scope `task`, which also moves any run in progress, or `occurrence` for this run only.'] });
+        const resolved = await this.catalog.resolve(toReference(requested.replace(/^[@{]+|[}]+$/g, '').trim()));
+        if (resolved.kind !== 'agent') throw new PtbkError(`No agent matches "${requested}".`, { kind: 'not-found', next: ['Name an existing agent.'] });
+        const name = resolved.definition.name;
+        if (task.routing.agent && agentKeyOf(task.routing.agent) === agentKeyOf(name)) throw new PtbkError(`{${task.title}} already belongs to ${formatAgentReference(name)}.`, { kind: 'usage' });
+        return name;
     }
 
     /** The one task a request names. Ambiguity is the caller's to resolve, never a guess. */
@@ -4020,6 +4042,20 @@ export class Agenda {
             await this.endCancelledRun(record, task);
             return;
         }
+        // The Book names another owner than the one this run started with: the previous agent has checkpointed, and the new
+        // one takes the work only when it is free, so a task never has two owners and an agent never holds two tasks.
+        const reassignedFrom = task.routing.agent && record.routing.agent && agentKeyOf(task.routing.agent) !== agentKeyOf(record.routing.agent) ? record.routing.agent : undefined;
+        if (reassignedFrom) {
+            const reservation = (await this.agentReservations()).get(agentKeyOf(task.routing.agent!));
+            if (reservation && reservation.holder !== record.taskTitle) {
+                this.logOnce(`"${record.taskTitle}" moves to ${formatAgentReference(task.routing.agent!)} once "${reservation.holder}" is finished; it stays checkpointed until then.`, 'info');
+                this.resumeAfter.set(record.runId, Date.now() + REASSIGNMENT_RECHECK_MS);
+                return;
+            }
+            record = { ...record, routing: { ...record.routing, agent: task.routing.agent! }, handover: undefined };
+            await this.state.writeActive(record);
+            this.log(`"${record.taskTitle}" moved from ${formatAgentReference(reassignedFrom)} to ${formatAgentReference(task.routing.agent!)}.`);
+        }
         // After a takeover, Fixer continues the task within the task's own MODEL constraints.
         const agent = record.handover ? record.handover.agent : (task.routing.agent ?? record.routing.agent);
         const route = await this.resumeRoute(task, agent, record);
@@ -4033,7 +4069,8 @@ export class Agenda {
         }
         this.clearBlocker('harness');
         const item = await this.buildWorkItem(task, route, { resume: record, createdPaths: record.createdPaths.map((path) => resolve(this.options.project.root, path)), slot: record.occurrence ? Date.parse(record.occurrence) : undefined });
-        if (item) await this.execute(record.handover ? { ...item, extraPrompt: [item.extraPrompt, handoverPrompt(record, record.handover)].filter(Boolean).join('\n\n') } : item, unit);
+        const takeover = record.handover ? handoverPrompt(record, record.handover) : reassignedFrom ? reassignmentPrompt(record, reassignedFrom) : undefined;
+        if (item) await this.execute(takeover ? { ...item, extraPrompt: [item.extraPrompt, takeover].filter(Boolean).join('\n\n') } : item, unit);
     }
 
     /**
@@ -5051,6 +5088,26 @@ export class Agenda {
  * work have their own bounded handling).
  */
 const HANDOVER_KINDS: ReadonlySet<ActiveRecord['kind']> = new Set(['task', 'maintenance', 'intent']);
+
+/**
+ * Normalized identity of an agent named as `@Name`, `{Full Name}` or plainly.
+ */
+function agentKeyOf(agent: string): string {
+    return normalizeAgentName(parseReferenceValue(agent)?.name ?? agent);
+}
+
+/**
+ * What an agent is told when work moves to it from another agent.
+ */
+function reassignmentPrompt(record: ActiveRecord, from: string): string {
+    return [
+        '## Taking over a reassigned task',
+        '',
+        `This task was moved to you from ${formatAgentReference(from)}, who stopped at a checkpoint. The working tree may contain its partial changes; the evidence of its attempts is in \`${traceDirectoryOf(record.sourcePath)}/\`.`,
+        '',
+        '- Continue from that state instead of starting over, and do not repeat an external action without verifying its current state first.',
+    ].join('\n');
+}
 
 /**
  * Briefing of Fixer taking over a failed task in the same record.
