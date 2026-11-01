@@ -3,8 +3,8 @@
 - **Outcome:** pending
 - **Impact:** 2
 - **Action time:** 2026-11-01T21:08:26+01:00
-- **Recorded:** 2026-11-01T21:08:55+01:00
-- **Attempts:** 2
+- **Recorded:** 2026-11-01T21:09:14+01:00
+- **Attempts:** 3
 - **Agent:** Release Video
 - **Task:** Publish the Promptbook 0.119.0-47 release video - 2026-11-01 21:04:12
 - **Task source:** tasks/2026-11-01-release-video-0-119-0-47.book (revision 5e3a540bda30)
@@ -22,7 +22,7 @@ releases/videos/0.119.0-47/script.md; video.mp4 SHA-256 2e10993212631487ae081dde
 
 ## Observed outcome
 
-Existing uploaded video jdSEZ5OJEho now has the release title and description entered. Audience corrected to not made for kids for this technical overview (a stale reference had briefly selected the other radio). Studio processing to HD; no public publication yet. Same upload only.
+Clicked Publish once for existing video jdSEZ5OJEho with public visibility selected. Awaiting post-click acknowledgement and watch-page/Studio verification. Copyright checks were still running at submission; do not upload or republish again without reconciliation.
 
 ## Impact
 
@@ -42,3 +42,5 @@ Methodology:
 - 2026-11-01T21:08:37+01:00 — pending: Studio confirms upload complete and assigns video jdSEZ5OJEho on verified channel UCH76EQk6XKI6WF7k_Pdh2GA. Processing not yet started; not publicly published. Continue this existing upload only. (attempt nfqtqg642r-a1)
 - 2026-11-01T21:08:38+01:00 — another attempt of the same action begun (attempt nfqtqg642r-a1)
 - 2026-11-01T21:08:55+01:00 — pending: Existing uploaded video jdSEZ5OJEho now has the release title and description entered. Audience corrected to not made for kids for this technical overview (a stale reference had briefly selected the o (attempt nfqtqg642r-a1)
+- 2026-11-01T21:09:09+01:00 — another attempt of the same action begun (attempt nfqtqg642r-a1)
+- 2026-11-01T21:09:14+01:00 — pending: Clicked Publish once for existing video jdSEZ5OJEho with public visibility selected. Awaiting post-click acknowledgement and watch-page/Studio verification. Copyright checks were still running at subm (attempt nfqtqg642r-a1)
