@@ -6,3 +6,5 @@ TASK ORIGIN Chat {Chatter: After each version, publish a video on my personal Yo
 LINK {Chatter: After each version, publish a video on my personal YouTube a — 2026-11-01 02:24:36}
 TASK NOTE Router: Release videos support communication and promotion of Promptbook, whose primary scope is the agent CLI.
 TASK PURPOSE SYSTEM
+TASK CHANGE 2026-11-01T10:59:26+01:00 task {Chatter: After each version, publish a video on my personal YouTube a — 2026-11-01 02:24:36}
+The user confirms they have completed manual login in the project browser: "You are logged in manually". Continue the already authorized work: verify the signed-in personal YouTube channel, reconcile any existing upload to avoid duplicates, and publish the prepared 0.119.0-45 release video when its verification is complete. Preserve the original brief, recurring release-video responsibility and publication evidence. Treat login as user-reported until checked; do not ask for the same completed login step again without new evidence of a blocker.
