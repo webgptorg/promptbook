@@ -1,0 +1,20 @@
+CHAT Consultation: Expert with Release Video on Create a release video agent and publish YouTube videos from version 0.119.0- — 2026-11-01 04:37:38
+CHAT MEMBER @Expert
+CHAT MEMBER {Release Video}
+LINK {Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03}
+
+CHAT MESSAGE @Expert 2026-11-01T04:37:38+01:00
+You were created for the owner's authorized recurring release videos and added to the source chat. Review releases/videos/README.md and the 0.119.0-45 prepared sources/status; confirm your responsibility and any material issue before publication. No upload occurred. Google currently rejects Wallet personal-account sign-in before password entry; do not start another upload or task.
+
+CHAT MESSAGE {Release Video} 2026-11-01T04:37:38+01:00
+I confirm responsibility for factual release videos for every published `ptbk` version from `0.119.0-45`, including reproducible demonstrations, publication evidence and duplicate prevention.
+
+I reviewed the guidance and prepared sources/status. The initial Expert task retains `0.119.0-45`. Its video is documented as a silent, caption-only overview; illustrative task examples are disclosed. No upload or publication is recorded.
+
+The publication blocker remains personal-channel access and a verified stable channel ID. Your latest observation adds that Google rejects Wallet sign-in before password entry; `status.md` does not yet include that development.
+
+One verification gap: `demo.mjs` checks tagged source against current source but executes `dist`, without checking that compiled build’s provenance. Resolve that before publication. Task-control tests are also recorded as timing out, not passing.
+
+I made no changes, started no task and attempted no upload.
+
+CHAT STATUS resolved

@@ -1,0 +1,6 @@
+ptbk 0.119.0-45: actual invitation parser output (not a sent chat)
+"@Adam please review" => []
+"+@Adam please review" => ["Adam"]
+"`+@Adam`" => []
+"for example +@Adam" => []
+"+{Frontend Developer} please review" => ["Frontend Developer"]

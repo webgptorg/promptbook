@@ -1,5 +1,11 @@
 # Unreleased
 
+## Release videos: a dedicated agent and ordinary recurring discovery
+
+-   Added the editable Release Video agent for the owner's authorized personal-YouTube release videos, starting with 0.119.0-45, and an hourly ordinary task that discovers published versions and queues one publication task per version.
+-   Added release evidence, a reproducible invitation-parser demonstration and sources for the first caption-only video. Publication requires verified personal-channel access; the existing workspace account has no channel, and Google rejected the newly supplied personal-account Wallet sign-in before password entry. No upload is claimed.
+-   Documented per-version ownership, Studio/action-record reconciliation and confirmed video receipts to prevent duplicate uploads after retries or restarts. Preserved the source conversation and added the agent as a participant.
+
 ## Chats: work can move to another agent
 
 -   Asking a chat to give a task to someone else moves it: the previous agent stops at its nearest safe point, and the new one takes over only once it is free, so a task never has two owners and no agent holds two tasks.

@@ -1,0 +1,12 @@
+TASK Discover published versions for release videos — 2026-11-01 02:55:33
+GOAL Check the public npm registry's ptbk versions and release metadata every occurrence. For each published version newer than 0.119.0-45, including prereleases and versions missed during downtime, create exactly one bounded ordinary top-level task assigned to {Release Video} to verify, demonstrate, produce and publicly publish that version's video under the owner's existing authorization. Follow releases/videos/README.md and the agent's rules. No new publication needs routine approval. If nothing new is published, report that observation without creating work.
+RULE Before creating work inspect all existing task Books, releases/videos/<version>/status.md, and external-action records for that version. Reuse existing pending/failed/waiting work; never create another task to bypass a blocker or uncertain upload. The initial version 0.119.0-45 belongs to the linked Expert task and must not be queued again. Process every missing eligible version in semantic version order; do not rely only on npm dist-tags or lexicographic ordering.
+RULE Allocate each task's distinct generated name once using its actual creation timestamp. Preserve the exact version, publication evidence, preceding published version, source conversation and authorization in its GOAL and LINK commitments. Use TASK PURPOSE SYSTEM. Do not upload in this discovery occurrence. Do not add a second scheduler or change release scripts.
+TASK AGENT {Release Video}
+TASK REPEAT 1h
+TASK AFTER 2026-11-01T04:00:00+01:00
+TASK PRIORITY 1
+TASK PURPOSE SYSTEM
+LINK {Release Video}
+LINK {Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03}
+LINK {Chatter: After each version, publish a video on my personal YouTube a — 2026-11-01 02:24:36}

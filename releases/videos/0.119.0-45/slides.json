@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Promptbook 0.119.0-45",
+    "seconds": 16,
+    "narration": "A short overview of Promptbook 0.119.0-45: explicit agent invitations and changes that keep task history intact. This is a caption-only technical overview with no voice impersonation."
+  },
+  {
+    "title": "A release, not a draft",
+    "seconds": 20,
+    "narration": "The exact package is available on the public npm registry. Its Git revision matches the version tag. The preceding published version is prerelease forty four. The examples here select a few changes in that release, rather than describe everything in the accumulated changelog."
+  },
+  {
+    "title": "Explicit invitations",
+    "seconds": 27,
+    "narration": "In a chat message, a plain reference names an agent. Add a plus to invite that agent and ask it to reply. Full names work in single braces. Code and illustrative examples do not trigger invitations. That distinction lets you discuss an agent without accidentally calling it."
+  },
+  {
+    "title": "Actual parser output",
+    "seconds": 35,
+    "narration": "Here is actual output from the release's invitation parser. A plain reference returns no invitation. Plus Adam returns Adam. The same text inside code, or introduced as an example, returns none. A full name returns Frontend Developer. This is a safe parser demonstration; no chat message was sent."
+  },
+  {
+    "title": "Change a task; preserve its history",
+    "seconds": 29,
+    "narration": "Task changes are appended to the Book, so the original instructions remain visible. Task reopen continues the same finished work while preserving earlier results. This card is an illustrative Book, not a recording of a running task. The release includes task-control tests for these behaviors."
+  },
+  {
+    "title": "Saved / Delivered / Applied",
+    "seconds": 32,
+    "narration": "Saved, delivered and applied are separate evidence. A change saved in a Book is not automatically proof that a running worker used it. The same principle applies to release videos: prepared media or an uploaded draft does not prove public publication. Links to the exact package, source and comparison are in the description."
+  }
+]
