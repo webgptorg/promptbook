@@ -9,4 +9,12 @@ MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
 
 CHAT MESSAGE @Chatter 2026-11-01T02:24:49+01:00 progress
 - $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md'
+- ptbk.create_task Original user request: "After each version, publish a video on my personal YouTube about this version. Start with versio
 
+LINK {Create a release video agent and publish YouTube videos from version 0.119.0-45 — 2026-11-01 02:25:03}
+CHAT MESSAGE @Chatter 2026-11-01T02:25:08+01:00 final
+Queued work to create a dedicated agent that makes and publishes a video on your personal YouTube after each release, starting with **0.119.0-45**.
+
+The task is queued; the agent and first video are not created yet.
+
+CHAT TITLE YouTube videos for every release
