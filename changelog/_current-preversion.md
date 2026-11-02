@@ -1,5 +1,10 @@
 # Unreleased
 
+## Shared desktop initialization presentation
+
+- Let attended desktop CLI children render the original init prompts through a private authenticated loopback transport, with the same validation, Back/Cancel, complete attachment payloads and native-terminal fallback. Ordinary CLI/headless input is unchanged; presentation credentials never enter persisted service environments.
+- Add `ptbk dashboard --view <page>` for direct page attachment without starting or changing the engine, using the normal page loaders.
+
 ## Local desktop control contract
 
 - Specify an optional Windows Electron client with independent windows, a login-started tray, the existing per-project supervision and explicit host-wide quit semantics.

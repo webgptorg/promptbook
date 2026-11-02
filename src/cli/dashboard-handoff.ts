@@ -1,7 +1,9 @@
 import type { Project } from '../project/workspace.js';
 import type { ServiceLookup } from '../service/control.js';
 import { runDashboard } from '../ui/dashboard.js';
-import { flag, type CommandContext } from './context.js';
+import { TILE_TITLES, type HomeTile } from '../ui/dashboard-home.js';
+import { usageError } from '../common/errors.js';
+import { flag, option, type CommandContext } from './context.js';
 import { delegateToEngine } from './engine-delegation.js';
 import { controlSource } from './sources.js';
 
@@ -25,6 +27,8 @@ export function wantsDashboardHandoff(context: CommandContext): boolean {
  */
 export async function attachDashboard(context: CommandContext, project: Project, lookup: Extract<ServiceLookup, { state: 'running' }>, args: readonly string[] = ['dashboard', '--path', project.root]): Promise<number> {
     if (!lookup.engine.compatible) return await delegateToEngine(project, lookup, args, context.cwd, context.env);
-    await runDashboard(context.terminal, controlSource(lookup.client));
+    const view = option<string>(context, 'view');
+    if (view && !Object.hasOwn(TILE_TITLES, view)) throw usageError(`Unknown dashboard page \"${view}\".`, 'dashboard', `Use one of ${Object.keys(TILE_TITLES).join(', ')}.`);
+    await runDashboard(context.terminal, controlSource(lookup.client), view as HomeTile | undefined);
     return 0;
 }
