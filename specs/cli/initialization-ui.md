@@ -8,7 +8,7 @@ Init is a short attended journey with a beginning, visible progress and an end. 
 
 Open new initialization with one generous field asking what the user is working on. Accept prose, long pasted material and images/files through the shared [rich composer](rich-input.md), with inspectable compact tokens instead of terminal payload dumps. Retain supplied input and resumed drafts. Existing-project maintenance reuses recorded purpose and does not request a replacement brief. Do not ask for a separate first task.
 
-After intent, offer the three [destinations](initialization.md#initial-input-and-destination) in order: shared home-based PTBK projects folder, current directory, new subfolder. Explain existing-work versus new-agenda use, reuse an explicit destination and show the resolved path before writes.
+After intent, offer the three [destinations](initialization.md#initial-input-and-destination) in order: shared home-based ptbk projects folder, current directory, new subfolder. Explain existing-work versus new-agenda use, reuse an explicit destination and show the resolved path before writes.
 
 Offer **Use the global CLI** first/preferred and local installation second, respecting an existing destination-local dependency. For a fresh selection, preselect detected installed/configured usable harnesses, or OpenAI Codex when none are available; executable presence alone is insufficient. Let users deselect them and retain explicit/prior selections.
 

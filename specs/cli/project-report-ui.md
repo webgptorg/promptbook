@@ -2,7 +2,7 @@
 
 [Report](project-report.md) · [Dashboard layout](dashboard-layout.md) · [Shared status](status-view.md)
 
-Show a prominent full-width brief immediately beneath Promptbook/PTBK and project identity, above the home grid. Render only the last complete parsed Chatter message from `report.book`, as a concise paragraph with its original generation time/freshness. Do not show raw Book controls/old messages. Lifecycle and readiness facts come from the engine in their proper tiles, not inferred from old prose.
+Show a prominent full-width brief immediately beneath Promptbook/ptbk and project identity, above the home grid. Render only the last complete parsed Chatter message from `report.book`, as a concise paragraph with its original generation time/freshness. Do not show raw Book controls/old messages. Lifecycle and readiness facts come from the engine in their proper tiles, not inferred from old prose.
 
 Reserve responsive height for identity plus brief and reduce secondary tile whitespace/copy before requiring ordinary scrolling. The operator should understand the important project situation without entering every tile. Keep full text available through the shared viewer when a very narrow surface needs truncation; never hide a material request behind unlabeled clipping. Missing/stale/pending-generation state is truthful and the last saved brief stays readable.
 

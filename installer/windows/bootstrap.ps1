@@ -16,7 +16,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string] $PromptbookVersion,
-    [string] $ProjectsRoot = (Join-Path (Join-Path $env:USERPROFILE 'PTBK') 'project'),
+    [string] $ProjectsRoot = (Join-Path (Join-Path $env:USERPROFILE 'ptbk') 'project'),
     [string] $ProjectName = 'my-first-project',
     [switch] $SkipProject,
     [switch] $AllowPtbkReplacement,

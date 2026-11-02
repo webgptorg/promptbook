@@ -132,7 +132,7 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
 }
 
 /**
- * The minimal terminal title of a project dashboard, `PTBK <single-line agent visual> <project>`: the visual of the
+ * The minimal terminal title of a project dashboard, `ptbk <single-line agent visual> <project>`: the visual of the
  * agent that currently owns execution, otherwise the stable default Promptbook visual (never a stale previous worker).
  * Versions, paths, modes and task titles live inside the dashboard pages.
  *
@@ -1624,7 +1624,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     screen.enter();
     keyboard.start();
     process.stdout.on('resize', onResize);
-    // The PTBK title animates the current worker's visual and is reasserted while this viewer is open.
+    // The ptbk title animates the current worker's visual and is reasserted while this viewer is open.
     const title = new TitleAnimation(terminal.title, (titleFrame) => dashboardTitle(snapshot, titleFrame), terminal.reducedMotion);
     title.start();
     updateAttention();

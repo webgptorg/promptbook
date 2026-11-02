@@ -96,13 +96,13 @@ export function intendedUser(env: NodeJS.ProcessEnv = process.env): IntendedUser
 }
 
 /**
- * The shared home-based container of new projects: exactly `<home>/PTBK/project/` (uppercase `PTBK`, singular
+ * The shared home-based container of new projects: exactly `<home>/ptbk/project/` (lowercase `ptbk`, singular
  * `project`, one child per independent project). It is only a filesystem container, never a project or repository.
  *
  * @private user home and identity
  */
 export function sharedProjectsRoot(env: NodeJS.ProcessEnv = process.env): string {
-    return join(intendedUser(env).home, 'PTBK', 'project');
+    return join(intendedUser(env).home, 'ptbk', 'project');
 }
 
 /**

@@ -66,7 +66,7 @@ test('History: real topology with forks and merges, full original messages and t
     const text = page.body.map(stripAnsi).join('\n');
     assert.match(text, /`o\(ee\)o` Build the feature/, 'agent work is shown by its visual, without the ptbk: prefix');
     assert.match(text, /Fixture Tester: Initial ordinary commit/, 'ordinary commits keep their real author');
-    assert.match(text, /PTBK Chat - Old thread/);
+    assert.match(text, /ptbk Chat - Old thread/);
 });
 
 test('Files: confined nonhidden browsing with readable formatting; hidden, escaping and protected paths are refused', async (t) => {

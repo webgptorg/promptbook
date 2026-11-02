@@ -85,7 +85,7 @@ def main():
         content = ImageFont.truetype(MONO if index in (3, 5) else FONT, 32 if index in (3, 5) else 44)
         caption = ImageFont.truetype(FONT, 29)
         draw.rectangle((70, 70, 85, 740), fill='#55d5bc')
-        draw.text((115, 75), 'PTBK / RELEASE NOTES', font=ImageFont.truetype(FONT, 25), fill='#55d5bc')
+        draw.text((115, 75), 'ptbk / RELEASE NOTES', font=ImageFont.truetype(FONT, 25), fill='#55d5bc')
         draw.text((115, 130), title, font=heading, fill='white')
         for row, line in enumerate(wrapped(draw, body, content, 1680)):
             draw.text((115, 250 + row * 53), line, font=content, fill='#d9e4f4')

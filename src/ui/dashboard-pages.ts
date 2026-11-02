@@ -748,7 +748,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 const commit = row.commit;
                 const who = commit.kind === 'agent' ? style.accent(`\`${commit.visual}\` `) : commit.kind === 'foreign' ? style.muted(`${commit.author}: `) : '';
                 const refs = commit.refs.length ? style.warning(` (${commit.refs.join(', ')})`) : '';
-                body.push(`${pointer(focused)} ${style.muted(row.graph)} ${style.muted(formatShortTime(Date.parse(commit.at)))} ${who}${commit.kind === 'legacy' ? style.muted('PTBK ') : ''}${terminalSafe(commit.summary)}${refs}`);
+                body.push(`${pointer(focused)} ${style.muted(row.graph)} ${style.muted(formatShortTime(Date.parse(commit.at)))} ${who}${commit.kind === 'legacy' ? style.muted('ptbk ') : ''}${terminalSafe(commit.summary)}${refs}`);
                 index++;
             }
             if (view.more) body.push('', style.muted('… older commits are not shown here (git log has the complete history).'));
@@ -769,7 +769,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 '',
                 ...detail.message.split('\n').flatMap((line) => wrap(terminalSafe(line), Math.max(20, width - 2))),
             ];
-            return { title: `History › ${detail.sha.slice(0, 10)}`, context: detail.kind === 'agent' ? `agent work · ${detail.visual}` : detail.kind === 'system' ? 'Promptbook system operation' : detail.kind === 'legacy' ? 'legacy PTBK subject' : 'ordinary commit', body, legend: `↑↓ scroll · ${detail.links.tasks.some((task) => task.path) ? 'E open the task · ' : ''}${detail.links.chats.some((chat) => chat.exists) ? 'C open the chat · ' : ''}${back}` };
+            return { title: `History › ${detail.sha.slice(0, 10)}`, context: detail.kind === 'agent' ? `agent work · ${detail.visual}` : detail.kind === 'system' ? 'Promptbook system operation' : detail.kind === 'legacy' ? 'legacy ptbk subject' : 'ordinary commit', body, legend: `↑↓ scroll · ${detail.links.tasks.some((task) => task.path) ? 'E open the task · ' : ''}${detail.links.chats.some((chat) => chat.exists) ? 'C open the chat · ' : ''}${back}` };
         }
         case 'files': {
             const location = page.path || '.';

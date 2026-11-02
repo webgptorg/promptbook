@@ -15,7 +15,7 @@ export type TerminalTitleContext = {
 };
 
 /**
- * The minimal title of a dashboard: `PTBK <single-line agent visual> <project name>` (or `Global`).
+ * The minimal title of a dashboard: `ptbk <single-line agent visual> <project name>` (or `Global`).
  *
  * @private terminal title
  */
@@ -37,7 +37,7 @@ const TITLE_SYMBOL = '📖';
 /**
  * Prefix of the minimal dashboard titles.
  */
-const DASHBOARD_PREFIX = 'PTBK';
+const DASHBOARD_PREFIX = 'ptbk';
 
 /**
  * Longest project name kept in a title (graphemes).
@@ -117,7 +117,7 @@ export function formatTerminalTitle(context: TerminalTitleContext, unicode = tru
 }
 
 /**
- * Formats the exact dashboard title `PTBK <visual> <label>`, e.g. `PTBK ~<@@/>- birds` or `PTBK ~<@@/>/ Global`,
+ * Formats the exact dashboard title `ptbk <visual> <label>`, e.g. `ptbk ~<@@/>- birds` or `ptbk ~<@@/>/ Global`,
  * without the book symbol, the word Promptbook, version, path, mode or task (those live inside the dashboard).
  *
  * @private terminal title
