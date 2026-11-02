@@ -183,8 +183,8 @@ export const POINTER_PICK_HINT = 'click focus, again confirm';
  */
 export async function selectOne<T>(terminal: TerminalProfile, options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; defaultValue?: T; escapeLabel?: string; searchable?: boolean }): Promise<T | typeof CANCELLED> {
     if (terminal.prompts) {
-        const preferred = options.choices.findIndex((choice) => choice.value === options.defaultValue && !choice.disabled);
-        const initial = preferred >= 0 ? preferred : options.choices.findIndex((choice) => !choice.disabled);
+        let initial = Math.max(0, options.choices.findIndex((choice) => choice.value === options.defaultValue));
+        for (let step = 0; step < options.choices.length && options.choices[initial]?.disabled; step++) initial = (initial + 1) % options.choices.length;
         for (;;) {
             const answer: PresentationAnswer = await terminal.prompts({ kind: 'one', frame: options.frame, question: options.question, choices: options.choices.map((choice, index) => ({ ...choice, value: index })), initial });
             if (presentationCancelled(answer)) return CANCELLED;

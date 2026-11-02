@@ -2,6 +2,7 @@
 
 ## Windows packaging icon
 
+- Keep graphical default focus identical to terminal focus when a preferred choice is disabled.
 - Use the existing 256px transparent product logo for the Electron ICO container; preserve the source PNG bytes and validate its dimensions before packaging. The original 48px installer icon was insufficient for Electron metadata.
 - Disable implicit Electron publication; the existing versioned Inno release flow remains the only Windows publisher.
 

@@ -39,6 +39,14 @@ test('graphical default focus matches the first enabled terminal choice and remo
     assert.equal(await selectOne(terminal, { frame: { title: 'Init', summary: ['\x1b[32mReady\x1b[0m'] }, question: '\x1b[1mChoose\x1b[0m', choices: [{ value: 'off', label: 'Disabled', disabled: true }, { value: 'on', label: '\x1b[32mEnabled\x1b[0m' }] }), 'on');
 });
 
+test('a disabled preferred choice advances to the same following option as the terminal', async (t) => {
+    const { terminal } = await presentation(t, (prompt) => {
+        assert.equal(prompt.initial, 2);
+        return { action: 'answer', value: prompt.initial };
+    });
+    assert.equal(await selectOne(terminal, { frame, question: 'Installation', defaultValue: 'disabled', choices: [{ value: 'first', label: 'First' }, { value: 'disabled', label: 'Unavailable', disabled: true }, { value: 'next', label: 'Next' }] }), 'next');
+});
+
 test('the original initializer reports its actual completed project without another user prompt', async (t) => {
     let completion;
     const server = await createPromptServer((prompt) => { completion = prompt.completion; });
