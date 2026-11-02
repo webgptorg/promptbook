@@ -1,5 +1,11 @@
 # Unreleased
 
+## Optional local desktop client
+
+- Add a Windows-first Electron tray/controller with independent windows, the existing graphical dashboard, shared global controls and actual xterm/node-pty CLI attachments. Window closure leaves project engines and per-project supervision unchanged.
+- Render the same init prompts graphically with shared rich-input payloads, native sign-in in the embedded terminal and direct CLI page fallback. Keep the separate system Node/CLI runtime outside Electron and preserve headless npm dependencies.
+- Add focused controller validation tests and a packaged Windows end-to-end fixture covering multiple windows, native terminals, init cancellation and engine survival.
+
 ## Shared desktop initialization presentation
 
 - Let attended desktop CLI children render the original init prompts through a private authenticated loopback transport, with the same validation, Back/Cancel, complete attachment payloads and native-terminal fallback. Ordinary CLI/headless input is unchanged; presentation credentials never enter persisted service environments.

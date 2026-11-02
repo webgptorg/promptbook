@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Promptbook</title>
+  <link rel="stylesheet" href="vendor/xterm.css">
+  <link rel="stylesheet" href="app.css">
+  <script src="vendor/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="brand"><span aria-hidden="true">~&lt;@@/&gt;-</span><strong>Promptbook</strong><small>LOCAL</small></div>
+    <div id="heading">Your projects</div>
+    <button id="new-window">New window</button>
+    <button id="cli">Open in terminal</button>
+  </header>
+  <aside>
+    <button id="overview" class="wide">All projects</button>
+    <div class="section-label">PROJECTS</div>
+    <nav id="projects" aria-label="Known projects"></nav>
+    <button id="new-project" class="wide primary">＋ New project</button>
+    <button id="global-cli" class="wide">CLI global dashboard</button>
+    <footer><span id="version">ptbk</span><br>Closing a window leaves<br>your engines running.</footer>
+  </aside>
+  <main>
+    <div id="notice" role="status" hidden></div>
+    <div id="workspace">
+      <section id="overview-pane"></section>
+      <section id="dashboard-pane" hidden aria-label="Project dashboard"><p class="empty">Connecting to the local project dashboard…</p></section>
+      <section id="terminal-pane" hidden>
+        <div id="terminal-tabs" role="tablist" aria-label="CLI terminals"></div>
+        <section id="prompt-pane" hidden aria-label="Project initialization"></section>
+        <div id="terminal-host"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
