@@ -1,6 +1,9 @@
 TASK Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 01:07:45
 GOAL Review how Release Video performed {Discover published versions for release videos — 2026-11-01 02:55:33} and improve `agents/release-video.book` where the available evidence justifies it and its learning permission allows. Making no change is a valid result.
 TASK AGENT @Teacher
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK PARENT {Discover published versions for release videos — 2026-11-01 02:55:33}
 TASK ORIGIN learning from {Discover published versions for release videos — 2026-11-01 02:55:33} by {Release Video}
 TASK NOTE Evidence: traces/2026-11-01-release-video-watch/harness.log (occurrence 2026-11-02T01:00:00+01:00)
+TASK NOTE Router: Improving the release-video agent's methods supports project operations rather than developing Promptbook's product behavior.
+TASK PURPOSE SYSTEM
