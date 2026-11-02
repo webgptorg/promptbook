@@ -6,9 +6,9 @@
 
 Give nontechnical users, initially a marketing agency, a short path from downloading Promptbook to the existing interactive `ptbk init`. They must not need to understand npm, install Git/Node.js manually, choose a project location from scratch or type the first command. Instructions and demonstration videos can begin with the initializer already open in a terminal.
 
-This is an incremental onboarding aid, **not a complete graphical/customer-ready application**. Windows is the initial scope; installers for other operating systems are future work. Existing global/local npm installation and CLI workflows remain supported and unchanged.
+Windows is the initial scope; installers for other operating systems are future work. Offer the optional [local desktop client](desktop.md), selected by default, alongside the engine/CLI and optional Codex and Claude Code installations. Existing global/local npm and CLI-only workflows remain supported.
 
-The installer is a very thin bootstrap layer: prepare prerequisites, install the ordinary npm package, prepare an empty destination and launch the ordinary CLI. Do not fork the engine, reimplement the initialization wizard, configure project tools/authentication separately or introduce another scheduler/updater. Project semantics remain in the [shared domain logic](../coding-standards/shared-logic.md).
+The installer is a very thin bootstrap layer: prepare prerequisites, install the ordinary npm package, prepare an empty destination and launch the selected desktop client or ordinary CLI. Do not fork the engine, reimplement the initialization wizard, configure project tools/authentication separately or introduce another scheduler/updater. Project semantics remain in the [shared domain logic](../coding-standards/shared-logic.md).
 
 ## Download and version contract
 
@@ -44,7 +44,7 @@ Skipping the first project leaves the CLI installed and reports that no project 
 
 For an accepted first project, the normal completion action opens a visible interactive terminal **and starts `ptbk init` automatically** in that directory. Pass the same destination explicitly through the existing `--path` selection so init reuses it instead of asking the user to choose another current-directory/subfolder location. Resolve the intended installed CLI rather than accidentally invoking another version or downloading one through an unpinned command.
 
-The terminal supports the existing interactive wizard with working input/output. Show the command being run, keep the terminal open after success, cancellation or error, and leave the user in the project directory. Users continue in the CLI; there is no requirement for a graphical version of init. From this point, the normal intent-first wizard owns local/global package choice, Git preparation, tools and login, configuration, setup commits and background start.
+The terminal supports the existing interactive wizard with working input/output. Show the command being run, keep the terminal open after success, cancellation or error, and leave the user in the project directory. CLI-only users continue in the CLI. With desktop selected, open its clickable presentation of the same initializer instead; native terminal-only steps run in its embedded terminal. From this point, the normal intent-first wizard owns local/global package choice, Git preparation, tools and login, configuration, setup commits and background start.
 
 Installer completion does not mean project initialization, authentication or the first task has completed. Do not start a second engine or dashboard around init; its ordinary completion and `ptbk dashboard` hint remain authoritative. Closing the installer must not terminate the handed-off terminal or an engine subsequently started by init.
 
@@ -65,6 +65,10 @@ Repeating setup rechecks and reuses satisfied prerequisites, the requested packa
 - **Interrupted/repeated setup:** Download failure, denied elevation, cancellation and a second installer run retain progress safely. No required failed step is reported as successful, no user data is removed, and retries do not duplicate projects or launches.
 - **Handoff or skip:** The normal path executes init and keeps its terminal open; launch failure supplies a visible recovery action. Skipping project creation installs the CLI without initializing any directory. Closing the bootstrapper leaves an already-handed-off terminal/engine alone.
 - **Release integration:** Every published version has a downloadable matching installer as well as the existing npm package. A missing, corrupt or mismatched artifact makes the release incomplete; clean-machine checks and retry behavior follow [release publication](releasing.md).
+
+## Desktop components and completion
+
+The desktop executable and tray controller follow [the desktop contract](desktop.md). Install a matching release payload, register only the tray at Windows sign-in and launch a visible application window at completion. Closing that window leaves the engines and tray alone. Optional harness installation prepares missing selected executables without authenticating or overwriting existing ones; normal init remains authoritative. Desktop failure is an incomplete installation with retry diagnostics. CLI-only selection keeps the terminal path below.
 
 ## Windows discovery and completion
 

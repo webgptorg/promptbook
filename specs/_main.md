@@ -86,7 +86,8 @@ The Windows installer is an additional release artifact, not a second engine or 
 
 - [Installation](cli/installation.md): Global/local package, prerequisite bootstraps, matching README/web guidance and local/VPS AI installation prompts.
 - [VPS onboarding](cli/vps-onboarding.md): One shell command from a clean supported server into ordinary interactive init, with the engine user's terminal and private persistent operation.
-- [Windows installer](cli/windows-installer.md): Thin prerequisite bootstrap, home-based first project and automatic terminal/init handoff.
+- [Windows installer](cli/windows-installer.md): Prerequisite bootstrap, optional desktop/harness components and matching GUI or CLI handoff.
+- [Local desktop client](cli/desktop.md): Optional Windows Electron client, tray lifetime, shared initialization and embedded primary CLI dashboard.
 - [Checks and publication on GitHub Actions](cli/releasing.md): Required hosted validation, npm publication and matching Windows release artifact.
 - [Engine updates](cli/updates.md): Default-on engine-owned system tasks, stable minor/patch and current-prerelease progression, shared-installation pins, migration/audit/recovery and early-init compatibility.
 - [Commands](cli/cli.md): Command surface/options, named tools, lifecycle and global dashboard.

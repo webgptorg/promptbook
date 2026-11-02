@@ -47,3 +47,7 @@ Leave a concise summary of project, actual engine version, local setup, confirme
 ## Acceptance outcomes
 
 Preserve a long brief and ordered attachments through navigation/resize and save them verbatim. Verify the old simple tool selectors, no check-command prompt, correct placeholder labeling and conditional sync step totals. No skips all remote questions; GitHub defaults private; custom origin remains available. Complete local setup and start without waiting for bootstrap or requiring an open view. Cancellation/launch failure never produces false celebration, and remote failure is shown independently while safe local work continues.
+
+## Optional local desktop presentation
+
+The [desktop client](desktop.md) presents this same wizard through clickable prompts and an embedded native terminal for sign-in. Share the state machine, prompt validation and domain operations; preserve all terminal behavior when the private presentation transport is absent.

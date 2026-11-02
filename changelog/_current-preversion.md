@@ -1,5 +1,11 @@
 # Unreleased
 
+## Local desktop control contract
+
+- Specify an optional Windows Electron client with independent windows, a login-started tray, the existing per-project supervision and explicit host-wide quit semantics.
+- Keep CLI first, including future features, and require one initializer with graphical prompts plus actual native terminals for login and session attachment.
+- Define default-selected desktop and optional Codex/Claude installer components without changing npm/headless operation.
+
 ## Consistent ptbk naming
 
 -   New projects use `<home>/ptbk/project/`, including the Windows installer and Ubuntu setup. Existing folders are not moved or migrated.

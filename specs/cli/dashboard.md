@@ -43,3 +43,7 @@ Opening the view only reads the shared saved report; no generation occurs. Discu
 ## Session inspection and native entry
 
 The browser shares the **Harnesses** tile/page replacing Current work, common selected-session data and guarded watch/exclusive/shared entry under [harness sessions](harness-sessions.md). A web terminal, if supported, carries the actual native client with enforced input gates; browser rendering does not create native-attachment capability. Keep the common view when unsupported. Closing/detaching the terminal returns to the selected session, without stopping the backend or engine. No additional per-entity lifecycle controls are introduced.
+
+## Local desktop attachment
+
+The optional [desktop client](desktop.md) is another local observer/controller. CLI remains the primary interface. `ptbk dashboard --view <page>` opens a named home page directly without changing service state; it conflicts with `--global`. Every graphical page can fall back to that CLI page in the embedded terminal.
