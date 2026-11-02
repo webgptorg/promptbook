@@ -1,5 +1,10 @@
 # Unreleased
 
+## Windows packaging icon
+
+- Use the existing 256px transparent product logo for the Electron ICO container; preserve the source PNG bytes and validate its dimensions before packaging. The original 48px installer icon was insufficient for Electron metadata.
+- Disable implicit Electron publication; the existing versioned Inno release flow remains the only Windows publisher.
+
 ## Desktop completion and verification
 
 - Preserve shared rich text, long pasted blocks, ordered attachments and clipboard images in graphical init; keep the first enabled default choice and remove terminal styling from presentation labels.
