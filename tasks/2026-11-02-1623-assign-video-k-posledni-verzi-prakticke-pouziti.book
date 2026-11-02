@@ -1,0 +1,8 @@
+TASK Assign routing: Video k poslední verzi: praktické použití ptbk v CLI s hlasem Pavola — 2026-11-02 16:23:38 — 2026-11-02 16:23:44
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Video k poslední verzi: praktické použití ptbk v CLI s hlasem Pavola — 2026-11-02 16:23:38}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PURPOSE SYSTEM
+TASK PARENT {Video k poslední verzi: praktické použití ptbk v CLI s hlasem Pavola — 2026-11-02 16:23:38}
+TASK ORIGIN assignment for {Video k poslední verzi: praktické použití ptbk v CLI s hlasem Pavola — 2026-11-02 16:23:38}
+TASK DONE 2026-11-02T16:24:33+01:00
