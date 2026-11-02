@@ -1,7 +1,7 @@
 import { TextEditor } from '../../../src/ui/composer.ts';
 
 /** Browser presentation of the CLI's shared composer model, retaining complete ordered paste/file payloads. */
-export function createRichInput({ initial = [], singleLine = false, placeholder = '', question = '' }) {
+export function createRichInput({ initial = [], singleLine = false, placeholder = '', question = '', clipboardImage }) {
     const field = document.createElement('div');
     field.className = 'rich-field';
     field.contentEditable = 'true';
@@ -51,6 +51,7 @@ export function createRichInput({ initial = [], singleLine = false, placeholder 
             if (node.dataset?.item) { const item = items.get(node.dataset.item); if (item) result.push(item); return; }
             if (node.nodeName === 'BR') { result.push({ type: 'text', text: '\n' }); return; }
             if (node.nodeName === 'DIV' && result.length) result.push({ type: 'text', text: '\n' });
+            if (node.nodeName === 'DIV' && node.childNodes.length === 1 && node.firstChild.nodeName === 'BR') return;
             for (const child of node.childNodes) read(child);
         };
         for (const child of field.childNodes) read(child);
@@ -60,9 +61,18 @@ export function createRichInput({ initial = [], singleLine = false, placeholder 
     field.append(fragment(new TextEditor(initial).segments()));
     field.addEventListener('paste', (event) => {
         event.preventDefault();
+        if ([...event.clipboardData.files].some((file) => file.type.startsWith('image/')) && clipboardImage) {
+            void clipboardImage().then((attachments) => insert(attachments));
+            return;
+        }
         const model = new TextEditor();
         model.paste(event.clipboardData.getData('text/plain'));
         insert(model.segments());
+    });
+    field.addEventListener('dblclick', (event) => {
+        const chip = event.target.closest?.('[data-item]');
+        const item = chip && items.get(chip.dataset.item);
+        if (item?.type === 'text') chip.replaceWith(document.createTextNode(item.text));
     });
     field.addEventListener('drop', (event) => event.preventDefault());
     field.addEventListener('keydown', (event) => {

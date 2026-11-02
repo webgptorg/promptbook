@@ -28,6 +28,27 @@ test('graphical choices retain initializer-owned values and reject disabled/out-
     assert.equal(call, 3);
 });
 
+test('graphical default focus matches the first enabled terminal choice and removes terminal styling only from labels', async (t) => {
+    const { terminal } = await presentation(t, (prompt) => {
+        assert.equal(prompt.initial, 1);
+        assert.equal(prompt.question, 'Choose');
+        assert.equal(prompt.choices[1].label, 'Enabled');
+        assert.deepEqual(prompt.frame.summary, ['Ready']);
+        return { action: 'answer', value: prompt.initial };
+    });
+    assert.equal(await selectOne(terminal, { frame: { title: 'Init', summary: ['\x1b[32mReady\x1b[0m'] }, question: '\x1b[1mChoose\x1b[0m', choices: [{ value: 'off', label: 'Disabled', disabled: true }, { value: 'on', label: '\x1b[32mEnabled\x1b[0m' }] }), 'on');
+});
+
+test('the original initializer reports its actual completed project without another user prompt', async (t) => {
+    let completion;
+    const server = await createPromptServer((prompt) => { completion = prompt.completion; });
+    t.after(() => server.close());
+    const actual = { root: '/tmp/the actual project', ready: true, running: true };
+    const result = await promptPresentation(server.env)({ kind: 'complete', frame: { title: 'Init' }, question: 'Initialization result', completion: actual });
+    assert.equal(result.action, 'answer');
+    assert.deepEqual(completion, actual);
+});
+
 test('graphical Back and Cancel follow the original distinct wizard transitions', async (t) => {
     let action = 'back';
     const { terminal } = await presentation(t, () => ({ action }));

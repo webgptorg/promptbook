@@ -1,7 +1,8 @@
 'use strict';
-const { app, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, shell } = require('electron');
+const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, shell } = require('electron');
 const { fork } = require('node:child_process');
-const { readFile, access } = require('node:fs/promises');
+const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
+const { randomUUID } = require('node:crypto');
 const { join, resolve, basename } = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { ACTIONS, localDashboardUrl, terminalArguments, dashboardPage, terminalSize } = require('./model.cjs');
@@ -18,6 +19,7 @@ let requestId = 0;
 let quitting = false;
 let refreshingTray = false;
 let quitInProgress = false;
+let clipboardDirectory;
 
 /** Resolves the separately installed Node/CLI; Electron never acts as the engine runtime. */
 async function resolveRuntime() {
@@ -254,6 +256,17 @@ ipcMain.handle('desktop:attachments', async (event) => {
     const result = await dialog.showOpenDialog(entry.window, { properties: ['openFile', 'multiSelections'] });
     return result.canceled ? [] : result.filePaths.map((path) => ({ type: 'attachment', kind: /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(path) ? 'image' : 'file', path, name: basename(path) }));
 });
+ipcMain.handle('desktop:clipboard-image', async (event) => {
+    owner(event);
+    const image = clipboard.readImage();
+    if (image.isEmpty()) return [];
+    const bytes = image.toPNG();
+    if (bytes.length > 32 * 1024 * 1024) throw new Error('The clipboard image is too large. Save it as a file and attach it.');
+    clipboardDirectory ||= mkdtemp(join(app.getPath('temp'), 'ptbk-desktop-paste-'));
+    const path = join(await clipboardDirectory, `${randomUUID()}.png`);
+    await writeFile(path, bytes, { mode: 0o600 });
+    return [{ type: 'attachment', kind: 'image', path, name: 'clipboard-image.png' }];
+});
 ipcMain.handle('desktop:terminal', async (event, options) => {
     const entry = owner(event);
     await ready;
@@ -265,14 +278,14 @@ ipcMain.handle('desktop:terminal', async (event, options) => {
     }
     hideDashboard(entry);
     const id = `${entry.window.id}-${++requestId}`;
-    const prompts = options.kind === 'init' ? await createPromptServer((prompt) => emit(entry, { type: 'prompt', terminal: id, prompt }), (promptId) => emit(entry, { type: 'prompt-closed', terminal: id, promptId })) : undefined;
+    const prompts = options.kind === 'init' ? await createPromptServer((prompt) => emit(entry, prompt.kind === 'complete' ? { type: 'initialized', terminal: id, completion: prompt.completion } : { type: 'prompt', terminal: id, prompt }), (promptId) => emit(entry, { type: 'prompt-closed', terminal: id, promptId })) : undefined;
     const pty = require('node-pty');
     const env = { ...process.env, ...runtime.env, ...prompts?.env, TERM: 'xterm-256color', TERM_PROGRAM: 'Promptbook', PTBK_REDUCED_MOTION: '1' };
     delete env.ELECTRON_RUN_AS_NODE;
     let child;
     try { child = pty.spawn(runtime.nodePath, [runtime.bin, ...args], { name: 'xterm-256color', ...terminalSize(options.cols, options.rows), cwd: app.getPath('home'), env }); }
     catch (error) { prompts?.close(); throw error; }
-    const terminal = { pty: child, prompts, buffer: '', flush: undefined };
+    const terminal = { pty: child, prompts, buffer: '', outstanding: 0, flush: undefined };
     entry.terminals.set(id, terminal);
     child.onData((data) => {
         terminal.buffer += data;
@@ -280,9 +293,11 @@ ipcMain.handle('desktop:terminal', async (event, options) => {
         if (terminal.buffer.length > 256 * 1024) child.pause();
         if (!terminal.flush) terminal.flush = setTimeout(() => {
             terminal.flush = undefined;
+            terminal.outstanding += terminal.buffer.length;
             emit(entry, { type: 'data', terminal: id, data: terminal.buffer });
             terminal.buffer = '';
-            child.resume();
+            if (terminal.outstanding < 1024 * 1024) child.resume();
+            else child.pause();
         }, 16);
     });
     child.onExit(({ exitCode }) => {
@@ -296,6 +311,7 @@ ipcMain.handle('desktop:terminal', async (event, options) => {
     return { id };
 });
 ipcMain.on('desktop:input', (event, { id, data }) => { try { const terminal = owner(event).terminals.get(id); if (terminal && typeof data === 'string' && data.length <= 1024 * 1024) terminal.pty.write(data); } catch {} });
+ipcMain.on('desktop:acknowledge', (event, { id, length }) => { try { const terminal = owner(event).terminals.get(id); if (terminal && Number.isInteger(length) && length > 0 && length <= terminal.outstanding) { terminal.outstanding -= length; if (terminal.outstanding < 256 * 1024) terminal.pty.resume(); } } catch {} });
 ipcMain.on('desktop:resize', (event, { id, cols, rows }) => { try { const terminal = owner(event).terminals.get(id); if (terminal) { const size = terminalSize(cols, rows); terminal.pty.resize(size.cols, size.rows); } } catch {} });
 ipcMain.handle('desktop:close-terminal', (event, id) => closeTerminal(owner(event), id));
 ipcMain.handle('desktop:answer', (event, { id, promptId, answer }) => { const terminal = owner(event).terminals.get(id); if (!terminal?.prompts) throw new Error('The initializer is no longer attached.'); terminal.prompts.answer(promptId, answer); });
@@ -309,10 +325,11 @@ function launchOptions(argv) {
 
 app.setName('Promptbook');
 if (!app.requestSingleInstanceLock()) app.exit(0);
+if (process.argv.includes('--quit-client')) app.exit(0);
 app.on('second-instance', (_event, argv) => { if (argv.includes('--quit-client')) { quitting = true; app.quit(); } else if (!argv.includes('--tray')) createWindow(launchOptions(argv)); });
 app.on('window-all-closed', () => {});
 app.on('activate', () => { if (!windows.size) createWindow(); });
-app.on('before-quit', () => { quitting = true; for (const entry of windows.values()) for (const id of entry.terminals.keys()) closeTerminal(entry, id); bridge?.disconnect(); });
+app.on('before-quit', () => { quitting = true; for (const entry of windows.values()) for (const id of entry.terminals.keys()) closeTerminal(entry, id); if (bridge?.connected) bridge.disconnect(); if (clipboardDirectory) void clipboardDirectory.then((directory) => rm(directory, { recursive: true, force: true })).catch(() => {}); });
 
 /** Startup initializes only the client adapter and tray; it never calls project Start/Resume. */
 const ready = app.whenReady().then(async () => {

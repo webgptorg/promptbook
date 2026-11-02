@@ -158,6 +158,9 @@ function selectTerminal(id) {
 /** Keeps existing terminal sessions discoverable until the user closes them. */
 function renderTabs() {
     $('terminal-tabs').replaceChildren(...[...terminals].map(([id, item]) => element('button', { className: id === activeTerminal ? 'active' : '', onclick: () => selectTerminal(id) }, item.title, element('span', { role: 'button', tabindex: '0', 'aria-label': `Close ${item.title}`, onclick: (event) => { event.stopPropagation(); void removeTerminal(id); } }, '  ×'))));
+    const active = terminals.get(activeTerminal);
+    const retryRoot = active?.completion?.root || active?.root;
+    if (active?.kind === 'init' && active.ended && retryRoot && (!active.completion?.ready || !active.completion?.running)) $('terminal-tabs').append(element('button', { onclick: () => void openTerminal('init', retryRoot) }, 'Resume setup'));
 }
 
 /** Closing an initializer requests its normal cancellation; closing a dashboard detaches only that client. */
@@ -185,7 +188,7 @@ function renderPrompt() {
     const controls = [];
     let rich;
     if (prompt.kind === 'text') {
-        rich = createRichInput({ initial: Array.isArray(prompt.initial) ? prompt.initial : [], singleLine: prompt.singleLine, placeholder: prompt.placeholder || '', question: prompt.question });
+        rich = createRichInput({ initial: Array.isArray(prompt.initial) ? prompt.initial : [], singleLine: prompt.singleLine, placeholder: prompt.placeholder || '', question: prompt.question, clipboardImage: () => api.clipboardImage().catch((error) => { notice(error.message, true); return []; }) });
         controls.push(rich.field);
         form.append(rich.field);
         if (prompt.attachments !== false && !prompt.singleLine) form.append(element('button', { type: 'button', onclick: async () => rich.attach(await api.chooseAttachments()) }, 'Attach files…'));
@@ -241,14 +244,17 @@ async function applyLaunch() {
 function terminalEvent(event) {
     const item = terminals.get(event.terminal);
     if (!item) { const queue = earlyEvents.get(event.terminal) || []; if (queue.length < 100) queue.push(event); earlyEvents.set(event.terminal, queue); return; }
-    if (event.type === 'data') item.term.write(event.data);
+    if (event.type === 'data') item.term.write(event.data, () => api.acknowledge(event.terminal, event.data.length));
+    else if (event.type === 'initialized') item.completion = event.completion;
     else if (event.type === 'prompt') { item.prompt = event.prompt; if (event.terminal === activeTerminal) renderPrompt(); }
     else if (event.type === 'prompt-closed') { if (item.prompt?.id === event.promptId) { item.prompt = null; if (event.terminal === activeTerminal) renderPrompt(); } }
     else if (event.type === 'exit') {
         item.ended = true; item.prompt = null;
+        renderTabs();
         item.term.writeln(`\r\n[CLI exited with ${event.exitCode}. The terminal client is closed; engines have their own lifetime.]`);
         if (event.terminal === activeTerminal) renderPrompt();
         void refresh();
+        if (event.exitCode === 0 && item.completion?.ready && item.completion?.running && item.completion.root) void openProject(item.completion.root);
     }
 }
 
@@ -263,7 +269,7 @@ $('new-window').onclick = () => void api.newWindow(selected);
 $('global-cli').onclick = () => void openTerminal('global');
 $('cli').onclick = () => {
     // The main process retains the current graphical page and validates its corresponding CLI name.
-    void openTerminal(selected ? 'dashboard' : 'global', selected);
+    void openTerminal(mode === 'overview' || !selected ? 'global' : 'dashboard', selected);
 };
 new ResizeObserver(layout).observe($('workspace'));
 window.addEventListener('resize', layout);

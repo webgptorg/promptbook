@@ -1,5 +1,11 @@
 # Unreleased
 
+## Desktop completion and verification
+
+- Preserve shared rich text, long pasted blocks, ordered attachments and clipboard images in graphical init; keep the first enabled default choice and remove terminal styling from presentation labels.
+- Attach the exact initialized project after the original CLI reports successful setup/start, without guessing from registry changes or launching another engine. Bound native-terminal delivery with renderer acknowledgements.
+- Make every Windows desktop check fail independently and retain the candidate installer as a CI artifact. Document local development and packaged end-to-end checks.
+
 ## Windows desktop installation and release checks
 
 - Offer engine/CLI, a default-selected desktop controller and optional Codex/Claude installations. Preserve prerequisite verification and CLI-only handoff; desktop completion opens the shared initializer and sign-in startup opens only the tray.

@@ -1,9 +1,10 @@
 import { createConnection } from 'node:net';
 import type { ComposedSegment } from './composer.js';
+import { stripAnsi } from './ansi.js';
 
 /** A presentation-only prompt; choice values stay in the initializer process. @private prompt presentation */
 export type PresentationPrompt = {
-    readonly kind: 'one' | 'many' | 'text' | 'toggles';
+    readonly kind: 'one' | 'many' | 'text' | 'toggles' | 'complete';
     readonly frame: { readonly title: string; readonly step?: string; readonly summary?: readonly string[]; readonly guide?: { readonly name: string; readonly note?: string } };
     readonly question: string;
     readonly choices?: readonly { readonly label: string; readonly description?: string; readonly disabled?: boolean; readonly value: number | string }[];
@@ -14,6 +15,7 @@ export type PresentationPrompt = {
     readonly singleLine?: boolean;
     readonly attachments?: boolean;
     readonly error?: string;
+    readonly completion?: { readonly root?: string; readonly ready: boolean; readonly running: boolean };
 };
 
 /** An answer has no domain authority; the original prompt validates it. @private prompt presentation */
@@ -40,7 +42,15 @@ export function promptPresentation(env: NodeJS.ProcessEnv): PromptPresentation |
             else resolve(answer!);
         };
         socket.setEncoding('utf8');
-        socket.once('connect', () => socket.write(`${JSON.stringify({ token, prompt })}\n`));
+        const presented: PresentationPrompt = {
+            ...prompt,
+            frame: { ...prompt.frame, title: stripAnsi(prompt.frame.title), step: prompt.frame.step ? stripAnsi(prompt.frame.step) : undefined, summary: prompt.frame.summary?.map(stripAnsi) },
+            question: stripAnsi(prompt.question),
+            choices: prompt.choices?.map((choice) => ({ ...choice, label: stripAnsi(choice.label), description: choice.description ? stripAnsi(choice.description) : undefined })),
+            hint: prompt.hint ? stripAnsi(prompt.hint) : undefined,
+            error: prompt.error ? stripAnsi(prompt.error) : undefined,
+        };
+        socket.once('connect', () => socket.write(`${JSON.stringify({ token, prompt: presented })}\n`));
         socket.on('data', (chunk: string) => {
             buffer += chunk;
             if (Buffer.byteLength(buffer) > 4 * 1024 * 1024) return finish(new Error('Prompt answer is too large.'));

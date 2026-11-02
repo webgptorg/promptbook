@@ -82,9 +82,13 @@ jobs:
         shell: pwsh
         run: |
           npm ci --prefix apps/desktop
+          if ($LASTEXITCODE -ne 0) { throw "Desktop dependency installation failed" }
           npm --prefix apps/desktop test
+          if ($LASTEXITCODE -ne 0) { throw "Desktop controller tests failed" }
           node --test test/desktop-prompts.test.mjs test/terminal-prompts.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Shared prompt tests failed" }
           npm --prefix apps/desktop run package:windows
+          if ($LASTEXITCODE -ne 0) { throw "Desktop packaging failed" }
           $env:PTBK_DESKTOP_EXECUTABLE = (Resolve-Path 'apps/desktop/release/win-unpacked/promptbook.exe').Path
           npm --prefix apps/desktop run test:e2e
           if ($LASTEXITCODE -ne 0) { throw "Desktop end-to-end checks exited with $LASTEXITCODE" }
@@ -146,3 +150,8 @@ jobs:
           & ./installer/windows/prepare-artwork.ps1
           & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$numeric" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
+      - uses: actions/upload-artifact@v6
+        with:
+          name: windows-desktop-installer-candidate
+          path: dist-installer/*.exe
+          if-no-files-found: error

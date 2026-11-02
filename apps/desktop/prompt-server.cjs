@@ -28,8 +28,13 @@ async function createPromptServer(onPrompt, onClosed = () => {}) {
                 const supplied = Buffer.from(String(request.token || ''));
                 const expected = Buffer.from(token);
                 if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return socket.destroy();
-                if (!request.prompt || !['one', 'many', 'text', 'toggles'].includes(request.prompt.kind) || typeof request.prompt.question !== 'string') return socket.destroy();
+                if (!request.prompt || !['one', 'many', 'text', 'toggles', 'complete'].includes(request.prompt.kind) || typeof request.prompt.question !== 'string') return socket.destroy();
                 if (pending.size) return socket.destroy();
+                if (request.prompt.kind === 'complete') {
+                    onPrompt({ ...request.prompt });
+                    socket.end(`${JSON.stringify({ action: 'answer' })}\n`);
+                    return;
+                }
                 id = String(++nextId);
                 pending.set(id, socket);
                 onPrompt({ id, ...request.prompt });

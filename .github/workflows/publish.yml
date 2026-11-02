@@ -81,8 +81,11 @@ jobs:
         run: |
           npm ci
           npm ci --prefix apps/desktop
+          if ($LASTEXITCODE -ne 0) { throw "Desktop dependency installation failed" }
           npm --prefix apps/desktop test
+          if ($LASTEXITCODE -ne 0) { throw "Desktop controller tests failed" }
           npm --prefix apps/desktop run package:windows
+          if ($LASTEXITCODE -ne 0) { throw "Desktop packaging failed" }
           if ($LASTEXITCODE -ne 0) { throw "Desktop packaging exited with $LASTEXITCODE" }
       - name: Build the installer from the release tag
         shell: pwsh
