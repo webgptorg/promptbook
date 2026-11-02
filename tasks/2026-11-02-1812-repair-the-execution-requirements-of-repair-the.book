@@ -1,0 +1,10 @@
+TASK Repair the execution requirements of Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00 — 2026-11-02 18:12:41
+GOAL The task {Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00} (`tasks/2026-11-02-1812-repair-the-execution-requirements-of-learn-from.book`) cannot be executed: Router found no compatible agent/combination: The fixed agent @Fixer requires harness=OPENAI_CODEX model=gpt-6.1-sol runtime=official, but the only usable offer supports model=gpt-5-codex.
+
+Its MODEL requirement is any model and its responsible agent is @Fixer. Promptbook keeps the task unfinished and blocked; it is reevaluated automatically once its source or the project's tools/agents change.
+
+Diagnose why no compatible combination exists (contradictory agent/task MODEL, a harness, model, endpoint or origin that no enabled tool offers) and repair it within your authority, for example by correcting a mistaken MODEL or TASK AGENT. Ask User before changing an explicit requirement when the repair would alter their intent; do not mark the task done or delete it.
+TASK AGENT @Fixer
+TASK PURPOSE SYSTEM
+TASK ORIGIN maintenance: impossible execution of {Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00}
+LINK {Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00}
