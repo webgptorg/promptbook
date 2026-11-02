@@ -20,7 +20,11 @@ Completion appends a concise attributed result and artifact links to the source 
 
 Ordinary task clarification reuses the originating/designated chat. A different executing agent appends its `CHAT MEMBER` before its first `CHAT MESSAGE`, asks under its **own** name and can report results directly. Chatter need not relay/impersonate it; User plus multiple agents is supported.
 
+When a human reply/action is genuinely needed, the asking agent uses **`+@User` or `+{User}`**. Task/TEAM/typed question helpers that receive a structured question without that literal prefix save it through the same canonical User-ping operation, preserving author/text/options/checkpoint rather than bypassing chat or creating another alert. Existing User membership is not duplicated. A new deliberate ping is new attention; recovery of the same question is not. Provide this convention in effective agent instructions.
+
 Chat and task detail show **one logical question**, sharing its answer/state. A response from either surface is saved once and reaches the asking agent. Clear that question's attention immediately on accepted user save, before provider processing/Git batching. Other questions retain their state. Resumption still validates authority, prerequisites, lifecycle and file ownership.
+
+The task and chat presentations also share one durable seen state under [notifications](notifications.md#seen-is-separate-from-resolved). Seeing the actual calling message clears its alert in both surfaces and all clients, but retains the pending question/card/checkpoint and cannot unblock execution. Do not emit separate task and chat notifications for that same occurrence.
 
 Reply-to-question routes to its author; explicit active invitation/address (`+@Name` or `+{Full Name}`) targets that agent; otherwise the original main agent handles the message. If no suitable linked chat exists, create/link the ordinary attributed agent-to-User conversation. Never create a duplicate just because a different specialist executes the task.
 

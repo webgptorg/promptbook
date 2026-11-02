@@ -37,9 +37,9 @@ Separately, a tile has **attention only when its domain requires a concrete huma
 
 New/unseen attention should be visually conspicuous, for example by a restrained blink/pulse in addition to its warning tone. The animation exists to make it difficult to overlook a new issue, not to punish intentional ignoring. Do **not** expire the conspicuous state simply because wall-clock time passed: an unattended dashboard may sit open for hours before an operator looks at it.
 
-Once the viewer has clear evidence that the operator is actively using that dashboard while leaving the attention item unresolved, the transient blink/pulse should settle into a persistent static warning. This acknowledgement is viewer-local presentation state; it may be derived from a short period or several meaningful navigation/actions after the operator becomes active. The exact debounce/count is an implementation choice. The underlying incident/request remains unresolved and the tile remains visibly marked until the domain reports it resolved. Focus and attention must still be distinguishable when both apply to the same tile.
+Apply the [shared seen-versus-resolved contract](notifications.md#seen-is-separate-from-resolved). Actually displaying the relevant message during active chat viewing clears that occurrence's attention across all clients, including its related task presentation, while the unanswered question/wait remains inspectable. Opening a list or navigating elsewhere is not reading the message. Wallet requires explicit **Mark as seen** or **Reject request**; merely entering its page does neither. Health/system incidents remain visibly marked until actual resolution or a supported explicit incident override. Do not blanket-dismiss all domains based on general activity.
 
-A saved user response clears its question's attention immediately, before agent/model processing or a Git batch, and updates every surface. Viewing/reading only settles local animation; it does not answer. Several pending items retain their individual state behind the same attention presentation.
+A saved user response clears its question's attention immediately, before agent/model processing or a Git batch, and updates every surface. Shared durable seen state can remove a chat/Wallet alert without answering or unblocking it. Several pending items retain individual seen and resolution state behind the same presentation. Focus and attention remain distinguishable when both apply to the same tile.
 
 Reduced-motion mode removes blinking/motion but retains equally clear unseen-versus-active warning semantics without relying on animation or color alone.
 
@@ -51,7 +51,7 @@ Escape returns one level to the previous dashboard page/home screen. Escape at t
 
 A dashboard page may use the full terminal/window and may scroll when its content is larger than the viewport. Prefer a stable page frame: keep a concise page title/context and discoverable controls/footer fixed where practical, while the list/log/detail body scrolls. Lists such as tasks, chats, agents and activity preserve selection and scroll across live updates and resize. Editing/composer controls retain drafts and local navigation.
 
-Opening a page is inspection/navigation, not mutation. Actions on that page use the shared engine/domain operations. Returning to the home screen preserves the operator's tile focus and reasonable local page state.
+Opening a page is inspection/navigation, not a lifecycle/task mutation. The narrowly defined chat-message seen acknowledgement uses the shared operation only on actual active display; opening other pages alone never resolves their requests/incidents. Actions on a page use shared engine/domain operations. Returning to the home screen preserves the operator's tile focus and reasonable local page state.
 
 ## Nested tile navigation
 
@@ -75,7 +75,7 @@ A concrete blocker may be summarized on the related home tile so the operator kn
 
 ## Responsive and live behavior
 
-Live updates must not flicker, move focus, reset page scroll, discard drafts or flood scrollback. A viewer's focus, page, scroll position and acknowledged visual attention are local presentation state and do not modify the engine or another viewer.
+Live updates must not flicker, move focus, reset page scroll, discard drafts or flood scrollback. A viewer's focus, page, scroll position and expanded presentation are local. Accepted chat/Wallet seen state is project-shared, without sharing those navigation choices. The experimental [Sounds & notifications](notifications.md) control remains accessible throughout project pages/chat and does not gate visual attention.
 
 Pretty one-shot snapshots may reuse the same information hierarchy without pretending to be navigable. Raw output remains labelled plain sections and need not imitate the tile geometry.
 
@@ -89,13 +89,15 @@ Exercise the dashboard at standard Windows terminal size, a moderately reduced V
 
 Move focus through every tile: double border/bold heading never changes its dimensions or shifts content. Keep state visible in tiles without an extra pause badge in the identity header. Include Wallet within the normal-size no-scroll layout.
 
-Create simultaneous attention in several domains. New items are conspicuous without moving focus; an operator can continue navigating elsewhere, after clear interaction the transient animation settles while unresolved warnings remain. Reduced motion preserves the meaning.
+Create simultaneous attention in several domains. New items are conspicuous without moving focus. Display a calling chat message: its alert clears everywhere but its question still waits; an offscreen message and other domains remain unseen. Explicitly mark a Wallet action seen or reject it, and verify Health warnings are unaffected. Reduced motion preserves the meaning. Test the full [notification acceptance outcomes](notifications.md#acceptance-outcomes).
 
 Open every tile with Enter. The home grid disappears and a full page is shown; long pages scroll inside their content while stable controls/context remain usable. Escape returns to the same home focus. No page, avatar, log or background refresh obscures required controls or mutates engine state merely by being viewed.
 
 ## Rendering under slow or hidden terminals
 
 Keep state/evidence collection independent of presentation. Coalesce superseded invalidations and pending frames; bound repaint rate and queued terminal output. Respect output backpressure asynchronously without blocking engine work, input or durable event/usage persistence. A hidden, minimized, throttled or slow terminal must not accumulate an ever-growing queue of obsolete full screens.
+
+Use one bounded per-terminal animation/render scheduler and shared monotonic frame time for the dashboard, agent character and [terminal status/title](terminal-title.md#animation-and-reassertion), including nested chat views. Different animation rhythms derive from that clock, not independent title/avatar/dashboard intervals. Snapshot polling and event delivery remain separate from rendering; redraws never generate sounds or new attention.
 
 When viewing resumes, render the latest coherent snapshot at the current size rather than replay every missed frame. Discard redundant presentation frames only, never actual messages, usage or evidence. No viewer or output stall may stop an independently running engine. This is a required behavior, not a claim that the reported freeze has a confirmed root cause.
 

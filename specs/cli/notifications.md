@@ -1,0 +1,97 @@
+# Attention, sounds and desktop notifications
+
+[Main specification](../_main.md) · [Human interaction](user-interactions.md) · [Dashboard layout](dashboard-layout.md) · [Terminal titles](terminal-title.md) · [Wallet](wallet.md)
+
+## Purpose and scope
+
+An agent can be working on another desktop or on a running unattended notebook. A genuinely needed human decision, input or action must remain discoverable, with optional sound and desktop notification when the operator is away. Deliberately ignoring a request is valid; active work must not be interrupted by redundant alerts.
+
+Keep three independent facts: **the underlying work/request state**, **whether its current attention has been seen**, and **whether optional external effects are enabled**. Reading is not answering, approval, verified login, cancellation or permission to continue blocked work. Unread messages and ordinary completion alone do not require attention under [minimal interruption](../concepts/minimal-interruption/decision-making.md).
+
+The normal visual indicators and [terminal status/title](terminal-title.md) work regardless of the effects switch. Only the added sounds and desktop notifications are **experimental**. Initial scope is interactive project terminal dashboards, their pages/chat views and standalone `ptbk chat`. Browser surfaces share the underlying request/seen state; this does not introduce a remote App push service. Raw, JSON, redirected and noninteractive output remain plain and never play sounds or issue desktop notifications.
+
+**Initialization and the global dashboard are excluded.** Do not add effects to the initializer or have the host-wide dashboard monitor all projects for notifications. Global-view ownership, nested project attachment/return and cross-project preferences are explicitly deferred, not an implicit extension of the project rule. A sleeping/off computer is outside the delivery guarantee; [macOS sleep prevention](power-management.md) is separate deferred research.
+
+## Explicitly summon User
+
+Plain `@User` and `{User}` are equivalent passive references. An agent requiring a human reply/action explicitly uses **`+@User` or `+{User}`** in its newly accepted nonliteral chat message. These are the ordinary reference forms with the existing active prefix, not a third syntax. Apply the same parsing exclusions as [active agent invitations](chats.md#references-versus-invitation): code, quotations, examples, escaping, malformed/double braces and embedded math-like tokens do not ping.
+
+The operation is both **invite and ping**. If User is absent, append its single `CHAT MEMBER` before the message; if already present, retain membership and create a new attention occurrence for this new explicit ping. Never invoke a model as User, make User a selectable conversational agent, or change FROM/TEAM rules. Normalization, routing to the question's actual author and multi-agent attribution stay shared.
+
+An accepted message containing several active references to the same User creates one occurrence. A later deliberate message with another active User reference creates new attention, including after an earlier occurrence was seen. Replaying history, snapshot refreshes, retrying the same accepted send or recovering a wait never create another occurrence. Do not automatically re-ping an unchanged ignored request on a timer.
+
+Give working/chat agents an explicit effective instruction: use the active User reference whenever genuinely requesting a human response; passive mention, normal progress and routine completion do not request attention. [Task questions](chat-tasks.md#questions-and-participants), TEAM User and typed human-question helpers use this **same canonical operation**: save an attributed message containing an active User reference and link it to the existing wait/checkpoint. A helper that receives a structured question without the literal prefix must normalize it through that operation, not create an anonymous second alert. Preserve the supplied question/options and deduplicate recovery. Wallet protected input and genuine Health/system incidents retain their own sources instead of putting secrets or fabricated agents in chat.
+
+## Seen is separate from resolved
+
+Track each attention occurrence independently of the chat's pending question, unread count and `CHAT STATUS`. A task question shown in both Tasks and Chats is one occurrence, not two notifications. Do not derive a new occurrence merely from a changed message count or a repeated snapshot of the same wait.
+
+For chat, mark the occurrence seen when the operator actively opens/views the conversation and the **actual relevant message is displayed in its viewport**. Merely opening the chat list, highlighting a tile, showing a task summary, fetching/preloading a thread or leaving a background chat open is insufficient. A new message actually displayed during active use of that chat can be marked seen by the same rule; an offscreen message above/below the current scroll position cannot. Long messages retain access to their full content.
+
+Seen state is **project-shared and durable**, propagated immediately to all views and retained across closing clients, engine restart and reopening. One viewer seeing a chat message clears that occurrence's attention highlight/blink and its contribution to the terminal attention marker everywhere, including the related task's duplicate presentation. Other unseen occurrences remain. Ordinary pending/waiting labels, task links and access to the unanswered question remain visible. Focus, drafts, scroll and expanded presentation stay viewer-local.
+
+Seeing never submits an answer, appends a resolved status, releases the task checkpoint or starts an agent turn. A real applicable saved response clears its question's outstanding attention immediately, before model processing/Git batching; continuation still validates authority and prerequisites. Historical seen metadata is not the temporary effects preference, a new Book entity or a reason for an empty audit commit.
+
+Wallet offers **Mark as seen** and **Reject request** under [its distinct action contract](wallet.md#seen-and-rejected-requests). Opening the Wallet page alone does not acknowledge its protected requests. Health/actionable system conditions do not disappear because their page was visited or the operator is active: they retain a visible warning until actual recovery/resolution or an already supported explicit incident override. Reduced motion removes blinking without losing these meanings.
+
+## One temporary switch per project
+
+Provide one discoverable English control, **Sounds & notifications (experimental)**, default **Off**. It jointly enables/disables subtle interaction sounds, incoming-chat sound cues, attention sounds and desktop notifications. Do not add separate switches for those effects in this version. Turning it off changes none of the ordinary visual/request/seen state or terminal-title behavior.
+
+The switch is **shared across all currently open participating clients of the same project**, including several project dashboards and standalone `ptbk chat`. Changing it anywhere updates all of them; opening another client joins the current setting. Different projects are independent. Survive home/page/chat navigation and transitions within one invocation; do not write `ptbk.json`, environment, agent Books or a durable user preference. Once the last participating project client closes/disconnects, discard the setting; the next session starts Off. An engine restart also starts effects Off, without losing durable requests/seen records.
+
+Expose the same control/state in the shared frame/legend of every relevant project view, including the home screen, detail pages, chat and protected Wallet views. It must remain usable without leaving a conversation or discarding entered text. Use one shared command/control, not copied handlers. Do not capture composer text/paste keys or add another toggle to every tile. Any native permission/capability failure is reported honestly without pretending delivery succeeded.
+
+Registering/reconnecting a client, switching On, changing ownership or restoring a suspended view establishes the current event baseline. **Never announce existing backlog.** Visual pending items remain inspectable. With zero clients, the engine keeps its work/attention state but has no terminal effects owner; this feature adds no independent notification daemon.
+
+## Only the last-used client emits effects
+
+Use one project-scoped runtime coordinator for the preference, participating-client liveness, last meaningful operator interaction and delivery ownership. The **most recently interacted-with live client** is the only emitter of all enabled sounds and desktop notifications for that project. Its open subviews are one client, not additional owners. Opening a client provides an initial participation/activity baseline; automatic repaint, heartbeat, incoming text or background polling never makes it the most recently used one.
+
+Meaningful keyboard, mouse, scroll, selection, editing or explicit control input transfers ownership immediately. Previous clients retain visual state/title but stop emitting. Closing the owner transfers to the most recently used remaining live client; closing the last resets the setting. Detect lost clients with bounded liveness, without retaining a dead owner forever or making engine lifetime depend on a viewer.
+
+Coordinate ownership and event consumption so a handoff/race cannot make two clients sound for the same occurrence. Delivery uses the event's current owner and baseline, not every viewer independently comparing snapshots. Retain internal occurrence/receipt correlation without inventing another public entity ID. A reconnect or replacement owner never replays historical or uncertain delivery as a fresh alert. Engine work, input and durable messages never wait on an audio/notifier helper.
+
+## Recent activity and event selection
+
+An external attention alert is eligible only for a **new qualifying occurrence accepted while effects are On** with a live eligible owner. Observe actual operator input across this project's participating clients. If meaningful input occurred within the preceding **10 seconds**, suppress both the attention sound and the desktop notification. A focus flag alone is insufficient: a focused terminal may be unattended. Opening the view or enabling the control counts as activity/baseline, not a reason to play pending notices.
+
+This suppression affects only external attention effects. New visual attention/title still appears unless the particular message was genuinely seen. Activity in another page does not mark an unseen chat message read. Suppressed events are consumed: they **never sound later** when the operator becomes idle. No reminders for the same ignored occurrence are added. A genuinely new explicit ping or newly necessary protected step can create a new event.
+
+Subtle cues may accompany a meaningful selection/navigation change, a saved outgoing chat message and the **beginning** of an incoming agent reply. They remain available during active work when enabled and owned by that client. They are quiet, brief and bounded; no sound per keystroke, token, redraw, resize, progress tick or repeated state snapshot. Ordinary replies do not produce desktop notifications or the stronger attention sound. If one event qualifies as an attention alert, avoid layering a chat cue, native notification sound and custom alert into several audible alerts.
+
+Observe attention from the **whole selected project**, including Wallet and Health/system domains while a chat/detail is open. Use the canonical genuinely-human-needed threshold, not every technical error or normal result. Navigation and async sound/notifier failures must not block other domains or produce a notification storm.
+
+## Desktop content and activation
+
+Use ordinary OS notification conventions: identify Promptbook/project and the relevant agent/chat or domain, with the actual calling message, system problem or nonsecret Wallet action description. Truncate to platform limits without replacing useful content with a generic count; full content remains in its source view. Never include passwords, codes, recovery words, protected field contents or secret-bearing URLs in notification text/actions/diagnostics.
+
+On an explicit notification click, best-effort bring the **originating terminal window/tab** forward and navigate that participating client to the correct chat/message, Wallet request or Health/system detail. Preserve unsaved drafts and normal back navigation. Notification creation itself never steals focus. Revalidate the project/source on activation; a stale notice cannot submit, approve or reject anything or revive a closed/replaced session. If exact tab focus/callback/navigation is unsupported, retain a truthful safe project/source reference and explain that limitation, rather than claiming an arbitrary terminal window is the target.
+
+## Platforms and SSH
+
+Prioritize local **macOS and Windows** terminals. Ubuntu/Fedora desktop support is optional according to available notification/audio facilities. Detect desktop session, permission and terminal capabilities; degrade to ordinary visuals/title where an effect or activation is unavailable. Record/report capabilities without repeated modal prompts, visible escape garbage or claiming notification delivery merely because a subprocess launched.
+
+SSH is **capability-dependent, not categorically impossible**. For example, [kitty's desktop-notification protocol](https://sw.kovidgoyal.net/kitty/desktop-notifications/) supports remote/SSH notification transport, source-window activation and an activation response. Supported terminal protocols can target the local desktop when their sequences/callbacks survive the connection and any multiplexer. Detect/verify that path; do not promise it for every terminal or SSH chain.
+
+A normal audio helper started on the remote machine does not provide the local custom sound set. Use only verified terminal/client facilities for remote effects; do not play on the server and label it local audio. Native window activation, custom sounds and SSH transport are separate capabilities. Sleep prevention, wake-on-notification, a remote push relay and global-dashboard aggregation remain outside this version.
+
+## Compatibility and recovery
+
+Preserve existing unanswered chats, Wallet requests, task checkpoints and prior answers when adopting the shared seen model. Legacy questions without an active literal User prefix stay inspectable and waiting; upgrading or scanning their Books does not replay invitations or send new effects. Newly generated task/TEAM/helper questions use the canonical active operation. Reconcile any usable prior seen evidence per occurrence without turning an ambiguous read marker into an answer or clearing unrelated Health state.
+
+Durable requests/seen outcomes recover independently of temporary effect ownership and delivery baselines. Treat receipt uncertainty as uncertainty, never as permission to announce an old event again. A legitimate new ping/action step can still create fresh attention after recovery. Keep existing requested completion/status subscriptions and their once-only conversational outcome delivery; ordinary outcome arrival alone does not become a human-input alert.
+
+## Acceptance outcomes
+
+- Start a fresh project client: effects are Off but unseen attention and terminal status are visible. Navigate every relevant page/chat/Wallet form without losing the shared control, state, draft or protected input. Init/global/raw/JSON/redirected use emits no effects.
+- Open two dashboards and standalone chat for one project and another client for a second project. Toggle in any first-project view and observe the shared choice only there. Closing the last first-project client resets effects; durable seen/request state survives reopening/restart.
+- Send passive User references and literal/code/escaped/example active forms: no ping. Send an actual `+@User`/`+{User}` from an agent: add missing membership once and create one occurrence. Repeat in a new message: new attention without duplicate membership/model User. Retry/recover the same message: no duplicate.
+- Create a task/TEAM/helper question without a caller-written prefix: the saved attributed chat question contains an active User reference and uses the same one occurrence/checkpoint in Tasks and Chats. Agent instructions explain when to use the prefix. Ordinary results never become attention on that basis alone.
+- Open the list, preload a thread or remain scrolled away: attention stays unseen. Actively display the relevant message: clear only that occurrence across all clients and title/task projections, retain unanswered state and blocked work. Reopen/restart: it stays seen. A later real ping is new.
+- In Wallet, Mark as seen keeps the request pending and suppresses its alert across views; Reject request records denial, removes its attention and does not resume work as authenticated. Viewing/acknowledging chat/Wallet cannot clear a Health incident or override its pause.
+- After 10 seconds without input, deliver one new human-needed alert from only the owner. Transfer interaction/close the owner and verify takeover without duplicates/backlog. Poll/repaint/incoming tokens do not take ownership or count as user activity. Lost clients do not retain ownership indefinitely.
+- Deliver an alert within 10 seconds of real input: retain its unseen visual state if offscreen, emit neither attention sound nor notification, and never emit it later. Enabled subtle selection/send/reply-start cues still work once; tokens and frames stay silent.
+- Enable/reconnect/hand off with several pending items: no burst. A Wallet/Health request while standalone or embedded chat is open is observed through the project-wide stream, without starting another dashboard or engine.
+- Exercise local macOS/Windows delivery, unavailable permissions/helpers, optional Linux desktops and supported/unsupported SSH/multiplexer chains. Activation targets the correct live source when supported, preserves drafts and never invents focus/delivery success or leaks Wallet values.
+- [Title/status rendering](terminal-title.md) uses one animation scheduler with dashboard/agent visuals, respects reduced motion/backpressure and remains independent of the experimental switch.

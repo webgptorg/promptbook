@@ -22,6 +22,8 @@ Verify process identity before presenting live state or controlling an owner. Di
 
 ## Table and navigation
 
+Project [sounds/desktop notifications](notifications.md) do not extend to this host-wide view in the current specification. Monitoring all projects, global preferences and effects-owner transfer on entering/returning from nested project views are explicitly deferred. Preserve the existing global dashboard behavior rather than infer a host-wide notification coordinator from the project-client rules.
+
 Show a bounded keyboard-navigable table of known projects, including stopped ones: name/unambiguous path, verified current state, actual live version/process/mode, freshness and concise work/wait summary when available. Stopped entries explicitly say `stopped`, without a live PID or ready endpoint; last-run information remains inspectable. Stopped is observed absence, not a fifth live state. Pending restart is labelled intent.
 
 New registrations appear, state changes propagate and ended engines become stopped rows rather than disappearing. Preserve project selection/focus across exits, starts and resize. Narrow terminals/long paths remain usable. `--raw` continuously emits plain state/events with no hidden prompts or cursor art.

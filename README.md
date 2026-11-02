@@ -105,6 +105,6 @@ The [first-App specification](specs/app/integration.md) focuses on App-started V
 
 [Command reference](specs/cli/cli.md) · [Book language](specs/book-language/_index.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
-A star, a reproducible issue or a contribution helps us build Promptbook. Licensed under **[BUSL-1.1](LICENSE.md)**.
+A star, a reproducible issue or a contribution helps us build Promptbook. See the **[engine licence and proposed commercial terms](https://www.ptbk.io/en/licence)** ([česky](https://www.ptbk.io/cs/licence)). The proposed terms are not yet effective; the [notice accompanying this distribution](LICENSE.md) and any agreement actually accepted govern your rights.
 
 Pre-Reborn: [legacy version 0.114.0-51](https://github.com/webgptorg/promptbook/tree/7ab4af6862d81a7e8b2a1ce8522f79bb2cd37231).

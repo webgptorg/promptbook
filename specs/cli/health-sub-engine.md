@@ -54,6 +54,8 @@ The Health page does not offer generic manual **Pause all / Resume** controls. T
 
 ## Health page and home tile
 
+Generic chat/Wallet seen handling does not clear a Health incident. Visiting this page or being active elsewhere never resolves an actionable warning or removes its pause reason. Existing explicit soft-incident override remains a distinct authorized Health operation; hard-incident protection is unchanged. Optional [sound/desktop effects](notifications.md) are only delivery, not incident resolution, and the visual/title warning follows the actual domain state.
+
 The dashboard home screen has a compact Health tile. Healthy state is deliberately terse (for example, `System OK`/healthy summary). An incident replaces that with the most useful bounded problem summary, such as low free disk, low available memory or failed connectivity, and remains inspectable. Mark the tile through shared attention only if a concrete human action/decision is required after available authorized remedies; automatic remediation progress alone is not attention.
 
 Entering the Health page shows the full observed values, measurement freshness, affected filesystem/path, configured limits, RAM/swap breakdown, incident severity/reason, resulting scheduling impact and recommended next actions. Multiple health incidents may coexist.

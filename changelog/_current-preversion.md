@@ -1,5 +1,16 @@
 # Unreleased
 
+## Licensing information and commercial proposal
+
+- Link the README and distribution notice to the bilingual engine licensing page, which distinguishes existing rights from the non-effective commercial and continuity proposal.
+- Preserve the existing BUSL notice offline and all earlier valid grants. This documentation change does not adopt a new licence, change package SPDX metadata, or silently grant unrestricted commercial self-hosting.
+
+## Specification: project attention, sounds and desktop notifications
+
+-   Specified explicit `+@User` / `+{User}` invite-and-ping behavior for chat, task and TEAM questions, with durable shared seen state separate from unanswered work. Wallet actions are named **Mark as seen** and **Reject request**; Health keeps its own resolution/override rules.
+-   Specified one temporary project-wide experimental sounds/notifications switch across dashboards and standalone chat, last-used-client ownership, ten-second activity suppression, no historical/delayed alert replay and capability-aware activation/SSH support. Defined lifecycle/attention title markers and one shared animation scheduler.
+-   Aligned the related contracts and acceptance scenarios; recorded macOS sleep-prevention research separately as deferred work. Initialization/global notification behavior remains excluded. This change updates specifications only; it does not implement sounds, notifications, User pings or power management.
+
 ## Release video 0.119.0-47
 
 -   Published https://www.youtube.com/watch?v=jdSEZ5OJEho on the owner-selected personal channel and verified public Studio status and watch-page playback. Prepared a factual, caption-only release video on external-action impact, batch totals and aging priority, using the immutable npm-matched revision and a disposable synthetic fixture. Preserved reproducible sources and 11 passing release tests under `releases/videos/0.119.0-47/`; publication state and receipts are recorded there.

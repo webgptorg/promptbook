@@ -28,6 +28,8 @@ Report reading/refresh, action audit/readers, History, confined Files, Wallet im
 
 ## Presentation and scheduling boundaries
 
+Standalone `ptbk chat` and dashboard chat are entry shells around one conversation/input/rendering/controller core. Reuse [User pings, shared seen state, Wallet seen/reject operations and experimental effects policy](../cli/notifications.md); project event observation must work while chat is open without launching another dashboard. One project runtime coordinator owns the transient switch, client liveness, activity and single effects owner. Request/seen persistence remains distinct from those temporary preferences. Per-terminal status/title, agent motion and dashboard/chat rendering share one bounded animation scheduler; presentation frames never regenerate effects or domain decisions.
+
 Keep UI-specific focus, key bindings, formatting and transport separate from shared business decisions. Inspection, configuration changes, runtime diagnostics and lifecycle actions are distinct operations. Enabling/disabling a tool persists configuration; restarting a browser or force-stopping the engine does not implicitly delete that tool.
 
 One operation owns its authorized changes and its commit. Shared persistence must support a tool commit during an unrelated active task without sweeping that task's files into the commit or reverting the tool change at task completion. Secret storage and runtime ownership are not versioned merely because their associated configuration is committed.

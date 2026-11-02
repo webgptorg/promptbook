@@ -28,6 +28,15 @@ A protected save immediately clears the answered input's attention and permits v
 
 Checkpoint affected work and release safe capacity while waiting. A Wallet wait does not stop independent tasks, supervision or the engine. Manual login in the existing headful browser remains possible with optional protected remembering. Do not claim a GUI exists on a headless host or require a new remote desktop/VNC/screen-sharing product now.
 
+## Seen and rejected requests
+
+Provide two separate English actions on a pending human-input request:
+
+- **Mark as seen** acknowledges only its current alert. Clear that occurrence's attention across all clients and the terminal attention marker, but keep the protected request, current fields/step, affected-work wait and pending inventory entry. It is not refusal, approval, credential submission or successful authentication. Opening the Wallet page alone does not perform it.
+- **Reject request** explicitly denies and ends this pending request/step and clears its alert everywhere. Return a truthful rejection to the waiting agent; never report login success, invent credentials or resume access-dependent work as authenticated. The agent may pursue another authorized route or report the unmet prerequisite. Do not silently recreate/re-alert the same rejected request on the next poll/retry.
+
+Avoid the ambiguous label Dismiss for either action. Persist/share the seen or rejection outcome with the existing request state and reconcile concurrent save/seen/reject operations without applying a stale action to a later step. A genuinely new necessary human step has new attention; unchanged state, reopen and restart do not. These shared operations use protected Wallet persistence without Git commits. The [temporary effects switch](notifications.md) changes only sound/desktop delivery, never either action's meaning.
+
 ## Protected records and forms
 
 Use [project encryption](project-encryption.md), not plaintext `.env`, `ptbk.json` or Books. Persist service/origin, account context, editable label, username, password and supported additional login fields and their persistence/sensitivity metadata in the encrypted store. Vault/encryption files stay ignored and survive ordinary restart/cache cleanup; do not commit even their ciphertext.
@@ -73,3 +82,5 @@ Test init No/Yes/later setup with one implementation. Username starts visible, p
 Exercise stored and missing credentials, rejection, extra login fields, accessible emailed code, protected manual TOTP/SMS input, reusable/uncertain additional fields, one-off code, mobile approval and manual takeover. Repeated attempts keep one request/record and accurate step state. Saving a password clears only that input attention; failed/unverified access never releases dependent work. Verified access resumes once after restart and keeps unrelated work running.
 
 Verify origin/account matching and exclusion of all secret material from Git, ordinary API/status, model tools, browser observations and recordings. Perform authorized technical updates without automatic approval prompts; genuinely necessary human steps use protected Wallet input. Keep Wallet mutations in protected storage without creating Git commits or rerunning successful external effects.
+
+Exercise Mark as seen versus Reject request from concurrent clients and after restart. Only the former keeps the request waiting; only the latter returns denial. Neither proves access or clears another request/Health incident. Enabled desktop notifications contain only the nonsecret action description and safely open the correct protected request when activation is supported.
