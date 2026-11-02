@@ -1,5 +1,10 @@
 # Unreleased
 
+## Licensing information and commercial proposal
+
+- Link the README and distribution notice to the bilingual engine licensing page, which distinguishes existing rights from the non-effective commercial and continuity proposal.
+- Preserve the existing BUSL notice offline and all earlier valid grants. This documentation change does not adopt a new licence, change package SPDX metadata, or silently grant unrestricted commercial self-hosting.
+
 ## Specification: project attention, sounds and desktop notifications
 
 -   Specified explicit `+@User` / `+{User}` invite-and-ping behavior for chat, task and TEAM questions, with durable shared seen state separate from unanswered work. Wallet actions are named **Mark as seen** and **Reject request**; Health keeps its own resolution/override rules.
