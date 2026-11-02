@@ -9,3 +9,6 @@ Ty dve videa co tam jsou nech a jen u posledni verze udelej v novem formatu
 
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
 
+CHAT MESSAGE @Chatter 2026-11-02T16:23:14+01:00 progress
+- $ /bin/zsh -lc 'cat AGENTS.md specs/_main.md specs/dictionary.md'
+
