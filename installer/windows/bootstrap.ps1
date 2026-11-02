@@ -22,6 +22,9 @@ param(
     [switch] $AllowPtbkReplacement,
     [switch] $Plan,
     [switch] $NoLaunch,
+    [string] $DesktopPath,
+    [switch] $InstallCodex,
+    [switch] $InstallClaude,
     [string] $PackageSpec,
     # Validation only: see exactly the current process PATH (simulates a machine without the runner's tools).
     [switch] $IsolatedPath
@@ -260,7 +263,7 @@ if (-not $Plan) {
     $shell = New-Object -ComObject WScript.Shell
     $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'Promptbook'
     New-Item -ItemType Directory -Force -Path $menu | Out-Null
-    foreach ($name in @('Promptbook', 'ptbk')) {
+    foreach ($name in @('Promptbook terminal', 'ptbk')) {
         $shortcut = $shell.CreateShortcut((Join-Path $menu ($name + '.lnk')))
         $shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
         $shortcut.Arguments = '-NoExit -NoProfile -ExecutionPolicy Bypass -File "' + $launcher + '"'
@@ -269,6 +272,38 @@ if (-not $Plan) {
         $shortcut.Save()
     }
 
+}
+
+# Selected native CLIs are optional prerequisites; init still owns authentication and project choices.
+foreach ($harness in @(
+    @{ Selected = $InstallCodex; Command = 'codex'; Package = '@openai/codex' },
+    @{ Selected = $InstallClaude; Command = 'claude'; Package = '@anthropic-ai/claude-code' }
+)) {
+    if (-not $harness.Selected) { continue }
+    $existingHarness = Get-Command $harness.Command -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($existingHarness) {
+        Write-Detail "Reusing $($harness.Command) at $($existingHarness.Source) (no update or sign-in)."
+        continue
+    }
+    if ($Plan) { Write-Detail "PLAN: npm install --global $($harness.Package)"; continue }
+    Invoke-Native { & $npm.Path install --global $harness.Package --no-fund --no-audit 2>&1 } | ForEach-Object { Write-Log "harness: $_" }
+    if ($LASTEXITCODE -ne 0) { Stop-Bootstrap 5 'Optional harness installation' "$($harness.Command) could not be installed." 'Check the diagnostics and retry, or deselect this component.' }
+    Update-SessionPath
+    if (-not (Get-Command $harness.Command -CommandType Application -ErrorAction SilentlyContinue)) { Stop-Bootstrap 5 'Optional harness verification' "$($harness.Command) is still missing after installation." 'Retry or deselect this component.' }
+}
+
+# The desktop is a separate client of this verified system Node/CLI, never an embedded engine.
+if ($DesktopPath) {
+    if ($Plan) { Write-Detail "PLAN: configure the desktop client at $DesktopPath" }
+    else {
+        if (-not (Test-Path -LiteralPath $DesktopPath -PathType Leaf)) { Stop-Bootstrap 5 'Desktop installation' "The selected desktop executable is missing: $DesktopPath" 'Retry the installer with the desktop component selected.' }
+        $globalModules = ([string] (Invoke-Native { & $npm.Path root --global })).Trim()
+        $installation = Join-Path $globalModules 'ptbk'
+        if (-not (Test-Path -LiteralPath (Join-Path $installation 'bin\ptbk.js'))) { Stop-Bootstrap 5 'Desktop runtime' 'The verified CLI installation could not be located.' 'Retry the installer.' }
+        $desktopDirectory = Join-Path $env:LOCALAPPDATA 'Promptbook\desktop'
+        New-Item -ItemType Directory -Force -Path $desktopDirectory | Out-Null
+        @{ installation = $installation; nodePath = $node.Path; env = @{ Path = $env:Path } } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $desktopDirectory 'runtime.json') -Encoding UTF8
+    }
 }
 
 # 4. The projects folder: an ordinary container, never a project or Git repository itself.
@@ -286,6 +321,10 @@ else {
 }
 
 if ($SkipProject) {
+    if ($DesktopPath -and -not $Plan -and -not $NoLaunch) {
+        try { Start-Process -FilePath $DesktopPath -ArgumentList @('--skip-init') | Out-Null }
+        catch { Stop-Bootstrap 6 'Desktop handoff' $_.Exception.Message 'Open Promptbook from the Start menu, or retry.' }
+    }
     Write-Host ''
     Write-Host 'Promptbook is installed. No project was created.' -ForegroundColor Green
     Write-Host "To start one later: create an empty folder (for example in $root), open a terminal there and run: ptbk init"
@@ -312,6 +351,14 @@ else {
 }
 
 # 6. Hand off to the ordinary interactive initializer in a visible terminal that stays open.
+if ($DesktopPath) {
+    Write-Step 'Opening the Promptbook desktop setup assistant'
+    if ($Plan -or $NoLaunch) { Write-Detail "Desktop handoff prepared (not launched): $DesktopPath --init `"$target`""; exit 0 }
+    try { Start-Process -FilePath $DesktopPath -ArgumentList @('--init', ('"' + $target + '"')) -WorkingDirectory $target | Out-Null }
+    catch { Stop-Bootstrap 6 'Desktop handoff' $_.Exception.Message 'Open Promptbook from the Start menu, or retry.' }
+    Write-Host 'Done. Promptbook is opening the same initializer in the desktop application.' -ForegroundColor Green
+    exit 0
+}
 Write-Step 'Opening the setup assistant (ptbk init)'
 $display = "ptbk init --path ""$target"""
 $command = "Set-Location -LiteralPath $(ConvertTo-PowerShellLiteral $target); Write-Host '> $($display.Replace("'", "''"))'; & $(ConvertTo-PowerShellLiteral $ptbk) init --path $(ConvertTo-PowerShellLiteral $target)"

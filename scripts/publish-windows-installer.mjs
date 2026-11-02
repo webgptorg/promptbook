@@ -48,7 +48,7 @@ async function publishInstaller(installerPath) {
                 `Promptbook ${release.version}.`,
                 '',
                 `- **npm:** \`npm install -g ptbk@${release.version}\` (the ordinary CLI installation).`,
-                `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally and creates an empty first-project folder. It then opens a terminal running \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
+                `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally, offers the local desktop client (selected by default), Codex and Claude Code, and creates an empty first-project folder. It then opens the selected desktop or CLI presentation of \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
             ].join('\n');
             await gh(['release', 'create', tag, '--verify-tag', '--title', `ptbk ${release.version}`, '--notes', notes, ...(prerelease ? ['--prerelease'] : [])])
                 .catch(async (creationError) => {

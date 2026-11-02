@@ -1,5 +1,10 @@
 # Unreleased
 
+## Windows desktop installation and release checks
+
+- Offer engine/CLI, a default-selected desktop controller and optional Codex/Claude installations. Preserve prerequisite verification and CLI-only handoff; desktop completion opens the shared initializer and sign-in startup opens only the tray.
+- Package the desktop at the root release version, include it in the existing Inno installer and exercise the packaged Windows executable in CI without paid providers. Desktop removal preserves engine/project installations.
+
 ## Optional local desktop client
 
 - Add a Windows-first Electron tray/controller with independent windows, the existing graphical dashboard, shared global controls and actual xterm/node-pty CLI attachments. Window closure leaves project engines and per-project supervision unchanged.

@@ -60,7 +60,7 @@ jobs:
     # isolated PATH (no Node.js/npm/Git visible: everything planned, nothing installed), and a real run with the
     # runner's compatible tools that installs the exact package candidate and prepares the init handoff.
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
         with:
@@ -78,6 +78,16 @@ jobs:
           npm pack --silent | Out-Null
           "PTBK_VERSION=$version" >> $env:GITHUB_ENV
           "PTBK_TARBALL=$((Resolve-Path "ptbk-$version.tgz").Path)" >> $env:GITHUB_ENV
+      - name: Build and test the optional desktop package, including native Windows PTYs
+        shell: pwsh
+        run: |
+          npm ci --prefix apps/desktop
+          npm --prefix apps/desktop test
+          node --test test/desktop-prompts.test.mjs test/terminal-prompts.test.mjs
+          npm --prefix apps/desktop run package:windows
+          $env:PTBK_DESKTOP_EXECUTABLE = (Resolve-Path 'apps/desktop/release/win-unpacked/promptbook.exe').Path
+          npm --prefix apps/desktop run test:e2e
+          if ($LASTEXITCODE -ne 0) { throw "Desktop end-to-end checks exited with $LASTEXITCODE" }
       - name: Missing prerequisites are detected and planned (isolated PATH, nothing installed)
         shell: powershell
         run: |
