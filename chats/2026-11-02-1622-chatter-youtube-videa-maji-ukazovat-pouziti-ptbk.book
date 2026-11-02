@@ -7,3 +7,5 @@ Youtube videa maji ukazovat pouziti ptbk v CLI, ne teoreticke principy, mluv moj
 
 Ty dve videa co tam jsou nech a jen u posledni verze udelej v novem formatu
 
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
+
