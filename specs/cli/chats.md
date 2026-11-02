@@ -27,7 +27,7 @@ Please add multiline CSV export.
 LINK {Add multiline CSV export — 2026-10-25 23:41:00}
 CHAT MEMBER @Developer
 CHAT MESSAGE @Developer 2026-10-25T23:43:00+01:00
-Should the export preserve the existing column order?
++@User Should the export preserve the existing column order?
 CHAT STATUS waiting-for-user
 CHAT TITLE Multiline CSV export and column order
 ```
@@ -40,7 +40,7 @@ Persist origin and named links under [chat/task relationships](chat-tasks.md). T
 
 Route a user reply to the author of the question it answers; an explicit active invitation/address (`+@Name` or `+{Full Name}`) targets that agent; otherwise the main agent handles it. Use the same `@Name`/`{Full Name}` resolver as other Books. A task mention is not an agent switch. Resolve genuinely ambiguous pending questions without broadcasting/applying one answer to every wait.
 
-A new chat is implicitly open, with no initial status line. Append `CHAT STATUS open|waiting-for-user|resolved` at each actual transition; the last valid status determines current state. Preserve earlier commitments instead of rewriting them. Unread markers are separate. Follow [Book layering](../book-language/layering.md). Once the engine accepts/saves a user's response, clear **that question's** attention immediately, without waiting for model acceptance or Git batching. Other questions can remain pending. Reading alone is not answering; a response is not automatically approval or proof of an external prerequisite.
+A new chat is implicitly open, with no initial status line. Append `CHAT STATUS open|waiting-for-user|resolved` at each actual transition; the last valid status determines current state. Preserve earlier commitments instead of rewriting them. Unread and per-occurrence seen markers are separate. Follow [Book layering](../book-language/layering.md). Actually displaying an active User ping during active chat viewing clears only that occurrence's attention project-wide while its question/status/checkpoint stays waiting. Once the engine accepts/saves a user's response, clear **that question's** attention immediately, without waiting for model acceptance or Git batching. Other questions can remain pending. Reading alone is not answering; a response is not automatically approval or proof of an external prerequisite. See [attention policy](notifications.md).
 
 ## Live operation and persistence
 
@@ -67,6 +67,8 @@ Root [`report.book`](project-report.md) explicitly uses stable `CHAT Report`, Ch
 ## References versus invitation
 
 `@Adam` and `{Adam}` are equivalent **passive** references: neither invites nor by itself requests a reply, even if Adam is already a member. `+@Adam` and `+{Adam}` invite and address Adam; `+{Frontend Developer}` supports multiple words. An already-present normalized member is addressed without duplicate membership. Append CHAT MEMBER before the new agent's first message. Natural-language “invite Adam” uses the same contextual operation; syntax knowledge is optional. A task/chat target cannot be added as an agent; invalid/ambiguous references receive ordinary diagnostics.
+
+The same active operation accepts **User as the human target**: `+@User` and `+{User}` invite it if absent or ping it again if already present. Plain `@User`/`{User}` stays passive. A new accepted explicit ping creates one attention occurrence, while repeated User references in that message do not multiply alerts or membership. This never schedules a model User or lets User converse with itself. Working/chat agents must use the active form when genuinely requesting the human; task/TEAM/helper questions normalize through the same attributed operation under [notifications](notifications.md#explicitly-summon-user).
 
 Interpret the action prefix only in a newly accepted message's nonliteral content, immediately before a valid reference, with the plus at message start or after whitespace/opening punctuation. A preceding identifier, digit or escape excludes the action, so `x+@Adam` is not an invitation. Ignore escaped forms, code fences, inline code, quoted passages and illustrative examples. Resolve the target through the ordinary typed resolver. Re-reading/recovering history does not issue new invitations; persist/deduplicate an accepted invitation and its answer routing. With several active addressees, preserve their distinct requests and do not broadcast to every member or apply one answer to all pending questions. A passive mention does not change main-agent/question routing.
 

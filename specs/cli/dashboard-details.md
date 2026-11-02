@@ -40,7 +40,7 @@ Only a concrete required human decision/input/action sets Tools/Browser attentio
 
 ## Wallet page
 
-Wallet has its own home tile and page over the project [sub-engine](wallet.md). Summarize readiness/pending count compactly; list service/account labels and pending actions in detail. Provide protected credential management with visible-by-default username, masked-by-default password with typing feedback, independent reveal and deliberate recovery/setup input through shared operations. Saved input is not verified login success; preserve the continuing request through further factors and verification. Never show passwords, recovery words or raw keys in ordinary detail/status, logs or snapshots. Use the one attention presentation, clear answered actions promptly and keep independent work running.
+Wallet has its own home tile and page over the project [sub-engine](wallet.md). Summarize readiness/pending count compactly; list service/account labels and pending actions in detail. Provide protected credential management with visible-by-default username, masked-by-default password with typing feedback, independent reveal and deliberate recovery/setup input through shared operations. Offer the distinct English actions **Mark as seen** (remove this alert, keep waiting) and **Reject request** (deny/end this request and its alert); opening the page alone does neither. Saved input is not verified login success; preserve the continuing request through further factors and verification. Never show passwords, recovery words or raw keys in ordinary detail/status, logs or snapshots. Use the one attention presentation, clear answered actions promptly and keep independent work running.
 
 ## Agents, Chats, Tasks and activity pages
 
@@ -48,7 +48,7 @@ Agents, Chats and Tasks remain separate home tiles and separate pages.
 
 The Agents page lists every available agent with actual activity and assigned queue. It can open the selected agent's source, current/queued work and direct chat. [Book editing](book-editor.md) defines the shared editor; do not create another source editor here.
 
-The Chats page lists all conversations, unread/actionable states and new Chatter-first entry. Opening a thread enters the ordinary full chat view with live task cards, declared multi-agent authorship, input during progress and post-final Thinking/duration collapse under [chat UI](chat-ui.md). Waiting-for-user state can mark the Chats tile for attention but does not force navigation.
+The Chats page lists all conversations, unread/actionable states and new Chatter-first entry. Opening a thread enters the ordinary full chat view with live task cards, declared multi-agent authorship, input during progress and post-final Thinking/duration collapse under [chat UI](chat-ui.md). A new explicit User ping marks attention without forcing navigation; actually displaying its message during active chat viewing marks it seen project-wide. The unanswered waiting state remains inspectable without retaining that occurrence's attention. Use the shared project effects control even while chat/detail/Wallet is open under [notifications](notifications.md).
 
 The Tasks page uses the [complete task view](task-views.md), with smart default order and user-selected sorting independent of engine scheduling. Tasker remains the task-authoring entry.
 

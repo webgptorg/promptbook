@@ -16,7 +16,7 @@ When no executing task owns this consultation, persist the bounded exchange as a
 
 ## Shared authority and limits
 
-TEAM User initiates/continues an attributed agent↔User chat with immediate saved messages and bounded debounced commits. A truly blocking question checkpoints its owning task under [human interactions](user-interactions.md). TEAM Expert uses current engine expertise; Void/Null is a no-op. Resolve every participant through the common resolver; wrong-kind/unresolved names produce diagnostics.
+TEAM User initiates/continues an attributed agent↔User chat with immediate saved messages and bounded debounced commits. A genuinely needed human reply uses the same `+@User`/`+{User}` ping operation as ordinary chat/task questions; a structured consultation helper normalizes its saved question rather than creating a separate alert. Existing membership and recovery do not duplicate pings. A truly blocking question checkpoints its owning task under [human interactions](user-interactions.md); shared seen state clears only the alert, not the wait. TEAM Expert uses current engine expertise; Void/Null is a no-op. Resolve every participant through the common resolver; wrong-kind/unresolved names produce diagnostics.
 
 Consultations remain bounded: initial defaults are five minutes, depth four, 24 calls and 128,000 response characters per task or originating bounded chat turn. Reaching limits is a visible outcome, not recursive hidden work. A reciprocal TEAM graph never means unbounded automatic consultation. Human waiting does not hold an MCP call open through think time. Advisors cannot exceed the originator's authority or mutate unrelated task-owned content.
 

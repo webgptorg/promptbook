@@ -126,6 +126,8 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Dashboard details](cli/dashboard-details.md): Execution, tool management, per-browser diagnostics and conditional synchronization.
 - [Terminal dashboard](cli/terminal.md): Independent attachment and keyboard controls.
 - [Terminal titles](cli/terminal-title.md): Self-naming tab/window titles, TTY gating, sanitization and opt-out.
+- [Attention, sounds and desktop notifications](cli/notifications.md): Explicit User pings, durable shared seen state, one temporary project switch, last-used-client delivery and activity suppression; global/init behavior is excluded.
+- [Deferred macOS sleep prevention](cli/power-management.md): Research on engine-owned idle-sleep assertions and the separate closed-lid problem, without enabling a power feature now.
 - [Global dashboard](cli/global-dashboard.md): Durable known-project registry, stopped entries, individual/bulk lifecycle controls and registry-only removal.
 - [Emergency stop](cli/panic.md): Confirmed host-wide force stop, owned-process termination and durable suppression of automatic work resumption.
 - [Service API](cli/api.md): Independent authenticated state/control and shared management operations.

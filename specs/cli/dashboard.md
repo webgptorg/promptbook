@@ -10,7 +10,7 @@ Load static shell/assets, then obtain live state and send controls only through 
 
 Use the same [dashboard home-screen hierarchy](dashboard-layout.md) as the terminal. The browser root is a compact responsive tile cockpit containing PTBK/project/service state, the replacement Harnesses session summary, operator attention and entries to operational domains. Do not turn it into a long page that requires scrolling past technical details before the operator can see all core tiles.
 
-Adapt across ordinary desktop/window sizes. On smaller surfaces reduce columns and secondary text; on larger surfaces use space without expanding every diagnostic. Focus/selection and attention are distinct visual states. New attention is conspicuous but never forcibly changes the selected tile/page. Persistent unresolved attention remains marked after transient emphasis settles.
+Adapt across ordinary desktop/window sizes. On smaller surfaces reduce columns and secondary text; on larger surfaces use space without expanding every diagnostic. Focus/selection and attention are distinct visual states. New attention is conspicuous but never forcibly changes the selected tile/page. Apply [shared seen state](notifications.md#seen-is-separate-from-resolved): a seen chat/Wallet occurrence loses its alert while pending work stays inspectable; Health/system warnings follow their own resolution/override rules.
 
 Use the same nested tile hierarchy on Tools and Health and provide the simple [Usage](usage.md) page with visible billing/estimate distinctions. Opening a tile navigates to a dashboard page that uses the available surface for that domain; do not leave the entire root grid rendered around an expanded subpanel. Browser history/back or an explicit Back control returns to the home screen while preserving reasonable local state. Long page bodies may scroll; keep page context/actions accessible.
 
@@ -28,11 +28,11 @@ Health state and remediation come from the per-engine [Health sub-engine](health
 
 When and only when autosync is enabled, show its tile/page with real status, drill-down detail and Synchronize now through the shared coordinator. Omit it while off. Pending/failed remote operations do not obscure successful local work.
 
-Chats awaiting User are actionable attention with actual agent, reason, links and direct thread action. Wallet uses the same attention for missing login actions and protected secret input. Chat/task questions clear attention immediately on saved response without pausing unrelated work. New chat uses [Chatter-first entry](chat-ui.md); existing questions keep their authors. Unread is distinct from actionable.
+New explicit User pings create chat attention with actual agent, reason, links and direct thread action; waiting and seen state remain distinct. Wallet uses the same attention for missing login actions and protected secret input, with explicit **Mark as seen** and **Reject request**. Chat/task questions clear attention immediately on saved response without pausing unrelated work. New chat uses [Chatter-first entry](chat-ui.md); existing questions keep their authors. Unread is distinct from actionable. Browser surfaces share this state; the initial terminal sound/desktop-notification adapters do not establish a browser or remote push service.
 
 ## Viewer behavior and safety
 
-Updates never steal focus, reset page/list choices or discard drafts/secret-entry input. Reading alone does not answer a question, acknowledge an engine incident globally or save settings. Viewer focus/layout and settled transient attention are local; accepted state mutations propagate to all clients.
+Updates never steal focus, reset page/list choices or discard drafts/secret-entry input. Actually displaying a calling message during active chat viewing marks its occurrence seen across clients; it never answers, approves, resolves a Health incident or saves configuration. Wallet seen/reject actions are explicit. Viewer focus/layout/drafts stay local; accepted request/seen state propagates to all clients.
 
 Show loading, disconnection, observed service exit and failed/unconfirmed/pending operations truthfully. Refresh/closure/failure never starts/stops/recreates the service or duplicates work/messages. Mutations obey authorization and revision/ownership checks.
 
