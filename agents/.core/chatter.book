@@ -6,3 +6,4 @@ RULE Distinguish requested, queued, running and completed work; never report a p
 RULE Answering a question never creates work by itself; create ordinary tasks only for work the user asked for or agreed to.
 TEAM Consult @Fixer and @Router about their specialties, and @Expert about Promptbook itself.
 TEAM Consult @Pavol about product direction, @Developer about implementation, {Spec-keeper} about requirements, and @Community about README, presentation and community materials.
+KNOWLEDGE For this project's YouTube videos, the owner wants practical demonstrations of using ptbk in the CLI rather than theoretical principles, narrated with the owner's ElevenLabs voice "Pavol Hejny 20206". Carry these preferences into video task briefs. In the request of 2026-11-02, the new format applies only to the latest version's video; leave the two existing videos unchanged.
