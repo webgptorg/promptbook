@@ -120,7 +120,11 @@ test('engine: cancelling stops work without success, keeps its Book and starts n
     await ptbk(['add', 'Cancelled work SLOW_WORK', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const working = await waitFor(async () => (await status(project, env)).harnessSessions?.open.find((session) => session.work.kind === 'task' && session.work.task.startsWith('Cancelled work') && session.state === 'working'), { message: 'the running session' });
-    await waitFor(async () => (await status(project, env)).active?.some((unit) => unit.taskTitle.startsWith('Cancelled work') && unit.files?.some((path) => path.startsWith('output/'))), { message: 'the reported partial output' });
+    const partialOutput = await waitFor(async () => {
+        const unit = (await status(project, env)).active?.find((item) => item.taskTitle.startsWith('Cancelled work'));
+        const paths = unit?.files?.filter((path) => path.startsWith('output/')) ?? [];
+        return paths.length ? paths : undefined;
+    }, { message: 'the reported partial output' });
     const cancelled = await control(project, 'task-change', { task: 'Cancelled work', operation: 'cancel', instruction: 'I no longer want this.', via: 'test' });
     assert.match(cancelled.outcome, /has not necessarily stopped yet/, 'intent is not proof of a stop');
     // Let the already-started action reach its safe point after cancellation is accepted. Windows console shims
@@ -136,7 +140,7 @@ test('engine: cancelling stops work without success, keeps its Book and starts n
     await new Promise((resolve) => setTimeout(resolve, 1500));
     assert.equal((await turns(log)).filter((entry) => entry.title?.startsWith('Cancelled work')).length, 1, 'it never starts again');
 
-    assert.ok((await git(project, ['status', '--porcelain', '--', 'output'])).trim(), 'cancellation keeps the partial output without calling it a result');
+    assert.ok((await git(project, ['status', '--porcelain', '--', ...partialOutput])).trim(), 'cancellation keeps the partial output without calling it a result');
     assert.equal((await ptbk(['stop', '--force', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await turns(log)).filter((entry) => entry.title?.startsWith('Cancelled work')).length, 1, 'a restart does not authorize cancelled work');
@@ -148,7 +152,9 @@ test('engine: cancelling stops work without success, keeps its Book and starts n
     assert.match(again, /TASK REOPEN .*\nTASK CHANGE [^\n]*\nAfter all[^\n]*\n+TASK STATUS todo/);
     assert.match(again, /TASK STATUS cancelled/, 'the cancellation stays in the history');
     await waitFor(async () => findGenerated(await subjects(project), 'Cancelled work SLOW_WORK', 'ptbk: '), { message: 'the reopened work to finish', timeoutMs: 90_000 });
-    assert.equal((await git(project, ['status', '--porcelain', '--', 'output'])).trim(), '', 'reopened work commits its retained output rather than treating it as unrelated');
+    await git(project, ['ls-files', '--error-unmatch', '--', ...partialOutput]);
+    assert.equal((await git(project, ['status', '--porcelain', '--', ...partialOutput])).trim(), '', 'reopened work commits its retained output rather than treating it as unrelated');
+    for (const path of partialOutput) assert.match(await readFile(join(project, path), 'utf8'), /Cancelled work SLOW_WORK/);
 
     // Under Pause the change is saved and its delivery waits.
     await ptbk(['add', 'Paused work', '--agent', 'Developer', '--priority', '1', '--raw'], { cwd: project, env });

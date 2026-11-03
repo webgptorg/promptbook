@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { committed, drive, generated, git, initializedProject, ptbk, subjects, withoutVisual } from './helpers.mjs';
@@ -90,10 +90,15 @@ test('concurrent work: six independent agents run together without a shared limi
 });
 
 test('concurrent work: same-file work waits for the owner of the file and then continues', async (t) => {
-    const { project, env } = await initializedProject(t);
+    const { project, directory, env } = await initializedProject(t);
+    const barrier = join(directory, 'shared file barrier');
+    await writeFile(barrier, 'hold the first owner until the competing claim waits\n');
     await addTask(project, env, 'Shared one CLAIM_SHARED');
     await addTask(project, env, 'Shared two CLAIM_SHARED', 'Planner');
-    const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '3000' }, async () => Boolean((await committed(project, 'Shared one CLAIM_SHARED')) && (await committed(project, 'Shared two CLAIM_SHARED'))), { message: 'both same-file results' });
+    const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '3000', FAKE_CODEX_SHARED_BARRIER: barrier }, async ({ output }) => {
+        if (/waits for output\/shared\.txt \(being changed by "Shared (one|two) CLAIM_SHARED/.test(output)) await rm(barrier, { force: true });
+        return Boolean((await committed(project, 'Shared one CLAIM_SHARED')) && (await committed(project, 'Shared two CLAIM_SHARED')));
+    }, { message: 'both same-file results', timeoutMs: 180_000 });
     assert.equal(run.code, 0, run.output);
     assert.match(run.output, /waits for output\/shared\.txt \(being changed by "Shared (one|two) CLAIM_SHARED/, `the second claim waited visibly:\n${run.output}`);
     const shared = await readFile(join(project, 'output', 'shared.txt'), 'utf8');

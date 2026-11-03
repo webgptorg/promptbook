@@ -394,6 +394,14 @@ async function main() {
         } else {
             mkdirSync(join(process.cwd(), 'output'), { recursive: true });
             appendFileSync(join(process.cwd(), 'output', 'shared.txt'), `${title}\n`);
+            // The fixture releases the first owner only after the service has observed the competing claim.
+            if (process.env.FAKE_CODEX_SHARED_BARRIER) {
+                const deadline = Date.now() + 90_000;
+                while (existsSync(process.env.FAKE_CODEX_SHARED_BARRIER)) {
+                    if (Date.now() > deadline) throw new Error('The competing file claim did not reach its wait before the fixture barrier expired.');
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+            }
             await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_CODEX_SLOW_MS ?? 6000)));
             done('Appended to output/shared.txt');
         }
