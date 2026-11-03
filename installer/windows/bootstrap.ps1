@@ -23,14 +23,18 @@ param(
     [switch] $Plan,
     [switch] $NoLaunch,
     [string] $DesktopPath,
-    [switch] $InstallCodex,
-    [switch] $InstallClaude,
+    [switch] $DetectOnly,
+    [string] $DetectionFile,
+    [string] $ResultFile,
     [string] $PackageSpec,
     # Validation only: see exactly the current process PATH (simulates a machine without the runner's tools).
     [switch] $IsolatedPath
 )
 
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+# Windows PowerShell can otherwise negotiate legacy TLS on clean/older Windows installations.
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 Set-StrictMode -Version 2
 # Windows PowerShell 5.1 reads this file as ANSI unless it has a BOM: it is kept pure ASCII on purpose.
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { Write-Verbose 'The console encoding cannot be changed (no console attached).' }
@@ -40,6 +44,7 @@ New-Item -ItemType Directory -Force -Path $script:LogDirectory | Out-Null
 $script:LogFile = Join-Path $script:LogDirectory ("bootstrap-{0}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
 $script:Step = 0
 $script:Total = if ($SkipProject) { 4 } else { 6 }
+$script:CurrentStage = 'Starting preparation'
 
 # Native programs may write progress to stderr; in Windows PowerShell 5.1 that must not become a terminating error.
 function Invoke-Native([scriptblock] $Block) {
@@ -52,7 +57,23 @@ function Write-Log([string] $Text) {
     Add-Content -LiteralPath $script:LogFile -Value ("{0} {1}" -f (Get-Date -Format o), $Text) -Encoding UTF8
 }
 
+# UTF-16 INI results remain readable by Inno Setup when paths/errors contain Unicode.
+function Write-InstallerData([string] $Path, [string] $Section, [hashtable] $Values) {
+    if (-not $Path) { return }
+    $lines = @("[$Section]")
+    foreach ($key in ($Values.Keys | Sort-Object)) {
+        $value = ([string] $Values[$key]) -replace '[\r\n\x00]', ' '
+        $lines += "$key=$value"
+    }
+    Set-Content -LiteralPath $Path -Value $lines -Encoding Unicode
+}
+
+function Write-InstallerResult([int] $Code, [string] $Stage, [string] $Message, [string] $NextAction) {
+    Write-InstallerData $ResultFile 'Result' @{ Code = $Code; Stage = $Stage; Message = $Message; NextAction = $NextAction; LogFile = $script:LogFile }
+}
+
 function Write-Step([string] $Text) {
+    $script:CurrentStage = $Text
     $script:Step++
     $line = "[{0}/{1}] {2}" -f $script:Step, $script:Total, $Text
     Write-Host $line -ForegroundColor Cyan
@@ -71,6 +92,7 @@ function Stop-Bootstrap([int] $Code, [string] $Stage, [string] $Message, [string
     if ($NextAction) { Write-Host "  Next: $NextAction" }
     Write-Host "  Diagnostics: $script:LogFile"
     Write-Log "STOP $Code [$Stage] $Message | next: $NextAction"
+    Write-InstallerResult $Code $Stage $Message $NextAction
     exit $Code
 }
 
@@ -82,10 +104,11 @@ function Update-SessionPath {
     $machine = [Environment]::GetEnvironmentVariable('Path', 'Machine')
     $user = [Environment]::GetEnvironmentVariable('Path', 'User')
     $entries = New-Object System.Collections.Generic.List[string]
-    foreach ($part in (@($env:Path, $machine, $user, (Join-Path $env:APPDATA 'npm')) -join ';').Split(';')) {
+    $separator = [System.IO.Path]::PathSeparator
+    foreach ($part in (@($env:PATH, $machine, $user, (Join-Path $env:APPDATA 'npm')) -join $separator).Split($separator)) {
         if ($part -and -not $entries.Contains($part)) { $entries.Add($part) }
     }
-    $env:Path = $entries -join ';'
+    $env:PATH = $entries -join $separator
 }
 
 function Get-Tool([string] $Command, [string[]] $Arguments) {
@@ -115,6 +138,31 @@ function Test-NodeCompatible([version] $Version) {
     return ($Version.Major -eq 22 -and $Version -ge [version] '22.13.0') -or ($Version.Major -ge 24)
 }
 
+# Reuse a compatible Node/npm pair, including a private runtime installed by an earlier attempt
+# when the installer was started from a stale PATH. Probes never change persistent settings.
+function Get-NodeRuntime {
+    $originalPath = $env:PATH
+    $node = Get-Tool 'node' @('--version')
+    $npm = Get-Tool 'npm.cmd' @('--version')
+    $candidates = @(Get-Command node -CommandType Application -All -ErrorAction SilentlyContinue | ForEach-Object { $_.Source })
+    $runtimeRoot = Join-Path $env:LOCALAPPDATA 'Promptbook\runtime'
+    if (-not $IsolatedPath -and (Test-Path -LiteralPath $runtimeRoot -PathType Container)) {
+        $candidates += @(Get-ChildItem -LiteralPath $runtimeRoot -Directory | ForEach-Object { Join-Path $_.FullName 'node.exe' })
+    }
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
+        if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { continue }
+        $candidateNode = Get-Tool $candidate @('--version')
+        if (-not $candidateNode -or -not $candidateNode.Usable -or -not (Test-NodeCompatible $candidateNode.Version)) { continue }
+        $env:PATH = (Split-Path $candidate) + [System.IO.Path]::PathSeparator + $originalPath
+        $candidateNpm = Get-Tool 'npm.cmd' @('--version')
+        if ($candidateNpm -and $candidateNpm.Usable -and $candidateNpm.Version.Major -ge 10) {
+            return @{ Node = $candidateNode; Npm = $candidateNpm; Ready = $true }
+        }
+    }
+    $env:PATH = $originalPath
+    return @{ Node = $node; Npm = $npm; Ready = $false }
+}
+
 function Install-WithWinget([string] $Id, [string] $Name) {
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if (-not $winget) { return $false }
@@ -124,9 +172,21 @@ function Install-WithWinget([string] $Id, [string] $Name) {
 }
 
 function Get-VerifiedDownload([string] $Url, [string] $ExpectedSha256, [string] $FileName) {
-    $target = Join-Path $env:TEMP $FileName
-    Write-Detail "Downloading $Url"
-    Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $target
+    $directory = Join-Path $env:TEMP ('ptbk-download-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    $target = Join-Path $directory $FileName
+    Write-Log "Download source: $Url"
+    foreach ($attempt in 1..3) {
+        Write-Detail "Downloading $FileName (attempt $attempt of 3)..."
+        try {
+            Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $target -TimeoutSec 300
+            break
+        } catch {
+            Write-Log "Download attempt $attempt failed: $($_.Exception.Message)"
+            if ($attempt -eq 3) { throw }
+            Start-Sleep -Seconds $attempt
+        }
+    }
     $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $target).Hash.ToLowerInvariant()
     if ($actual -ne $ExpectedSha256.ToLowerInvariant()) {
         Remove-Item -LiteralPath $target -Force
@@ -144,10 +204,28 @@ function Install-NodeFromNodejsOrg {
     $parts = $line.Trim() -split '\s+'
     $archive = Get-VerifiedDownload ($base + $parts[1]) $parts[0] $parts[1]
     $runtimeRoot = Join-Path $env:LOCALAPPDATA 'Promptbook\runtime'
-    New-Item -ItemType Directory -Force -Path $runtimeRoot | Out-Null
-    Expand-Archive -LiteralPath $archive -DestinationPath $runtimeRoot -Force
-    $runtime = Join-Path $runtimeRoot ([System.IO.Path]::GetFileNameWithoutExtension($parts[1]))
-    $env:Path = $runtime + ';' + $env:Path
+    [System.IO.Directory]::CreateDirectory($runtimeRoot) | Out-Null
+    $staging = Join-Path $runtimeRoot ('.extract-' + [guid]::NewGuid().ToString('N'))
+    $runtimeName = [System.IO.Path]::GetFileNameWithoutExtension($parts[1])
+    $runtime = Join-Path $runtimeRoot $runtimeName
+    # Preserve a previous incomplete runtime until its replacement has been extracted and verified.
+    if (Test-Path -LiteralPath $runtime) { $runtime += '-' + [guid]::NewGuid().ToString('N') }
+    Write-Detail 'Unpacking the verified Node.js runtime...'
+    try {
+        # Expand-Archive treats brackets in its destination as wildcards, even with -LiteralPath
+        # on the source. ZipFile uses literal Unicode paths on Windows PowerShell 5.1 as well.
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($archive, $staging)
+        $extracted = Join-Path $staging $runtimeName
+        foreach ($required in @('node.exe', 'npm.cmd')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $extracted $required) -PathType Leaf)) { throw "The Node.js archive is missing $required." }
+        }
+        [System.IO.Directory]::Move($extracted, $runtime)
+    } finally {
+        if (Test-Path -LiteralPath $staging) { Remove-Item -LiteralPath $staging -Recurse -Force }
+        Remove-Item -LiteralPath $archive -Force
+    }
+    $env:PATH = $runtime + [System.IO.Path]::PathSeparator + $env:PATH
     Add-UserPath $runtime
 }
 
@@ -168,7 +246,7 @@ function Install-GitFromGitForWindows {
     if (-not $match.Success) { throw 'The Git for Windows release does not publish a checksum for its installer.' }
     $installer = Get-VerifiedDownload $asset.browser_download_url $match.Groups[1].Value $asset.name
     Write-Detail 'Installing Git (Windows may ask for permission)...'
-    $process = Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT', '/NORESTART', '/SP-') -Wait -PassThru
+    $process = Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT', '/NORESTART', '/SP-', '/SUPPRESSMSGBOXES') -WindowStyle Hidden -Wait -PassThru
     if ($process.ExitCode -ne 0) { throw "The Git installer exited with $($process.ExitCode)." }
 }
 
@@ -184,6 +262,30 @@ function ConvertTo-PowerShellLiteral([string] $Text) {
     return "'" + $Text.Replace("'", "''") + "'"
 }
 
+# Preserve unexpected PowerShell/.NET failures as actionable installer results, too.
+trap {
+    Write-Log "Unexpected error at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.Message)"
+    Stop-Bootstrap 5 $script:CurrentStage $_.Exception.Message 'Review the diagnostics and click Retry.'
+}
+
+Update-SessionPath
+if ($DetectOnly) {
+    $script:CurrentStage = 'Checking required software'
+    if (-not $DetectionFile) { throw 'Detection requires -DetectionFile.' }
+    $runtime = Get-NodeRuntime
+    $gitTool = Get-Tool 'git' @('--version')
+    Write-InstallerData $DetectionFile 'Prerequisites' @{
+        NodeReady = [int] $runtime.Ready
+        NodeVersion = if ($runtime.Node) { [string] $runtime.Node.Version } else { '' }
+        NpmVersion = if ($runtime.Npm) { [string] $runtime.Npm.Version } else { '' }
+        GitReady = [int] [bool] ($gitTool -and $gitTool.Usable)
+        GitVersion = if ($gitTool) { [string] $gitTool.Version } else { '' }
+        GitNeedsRepair = [int] [bool] ($gitTool -and -not $gitTool.Usable)
+    }
+    Write-InstallerResult 0 'Checking required software' 'Required software checked.' ''
+    exit 0
+}
+
 Write-Log "Promptbook bootstrap for ptbk $PromptbookVersion (plan: $Plan, skip project: $SkipProject)"
 Write-Host "Promptbook $PromptbookVersion - preparing your computer" -ForegroundColor White
 Write-Host 'This installs what ptbk needs, then opens the setup assistant (ptbk init) in a terminal.'
@@ -191,10 +293,10 @@ Write-Host ''
 
 # 1. Reuse compatible Node and npm, otherwise prepare a private runtime.
 Write-Step 'Node.js and npm'
-Update-SessionPath
-$node = Get-Tool 'node' @('--version')
-$npm = Get-Tool 'npm.cmd' @('--version')
-if (-not $node -or -not $node.Usable -or -not (Test-NodeCompatible $node.Version) -or -not $npm -or -not $npm.Usable -or $npm.Version.Major -lt 10) {
+$runtime = Get-NodeRuntime
+$node = $runtime.Node
+$npm = $runtime.Npm
+if (-not $runtime.Ready) {
     if ($Plan) { Write-Detail 'PLAN: prepare a verified per-user Node.js 22 runtime including npm; existing Node.js stays unchanged.' }
     else {
         try { Install-NodeFromNodejsOrg } catch { Stop-Bootstrap 5 'Node.js installation' $_.Exception.Message 'Check the network connection and click Retry.' }
@@ -211,7 +313,7 @@ if ($npm) { Write-Detail "npm $($npm.Version)" }
 # 2. Git (reused when present; the installer never configures a Git identity or requires a GitHub account).
 Write-Step 'Git'
 $gitTool = Get-Tool 'git' @('--version')
-if ($gitTool -and -not $gitTool.Usable) { Stop-Bootstrap 3 'Git' "Git at $($gitTool.Path) does not run." 'Repair or reinstall Git, then run this installer again. Nothing was changed.' }
+if ($gitTool -and -not $gitTool.Usable) { Stop-Bootstrap 5 'Git verification' "Git at $($gitTool.Path) does not run." 'Repair or reinstall Git, then click Retry.' }
 if (-not $gitTool) {
     if ($Plan) { Write-Detail 'PLAN: Git is missing and would be installed (winget Git.Git, else the verified Git for Windows installer).' }
     else {
@@ -255,7 +357,7 @@ if (-not $Plan) {
     Add-UserPath $prefix
     $launcher = Join-Path $script:LogDirectory 'launch.ps1'
     $launchLines = @(
-        ('$env:Path = ' + (ConvertTo-PowerShellLiteral ((Split-Path $node.Path) + ';' + $prefix + ';')) + ' + $env:Path'),
+        ('$env:PATH = ' + (ConvertTo-PowerShellLiteral ((Split-Path $node.Path) + ';' + $prefix + ';')) + ' + $env:PATH'),
         'Set-Location -LiteralPath $env:USERPROFILE',
         ('& ' + (ConvertTo-PowerShellLiteral $ptbk))
     )
@@ -274,24 +376,6 @@ if (-not $Plan) {
 
 }
 
-# Selected native CLIs are optional prerequisites; init still owns authentication and project choices.
-foreach ($harness in @(
-    @{ Selected = $InstallCodex; Command = 'codex'; Package = '@openai/codex' },
-    @{ Selected = $InstallClaude; Command = 'claude'; Package = '@anthropic-ai/claude-code' }
-)) {
-    if (-not $harness.Selected) { continue }
-    $existingHarness = Get-Command $harness.Command -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($existingHarness) {
-        Write-Detail "Reusing $($harness.Command) at $($existingHarness.Source) (no update or sign-in)."
-        continue
-    }
-    if ($Plan) { Write-Detail "PLAN: npm install --global $($harness.Package)"; continue }
-    Invoke-Native { & $npm.Path install --global $harness.Package --no-fund --no-audit 2>&1 } | ForEach-Object { Write-Log "harness: $_" }
-    if ($LASTEXITCODE -ne 0) { Stop-Bootstrap 5 'Optional harness installation' "$($harness.Command) could not be installed." 'Check the diagnostics and retry, or deselect this component.' }
-    Update-SessionPath
-    if (-not (Get-Command $harness.Command -CommandType Application -ErrorAction SilentlyContinue)) { Stop-Bootstrap 5 'Optional harness verification' "$($harness.Command) is still missing after installation." 'Retry or deselect this component.' }
-}
-
 # The desktop is a separate client of this verified system Node/CLI, never an embedded engine.
 if ($DesktopPath) {
     if ($Plan) { Write-Detail "PLAN: configure the desktop client at $DesktopPath" }
@@ -302,7 +386,7 @@ if ($DesktopPath) {
         if (-not (Test-Path -LiteralPath (Join-Path $installation 'bin\ptbk.js'))) { Stop-Bootstrap 5 'Desktop runtime' 'The verified CLI installation could not be located.' 'Retry the installer.' }
         $desktopDirectory = Join-Path $env:LOCALAPPDATA 'Promptbook\desktop'
         New-Item -ItemType Directory -Force -Path $desktopDirectory | Out-Null
-        @{ installation = $installation; nodePath = $node.Path; env = @{ Path = $env:Path } } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $desktopDirectory 'runtime.json') -Encoding UTF8
+        @{ installation = $installation; nodePath = $node.Path; env = @{ Path = $env:PATH } } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $desktopDirectory 'runtime.json') -Encoding UTF8
     }
 }
 
@@ -329,6 +413,7 @@ if ($SkipProject) {
     Write-Host 'Promptbook is installed. No project was created.' -ForegroundColor Green
     Write-Host "To start one later: create an empty folder (for example in $root), open a terminal there and run: ptbk init"
     Write-Log 'Done: project skipped.'
+    Write-InstallerResult 2 'Complete' 'Promptbook is installed. No project was created.' ''
     exit 2
 }
 
@@ -353,10 +438,11 @@ else {
 # 6. Hand off to the ordinary interactive initializer in a visible terminal that stays open.
 if ($DesktopPath) {
     Write-Step 'Opening the Promptbook desktop setup assistant'
-    if ($Plan -or $NoLaunch) { Write-Detail "Desktop handoff prepared (not launched): $DesktopPath --init `"$target`""; exit 0 }
+    if ($Plan -or $NoLaunch) { Write-Detail "Desktop handoff prepared (not launched): $DesktopPath --init `"$target`""; Write-InstallerResult 0 'Complete' 'Desktop handoff prepared.' ''; exit 0 }
     try { Start-Process -FilePath $DesktopPath -ArgumentList @('--init', ('"' + $target + '"')) -WorkingDirectory $target | Out-Null }
     catch { Stop-Bootstrap 6 'Desktop handoff' $_.Exception.Message 'Open Promptbook from the Start menu, or retry.' }
     Write-Host 'Done. Promptbook is opening the same initializer in the desktop application.' -ForegroundColor Green
+    Write-InstallerResult 0 'Complete' 'Promptbook is opening the setup assistant.' ''
     exit 0
 }
 Write-Step 'Opening the setup assistant (ptbk init)'
@@ -365,6 +451,7 @@ $command = "Set-Location -LiteralPath $(ConvertTo-PowerShellLiteral $target); Wr
 if ($Plan -or $NoLaunch) {
     Write-Detail "Handoff command: $display"
     Write-Log "Handoff prepared (not launched): $command"
+    Write-InstallerResult 0 'Complete' 'CLI handoff prepared.' ''
     exit 0
 }
 try {
@@ -377,4 +464,5 @@ Write-Host ''
 Write-Host 'Done. The setup assistant is running in the new terminal window.' -ForegroundColor Green
 Write-Host "Project folder: $target"
 Write-Log 'Done: handed off to ptbk init.'
+Write-InstallerResult 0 'Complete' 'The setup assistant is running in the new terminal window.' ''
 exit 0

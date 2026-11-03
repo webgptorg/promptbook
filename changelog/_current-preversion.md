@@ -1,5 +1,12 @@
 # Unreleased
 
+## Windows installer preparation
+
+- Detect usable Node.js/npm and Git before installation and show what is already available and what must be installed. Keep prerequisites mandatory and move Codex/Claude Code installation out of the Windows component list into ordinary project setup.
+- Keep preparation and its animated progress inside Setup, capturing PowerShell output without opening console windows. Show the actual failure stage, error, retry action and diagnostic file in the installer, including unexpected script exceptions.
+- Reuse a previously prepared private Node.js runtime even when Setup inherits a stale PATH. Enable TLS 1.2 for Windows PowerShell downloads, retry transient failures, retain checksum verification and validate clean-user runtime preparation in the Windows checks.
+- Extract verified Node.js archives through literal Unicode paths instead of PowerShell's wildcard-sensitive destination handling. Stage extraction privately, preserve an earlier runtime during repair and clean incomplete extraction files.
+
 ## Complete hosted release validation
 
 - Run the complete project check in every required Node 22/24 Linux, macOS and Windows matrix job, including behavioral and package checks, before the publication workflow can proceed. The matrix previously ran only the light type check.

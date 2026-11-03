@@ -26,7 +26,7 @@ VersionInfoVersion={#NumericVersion}
 VersionInfoProductVersion={#NumericVersion}
 VersionInfoTextVersion={#Version}
 VersionInfoProductTextVersion={#Version}
-VersionInfoDescription=Promptbook {#Version} installer (engine, desktop and optional harnesses)
+VersionInfoDescription=Promptbook {#Version} installer (engine and optional desktop)
 DefaultDirName={localappdata}\Promptbook\Installer
 DisableDirPage=yes
 DisableProgramGroupPage=yes
@@ -47,18 +47,16 @@ SetupLogging=yes
 UninstallDisplayName=Promptbook installer {#Version} (your projects and tools are kept)
 
 [Messages]
-WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n- prepares compatible Node.js, npm and Git automatically,%n- installs the Promptbook engine and command-line tool,%n- optionally installs the local desktop controller, Codex and Claude Code.%n%nThe desktop controller is selected by default. The same project setup assistant works in the app or in a terminal.
+WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n- checks Node.js, npm and Git and prepares the required missing software,%n- installs the Promptbook engine and command-line tool,%n- optionally installs the local desktop controller.%n%nThe desktop controller is selected by default. Choose your AI tools later in the project setup assistant.
 
 [Types]
-Name: "full"; Description: "Promptbook with desktop, Codex and Claude Code"
+Name: "full"; Description: "Promptbook with desktop"
 Name: "cli"; Description: "Engine and command-line tool only"
 Name: "custom"; Description: "Choose components"; Flags: iscustom
 
 [Components]
 Name: "core"; Description: "Promptbook engine and CLI"; Types: full cli custom; Flags: fixed
 Name: "desktop"; Description: "Local desktop application and tray controller"; Types: full custom
-Name: "codex"; Description: "OpenAI Codex CLI (install if missing)"; Types: full custom
-Name: "claude"; Description: "Claude Code CLI (install if missing)"; Types: full custom
 
 [Files]
 Source: "bootstrap.ps1"; DestDir: "{app}"; Flags: ignoreversion
@@ -80,6 +78,125 @@ var
   RootPage: TInputDirWizardPage;
   ProjectPage: TInputQueryWizardPage;
   SkipBox: TNewCheckBox;
+  PrerequisitesPage: TOutputMsgWizardPage;
+  PreparationPage: TOutputMarqueeProgressWizardPage;
+  PreparationStage: String;
+  PreparationOutput: String;
+  ResultFilePath: String;
+  LastFailure: String;
+
+function Quoted(Value: String): String;
+begin
+  Result := '"' + Value + '"';
+end;
+
+{ All preparation output stays in Setup, including when PowerShell fails unexpectedly. }
+procedure PreparationLog(const S: String; const Error, FirstLine: Boolean);
+var
+  Separator: Integer;
+begin
+  Log(S);
+  if Trim(S) = '' then Exit;
+  PreparationOutput := PreparationOutput + S + #13#10;
+  if Length(PreparationOutput) > 3000 then
+    PreparationOutput := Copy(PreparationOutput, Length(PreparationOutput) - 2999, 3000);
+  Separator := Pos('] ', S);
+  if (Copy(S, 1, 1) = '[') and (Separator > 0) then
+  begin
+    PreparationStage := Copy(S, Separator + 2, Length(S));
+    PreparationPage.SetText(PreparationStage, 'Please wait...');
+  end
+  else if Copy(S, 1, 6) = '      ' then
+    PreparationPage.SetText(PreparationStage, Trim(S));
+end;
+
+function PreparationFailure(DefaultMessage: String): String;
+var
+  Stage, Message, NextAction, LogFile: String;
+begin
+  Stage := GetIniString('Result', 'Stage', '', ResultFilePath);
+  Message := GetIniString('Result', 'Message', '', ResultFilePath);
+  NextAction := GetIniString('Result', 'NextAction', '', ResultFilePath);
+  LogFile := GetIniString('Result', 'LogFile', ExpandConstant('{localappdata}\Promptbook\installer'), ResultFilePath);
+  if Message = '' then
+  begin
+    Message := DefaultMessage;
+    if PreparationOutput <> '' then Message := Message + #13#10 + PreparationOutput;
+  end;
+  Result := Message;
+  if Stage <> '' then Result := Stage + #13#10 + Result;
+  if NextAction <> '' then Result := Result + #13#10#13#10 + NextAction;
+  Result := Result + #13#10#13#10 + 'Diagnostics: ' + LogFile;
+end;
+
+function RunPreparation(ScriptPath, ExtraParams: String; var Code: Integer): Boolean;
+var
+  Params: String;
+begin
+  Code := -1;
+  Result := False;
+  ResultFilePath := ExpandConstant('{tmp}\promptbook-result.ini');
+  DeleteFile(ResultFilePath);
+  PreparationOutput := '';
+  PreparationStage := 'Checking and preparing required software';
+  Params := '-NoLogo -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -File ' + Quoted(ScriptPath) +
+    ' -PromptbookVersion ' + Quoted('{#Version}') + ' -ResultFile ' + Quoted(ResultFilePath) + ExtraParams;
+  PreparationPage.SetText(PreparationStage, 'Please wait...');
+  PreparationPage.Show;
+  PreparationPage.Animate;
+  try
+    try
+      { ExecAndLogOutput always hides console processes and streams their output to Setup. }
+      Result := ExecAndLogOutput(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, '', SW_SHOWNORMAL,
+        ewWaitUntilTerminated, Code, @PreparationLog);
+    except
+      PreparationOutput := GetExceptionMessage;
+      Log(PreparationOutput);
+    end;
+  finally
+    PreparationPage.Hide;
+  end;
+end;
+
+function DetectPrerequisites: Boolean;
+var
+  Code: Integer;
+  DetectionFile, Available, Required: String;
+begin
+  Result := False;
+  ExtractTemporaryFile('bootstrap.ps1');
+  DetectionFile := ExpandConstant('{tmp}\promptbook-prerequisites.ini');
+  DeleteFile(DetectionFile);
+  if not RunPreparation(ExpandConstant('{tmp}\bootstrap.ps1'), ' -DetectOnly -DetectionFile ' + Quoted(DetectionFile), Code) or
+    (Code <> 0) or not FileExists(DetectionFile) then
+  begin
+    MsgBox(PreparationFailure('Required software could not be checked. Click Next to retry.'), mbError, MB_OK);
+    Exit;
+  end;
+  Available := '';
+  Required := '';
+  if GetIniInt('Prerequisites', 'NodeReady', 0, 0, 1, DetectionFile) = 1 then
+    Available := 'Node.js ' + GetIniString('Prerequisites', 'NodeVersion', '', DetectionFile) +
+      ' and npm ' + GetIniString('Prerequisites', 'NpmVersion', '', DetectionFile) + #13#10
+  else
+    Required := 'Node.js with npm (required)' + #13#10;
+  if GetIniInt('Prerequisites', 'GitReady', 0, 0, 1, DetectionFile) = 1 then
+    Available := Available + 'Git ' + GetIniString('Prerequisites', 'GitVersion', '', DetectionFile) + #13#10
+  else if GetIniInt('Prerequisites', 'GitNeedsRepair', 0, 0, 1, DetectionFile) = 1 then
+  begin
+    MsgBox('Git is installed but does not run. Repair Git, then click Next to check again.', mbError, MB_OK);
+    Exit;
+  end
+  else Required := Required + 'Git (required)' + #13#10;
+  PrerequisitesPage.MsgLabel.Caption := '';
+  if Available <> '' then PrerequisitesPage.MsgLabel.Caption := 'Already installed and ready:' + #13#10 + Available + #13#10;
+  if Required <> '' then
+    PrerequisitesPage.MsgLabel.Caption := PrerequisitesPage.MsgLabel.Caption + 'Will be installed:' + #13#10 + Required + #13#10 +
+      'These are required for Promptbook and will be prepared automatically when you click Install.'
+  else
+    PrerequisitesPage.MsgLabel.Caption := PrerequisitesPage.MsgLabel.Caption + 'All required software is ready.';
+  Result := True;
+end;
 
 function IsValidFolderName(Name: String): Boolean;
 var
@@ -117,7 +234,9 @@ end;
 
 procedure InitializeWizard;
 begin
-  RootPage := CreateInputDirPage(wpSelectComponents, 'Projects folder', 'Where should your Promptbook projects live?',
+  PreparationPage := CreateOutputMarqueeProgressPage('Preparing Promptbook', 'Required software and installation progress');
+  PrerequisitesPage := CreateOutputMsgPage(wpSelectComponents, 'Required software', 'Checked on this computer', '');
+  RootPage := CreateInputDirPage(PrerequisitesPage.ID, 'Projects folder', 'Where should your Promptbook projects live?',
     'Promptbook keeps each project in its own folder inside this one. It is an ordinary folder, not a project itself.', False, '');
   RootPage.Add('');
   RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\ptbk\project');
@@ -138,6 +257,11 @@ var
   Target: String;
 begin
   Result := True;
+  if CurPageID = wpSelectComponents then
+  begin
+    Result := DetectPrerequisites;
+    Exit;
+  end;
   if (CurPageID = ProjectPage.ID) and not SkipBox.Checked then
   begin
     if not IsValidFolderName(ProjectPage.Values[0]) then
@@ -155,25 +279,17 @@ begin
   end;
 end;
 
-function Quoted(Value: String): String;
-begin
-  Result := '"' + Value + '"';
-end;
-
 function RunBootstrap(AllowReplacement: Boolean; var Code: Integer): Boolean;
 var
   Params: String;
 begin
-  Params := '-NoProfile -ExecutionPolicy Bypass -File ' + Quoted(ExpandConstant('{app}\bootstrap.ps1')) +
-    ' -PromptbookVersion ' + Quoted('{#Version}') + ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
+  Params := ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
   if SkipBox.Checked then Params := Params + ' -SkipProject'
   else Params := Params + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
   if AllowReplacement then Params := Params + ' -AllowPtbkReplacement';
   if WizardIsComponentSelected('desktop') then Params := Params + ' -DesktopPath ' + Quoted(ExpandConstant('{app}\desktop\promptbook.exe'));
-  if WizardIsComponentSelected('codex') then Params := Params + ' -InstallCodex';
-  if WizardIsComponentSelected('claude') then Params := Params + ' -InstallClaude';
   { The process-scoped execution policy applies to this one bootstrap script only; no machine policy is changed. }
-  Result := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, '', SW_SHOW, ewWaitUntilTerminated, Code);
+  Result := RunPreparation(ExpandConstant('{app}\bootstrap.ps1'), Params, Code);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -181,41 +297,37 @@ var
   Code: Integer;
   AllowReplace: Boolean;
   Done: Boolean;
-  LogDirectory: String;
 begin
   if CurStep <> ssPostInstall then Exit;
   AllowReplace := False;
-  LogDirectory := ExpandConstant('{localappdata}\Promptbook\installer');
   Done := False;
   while not Done do
   begin
     if not RunBootstrap(AllowReplace, Code) then
     begin
-      if MsgBox('Windows PowerShell could not be started to prepare Promptbook.', mbError, MB_RETRYCANCEL) = IDCANCEL then Done := True;
+      LastFailure := PreparationFailure('Windows PowerShell could not be started to prepare Promptbook.');
+      if MsgBox(LastFailure + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then Done := True;
       Continue;
     end;
     case Code of
       0: begin BootstrapSucceeded := True; Done := True; end;
       2: begin
            BootstrapSucceeded := True;
-           if WizardIsComponentSelected('desktop') then
-             MsgBox('Promptbook is installed. No project was created. Use New project in the application whenever you are ready.', mbInformation, MB_OK)
-           else
-             MsgBox('Promptbook is installed. No project was created; to start one, open a terminal in an empty folder and run: ptbk init', mbInformation, MB_OK);
            Done := True;
          end;
       3: begin
-           if (not AllowReplace) and (MsgBox('A decision is needed (see the terminal window): another installed ptbk version was found.' + #13#10#13#10 +
-               'If it is another ptbk version: replace the global ptbk with {#Version}? (Project-local installations are never touched.)', mbConfirmation, MB_YESNO) = IDYES) then
+           LastFailure := PreparationFailure('Another installed ptbk version was found.');
+           if (not AllowReplace) and (GetIniString('Result', 'Stage', '', ResultFilePath) = 'ptbk version') and
+             (MsgBox(LastFailure + #13#10#13#10 + 'Replace the global ptbk with {#Version}? (Project-local installations are never touched.)', mbConfirmation, MB_YESNO) = IDYES) then
              AllowReplace := True
            else
            begin
-             MsgBox('Nothing was replaced. Resolve the reported item and run this installer again. Diagnostics: ' + LogDirectory, mbInformation, MB_OK);
              Done := True;
            end;
          end;
     else
-      if MsgBox('Promptbook was not fully prepared (stage reported in the terminal window). Your files were kept.' + #13#10 + 'Diagnostics: ' + LogDirectory + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then
+      LastFailure := PreparationFailure('Promptbook was not fully prepared. Your files were kept.');
+      if MsgBox(LastFailure + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then
         Done := True;
     end;
   end;
@@ -226,7 +338,14 @@ begin
   if (CurPageID = wpFinished) and not BootstrapSucceeded then
   begin
     WizardForm.FinishedHeadingLabel.Caption := 'Promptbook installation was not completed';
-    WizardForm.FinishedLabel.Caption := 'Promptbook is not ready. Run the installer again to retry. Diagnostics: ' + ExpandConstant('{localappdata}\Promptbook\installer');
+    WizardForm.FinishedLabel.Caption := LastFailure;
+  end
+  else if (CurPageID = wpFinished) and SkipBox.Checked then
+  begin
+    if WizardIsComponentSelected('desktop') then
+      WizardForm.FinishedLabel.Caption := 'Promptbook is installed. Use New project in the application whenever you are ready.'
+    else
+      WizardForm.FinishedLabel.Caption := 'Promptbook is installed. To create a project, open a terminal in an empty folder and run: ptbk init';
   end;
 end;
 

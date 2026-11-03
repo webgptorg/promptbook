@@ -6,7 +6,7 @@
 
 Give nontechnical users, initially a marketing agency, a short path from downloading Promptbook to the existing interactive `ptbk init`. They must not need to understand npm, install Git/Node.js manually, choose a project location from scratch or type the first command. Instructions and demonstration videos can begin with the shared initializer already open in the selected desktop or terminal presentation.
 
-Windows is the initial scope; installers for other operating systems are future work. Offer the optional [local desktop client](desktop.md), selected by default, alongside the engine/CLI and optional Codex and Claude Code installations. Existing global/local npm and CLI-only workflows remain supported.
+Windows is the initial scope; installers for other operating systems are future work. Offer the optional [local desktop client](desktop.md), selected by default, alongside the engine/CLI. Harness selection and installation, including Codex and Claude Code, belong to the ordinary project initializer rather than Windows installer components. Existing global/local npm and CLI-only workflows remain supported.
 
 The installer is a very thin bootstrap layer: prepare prerequisites, install the ordinary npm package, prepare an empty destination and launch the selected desktop client or ordinary CLI. Do not fork the engine, reimplement the initialization wizard, configure project tools/authentication separately or introduce another scheduler/updater. Project semantics remain in the [shared domain logic](../coding-standards/shared-logic.md).
 
@@ -26,7 +26,9 @@ Inspect Node.js, npm and Git individually in the environment of the user who wil
 
 An incompatible Node.js installation remains intact; the installer selects its private compatible runtime for Promptbook. An unusable Git installation needs an understandable repair decision. Preserve unrelated tools, package-manager settings, PATH entries and Git configuration. Do not invent a Git author or require a GitHub account in the installer; project Git setup belongs to init.
 
-Prepare a usable global `ptbk` installation for the initiating user. Show concise progress and the planned dependencies/changes; technical output can be available as diagnostics rather than the main interface. Ordinary OS permission prompts are allowed where needed, but use elevation only for operations that require it. Project creation and CLI handoff run as the original user, not as an elevated administrator or a different administrator account.
+Before installation, show the actual detection results: compatible software already available and the missing Node.js/npm or Git that will be installed. Required missing dependencies cannot be deselected; do not ask users to decide whether a tool is installed or present generic "install if missing" options.
+
+Prepare a usable global `ptbk` installation for the initiating user. Keep preparation in the installer window, with an animated progress bar and current stage, while capturing technical output in diagnostics. Do not open PowerShell, command prompt or download progress windows during preparation. The deliberately interactive CLI-only initializer is opened only after preparation succeeds. Ordinary OS permission prompts are allowed where needed, but use elevation only for operations that require it. Project creation and CLI handoff run as the original user, not as an elevated administrator or a different administrator account.
 
 Make the selected executables available immediately to the launched terminal, including fresh PATH changes, and to subsequent ordinary terminals. Do not require a log-out, manual environment-variable editing or a pre-existing Windows Terminal application. Never bypass OS security warnings or relax machine-wide execution policy to make launching work. An unavoidable platform/restart prerequisite is an explicit incomplete state with a recovery action, not a successful handoff.
 
@@ -52,7 +54,7 @@ If automatic terminal launch is unavailable, report the failed handoff distinctl
 
 ## Retry and preservation
 
-Separate preparation, directory creation and terminal handoff outcomes. A failed download, denied permission or package installation must stop the dependent steps, show the failed stage and a useful retry action, and retain readable diagnostics without secrets. Never launch an initializer against missing/unverified dependencies or claim a project is ready merely because the installer finished.
+Separate preparation, directory creation and terminal handoff outcomes. A failed download, denied permission or package installation must stop the dependent steps, show the actual failed stage, error and useful retry action directly in the installer, and retain readable diagnostics without secrets. Unexpected PowerShell exceptions use the same result channel; no message may rely on a separate terminal window. Retry transient downloads and verify their checksums before use. Never launch an initializer against missing/unverified dependencies or claim a project is ready merely because the installer finished.
 
 Repeating setup rechecks and reuses satisfied prerequisites, the requested package version and approved empty destination. Do not duplicate PATH entries, reset project configuration, delete existing user files or launch duplicate initializers from repeated completion actions. Resume already-started project setup through ordinary CLI behavior with explicit user intent, not by treating its now-nonempty directory as a new empty project. Reinstallation, repair and any removal of the bootstrap layer preserve user projects and shared Node.js/npm/Git installations.
 
@@ -68,7 +70,7 @@ Repeating setup rechecks and reuses satisfied prerequisites, the requested packa
 
 ## Desktop components and completion
 
-The desktop executable and tray controller follow [the desktop contract](desktop.md). Install a matching release payload, register only the tray at Windows sign-in and launch a visible application window at completion. Closing that window leaves the engines and tray alone. Optional harness installation prepares missing selected executables without authenticating or overwriting existing ones; normal init remains authoritative. Desktop failure is an incomplete installation with retry diagnostics. CLI-only selection keeps the terminal handoff described above.
+The desktop executable and tray controller follow [the desktop contract](desktop.md). Install a matching release payload, register only the tray at Windows sign-in and launch a visible application window at completion. Closing that window leaves the engines and tray alone. Normal init owns harness preparation and authentication. Desktop failure is an incomplete installation with retry diagnostics. CLI-only selection keeps the terminal handoff described above.
 
 ## Windows discovery and completion
 

@@ -1,12 +1,50 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, mkdir, readFile, readdir, symlink, writeFile } from 'node:fs/promises';
 import { delimiter, join } from 'node:path';
 import { test } from 'node:test';
 import { promisify } from 'node:util';
 import { ROOT, temporaryDirectory } from './helpers.mjs';
 
 const execFileAsync = promisify(execFile);
+
+/** Absolute shell paths let fixtures replace PATH without hiding the shell itself. */
+const availableShells = Promise.all((process.platform === 'win32' ? ['powershell', 'pwsh'] : ['pwsh']).map(async (shell) => {
+    try {
+        const { stdout } = await execFileAsync(shell, ['-NoProfile', '-Command', '[Console]::Write((Get-Process -Id $PID).Path)']);
+        return stdout.trim();
+    } catch (error) {
+        if (error.code === 'ENOENT') return undefined;
+        throw error;
+    }
+})).then((shells) => shells.filter(Boolean));
+
+/** A fixture user with no tools or network dependencies. */
+async function isolatedUser(t) {
+    const directory = await temporaryDirectory(t, 'ptbk installer \u00fc [x] & user');
+    for (const part of ['bin', 'local', 'roaming', 'home', 'temp']) await mkdir(join(directory, part));
+    const env = { ...process.env, LOCALAPPDATA: join(directory, 'local'), APPDATA: join(directory, 'roaming'), USERPROFILE: join(directory, 'home'), TEMP: join(directory, 'temp') };
+    const pathKey = Object.keys(env).find((key) => key.toUpperCase() === 'PATH') ?? 'PATH';
+    env[pathKey] = join(directory, 'bin');
+    return { directory, env };
+}
+
+/** A native version probe which can print a valid-looking version and still fail. */
+async function probeTool(directory, name, version, exitCode = 0) {
+    const filename = process.platform === 'win32' && !name.endsWith('.cmd') ? name + '.cmd' : name;
+    const content = process.platform === 'win32'
+        ? '@echo off\r\necho ' + version + '\r\nexit /b ' + exitCode + '\r\n'
+        : '#!/bin/sh\nprintf "%s\\n" "' + version + '"\nexit ' + exitCode + '\n';
+    const path = join(directory, 'bin', filename);
+    await writeFile(path, content);
+    await chmod(path, 0o755);
+}
+
+/** Reads the Unicode result protocol consumed by the native installer. */
+async function installerData(path) {
+    const source = await readFile(path, 'utf16le');
+    return Object.fromEntries([...source.matchAll(/^([^=\r\n]+)=(.*)$/gm)].map((match) => [match[1], match[2]]));
+}
 
 /**
  * Runs a PowerShell script file and returns its exit code and combined output (`undefined` when that shell is missing).
@@ -24,7 +62,7 @@ async function runPowerShell(shell, args, env) {
 test('Windows installer sources and PowerShell workflow steps are pure ASCII (BOM-less files are read as ANSI on Windows)', async () => {
     // Windows PowerShell 5.1 and Inno Setup read a file without a BOM as ANSI: an em dash (E2 80 94) then contains a
     // right double quotation mark, which PowerShell treats as a string delimiter and the whole script fails to parse.
-    for (const file of ['installer/windows/bootstrap.ps1', 'installer/windows/promptbook.iss', '.github/workflows/check.yml', '.github/workflows/publish.yml']) {
+    for (const file of ['installer/windows/bootstrap.ps1', 'installer/windows/promptbook.iss', 'test/fixtures/installer-functions.ps1', '.github/workflows/check.yml', '.github/workflows/publish.yml']) {
         const content = await readFile(join(ROOT, file));
         const offset = content.findIndex((byte) => byte > 0x7f);
         const line = offset < 0 ? 0 : content.subarray(0, offset).toString('latin1').split('\n').length;
@@ -81,4 +119,117 @@ test('the installer check expects what the installer plans: its asserted texts e
     const expected = [...workflow.matchAll(/-notmatch '(PLAN: [^']+)'/g)].map((match) => match[1]);
     assert.ok(expected.length >= 2, 'the check still asserts the planned prerequisites');
     for (const text of expected) assert.ok(bootstrap.includes(text), `the bootstrap no longer plans "${text}"`);
+});
+
+test('required-software detection distinguishes missing, incompatible, broken and usable tools without installing anything', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    const cases = [
+        { label: 'clean computer', node: undefined, npm: undefined, git: undefined, expected: ['0', '0', '0'] },
+        { label: 'compatible tools', node: 'v22.13.0', npm: '10.5.0', git: 'git version 2.45.1', expected: ['1', '1', '0'] },
+        { label: 'old Node', node: 'v20.19.0', npm: '10.5.0', git: 'git version 2.45.1', expected: ['0', '1', '0'] },
+        { label: 'missing npm', node: 'v24.0.0', npm: undefined, git: 'git version 2.45.1', expected: ['0', '1', '0'] },
+        { label: 'old npm', node: 'v24.0.0', npm: '9.0.0', git: 'git version 2.45.1', expected: ['0', '1', '0'] },
+        { label: 'broken Node', node: 'v24.0.0', nodeExit: 17, npm: '10.5.0', git: 'git version 2.45.1', expected: ['0', '1', '0'] },
+        { label: 'broken Git', node: 'v24.0.0', npm: '10.5.0', git: 'git version 2.45.1', gitExit: 19, expected: ['1', '0', '1'] },
+    ];
+    for (const shell of shells) for (const fixture of cases) await t.test(shell + ': ' + fixture.label, async (t) => {
+        const { directory, env } = await isolatedUser(t);
+        if (fixture.node) await probeTool(directory, 'node', fixture.node, fixture.nodeExit);
+        if (fixture.npm) await probeTool(directory, 'npm.cmd', fixture.npm);
+        if (fixture.git) await probeTool(directory, 'git', fixture.git, fixture.gitExit);
+        const detection = join(directory, 'detected.ini');
+        const resultFile = join(directory, 'result.ini');
+        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-DetectOnly', '-IsolatedPath', '-DetectionFile', detection, '-ResultFile', resultFile], env);
+        assert.equal(result.code, 0, result.output);
+        const actual = await installerData(detection);
+        assert.deepEqual([actual.NodeReady, actual.GitReady, actual.GitNeedsRepair], fixture.expected, result.output);
+        assert.equal((await installerData(resultFile)).Code, '0');
+        assert.deepEqual(await readdir(env.USERPROFILE), [], 'detection must not create a project');
+    });
+});
+
+test('unexpected bootstrap errors retain their stage and a readable result for the installer', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const resultFile = join(directory, 'result.ini');
+        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-DetectOnly', '-IsolatedPath', '-ResultFile', resultFile], env);
+        assert.equal(result.code, 5, result.output);
+        const actual = await installerData(resultFile);
+        assert.equal(actual.Code, '5');
+        assert.equal(actual.Stage, 'Checking required software');
+        assert.match(actual.Message, /Detection requires -DetectionFile/);
+        assert.match(actual.NextAction, /Retry/);
+        assert.match(await readFile(actual.LogFile, 'utf8'), /Unexpected error at line/);
+    }
+});
+
+test('a failed Node download reports the actual error and never continues to package installation', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const wrapper = join(directory, 'network-failure.ps1');
+        const resultFile = join(directory, 'result.ini');
+        await writeFile(wrapper, "param([string] $Bootstrap, [string] $ResultFile)\nfunction Invoke-WebRequest { throw 'Fixture connection refused' }\n& $Bootstrap -PromptbookVersion '0.0.0-test' -IsolatedPath -ResultFile $ResultFile\nexit $LASTEXITCODE\n");
+        const result = await runPowerShell(shell, [wrapper, '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-ResultFile', resultFile], env);
+        assert.equal(result.code, 5, result.output);
+        const actual = await installerData(resultFile);
+        assert.equal(actual.Stage, 'Node.js installation');
+        assert.match(actual.Message, /Fixture connection refused/);
+        assert.doesNotMatch(result.output, /Promptbook CLI ptbk/);
+    }
+});
+
+test('Windows preparation uses hidden captured output and leaves harness selection to init', async () => {
+    const setup = await readFile(join(ROOT, 'installer/windows/promptbook.iss'), 'utf8');
+    const bootstrap = await readFile(join(ROOT, 'installer/windows/bootstrap.ps1'), 'utf8');
+    assert.match(setup, /ExecAndLogOutput\(/);
+    assert.match(setup, /CreateOutputMarqueeProgressPage\(/);
+    assert.doesNotMatch(setup, /\bSW_SHOW\b|see the terminal window|stage reported in the terminal/);
+    assert.doesNotMatch(setup, /Name: "(codex|claude)"|install if missing/);
+    assert.doesNotMatch(bootstrap, /InstallCodex|InstallClaude|@openai\/codex|@anthropic-ai\/claude-code/);
+});
+
+test('verified downloads retry transient failures and refuse corrupt content', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'downloads'], env);
+        assert.equal(result.code, 0, result.output);
+        assert.match(result.output, /Retry and checksum verified/);
+    }
+});
+
+test('Node archives extract to literal Unicode and bracket paths and repairs preserve an earlier runtime', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'archive'], env);
+        assert.equal(result.code, 0, result.output);
+        assert.match(result.output, /Literal-path extraction and repair verified/);
+    }
+});
+
+test('a previously prepared private Node runtime is reused despite a stale incompatible PATH', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        await probeTool(directory, 'node', 'v20.19.0');
+        const runtime = join(env.LOCALAPPDATA, 'Promptbook', 'runtime', 'node-fixture');
+        await mkdir(runtime, { recursive: true });
+        if (process.platform === 'win32') await copyFile(process.execPath, join(runtime, 'node.exe'));
+        else await symlink(process.execPath, join(runtime, 'node.exe'));
+        const npm = join(runtime, 'npm.cmd');
+        await writeFile(npm, process.platform === 'win32' ? '@echo off\r\necho 10.5.0\r\nexit /b 0\r\n' : '#!/bin/sh\nprintf "10.5.0\\n"\n');
+        await chmod(npm, 0o755);
+        const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'reuse'], env);
+        assert.equal(result.code, 0, result.output);
+        assert.match(result.output, /Private runtime reused/);
+    }
 });

@@ -36,7 +36,7 @@ async function publishInstaller(installerPath) {
     try {
         const installationNotes = [
             `- **npm:** \`npm install -g ptbk@${release.version}\` (the ordinary CLI installation).`,
-            `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally, offers the local desktop client (selected by default), Codex and Claude Code, and creates an empty first-project folder. It then opens the selected desktop or CLI presentation of \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
+            `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally, offers the local desktop client (selected by default), and creates an empty first-project folder. Required missing software is prepared inside the installer; AI harnesses are selected later in project setup. It then opens the selected desktop or CLI presentation of \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
         ].join('\n');
         const checksumPath = join(work, checksumName);
         await writeFile(checksumPath, `${digest}  ${name}\n`);

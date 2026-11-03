@@ -100,6 +100,13 @@ jobs:
           Write-Output $output
           if ($output -notmatch 'PLAN: prepare a verified per-user Node.js') { throw 'missing Node.js was not detected' }
           if ($output -notmatch 'PLAN: Git is missing') { throw 'missing Git was not detected' }
+      - name: A clean user can download, verify and reuse the private Node.js runtime
+        shell: powershell
+        run: |
+          $work = Join-Path $env:RUNNER_TEMP ('Promptbook Clean Runtime ' + [char]0x00FC + ' [x] & co')
+          New-Item -ItemType Directory -Path $work -Force | Out-Null
+          powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\test\fixtures\installer-functions.ps1 -Bootstrap (Resolve-Path .\installer\windows\bootstrap.ps1).Path -WorkDirectory $work -Mode live-node
+          if ($LASTEXITCODE -ne 0) { throw "Clean Node.js runtime preparation exited with $LASTEXITCODE" }
       - name: Compatible prerequisites are reused; the candidate installs and the handoff is prepared (spaces, Unicode, special characters)
         shell: powershell
         run: |
