@@ -39,7 +39,7 @@ Manual sign-in in an existing headful browser remains possible, with optional pr
 
 For each named tool show saved/effective variant, profile source/path, mode, actual process/connection health, connected engines, active task tabs/uses and retained context. Paths/endpoints are diagnostics for authorized control, never permission to export profile/secret contents. The home tile keeps a compact failure/count summary.
 
-Use bounded automatic diagnosis/reconnect/retry and ordinary [automatic repair](../concepts/automatic-repair.md) with zero viewers. Manual controls call those same engine-owned operations:
+Use bounded automatic diagnosis/reconnect/retry and ordinary [automatic repair](../concepts/automatic-repair.md) with zero viewers. Unknown recovery times use shared [progressive waiting](../concepts/progressive-waiting.md), relevant profile/connectivity events and domain-safe checks rather than a tight retry loop. Manual controls call those same engine-owned operations:
 
 - recheck/retry-start;
 - **Restart browser**, preserving profile/session data;

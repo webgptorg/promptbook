@@ -168,6 +168,7 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Execution](cli/execution.md): Shared task lifecycle, live tools, scoped result and no new task claims/continuations while pausing/stopping.
 - [Checks](cli/checks.md): Honest placeholder versus real validation and ordinary repairs.
 - [Errors](cli/errors.md): Understandable failures, evidence and next actions.
+- [Progressive waiting](concepts/progressive-waiting.md): Shared exponential backoff, relevant-change wake-ups, persisted schedules, bounded paid relevance checks and authoritative Pause.
 - [Retries](cli/retries.md): Cause-aware recovery beyond bounded immediate attempts, authorized fallback and durable waits.
 - [External-action impact](concepts/external-action-impact.md): Contextual scale, reference examples, logarithmic totals and time-aware priority.
 - [Common knowledge](concepts/common-knowledge.md): Public Books, independent releases, project customization and evaluation provenance.

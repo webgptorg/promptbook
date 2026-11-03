@@ -28,7 +28,7 @@ A failed remote synchronization does not stop safe local work. Missing usable to
 
 Distinguish task-local problems from project-wide unsafe state. Continue independent work when ownership can be preserved; do not hide unsafe unresolved state to claim progress. Deliberate pause/stop and explicitly disabled tools remain intentional decisions, not errors to undo automatically. The user may also resolve problems manually; recognize the result and retire stale repair requests.
 
-Bound immediate attempts, not the lifetime of recoverable work. Exhausting a short retry burst selects a better remedy, scheduled cause-aware recheck or ordinary Fixer work; it never automatically asks User to retry. Network/service outages and supported interface changes are technical work inside existing authority. Ask only for useful missing input/authority or a necessary human-only step after autonomous remedies have been assessed. See [retries](../cli/retries.md).
+Bound immediate attempts, not the lifetime of recoverable work. Exhausting a short retry burst selects a better remedy, scheduled cause-aware recheck or ordinary Fixer work; it never automatically asks User to retry. Network/service outages and supported interface changes are technical work inside existing authority. Ask only for useful missing input/authority or a necessary human-only step after autonomous remedies have been assessed. See [retries](../cli/retries.md) and shared [progressive waiting](progressive-waiting.md) for growing intervals, relevant-change checks, persistence and lifecycle limits.
 
 ## Acceptance outcomes
 
