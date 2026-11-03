@@ -26,6 +26,8 @@ Chat and task detail show **one logical question**, sharing its answer/state. A 
 
 The task and chat presentations also share one durable seen state under [notifications](notifications.md#seen-is-separate-from-resolved). Seeing the actual calling message clears its alert in both surfaces and all clients, but retains the pending question/card/checkpoint and cannot unblock execution. Do not emit separate task and chat notifications for that same occurrence.
 
+The asking agent also owns [continuing relevance](notifications.md#ownership-and-continuing-relevance) of each question and any linked Wallet dependency. Verified resolution elsewhere retires that dependency without a synthetic User answer and appends the agent's explanation to this same chat, preserving original text/active prefixes. Several chats can share suitable login evidence and one chat can retain other independent waits; aggregate waiting and each task's eligibility follow their remaining prerequisites. No unresolved chat-wide status may block already-cleared independent work, and one resolved dependency cannot release unrelated work.
+
 Reply-to-question routes to its author; explicit active invitation/address (`+@Name` or `+{Full Name}`) targets that agent; otherwise the original main agent handles the message. If no suitable linked chat exists, create/link the ordinary attributed agent-to-User conversation. Never create a duplicate just because a different specialist executes the task.
 
 ## Acceptance outcomes

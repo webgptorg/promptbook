@@ -18,6 +18,8 @@ A useful notice identifies affected work, why autonomous resolution is insuffici
 
 Keep [seen state separate from resolution and optional external effects](../../cli/notifications.md). A genuine chat request explicitly pings `+@User`/`+{User}`. Actually viewing that message, or explicitly marking a Wallet request seen, removes that occurrence's alert across clients without answering or unblocking work. Health retains its domain resolution/override rules. Deliberately ignoring a seen request is valid; do not issue timed reminders or replay effects suppressed during recent activity.
 
+The [responsible agent](../../cli/notifications.md#ownership-and-continuing-relevance) owns each notice from creation through withdrawal; system/orphaned notices belong to Fixer. Responsibility continues during ordinary waiting through [progressive checks](../progressive-waiting.md), with bounded paid judgment when useful and no automatic agent checks during Pause. Resolution appends a concise explanation in the original chat instead of editing historical pings. Never cancel the user's current draft/form under their hands; announce resolution nonblockingly and allow valid input to finish.
+
 Long lack of useful progress must be diagnosed rather than hidden by a live process. When autonomous remedies cannot restore useful work and a human action/decision is necessary, surface one current understandable problem with its impact and attempted remedies. Elapsed time or an exhausted counter alone is not a human question. Unrelated work continues wherever its prerequisites and ownership permit.
 
 ## Observe, audit and resume
