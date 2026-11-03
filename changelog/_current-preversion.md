@@ -4,6 +4,8 @@
 
 - Run the complete project check in every required Node 22/24 Linux, macOS and Windows matrix job, including behavioral and package checks, before the publication workflow can proceed. The matrix previously ran only the light type check.
 - Propagate browser-pool lock filesystem errors instead of treating a missing, read-only or full runtime directory as contention and retrying forever during shutdown or validation.
+- Preserve scheduler wake-ups received during evaluation so account fallback, resumed work and task changes cannot sleep until an unrelated later event. Respect Windows `Path` when caching harness capabilities, and make fixture path/Unicode assumptions explicit. Allow forty minutes for the complete hosted matrix without reducing coverage.
+- Gate concurrency fixtures on the actual acquisition of all independent workers rather than assuming every OS starts them within a short sleep; keep assertions for overlapping execution and isolated result commits.
 
 ## Experimental project sounds and desktop notifications
 

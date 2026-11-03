@@ -323,7 +323,7 @@ test('external activity: the methodology behind an estimate stays durable and ho
     assert.match(content, /Local Book agents\/Developer\.book \(Developer\): revision abc123/);
     const snapshot = `actions/.methodology/${hash.slice(0, 24)}.book.txt`;
     assert.match(await readFile(join(directory, snapshot), 'utf8'), /weigh consequences/, 'a durable copy outlives the ignored cache');
-    assert.ok(persisted[0].paths.some((item) => item.endsWith(snapshot)), 'committed together with the record');
+    assert.ok(persisted[0].paths.includes(join(directory, snapshot)), 'committed together with the record at its exact native path');
     assert.equal((await log.refresh()).total, 1, 'the methodology copies are not records');
     const read = await log.read(path);
     assert.equal(read.impactReason, 'One client.');

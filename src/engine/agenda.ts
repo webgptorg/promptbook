@@ -2134,8 +2134,12 @@ export class Agenda {
 
     /** Wakes an idle wait to reevaluate sources/time. */
     public wake(): void {
+        this.wakePending = true;
         this.waiter?.resolve('woken');
     }
+
+    /** A state change during evaluation must survive until the next wait is registered. */
+    private wakePending = false;
 
     /** Adds an activity line (also used by the service for connection events). */
     public log(text: string, level: ActivityView['level'] = 'info'): void {
@@ -2815,6 +2819,11 @@ export class Agenda {
      */
     private async wait(ms: number, view: Omit<WaitView, 'until'> & { until?: string }): Promise<'elapsed' | 'skipped' | 'cancelled' | 'woken'> {
         if (this.stopRequested) return 'cancelled';
+        if (this.wakePending) {
+            this.wakePending = false;
+            this.waiterSkipped = false;
+            return 'woken';
+        }
         const until = view.kind === 'user' || view.kind === 'paused' ? undefined : Number.isFinite(ms) ? new Date(Date.now() + ms).toISOString() : view.until;
         this.waitView = { ...view, until };
         if (!this.executing) this.phase = view.kind === 'paused' ? 'paused' : ['setup', 'recovery', 'workspace', 'persistence'].includes(view.kind) ? 'blocked' : view.kind === 'user' ? 'awaiting-user' : view.kind === 'idle' || view.kind === 'schedule' || view.kind === 'discovery' ? 'idle' : 'waiting';
@@ -2823,11 +2832,14 @@ export class Agenda {
             let timer: NodeJS.Timeout | undefined;
             const done = (result: 'elapsed' | 'skipped' | 'cancelled' | 'woken'): void => {
                 if (timer) clearTimeout(timer);
+                if (result === 'woken') this.wakePending = false;
                 this.waiter = undefined;
                 resolvePromise(result);
             };
             if (Number.isFinite(ms)) timer = setTimeout(() => done('elapsed'), Math.max(0, Math.min(ms, 2_147_000_000)));
             this.waiter = { skippable: view.skippable, resolve: done };
+            // Publishing the wait can synchronously notify a listener that wakes the engine before registration.
+            if (this.wakePending) done('woken');
         });
         this.waitView = undefined;
         this.waiterSkipped = reason === 'skipped';

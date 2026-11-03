@@ -1,7 +1,7 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathExists } from '../common/fs.js';
-import { runProcess, which } from '../common/process.js';
+import { runProcess, searchPath, which } from '../common/process.js';
 import { extractVersion } from '../common/semver.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessPlugin, HarnessSessionSupport, ParserState } from './types.js';
 
@@ -33,7 +33,7 @@ const helpCache = new Map<string, Promise<string>>();
  * @private harness plugin helpers
  */
 export function helpText(context: HarnessContext, executable: string, args: readonly string[]): Promise<string> {
-    const key = `${executable}\0${args.join(' ')}\0${context.env.PATH ?? ''}`;
+    const key = `${executable}\0${args.join(' ')}\0${searchPath(context.env).join('\0')}`;
     let cached = helpCache.get(key);
     if (!cached) {
         cached = probe(context, executable, args).then((result) => result.output);

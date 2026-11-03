@@ -50,6 +50,20 @@ test('Codex offers device-code login first on a remote host and an SSH callback 
     assert.match(fallback[0].instructions, /no device-code login/);
 });
 
+test('help capability caches distinguish executable search paths even when the OS spells the variable Path', async (t) => {
+    const current = await fixture(t);
+    const older = await fixture(t, { FAKE_CODEX_NO_DEVICE_AUTH: '1' });
+    for (const { context } of [current, older]) {
+        const key = Object.keys(context.env).find((name) => name.toUpperCase() === 'PATH');
+        const value = context.env[key];
+        delete context.env[key];
+        context.env.Path = value;
+    }
+    const plugin = harnessPlugin('openai-codex');
+    assert.deepEqual((await harnessLoginMethods(plugin, current.context, 'remote')).map((method) => method.id), ['device-code', 'callback-forwarding']);
+    assert.deepEqual((await harnessLoginMethods(plugin, older.context, 'remote')).map((method) => method.id), ['callback-forwarding']);
+});
+
 test('device-code login relays the code to the terminal only, rechecks readiness and never sets up API billing', { skip: process.platform === 'win32' }, async (t) => {
     const { context, loginLog } = await fixture(t, { OPENAI_API_KEY: '' });
     const plugin = harnessPlugin('openai-codex');

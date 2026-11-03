@@ -13,7 +13,7 @@ import { createTerminalProfile } from '../dist/ui/terminal.js';
 function terminal(columns, rows, change = {}) {
     const stdout = { isTTY: true, columns, rows, hasColors: () => false, write: () => true };
     const profile = createTerminalProfile({ stdout, stdin: { isTTY: true }, env: { TERM: 'xterm-256color', NO_COLOR: '1' } });
-    return { ...profile, columns: () => columns, rows: () => rows, ...change };
+    return { ...profile, unicode: true, columns: () => columns, rows: () => rows, ...change };
 }
 
 /**

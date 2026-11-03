@@ -41,7 +41,7 @@
  * naming calls are not turns (see main).
  */
 import { spawn } from 'node:child_process';
-import { appendFileSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
 const args = process.argv.slice(2);
@@ -398,7 +398,21 @@ async function main() {
             done('Appended to output/shared.txt');
         }
     } else {
-        if (prompt.includes('SLOW_WORK')) await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_CODEX_SLOW_MS ?? 6000)));
+        if (prompt.includes('SLOW_WORK')) {
+            // A concurrency fixture gates completion on actual peer acquisition instead of assuming a host can
+            // launch every CLI within a short sleep. A serialized engine cannot pass this barrier.
+            if (process.env.FAKE_CODEX_BARRIER_DIR) {
+                const directory = process.env.FAKE_CODEX_BARRIER_DIR;
+                mkdirSync(directory, { recursive: true });
+                writeFileSync(join(directory, `${process.pid}.ready`), title);
+                const deadline = Date.now() + 90_000;
+                while (readdirSync(directory).filter((name) => name.endsWith('.ready')).length < Number(process.env.FAKE_CODEX_BARRIER_COUNT)) {
+                    if (Date.now() > deadline) throw new Error('The independent tasks were not acquired together before the fixture barrier expired.');
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_CODEX_SLOW_MS ?? 6000)));
+        }
         const answer = [...prompt.slice(prompt.indexOf('## Conversation with the user')).matchAll(/^- @User: (.+)$/gm)].pop()?.[1];
         mkdirSync(join(process.cwd(), 'output'), { recursive: true });
         const file = join(process.cwd(), 'output', `${reference.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}.txt`);

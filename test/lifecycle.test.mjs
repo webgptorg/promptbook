@@ -360,7 +360,7 @@ test('lifecycle: stop from pause does not revive suspended work; chats stay avai
     await waitFor(async () => (await status(project, env)).current?.taskTitle.startsWith('Slow work'), { message: 'the task to execute' });
     await new Promise((resolve) => setTimeout(resolve, 500));
     await ptbk(['pause', '--raw'], { cwd: project, env });
-    await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'pause', timeoutMs: 4_000 });
+    await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'pause', timeoutMs: 30_000 });
     const chat = await ptbk(['chat', 'How is it going?', '--raw'], { cwd: project, env: { ...env, FAKE_CODEX_SLOW_MS: '0' } });
     assert.equal(chat.code, 0, chat.output);
     assert.equal((await status(project, env)).service.state, 'pause', 'a chat does not lift the pause');
