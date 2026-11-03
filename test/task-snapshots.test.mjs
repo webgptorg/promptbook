@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { captureSnapshot, changedPaths } from '../dist/engine/executor.js';
@@ -36,4 +36,13 @@ test('a Router prerequisite is reserved before publication to concurrent task re
     const created = await createAssignmentTask({ target, tasksDirectory: directory, router: 'Router', priority: 1, timeZone: 'UTC', taken: new Set(), reservePath: (path) => { assert.equal(existsSync(path), false); reserved = path; } });
     assert.equal(reserved, created.path);
     assert.match(await readFile(created.path, 'utf8'), /TASK ORIGIN assignment/);
+});
+
+test('an untracked dangling symlink remains a versionable change rather than a withdrawn file', { skip: process.platform === 'win32' && 'POSIX symlinks do not require host privilege configuration' }, async (t) => {
+    const directory = await temporaryDirectory(t, 'ptbk dangling link');
+    await initRepository(directory);
+    await symlink('not-created-yet.txt', join(directory, 'link.txt'));
+    const snapshot = await captureSnapshot({ project: projectAt(directory), repositoryRoot: directory });
+    assert.ok(Object.hasOwn(snapshot, 'link.txt'));
+    assert.deepEqual(changedPaths({}, snapshot), ['link.txt']);
 });

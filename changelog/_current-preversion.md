@@ -9,6 +9,7 @@
 - Replace streamed chat updates atomically so concurrent readers always retain the accepted conversation, including during force-stop recovery. Retain the last snapshot, working-tree changes and service events when a restart fixture cannot settle.
 - Retain a cancelled task's recovery checkpoint without reserving its agent or restarting its work. An explicit reopening restores its partial-file ownership, including after a service restart, so those files do not incorrectly block its continuation as unrelated changes.
 - Reserve Router prerequisites before publishing their files to concurrent work, transferring protection to their executing unit. Attribute only changes still pending in Git: withdrawn untracked files and files another unit already committed never become phantom deletions that leave a task retrying an impossible pathspec.
+- Preserve versionable dangling symlinks when excluding withdrawn untracked helper files from task snapshots.
 - Add the Windows bootstrap/CLI initialization instructions after verifying the installer even when the extension publisher created their shared GitHub Release first; preserve existing release notes.
 
 ## Experimental project sounds and desktop notifications

@@ -1,4 +1,4 @@
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { lstat, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, hashFileIfExists, isPathInside, readTextIfExists, toProjectRelative } from '../common/fs.js';
@@ -271,7 +271,13 @@ export async function captureSnapshot(environment: Pick<ExecutionEnvironment, 'p
         if (!isPathInside(environment.project.root, entry.path)) continue;
         const hash = await hashFileIfExists(entry.path);
         // An untracked helper can be withdrawn after Git lists it. It is no longer a change to attribute or stage.
-        if (hash === undefined && entry.index === '?' && entry.worktree === '?') continue;
+        if (hash === undefined && entry.index === '?' && entry.worktree === '?') {
+            const exists = await lstat(entry.path).then(() => true, (error: NodeJS.ErrnoException) => {
+                if (error.code === 'ENOENT') return false;
+                throw error;
+            });
+            if (!exists) continue;
+        }
         snapshot[toProjectRelative(environment.project.root, entry.path)] = hash ?? null;
     }
     return snapshot;
