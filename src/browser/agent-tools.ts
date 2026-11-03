@@ -88,6 +88,8 @@ function walletMessage(result: WalletLoginResult): string {
             if (result.problem === 'field') return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for these values in a chat. End your turn now with status waiting-for-user: the task resumes once they are added, then open the login page again and call wallet_login (the Wallet fills them; you never see them).`;
             if (result.problem === 'code') return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the code in a chat. End your turn now with status waiting-for-user: the task resumes once the code is entered, then call wallet_login again on the same code page (the Wallet enters the code; you never see it).`;
             return `${result.reason} A protected Wallet request was created for the owner (request ${result.action}); never ask for the username or password in a chat. End your turn now with status waiting-for-user: the task resumes once the login is added, then open the login page again and call wallet_login.`;
+        case 'rejected':
+            return `The owner rejected the Wallet request for ${result.origin} (request ${result.action}): no ${result.problem === 'code' ? 'code' : 'login'} was provided and none will be. You are not signed in. Do not ask for it again in any way; continue with another authorized route that does not need it, or end your turn reporting the task as blocked by this unmet prerequisite.`;
         case 'failed':
             return `The Wallet could not sign in: ${result.reason}`;
     }

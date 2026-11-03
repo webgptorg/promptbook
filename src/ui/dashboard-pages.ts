@@ -179,9 +179,9 @@ export type DashboardPage =
  */
 export function walletItems(
     wallet: WalletView,
-): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem'] } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string; readonly testing: boolean; readonly testAwaits?: 'code' | 'approval' | 'takeover' }> {
+): Array<{ readonly kind: 'request'; readonly id: string; readonly origin: string; readonly account?: string; readonly problem: WalletView['pending'][number]['problem']; readonly step: number; readonly seen: boolean } | { readonly kind: 'record'; readonly id: string; readonly origin: string; readonly account: string; readonly testing: boolean; readonly testAwaits?: 'code' | 'approval' | 'takeover' }> {
     return [
-        ...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, problem: action.problem, ...(action.account ? { account: action.account } : {}) })),
+        ...wallet.pending.map((action) => ({ kind: 'request' as const, id: action.id, origin: action.origin, problem: action.problem, step: action.step ?? 0, seen: Boolean(action.seenAt), ...(action.account ? { account: action.account } : {}) })),
         ...wallet.records.map((record) => ({ kind: 'record' as const, id: record.id, origin: record.origin, account: record.account, testing: record.testing !== undefined, ...(record.testAwaits ? { testAwaits: record.testAwaits } : {}) })),
     ];
 }
@@ -585,7 +585,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                             : action.problem === 'field'
                               ? `the login form asks for ${(action.fields ?? []).join(', ') || 'more fields'}`
                               : 'no saved login';
-                body.push(`${row()} ${action.origin}${action.account ? ` · ${action.account}` : ''} ${style.warning(`· ${problem}`)}${style.muted(` · ${action.tasks.length ? `for ${action.tasks.join(', ')}` : 'requested'} · since ${time(action.createdAt)}${action.requests > 1 ? ` · ${action.requests}×` : ''}`)}`);
+                // A request marked as seen keeps waiting here; only its alert ended.
+                body.push(`${row()} ${action.origin}${action.account ? ` · ${action.account}` : ''} ${style.warning(`· ${problem}`)}${style.muted(` · ${action.tasks.length ? `for ${action.tasks.join(', ')}` : 'requested'} · since ${time(action.createdAt)}${action.requests > 1 ? ` · ${action.requests}×` : ''}`)}${action.seenAt ? style.muted(` · seen ${time(action.seenAt)}, still waiting`) : style.warning(' · new')}`);
             }
             if (!wallet.pending.length) body.push(style.muted('  Nothing waits for a login.'));
             body.push('', style.bold(`Saved logins (${wallet.lockedRecords ?? wallet.records.length})`));
@@ -611,8 +612,11 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             if (wallet.lastAction) body.push('', style.muted(`Last: ${wallet.lastAction.outcome}`));
             body.push('', style.muted('Agents never receive passwords: the Wallet signs in for them. Passwords, the 12 words for recovery and keys are never shown here.'));
             const focused = items[page.focus];
-            const keys =
-                wallet.state === 'empty' || wallet.state === 'setup'
+            // Mark as seen and Reject request apply to a focused request in every Wallet state; opening the page does neither.
+            const requestKeys = focused?.kind === 'request' ? [...(focused.seen ? [] : ['M mark as seen']), 'X reject request'] : [];
+            const keys = [
+                ...requestKeys,
+                ...(wallet.state === 'empty' || wallet.state === 'setup'
                     ? ['S set up (shows 12 words for recovery once)']
                     : wallet.state === 'locked' || wallet.state === 'unavailable'
                       ? [...(wallet.state === 'locked' ? ['R restore with the 12 words for recovery'] : []), ...(wallet.management?.canReset ? ['Z reset (no key: all old logins are lost)'] : [])]
@@ -622,10 +626,11 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                               'I import from Bitwarden',
                               'G new 12 words',
                               ...(focused
-                                  ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code · X dismiss' : focused.problem === 'field' ? 'Enter add the fields · X dismiss' : 'Enter add this login · X dismiss') : focused.testAwaits === 'code' ? 'Enter type the code · X cancel the test' : focused.testing ? 'X cancel the test · D remove' : 'Enter update · T test · D remove']
+                                  ? [focused.kind === 'request' ? (focused.problem === 'code' ? 'Enter type the code' : focused.problem === 'field' ? 'Enter add the fields' : 'Enter add this login') : focused.testAwaits === 'code' ? 'Enter type the code · X cancel the test' : focused.testing ? 'X cancel the test · D remove' : 'Enter update · T test · D remove']
                                   : []),
                           ]
-                        : [];
+                        : []),
+            ];
             return { title: 'Wallet', context: 'Website logins of this project, encrypted in .ptbk/wallet/ and applied for agents without showing them the credentials', body, anchor, legend: `${keys.join(' · ')}${keys.length ? ' · ' : ''}↑↓ choose · ${back}` };
         }
         case 'tools': {

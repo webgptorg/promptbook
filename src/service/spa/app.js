@@ -15,6 +15,12 @@
         csrf: null,
         connected: false,
         drafts: new Map(),
+        /** Calling messages already reported as seen by this page. */
+        seenSent: new Set(),
+        /** The operator's last input in this page (active viewing). */
+        lastInput: Date.now(),
+        /** One viewport observer, disconnected when the chat is replaced or left. */
+        chatObserver: null,
         showMoreHarnesses: false,
         busy: new Set(),
         frame: 0,
@@ -218,6 +224,23 @@
         }
     }
 
+    /**
+     * Reports a displayed calling message as seen (once), only while this page is visible and the operator used it within
+     * the last minute: a chat left open unattended sees nothing. Seeing never answers or resolves the question.
+     */
+    function markSeen(name, message, element) {
+        const key = `${name}#${message}`;
+        if (!message || !element?.isConnected || state.chat?.name !== name || state.seenSent.has(key) || document.visibilityState !== 'visible' || !document.hasFocus() || Date.now() - (state.lastInput || 0) > 60000) return;
+        state.seenSent.add(key);
+        api(`/api/chats/${encodeURIComponent(name)}/seen`, { method: 'POST', body: { messages: [message] } }).then(
+            () => {
+                if (element) element.classList.remove('pinged');
+                if (state.chat && state.chat.name === name) loadChat(name);
+            },
+            () => state.seenSent.delete(key),
+        );
+    }
+
     /** Loads (or reloads) the open chat; opening marks it read but never answers anything. */
     async function loadChat(name) {
         try {
@@ -233,6 +256,8 @@
     }
 
     function openChat(name) {
+        // Opening a conversation is the operator's own action: its displayed messages count as actively viewed.
+        state.lastInput = Date.now();
         state.newChat = false;
         state.chat = { name, detail: null };
         render(state.snapshot);
@@ -408,6 +433,12 @@
             );
         }
         const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite' });
+        // Unseen explicit User pings: actually displaying one to an active viewer marks it seen for every client
+        // (the question keeps waiting; seeing never answers it).
+        const unseen = new Set((summary.pings || []).map((ping) => ping.message));
+        state.chatObserver?.disconnect();
+        const observer = unseen.size && 'IntersectionObserver' in window ? new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && markSeen(summary.name, Number(entry.target.dataset.message), entry.target)), { root: thread, threshold: 0 }) : null;
+        state.chatObserver = observer;
         for (const item of collapseThinking(messages)) {
             // A final reply's interim progress collapses into Thinking with its real duration; it can be expanded.
             if (item.kind === 'thinking') {
@@ -416,15 +447,17 @@
             }
             const message = item.message;
             const user = message.sender.replace(/^@/, '').toLowerCase() === 'user';
-            thread.append(
-                h(
-                    'article',
-                    { className: `message ${user ? 'user' : 'agent'}${message.phase === 'progress' ? ' progress' : ''}` },
-                    h('div', { className: 'meta' }, h('strong', {}, user ? 'You' : message.sender), ` · ${time(message.at)}${message.phase === 'progress' ? ' · working…' : ''}`),
-                    h('div', { className: 'text' }, message.text),
-                    message.choices && message.choices.length ? h('div', { className: 'muted' }, `Offered: ${message.choices.join(' | ')}`) : null,
-                ),
+            const position = messages.indexOf(message) + 1;
+            const pinged = unseen.has(position);
+            const article = h(
+                'article',
+                { className: `message ${user ? 'user' : 'agent'}${message.phase === 'progress' ? ' progress' : ''}${pinged ? ' pinged' : ''}`, 'data-message': String(position) },
+                h('div', { className: 'meta' }, h('strong', {}, user ? 'You' : message.sender), ` · ${time(message.at)}${message.phase === 'progress' ? ' · working…' : ''}`, pinged ? h('span', { className: 'warn' }, ' · asks you (new)') : null),
+                h('div', { className: 'text' }, message.text),
+                message.choices && message.choices.length ? h('div', { className: 'muted' }, `Offered: ${message.choices.join(' | ')}`) : null,
             );
+            thread.append(article);
+            if (pinged && observer) observer.observe(article);
         }
         // The reply being written now (the same in every client); the composer stays usable meanwhile.
         const live = chat.detail.live;
@@ -1542,6 +1575,7 @@
 
     /** A meaningful interaction: unseen attention settles once the operator is clearly active (never by time alone). */
     function interacted() {
+        state.lastInput = Date.now();
         state.interactions++;
         let changed = false;
         for (const item of state.attention.values()) {
@@ -1941,8 +1975,13 @@
                     'div',
                     { className: 'notice' },
                     h('strong', {}, `${action.origin}${action.account ? ` · ${action.account}` : ''} · ${problem}`),
-                    h('div', { className: 'muted' }, `${action.reason} ${action.tasks.length ? `For ${action.tasks.join(', ')}.` : ''} Since ${time(action.createdAt)}${action.requests > 1 ? ` · requested ${action.requests}×` : ''}.`),
-                    h('div', { className: 'row' }, action.problem === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog(action) }, 'Enter the code') : action.problem === 'field' && wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletFieldDialog(action) }, 'Add the fields') : wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null, h('button', { onclick: () => walletCall('wallet-dismiss', { request: action.id }, `Dismiss the login request for ${action.origin}? The waiting work continues without it.`) }, 'Dismiss')),
+                    h('div', { className: 'muted' }, `${action.reason} ${action.tasks.length ? `For ${action.tasks.join(', ')}.` : ''} Since ${time(action.createdAt)}${action.requests > 1 ? ` · requested ${action.requests}×` : ''}.${action.seenAt ? ` Seen ${time(action.seenAt)}, still waiting.` : ''}`),
+                    h('div', { className: 'row' }, action.problem === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog(action) }, 'Enter the code') : action.problem === 'field' && wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletFieldDialog(action) }, 'Add the fields') : wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null,
+                        // Mark as seen ends only this request's alert (it keeps waiting); Reject request denies and ends it.
+                        // Both name the step the owner saw, so a request that moved on in the meantime is not changed.
+                        action.seenAt ? null : h('button', { onclick: () => walletCall('wallet-seen', { request: action.id, step: action.step ?? 0 }) }, 'Mark as seen'),
+                        h('button', { onclick: () => walletCall('wallet-reject', { request: action.id, step: action.step ?? 0 }, `Reject the login request for ${action.origin}? The waiting work is told that nothing was provided (it is not signed in) and this request is not asked again for it. To keep it waiting without its alert, choose Mark as seen instead.`) }, 'Reject request'),
+                    ),
                 ),
             );
         }
@@ -2735,6 +2774,8 @@
     /** Renders the home screen or the open page, preserving focus, drafts and scroll. */
     function render(snapshot) {
         if (!snapshot) return;
+        state.chatObserver?.disconnect();
+        state.chatObserver = null;
         if (state.page && !homeTiles(snapshot).includes(state.page)) state.page = null;
         const active = document.activeElement;
         const focusDraft = active && active.getAttribute && active.getAttribute('data-draft');
@@ -2851,6 +2892,8 @@
             layout = next;
         }).observe(document.documentElement);
         document.addEventListener('pointerdown', interacted);
+        document.addEventListener('wheel', () => { state.lastInput = Date.now(); }, { passive: true });
+        document.addEventListener('touchstart', () => { state.lastInput = Date.now(); }, { passive: true });
         document.addEventListener('keydown', (event) => {
             interacted();
             const typing = event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName);

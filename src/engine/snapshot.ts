@@ -1,5 +1,5 @@
 import type { ChatRecheckView } from '../chats/service.js';
-import type { ChatSummary } from '../chats/store.js';
+import type { ChatPingView, ChatSummary } from '../chats/store.js';
 import type { HarnessSessionsView } from '../harness/sessions.js';
 import type { TaskControlView } from './task-control.js';
 import type { ProfileSource } from '../tools/model.js';
@@ -172,6 +172,10 @@ export type QueueItemView = {
     readonly purpose?: 'content' | 'system';
     /** The actual executor of an engine-owned task. */
     readonly executor?: string;
+    /** For a task awaiting the user: the chat holding its question. */
+    readonly waitingChat?: string;
+    /** For a task awaiting the user: it waits for a protected Wallet request. */
+    readonly waitingWallet?: true;
 };
 
 /**
@@ -230,6 +234,25 @@ export type ChatsView = {
     readonly rechecks?: readonly ChatRecheckView[];
     /** Recently active chats (bounded). */
     readonly recent: readonly ChatView[];
+    /**
+     * Unseen explicit User pings across chats, oldest first: the chats' attention (absent from engines that predate
+     * shared seen state; viewers then fall back to `waiting`). A seen question still waits but is no longer listed.
+     */
+    readonly pings?: readonly ChatAttentionView[];
+};
+
+/**
+ * One unseen User ping with its chat.
+ *
+ * @private shared status view model
+ */
+export type ChatAttentionView = ChatPingView & {
+    /** Declared name of the chat. */
+    readonly chat: string;
+    /** Presentation title of the chat. */
+    readonly title: string;
+    /** Books the chat links (the task a question belongs to). */
+    readonly links: readonly string[];
 };
 
 /**

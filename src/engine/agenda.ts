@@ -88,6 +88,7 @@ import type {
     AgentView,
     BlockerView,
     BrowserDetailView,
+    ChatAttentionView,
     ConnectionView,
     CurrentWorkView,
     ErrorView,
@@ -1701,6 +1702,23 @@ export class Agenda {
     }
 
     /**
+     * Marks the explicit User pings whose calling messages an active viewer displayed as seen: shared by every client
+     * and durable across restarts, without answering, resolving or releasing the waiting work.
+     */
+    public async chatSeen(name: string, messages: readonly number[]): Promise<{ readonly seen: number }> {
+        const seen = await this.chats.markSeen(name, messages);
+        if (seen) await this.refreshChats();
+        return { seen };
+    }
+
+    /** Unseen explicit User pings across chats, oldest first (bounded). */
+    private chatPings(): ChatAttentionView[] {
+        return this.chatSummaries
+            .flatMap((chat) => (chat.pings ?? []).map((ping): ChatAttentionView => ({ ...ping, chat: chat.name, title: chat.title, links: chat.links })))
+            .sort((a, b) => a.at.localeCompare(b.at));
+    }
+
+    /**
      * Starts a new user-led chat with one agent (its first message is committed), then lets the agent reply.
      */
     public async chatCreate(agent: string, text: string, options: { readonly name?: string; readonly requestKey?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
@@ -2522,7 +2540,7 @@ export class Agenda {
             ...this.queueWithSystemTasks(),
             // System task runs share the results feed with ordinary outcomes (newest first, same bound).
             results: { completed: this.completed, failed: this.failed, recent: [...this.recentResults, ...this.updater.resultViews()].sort((a, b) => Date.parse(b.endedAt) - Date.parse(a.endedAt)).slice(0, 20) },
-            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()], rechecks: this.chatRecheckViews() },
+            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()], rechecks: this.chatRecheckViews(), pings: this.chatPings() },
             blockers: this.blockers,
             errors: this.errors.slice(-10),
             activity: this.activity.slice(-120),
@@ -3204,6 +3222,9 @@ export class Agenda {
                     origin: item.task.origin,
                     // Presentation only: views mute supporting system work.
                     ...(item.task.purpose ? { purpose: item.task.purpose } : {}),
+                    // What an awaiting task waits for (its attention is that request's, never a second occurrence).
+                    ...(item.readiness.kind === 'awaiting-user' && item.readiness.chat === WALLET_WAIT ? { waitingWallet: true as const } : {}),
+                    ...(item.readiness.kind === 'awaiting-user' && item.readiness.chat !== 'checkpoint' && item.readiness.chat !== WALLET_WAIT ? { waitingChat: item.readiness.chat } : {}),
                 };
             });
         this.touch();
@@ -4914,8 +4935,16 @@ export class Agenda {
             if (chat && !(await this.chatReplyOf(chat, record.awaitedMessages, record.phase === 'failed' ? RECOVERY_CHOICES : undefined, record.answerMessage)).answered) continue;
             if (this.walletPending(record)) continue;
             const preSnapshot = await this.resumedPreSnapshot(record);
-            await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId });
-            this.log(record.waitingWallet ? `Resuming "${record.taskTitle}": its Wallet login request was settled.` : `Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
+            const wallet = record.waitingWallet ? this.wallet.action(record.waitingWallet) : undefined;
+            // The waiting agent learns truthfully how its Wallet request ended: a rejection is never a sign-in.
+            const walletFeedback =
+                wallet?.state === 'dismissed'
+                    ? `The owner rejected the Wallet request for ${wallet.origin}: nothing was provided and it will not be asked again for this task. You are not signed in. Continue with another authorized route that does not need it, or report the task as blocked by this unmet prerequisite.`
+                    : wallet?.state === 'resolved'
+                      ? `The owner completed the Wallet request for ${wallet.origin}. Saved input is not yet a verified sign-in: open the page again and call wallet_login, then verify the access you need.`
+                      : undefined;
+            await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId, ...(walletFeedback ? { feedback: walletFeedback } : {}) });
+            this.log(record.waitingWallet ? `Resuming "${record.taskTitle}": its Wallet request was ${wallet?.state === 'dismissed' ? 'rejected' : 'settled'}.` : `Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
             return true;
         }
         return false;

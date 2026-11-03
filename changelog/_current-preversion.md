@@ -1,5 +1,17 @@
 # Unreleased
 
+## Explicit User pings and shared seen state
+
+- An accepted agent message with the active `+@User` / `+{User}` prefix invites the human to the chat once and pings it as a new attention occurrence; plain mentions, code, quotes, escapes, examples and streamed progress stay passive. Structured task questions are posted as an explicit ping, and an agent reply that pings waits for the user. The human is never invited as an agent.
+- Seen and resolved are separate, project-shared and durable (`.ptbk/state/attention.json`, never committed): a pinged message displayed during active viewing (terminal chat or browser) is seen in every client and after restarts, while its question keeps waiting. A saved response or the chat leaving `waiting-for-user` resolves it. A question written before pings existed is one implicit occurrence. A task waiting for that chat or Wallet request follows the same seen state.
+- Snapshots list the unseen pings (`chats.pings`); `POST /api/chats/<name>/seen` and the `chat-seen` control method record what was displayed.
+- Seen unanswered questions stay seen without expiry. Slow or hidden terminals acknowledge only frames actually displayed, and background browser tabs do not acknowledge a preloaded conversation.
+
+## Wallet Mark as seen and Reject request
+
+- Pending Wallet requests offer **Mark as seen** (the alert ends; the request keeps waiting with its fields, step and work) and **Reject request** (the request ends; the waiting work is told truthfully that nothing was provided and does not resume as signed in). Opening the Wallet page does neither. Both name the step the owner saw, so a request that moved to a new step meanwhile is not changed.
+- A new step of a request (another problem or other fields) asks for attention again; the same step asked again keeps its seen state. A rejected request is not recreated or alerted on the same work's next retry (for 12 hours), while other work may still ask. `wallet-dismiss` remains as the earlier name of Reject request.
+
 ## Windows packaging icon
 
 - Keep graphical default focus identical to terminal focus when a preferred choice is disabled.

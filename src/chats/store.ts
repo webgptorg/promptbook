@@ -4,7 +4,7 @@ import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, listDirectory, readJsonIfExists, toProjectRelative, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
 import { formatIsoWithOffset } from '../common/time.js';
-import { normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { normalizeAgentName, parseReferenceValue, pingsUser } from '../book/references.js';
 import { CHATS_DIRECTORY } from '../project/books.js';
 import type { Project } from '../project/workspace.js';
 import { newTaskPath } from '../tasks/authoring.js';
@@ -12,6 +12,7 @@ import { generatedName } from '../tasks/identity.js';
 import { formatModelRow, type ModelRow } from '../book/model.js';
 import { MAX_ATTACHMENT_BYTES, materializeAttachments } from '../ui/attachments.js';
 import type { ComposedSegment } from '../ui/composer.js';
+import { ChatAttention, pingId, type ChatPing } from './attention.js';
 import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isConsultationRecord, isHumanFacing, parseChatBook, renderChatBook, replaceChatMessage, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
@@ -63,7 +64,41 @@ export type ChatSummary = {
     readonly persistence?: { readonly state: 'pending' | 'failed'; readonly since: string; readonly failure?: string };
     /** New messages not authored by User since this viewer last opened the chat. */
     readonly unread: number;
+    /**
+     * Explicit User pings (and legacy waiting questions) nobody has seen yet and no answer has cleared: the chat's
+     * attention. A seen question can still wait (`status`); seeing it only removes its alert.
+     */
+    readonly pings?: readonly ChatPingView[];
 };
+
+/**
+ * One unseen attention occurrence of a chat: the calling message and its author.
+ *
+ * @private chats
+ */
+export type ChatPingView = {
+    /** Stable identity of the occurrence. */
+    readonly id: string;
+    /** 1-based position of the calling message. */
+    readonly message: number;
+    readonly sender: string;
+    /** When the calling message was written. */
+    readonly at: string;
+    /** The calling message (bounded preview; the full message stays in the chat). */
+    readonly text: string;
+};
+
+/**
+ * Longest preview of a calling message in summaries and notifications.
+ */
+const PING_PREVIEW_LENGTH = 400;
+
+/**
+ * Whether a sender reference is the human User.
+ */
+function isUserSender(sender: string): boolean {
+    return (parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender)) === 'user';
+}
 
 /**
  * Persistence state of a write: saved to the Book and committed, saved with its commit pending in a batch, or saved
@@ -110,6 +145,8 @@ export class ChatStore {
     private readonly mutex = new Mutex();
     /** Absolute chats directory. */
     public readonly directory: string;
+    /** Shared seen/resolved state of explicit User pings (project runtime state, never committed). */
+    public readonly attention: ChatAttention;
 
     public constructor(
         private readonly project: Project,
@@ -121,6 +158,7 @@ export class ChatStore {
         },
     ) {
         this.directory = join(project.root, CHATS_DIRECTORY);
+        this.attention = new ChatAttention(project.runtime.state);
     }
 
     /** Current timestamp in the project's time zone. */
@@ -197,9 +235,14 @@ export class ChatStore {
             const messages = [...(options.messages ?? [])];
             const assets = messages[0] ? await this.materialize(path, 1, options.segments, messages[0].text) : { text: '', files: [] };
             if (messages[0]) messages[0] = { ...messages[0], text: assets.text };
-            const source = renderChatBook({ name, members: options.members, status: options.status, links: options.links, messages: messages.map((message) => ({ ...message, at: message.at ?? this.now() })) });
+            // An agent message that explicitly pings the human (+@User) invites it: User is a member before it speaks.
+            const pinging = messages.flatMap((message, index) => (!isUserSender(message.sender) && pingsUser(message.text) ? [index + 1] : []));
+            const consultation = isConsultationRecord({ members: options.members, links: options.links ?? [] });
+            const members = pinging.length && !consultation && !hasMember({ members: options.members }, '@User') ? [...options.members, '@User'] : options.members;
+            const source = renderChatBook({ name, members, status: options.status, links: options.links, messages: messages.map((message) => ({ ...message, at: message.at ?? this.now() })) });
             await writeFile(path, source, { flag: 'wx' });
             const chat = parseChatBook(source);
+            if (!consultation) for (const position of pinging) await this.recordPing(chat, position);
             const persisted = isHumanFacing(chat) || options.commit ? await this.persist(path, name, options.trailers, undefined, assets.files) : { persistence: 'uncommitted' as const };
             return { path, relativePath: toProjectRelative(this.project.root, path), chat, ...persisted };
         });
@@ -237,11 +280,16 @@ export class ChatStore {
             if (!message.text.trim() && !options.segments?.some((segment) => segment.type === 'attachment')) throw new PtbkError('A chat message cannot be empty.', { kind: 'usage' });
             const assets = await this.materialize(stored.path, stored.chat.messages.length + 1, options.segments, message.text);
             const original = await readFile(stored.path, 'utf8');
-            const joining = (options.join ?? []).filter((member) => !hasMember(stored.chat, member));
+            // An accepted agent message with an explicit +@User invites the human (once) and pings it again when it is
+            // already a member; progress of a turn is not an accepted message yet.
+            const ping = !isUserSender(message.sender) && message.phase !== 'progress' && pingsUser(message.text) && !isConsultationRecord(stored.chat);
+            const joining = [...(ping ? ['@User'] : []), ...(options.join ?? [])].filter((member, index, all) => !hasMember(stored.chat, member) && all.findIndex((other) => (parseReferenceValue(other)?.normalized ?? other) === (parseReferenceValue(member)?.normalized ?? member)) === index);
             const source = joining.length ? appendChatCommitments(original, joining.map((member) => `CHAT MEMBER ${member}`)) : original;
             const updated = appendChatMessage(source, { ...message, text: assets.text, at: this.now() }, options.status);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
+            if (ping) await this.recordPing(chat, chat.messages.length);
+            if (options.status && options.status !== 'waiting-for-user' && stored.chat.status === 'waiting-for-user') await this.resolvePings(stored.chat, () => true);
             // Ignored evidence (traces not committed) never enters a commit: the batch only commits changed, unignored files.
             const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers, undefined, [...assets.files, ...(options.evidence ?? [])]) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
@@ -341,6 +389,8 @@ export class ChatStore {
             const updated = setChatStatus(await readFile(stored.path, 'utf8'), status);
             await writeFile(stored.path, updated);
             const chat = parseChatBook(updated);
+            // A chat that no longer waits for the human has no outstanding question left to alert about.
+            if (stored.chat.status === 'waiting-for-user') await this.resolvePings(stored.chat, () => true);
             const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
         });
@@ -391,9 +441,56 @@ export class ChatStore {
     /** Summaries of every chat, waiting-for-user first, then most recent. */
     public async summaries(): Promise<ChatSummary[]> {
         const markers = await this.readMarkers();
-        const summaries = (await this.list()).map(({ relativePath, chat }) => summarize(chat, relativePath, markers[chat.key] ?? 0));
+        const pings = await this.attention.list().catch(() => [] as ChatPing[]);
+        const summaries = (await this.list()).map(({ relativePath, chat }) => summarize(chat, relativePath, markers[chat.key] ?? 0, pings));
         return summaries.sort((a, b) => Number(b.status === 'waiting-for-user') - Number(a.status === 'waiting-for-user') || (b.last?.at ?? '').localeCompare(a.last?.at ?? ''));
     }
+
+    /** Records the explicit User ping of an accepted message (idempotent per chat position). */
+    private async recordPing(chat: ChatBook, position: number): Promise<void> {
+        const message = chat.messages[position - 1];
+        if (!message) return;
+        await this.attention.record({ chat: chat.name, key: chat.key, message: position, sender: message.sender, at: message.at }).catch(() => undefined);
+    }
+
+    /**
+     * Marks the occurrences whose calling messages an active viewer actually displayed as seen, for every client and
+     * across restarts. Only currently unseen occurrences of this chat are touched; the questions keep waiting.
+     * Returns how many became seen.
+     */
+    public async markSeen(name: string, messages: readonly number[]): Promise<number> {
+        const stored = await this.find(name);
+        if (!stored) return 0;
+        const wanted = new Set(messages.filter((message) => Number.isInteger(message) && message > 0));
+        const candidates = outstandingPings(stored.chat, await this.attention.list()).filter((ping) => wanted.has(ping.message));
+        return await this.attention.markSeen(candidates);
+    }
+
+    /**
+     * Clears the outstanding occurrences of a chat that `applies` selects (a saved answer or a settled question),
+     * including a legacy question that was never seen.
+     */
+    public async resolvePings(chat: ChatBook, applies: (ping: Pick<ChatPing, 'message' | 'sender'>) => boolean): Promise<void> {
+        const implicit = outstandingPings(chat, await this.attention.list().catch(() => [])).filter((ping) => ping.implicit);
+        await this.attention.resolve(chat.key, applies, implicit).catch(() => undefined);
+    }
+}
+
+/**
+ * The unseen, unresolved occurrences of one chat: its recorded explicit pings, plus the awaited message of a chat
+ * waiting for the user that has no occurrence at all (a question written before explicit pings existed). Once a chat
+ * has a recorded occurrence, later agent messages without the literal prefix stay passive.
+ */
+function outstandingPings(chat: ChatBook, pings: readonly ChatPing[]): Array<Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at' | 'implicit'>> {
+    const own = pings.filter((ping) => ping.key === chat.key && ping.message <= chat.messages.length);
+    const outstanding: Array<Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at' | 'implicit'>> = own.filter((ping) => !ping.seenAt && !ping.resolvedAt);
+    if (chat.status === 'waiting-for-user' && isHumanFacing(chat) && !own.length) {
+        let position = chat.messages.length;
+        while (position > 0 && (chat.messages[position - 1]!.phase === 'progress' || isUserSender(chat.messages[position - 1]!.sender))) position--;
+        const awaited = chat.messages[position - 1];
+        if (awaited && !own.some((ping) => ping.message === position)) outstanding.push({ id: pingId(chat.key, position), chat: chat.name, key: chat.key, message: position, sender: awaited.sender, at: awaited.at, implicit: true });
+    }
+    return outstanding.sort((a, b) => a.message - b.message);
 }
 
 /**
@@ -401,8 +498,9 @@ export class ChatStore {
  *
  * @private chats
  */
-export function summarize(chat: ChatBook, relativePath: string, seen: number): ChatSummary {
+export function summarize(chat: ChatBook, relativePath: string, seen: number, pings: readonly ChatPing[] = []): ChatSummary {
     const last = chat.messages[chat.messages.length - 1];
+    const outstanding = outstandingPings(chat, pings).map((ping): ChatPingView => ({ id: ping.id, message: ping.message, sender: ping.sender, at: ping.at, text: (chat.messages[ping.message - 1]?.text ?? '').slice(0, PING_PREVIEW_LENGTH) }));
     const awaiting = chat.status === 'waiting-for-user' ? [...chat.messages].reverse().find((message) => message.senderKey !== 'user') : undefined;
     return {
         name: chat.name,
@@ -418,5 +516,6 @@ export function summarize(chat: ChatBook, relativePath: string, seen: number): C
         last: last ? { sender: last.sender, at: last.at, preview: last.text.replace(/\s+/g, ' ').slice(0, 160) } : undefined,
         awaiting: awaiting ? { sender: awaiting.sender, text: awaiting.text, choices: awaiting.choices } : undefined,
         unread: chat.messages.slice(seen).filter((message) => message.senderKey !== 'user').length,
+        ...(outstanding.length ? { pings: outstanding } : {}),
     };
 }

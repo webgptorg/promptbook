@@ -1,4 +1,5 @@
-import type { DashboardDomain, DomainAttention, ServiceSnapshot } from './snapshot.js';
+import { normalizeAgentName } from '../book/references.js';
+import type { DashboardDomain, DomainAttention, QueueItemView, ServiceSnapshot } from './snapshot.js';
 
 /**
  * Every dashboard domain that can need the operator's attention.
@@ -25,15 +26,22 @@ function attentionOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: Dashb
             // Pending login requests (protected input) and a Wallet this host cannot unlock while it has logins.
             const wallet = snapshot.wallet;
             if (!wallet) return undefined;
-            const items = [...wallet.pending.map((action) => `request:${action.id}:${action.problem}`), ...(wallet.state === 'locked' || (wallet.state === 'unavailable' && wallet.problem) ? [`${wallet.state}:${wallet.problem ?? ''}`] : [])];
+            // A request the operator marked as seen keeps waiting on the Wallet page but no longer asks for attention.
+            const items = [...wallet.pending.filter((action) => !action.seenAt).map((action) => `request:${action.id}:${action.problem}:${action.step ?? 0}`), ...(wallet.state === 'locked' || (wallet.state === 'unavailable' && wallet.problem) ? [`${wallet.state}:${wallet.problem ?? ''}`] : [])];
             return items.length ? { key: items.join('|'), tone: wallet.state === 'unavailable' ? 'error' : 'warning' } : undefined;
         }
-        case 'chats':
-            return snapshot.chats.waiting.length ? { key: snapshot.chats.waiting.map((chat) => `${chat.name}:${chat.messages}`).join('|'), tone: 'warning' } : undefined;
+        case 'chats': {
+            // Unseen explicit User pings; a seen question keeps waiting without attention (an older engine has no
+            // seen state: its waiting chats are the attention).
+            const pings = snapshot.chats.pings;
+            if (!pings) return snapshot.chats.waiting.length ? { key: snapshot.chats.waiting.map((chat) => `${chat.name}:${chat.messages}`).join('|'), tone: 'warning' } : undefined;
+            return pings.length ? { key: pings.map((ping) => ping.id).join('|'), tone: 'warning' } : undefined;
+        }
         case 'tasks': {
             // A task question is a genuine human request, conspicuous whatever the task's purpose; failed or
-            // recovering tasks are inspectable history and repair, not questions.
-            const asking = snapshot.queue.filter((item) => item.readiness === 'awaiting-user');
+            // recovering tasks are inspectable history and repair, not questions. A question in a chat or the Wallet
+            // is the same occurrence there: once it is seen, it no longer asks for attention here either.
+            const asking = snapshot.queue.filter((item) => item.readiness === 'awaiting-user' && unseenRequest(snapshot, item));
             return asking.length ? { key: asking.map((item) => `${item.ref}:${item.readiness}`).join('|'), tone: 'warning' } : undefined;
         }
         case 'tools': {
@@ -52,8 +60,23 @@ function attentionOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: Dashb
 }
 
 /**
- * The shared per-domain attention of a snapshot (one source of truth for terminal and browser dashboards). Whether a
- * viewer has noticed it is viewer-local presentation state, never part of this.
+ * Whether the request a task awaiting the user waits for is still unseen: its chat has an unseen ping, or a Wallet
+ * request it waits for is unseen. A wait without a known request (or from an older engine) stays attention.
+ */
+function unseenRequest(snapshot: Omit<ServiceSnapshot, 'attention'>, item: QueueItemView): boolean {
+    const key = (name: string): string => normalizeAgentName(name.replace(/^\{|\}$/g, ''));
+    if (item.waitingChat && snapshot.chats.pings) {
+        const chat = key(item.waitingChat);
+        return snapshot.chats.pings.some((ping) => key(ping.chat) === chat);
+    }
+    if (item.waitingWallet && snapshot.wallet) return snapshot.wallet.pending.some((action) => !action.seenAt && action.tasks.some((task) => key(task) === key(item.title)));
+    return true;
+}
+
+/**
+ * The shared per-domain attention of a snapshot (one source of truth for terminal and browser dashboards). Shared
+ * durable seen state (chat pings, Wallet requests) is already applied; Health and system incidents stay attention
+ * until they are actually resolved or overridden.
  *
  * @private dashboard attention
  */

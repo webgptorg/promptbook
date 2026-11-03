@@ -339,7 +339,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             return;
         }
         // Chats are selected by their normalized name (URL-encoded), never by a generated ID.
-        const chatMatch = /^\/api\/chats(?:\/([^/]+)(?:\/(messages|read))?)?$/.exec(url.pathname);
+        const chatMatch = /^\/api\/chats(?:\/([^/]+)(?:\/(messages|read|seen))?)?$/.exec(url.pathname);
         const chatName = chatMatch?.[1] ? decodeURIComponent(chatMatch[1]) : undefined;
         if (chatMatch && method === 'GET' && !chatMatch[2]) {
             sendJson(response, 200, chatName ? await applyChatAction(agenda, 'chat-get', { name: chatName }, 'api') : { chats: await applyChatAction(agenda, 'chat-list', {}, 'api') });
@@ -386,6 +386,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             if (!chatName) sendJson(response, 200, await applyChatAction(agenda, 'chat-create', { agent: body.agent, text: body.text, title: body.title, requestKey: body.requestKey }, via));
             else if (chatMatch[2] === 'messages') sendJson(response, 200, await applyChatAction(agenda, 'chat-send', { name: chatName, text: body.text, expected: body.expected }, via));
             else if (chatMatch[2] === 'read') sendJson(response, 200, await applyChatAction(agenda, 'chat-read', { name: chatName }, via));
+            else if (chatMatch[2] === 'seen') sendJson(response, 200, await applyChatAction(agenda, 'chat-seen', { name: chatName, messages: body.messages }, via));
             else sendJson(response, 405, { error: 'Method not allowed.' });
             return;
         }

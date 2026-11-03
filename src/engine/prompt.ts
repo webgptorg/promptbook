@@ -10,6 +10,15 @@ import { applicableChanges } from '../tasks/task-direction.js';
 import { RESULT_MARKER } from './result.js';
 
 /**
+ * The active User-ping convention of working and chat agents: genuinely requesting the human means `+@User`, while a
+ * plain mention, progress and ordinary results request nothing (and a seen question is not an answer).
+ *
+ * @private agent instructions
+ */
+export const USER_PING_INSTRUCTION =
+    'Write `+@User` (or `+{User}`) in a message only when you genuinely need a reply, decision or action from the human: it invites them into the chat if needed and alerts them once for that message. A plain `@User`, progress updates and ordinary results never request attention, and you never re-ping an unchanged question. Seeing your message is not an answer, approval or permission to continue; wait for the actual reply.';
+
+/**
  * Maximal characters of additional project context included verbatim.
  */
 const MAX_CONTEXT_CHARACTERS = 24_000;
@@ -163,6 +172,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
         `To create follow-up work, ${taskBookInstructions(input.tasksDirectory, input.creationStamp ?? creationTimestamp())}`,
         'Do not edit `traces/` or `actions/` (Promptbook-owned audit evidence and external-action records) and never treat files there as task or agent definitions.',
         'You run unattended. Resolve ordinary choices yourself from the task, the project instructions, established rules and the permissions already granted; do not stop to confirm routine or already authorized actions (for example each post of an authorized recurring publication).',
+        USER_PING_INSTRUCTION,
         input.check && isCheckPlaceholder(input.check)
             ? `Real automated validation is not configured: \`ptbk.json\` \`execution.check\` holds an informational placeholder (\`${input.check}\`) that always succeeds and proves nothing. Verify your result by other appropriate means; when the task is about setting up the project, you may replace the placeholder with the project's real check.`
             : input.check
@@ -176,7 +186,7 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     else if (input.tools.team) rules.push('The `consult` tool of the `ptbk` MCP server can consult `@Expert` about Promptbook itself.');
     if (input.tools.askUser) {
         rules.push(
-            `Only when you are genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task does not settle), call the \`ask_user\` tool with the minimal question, the \`reason\` and what you \`attempted\` (optionally with \`choices\`), then end your turn with status \`waiting-for-user\`. Do not wait for the answer inside your turn; the task resumes automatically with the answer.`,
+            `Only when you are genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task does not settle), call the \`ask_user\` tool with the minimal question, the \`reason\` and what you \`attempted\` (optionally with \`choices\`), then end your turn with status \`waiting-for-user\`. Do not wait for the answer inside your turn; the task resumes automatically with the answer. Promptbook posts your question in the chat as an explicit \`+@User\` ping under your name; asking the same unanswered question again does not alert the human again.`,
         );
     } else rules.push('The user is not available for questions in this run; decide reasonably or report `blocked` with a reason.');
     if (input.tools.prerequisite) {

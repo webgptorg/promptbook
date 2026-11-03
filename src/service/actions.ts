@@ -231,6 +231,11 @@ export async function applyChatAction(agenda: Agenda, method: string, params: Re
         case 'chat-read':
             await agenda.chatRead(text('name'));
             return { read: true };
+        case 'chat-seen': {
+            // Only actually displayed calling messages are sent here; seeing never answers or resolves anything.
+            const messages = Array.isArray(params.messages) ? params.messages.filter((message): message is number => typeof message === 'number') : [];
+            return await agenda.chatSeen(text('name'), messages);
+        }
         case 'chat-create': {
             // A new human chat without an explicit target goes to Chatter (diagnosed, never silently replaced).
             const agent = text('agent') || defaultChatAgent(agenda.chatAgents()).reference;
@@ -338,8 +343,13 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
             return await wallet.supplyFields({ request: text('request'), fields: fields() ?? [] });
         case 'wallet-remove':
             return await wallet.remove(text('id'));
+        case 'wallet-seen':
+            // Mark as seen: the request keeps waiting; only its alert ends (for the step the owner saw).
+            return await wallet.markSeen(text('request'), typeof params.step === 'number' ? params.step : undefined);
+        case 'wallet-reject':
         case 'wallet-dismiss':
-            return await wallet.dismiss(text('request'));
+            // Reject request (`wallet-dismiss` is its earlier name): denies and ends the request for the waiting work.
+            return await wallet.reject(text('request'), typeof params.step === 'number' ? params.step : undefined);
         case 'wallet-import-preview': {
             // The export contains secrets: only the owner's local surfaces supply it (a file path only on the trusted
             // local control channel), and it is never saved, logged or attached anywhere.
@@ -373,4 +383,4 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
  *
  * @private shared runtime controls
  */
-export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-test-code', 'wallet-test-cancel', 'wallet-code', 'wallet-field', 'wallet-remove', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);
+export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-test-code', 'wallet-test-cancel', 'wallet-code', 'wallet-field', 'wallet-remove', 'wallet-seen', 'wallet-reject', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);

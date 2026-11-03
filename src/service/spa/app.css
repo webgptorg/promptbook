@@ -743,6 +743,11 @@ details summary {
     border: 1px solid var(--border);
 }
 
+/* An unseen explicit User ping (until an active viewer displayed it). */
+.message.pinged {
+    box-shadow: inset 3px 0 0 var(--warning);
+}
+
 .message.user {
     align-self: flex-end;
     border-color: var(--accent);

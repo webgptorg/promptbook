@@ -1,4 +1,4 @@
-import { formatAgentReference, parseReferenceValue, referenceName } from '../book/references.js';
+import { formatAgentReference, parseReferenceValue, referenceName, withUserPing, withoutUserPing } from '../book/references.js';
 import { isHumanFacing, type ChatBook } from './chat-book.js';
 import type { ChatStore } from './store.js';
 
@@ -25,10 +25,19 @@ function linksTask(chat: ChatBook, taskKey: string): boolean {
 }
 
 /**
- * Composes the agent's message: what is blocked, what was attempted and the minimal question/action.
+ * Composes the agent's message: what is blocked, what was attempted and the minimal question/action, written as the
+ * canonical active User ping (`+@User …`), so a structured question requests the human exactly like an agent's own
+ * `+@User` message does.
  */
 function questionText(input: { question: string; reason?: string; attempted?: string }): string {
-    return [input.reason?.trim(), input.attempted?.trim() ? `Already attempted: ${input.attempted.trim()}` : undefined, input.question.trim()].filter(Boolean).join('\n\n');
+    return withUserPing([input.reason?.trim(), input.attempted?.trim() ? `Already attempted: ${input.attempted.trim()}` : undefined, input.question.trim()].filter(Boolean).join('\n\n'));
+}
+
+/**
+ * Whether two question texts are the same question, also when one of them was written before the `+@User` prefix.
+ */
+function sameQuestion(a: string, b: string): boolean {
+    return withoutUserPing(a.trim()).trim() === withoutUserPing(b.trim()).trim();
 }
 
 /**
@@ -97,7 +106,7 @@ export function taskChats(
             if (existing) {
                 const last = [...existing.chat.messages].reverse().find((message) => message.senderKey === agentKey);
                 // The same still-unanswered question is never sent twice.
-                if (existing.chat.status === 'waiting-for-user' && last && last.text.trim() === text.trim()) return { chat: existing.chat.name, awaited: existing.chat.messages.length, reused: true };
+                if (existing.chat.status === 'waiting-for-user' && last && sameQuestion(last.text, text)) return { chat: existing.chat.name, awaited: existing.chat.messages.length, reused: true };
                 await store.annotate(existing.chat.name, { members: [agentRef], links: [taskRef] }, { trailers: { 'Task-Name': task.name } });
                 const written = await store.append(existing.chat.name, { sender: agentRef, text, choices: input.choices }, { status: 'waiting-for-user', trailers: { 'Task-Name': task.name } });
                 return { chat: written.chat.name, awaited: written.chat.messages.length, reused: false };

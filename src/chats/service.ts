@@ -1,7 +1,7 @@
 import type { ComposedSegment } from '../ui/composer.js';
 import { PtbkError } from '../common/errors.js';
 import { commitmentsOf } from '../book/parse.js';
-import { findActiveReferences, formatAgentReference, normalizeAgentName, parseReferenceValue, toReference } from '../book/references.js';
+import { findActiveReferences, formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName, toReference } from '../book/references.js';
 import type { AgentCatalog } from '../project/agents.js';
 import { CHATTER_NAME } from '../project/defaults.js';
 import type { ActiveRecord, StateStore } from '../engine/state.js';
@@ -142,6 +142,7 @@ export async function resolveChatInvitations(catalog: AgentCatalog | undefined, 
         let name: string;
         if (resolution.kind === 'agent') name = resolution.definition.name;
         else if (resolution.kind === 'system-agent' && resolution.name === 'Expert') name = 'Expert';
+        else if (resolution.kind === 'system-agent' && resolution.name === 'User') throw refusal('User cannot speak in a chat as an agent; an agent asks the human by writing +@User in its own message');
         else if (resolution.kind === 'system-agent') throw refusal(`${resolution.name} cannot speak in a chat`);
         else if (resolution.kind === 'wrong-kind') throw refusal(`${resolution.entry.relativePath} is a ${resolution.entry.kind}, not an agent`);
         else throw refusal('no such agent');
@@ -150,6 +151,16 @@ export async function resolveChatInvitations(catalog: AgentCatalog | undefined, 
         addressed.push(invited);
     }
     return { addressed, joining };
+}
+
+/**
+ * The agents a newly accepted User message explicitly invites or addresses: `+@User` in the human's own message is not
+ * an invitation (the human never converses with itself), so it stays a plain mention there.
+ */
+function agentInvitations(text: string): string[] {
+    return findActiveReferences(text)
+        .filter((reference) => reference.normalized !== 'user')
+        .map((reference) => reference.raw);
 }
 
 /**
@@ -170,7 +181,7 @@ export async function createUserChat(store: ChatStore, catalog: AgentCatalog, ag
     const first = text.split('\n').find((line) => line.trim())?.trim() ?? (attachment?.type === 'attachment' ? attachment.name : undefined);
     if (!first) throw new PtbkError('The first message of a chat cannot be empty.', { kind: 'usage' });
     const main = formatAgentReference(name);
-    const invitations = await resolveChatInvitations(catalog, { members: [main] }, findActiveReferences(text).map((reference) => reference.raw));
+    const invitations = await resolveChatInvitations(catalog, { members: [main] }, agentInvitations(text));
     const written = await store.create({
         name: options.name?.trim() || `${name}: ${first.slice(0, 60)}`,
         members: ['@User', main, ...invitations.joining],
@@ -208,7 +219,7 @@ export async function appendUserMessage(
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
     if (isConsultationRecord(stored.chat)) throw new PtbkError('Agent↔agent consultation chats are task records; you cannot write into them.', { kind: 'usage' });
     // Invalid invitations are refused before anything is saved, so a corrected message can be sent again.
-    const invitations = await resolveChatInvitations(options.catalog, stored.chat, findActiveReferences(text).map((reference) => reference.raw));
+    const invitations = await resolveChatInvitations(options.catalog, stored.chat, agentInvitations(text));
     // Another agent-only or reporting thread: the user joins at this point of its chronology (prior authorship and
     // members stay as they are), in the same write as this first message. Invited agents join before the message too.
     const joining = [...(isHumanFacing(stored.chat) ? [] : ['@User']), ...invitations.joining];
@@ -243,6 +254,11 @@ export async function appendUserMessage(
         if (parked.includes(record)) await state.writeParked(update);
         else await state.writeActive(update);
     }
+    // The answered question's attention clears with the saved answer (before any agent processing or Git batching):
+    // every question when the chat no longer waits, else the answered author's own; other questions keep theirs.
+    const answeredAuthor = target && answered ? normalizeAgentName(referenceName(questionAuthor(target))) : undefined;
+    if (written.chat.status !== 'waiting-for-user') await store.resolvePings(stored.chat, (ping) => ping.message < position);
+    else if (answeredAuthor) await store.resolvePings(stored.chat, (ping) => ping.message < position && (parseReferenceValue(ping.sender)?.normalized ?? normalizeAgentName(ping.sender)) === answeredAuthor);
     await store.markRead(written.chat.name);
     // Every addressed agent keeps its own request; the author of the answered question continues in its run instead.
     const authorKey = target && answered ? normalizeAgentName(questionAuthor(target)) : undefined;

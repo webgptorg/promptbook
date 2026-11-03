@@ -5,7 +5,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, readTextIfExists } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import { describeModel, determinedRow, formatModelRow, intersectModels, isImpossible, type ModelRow } from '../book/model.js';
-import { formatAgentReference, normalizeAgentName, parseReferenceValue } from '../book/references.js';
+import { formatAgentReference, normalizeAgentName, parseReferenceValue, pingsUser } from '../book/references.js';
 import { resolveEffectiveAgent, type AgentCatalog, type EffectiveAgent } from '../project/agents.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
@@ -15,7 +15,7 @@ import type { HarnessEvent } from '../harness/types.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
 import { instanceEnvironment, type HarnessPool } from '../engine/harnesses.js';
 import { resolveAgentKnowledge } from '../engine/knowledge.js';
-import { renderAgentInstructions } from '../engine/prompt.js';
+import { USER_PING_INSTRUCTION, renderAgentInstructions } from '../engine/prompt.js';
 import { chatRoutingPrompt, routerAgent, validateAssignment } from '../engine/generated.js';
 import { parseAgentReport } from '../engine/result.js';
 import { hasThinking, readOnlyRoute, routeConcrete, type RouteResolution, type RoutingContext } from '../engine/routing.js';
@@ -471,6 +471,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
             '',
             '- Reply to the user\'s latest message(s) you have not answered yet, directly and helpfully; you may inspect project files and Git history to answer.',
             '- This conversation is read-only: never modify files or run write operations.',
+            `- ${USER_PING_INSTRUCTION}`,
             tools.some((tool) => tool.name === 'create_task')
                 ? '- This chat coordinates work; tasks execute it. For substantial work the user asked for or agreed to (implementing a feature, preparing or submitting a document, anything beyond a quick read-only look), call the `create_task` tool promptly instead of doing or simulating the work here, and do not wait for it: the agenda executes it later with checks and commits, its live status card and its result appear in this chat, and its agent may ask questions here. Do not claim work is done when you only created a task.'
                 : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
@@ -567,7 +568,8 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const text = result.finalMessage.replace(LEARN_MARKER, '').replace(TITLE_MARKER, '').replace(/^PTBK_RESULT .*$/m, '').trim();
     // The final reply closes the turn's progress (clients collapse it into Thinking with the real elapsed time).
     const phase = await progress.finish();
-    let reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)', ...(phase ? { phase } : {}) }, { trailers: created.length ? { 'Task-Name': created } : undefined, evidence: [usageFile] });
+    // A reply that explicitly pings the human (+@User) asks for its answer or action: the chat waits for the user.
+    let reply = await context.chats.append(chat.name, { sender: formatAgentReference(agent.name), text: text || '(no reply text)', ...(phase ? { phase } : {}) }, { trailers: created.length ? { 'Task-Name': created } : undefined, evidence: [usageFile], ...(pingsUser(text) ? { status: 'waiting-for-user' as const } : {}) });
     context.onLive?.(chat.name, undefined);
     if (title) reply = await context.chats.annotate(chat.name, { title }).catch(() => reply);
     if (learning && agent.learning.open && agent.definition && parseReferenceValue(agentReference)?.normalized !== 'teacher' && setting<boolean>(context.settings, 'learning.isEnabled')) {

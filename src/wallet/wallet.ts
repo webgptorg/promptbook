@@ -125,6 +125,13 @@ export type WalletActionView = {
     readonly createdAt: string;
     /** How many times work requested it (deduplicated into this one action). */
     readonly requests: number;
+    /**
+     * When the owner explicitly marked this request as seen (Mark as seen): it keeps waiting with its fields and step,
+     * but no longer asks for attention in any client. It is neither an answer nor a refusal.
+     */
+    readonly seenAt?: string;
+    /** The current human step of this request; a new step (another problem or other fields) asks for attention anew. */
+    readonly step?: number;
 };
 
 /**
@@ -264,6 +271,8 @@ export type WalletLoginResult =
     /** The page waits for the sign-in to be approved in the service's app or on another device: nothing to enter. */
     | { readonly status: 'approval-needed'; readonly origin: string }
     | { readonly status: 'waiting'; readonly origin: string; readonly action: string; readonly problem: WalletActionView['problem']; readonly reason: string }
+    /** The owner rejected this request for this work (Reject request): no login was provided and none is asked again. */
+    | { readonly status: 'rejected'; readonly origin: string; readonly action: string; readonly problem: WalletActionView['problem'] }
     | { readonly status: 'failed'; readonly reason: string };
 
 /**
@@ -479,6 +488,19 @@ export function normalizeOrigin(input: string): string {
     }
     if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new PtbkError('The Wallet saves logins of websites (http or https) only.', { kind: 'usage' });
     return url.origin;
+}
+
+/**
+ * How long a rejected request keeps the same work from asking again (Reject request): its retries and polls in the
+ * meantime get the rejection, not a new alert.
+ */
+const REJECTION_MEMORY_MS = 12 * 60 * 60_000;
+
+/**
+ * What a pending request asks for, in words (never a secret).
+ */
+function requestLabel(action: Pick<WalletActionView, 'problem'>): string {
+    return action.problem === 'code' ? 'code request' : action.problem === 'field' ? 'login field request' : action.problem === 'locked' ? 'unlock request' : 'login request';
 }
 
 /**
@@ -1736,17 +1758,46 @@ export class WalletSubEngine {
         return this.remember(outcome);
     }
 
-    /** Dismisses a pending login request: the waiting work resumes without it. */
-    public async dismiss(id: string): Promise<WalletOutcome> {
+    /**
+     * Mark as seen: acknowledges only the current alert of a pending request. It keeps waiting with its fields, step,
+     * affected work and inventory entry; it is no refusal, approval, credential or sign-in. `step` (the step the owner
+     * saw) keeps a stale client from acknowledging a later step.
+     */
+    public async markSeen(id: string, step?: number): Promise<WalletOutcome> {
         const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
             const action = this.actions.find((candidate) => candidate.id === id && candidate.state === 'pending');
-            if (!action) return { action: 'wallet-dismiss', applied: false, outcome: 'No pending login request has that id.' };
+            if (!action) return { action: 'wallet-seen', applied: false, outcome: 'No pending Wallet request has that id (it may have been completed or rejected meanwhile).' };
+            if (step !== undefined && (action.step ?? 0) !== step) return { action: 'wallet-seen', applied: false, outcome: `The request for ${action.origin} moved to a new step since it was shown; nothing was changed.` };
+            if (action.seenAt) return { action: 'wallet-seen', applied: false, outcome: `The request for ${action.origin} is already marked as seen; it keeps waiting.` };
+            this.actions = this.actions.map((candidate) => (candidate.id === id ? { ...candidate, seenAt: new Date().toISOString() } : candidate));
+            await this.writeActions();
+            return { action: 'wallet-seen', applied: true, outcome: `Marked the ${requestLabel(action)} for ${action.origin} as seen; it keeps waiting on the Wallet page.` };
+        });
+        // Remembering the outcome tells every client at once (the request is not settled, so work stays parked).
+        return this.remember(outcome);
+    }
+
+    /**
+     * Reject request: denies and ends this pending request (and its alert) for every client. The waiting work learns
+     * truthfully that nothing was provided (never a sign-in) and the same request is not asked again for it. `step`
+     * keeps a stale client from rejecting a later step.
+     */
+    public async reject(id: string, step?: number): Promise<WalletOutcome> {
+        const outcome = await this.mutex.run(async (): Promise<WalletOutcome> => {
+            const action = this.actions.find((candidate) => candidate.id === id && candidate.state === 'pending');
+            if (!action) return { action: 'wallet-reject', applied: false, outcome: 'No pending Wallet request has that id (it may have been completed or rejected meanwhile).' };
+            if (step !== undefined && (action.step ?? 0) !== step) return { action: 'wallet-reject', applied: false, outcome: `The request for ${action.origin} moved to a new step since it was shown; nothing was changed.` };
             this.settle(id, 'dismissed');
             await this.writeActions();
-            return { action: 'wallet-dismiss', applied: true, outcome: `Dismissed the login request for ${action.origin}; the waiting work continues without it.` };
+            return { action: 'wallet-reject', applied: true, outcome: `Rejected the ${requestLabel(action)} for ${action.origin}; the waiting work is told that nothing was provided.` };
         });
         if (outcome.applied) this.options.onSettled?.();
         return this.remember(outcome);
+    }
+
+    /** The earlier name of {@link reject} (kept for clients of the previous contract). */
+    public async dismiss(id: string): Promise<WalletOutcome> {
+        return await this.reject(id);
     }
 
     /** Marks an action settled (in memory; the caller persists). */
@@ -1765,12 +1816,39 @@ export class WalletSubEngine {
      * same login share it, and every waiting task is listed.
      */
     private async request(input: { readonly origin: string; readonly account?: string; readonly problem: WalletActionView['problem']; readonly reason: string; readonly task?: string; readonly browser: string; readonly fields?: readonly string[]; readonly login?: string }): Promise<StoredAction> {
-        const existing = this.actions.find((action) => action.state === 'pending' && originMatches(action.origin, input.origin) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase());
+        const sameAccount = (action: StoredAction): boolean => originMatches(action.origin, input.origin) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase();
+        // A recent rejection of the same step for the same work (or, without a task, of a request without one). It is
+        // bounded in time, so recurring work with the same title may ask again on a later run.
+        const rejected = (asked: typeof input): StoredAction | undefined =>
+            this.actions.find(
+                (candidate) =>
+                    candidate.state === 'dismissed' &&
+                    sameAccount(candidate) &&
+                    candidate.problem === asked.problem &&
+                    (asked.task ? candidate.tasks.includes(asked.task) : !candidate.tasks.length) &&
+                    Date.parse(candidate.settledAt ?? candidate.createdAt) > Date.now() - REJECTION_MEMORY_MS,
+            );
+        // A different task may have opened a new pending request after this work's denial. Do not attach the rejected
+        // work to that request or re-alert the owner through somebody else's legitimate request.
+        const denial = rejected(input);
+        if (denial) return denial;
+        const existing = this.actions.find((action) => action.state === 'pending' && sameAccount(action));
         const asked = input.fields ? { fields: input.fields, ...(input.login ? { login: input.login } : {}) } : {};
         let action: StoredAction;
         if (existing) {
-            const { fields: _fields, login: _login, ...earlier } = existing;
-            action = { ...earlier, ...asked, problem: input.problem, reason: input.reason, requests: existing.requests + 1, tasks: input.task && !existing.tasks.includes(input.task) ? [...existing.tasks, input.task] : existing.tasks };
+            const { fields: _fields, login: _login, seenAt, step, ...earlier } = existing;
+            // Another problem or other fields are a new human step: it asks for attention again. The same step asked
+            // again (a retry, a restart) keeps its seen state and creates no new alert.
+            const newStep = existing.problem !== input.problem || (existing.fields ?? []).join('\u0000') !== (input.fields ?? []).join('\u0000');
+            action = {
+                ...earlier,
+                ...asked,
+                problem: input.problem,
+                reason: input.reason,
+                requests: existing.requests + 1,
+                tasks: input.task && !existing.tasks.includes(input.task) ? [...existing.tasks, input.task] : existing.tasks,
+                ...(newStep ? { step: (step ?? 0) + 1 } : { ...(step ? { step } : {}), ...(seenAt ? { seenAt } : {}) }),
+            };
             this.actions = this.actions.map((candidate) => (candidate.id === existing.id ? action : candidate));
         } else {
             action = { id: randomBytes(5).toString('hex'), origin: input.origin, ...(input.account ? { account: input.account } : {}), problem: input.problem, ...asked, reason: input.reason, tasks: input.task ? [input.task] : [], browser: input.browser, createdAt: new Date().toISOString(), requests: 1, state: 'pending' };
@@ -1813,6 +1891,8 @@ export class WalletSubEngine {
         return await this.mutex.run(async (): Promise<WalletLoginResult> => {
             const waitFor = async (problem: WalletActionView['problem'], reason: string, asked?: { readonly fields: readonly string[]; readonly login: string }): Promise<WalletLoginResult> => {
                 const action = await this.request({ origin, account, problem, reason, task: request.task, browser: page.browser, ...asked });
+                // The owner already rejected this very request for this work: it is not created or alerted again.
+                if (action.state === 'dismissed') return { status: 'rejected', origin, action: action.id, problem };
                 return { status: 'waiting', origin, action: action.id, problem, reason };
             };
             if (inspected.form === 'code') return await this.codeStep(page, origin, request.requestCode === true, purpose, waitFor);

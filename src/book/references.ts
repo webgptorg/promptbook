@@ -178,6 +178,38 @@ export function findActiveReferences(text: string): AgentReference[] {
 }
 
 /**
+ * Whether newly accepted chat text explicitly invites or pings the human with the active `+@User` / `+{User}` prefix.
+ * A plain `@User`/`{User}` stays a passive mention, and code, quotes, escapes and examples never ping.
+ *
+ * @private Book language
+ */
+export function pingsUser(text: string): boolean {
+    return findActiveReferences(text).some((reference) => reference.normalized === 'user');
+}
+
+/**
+ * A structured human question written as the canonical active User ping: unchanged when it already pings, otherwise
+ * prefixed with `+@User` (on a line of its own before text that starts with Markdown structure, so the structure stays).
+ *
+ * @private Book language
+ */
+export function withUserPing(text: string): string {
+    if (pingsUser(text)) return text;
+    const body = text.replace(/^\s*\n/, '');
+    return /^\s*(?:`{3,}|~{3,}|>|#|[-*+]\s|\d+[.)]\s|\\)/.test(body) ? `+@User\n${body}` : `+@User ${body.trimStart()}`;
+}
+
+/**
+ * The text of a question without the canonical `+@User` prefix that {@link withUserPing} adds (for recognizing the
+ * same question asked before the prefix existed).
+ *
+ * @private Book language
+ */
+export function withoutUserPing(text: string): string {
+    return text.replace(/^\+(?:@User\b|\{\s*User\s*\})[ \t]*\n?/i, '');
+}
+
+/**
  * Replaces fenced blocks and inline code spans with spaces so their content is never interpreted.
  *
  * @private Book language
