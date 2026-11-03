@@ -1,7 +1,7 @@
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, sep } from 'node:path';
 import { PtbkError } from '../common/errors.js';
-import { ensureDirectory, listDirectory, readJsonIfExists, toProjectRelative, writeJsonAtomic } from '../common/fs.js';
+import { ensureDirectory, listDirectory, readJsonIfExists, toProjectRelative, writeFileAtomic, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
 import { formatIsoWithOffset } from '../common/time.js';
 import { normalizeAgentName, parseReferenceValue, pingsUser } from '../book/references.js';
@@ -286,7 +286,7 @@ export class ChatStore {
             const joining = [...(ping ? ['@User'] : []), ...(options.join ?? [])].filter((member, index, all) => !hasMember(stored.chat, member) && all.findIndex((other) => (parseReferenceValue(other)?.normalized ?? other) === (parseReferenceValue(member)?.normalized ?? member)) === index);
             const source = joining.length ? appendChatCommitments(original, joining.map((member) => `CHAT MEMBER ${member}`)) : original;
             const updated = appendChatMessage(source, { ...message, text: assets.text, at: this.now() }, options.status);
-            await writeFile(stored.path, updated);
+            await writeFileAtomic(stored.path, updated);
             const chat = parseChatBook(updated);
             if (ping) await this.recordPing(chat, chat.messages.length);
             if (options.status && options.status !== 'waiting-for-user' && stored.chat.status === 'waiting-for-user') await this.resolvePings(stored.chat, () => true);
@@ -305,7 +305,7 @@ export class ChatStore {
             const stored = await this.find(name);
             if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
             const updated = appendChatModel(await readFile(stored.path, 'utf8'), { rows: [row], explicit: true });
-            await writeFile(stored.path, updated);
+            await writeFileAtomic(stored.path, updated);
             const chat = parseChatBook(updated);
             const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, { 'Chat-Model': formatModelRow(row), ...(options.by ? { 'Routed-By': options.by } : {}) }, `Chat routing - ${chat.name}`) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
@@ -340,7 +340,7 @@ export class ChatStore {
             if (title && title !== stored.chat.title && title !== stored.chat.name) lines.push(`CHAT TITLE ${title}`);
             if (!lines.length) return stored;
             const updated = appendChatCommitments(await readFile(stored.path, 'utf8'), lines);
-            await writeFile(stored.path, updated);
+            await writeFileAtomic(stored.path, updated);
             const chat = parseChatBook(updated);
             const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, options.trailers) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
@@ -362,7 +362,7 @@ export class ChatStore {
                 if (existing.phase === 'progress' && existing.senderKey === key && existing.at === message.at) index = position;
             });
             const updated = index >= 0 ? replaceChatMessage(source, index, { ...message, phase: 'progress' }) : appendChatMessage(source, { ...message, phase: 'progress' });
-            await writeFile(stored.path, updated);
+            await writeFileAtomic(stored.path, updated);
             const chat = parseChatBook(updated);
             const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name) : { persistence: 'uncommitted' as const };
             return { ...stored, chat, ...persisted };
@@ -387,7 +387,7 @@ export class ChatStore {
             if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
             if (stored.chat.status === status) return stored;
             const updated = setChatStatus(await readFile(stored.path, 'utf8'), status);
-            await writeFile(stored.path, updated);
+            await writeFileAtomic(stored.path, updated);
             const chat = parseChatBook(updated);
             // A chat that no longer waits for the human has no outstanding question left to alert about.
             if (stored.chat.status === 'waiting-for-user') await this.resolvePings(stored.chat, () => true);

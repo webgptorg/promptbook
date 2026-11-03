@@ -317,12 +317,19 @@ test('lifecycle: start --paused, and OS startup restores stopped services paused
 
     // A crashed worker is restarted by its supervisor, but only paused (crashed while idle: no authoring is cut off).
     let idlePolls = 0;
+    let lastSettlement;
     const before = await waitFor(async () => {
         const snapshot = await status(project, env);
-        const idle = snapshot.service.state === 'running' && !snapshot.current && !snapshot.queueTotal && !(await git(project, ['status', '--porcelain'])).trim();
+        const changes = await git(project, ['status', '--porcelain']);
+        lastSettlement = { snapshot, changes };
+        const idle = snapshot.service.state === 'running' && !snapshot.current && !snapshot.queueTotal && !changes.trim();
         idlePolls = idle ? idlePolls + 1 : 0;
         return idlePolls >= 4 ? snapshot : undefined;
-    }, { timeoutMs: 90_000, intervalMs: 500, message: 'the follow-up work to settle' });
+    }, { timeoutMs: 90_000, intervalMs: 500, message: 'the follow-up work to settle' }).catch(async (error) => {
+        t.diagnostic(JSON.stringify(lastSettlement));
+        t.diagnostic((await readFile(join(project, '.ptbk', 'logs', 'service.log'), 'utf8')).split('\n').slice(-60).join('\n'));
+        throw error;
+    });
     process.kill(before.service.pid, 'SIGKILL');
     const recovered = await waitFor(async () => {
         const snapshot = await status(project, env);
