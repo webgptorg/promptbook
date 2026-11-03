@@ -7,6 +7,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 Set-StrictMode -Version 2
+# An isolated PATH/profile must not leave Windows PowerShell 5.1's script-based Get-FileHash export undiscovered.
+# Load the shell's own utility module before importing bootstrap helpers and overriding download commands.
+Import-Module (Join-Path $PSHOME 'Modules/Microsoft.PowerShell.Utility/Microsoft.PowerShell.Utility.psd1') -ErrorAction Stop
 $tokens = $null
 $parseErrors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile($Bootstrap, [ref] $tokens, [ref] $parseErrors)

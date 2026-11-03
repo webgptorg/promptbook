@@ -6,6 +6,7 @@
 
 ## Windows installer preparation
 
+- Fix the Inno Setup case fallback so the installer compiles on Windows. Keep isolated prerequisite checks focused on project creation, allowing PowerShell's own profile cache, and explicitly load the shell's utility module for Windows PowerShell 5.1 download/archive fixtures.
 - Detect usable Node.js/npm and Git before installation and show what is already available and what must be installed. Keep prerequisites mandatory and move Codex/Claude Code installation out of the Windows component list into ordinary project setup.
 - Keep preparation and its animated progress inside Setup, capturing PowerShell output without opening console windows. Show the actual failure stage, error, retry action and diagnostic file in the installer, including unexpected script exceptions.
 - Reuse a previously prepared private Node.js runtime even when Setup inherits a stale PATH. Enable TLS 1.2 for Windows PowerShell downloads, retry transient failures, retain checksum verification and validate clean-user runtime preparation in the Windows checks.

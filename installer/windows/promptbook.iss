@@ -326,9 +326,11 @@ begin
            end;
          end;
     else
-      LastFailure := PreparationFailure('Promptbook was not fully prepared. Your files were kept.');
-      if MsgBox(LastFailure + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then
-        Done := True;
+      begin
+        LastFailure := PreparationFailure('Promptbook was not fully prepared. Your files were kept.');
+        if MsgBox(LastFailure + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then
+          Done := True;
+      end;
     end;
   end;
 end;

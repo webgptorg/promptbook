@@ -140,12 +140,17 @@ test('required-software detection distinguishes missing, incompatible, broken an
         if (fixture.git) await probeTool(directory, 'git', fixture.git, fixture.gitExit);
         const detection = join(directory, 'detected.ini');
         const resultFile = join(directory, 'result.ini');
-        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-DetectOnly', '-IsolatedPath', '-DetectionFile', detection, '-ResultFile', resultFile], env);
+        const projectsRoot = join(directory, 'Projects [x] & co');
+        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-ProjectsRoot', projectsRoot, '-DetectOnly', '-IsolatedPath', '-DetectionFile', detection, '-ResultFile', resultFile], env);
         assert.equal(result.code, 0, result.output);
         const actual = await installerData(detection);
         assert.deepEqual([actual.NodeReady, actual.GitReady, actual.GitNeedsRepair], fixture.expected, result.output);
         assert.equal((await installerData(resultFile)).Code, '0');
-        assert.deepEqual(await readdir(env.USERPROFILE), [], 'detection must not create a project');
+        // PowerShell may create its own AppData cache in an isolated Windows profile. Check the actual project
+        // locations instead: neither the selected projects root nor the default ptbk directory may be created.
+        for (const path of [projectsRoot, join(env.USERPROFILE, 'ptbk')]) {
+            await assert.rejects(readdir(path), { code: 'ENOENT' }, 'detection must not create a project');
+        }
     });
 });
 
