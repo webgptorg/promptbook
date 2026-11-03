@@ -123,6 +123,9 @@ test('engine: cancelling stops work without success, keeps its Book and starts n
     await waitFor(async () => (await status(project, env)).active?.some((unit) => unit.taskTitle.startsWith('Cancelled work') && unit.files?.some((path) => path.startsWith('output/'))), { message: 'the reported partial output' });
     const cancelled = await control(project, 'task-change', { task: 'Cancelled work', operation: 'cancel', instruction: 'I no longer want this.', via: 'test' });
     assert.match(cancelled.outcome, /has not necessarily stopped yet/, 'intent is not proof of a stop');
+    // Let the already-started action reach its safe point after cancellation is accepted. Windows console shims
+    // cannot always receive a polite termination signal; pausing/cancelling never force-kills such an operation.
+    await rm(barrier);
     await waitFor(async () => (await status(project, env)).harnessSessions.ended.find((session) => session.handle === working.handle), { message: 'its session to end' });
     const ended = (await status(project, env)).harnessSessions.ended.find((session) => session.handle === working.handle);
     assert.match(ended.endReason, /cancelled/);
@@ -134,7 +137,6 @@ test('engine: cancelling stops work without success, keeps its Book and starts n
     assert.equal((await turns(log)).filter((entry) => entry.title?.startsWith('Cancelled work')).length, 1, 'it never starts again');
 
     assert.ok((await git(project, ['status', '--porcelain', '--', 'output'])).trim(), 'cancellation keeps the partial output without calling it a result');
-    await rm(barrier);
     assert.equal((await ptbk(['stop', '--force', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await turns(log)).filter((entry) => entry.title?.startsWith('Cancelled work')).length, 1, 'a restart does not authorize cancelled work');

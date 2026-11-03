@@ -109,7 +109,7 @@ test('one started unfinished task per agent: a second task of a busy agent queue
     await addTask(project, env, 'Write planner SLOW_WORK', 'Planner');
     await addTask(project, env, 'Write second developer SLOW_WORK');
     const titles = ['Write first developer SLOW_WORK', 'Write planner SLOW_WORK', 'Write second developer SLOW_WORK'];
-    const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '4000' }, async () => (await Promise.all(titles.map((title) => committed(project, title)))).every(Boolean), { message: 'all three results' });
+    const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '4000', FAKE_CODEX_BARRIER_DIR: join(project, '.ptbk', 'tmp', 'peers'), FAKE_CODEX_BARRIER_COUNT: '2' }, async () => (await Promise.all(titles.map((title) => committed(project, title)))).every(Boolean), { message: 'all three results', timeoutMs: 180_000 });
     assert.equal(run.code, 0, run.output);
     const started = (title) => position(run.output, new RegExp(`^Starting "${title}`));
     const done = (title) => position(run.output, new RegExp(`^Committed \\S+ ptbk: \`[^\`]+\` ${title}`));
