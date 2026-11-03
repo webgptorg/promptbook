@@ -146,6 +146,10 @@ test('external activity: the API shares the views, stays read-only, and a batch 
     assert.equal((await fetch(`${http.url}api/actions/view`)).status, 401, 'inspection needs a session');
     await addTask(project, env, 'Run the campaign EXTERNAL_BATCH');
     await waitFor(async () => (await messages(project)).some((message) => / Action - Send email · Gmail \(3 records\)/.test(message.split('\n')[0])), { timeoutMs: 90_000, message: 'the shared commit of the campaign' });
+    // The action batch can commit before its task or Chatter finishes. Settle those writers before proving that
+    // inspection itself is read-only; otherwise an unrelated background commit races the HEAD assertion.
+    assert.equal((await ptbk(['pause', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await get('api/state')).data.service.state === 'pause', { timeoutMs: 30_000, message: 'the action inspection fixture to pause' });
 
     const before = await git(project, ['rev-parse', 'HEAD']);
     const top = (await get('api/actions/view')).data;
