@@ -28,6 +28,16 @@ A protected save immediately clears the answered input's attention and permits v
 
 Checkpoint affected work and release safe capacity while waiting. A Wallet wait does not stop independent tasks, supervision or the engine. Manual login in the existing headful browser remains possible with optional protected remembering. Do not claim a GUI exists on a headless host or require a new remote desktop/VNC/screen-sharing product now.
 
+## Resolution during protected input
+
+Every attention-producing login request retains its initiating agent as [responsible owner](notifications.md#ownership-and-continuing-relevance); system-originated requests belong to Fixer. Wallet supplies trusted technical evidence, and uncertain authentication/relevance waits use [progressive waiting](../concepts/progressive-waiting.md). Automatic agent assessments obey Pause; existing deterministic verification and explicit protected user input retain their normal lifecycle rules.
+
+If manual login or another authorized route establishes suitable access, verify service, account, permissions and usable browser/session context, then complete the affected request and retire its human wait/attention without requiring a credential save or acknowledgement. A shared successful login can satisfy several matching consumers; remove only satisfied consumer links. A chat needing A and B still waits on B after A succeeds. Append the owning agent's concise nonsecret explanation to each originating chat, summarizing what is resolved and what remains, without another active User ping. Keep protected records secret and never manufacture chat history for a request with no chat origin.
+
+Do not close/reset an open credential form or discard protected input when the original login need resolves. Show a nonblocking resolved indication and let User leave or finish saving valid reusable credentials for the same item/account for future use. Keep ordinary duplicate/conflict/revision checks; saving after resolution does not reopen the old request or replay its operation. Preserve supplied credentials as unverified until their own [credential test](wallet-testing.md) actually succeeds: existing-session success proves access, not that this password works. Expired/one-off factors cannot revive the old login step or become reusable credentials.
+
+Reconcile a concurrent resolution/save/reject against the current workflow/consumer state. A delayed response cannot change a replacement step or another account. A genuinely new access need, including a later expired session, may create fresh attention, but reopening/restart and an unchanged explicitly rejected request cannot.
+
 ## Seen and rejected requests
 
 Provide two separate English actions on a pending human-input request:

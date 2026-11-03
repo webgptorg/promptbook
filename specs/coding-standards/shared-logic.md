@@ -34,7 +34,7 @@ Keep UI-specific focus, key bindings, formatting and transport separate from sha
 
 One operation owns its authorized changes and its commit. Shared persistence must support a tool commit during an unrelated active task without sweeping that task's files into the commit or reverting the tool change at task completion. Secret storage and runtime ownership are not versioned merely because their associated configuration is committed.
 
-Use the same approach for configuration migrations, canonicalization, synchronization controls and automatic repair: one source of truth with thin entry points. Exact classes, module layouts and concurrency primitives remain implementation choices, but observable consistency, isolation and recovery are mandatory.
+Use the same approach for configuration migrations, canonicalization, synchronization controls and automatic repair: one source of truth with thin entry points. [Progressive waiting](../concepts/progressive-waiting.md) likewise has one engine-owned scheduling policy for retries and relevance checks, with domain-specific conditions, owners and bounds rather than copied timer/backoff logic. Exact classes, module layouts and concurrency primitives remain implementation choices, but observable consistency, isolation and recovery are mandatory.
 
 ## Acceptance outcomes
 

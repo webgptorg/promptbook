@@ -26,6 +26,12 @@ Run justified health enquiries at a bounded persisted cadence and after relevant
 
 Fixer uses precisely the same OPEN/CLOSED and Teacher mechanisms as other agents. Verified outcomes and user replies can teach useful repair preferences through ordinary work committed to its own Book. Suppress repeated unresolved requests for the same condition and avoid repair loops. If no work is justified, no model call or manufactured modification is needed. If execution resources are unavailable, retain the issue visibly until normal work can proceed; being core does not make Fixer runnable without a harness.
 
+## Responsibility for system and orphaned attention
+
+Fixer owns [system-originated human attention](../../cli/notifications.md#ownership-and-continuing-relevance) when no initiating agent exists, including Health, tools/harnesses, Wallet and synchronization. It also takes over still-relevant notices whose original agent is removed, without replacing historical authorship. Creating or retaining attention is exceptional and includes responsibility to retire obsolete dependencies.
+
+The source domain retains technical verification and can clear proven obsolete attention without a model call. Where judgment is needed, Fixer uses ordinary attributed, cost-bounded [progressive relevance checks](../../concepts/progressive-waiting.md), with no new privileged daemon, second task reservation or inference during Pause. Preserve existing pending work and consultation policy. No resources means a visible pending check, not fabricated progress. If the request has a source chat, append the responsible agent's concise resolution reason once; no chat origin requires no new chat.
+
 ## Default caution and shared failures
 
 The initial Book is cautious about changing an explicit user requirement, for example local-only inference: normally ask User before making that change. This is editable agent policy, not a new engine-level immutable-constraint mechanism or a special Fixer permission system. Fixer can edit MODEL and other project sources through normal authorized work; preserve and show the resulting decision in Git.

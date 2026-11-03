@@ -34,7 +34,7 @@ When a project has a currently working agent, render that agent's single-line vi
 | Current unseen chat/Wallet attention or unresolved actionable Health/system incident | Alternate 🟡 / 🔔, taking precedence over the lifecycle marker |
 | Lost connection or unverified state | Explicit unknown marker/label, never a claim of stopped |
 
-The attention override and lifecycle marker describe the same shared state as the project views. Seen chat/Wallet occurrences stop contributing to attention without resolving the wait; another outstanding occurrence or actionable Health/system incident still takes precedence. An idle running engine is green, not paused. Connection loss does not prove that the engine stopped.
+The attention override and lifecycle marker describe the same shared state as the project views. Seen chat/Wallet occurrences stop contributing to attention without resolving the wait; another outstanding occurrence or actionable Health/system incident still takes precedence. [Automatic resolution](notifications.md#withdraw-obsolete-requests-without-rewriting-history) also removes the obsolete condition's contribution even if it was never seen; an unread resolution message alone cannot retain the attention override. An idle running engine is green, not paused. Connection loss does not prove that the engine stopped.
 
 With reduced motion use a stable meaningful marker and concise state text where needed to distinguish Pausing, Stopping, Attention and Unknown. Terminals without safe Unicode use equivalent readable text. The marker is independent of the experimental Sounds & notifications switch; turning effects Off does not turn it off. An explicit terminal-title opt-out still disables all title writes.
 

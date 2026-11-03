@@ -12,7 +12,7 @@ An already signed-in session alone cannot prove that this particular stored cred
 
 ## Incomplete verification and latest outcome
 
-Saving a credential and verifying it are separate outcomes. Preserve newly supplied records as **unverified** if verification is cancelled, a factor is unfinished or the service is temporarily unavailable. Record the actual incomplete/failure reason rather than delete usable user input or label a temporary outage as a proven bad password. Ordinary credential mutations retain their existing protected storage contract.
+Saving a credential and verifying it are separate outcomes. When a pending login auto-resolves while its protected form is open, retain the user's input and allow the reusable-credential save under [Wallet's resolution rules](wallet.md#resolution-during-protected-input). Session reuse can resolve the access request but cannot mark that saved password tested; saving/testing must not reopen or rerun completed work. Preserve newly supplied records as **unverified** if verification is cancelled, a factor is unfinished or the service is temporarily unavailable. Record the actual incomplete/failure reason rather than delete usable user input or label a temporary outage as a proven bad password. Ordinary credential mutations retain their existing protected storage contract.
 
 Keep the latest redacted test result, timestamp and concise failure/incompletion reason per item in ignored local Wallet state, outside Git. Reopening the page can inspect it; protect it consistently with the item's account metadata. Never retain passwords, codes, secret responses or raw sensitive page text in that report. Last-tested success is historical evidence, not a guarantee that a service session remains valid forever.
 
