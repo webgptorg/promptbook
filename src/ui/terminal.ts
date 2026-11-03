@@ -2,6 +2,7 @@ import { createStyle, type Style } from './ansi.js';
 import { allowsPointer } from './keys.js';
 import { detectImageProtocol, type ImageProtocol } from './terminal-images.js';
 import { isTerminalTitleDisabled, TerminalTitle, titleRestoration } from './terminal-title.js';
+import { promptPresentation, type PromptPresentation } from './prompt-transport.js';
 
 /**
  * Presentation and input policy of one invocation.
@@ -9,6 +10,8 @@ import { isTerminalTitleDisabled, TerminalTitle, titleRestoration } from './term
  * @private terminal UI
  */
 export type TerminalProfile = {
+    /** Optional attended graphical presentation; absent in ordinary CLI/headless use. */
+    readonly prompts?: PromptPresentation;
     /** Designed terminal UI (colors, panels, cursor control). */
     readonly pretty: boolean;
     /** Keyboard input and prompts are permitted. */
@@ -85,6 +88,7 @@ export function createTerminalProfile(options: TerminalOptions = {}): TerminalPr
         stdout.write(text);
     };
     return {
+        ...(interactive ? { prompts: promptPresentation(env) } : {}),
         pretty,
         interactive,
         style: createStyle(colors || forced),

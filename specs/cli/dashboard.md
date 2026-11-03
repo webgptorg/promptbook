@@ -8,7 +8,7 @@ Load static shell/assets, then obtain live state and send controls only through 
 
 ## Home and pages
 
-Use the same [dashboard home-screen hierarchy](dashboard-layout.md) as the terminal. The browser root is a compact responsive tile cockpit containing PTBK/project/service state, the replacement Harnesses session summary, operator attention and entries to operational domains. Do not turn it into a long page that requires scrolling past technical details before the operator can see all core tiles.
+Use the same [dashboard home-screen hierarchy](dashboard-layout.md) as the terminal. The browser root is a compact responsive tile cockpit containing ptbk/project/service state, the replacement Harnesses session summary, operator attention and entries to operational domains. Do not turn it into a long page that requires scrolling past technical details before the operator can see all core tiles.
 
 Adapt across ordinary desktop/window sizes. On smaller surfaces reduce columns and secondary text; on larger surfaces use space without expanding every diagnostic. Focus/selection and attention are distinct visual states. New attention is conspicuous but never forcibly changes the selected tile/page. Apply [shared seen state](notifications.md#seen-is-separate-from-resolved): a seen chat/Wallet occurrence loses its alert while pending work stays inspectable; Health/system warnings follow their own resolution/override rules.
 
@@ -16,7 +16,7 @@ Use the same nested tile hierarchy on Tools and Health and provide the simple [U
 
 Use [dashboard pages](dashboard-details.md) for execution, System, Health, Wallet, named tools/browser profiles, Agents, Chats, Tasks, activity/results, Usage, External activity log, History, Files, Connection and enabled Synchronization. Technical version/path/URL/model/profile details live on those pages rather than permanently on root.
 
-The full-width identity header emphasizes PTBK/project with the [saved brief](project-report-ui.md) beneath it and explicit Discuss/Refresh controls; lifecycle/pause state stays in System/related tiles without an extra header pause badge. Keep focus visually strong without layout shift, equivalent to the terminal's double border and bold heading.
+The full-width identity header emphasizes ptbk/project with the [saved brief](project-report-ui.md) beneath it and explicit Discuss/Refresh controls; lifecycle/pause state stays in System/related tiles without an extra header pause badge. Keep focus visually strong without layout shift, equivalent to the terminal's double border and bold heading.
 
 ## Shared operations
 
@@ -43,3 +43,7 @@ Opening the view only reads the shared saved report; no generation occurs. Discu
 ## Session inspection and native entry
 
 The browser shares the **Harnesses** tile/page replacing Current work, common selected-session data and guarded watch/exclusive/shared entry under [harness sessions](harness-sessions.md). A web terminal, if supported, carries the actual native client with enforced input gates; browser rendering does not create native-attachment capability. Keep the common view when unsupported. Closing/detaching the terminal returns to the selected session, without stopping the backend or engine. No additional per-entity lifecycle controls are introduced.
+
+## Local desktop attachment
+
+The optional [desktop client](desktop.md) is another local observer/controller. CLI remains the primary interface. `ptbk dashboard --view <page>` opens a named home page directly without changing service state; it conflicts with `--global`. Every graphical page can fall back to that CLI page in the embedded terminal.

@@ -334,7 +334,7 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
         case 'history': {
             const last = snapshot.history?.last;
             if (!last) return [style.muted('Git messages and topology'), style.muted('V open')];
-            return [`${style.muted(time(last.at))} ${last.summary}`, style.muted(last.kind === 'agent' ? 'latest: agent work' : last.kind === 'system' ? 'latest: Promptbook system' : last.kind === 'legacy' ? 'latest: legacy PTBK' : 'latest: ordinary commit'), style.muted('V open')];
+            return [`${style.muted(time(last.at))} ${last.summary}`, style.muted(last.kind === 'agent' ? 'latest: agent work' : last.kind === 'system' ? 'latest: Promptbook system' : last.kind === 'legacy' ? 'latest: legacy ptbk' : 'latest: ordinary commit'), style.muted('V open')];
         }
         case 'files':
             return [style.muted('Read-only project browser'), style.muted('Markdown, JSON, Books, images'), style.muted('D open')];
@@ -363,7 +363,7 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
 
 /**
  * The shared application header above the tile grid (and every page): a full-width identity band naming Promptbook /
- * PTBK and the project, with attention and freshness on the right. It carries no lifecycle or pause state (System and
+ * ptbk and the project, with attention and freshness on the right. It carries no lifecycle or pause state (System and
  * the related tiles show it). Ordinary surfaces get two rows: the identity line over a heavy accent rule; short ones
  * get one compact row. Its rule (and, with colors, the inverse identity badge) sets it apart from the bordered,
  * focusable tiles; it is never a tile. Narrow widths drop freshness, then the attention count (the tiles keep their
@@ -380,7 +380,7 @@ export function homeHeader(snapshot: ServiceSnapshot, terminal: TerminalProfile,
     const freshness = options.connectionLost ? style.error(`disconnected: ${options.connectionLost}`) : style.muted(`live ${formatShortTime(Date.parse(snapshot.observedAt))}`);
     const identity = (label: string): string => style.bold(style.inverse(style.accent(` ${label} `)));
     const mode = snapshot.service.commitMode === 'no-commit' ? style.warning(' · NO-COMMIT') : '';
-    const brands = [`Promptbook ${marks.dot} PTBK`, 'PTBK'];
+    const brands = [`Promptbook ${marks.dot} ptbk`, 'ptbk'];
     const details = [[attention, freshness].filter(Boolean), [attention].filter(Boolean), []];
     if (options.rows === 2) {
         // The identity line over a full-width heavy rule: prominent, yet only two rows.

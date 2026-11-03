@@ -4,11 +4,11 @@
 
 ## Purpose and boundary
 
-Give nontechnical users, initially a marketing agency, a short path from downloading Promptbook to the existing interactive `ptbk init`. They must not need to understand npm, install Git/Node.js manually, choose a project location from scratch or type the first command. Instructions and demonstration videos can begin with the initializer already open in a terminal.
+Give nontechnical users, initially a marketing agency, a short path from downloading Promptbook to the existing interactive `ptbk init`. They must not need to understand npm, install Git/Node.js manually, choose a project location from scratch or type the first command. Instructions and demonstration videos can begin with the shared initializer already open in the selected desktop or terminal presentation.
 
-This is an incremental onboarding aid, **not a complete graphical/customer-ready application**. Windows is the initial scope; installers for other operating systems are future work. Existing global/local npm installation and CLI workflows remain supported and unchanged.
+Windows is the initial scope; installers for other operating systems are future work. Offer the optional [local desktop client](desktop.md), selected by default, alongside the engine/CLI and optional Codex and Claude Code installations. Existing global/local npm and CLI-only workflows remain supported.
 
-The installer is a very thin bootstrap layer: prepare prerequisites, install the ordinary npm package, prepare an empty destination and launch the ordinary CLI. Do not fork the engine, reimplement the initialization wizard, configure project tools/authentication separately or introduce another scheduler/updater. Project semantics remain in the [shared domain logic](../coding-standards/shared-logic.md).
+The installer is a very thin bootstrap layer: prepare prerequisites, install the ordinary npm package, prepare an empty destination and launch the selected desktop client or ordinary CLI. Do not fork the engine, reimplement the initialization wizard, configure project tools/authentication separately or introduce another scheduler/updater. Project semantics remain in the [shared domain logic](../coding-standards/shared-logic.md).
 
 ## Download and version contract
 
@@ -16,7 +16,7 @@ Every newly published Promptbook version includes a normal double-clickable Wind
 
 The artifact identifies its Promptbook version and supported Windows architecture/platform. Build it automatically from the same immutable release source as `ptbk`, as part of the ordinary release build/publication, not a separately maintained manual build. See [release checks and publication](releasing.md).
 
-Install the exact advertised npm version, equivalent to `npm install -g ptbk@<release-version>`, rather than resolving an unpinned `latest`. Verify the installed version and executable that will be handed to the terminal. A different existing version is not silently accepted as the advertised version or silently downgraded; explain and obtain authorization for any replacement of the selected global installation. Leave other project-local installations alone. Subsequent optional CLI updates retain the existing [self-update](updates.md) rules.
+Install the exact advertised npm version, equivalent to `npm install -g ptbk@<release-version>`, rather than resolving an unpinned `latest`. Verify the installed version and executable that will be handed to either client. A different existing version is not silently accepted as the advertised version or silently downgraded; explain and obtain authorization for any replacement of the selected global installation. Leave other project-local installations alone. Subsequent optional CLI updates retain the existing [self-update](updates.md) rules.
 
 The initial installer may download dependencies and the package; a fully offline bundle is not required. Explain network requirements and failures without presenting incomplete preparation as success.
 
@@ -32,19 +32,19 @@ Make the selected executables available immediately to the launched terminal, in
 
 ## Project location
 
-Propose a writable projects root beneath the initiating user's actual home, defaulting to `<resolved-user-home>/PTBK/project/` under the shared [home/identity policy](workspace.md#home-directory-and-shared-projects-root). Show the resolved path and allow a different location. Create it if missing, otherwise reuse it. This is an ordinary container for independent project directories, not itself a Promptbook project, Git repository or global engine workspace.
+Propose a writable projects root beneath the initiating user's actual home, defaulting to `<resolved-user-home>/ptbk/project/` under the shared [home/identity policy](workspace.md#home-directory-and-shared-projects-root). Show the resolved path and allow a different location. Create it if missing, otherwise reuse it. This is an ordinary container for independent project directories, not itself a Promptbook project, Git repository or global engine workspace.
 
 Offer **Create the first project** with an editable, sensible folder name and a way to skip it. Create one empty child directory for the accepted project. Folder naming is not a project brief; intent is still collected by init. Do not prepopulate Books, `ptbk.json`, package metadata or `.git` in either the projects root or its new child.
 
 Validate writability and valid Windows names before handoff. A collision must not overwrite content: offer another name or explicit reuse of an existing empty directory. Do not silently initialize a nonempty directory, create a duplicate project on retry, or interpret a project name as a path escaping the selected root. Spaces, Unicode and shell-special characters in valid paths must be handled safely without changing their meaning or executing them as commands.
 
-Skipping the first project leaves the CLI installed and reports that no project was initialized. It must not initialize the projects root as a fallback. Show how to return to ordinary project initialization; no separate graphical project manager is required.
+Skipping the first project leaves the CLI installed and reports that no project was initialized. It must not initialize the projects root as a fallback. With desktop selected, open its project overview without starting first-project setup on that launch; New project returns to shared init. CLI-only completion explains how to run init later.
 
-## Terminal handoff
+## Client handoff
 
-For an accepted first project, the normal completion action opens a visible interactive terminal **and starts `ptbk init` automatically** in that directory. Pass the same destination explicitly through the existing `--path` selection so init reuses it instead of asking the user to choose another current-directory/subfolder location. Resolve the intended installed CLI rather than accidentally invoking another version or downloading one through an unpinned command.
+With desktop selected, completion opens its visible window and the shared graphical initializer for the accepted first-project directory. With desktop deselected, completion opens a visible interactive terminal **and starts `ptbk init` automatically** in that directory. Pass the same destination explicitly through the existing `--path` selection so init reuses it instead of asking the user to choose another current-directory/subfolder location. Resolve the intended installed CLI rather than accidentally invoking another version or downloading one through an unpinned command.
 
-The terminal supports the existing interactive wizard with working input/output. Show the command being run, keep the terminal open after success, cancellation or error, and leave the user in the project directory. Users continue in the CLI; there is no requirement for a graphical version of init. From this point, the normal intent-first wizard owns local/global package choice, Git preparation, tools and login, configuration, setup commits and background start.
+The terminal supports the existing interactive wizard with working input/output. Show the command being run, keep the terminal open after success, cancellation or error, and leave the user in the project directory. CLI-only users continue in the CLI. With desktop selected, open its clickable presentation of the same initializer instead; native terminal-only steps run in its embedded terminal. From this point, the normal intent-first wizard owns local/global package choice, Git preparation, tools and login, configuration, setup commits and background start.
 
 Installer completion does not mean project initialization, authentication or the first task has completed. Do not start a second engine or dashboard around init; its ordinary completion and `ptbk dashboard` hint remain authoritative. Closing the installer must not terminate the handed-off terminal or an engine subsequently started by init.
 
@@ -66,6 +66,10 @@ Repeating setup rechecks and reuses satisfied prerequisites, the requested packa
 - **Handoff or skip:** The normal path executes init and keeps its terminal open; launch failure supplies a visible recovery action. Skipping project creation installs the CLI without initializing any directory. Closing the bootstrapper leaves an already-handed-off terminal/engine alone.
 - **Release integration:** Every published version has a downloadable matching installer as well as the existing npm package. A missing, corrupt or mismatched artifact makes the release incomplete; clean-machine checks and retry behavior follow [release publication](releasing.md).
 
+## Desktop components and completion
+
+The desktop executable and tray controller follow [the desktop contract](desktop.md). Install a matching release payload, register only the tray at Windows sign-in and launch a visible application window at completion. Closing that window leaves the engines and tray alone. Optional harness installation prepares missing selected executables without authenticating or overwriting existing ones; normal init remains authoritative. Desktop failure is an incomplete installation with retry diagnostics. CLI-only selection keeps the terminal handoff described above.
+
 ## Windows discovery and completion
 
-Show the Promptbook logo and license acceptance before installation. Create Start menu shortcuts named `Promptbook` and `ptbk`, launching the ordinary context-aware `ptbk` command from the user home with the verified runtime. Preserve lowercase `ptbk` in command examples. Failed or declined preparation must change the final page to an explicit incomplete result and return a nonzero setup exit code. Codex and Claude Code remain choices in ordinary init.
+Show the Promptbook logo and license acceptance before installation. Create `Promptbook terminal` and `ptbk` Start menu shortcuts for the ordinary context-aware CLI, with the verified runtime and user home. With desktop selected, add `Promptbook` for the graphical client and register only its tray controller at sign-in. Uninstalling desktop removes that registration and its own files without stopping or deleting the separate engines/projects. Preserve lowercase `ptbk` in command examples. Failed or declined preparation must change the final page to an explicit incomplete result and return a nonzero setup exit code. Codex and Claude Code remain choices in ordinary init.

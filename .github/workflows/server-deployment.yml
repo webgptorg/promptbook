@@ -29,7 +29,7 @@ jobs:
           sudo bash deploy/ubuntu/install.sh --prepare-only | tee prepare.log
           grep -q 'Server prepared; initialization pending' prepare.log
           sudo test -d /var/lib/promptbook/projects/my-agenda
-          sudo test ! -e /var/lib/promptbook/PTBK
+          sudo test ! -e /var/lib/promptbook/ptbk
       - name: Retry and the default command reuse the installation and preserve user data
         run: |
           sudo -iu promptbook touch /var/lib/promptbook/keep-me
@@ -50,12 +50,12 @@ jobs:
           test "$code" = 3
           grep -q 'initialization pending' handoff.log
           grep -qF 'curl -fsSL https://www.ptbk.io/install.sh | bash' handoff.log
-          sudo test ! -e /var/lib/promptbook/PTBK
+          sudo test ! -e /var/lib/promptbook/ptbk
       - name: The bootstrap hands its live terminal to init as the engine user
         run: |
-          python3 test/fixtures/vps-handoff.py sudo bash deploy/ubuntu/install.sh --init --path PTBK/project/attended -- --intent 'Deployment smoke agenda' --installation global --no-harness --browser-profile isolated --browser-mode headless --no-commit-traces --ignore-trace-videos --no-record-video --no-auto-sync --no-start
-          test "$(sudo stat -c %U /var/lib/promptbook/PTBK/project/attended/ptbk.json)" = promptbook
-          sudo grep -q 'Deployment smoke agenda' /var/lib/promptbook/PTBK/project/attended/specs/_initial.md
+          python3 test/fixtures/vps-handoff.py sudo bash deploy/ubuntu/install.sh --init --path ptbk/project/attended -- --intent 'Deployment smoke agenda' --installation global --no-harness --browser-profile isolated --browser-mode headless --no-commit-traces --ignore-trace-videos --no-record-video --no-auto-sync --no-start
+          test "$(sudo stat -c %U /var/lib/promptbook/ptbk/project/attended/ptbk.json)" = promptbook
+          sudo grep -q 'Deployment smoke agenda' /var/lib/promptbook/ptbk/project/attended/specs/_initial.md
           ! sudo grep -q 'Deployment smoke agenda' /var/log/promptbook-install.log
       - name: Noninteractive handoff, boot registration and deliberate stop
         run: |

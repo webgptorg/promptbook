@@ -23,7 +23,7 @@ usage() {
         '  --prepare-only   prerequisites only (the default; stated explicitly by unattended provider scripts)' \
         '  --init           then start the setup assistant (ptbk init) as promptbook in this terminal' \
         '  --path <folder>  with --init: project folder inside /var/lib/promptbook, confirmed by init (default: init offers' \
-        '                   /var/lib/promptbook/PTBK/project/<name>)' \
+        '                   /var/lib/promptbook/ptbk/project/<name>)' \
         '  -- <options>     with --init: further ptbk init options, e.g. --non-interactive with its decisions' \
         '' \
         'No AI credentials are accepted by this script; harness sign-in happens attended in init.'
@@ -78,8 +78,8 @@ if [[ -n "$project_path" ]]; then
     project_path="$(printf '%s' "$project_path" | tr -s /)"
     project_path="${project_path%/}"
     [[ "$project_path/" != */./* && "$project_path/" != */../* ]] || fail 'Use a project folder without . or .. segments.'
-    if [[ "$project_path" != "$engine_home"/* || "$project_path" == "$engine_home/PTBK" || "$project_path" == "$engine_home/PTBK/project" || "${project_path#"$engine_home"/}" == .* ]]; then
-        fail "Choose a project folder inside the engine user's home, for example $engine_home/PTBK/project/my-agenda."
+    if [[ "$project_path" != "$engine_home"/* || "$project_path" == "$engine_home/ptbk" || "$project_path" == "$engine_home/ptbk/project" || "${project_path#"$engine_home"/}" == .* ]]; then
+        fail "Choose a project folder inside the engine user's home, for example $engine_home/ptbk/project/my-agenda."
     fi
 fi
 # Explicit unattended init needs no terminal; otherwise the handoff is interactive.

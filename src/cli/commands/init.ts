@@ -1768,6 +1768,7 @@ export default async function init(context: CommandContext): Promise<number> {
     const success = result.outcome === 'ready' && (service?.kind === 'started' || service?.kind === 'reused');
     if (success) await celebrate(context.terminal, result.firstTask ? 'All set — Expert starts on your project in the background.' : 'All set — your agenda is running in the background.');
     renderInitSummary(context, { result, service });
+    if (context.terminal.prompts) await context.terminal.prompts({ kind: 'complete', frame: { title: 'ptbk init' }, question: 'Initialization result', completion: { root: result.project?.root, ready: result.outcome === 'ready', running: service?.kind === 'started' || service?.kind === 'reused' } });
     if (result.outcome !== 'ready') return EXIT.incomplete;
     if (service?.kind === 'failed') return EXIT.incomplete;
     if (success && result.project) await handOffToDashboard(context, result.project);

@@ -365,7 +365,7 @@ export async function runGlobalDashboard(
         const known = `${style.bold(String(rows.length))} known project${rows.length === 1 ? '' : 's'} · ${style.bold(String(active))} active engine${active === 1 ? '' : 's'}`;
         lines.push(
             ...renderPanel({
-                title: `${marks.bullet} Promptbook ${marks.dot} PTBK ${marks.dot} all projects on this computer`,
+                title: `${marks.bullet} Promptbook ${marks.dot} ptbk ${marks.dot} all projects on this computer`,
                 titleRight: `updated ${formatShortTime(Date.parse(observation.observedAt))}`,
                 lines: [known, style.muted(`Projects of ${user} only (other OS users are not visible) · registry ${knownProjectsDirectory(env)}`)],
                 width,
@@ -512,7 +512,7 @@ export async function runGlobalDashboard(
             return;
         }
         attached = true;
-        // The attached project dashboard shows its own PTBK title meanwhile.
+        // The attached project dashboard shows its own ptbk title meanwhile.
         title.stop();
         keyboard.stop();
         screen.leave();
@@ -617,7 +617,7 @@ export async function runGlobalDashboard(
         screen.invalidate();
         draw();
     };
-    // `PTBK <animated default visual> Global`: it represents several engines, never one current agent.
+    // `ptbk <animated default visual> Global`: it represents several engines, never one current agent.
     const title = new TitleAnimation(terminal.title, (frame) => ({ kind: 'dashboard', label: 'Global', visual: singleLineVisual(undefined, 'working', frame) }), terminal.reducedMotion);
     screen.enter();
     keyboard.start();

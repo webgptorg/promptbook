@@ -12,4 +12,4 @@ Verified Task-Name/Chat-Name/source provenance links lead to task, chat, action 
 
 ## Acceptance outcomes
 
-Browse forks/merges, current agent/system messages, legacy PTBK and ordinary user commits. Preserve real topology/full originals, recognized author formatting and only verified links. Exercise shallow/missing history, renamed targets, arrivals, resize and long logs without mutating Git.
+Browse forks/merges, current agent/system messages, legacy ptbk and ordinary user commits. Preserve real topology/full originals, recognized author formatting and only verified links. Exercise shallow/missing history, renamed targets, arrivals, resize and long logs without mutating Git.

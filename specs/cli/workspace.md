@@ -4,19 +4,19 @@
 
 A project is an operating-system directory in a Git working tree. The default is the invocation's current working directory; `--path` selects another. Resolve relative CLI paths from the invocation directory and paths in `ptbk.json` from the selected project. Project, enclosing repository and installed package are distinct, including a project inside a repository subdirectory.
 
-The shared [init destination](initialization.md#initial-input-and-destination) and optional [Windows installer](windows-installer.md) propose `<resolved-user-home>/PTBK/project/` and create a child for an accepted new project. That parent is only a filesystem container, not a shared Git repository, configuration scope or global engine workspace. Each child is initialized independently through ordinary `ptbk init`. This convenience default does not restrict manually selected project locations or change CLI path resolution.
+The shared [init destination](initialization.md#initial-input-and-destination) and optional [Windows installer](windows-installer.md) propose `<resolved-user-home>/ptbk/project/` and create a child for an accepted new project. That parent is only a filesystem container, not a shared Git repository, configuration scope or global engine workspace. Each child is initialized independently through ordinary `ptbk init`. This convenience default does not restrict manually selected project locations or change CLI path resolution.
 
 ## Home directory and shared projects root
 
 Resolve the intended OS account's actual home at runtime through shared platform-aware account/path operations. Do not hardcode `/home/<name>`, `/Users/<name>`, a drive letter or shell-specific tilde expansion. Windows, macOS and Linux may have custom/redirected homes, spaces and Unicode.
 
-The convenience root is exactly `PTBK/project/` beneath that home: uppercase `PTBK`, singular lowercase `project`, one child per independent project. Example paths are `C:\Users\Alice\PTBK\project\demo`, `/Users/alice/PTBK/project/demo` and `/home/alice/PTBK/project/demo`; these illustrate layouts, not account lookup rules. Explicit destinations and existing projects remain unchanged.
+The convenience root is exactly `ptbk/project/` beneath that home: lowercase `ptbk`, singular lowercase `project`, one child per independent project. Example paths are `C:\Users\Alice\ptbk\project\demo`, `/Users/alice/ptbk/project/demo` and `/home/alice/ptbk/project/demo`; these illustrate layouts, not account lookup rules. Explicit destinations and existing projects remain unchanged.
 
-On Linux an ordinary launch uses that user's home. A launch through `sudo` on behalf of another user keeps the validated **original invoking user's** home and PTBK project/discovery scope even if the effective process account or `HOME` names root. Direct root launch without an originating non-root sudo user uses root's actual home. Do not guess ownership from CWD or blindly trust an environment-supplied username/path. Diagnose an unresolved intended account/home before creating a project elsewhere.
+On Linux an ordinary launch uses that user's home. A launch through `sudo` on behalf of another user keeps the validated **original invoking user's** home and ptbk project/discovery scope even if the effective process account or `HOME` names root. Direct root launch without an originating non-root sudo user uses root's actual home. Do not guess ownership from CWD or blindly trust an environment-supplied username/path. Diagnose an unresolved intended account/home before creating a project elsewhere.
 
 Init defaults, known-project registry and engine discovery share this identity resolution; detached/recovered launches preserve that intended scope. This grants no extra cross-user or harness/browser account authority. Keep created files/directories usable by their intended owner; elevated creation must not accidentally leave a user's project root-only. Do not recursively change unrelated ownership/permissions.
 
-Validate safe child names, collisions, writability and path/symlink boundaries. Create the container only when needed. The projects container and host registry remain distinct stores even if they share a user-scoped PTBK parent.
+Validate safe child names, collisions, writability and path/symlink boundaries. Create the container only when needed. The projects container and host registry remain distinct stores even if they share a user-scoped ptbk parent.
 
 ## Project-local content
 
@@ -49,3 +49,7 @@ See [Git preflight](git-preflight.md), [browser](browser.md), [installation](ins
 Root **`actions/<task-file-basename>/`** holds [external-action audit data](action-log.md), using the exact literal trace basename. One Markdown file describes one logical external operation, including meaningful failed attempts; zero actions means no task directory. Records are versioned independently of trace settings, excluded from Book discovery/execution, and captured prospectively without historical-task backfill.
 
 Root [`report.book`](project-report.md) is the explicit Chat location/name exception: `CHAT Report`, Chatter alone, all briefs appended without required cleanup. It is discoverable, never executable. Discuss report creates a normal new date-named chat in `chats/` with a copied first Chatter message, rather than adding User to the report feed.
+
+## Product name casing
+
+Write the abbreviation as `ptbk` in ordinary text and always in file and directory names. Use `Ptbk` at the start of a sentence or where a code naming convention requires it. Uppercase technical constants, environment variables and enums, and conventional class names such as `PtbkError`, retain their casing. The lowercase default applies to new projects without migrating existing directories.

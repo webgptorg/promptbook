@@ -4,7 +4,7 @@
 
 `ptbk dashboard --global` is a continuously refreshed overview of known projects and their engines on the local operating system. It works from any CWD, including outside Git and outside a Promptbook project, without selecting or initializing that directory. Diagnose conflicting project selectors such as `--path` rather than silently narrowing global scope.
 
-There is no global engine. Every engine owns one concrete project directory. The global dashboard is an independent discovery/navigation/control client, not another scheduler. Its terminal tab title follows [terminal-title](terminal-title.md): `PTBK <animated default agent visual> Global`.
+There is no global engine. Every engine owns one concrete project directory. The global dashboard is an independent discovery/navigation/control client, not another scheduler. Its terminal tab title follows [terminal-title](terminal-title.md): `ptbk <animated default agent visual> Global`.
 
 The target [App integration](../app/integration.md) may use a simple host control service over this registry for process launch/monitoring and stopped-project controls. It does not schedule project tasks or decide updates; individual engines own [self-update](updates.md), including shared-installation policy checks. Different project installations/loaded versions remain supported. Remote identity/access and version interoperability need a joint contract; the host service need not become another user-facing grouping in the App.
 

@@ -1052,7 +1052,7 @@
                 {},
                 h('code', { className: 'graph' }, row.graph),
                 ' ',
-                h('button', { 'aria-expanded': String(open), onclick: () => (open ? ((state.history = { ...history, open: null }), render(state.snapshot)) : openCommit(commit.sha)) }, commit.kind === 'agent' ? `\`${commit.visual}\` ${commit.summary}` : commit.kind === 'legacy' ? `PTBK ${commit.summary}` : commit.summary),
+                h('button', { 'aria-expanded': String(open), onclick: () => (open ? ((state.history = { ...history, open: null }), render(state.snapshot)) : openCommit(commit.sha)) }, commit.kind === 'agent' ? `\`${commit.visual}\` ${commit.summary}` : commit.kind === 'legacy' ? `ptbk ${commit.summary}` : commit.summary),
                 h('span', { className: 'muted' }, ` ${time(commit.at)}${commit.kind === 'foreign' ? ` · ${commit.author}` : ''}${commit.refs.length ? ` · ${commit.refs.join(', ')}` : ''}`),
                 open
                     ? detail
@@ -2764,14 +2764,14 @@
         if (topbar) document.documentElement.style.setProperty('--topbar-height', `${topbar.offsetHeight}px`);
         const live = state.connected ? 'live' : 'disconnected — showing last known state';
         const attention = state.attention.size;
-        // The shared application header: Promptbook / PTBK (brand) and the project, with attention and freshness as
+        // The shared application header: Promptbook / ptbk (brand) and the project, with attention and freshness as
         // secondary details; it is never a tile. Lifecycle/pause state lives in the System and related tiles.
         headerStatus.replaceChildren(
             h('strong', { className: 'header-project' }, snapshot.project.name),
             snapshot.service.commitMode === 'no-commit' ? h('span', { className: 'pill warn' }, 'NO-COMMIT') : '',
             h('span', { className: 'header-details' }, attention ? h('span', { className: 'warn' }, `▲ ${attention} need${attention === 1 ? 's' : ''} attention · `) : '', live),
         );
-        document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}PTBK · ${snapshot.project.name}`;
+        document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}ptbk · ${snapshot.project.name}`;
     }
 
     /** Displays a local connection failure without claiming fresh state. */

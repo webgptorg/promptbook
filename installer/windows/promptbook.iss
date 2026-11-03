@@ -26,7 +26,7 @@ VersionInfoVersion={#NumericVersion}
 VersionInfoProductVersion={#NumericVersion}
 VersionInfoTextVersion={#Version}
 VersionInfoProductTextVersion={#Version}
-VersionInfoDescription=Promptbook {#Version} installer (prerequisites, ptbk CLI and first project)
+VersionInfoDescription=Promptbook {#Version} installer (engine, desktop and optional harnesses)
 DefaultDirName={localappdata}\Promptbook\Installer
 DisableDirPage=yes
 DisableProgramGroupPage=yes
@@ -47,11 +47,32 @@ SetupLogging=yes
 UninstallDisplayName=Promptbook installer {#Version} (your projects and tools are kept)
 
 [Messages]
-WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n- prepares compatible Node.js, npm and Git automatically,%n- installs the Promptbook command-line tool (ptbk {#Version}),%n- creates an empty folder for your first project and opens the setup assistant in a terminal.%n%nThe setup assistant then asks what you are working on. Nothing else on your computer is replaced.
+WelcomeLabel2=This prepares your computer for Promptbook {#Version}:%n%n- prepares compatible Node.js, npm and Git automatically,%n- installs the Promptbook engine and command-line tool,%n- optionally installs the local desktop controller, Codex and Claude Code.%n%nThe desktop controller is selected by default. The same project setup assistant works in the app or in a terminal.
+
+[Types]
+Name: "full"; Description: "Promptbook with desktop, Codex and Claude Code"
+Name: "cli"; Description: "Engine and command-line tool only"
+Name: "custom"; Description: "Choose components"; Flags: iscustom
+
+[Components]
+Name: "core"; Description: "Promptbook engine and CLI"; Types: full cli custom; Flags: fixed
+Name: "desktop"; Description: "Local desktop application and tray controller"; Types: full custom
+Name: "codex"; Description: "OpenAI Codex CLI (install if missing)"; Types: full custom
+Name: "claude"; Description: "Claude Code CLI (install if missing)"; Types: full custom
 
 [Files]
 Source: "bootstrap.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "promptbook.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\apps\desktop\release\win-unpacked\*"; DestDir: "{app}\desktop"; Components: desktop; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{userprograms}\Promptbook\Promptbook"; Filename: "{app}\desktop\promptbook.exe"; Components: desktop
+
+[Registry]
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "PromptbookDesktop"; ValueData: """{app}\desktop\promptbook.exe"" --tray"; Components: desktop; Flags: uninsdeletevalue
+
+[UninstallRun]
+Filename: "{app}\desktop\promptbook.exe"; Parameters: "--quit-client"; RunOnceId: "CloseDesktopClient"; Flags: runhidden skipifdoesntexist
 
 [Code]
 var
@@ -96,10 +117,10 @@ end;
 
 procedure InitializeWizard;
 begin
-  RootPage := CreateInputDirPage(wpWelcome, 'Projects folder', 'Where should your Promptbook projects live?',
+  RootPage := CreateInputDirPage(wpSelectComponents, 'Projects folder', 'Where should your Promptbook projects live?',
     'Promptbook keeps each project in its own folder inside this one. It is an ordinary folder, not a project itself.', False, '');
   RootPage.Add('');
-  RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\PTBK\project');
+  RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\ptbk\project');
 
   ProjectPage := CreateInputQueryPage(RootPage.ID, 'First project', 'Create your first project',
     'An empty folder is created for it. The setup assistant (ptbk init) then asks what you are working on; the folder name is only a name.');
@@ -148,6 +169,9 @@ begin
   if SkipBox.Checked then Params := Params + ' -SkipProject'
   else Params := Params + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
   if AllowReplacement then Params := Params + ' -AllowPtbkReplacement';
+  if WizardIsComponentSelected('desktop') then Params := Params + ' -DesktopPath ' + Quoted(ExpandConstant('{app}\desktop\promptbook.exe'));
+  if WizardIsComponentSelected('codex') then Params := Params + ' -InstallCodex';
+  if WizardIsComponentSelected('claude') then Params := Params + ' -InstallClaude';
   { The process-scoped execution policy applies to this one bootstrap script only; no machine policy is changed. }
   Result := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, '', SW_SHOW, ewWaitUntilTerminated, Code);
 end;
@@ -174,7 +198,10 @@ begin
       0: begin BootstrapSucceeded := True; Done := True; end;
       2: begin
            BootstrapSucceeded := True;
-           MsgBox('Promptbook is installed. No project was created; to start one, open a terminal in an empty folder and run: ptbk init', mbInformation, MB_OK);
+           if WizardIsComponentSelected('desktop') then
+             MsgBox('Promptbook is installed. No project was created. Use New project in the application whenever you are ready.', mbInformation, MB_OK)
+           else
+             MsgBox('Promptbook is installed. No project was created; to start one, open a terminal in an empty folder and run: ptbk init', mbInformation, MB_OK);
            Done := True;
          end;
       3: begin

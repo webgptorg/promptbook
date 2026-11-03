@@ -57,9 +57,9 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
         assert.doesNotMatch(text, /Results/, `${columns}x${rows}: no standalone Results/Activity tile`);
         const header = headerRows(rows);
         if (header === 2) {
-            assert.match(stripAnsi(lines[0]), /^ {2}(Promptbook · )?PTBK {3}birds\b/, `${columns}x${rows}: the full-width Promptbook/PTBK and project identity heads the screen`);
+            assert.match(stripAnsi(lines[0]), /^ {2}(Promptbook · )?ptbk {3}birds\b/, `${columns}x${rows}: the full-width Promptbook/ptbk and project identity heads the screen`);
             assert.match(stripAnsi(lines[1]), /^━+$/, `${columns}x${rows}: a heavy rule completes the two-row identity band`);
-        } else assert.match(stripAnsi(lines[0]), /^━━ {2}(Promptbook · )?PTBK {2}━━ birds .*━━$/, `${columns}x${rows}: a short surface keeps one compact identity row`);
+        } else assert.match(stripAnsi(lines[0]), /^━━ {2}(Promptbook · )?ptbk {2}━━ birds .*━━$/, `${columns}x${rows}: a short surface keeps one compact identity row`);
         for (const line of lines.slice(0, header)) {
             assert.equal(stringWidth(line), columns, `${columns}x${rows}: the header band fills the width`);
             assert.doesNotMatch(stripAnsi(line), /[╭╮│╔╗║]/, `${columns}x${rows}: the header is not another bordered tile`);
@@ -151,7 +151,7 @@ test('pages replace the home grid, keep context and legend fixed and scroll thei
     const rendered = renderPage(context.snapshot, context.terminal, { ...built, scroll: Number.MAX_SAFE_INTEGER, attention: 0 });
     assert.equal(rendered.lines.length, 24);
     const text = rendered.lines.map(stripAnsi);
-    assert.match(text[0], /Promptbook · PTBK {3}birds · System/, 'pages keep the shared header with their title');
+    assert.match(text[0], /Promptbook · ptbk {3}birds · System/, 'pages keep the shared header with their title');
     assert.match(text[1], /^━+$/);
     assert.doesNotMatch(text.join('\n'), /╭─ System/, 'the root grid is not rendered around the page');
     assert.match(text[3], /↑ \d+ more/, 'a long page shows what is above');

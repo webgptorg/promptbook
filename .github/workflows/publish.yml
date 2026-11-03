@@ -52,7 +52,7 @@ jobs:
     if: github.repository == 'webgptorg/promptbook'
     needs: publish
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     permissions:
       contents: write
     env:
@@ -76,6 +76,17 @@ jobs:
           $numeric = ($version -replace '-.*$', '') + '.' + (($version -replace '^[^-]*-?', '') -replace '\D', '' | ForEach-Object { if ($_) { $_ } else { '0' } })
           "PTBK_VERSION=$version" >> $env:GITHUB_ENV
           "PTBK_NUMERIC_VERSION=$numeric" >> $env:GITHUB_ENV
+      - name: Build the matching optional desktop payload
+        shell: pwsh
+        run: |
+          npm ci
+          npm ci --prefix apps/desktop
+          if ($LASTEXITCODE -ne 0) { throw "Desktop dependency installation failed" }
+          npm --prefix apps/desktop test
+          if ($LASTEXITCODE -ne 0) { throw "Desktop controller tests failed" }
+          npm --prefix apps/desktop run package:windows
+          if ($LASTEXITCODE -ne 0) { throw "Desktop packaging failed" }
+          if ($LASTEXITCODE -ne 0) { throw "Desktop packaging exited with $LASTEXITCODE" }
       - name: Build the installer from the release tag
         shell: pwsh
         run: |

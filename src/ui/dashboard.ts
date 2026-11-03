@@ -132,7 +132,7 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
 }
 
 /**
- * The minimal terminal title of a project dashboard, `PTBK <single-line agent visual> <project>`: the visual of the
+ * The minimal terminal title of a project dashboard, `ptbk <single-line agent visual> <project>`: the visual of the
  * agent that currently owns execution, otherwise the stable default Promptbook visual (never a stale previous worker).
  * Versions, paths, modes and task titles live inside the dashboard pages.
  *
@@ -232,7 +232,7 @@ const ENDED_VISIBLE_MS = 1500;
  *
  * @private terminal dashboard
  */
-export async function runDashboard(terminal: TerminalProfile, source: DashboardSource): Promise<'left' | 'ended'> {
+export async function runDashboard(terminal: TerminalProfile, source: DashboardSource, initialView?: HomeTile): Promise<'left' | 'ended'> {
     if (!terminal.pretty || !terminal.interactive) return await runPlainDashboard(terminal, source);
     const screen = new FullScreen();
     const marks = symbols(terminal.unicode);
@@ -247,7 +247,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     let feedback = '';
     let feedbackTimer: NodeJS.Timeout | undefined;
     // Viewer-local navigation: the home focus, the open page stack, a modal step, the task inventory and Book drafts.
-    let focus: HomeTile = 'harnesses';
+    let focus: HomeTile = initialView ?? 'harnesses';
     const pages: DashboardPage[] = [];
     let overlay: Overlay | undefined;
     let inventory: TaskInventoryItem[] | undefined;
@@ -1623,8 +1623,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
     screen.enter();
     keyboard.start();
+    if (initialView && homeTiles(snapshot).includes(initialView)) openTile(initialView);
     process.stdout.on('resize', onResize);
-    // The PTBK title animates the current worker's visual and is reasserted while this viewer is open.
+    // The ptbk title animates the current worker's visual and is reasserted while this viewer is open.
     const title = new TitleAnimation(terminal.title, (titleFrame) => dashboardTitle(snapshot, titleFrame), terminal.reducedMotion);
     title.start();
     updateAttention();

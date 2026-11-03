@@ -64,17 +64,17 @@ test('bootstrap rejects npm package specs and shell input before any system chan
 });
 
 test('bootstrap keeps an explicit project folder inside the engine home, before any system changes', { skip: process.platform === 'win32' }, () => {
-    for (const path of ['/etc/promptbook', '/var/lib/promptbook', '/var/lib/promptbook/PTBK/project', '/var/lib/promptbook/.ssh', '../escape', '/var/lib/promptbook/PTBK/project/a/../../../x', '/tmp']) {
+    for (const path of ['/etc/promptbook', '/var/lib/promptbook', '/var/lib/promptbook/ptbk/project', '/var/lib/promptbook/.ssh', '../escape', '/var/lib/promptbook/ptbk/project/a/../../../x', '/tmp']) {
         const result = spawnSync('bash', [installer, '--init', '--path', path], { encoding: 'utf8' });
         assert.equal(result.status, 1, path);
         assert.match(result.stderr, /inside the engine user's home|without \. or \.\. segments/, path);
     }
     assert.match(spawnSync('bash', [installer, '--init', '--path'], { encoding: 'utf8' }).stderr, /needs a value/);
-    assert.match(spawnSync('bash', [installer, '--path', 'PTBK/project/a'], { encoding: 'utf8' }).stderr, /need --init/, 'preparation alone never takes a destination');
+    assert.match(spawnSync('bash', [installer, '--path', 'ptbk/project/a'], { encoding: 'utf8' }).stderr, /need --init/, 'preparation alone never takes a destination');
     assert.match(spawnSync('bash', [installer, '--', '--non-interactive'], { encoding: 'utf8' }).stderr, /need --init/);
     assert.match(spawnSync('bash', [installer, '--init', '--prepare-only'], { encoding: 'utf8' }).stderr, /not both/);
     // Valid input reaches the privilege check, the first point that could change the machine.
-    for (const args of [[], ['--prepare-only'], ['0.119.0-38'], ['--init', '--path', 'PTBK/project/my agenda'], ['--version', '1.2.3', '--init', '--path', '/var/lib/promptbook//PTBK/project/a/'], ['--init', '--', '--non-interactive', '--no-harness']]) {
+    for (const args of [[], ['--prepare-only'], ['0.119.0-38'], ['--init', '--path', 'ptbk/project/my agenda'], ['--version', '1.2.3', '--init', '--path', '/var/lib/promptbook//ptbk/project/a/'], ['--init', '--', '--non-interactive', '--no-harness']]) {
         const result = spawnSync('bash', [installer, ...args], { encoding: 'utf8' });
         if (process.getuid?.() !== 0) assert.match(result.stderr, /Run this installer with sudo/, args.join(' '));
     }

@@ -7,6 +7,7 @@ import { RichInput, type PointerField } from './rich-input.js';
 import { KeyboardSession, type KeyEvent } from './keys.js';
 import { InlineRenderer } from './screen.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import { presentationSegments, type PresentationAnswer } from './prompt-transport.js';
 
 /**
  * Returned when the user cancels a prompt or goes back.
@@ -19,6 +20,13 @@ export const CANCELLED: unique symbol = Symbol('cancelled');
  * Key that produced the most recent `CANCELLED`: Esc (go back) or Ctrl+C (abandon the wizard).
  */
 let lastCancellation: 'escape' | 'interrupt' = 'escape';
+
+/** Maps desktop Back/Cancel to the same wizard transitions as keyboard input. */
+function presentationCancelled(answer: PresentationAnswer): boolean {
+    if (answer.action !== 'back' && answer.action !== 'cancel') return false;
+    lastCancellation = answer.action === 'cancel' ? 'interrupt' : 'escape';
+    return true;
+}
 
 /**
  * Whether the most recent cancellation was Ctrl+C (abandon) rather than Esc (go back).
@@ -174,6 +182,17 @@ export const POINTER_PICK_HINT = 'click focus, again confirm';
  * @private terminal prompts
  */
 export async function selectOne<T>(terminal: TerminalProfile, options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; defaultValue?: T; escapeLabel?: string; searchable?: boolean }): Promise<T | typeof CANCELLED> {
+    if (terminal.prompts) {
+        let initial = Math.max(0, options.choices.findIndex((choice) => choice.value === options.defaultValue));
+        for (let step = 0; step < options.choices.length && options.choices[initial]?.disabled; step++) initial = (initial + 1) % options.choices.length;
+        for (;;) {
+            const answer: PresentationAnswer = await terminal.prompts({ kind: 'one', frame: options.frame, question: options.question, choices: options.choices.map((choice, index) => ({ ...choice, value: index })), initial });
+            if (presentationCancelled(answer)) return CANCELLED;
+            if (answer.action === 'terminal') break;
+            const index = answer.value;
+            if (typeof index === 'number' && Number.isInteger(index) && options.choices[index] && !options.choices[index]!.disabled) return options.choices[index]!.value;
+        }
+    }
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
     let query = '';
@@ -291,6 +310,20 @@ export async function selectMany<T>(
     terminal: TerminalProfile,
     options: { frame: WizardFrame; question: string; choices: readonly Choice<T>[]; initial: readonly T[]; minimum?: number; noneLabel?: string; emptyWarning?: string; /** Ctrl+A selects every enabled choice, Ctrl+U none. */ bulk?: boolean },
 ): Promise<T[] | typeof CANCELLED> {
+    if (terminal.prompts) {
+        let error: string | undefined;
+        for (;;) {
+            const answer: PresentationAnswer = await terminal.prompts({ kind: 'many', frame: options.frame, question: options.question, choices: options.choices.map((choice, index) => ({ ...choice, value: index })), initial: options.choices.flatMap((choice, index) => options.initial.includes(choice.value) ? [index] : []), error });
+            if (presentationCancelled(answer)) return CANCELLED;
+            if (answer.action === 'terminal') break;
+            const indices = answer.value;
+            if (!Array.isArray(indices) || indices.some((index: unknown) => typeof index !== 'number' || !Number.isInteger(index) || !options.choices[index] || options.choices[index]!.disabled)) continue;
+            const chosen = options.choices.filter((_, index) => indices.includes(index)).map((choice) => choice.value);
+            if (options.minimum && chosen.length < options.minimum) { error = `Select at least ${options.minimum}.`; continue; }
+            if (!chosen.length && options.emptyWarning && error !== options.emptyWarning) { error = options.emptyWarning; continue; }
+            return chosen;
+        }
+    }
     const { style } = terminal;
     const marks = symbols(terminal.unicode);
     const selected = new Set<T>(options.initial);
@@ -437,6 +470,20 @@ export async function toggleList<K extends string>(
     terminal: TerminalProfile,
     options: { frame: WizardFrame; question: string; intro?: string; toggles: readonly Toggle<K>[]; initial: Readonly<Record<K, boolean>>; effect: (values: Readonly<Record<K, boolean>>) => readonly string[] },
 ): Promise<Record<K, boolean> | typeof CANCELLED> {
+    if (terminal.prompts) {
+        let initial = { ...options.initial };
+        for (;;) {
+            const answer: PresentationAnswer = await terminal.prompts({ kind: 'toggles', frame: options.frame, question: options.question, hint: [options.intro, ...options.effect(initial)].filter(Boolean).join('\n'), choices: options.toggles.map((toggle) => ({ value: toggle.key, label: toggle.label, description: toggle.description })), initial });
+            if (presentationCancelled(answer)) return CANCELLED;
+            if (answer.action === 'terminal') break;
+            const value = answer.value;
+            if (!value || typeof value !== 'object' || options.toggles.some((toggle) => typeof (value as Record<string, unknown>)[toggle.key] !== 'boolean')) continue;
+            const next = Object.fromEntries(options.toggles.map((toggle) => [toggle.key, (value as Record<string, boolean>)[toggle.key]])) as Record<K, boolean>;
+            // Re-present changed effects before accepting the final choice, just as the terminal updates live.
+            if (options.effect(next).join('\n') !== options.effect(initial).join('\n')) { initial = next; continue; }
+            return next;
+        }
+    }
     const { style } = terminal;
     const values = { ...options.initial } as Record<K, boolean>;
     let focus = 0;
@@ -506,6 +553,24 @@ export async function composeRich(
     terminal: TerminalProfile,
     options: { frame: WizardFrame; question: string; initial?: string | readonly ComposedSegment[]; placeholder?: string; required?: boolean; hint?: string; attachments?: boolean; singleLine?: boolean; aside?: () => readonly string[] },
 ): Promise<ComposedInput | typeof CANCELLED> {
+    if (terminal.prompts) {
+        let error: string | undefined;
+        for (;;) {
+            const initial = typeof options.initial === 'string' ? [{ type: 'text', text: options.initial }] : options.initial;
+            const answer: PresentationAnswer = await terminal.prompts({ kind: 'text', frame: options.frame, question: options.question, initial, placeholder: options.placeholder, hint: [options.hint, ...(options.aside?.() ?? [])].filter(Boolean).join('\n'), required: options.required, singleLine: options.singleLine, attachments: options.attachments, error });
+            if (presentationCancelled(answer)) return CANCELLED;
+            if (answer.action === 'terminal') {
+                const draft = presentationSegments(answer.value, options.attachments !== false);
+                if (draft) options = { ...options, initial: draft };
+                break;
+            }
+            const segments = presentationSegments(answer.value, options.attachments !== false);
+            if (!segments) continue;
+            const text = inlineSegments(segments);
+            if (options.required && !text.trim()) { error = 'Enter a value to continue.'; continue; }
+            return { segments, text };
+        }
+    }
     const { style } = terminal;
     let refresh: () => void = () => undefined;
     const input = new RichInput({ mode: 'flow', initial: options.initial, attachments: options.attachments, singleLine: options.singleLine, required: options.required, refresh: () => refresh() });

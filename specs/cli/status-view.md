@@ -10,7 +10,7 @@ Dashboard, explicit foreground presentation and browser view update continuously
 
 Identify the project, actual engine version, observation freshness, connection and live state (`running`, `pausing`, `pause`, `stopping`), active pause reasons, active task/agent/phase collection and selected detail, actual resource waits/queued counts, outcomes and waits/blockers. Empty queue, missing tools or failed synchronization can coexist with running. They are not additional lifecycle states or evidence of process failure. An exited service may be labelled stopped as an observation, never advertised with a dead ready endpoint.
 
-Interactive project home state uses one clearly visible shared application header above the tiles: Promptbook / PTBK and project identity, with actual lifecycle/pause state in System/related tiles rather than an additional state badge in the header. It unifies the domains without introducing another tile or normal-size scrolling; detailed technical metadata stays on pages under [layout](dashboard-layout.md).
+Interactive project home state uses one clearly visible shared application header above the tiles: Promptbook / ptbk and project identity, with actual lifecycle/pause state in System/related tiles rather than an additional state badge in the header. It unifies the domains without introducing another tile or normal-size scrolling; detailed technical metadata stays on pages under [layout](dashboard-layout.md).
 
 Interactive home state contains a compact [Wallet](wallet.md) tile for readiness and protected pending login actions, using the same attention mechanism and no exposed secrets. A saved user response clears that question/action's attention promptly; independent work continues while others wait.
 

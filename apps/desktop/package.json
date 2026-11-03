@@ -1,0 +1,62 @@
+{
+  "name": "ptbk-desktop",
+  "version": "0.119.0-47",
+  "private": true,
+  "description": "The optional local Promptbook desktop controller",
+  "author": "Promptbook",
+  "main": "main.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "npm run build && electron .",
+    "test": "node --test test/*.test.mjs",
+    "package:windows": "npm run build && node package-windows.mjs",
+    "postinstall": "electron-builder install-app-deps",
+    "test:e2e": "node --test test/e2e.mjs"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "0.11.0",
+    "@xterm/xterm": "6.0.0",
+    "node-pty": "1.1.0"
+  },
+  "devDependencies": {
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0",
+    "esbuild": "0.28.2",
+    "playwright-core": "1.64.1"
+  },
+  "build": {
+    "appId": "io.ptbk.desktop",
+    "productName": "Promptbook",
+    "executableName": "promptbook",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "model.cjs",
+      "prompt-server.cjs",
+      "bridge.mjs",
+      "renderer/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "icon.ico",
+        "to": "icon.ico"
+      },
+      {
+        "from": "bridge.mjs",
+        "to": "bridge.mjs"
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/node-pty/**"
+    ],
+    "win": {
+      "icon": "icon.ico",
+      "target": "dir",
+      "signAndEditExecutable": true
+    }
+  }
+}

@@ -58,7 +58,7 @@ The engine machine must stay available. By default, persistent project services 
 
 A background engine [updates itself](specs/cli/updates.md) when it has no other work: stable minor and patch releases of its major version, or a running prerelease to its stable release. It never installs a version your `ptbk.json` `updates` pin or range excludes, or one that needs a newer Node.js than your host runs, and you can switch it off on the dashboard's System page. Release signing and rollout delays are still being agreed with the platform, so your host access and backups still matter.
 
-**Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source).
+**Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source). The installer offers the local desktop client (selected by default), Codex and Claude Code. The desktop uses the same engine and initializer as the CLI, with an embedded CLI terminal; closing a window leaves your engines running. CLI-only installation remains available.
 
 ## Deploy to your own server
 

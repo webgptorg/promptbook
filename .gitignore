@@ -45,3 +45,9 @@ dist-installer/
 # Generated VS Code extension and packaged release artifacts
 /dist-vscode/
 *.vsix
+
+# Optional desktop build and native dependencies
+/apps/desktop/node_modules/
+/apps/desktop/renderer/vendor/
+/apps/desktop/release/
+/apps/desktop/icon.ico

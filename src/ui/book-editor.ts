@@ -42,7 +42,7 @@ export async function runBookEditor(
     options: {
         readonly screen?: FullScreen;
         readonly drafts?: Map<string, BookDraft>;
-        /** Inside the dashboard, which keeps its PTBK title. */
+        /** Inside the dashboard, which keeps its ptbk title. */
         readonly embedded?: boolean;
         /** The shared viewer mode (Files, the full report): the same parser and navigation, no save path at all. */
         readonly readOnly?: boolean;

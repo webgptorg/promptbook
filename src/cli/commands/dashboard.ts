@@ -17,7 +17,7 @@ import { controlSource } from '../sources.js';
  * individual/bulk lifecycle controls and stopped-entry removal use the shared operations.
  */
 async function globalDashboard(context: CommandContext): Promise<number> {
-    for (const name of ['path', 'tasks']) {
+    for (const name of ['path', 'tasks', 'view']) {
         if (context.explicit.has(name)) throw usageError(`--global observes every project; --${name} would select one project.`, 'dashboard', 'Use `ptbk dashboard --path <dir>` for one project, or `ptbk dashboard --global` for all of them.');
     }
     await runGlobalDashboard(

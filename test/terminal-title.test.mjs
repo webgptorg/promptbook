@@ -118,18 +118,18 @@ test('titles are enabled only for interactive pretty terminals and can be switch
     assert.equal(profile.title.current, undefined, 'nothing is emitted into redirected output');
 });
 
-test('dashboards show exactly PTBK, the single-line agent visual and the project (or Global)', () => {
+test('dashboards show exactly ptbk, the single-line agent visual and the project (or Global)', () => {
     const current = (agent, activity = 'working') => ({ current: { agent: { name: agent, activity }, taskTitle: 'Write the README' }, phase: 'executing' });
     const idle = dashboardTitle(snapshot());
     assert.deepEqual(idle, { kind: 'dashboard', label: 'birds', project: 'birds', visual: singleLineVisual(undefined, 'working', 0) }, 'idle: the stable default Promptbook visual');
-    assert.equal(formatDashboardTitle(idle), 'PTBK ~<@@/>- birds');
-    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(), 1)), 'PTBK ~<@@/>/ birds', 'the default visual animates');
+    assert.equal(formatDashboardTitle(idle), 'ptbk ~<@@/>- birds');
+    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(), 1)), 'ptbk ~<@@/>/ birds', 'the default visual animates');
     const developer = formatDashboardTitle(dashboardTitle(snapshot(current('Developer'))));
-    assert.equal(developer, `PTBK ${singleLineVisual('Developer', 'working', 0)} birds`, 'the working agent’s own visual');
+    assert.equal(developer, `ptbk ${singleLineVisual('Developer', 'working', 0)} birds`, 'the working agent’s own visual');
     assert.doesNotMatch(developer, /Promptbook|📖|Dashboard|README|0\.\d/, 'no symbol, product word, mode, task or version');
     assert.notEqual(formatDashboardTitle(dashboardTitle(snapshot(current('Developer')), 1)), developer, 'the working visual moves between frames');
-    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(current('Teacher', 'waiting-user')))), `PTBK ${singleLineVisual('Teacher', 'waiting-user', 0)} birds`);
-    assert.equal(formatDashboardTitle({ label: 'Global', visual: singleLineVisual(undefined, 'working', 0) }), 'PTBK ~<@@/>- Global');
+    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(current('Teacher', 'waiting-user')))), `ptbk ${singleLineVisual('Teacher', 'waiting-user', 0)} birds`);
+    assert.equal(formatDashboardTitle({ label: 'Global', visual: singleLineVisual(undefined, 'working', 0) }), 'ptbk ~<@@/>- Global');
     assert.ok(framedBadge('Developer', 'working', { color256: (_code, text) => text, bold: (text) => text }, true, 0)[1].includes(singleLineVisual('Developer', 'working', 0)), 'the same character as the framed badge');
 
     const hostile = formatDashboardTitle({ label: 'evil\x1b]0;pwned\x07\nname', visual: '~<\x07@@/>-' });
@@ -142,14 +142,14 @@ test('the dashboard title animates at a bounded cadence and is reasserted so ter
     let worker;
     const animation = new TitleAnimation(title, (frame) => ({ kind: 'dashboard', label: 'birds', project: 'birds', visual: singleLineVisual(worker, 'working', frame) }), false);
     animation.start();
-    assert.equal(writes.at(-1), '\x1b[22;0t\x1b]0;PTBK ~<@@/>- birds\x07');
+    assert.equal(writes.at(-1), '\x1b[22;0t\x1b]0;ptbk ~<@@/>- birds\x07');
     await new Promise((resolve) => setTimeout(resolve, 1600));
     const titles = writes.map((text) => text.replace(/^\x1b\[22;0t/, ''));
-    assert.ok(titles.includes('\x1b]0;PTBK ~<@@/>/ birds\x07'), 'the visual moves');
+    assert.ok(titles.includes('\x1b]0;ptbk ~<@@/>/ birds\x07'), 'the visual moves');
     assert.ok(writes.length <= 4, `bounded cadence (${writes.length} writes in 1.6 s)`);
     worker = 'Developer';
     animation.refresh();
-    assert.ok([0, 1].some((frame) => title.current === `PTBK ${singleLineVisual('Developer', 'working', frame)} birds`), `a new worker switches at once: ${title.current}`);
+    assert.ok([0, 1].some((frame) => title.current === `ptbk ${singleLineVisual('Developer', 'working', frame)} birds`), `a new worker switches at once: ${title.current}`);
     assert.equal(writes.at(-1), titleSequence(title.current));
     animation.stop();
 
