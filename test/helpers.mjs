@@ -35,10 +35,11 @@ export async function temporaryDirectory(t, label = 'ptbk fixture', beforeRemova
 }
 
 /**
- * Runs Git in a directory with fixture identity and without signing or hooks from the runner.
+ * Runs Git with fixture identity and no optional index refresh, signing or hooks from the runner. Observers must
+ * not race the engine's serialized commits by refreshing the index while polling for completion.
  */
 export async function git(cwd, args) {
-    const { stdout } = await execFileAsync('git', ['-c', 'commit.gpgsign=false', '-c', 'core.autocrlf=false', ...args], { cwd, env: { ...process.env, GIT_AUTHOR_NAME: 'Fixture Tester', GIT_AUTHOR_EMAIL: 'fixture@example.test', GIT_COMMITTER_NAME: 'Fixture Tester', GIT_COMMITTER_EMAIL: 'fixture@example.test' } });
+    const { stdout } = await execFileAsync('git', ['--no-optional-locks', '-c', 'commit.gpgsign=false', '-c', 'core.autocrlf=false', ...args], { cwd, env: { ...process.env, GIT_AUTHOR_NAME: 'Fixture Tester', GIT_AUTHOR_EMAIL: 'fixture@example.test', GIT_COMMITTER_NAME: 'Fixture Tester', GIT_COMMITTER_EMAIL: 'fixture@example.test' } });
     return stdout;
 }
 
