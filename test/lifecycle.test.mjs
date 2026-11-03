@@ -70,7 +70,8 @@ test('lifecycle: pause interrupts task work without a next claim; resume continu
     assert.match(paused.stdout, /^Pause pending/, paused.output);
     const pausing = await status(project, env);
     assert.ok(['pausing', 'pause'].includes(pausing.service.state), pausing.service.state);
-    await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'pausing to settle into pause', timeoutMs: 4_000 });
+    // Windows must drain the native CLI's process tree and its owned Git work before the pause is settled.
+    await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'pausing to settle into pause', timeoutMs: 30_000 });
     assert.equal(findGenerated(await subjects(project), 'Slow work SLOW_WORK', 'ptbk: '), undefined, 'the task was interrupted long before its slow work ended, with no false result');
     await new Promise((resolve) => setTimeout(resolve, 2500));
     assert.equal(findGenerated(await subjects(project), 'Next work', 'ptbk: '), undefined, 'no next task is claimed while paused');
