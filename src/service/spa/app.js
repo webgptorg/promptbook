@@ -491,9 +491,6 @@
         if (!live && recheck) thread.append(h('p', { className: 'muted' }, `The reply failed (${recheck.cause}). Automatic recheck at ${time(recheck.nextAt)}; writing again retries now.`));
         else if (!live && answer && answer.sender.replace(/^@/, '').toLowerCase() === 'user' && summary.status === 'open') thread.append(h('p', { className: 'muted' }, `Waiting for ${summary.agent || 'the agent'}’s reply…`));
         card.append(thread);
-        requestAnimationFrame(() => {
-            thread.scrollTop = thread.scrollHeight;
-        });
         const busy = state.busy.has(summary.name);
         if (summary.humanFacing || summary.joinable) {
             if (summary.awaiting && summary.awaiting.choices && summary.awaiting.choices.length && summary.status === 'waiting-for-user') {
