@@ -113,11 +113,14 @@ test('engine: a change reaches running work by interrupting and continuing it, w
 });
 
 test('engine: cancelling stops work without success, keeps its Book and starts nothing; a paused change waits for Resume', { timeout: 240_000 }, async (t) => {
-    const { project, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
-    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '4000' };
+    const { project, directory, env: baseEnv, log } = await initializedProject(t, { check: CHECK });
+    const barrier = join(directory, 'partial output barrier');
+    await writeFile(barrier, 'hold the turn after reporting its output\n');
+    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '4000', FAKE_CODEX_OUTPUT_BARRIER: barrier };
     await ptbk(['add', 'Cancelled work SLOW_WORK', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env });
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const working = await waitFor(async () => (await status(project, env)).harnessSessions?.open.find((session) => session.work.kind === 'task' && session.work.task.startsWith('Cancelled work') && session.state === 'working'), { message: 'the running session' });
+    await waitFor(async () => (await status(project, env)).active?.some((unit) => unit.taskTitle.startsWith('Cancelled work') && unit.files?.some((path) => path.startsWith('output/'))), { message: 'the reported partial output' });
     const cancelled = await control(project, 'task-change', { task: 'Cancelled work', operation: 'cancel', instruction: 'I no longer want this.', via: 'test' });
     assert.match(cancelled.outcome, /has not necessarily stopped yet/, 'intent is not proof of a stop');
     await waitFor(async () => (await status(project, env)).harnessSessions.ended.find((session) => session.handle === working.handle), { message: 'its session to end' });
@@ -130,6 +133,12 @@ test('engine: cancelling stops work without success, keeps its Book and starts n
     await new Promise((resolve) => setTimeout(resolve, 1500));
     assert.equal((await turns(log)).filter((entry) => entry.title?.startsWith('Cancelled work')).length, 1, 'it never starts again');
 
+    assert.ok((await git(project, ['status', '--porcelain', '--', 'output'])).trim(), 'cancellation keeps the partial output without calling it a result');
+    await rm(barrier);
+    assert.equal((await ptbk(['stop', '--force', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    assert.equal((await turns(log)).filter((entry) => entry.title?.startsWith('Cancelled work')).length, 1, 'a restart does not authorize cancelled work');
+
     // Reopening the same work appends to the same Book.
     const reopened = await control(project, 'task-change', { task: 'Cancelled work', operation: 'reopen', instruction: 'After all, please do CHANGE_MARKER_BACK.', via: 'test' });
     assert.equal(reopened.data.reopened, true);
@@ -137,6 +146,7 @@ test('engine: cancelling stops work without success, keeps its Book and starts n
     assert.match(again, /TASK REOPEN .*\nTASK CHANGE [^\n]*\nAfter all[^\n]*\n+TASK STATUS todo/);
     assert.match(again, /TASK STATUS cancelled/, 'the cancellation stays in the history');
     await waitFor(async () => findGenerated(await subjects(project), 'Cancelled work SLOW_WORK', 'ptbk: '), { message: 'the reopened work to finish', timeoutMs: 90_000 });
+    assert.equal((await git(project, ['status', '--porcelain', '--', 'output'])).trim(), '', 'reopened work commits its retained output rather than treating it as unrelated');
 
     // Under Pause the change is saved and its delivery waits.
     await ptbk(['add', 'Paused work', '--agent', 'Developer', '--priority', '1', '--raw'], { cwd: project, env });

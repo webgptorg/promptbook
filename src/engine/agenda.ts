@@ -1063,6 +1063,14 @@ export class Agenda {
             : ('pending' as const);
         if (request.origin.chat) await this.chats.annotate(request.origin.chat, { links: [formatAgentReference(task.title)] }, { trailers: { 'Task-Name': task.title } }).catch(() => undefined);
         const delivery = await this.reconcileChange(task, { change: change.id, task: task.title, source: task.source.relativePath, order: change.line }, request.operation, scope);
+        if (reopening) {
+            const cancelled = await this.state.readCancelled(task.title);
+            if (cancelled && cancelled.sourcePath === task.source.relativePath && !this.runIsLive(cancelled.runId)) {
+                await this.state.writeActive({ ...cancelled, phase: 'executing', attempt: 0, technicalRetries: 0, completionApplied: false, failure: undefined, feedback: 'The user reopened this cancelled task. Inspect its retained partial work and continue from the current Book; do not repeat external actions without verifying them.' });
+                await this.state.clearCancelled(task.title);
+                await this.restoreOwnership();
+            }
+        }
         this.log(`{${task.title}}: ${request.operation} accepted${request.origin.chat ? ` from {${request.origin.chat}}` : ''}. ${delivery}`);
         this.wake();
         this.touch();
@@ -1151,6 +1159,7 @@ export class Agenda {
 
     /** Ends a run its task no longer wants: its partial work and Book stay, nothing is reverted, and no success is claimed. */
     private async endCancelledRun(record: ActiveRecord, task: Task): Promise<void> {
+        if (task.status === 'cancelled') await this.state.saveCancelled({ ...record, ownedFiles: [...new Set([...(record.ownedFiles ?? []), ...this.ownership.owned(record.runId)])] });
         await this.state.clearActive(record.runId).catch(() => undefined);
         await this.state.dropParked(record.taskTitle).catch(() => undefined);
         await this.releaseUnlessRecorded(record.runId);

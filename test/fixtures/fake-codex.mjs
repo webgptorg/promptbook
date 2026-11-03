@@ -437,6 +437,14 @@ async function main() {
             written.push(join(process.cwd(), 'output', 'browsers.txt'));
         }
         print({ type: 'item.completed', item: { id: 'item_2', type: 'file_change', changes: written.map((path) => ({ path, kind: 'update' })) } });
+        // Cancellation fixtures can stop a real turn after it has produced and reported partial work.
+        if (prompt.includes('SLOW_WORK') && process.env.FAKE_CODEX_OUTPUT_BARRIER) {
+            const deadline = Date.now() + 90_000;
+            while (existsSync(process.env.FAKE_CODEX_OUTPUT_BARRIER)) {
+                if (Date.now() > deadline) throw new Error('The partial-output fixture barrier was not released.');
+                await new Promise((resolve) => setTimeout(resolve, 50));
+            }
+        }
         done(`Wrote ${file}`);
     }
     print({ type: 'turn.completed', usage: { input_tokens: 10, output_tokens: 5 } });

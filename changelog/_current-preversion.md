@@ -7,6 +7,7 @@
 - Preserve scheduler wake-ups received during evaluation so account fallback, resumed work and task changes cannot sleep until an unrelated later event. Respect Windows `Path` when caching harness capabilities, and make fixture path/Unicode assumptions explicit. Allow forty minutes for the complete hosted matrix without reducing coverage.
 - Gate concurrency fixtures on the actual acquisition of all independent workers rather than assuming every OS starts them within a short sleep; keep assertions for overlapping execution and isolated result commits.
 - Replace streamed chat updates atomically so concurrent readers always retain the accepted conversation, including during force-stop recovery. Retain the last snapshot, working-tree changes and service events when a restart fixture cannot settle.
+- Retain a cancelled task's recovery checkpoint without reserving its agent or restarting its work. An explicit reopening restores its partial-file ownership, including after a service restart, so those files do not incorrectly block its continuation as unrelated changes.
 
 ## Experimental project sounds and desktop notifications
 

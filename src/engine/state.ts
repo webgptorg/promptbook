@@ -448,6 +448,21 @@ export class StateStore {
         await rm(this.activeFile(runId), { force: true });
     }
 
+    /** Keeps cancelled work's checkpoint without reserving its agent or authorizing any continuation. */
+    public async saveCancelled(record: ActiveRecord): Promise<void> {
+        await writeJsonAtomic(join(this.file('cancelled'), `${nameKeyPath(record.taskTitle)}.json`), record);
+    }
+
+    /** Reads a cancelled checkpoint only when the user explicitly reopens that same task. */
+    public async readCancelled(taskTitle: string): Promise<ActiveRecord | undefined> {
+        return await readJsonIfExists<ActiveRecord>(join(this.file('cancelled'), `${nameKeyPath(taskTitle)}.json`));
+    }
+
+    /** Removes a cancelled checkpoint after its restoration has been persisted. */
+    public async clearCancelled(taskTitle: string): Promise<void> {
+        await rm(join(this.file('cancelled'), `${nameKeyPath(taskTitle)}.json`), { force: true });
+    }
+
     /**
      * Checkpointed tasks that released execution while waiting for a person (answer or recovery decision), keyed by
      * normalized task name, so independent work can continue (`.ptbk/state/parked/`).
