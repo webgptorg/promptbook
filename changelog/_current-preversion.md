@@ -1,5 +1,9 @@
 # Unreleased
 
+## Complete hosted release validation
+
+- Run the complete project check in every required Node 22/24 Linux, macOS and Windows matrix job, including behavioral and package checks, before the publication workflow can proceed. The matrix previously ran only the light type check.
+
 ## Experimental project sounds and desktop notifications
 
 - Add one shared **Sounds & notifications (experimental)** control, **Ctrl+N**, in project terminal dashboards, standalone chat, editors and protected Wallet prompts. It starts Off, follows the last-used live client and resets when the final client leaves or the engine restarts. Other projects, init, global dashboards and raw output stay independent.
