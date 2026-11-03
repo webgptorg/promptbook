@@ -308,7 +308,7 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     const first = await initializedProject(t, { check: CHECK });
     const second = await initializedProject(t, { check: CHECK });
     // Both projects belong to one OS user's host registry.
-    const env = { ...first.env, FAKE_CODEX_SLOW_MS: '60000' };
+    const env = { ...first.env, FAKE_CODEX_SLOW_MS: '300000' };
     const secondEnv = { ...second.env, PTBK_HOME: env.PTBK_HOME };
     await ptbk(['add', 'Slow work SLOW_WORK', '--agent', 'Developer', '--raw'], { cwd: first.project, env });
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0);
@@ -316,11 +316,13 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     assert.equal((await ptbk(['pause', '--raw'], { cwd: second.project, env: secondEnv })).code, 0);
     const busy = await waitFor(async () => {
         const snapshot = await status(first.project, env);
-        return snapshot.current?.phase === 'executing' ? snapshot : undefined;
+        return snapshot.current?.phase === 'executing' && snapshot.current.taskTitle.startsWith('Slow work SLOW_WORK') ? snapshot : undefined;
     }, { message: 'the slow task to execute' });
     const harness = await waitFor(async () => JSON.parse(await readFile(join(first.project, '.ptbk', 'service', 'owned.json'), 'utf8').catch(() => '{"processes":[]}')).processes.find((owned) => /codex/.test(owned.label)), { message: 'the owned harness' });
-    const paused = await status(second.project, secondEnv);
-    assert.ok(['pausing', 'pause'].includes(paused.service.state), 'a paused (or still settling) engine');
+    const paused = await waitFor(async () => {
+        const snapshot = await status(second.project, secondEnv);
+        return snapshot.service.state === 'pause' ? snapshot : undefined;
+    }, { message: 'the second engine to settle into pause' });
     const unrelated = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' });
     t.after(() => unrelated.kill('SIGKILL'));
 
@@ -333,6 +335,8 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     assert.match(unconfirmed.output, /--yes/);
     assert.equal((await status(first.project, env)).service.state, 'running', 'without --yes and without a terminal nothing changes');
 
+    const pausedHead = await git(second.project, ['rev-parse', 'HEAD']);
+    const pausedChanges = await git(second.project, ['status', '--porcelain']);
     const result = await ptbk(['panic', '--yes', '--raw'], { cwd: first.directory, env, timeoutMs: 90_000 });
     assert.equal(result.code, 0, result.output);
     assert.match(result.stdout, /Panic: 2 terminated\./, result.output);
@@ -340,6 +344,9 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     assert.equal(alive(paused.service.pid), false, 'a paused engine is a target too');
     await waitFor(() => !alive(harness.pid), { timeoutMs: 5000, message: 'the owned harness to end' });
     assert.equal(alive(unrelated.pid), true, 'unrelated Node processes survive');
+    assert.equal(await git(second.project, ['rev-parse', 'HEAD']), pausedHead, 'panic creates no commit in the settled project');
+    assert.equal(await git(second.project, ['status', '--porcelain']), pausedChanges, 'panic preserves the paused project\'s partial work exactly');
+    assert.equal(findGenerated(await subjects(first.project), 'Slow work SLOW_WORK', 'ptbk: '), undefined, 'panic never claims the interrupted work completed');
     for (const project of [first.project, second.project]) {
         assert.equal(JSON.parse(await readFile(join(project, '.ptbk', 'service', 'launch.json'), 'utf8')).intentionallyStopped, true, `${project}: deliberate stop suppresses automatic startup`);
     }
@@ -347,10 +354,16 @@ test('panic force-stops every active engine and its owned execution, keeps them 
     const known = (await readKnownProjects(env)).entries;
     assert.deepEqual(known.map((entry) => entry.projectRoot).sort(), [first.project, second.project].sort(), 'both stay registered');
     assert.ok(known.every((entry) => entry.lastRun?.outcome === 'force-stopped'), 'their last run is recorded as force-stopped');
+    const stopped = await Promise.all([first.project, second.project].map(async (project) => ({ project, head: await git(project, ['rev-parse', 'HEAD']), changes: await git(project, ['status', '--porcelain']) })));
     const again = await ptbk(['panic', '--yes', '--raw'], { cwd: first.directory, env });
     assert.equal(again.code, 0, again.output);
     assert.match(again.stdout, /No active Promptbook engines/, 'no active engines is a successful zero-target result');
+    for (const previous of stopped) {
+        assert.equal(await git(previous.project, ['rev-parse', 'HEAD']), previous.head, 'an idempotent panic creates no project commit');
+        assert.equal(await git(previous.project, ['status', '--porcelain']), previous.changes, 'an idempotent panic preserves partial files');
+    }
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: first.project, env })).code, 0, 'an explicit start works again');
     await ptbk(['stop', '-F', '--raw'], { cwd: first.project, env });
-    for (const project of [first.project, second.project]) assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'panic creates no project commits');
+    assert.equal((await status(first.project, env)).service.state, 'stopped');
+    assert.equal(findGenerated(await subjects(first.project), 'Slow work SLOW_WORK', 'ptbk: '), undefined, 'another force stop preserves unfinished work without calling it a result');
 });
