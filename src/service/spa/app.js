@@ -21,6 +21,8 @@
         lastInput: Date.now(),
         /** One viewport observer, disconnected when the chat is replaced or left. */
         chatObserver: null,
+        /** Conversation viewport positions stay local, independent of shared seen/request state. */
+        chatScroll: new Map(),
         showMoreHarnesses: false,
         busy: new Set(),
         frame: 0,
@@ -241,6 +243,17 @@
         );
     }
 
+    /** Real input can make an already intersecting message actively viewed without changing its intersection. */
+    function acknowledgeVisibleChat() {
+        const thread = app.querySelector('.messages[data-chat]');
+        if (!thread) return;
+        const viewport = thread.getBoundingClientRect();
+        for (const article of thread.querySelectorAll('.message.pinged')) {
+            const bounds = article.getBoundingClientRect();
+            if (bounds.bottom > Math.max(0, viewport.top) && bounds.top < Math.min(window.innerHeight, viewport.bottom)) markSeen(thread.dataset.chat, Number(article.dataset.message), article);
+        }
+    }
+
     /** Loads (or reloads) the open chat; opening marks it read but never answers anything. */
     async function loadChat(name) {
         try {
@@ -432,7 +445,7 @@
                 ),
             );
         }
-        const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite' });
+        const thread = h('div', { className: 'messages', role: 'log', 'aria-live': 'polite', 'data-chat': summary.name });
         // Unseen explicit User pings: actually displaying one to an active viewer marks it seen for every client
         // (the question keeps waiting; seeing never answers it).
         const unseen = new Set((summary.pings || []).map((ping) => ping.message));
@@ -1576,6 +1589,7 @@
     /** A meaningful interaction: unseen attention settles once the operator is clearly active (never by time alone). */
     function interacted() {
         state.lastInput = Date.now();
+        acknowledgeVisibleChat();
         state.interactions++;
         let changed = false;
         for (const item of state.attention.values()) {
@@ -2774,6 +2788,8 @@
     /** Renders the home screen or the open page, preserving focus, drafts and scroll. */
     function render(snapshot) {
         if (!snapshot) return;
+        const previousThread = app.querySelector('.messages[data-chat]');
+        if (previousThread) state.chatScroll.set(previousThread.dataset.chat, { top: previousThread.scrollTop, bottom: previousThread.scrollHeight - previousThread.scrollTop - previousThread.clientHeight < 24 });
         state.chatObserver?.disconnect();
         state.chatObserver = null;
         if (state.page && !homeTiles(snapshot).includes(state.page)) state.page = null;
@@ -2785,6 +2801,11 @@
         const scroll = window.scrollY;
         document.body.classList.toggle('home-view', !state.page);
         app.replaceChildren(state.page ? renderPage(snapshot, state.page) : renderHome(snapshot));
+        const thread = app.querySelector('.messages[data-chat]');
+        if (thread) {
+            const position = state.chatScroll.get(thread.dataset.chat);
+            thread.scrollTop = !position || position.bottom ? thread.scrollHeight : position.top;
+        }
         if (focusDraft) {
             const field = app.querySelector(`[data-draft="${CSS.escape(focusDraft)}"]`);
             if (field) {
@@ -2892,8 +2913,8 @@
             layout = next;
         }).observe(document.documentElement);
         document.addEventListener('pointerdown', interacted);
-        document.addEventListener('wheel', () => { state.lastInput = Date.now(); }, { passive: true });
-        document.addEventListener('touchstart', () => { state.lastInput = Date.now(); }, { passive: true });
+        document.addEventListener('wheel', interacted, { passive: true });
+        document.addEventListener('touchstart', interacted, { passive: true });
         document.addEventListener('keydown', (event) => {
             interacted();
             const typing = event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName);

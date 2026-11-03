@@ -21,6 +21,7 @@
 - Seen and resolved are separate, project-shared and durable (`.ptbk/state/attention.json`, never committed): a pinged message displayed during active viewing (terminal chat or browser) is seen in every client and after restarts, while its question keeps waiting. A saved response or the chat leaving `waiting-for-user` resolves it. A question written before pings existed is one implicit occurrence. A task waiting for that chat or Wallet request follows the same seen state.
 - Snapshots list the unseen pings (`chats.pings`); `POST /api/chats/<name>/seen` and the `chat-seen` control method record what was displayed.
 - Seen unanswered questions stay seen without expiry. Slow or hidden terminals acknowledge only frames actually displayed, and background browser tabs do not acknowledge a preloaded conversation.
+- Preserve each browser conversation's scroll position during refresh, and acknowledge visible calling messages when real input resumes. Shared seen or answer outcomes also withdraw any attention effect that has not yet been delivered.
 
 ## Wallet Mark as seen and Reject request
 
