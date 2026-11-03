@@ -63,6 +63,26 @@ test('a hidden or slow terminal gets the latest frame after it drains, never a b
     assert.match(writes.at(-1), /frame 501/, 'rendering continues normally');
 });
 
+test('only a displayed frame acknowledges its chat messages; coalesced or abandoned frames see nothing', async () => {
+    const { EventEmitter } = await import('node:events');
+    const output = Object.assign(new EventEmitter(), { columns: 60, rows: 10, writableNeedDrain: true, write: () => true });
+    const screen = new FullScreen(output);
+    const seen = [];
+    screen.enter();
+    screen.draw(['old message'], undefined, undefined, () => seen.push('old'));
+    screen.draw(['current message'], undefined, undefined, () => seen.push('current'));
+    assert.deepEqual(seen, []);
+    output.writableNeedDrain = false;
+    output.emit('drain');
+    assert.deepEqual(seen, ['current']);
+    output.writableNeedDrain = true;
+    screen.draw(['abandoned message'], undefined, undefined, () => seen.push('abandoned'));
+    screen.leave();
+    output.writableNeedDrain = false;
+    output.emit('drain');
+    assert.deepEqual(seen, ['current']);
+});
+
 const PIXEL_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEElEQVR4nGNgYGD4DwYMDAAcAgX7S3mMHQAAAABJRU5ErkJggg==', 'base64');
 const pixelUri = `data:image/png;base64,${PIXEL_PNG.toString('base64')}`;
 

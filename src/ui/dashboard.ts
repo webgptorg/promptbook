@@ -51,6 +51,8 @@ import type { WalletImportPreview } from '../wallet/wallet.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
+import { projectStatusMarker } from './terminal-title.js';
+import { ProjectClient } from './project-client.js';
 import { CANCELLED, POINTER_PICK_HINT, composeText, inputLine, matchesFilter, windowAround } from './prompts.js';
 import { runBookEditor, type BookDraft, type BookSourceClient } from './book-editor.js';
 import { TASK_SORT_FIELDS, taskFilterChoices, type TaskInventoryItem } from '../tasks/views.js';
@@ -138,9 +140,9 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
  *
  * @private terminal dashboard
  */
-export function dashboardTitle(snapshot: ServiceSnapshot, frame = 0): DashboardTitleContext {
+export function dashboardTitle(snapshot: ServiceSnapshot, frame = 0, reducedMotion = false, unknown = false, unicode = true): DashboardTitleContext {
     const current = snapshot.current;
-    return { kind: 'dashboard', label: snapshot.project.name, project: snapshot.project.name, visual: singleLineVisual(current?.agent.name, current?.agent.activity ?? 'working', frame) };
+    return { kind: 'dashboard', label: snapshot.project.name, project: snapshot.project.name, visual: singleLineVisual(current?.agent.name, current?.agent.activity ?? 'working', frame), status: projectStatusMarker(unknown ? 'unknown' : snapshot.service.state, Object.keys(snapshot.attention ?? {}).length > 0, frame, reducedMotion, unicode) };
 }
 
 /**
@@ -191,11 +193,6 @@ type SessionEntry = {
  * its transient blink then settles into a static warning (never merely because time passed).
  */
 const ATTENTION_SETTLE_KEYS = 3;
-
-/**
- * Cadence of the home animation (badge gesture and the blink of new attention).
- */
-const HOME_FRAME_MS = 500;
 
 /**
  * How often a held session lease is renewed while its native client runs.
@@ -260,6 +257,12 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     // Viewer-local attention: a changed key is a new item; it blinks until the operator is clearly active here.
     const attention = new Map<HomeTile, { key: string; since: number; seen: boolean }>();
     let keyCount = 0;
+    const projectClient = new ProjectClient(terminal, source.chats.effects, { project: snapshot.project.name, changed: () => draw(), selection: () => !nested && !overlay, activate: (effect) => {
+        if (nested || overlay) return notify(`Notification: ${effect.chat ? `{${effect.chat}}` : effect.domain}. Return from the current form to open it.`);
+        if (effect.chat) void openChat({ kind: 'existing', name: effect.chat });
+        else if (effect.domain === 'wallet' || effect.domain === 'health' || effect.domain === 'tasks') openTile(effect.domain);
+        else openTile(effect.domain === 'tools' ? 'tools' : effect.domain === 'sync' ? 'sync' : 'harnesses');
+    } });
     /** Cancels the pending long poll when the viewer leaves, so closing never waits for the service's next update. */
     const watching = new AbortController();
     let finished: ((reason: 'left' | 'ended') => void) | undefined;
@@ -543,7 +546,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         watching.abort();
         keyboard.stop();
         screen.leave();
-        clearInterval(animation);
+        animation();
+        projectClient.close();
         title.stop();
         clearTimeout(feedbackTimer);
         process.stdout.off('resize', onResize);
@@ -717,7 +721,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         nested = true;
         keyboard.stop();
         try {
-            await runChatClient(terminal, source.chats, target, { embedded: true, screen });
+            await runChatClient(terminal, source.chats, target, { embedded: true, screen, projectClient });
         } catch (error) {
             feedback = `Chat failed: ${errorMessage(error)}`;
         } finally {
@@ -986,7 +990,13 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         } else if (key === 't' && focused?.kind === 'record') void runWallet('wallet-test', { id: focused.id });
         else if (key === 'x' && focused?.kind === 'record' && focused.testing) void runWallet('wallet-test-cancel', { id: focused.id });
         else if (key === 'd' && focused?.kind === 'record') confirmThen(`Remove the saved login "${focused.account}" for ${focused.origin}?`, async () => void (await runWallet('wallet-remove', { id: focused.id })));
-        else if (key === 'x' && focused?.kind === 'request') confirmThen(`Dismiss the ${focused.problem === 'code' ? 'code' : 'login'} request for ${focused.origin}? The waiting work continues without it.`, async () => void (await runWallet('wallet-dismiss', { request: focused.id })));
+        // Mark as seen ends only this request's alert (it keeps waiting); Reject request denies and ends it. Both name the
+        // step the owner saw, so a request that moved on in the meantime is not changed.
+        else if (key === 'm' && focused?.kind === 'request') void runWallet('wallet-seen', { request: focused.id, step: focused.step });
+        else if (key === 'x' && focused?.kind === 'request')
+            confirmThen(`Reject the ${focused.problem === 'code' ? 'code' : 'login'} request for ${focused.origin}?`, async () => void (await runWallet('wallet-reject', { request: focused.id, step: focused.step })), [
+                style.muted('The waiting work is told that nothing was provided (it is not signed in) and this request is not asked again for it. To keep it waiting without its alert, press M (Mark as seen) instead.'),
+            ]);
         else if (key === 'i') {
             if (!wallet.management?.canImport) notify(unset ? 'Set up the Wallet first (S).' : 'Restore the Wallet on this computer first (R).');
             else
@@ -1572,11 +1582,14 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 return;
             case 'o':
                 plain = !plain;
+                projectClient.suspend(plain);
                 if (plain) {
+                    title.stop();
                     screen.leave();
                     process.stdout.write(plainDifference(undefined, snapshot).map(plainLine).join(''));
                     process.stdout.write(plainLine('Plain presentation; press O for the dashboard.'));
                 } else {
+                    title.start();
                     screen.enter();
                     screen.invalidate();
                     draw();
@@ -1626,19 +1639,20 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     if (initialView && homeTiles(snapshot).includes(initialView)) openTile(initialView);
     process.stdout.on('resize', onResize);
     // The ptbk title animates the current worker's visual and is reasserted while this viewer is open.
-    const title = new TitleAnimation(terminal.title, (titleFrame) => dashboardTitle(snapshot, titleFrame), terminal.reducedMotion);
+    const title = new TitleAnimation(terminal.title, (titleFrame) => dashboardTitle(snapshot, titleFrame, terminal.reducedMotion, Boolean(connectionLost), terminal.unicode), terminal.reducedMotion, projectClient.scheduler);
     title.start();
+    projectClient.start();
     updateAttention();
     // Attention present on entry is new to this viewer, but settles as soon as the operator works here.
-    const animation = setInterval(() => {
+    const animation = projectClient.scheduler.subscribe((time) => {
         const unseen = [...attention.values()].some((item) => !item.seen);
         const working = snapshot.current?.agent.activity === 'working' || snapshot.agents.some((agent) => agent.activity === 'working');
         if (plain || nested) return;
         if ((unseen && !pages.length && !overlay) || (working && !terminal.reducedMotion)) {
-            frame++;
+            frame = terminal.reducedMotion ? 0 : Math.floor(time / 700);
             draw();
         }
-    }, HOME_FRAME_MS);
+    });
     draw();
     void refreshInventory();
 
@@ -1657,7 +1671,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 if (pages.some((page) => page.kind === 'sync') && !snapshot.sync) pages.length = 0;
                 updateAttention();
                 // A changed worker switches the title's visual at once.
-                title.refresh();
+                if (!plain) title.refresh();
                 draw();
                 if (pages.some((page) => page.kind === 'tasks' || page.kind === 'agents')) void refreshInventory();
                 // A new commit rereads an open History page (its selection stays on the same commit).
@@ -1674,6 +1688,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             } catch (error) {
                 if (watching.signal.aborted) return;
                 connectionLost = errorMessage(error);
+                if (!plain) title.refresh(true);
                 draw();
                 if (!source.owning) {
                     await new Promise((resolve) => setTimeout(resolve, ENDED_VISIBLE_MS));

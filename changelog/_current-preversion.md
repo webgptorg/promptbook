@@ -1,5 +1,16 @@
 # Unreleased
 
+## Experimental project sounds and desktop notifications
+
+- Add one shared **Sounds & notifications (experimental)** control, **Ctrl+N**, in project terminal dashboards, standalone chat, editors and protected Wallet prompts. It starts Off, follows the last-used live client and resets when the final client leaves or the engine restarts. Other projects, init, global dashboards and raw output stay independent.
+- Coordinate event consumption in the owning engine, with leased shared runtime coordination for standalone chats when no engine is running. New human-needed calls across the project can alert once after ten seconds without input; suppressed events, old backlog, reconnects and handoffs are never replayed. Navigation, saved sends and reply starts use bounded subtle cues.
+- Support quiet generated local audio, native macOS/Windows notifications and available Linux helpers. Probe Kitty's notification protocol through the actual terminal, including SSH, before using it; correlate notification clicks to still-live sources. Native helper submission does not claim verified OS delivery or exact-tab activation, and remote server audio is never presented as local sound.
+
+## Project lifecycle and attention in terminal titles
+
+- Prefix project dashboard and standalone chat titles with running, pausing, paused, stopping, stopped, attention or unknown markers. Seen chat/Wallet requests cease contributing without releasing their waits; actionable Health incidents retain their warning.
+- Share one monotonic render/animation clock between the dashboard and title, including nested views. Respect reduced motion, title opt-out and output backpressure; the global title keeps its existing form.
+
 ## Explicit User pings and shared seen state
 
 - An accepted agent message with the active `+@User` / `+{User}` prefix invites the human to the chat once and pings it as a new attention occurrence; plain mentions, code, quotes, escapes, examples and streamed progress stay passive. Structured task questions are posted as an explicit ping, and an agent reply that pings waits for the user. The human is never invited as an agent.

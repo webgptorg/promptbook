@@ -1,6 +1,7 @@
-import { emitKeypressEvents, type Key } from 'node:readline';
 import { PtbkError } from '../common/errors.js';
 import { truncate } from './ansi.js';
+import { handleProjectInput, KeyParser } from './keys.js';
+import { InlineRenderer, projectFooterRows } from './screen.js';
 import type { TerminalProfile } from './terminal.js';
 
 /**
@@ -15,14 +16,19 @@ export async function readOwnerCredential(terminal: TerminalProfile, label: stri
     return await new Promise<string>((resolve, reject) => {
         let value = '';
         let isRevealed = options.isVisible ?? false;
+        const parser = new KeyParser();
+        const screen = projectFooterRows() ? new InlineRenderer() : undefined;
         /** Replaces one bounded line so revealed input cannot wrap into terminal scrollback. */
         const render = (): void => {
             const prompt = `${label} (${isRevealed ? 'visible; Ctrl+R hide' : 'hidden; Ctrl+R show'}): `;
-            terminal.write(`\r\u001b[2K${truncate(prompt + (isRevealed ? value : '*'.repeat(Array.from(value).length)), terminal.columns() - 1)}`);
+            const text = truncate(prompt + (isRevealed ? value : '*'.repeat(Array.from(value).length)), terminal.columns() - 1);
+            if (screen) screen.render([text], { row: 0, column: text.length });
+            else terminal.write(`\r\u001b[2K${text}`);
         };
         /** Removes secret text and restores the terminal before resolving or rejecting. */
         const done = (error?: Error): void => {
-            stdin.off('keypress', onKey);
+            stdin.off('data', onData);
+            screen?.clear();
             stdin.setRawMode(false);
             stdin.pause();
             terminal.write(`\r\u001b[2K${truncate(`${label} (hidden)`, terminal.columns() - 1)}\n`);
@@ -30,18 +36,22 @@ export async function readOwnerCredential(terminal: TerminalProfile, label: stri
             else resolve(value);
         };
         /** Handles editing and visibility without treating the shortcut as submission. */
-        const onKey = (character: string | undefined, key: Key): void => {
-            if (key.ctrl && key.name === 'c') return done(new PtbkError('Cancelled; nothing was changed.', { kind: 'cancelled' }));
-            if (key.name === 'return' || key.name === 'enter') return done();
-            if (key.ctrl && key.name === 'r') isRevealed = !isRevealed;
-            else if (key.name === 'backspace') value = Array.from(value).slice(0, -1).join('');
-            else if (!key.ctrl && !key.meta && character && !/[\u0000-\u001f\u007f-\u009f]/.test(character)) value += character;
-            render();
+        const onData = (chunk: Buffer | string): void => {
+            for (const event of parser.parse(chunk.toString())) {
+                if (handleProjectInput(event)) continue;
+                if (event.type === 'key') {
+                    if (event.ctrl && event.name === 'c') return done(new PtbkError('Cancelled; nothing was changed.', { kind: 'cancelled' }));
+                    if (event.name === 'enter' || event.name === 'newline') return done();
+                    if (event.ctrl && event.name === 'r') isRevealed = !isRevealed;
+                    else if (event.name === 'backspace') value = Array.from(value).slice(0, -1).join('');
+                    else if (event.name === 'space') value += ' ';
+                } else if (event.type === 'text' || event.type === 'paste') value += event.text.replace(/[\u0000-\u001f\u007f-\u009f]/g, '');
+                render();
+            }
         };
-        emitKeypressEvents(stdin);
         stdin.setEncoding('utf8');
         stdin.setRawMode(true);
-        stdin.on('keypress', onKey);
+        stdin.on('data', onData);
         stdin.resume();
         render();
     });
@@ -55,9 +65,13 @@ export async function readOwnerCredential(terminal: TerminalProfile, label: stri
  */
 export async function readConcealed(terminal: TerminalProfile, label: string): Promise<string> {
     const stdin = process.stdin;
-    terminal.write(`${label} (input is hidden): `);
+    const screen = projectFooterRows() ? new InlineRenderer() : undefined;
+    const prompt = `${label} (input is hidden): `;
+    if (screen) screen.render([prompt], { row: 0, column: prompt.length });
+    else terminal.write(prompt);
     return await new Promise<string>((resolve, reject) => {
         let value = '';
+        const parser = new KeyParser();
         stdin.setRawMode(true);
         stdin.resume();
         stdin.setEncoding('utf8');
@@ -65,16 +79,20 @@ export async function readConcealed(terminal: TerminalProfile, label: string): P
             stdin.setRawMode(false);
             stdin.pause();
             stdin.off('data', onData);
+            screen?.clear();
             terminal.write('\n');
             if (result instanceof Error) reject(result);
             else resolve(result);
         };
-        const onData = (chunk: string): void => {
-            for (const character of chunk) {
-                if (character === '\r' || character === '\n') return done(value);
-                if (character === '\u0003') return done(new PtbkError('Cancelled; nothing was changed.', { kind: 'cancelled' }));
-                if (character === '\u007f' || character === '\b') value = value.slice(0, -1);
-                else if (character >= ' ') value += character;
+        const onData = (chunk: Buffer | string): void => {
+            for (const event of parser.parse(chunk.toString())) {
+                if (handleProjectInput(event)) continue;
+                if (event.type === 'key') {
+                    if (event.name === 'enter' || event.name === 'newline') return done(value);
+                    if (event.ctrl && event.name === 'c') return done(new PtbkError('Cancelled; nothing was changed.', { kind: 'cancelled' }));
+                    if (event.name === 'backspace') value = Array.from(value).slice(0, -1).join('');
+                    else if (event.name === 'space') value += ' ';
+                } else if (event.type === 'text' || event.type === 'paste') value += event.text.replace(/[\u0000-\u001f\u007f-\u009f]/g, '');
             }
         };
         stdin.on('data', onData);

@@ -1,6 +1,8 @@
 import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { PtbkError } from '../common/errors.js';
-import { hashFileIfExists, toProjectRelative } from '../common/fs.js';
+import { hashFileIfExists, readJsonIfExists, toProjectRelative, writeJsonAtomic } from '../common/fs.js';
+import { ProjectEffects, chatEffects, type EffectsState } from '../engine/effects.js';
 import { shortId } from '../common/ids.js';
 import { formatAgentReference, toReference } from '../book/references.js';
 import { AgentCatalog, learningPolicyOf } from '../project/agents.js';
@@ -197,6 +199,15 @@ export class LocalChats {
                 });
         };
         return {
+            effects: async (request) => await this.locked(async () => {
+                const path = join(this.project.runtime.state, 'client-effects.json');
+                const saved = await readJsonIfExists<EffectsState>(path);
+                const coordinator = new ProjectEffects(saved);
+                const events = chatEffects(await this.store.summaries());
+                const result = coordinator.exchange(request, events);
+                await writeJsonAtomic(path, coordinator.state);
+                return { ...result, active: events.map((event) => event.key), status: { project: this.project.name, state: 'stopped', attention: events.some((event) => event.kind === 'attention') } };
+            }),
             list: async () => await this.store.summaries(),
             agents: async () => {
                 await this.reload();
@@ -228,6 +239,9 @@ export class LocalChats {
                 return { name: result.written.chat.name, commit: await this.flush(), persistence: 'committed' as const };
             },
             read: async (name) => await this.store.markRead(name),
+            seen: async (name, messages) => {
+                await this.locked(async () => await this.store.markSeen(name, messages));
+            },
             replies: options.replies,
         };
     }

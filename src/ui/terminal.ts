@@ -3,6 +3,7 @@ import { allowsPointer } from './keys.js';
 import { detectImageProtocol, type ImageProtocol } from './terminal-images.js';
 import { isTerminalTitleDisabled, TerminalTitle, titleRestoration } from './terminal-title.js';
 import { promptPresentation, type PromptPresentation } from './prompt-transport.js';
+import { projectFooterRows } from './screen.js';
 
 /**
  * Presentation and input policy of one invocation.
@@ -94,7 +95,7 @@ export function createTerminalProfile(options: TerminalOptions = {}): TerminalPr
         style: createStyle(colors || forced),
         unicode,
         columns: () => Math.max(20, stdout.columns || 80),
-        rows: () => Math.max(10, stdout.rows || 24),
+        rows: () => Math.max(10, stdout.rows || 24) - projectFooterRows(),
         write,
         writeError: (text: string) => {
             process.stderr.write(text);
@@ -102,7 +103,7 @@ export function createTerminalProfile(options: TerminalOptions = {}): TerminalPr
         reducedMotion: Boolean(env.PTBK_REDUCED_MOTION || env.NO_MOTION),
         ...(pretty && interactive && detectImageProtocol(env) ? { images: detectImageProtocol(env) } : {}),
         ...(pretty && interactive && allowsPointer(env) ? { pointer: true } : {}),
-        title: new TerminalTitle({ enabled: pretty && interactive && !isTerminalTitleDisabled(env, options.terminalTitle), unicode, restoration: titleRestoration(env), write }),
+        title: new TerminalTitle({ enabled: pretty && interactive && !isTerminalTitleDisabled(env, options.terminalTitle), unicode, restoration: titleRestoration(env), write, blocked: () => stdout.writableNeedDrain === true }),
     };
 }
 

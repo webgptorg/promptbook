@@ -219,7 +219,8 @@ test('the Wallet tile and page show readiness, requests and labels with the comm
     assert.match(text, /https:\/\/example\.com · ja…@example\.com/);
     assert.match(text, /never shown here/);
     assert.match(page.legend, /N add login/);
-    assert.match(page.legend, /Enter add this login · X dismiss/, 'the focused request offers its protected input');
+    assert.match(page.legend, /Enter add this login/, 'the focused request offers its protected input');
+    assert.match(page.legend, /M mark as seen · X reject request/, 'seen and denial remain distinct');
     const empty = pageBody(pageForTile('wallet'), { ...context, snapshot: snapshot({ wallet: { state: 'empty', summary: 'Not set up (no saved logins)', records: [], pending: [] } }) });
     assert.match(empty.legend, /S set up \(shows 12 words for recovery once\)/);
     assert.doesNotMatch(`${text}\n${empty.body.join('\n')}`, /seed|mnemonic|BIP|passphrase/i, 'no technical jargon in the Wallet UI');
@@ -235,7 +236,8 @@ test('the Wallet tile and page show readiness, requests and labels with the comm
     // A one-time code request asks for the code itself, not for a login.
     const code = pageBody(pageForTile('wallet'), { ...context, snapshot: snapshot({ wallet: { ...wallet, pending: [{ ...wallet.pending[0], problem: 'code', reason: 'https://news.example asks for a one-time code that only the owner can provide.' }] } }) });
     assert.match(code.body.map(stripAnsi).join('\n'), /https:\/\/news\.example · a one-time code is needed/);
-    assert.match(code.legend, /Enter type the code · X dismiss/);
+    assert.match(code.legend, /Enter type the code/);
+    assert.match(code.legend, /M mark as seen · X reject request/);
 });
 
 test('Usage tile and page: a seven-day summary with grouping-specific labels, visible billing mode and certainty, no price internals', () => {

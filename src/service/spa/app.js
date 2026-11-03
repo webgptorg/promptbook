@@ -226,11 +226,11 @@
 
     /**
      * Reports a displayed calling message as seen (once), only while this page is visible and the operator used it within
-     * the last minute: a chat left open unattended sees nothing. Seeing never answers or resolves the question.
+     * the last ten seconds: a chat left open unattended sees nothing. Seeing never answers or resolves the question.
      */
     function markSeen(name, message, element) {
         const key = `${name}#${message}`;
-        if (!message || !element?.isConnected || state.chat?.name !== name || state.seenSent.has(key) || document.visibilityState !== 'visible' || !document.hasFocus() || Date.now() - (state.lastInput || 0) > 60000) return;
+        if (!message || !element?.isConnected || state.chat?.name !== name || state.seenSent.has(key) || document.visibilityState !== 'visible' || !document.hasFocus() || Date.now() - (state.lastInput || 0) > 10000) return;
         state.seenSent.add(key);
         api(`/api/chats/${encodeURIComponent(name)}/seen`, { method: 'POST', body: { messages: [message] } }).then(
             () => {

@@ -1,4 +1,5 @@
 import { stripAnsi, terminalSafe } from './ansi.js';
+import { RenderScheduler } from './render-scheduler.js';
 
 /**
  * What the terminal title says about this session.
@@ -27,6 +28,8 @@ export type DashboardTitleContext = {
     readonly visual: string;
     /** Project kept by nested views that change only their mode (absent for the global dashboard). */
     readonly project?: string;
+    /** Shared lifecycle/attention prefix (omitted only by the global dashboard). */
+    readonly status?: string;
 };
 
 /**
@@ -125,7 +128,21 @@ export function formatTerminalTitle(context: TerminalTitleContext, unicode = tru
 export function formatDashboardTitle(context: Omit<DashboardTitleContext, 'kind'>, unicode = true): string {
     const ellipsis = unicode ? '…' : '...';
     const visual = sanitizeTitleText(context.visual, 16, ellipsis);
-    return sanitizeTitleText([DASHBOARD_PREFIX, visual, sanitizeTitleText(context.label, PROJECT_MAX_LENGTH, ellipsis)].filter(Boolean).join(' '), TITLE_MAX_LENGTH, ellipsis);
+    return sanitizeTitleText([context.status ?? '', DASHBOARD_PREFIX, visual, sanitizeTitleText(context.label, PROJECT_MAX_LENGTH, ellipsis)].filter(Boolean).join(' '), TITLE_MAX_LENGTH, ellipsis);
+}
+
+/** Lifecycle and shared attention, independent of the experimental effects switch. @private terminal title */
+export function projectStatusMarker(state: string, attention: boolean, frame = 0, reducedMotion = false, unicode = true): string {
+    const phase = frame % 2 === 0;
+    if (state === 'unknown') return '? Unknown';
+    if (!unicode) return attention ? '[Attention]' : `[${state === 'pause' ? 'Paused' : state === 'running' ? 'Running' : state === 'pausing' ? 'Pausing' : state === 'stopping' ? 'Stopping' : state === 'stopped' || state === 'finished' ? 'Stopped' : 'Unknown'}]`;
+    if (attention) return reducedMotion ? '🟡 Attention' : phase ? '🟡' : '🔔';
+    if (state === 'running') return '🟢';
+    if (state === 'pause') return '⚪';
+    if (state === 'pausing') return reducedMotion ? '⚪ Pausing' : phase ? '🟢' : '⚪';
+    if (state === 'stopping') return reducedMotion ? '🔴 Stopping' : phase ? '🟢' : '🔴';
+    if (state === 'stopped' || state === 'finished') return '🔴';
+    return '? Unknown';
 }
 
 /**
@@ -185,6 +202,8 @@ export type TerminalTitleOptions = {
     readonly restoration?: 'stack' | 'clear';
     /** Writes control sequences to the terminal (stdout). */
     readonly write: (text: string) => void;
+    /** A hidden/slow terminal retains just its latest context until the common scheduler can write again. */
+    readonly blocked?: () => boolean;
 };
 
 /**
@@ -270,7 +289,7 @@ export class TerminalTitle {
 
     /** Writes the title when it differs from what is shown. */
     private show(): void {
-        if (!this.options.enabled || !this.context) return;
+        if (!this.options.enabled || !this.context || this.options.blocked?.()) return;
         const title = 'kind' in this.context ? formatDashboardTitle(this.context, this.options.unicode) : formatTerminalTitle(this.context, this.options.unicode);
         if (title === this.shown) return;
         let output = '';
@@ -305,24 +324,24 @@ const TITLE_REASSERT_MS = 3_000;
  */
 export class TitleAnimation {
     private frame = 0;
-    private timer?: NodeJS.Timeout;
+    private unsubscribe?: () => void;
     private lastWrite = 0;
 
     public constructor(
         private readonly title: TerminalTitle,
         private readonly render: (frame: number) => TerminalTitleContext | DashboardTitleContext,
         private readonly reducedMotion: boolean,
+        private readonly scheduler: RenderScheduler = new RenderScheduler(),
     ) {}
 
     /** Shows the title now and keeps it animated/reasserted until stopped. */
     public start(): void {
-        if (!this.title.enabled || this.timer) return;
+        if (!this.title.enabled || this.unsubscribe) return;
         this.refresh(true);
-        this.timer = setInterval(() => {
-            if (!this.reducedMotion) this.frame++;
+        this.unsubscribe = this.scheduler.subscribe((time) => {
+            this.frame = Math.floor(time / TITLE_FRAME_MS);
             this.refresh(Date.now() - this.lastWrite >= TITLE_REASSERT_MS);
-        }, this.reducedMotion ? TITLE_REASSERT_MS : TITLE_FRAME_MS);
-        this.timer.unref();
+        });
     }
 
     /** Re-renders the current frame (after the observed worker changed); `force` rewrites an unchanged title. */
@@ -336,7 +355,7 @@ export class TitleAnimation {
 
     /** Stops animating (the title itself is restored by the terminal profile on exit). */
     public stop(): void {
-        clearInterval(this.timer);
-        this.timer = undefined;
+        this.unsubscribe?.();
+        this.unsubscribe = undefined;
     }
 }

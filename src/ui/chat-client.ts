@@ -11,6 +11,9 @@ import { RichInput, type PointerField } from './rich-input.js';
 import { KeyboardSession, type KeyEvent, type PointerInput } from './keys.js';
 import { renderPanel } from './panels.js';
 import { FullScreen } from './screen.js';
+import type { EffectsReply, EffectsRequest } from '../engine/effects.js';
+import { ProjectClient } from './project-client.js';
+import { terminalHasFocus } from './keys.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 
 /**
@@ -34,6 +37,8 @@ export type ChatSent = {
  * @private chat client
  */
 export type ChatSource = {
+    /** Shared temporary project effects, absent on older engines. */
+    readonly effects?: (request: EffectsRequest) => Promise<EffectsReply>;
     /** Every chat (waiting for the user first). */
     readonly list: () => Promise<ChatSummary[]>;
     /** Agents the user may start a chat with. */
@@ -46,6 +51,11 @@ export type ChatSource = {
     readonly send: (name: string, text: string, expected?: number, segments?: readonly ComposedSegment[]) => Promise<ChatSent>;
     /** Marks a chat as read by this viewer (never an answer). */
     readonly read: (name: string) => Promise<void>;
+    /**
+     * Marks the explicit User pings among these displayed messages (1-based positions) seen for every client; it never
+     * answers or resolves the question. Absent where the engine predates shared seen state.
+     */
+    readonly seen?: (name: string, messages: readonly number[]) => Promise<void>;
     /** Whether agent replies are produced (a running service or this client); otherwise they wait for the service. */
     readonly replies: boolean;
 };
@@ -57,6 +67,7 @@ export type ChatSource = {
  */
 export function controlChatSource(request: (method: string, params?: Readonly<Record<string, unknown>>) => Promise<unknown>, via: string): ChatSource {
     return {
+        effects: async (input) => await request('project-effects', { ...input }) as EffectsReply,
         list: async () => (await request('chat-list')) as ChatSummary[],
         agents: async () => (await request('chat-agents')) as ChatAgentChoice[],
         get: async (name) => (await request('chat-get', { name })) as ChatDetail,
@@ -64,6 +75,9 @@ export function controlChatSource(request: (method: string, params?: Readonly<Re
         send: async (name, text, expected, segments) => (await request('chat-send', { name, text, expected, via, ...(segments ? { segments } : {}) })) as ChatSent,
         read: async (name) => {
             await request('chat-read', { name });
+        },
+        seen: async (name, messages) => {
+            await request('chat-seen', { name, messages });
         },
         replies: true,
     };
@@ -85,6 +99,12 @@ const WHEEL_LINES = 3;
 const CHOICE_ROWS = 6;
 
 /**
+ * How long after the operator's last meaningful input in this chat (or its opening) the chat counts as actively viewed:
+ * only then does displaying a calling message mark its ping seen. A chat left open unattended sees nothing.
+ */
+const ACTIVE_VIEWING_MS = 10_000;
+
+/**
  * What the chat client opens.
  *
  * @private chat client
@@ -99,7 +119,7 @@ export type ChatTarget = { readonly kind: 'existing'; readonly name: string } | 
  *
  * @private chat client
  */
-export async function runChatClient(terminal: TerminalProfile, source: ChatSource, target: ChatTarget, options: { readonly embedded?: boolean; readonly screen?: FullScreen } = {}): Promise<string | undefined> {
+export async function runChatClient(terminal: TerminalProfile, source: ChatSource, target: ChatTarget, options: { readonly embedded?: boolean; readonly screen?: FullScreen; readonly projectClient?: ProjectClient } = {}): Promise<string | undefined> {
     const screen = options.screen ?? new FullScreen();
     const ownsScreen = !options.screen;
     const marks = symbols(terminal.unicode);
@@ -129,6 +149,14 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     let choiceQuestion: string | undefined;
     /** Where the offered answers were last drawn: the frame row of the first drawn one and its index. */
     let choiceRows = { row: 0, first: 0, count: 0 };
+    /** The operator's last meaningful input here (opening the chat counts): active viewing, never a background repaint. */
+    let lastInput = Date.now();
+    /** Calling messages already reported as displayed (each is sent once). */
+    const reportedSeen = new Set<string>();
+    const projectClient = options.projectClient ?? new ProjectClient(terminal, source.effects, { title: true, changed: () => draw(), activate: (effect) => {
+        notice = effect.chat === name ? `Notification for this chat, message ${effect.message ?? ''}. Your draft is kept.` : effect.chat ? `Attention in {${effect.chat}}. Open that chat after saving your draft.` : `Attention in ${effect.domain}. Open this project's dashboard to respond.`;
+        draw();
+    } });
 
     const awaited = (): { sender: string; text: string; choices?: readonly string[] } | undefined => (detail?.summary.status === 'waiting-for-user' ? detail.summary.awaiting : undefined);
 
@@ -136,7 +164,6 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         if (closed) return;
         // The chat's saved name once it exists (written only when it changes, not per redraw); inside the dashboard its
         // ptbk title stays.
-        if (!options.embedded) terminal.title.update({ mode: 'Chat', detail: detail?.summary.name ?? (target.kind === 'new' ? `New with ${target.agent.name}` : name) });
         const width = Math.min(terminal.columns(), 140);
         const height = terminal.rows();
         const header = detail
@@ -194,7 +221,12 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         const noticeLines = notice ? wrap(`${marks.arrow} ${notice}`, width - 4).map((line) => `  ${line}`) : [];
         const available = Math.max(3, height - top.length - composer.length - noticeLines.length - 1);
         const body: string[] = [];
+        /** The 1-based message each body line belongs to (for what the viewport actually displays). */
+        const lineMessages: Array<number | undefined> = [];
+        const positions = new Map((detail?.messages ?? []).map((message, index) => [message as object, index + 1]));
+        const unseen = new Set((detail?.summary.pings ?? []).map((ping) => ping.message));
         for (const item of collapseThinking(detail?.messages ?? [])) {
+            while (lineMessages.length < body.length) lineMessages.push(undefined);
             // A final reply's interim progress is one Thinking line (Ctrl+R expands it); the Book keeps it all.
             if (item.kind === 'thinking') {
                 body.push(style.muted(`${item.sender} · Thinking${item.elapsedMs !== undefined ? ` · ${formatDuration(item.elapsedMs)}` : ''}${showThinking ? '' : '  (Ctrl+R shows it)'}`));
@@ -202,12 +234,17 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
                 continue;
             }
             const message = item.message;
+            const position = positions.get(message);
             const user = message.sender.replace(/^@/, '').toLowerCase() === 'user';
-            body.push(`${user ? style.accent(style.bold('You')) : style.bold(message.sender)} ${style.muted(`${message.at}${message.phase === 'progress' ? ' · working…' : ''}`)}`);
+            // An unseen explicit User ping is marked until an active viewer has actually displayed it.
+            const pinged = position !== undefined && unseen.has(position) ? ` ${style.warning(`${marks.warn} asks you (new)`)}` : '';
+            body.push(`${user ? style.accent(style.bold('You')) : style.bold(message.sender)} ${style.muted(`${message.at}${message.phase === 'progress' ? ' · working…' : ''}`)}${pinged}`);
             for (const line of wrap(message.text, width - 4)) body.push(`  ${message.phase === 'progress' ? style.muted(line) : line}`);
             if (message.choices?.length) body.push(`  ${style.muted(`offered: ${message.choices.join(' | ')}`)}`);
+            while (lineMessages.length < body.length) lineMessages.push(position);
             body.push('');
         }
+        while (lineMessages.length < body.length) lineMessages.push(undefined);
         // The reply being written now: available progress and streamed text, the same in every client.
         const live = detail?.live;
         if (live) {
@@ -226,6 +263,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         scroll = Math.max(0, Math.min(scroll, Math.max(0, body.length - available)));
         const end = body.length - scroll;
         const visible = body.slice(Math.max(0, end - available), end);
+        // The scroll indicator replaces the last visible line, so that line is not displayed.
+        const displayed = new Set(lineMessages.slice(Math.max(0, end - available), scroll > 0 ? end - 1 : end).filter((position): position is number => position !== undefined));
         while (visible.length < available) visible.unshift('');
         if (scroll > 0) visible[visible.length - 1] = style.muted(`  ↓ ${scroll} more line(s) below (PgDn)`);
         // The composer's text stands below its title border and the offered answers, inside its side border.
@@ -237,7 +276,26 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         choiceRows = { row: top.length + visible.length + 2 + (shownChoices.start > 0 ? 1 : 0), first: shownChoices.start, count: shownChoices.end - shownChoices.start };
         // A focused answer is the focus: the composer's cursor returns with it.
         const cursor = choiceFocus !== undefined ? undefined : pathLayout ? { row: textRow, column: attachColumn + pathLayout.cursor.column } : { row: textRow + (editor.empty ? 0 : layout.cursor.row), column: 2 + (editor.empty ? 0 : layout.cursor.column) };
-        screen.draw([...top, ...visible.map((line) => truncate(line, width)), ...composer, ...noticeLines, legend], cursor);
+        screen.draw([...top, ...visible.map((line) => truncate(line, width)), ...composer, ...noticeLines, legend], cursor, undefined, () => markDisplayed(displayed));
+    };
+
+    /**
+     * Reports the unseen calling messages the viewport displays now as seen, only while the operator actively uses this
+     * chat (shared with every client; the question keeps waiting).
+     */
+    const markDisplayed = (displayed: ReadonlySet<number>): void => {
+        if (closed || !terminalHasFocus() || !name || !detail || !source.seen || Date.now() - lastInput > ACTIVE_VIEWING_MS) return;
+        const chat = name;
+        const fresh = (detail.summary.pings ?? []).filter((ping) => displayed.has(ping.message) && !reportedSeen.has(ping.id));
+        if (!fresh.length) return;
+        for (const ping of fresh) reportedSeen.add(ping.id);
+        void source.seen(chat, fresh.map((ping) => ping.message)).then(
+            () => refresh(),
+            () => {
+                // Not recorded: a later display tries again.
+                for (const ping of fresh) reportedSeen.delete(ping.id);
+            },
+        );
     };
 
     const refresh = async (): Promise<void> => {
@@ -269,6 +327,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
                 notice = savedNotice(sent);
             }
             input.clear();
+            projectClient.cue('send');
             scroll = 0;
         } catch (error) {
             // The draft stays in the composer; nothing is lost on a rejected or failed write.
@@ -284,6 +343,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         closed = true;
         keyboard.stop();
         clearInterval(timer);
+        if (!options.projectClient) projectClient.close();
         process.stdout.off('resize', onResize);
         if (ownsScreen) screen.leave();
         finish?.();
@@ -313,6 +373,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     };
 
     const onKey = (event: KeyEvent): void => {
+        lastInput = Date.now();
         if (event.type === 'pointer') return onPointer(event);
         if (event.type === 'key' && event.name === 'c' && event.ctrl) return close();
         if (event.type === 'key' && event.name === 'r' && event.ctrl) {
@@ -364,6 +425,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     else screen.invalidate();
     if (terminal.pointer) keyboard.trackPointer(true);
     keyboard.start();
+    if (!options.projectClient) projectClient.start();
     process.stdout.on('resize', onResize);
     const timer = setInterval(() => void refresh(), REFRESH_MS);
     await refresh();

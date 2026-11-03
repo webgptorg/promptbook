@@ -7,6 +7,9 @@ import { CANCELLED, composeRich, inputLine, selectMany, selectOne, toggleList } 
 import { createTerminalProfile } from '../dist/ui/terminal.js';
 import { modifyToolForm } from '../dist/ui/tool-forms.js';
 import { walletLoginForm } from '../dist/ui/wallet-forms.js';
+import { ProjectEffects } from '../dist/engine/effects.js';
+import { ProjectClient } from '../dist/ui/project-client.js';
+import { readOwnerCredential } from '../dist/ui/secret.js';
 
 // The real prompts on a fake terminal: this process's stdin acts as a TTY and rendered frames are captured.
 const terminal = { ...createTerminalProfile(), pointer: true };
@@ -235,6 +238,33 @@ const fakeScreen = () => {
     const screen = { lines: [], cursor: undefined, enter() {}, leave() {}, invalidate() {}, draw: (lines, cursor) => Object.assign(screen, { lines, cursor }) };
     return screen;
 };
+
+test('the shared experimental control updates inside a protected prompt without losing or exposing its entered text', LIMIT, async () => {
+    const coordinator = new ProjectEffects();
+    const operations = [];
+    const client = new ProjectClient({ ...terminal, pretty: true, interactive: true }, async (request) => {
+        operations.push(request.operation);
+        return coordinator.exchange(request, []);
+    }, { changed: () => undefined, native: { status: 'fixture: no native effects', initialize: async () => undefined, sound: () => assert.fail('no effects during this protected-input check'), notify: () => assert.fail('no notification during this check'), close: () => undefined } });
+    client.start();
+    try {
+        const prompt = readOwnerCredential(terminal, 'Protected input');
+        await settle();
+        await send('private value');
+        await send('\x0e');
+        assert.match(written, /Sounds & notifications \(experimental\): On/, 'the form footer updates without another keystroke');
+        assert.doesNotMatch(written, /private value/, 'the protected input remains masked');
+        await send('\r');
+        assert.equal(await prompt, 'private value', 'the toggle never consumes or submits draft content');
+        assert.ok(operations.includes('toggle'));
+        client.suspend(true);
+        await settle();
+        assert.equal(coordinator.state.clients.length, 0, 'raw presentation ends participation');
+        client.suspend(false);
+        await settle();
+        assert.equal(coordinator.state.enabled, false, 'restoring the final client starts Off');
+    } finally { client.close(); await settle(); }
+});
 
 /** A press at a text of a captured frame. */
 const pressOn = async (screen, text) => {

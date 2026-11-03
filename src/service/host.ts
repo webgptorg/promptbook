@@ -8,6 +8,7 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { ConnectionView } from '../engine/snapshot.js';
+import { ProjectEffects, effectsRequest, snapshotEffects } from '../engine/effects.js';
 import { parseUsageRequest } from '../engine/usage.js';
 import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
@@ -58,6 +59,8 @@ export class ServiceHost {
     public readonly instanceId = shortId(12);
     public readonly agenda: Agenda;
     private readonly token = secretToken(24);
+    /** Temporary project-client ownership; an engine restart always starts effects Off. */
+    private readonly effects = new ProjectEffects();
     private controlServer?: IpcServer;
     private http?: RunningHttpServer;
     private releaseLock?: () => Promise<void>;
@@ -128,6 +131,9 @@ export class ServiceHost {
             },
         });
         this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange(), this.instanceId);
+        this.agenda.onChange(() => {
+            if (this.effects.state.clients.length) this.effects.observe(snapshotEffects(this.agenda.snapshot()));
+        });
     }
 
     /** Engine-owned per-browser diagnosis and recovery shared by every client. */
@@ -303,6 +309,11 @@ export class ServiceHost {
         // The authenticated local channel is the owner's terminal: it may show the 12 words for recovery during setup.
         if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true, trustedFiles: true });
         switch (method) {
+            case 'project-effects': {
+                const snapshot = agenda.snapshot();
+                const events = snapshotEffects(snapshot);
+                return { ...this.effects.exchange(effectsRequest(params), events), active: events.map((event) => event.key), status: { project: snapshot.project.name, state: snapshot.service.state, attention: Object.keys(snapshot.attention ?? {}).length > 0, agent: snapshot.current?.agent } };
+            }
             case 'identify':
                 return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION, contract: CONTROL_CONTRACT, state: agenda.serviceState };
             case 'snapshot':
@@ -348,6 +359,7 @@ export class ServiceHost {
             case 'chat-agents':
             case 'chat-get':
             case 'chat-read':
+            case 'chat-seen':
             case 'chat-create':
             case 'chat-send':
                 // The authenticated local control channel of the engine host may attach local files.

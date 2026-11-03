@@ -57,7 +57,35 @@ export type KeyName =
     | 's'
     | 't'
     | 'v'
+    | 'n'
     | 'x';
+
+/** Project-session input middleware, shared by nested composers and protected forms. */
+const INPUT_HANDLERS = new Set<(event: KeyEvent) => boolean>();
+
+/** Terminal protocol replies are never user activity or composer input. */
+const REPORT_HANDLERS = new Set<(report: string) => void>();
+
+/** Focus reports supplement recent real input; focus alone never makes a view active. */
+let terminalFocused = true;
+
+/** Whether the terminal has explicitly reported itself in the background. @private terminal input */
+export function terminalHasFocus(): boolean { return terminalFocused; }
+
+/** Installs one invocation-scoped input handler; true consumes a reserved control. @private terminal input */
+export function interceptInput(handler: (event: KeyEvent) => boolean): () => void {
+    INPUT_HANDLERS.add(handler);
+    return () => { INPUT_HANDLERS.delete(handler); };
+}
+
+/** Applies the invocation's shared controls before a normal or protected field handles a key. @private terminal input */
+export function handleProjectInput(event: KeyEvent): boolean { return [...INPUT_HANDLERS].some((handler) => handler(event)); }
+
+/** Observes terminal capability/notification responses without sending them to text fields. @private terminal input */
+export function onTerminalReport(handler: (report: string) => void): () => void {
+    REPORT_HANDLERS.add(handler);
+    return () => { REPORT_HANDLERS.delete(handler); };
+}
 
 /**
  * Escape sequences of named keys.
@@ -115,6 +143,7 @@ const CONTROL: Readonly<Record<string, KeyEvent>> = {
     '\x13': { type: 'key', name: 's', ctrl: true },
     '\x14': { type: 'key', name: 't', ctrl: true },
     '\x16': { type: 'key', name: 'v', ctrl: true },
+    '\x0e': { type: 'key', name: 'n', ctrl: true },
     '\x18': { type: 'key', name: 'x', ctrl: true },
 };
 
@@ -185,6 +214,7 @@ export class KeyParser {
         let rest = this.held + chunk;
         this.held = '';
         while (rest.length) {
+            if (rest === '\x1b[') { this.held = rest; return events; }
             if (this.paste !== undefined) {
                 const end = rest.indexOf(PASTE_END);
                 if (end < 0) {
@@ -194,6 +224,23 @@ export class KeyParser {
                 events.push({ type: 'paste', text: (this.paste + rest.slice(0, end)).replace(/\r\n?/g, '\n') });
                 this.paste = undefined;
                 rest = rest.slice(end + PASTE_END.length);
+                continue;
+            }
+            if (rest.startsWith('\x1b]')) {
+                const end = /\x07|\x1b\\/.exec(rest);
+                if (!end) {
+                    // Bound malformed or truncated terminal replies rather than growing input memory indefinitely.
+                    this.held = rest.length < 8192 ? rest : '';
+                    return events;
+                }
+                const report = rest.slice(2, end.index);
+                for (const handler of REPORT_HANDLERS) handler(report);
+                rest = rest.slice(end.index + end[0].length);
+                continue;
+            }
+            if (rest.startsWith('\x1b[I') || rest.startsWith('\x1b[O')) {
+                terminalFocused = rest[2] === 'I';
+                rest = rest.slice(3);
                 continue;
             }
             if (rest.startsWith(PASTE_START)) {
@@ -312,7 +359,11 @@ export class KeyboardSession {
         this.input.resume();
         this.output.write('\x1b[?2004h');
         this.listener = (chunk: Buffer | string) => {
-            for (const event of this.parser.parse(chunk.toString())) if (event.type !== 'pointer' || this.pointer) this.onEvent(event);
+            for (const event of this.parser.parse(chunk.toString())) {
+                if (event.type === 'pointer' && !this.pointer) continue;
+                if (handleProjectInput(event)) continue;
+                this.onEvent(event);
+            }
         };
         this.input.on('data', this.listener);
         if (this.pointer) this.setPointerReports(true);

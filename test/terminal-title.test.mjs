@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { dashboardTitle } from '../dist/ui/dashboard.js';
 import { createTerminalProfile } from '../dist/ui/terminal.js';
 import { singleLineVisual, framedBadge } from '../dist/ui/badges.js';
-import { formatDashboardTitle, formatTerminalTitle, isTerminalTitleDisabled, sanitizeTitleText, TerminalTitle, TitleAnimation, titleRestoration, titleSequence } from '../dist/ui/terminal-title.js';
+import { formatDashboardTitle, formatTerminalTitle, isTerminalTitleDisabled, projectStatusMarker, sanitizeTitleText, TerminalTitle, TitleAnimation, titleRestoration, titleSequence } from '../dist/ui/terminal-title.js';
 import { ptbk, temporaryDirectory } from './helpers.mjs';
 
 /**
@@ -121,20 +121,37 @@ test('titles are enabled only for interactive pretty terminals and can be switch
 test('dashboards show exactly ptbk, the single-line agent visual and the project (or Global)', () => {
     const current = (agent, activity = 'working') => ({ current: { agent: { name: agent, activity }, taskTitle: 'Write the README' }, phase: 'executing' });
     const idle = dashboardTitle(snapshot());
-    assert.deepEqual(idle, { kind: 'dashboard', label: 'birds', project: 'birds', visual: singleLineVisual(undefined, 'working', 0) }, 'idle: the stable default Promptbook visual');
-    assert.equal(formatDashboardTitle(idle), 'ptbk ~<@@/>- birds');
-    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(), 1)), 'ptbk ~<@@/>/ birds', 'the default visual animates');
+    assert.deepEqual(idle, { kind: 'dashboard', label: 'birds', project: 'birds', visual: singleLineVisual(undefined, 'working', 0), status: '🟢' }, 'idle: the stable default Promptbook visual and running marker');
+    assert.equal(formatDashboardTitle(idle), '🟢 ptbk ~<@@/>- birds');
+    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(), 1)), '🟢 ptbk ~<@@/>/ birds', 'the default visual animates');
     const developer = formatDashboardTitle(dashboardTitle(snapshot(current('Developer'))));
-    assert.equal(developer, `ptbk ${singleLineVisual('Developer', 'working', 0)} birds`, 'the working agent’s own visual');
+    assert.equal(developer, `🟢 ptbk ${singleLineVisual('Developer', 'working', 0)} birds`, 'the working agent’s own visual');
     assert.doesNotMatch(developer, /Promptbook|📖|Dashboard|README|0\.\d/, 'no symbol, product word, mode, task or version');
     assert.notEqual(formatDashboardTitle(dashboardTitle(snapshot(current('Developer')), 1)), developer, 'the working visual moves between frames');
-    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(current('Teacher', 'waiting-user')))), `ptbk ${singleLineVisual('Teacher', 'waiting-user', 0)} birds`);
+    assert.equal(formatDashboardTitle(dashboardTitle(snapshot(current('Teacher', 'waiting-user')))), `🟢 ptbk ${singleLineVisual('Teacher', 'waiting-user', 0)} birds`);
     assert.equal(formatDashboardTitle({ label: 'Global', visual: singleLineVisual(undefined, 'working', 0) }), 'ptbk ~<@@/>- Global');
     assert.ok(framedBadge('Developer', 'working', { color256: (_code, text) => text, bold: (text) => text }, true, 0)[1].includes(singleLineVisual('Developer', 'working', 0)), 'the same character as the framed badge');
 
     const hostile = formatDashboardTitle({ label: 'evil\x1b]0;pwned\x07\nname', visual: '~<\x07@@/>-' });
     assert.doesNotMatch(hostile, /[\x00-\x1f]/, 'sanitized label and visual');
     assert.ok([...formatDashboardTitle({ label: 'p'.repeat(200), visual: '~<@@/>-' })].length <= 96);
+});
+
+test('project title markers distinguish lifecycle, unseen attention, reduced motion and lost connection', () => {
+    assert.equal(projectStatusMarker('running', false), '🟢', 'idle running is still running');
+    assert.equal(projectStatusMarker('pausing', false, 0), '🟢');
+    assert.equal(projectStatusMarker('pausing', false, 1), '⚪');
+    assert.equal(projectStatusMarker('pause', false), '⚪');
+    assert.equal(projectStatusMarker('stopping', false, 1), '🔴');
+    assert.equal(projectStatusMarker('stopped', false), '🔴');
+    assert.equal(projectStatusMarker('pause', true, 0), '🟡', 'attention overrides lifecycle');
+    assert.equal(projectStatusMarker('pause', true, 1), '🔔');
+    assert.equal(projectStatusMarker('pause', true, 1, true), '🟡 Attention');
+    assert.equal(projectStatusMarker('pausing', false, 1, true), '⚪ Pausing');
+    assert.equal(projectStatusMarker('stopping', false, 1, true), '🔴 Stopping');
+    assert.equal(projectStatusMarker('unknown', true), '? Unknown', 'disconnection cannot claim current attention or stop');
+    assert.equal(projectStatusMarker('running', true, 0, false, false), '[Attention]');
+    assert.equal(dashboardTitle(snapshot({ attention: { chats: { key: 'call', tone: 'warning' } } })).status, '🟡');
 });
 
 test('the dashboard title animates at a bounded cadence and is reasserted so terminal integrations cannot keep a generic label', async () => {
