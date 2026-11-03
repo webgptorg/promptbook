@@ -95,6 +95,10 @@ export class ProjectEffects {
         const state = this.state;
         if (!state.clients.length) return;
         const previous = new Set(state.observed);
+        const current = new Set(events.map((event) => event.key));
+        // A saved answer or shared seen outcome can arrive before the next heartbeat claims delivery. The request
+        // already ended its attention: drop its queued external effect instead of notifying about stale work.
+        state.pending = state.pending.filter((effect) => effect.kind !== 'attention' || current.has(effect.key));
         const consumed = new Set(state.consumed);
         const fresh = events.filter((event) => !previous.has(event.key) && (event.kind !== 'attention' || !consumed.has(event.key)));
         state.observed = events.map((event) => event.key);

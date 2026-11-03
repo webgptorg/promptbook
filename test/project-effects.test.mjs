@@ -57,6 +57,16 @@ test('actual activity suppresses new attention for ten seconds without deferred 
     assert.deepEqual(call('chat', 'poll', [first]).effects, [], 'a repeated snapshot/history scan is not a new occurrence');
 });
 
+test('a shared seen outcome or saved response withdraws an unclaimed attention effect immediately', () => {
+    const { coordinator, call, advance } = fixture();
+    call('terminal', 'join'); call('terminal', 'toggle');
+    advance(10_001);
+    coordinator.observe([question('seen-in-browser')]);
+    assert.equal(coordinator.state.pending.length, 1);
+    coordinator.observe([]);
+    assert.deepEqual(call('terminal', 'poll').effects, [], 'a message already seen or answered is never announced later');
+});
+
 test('live reply starts and saved sends have subtle cues during activity; tokens, repeated snapshots and attention do not layer cues', () => {
     const { coordinator, call, advance } = fixture();
     const reply = { key: 'reply:Budget', kind: 'reply', domain: 'chats', title: '', body: '' };
