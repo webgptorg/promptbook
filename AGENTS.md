@@ -2,7 +2,6 @@
 
 -   **Add changes in [Changelog](changelog/_current-preversion.md)**
 -   **Test are run automatically** after your work is performed and before the work is commited. But if you want to run them manually, look at `package.json` scripts for all available test commands.
--   **DO NOT commit your changes** changes you make will go through the automatic testing and committing process after you finish your work.
 
 ## Dictionary
 

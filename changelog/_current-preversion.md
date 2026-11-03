@@ -1,5 +1,9 @@
 # Unreleased
 
+## Contribution instructions
+
+- Remove the blanket prohibition on committing changes from `AGENTS.md`.
+
 ## Windows installer preparation
 
 - Detect usable Node.js/npm and Git before installation and show what is already available and what must be installed. Keep prerequisites mandatory and move Codex/Claude Code installation out of the Windows component list into ordinary project setup.
