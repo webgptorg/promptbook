@@ -3,6 +3,7 @@
 ## Complete hosted release validation
 
 - Run the complete project check in every required Node 22/24 Linux, macOS and Windows matrix job, including behavioral and package checks, before the publication workflow can proceed. The matrix previously ran only the light type check.
+- Propagate browser-pool lock filesystem errors instead of treating a missing, read-only or full runtime directory as contention and retrying forever during shutdown or validation.
 
 ## Experimental project sounds and desktop notifications
 

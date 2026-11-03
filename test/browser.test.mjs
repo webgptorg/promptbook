@@ -7,10 +7,30 @@ import { test } from 'node:test';
 import { findBrowserExecutable } from '../dist/browser/browser.js';
 import { browserTools } from '../dist/browser/agent-tools.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
+import { BrowserPools } from '../dist/browser/pool.js';
+import fsPromises from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
 import { parseKeyPress, parseModifiers } from '../dist/browser/input.js';
 import { ToolBridge } from '../dist/engine/bridge.js';
 import { readableHarnessLine } from '../dist/engine/task-trace.js';
 import { temporaryDirectory, waitFor } from './helpers.mjs';
+
+test('browser pool filesystem failures propagate instead of entering an unbounded lock-contention retry', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk pool failure');
+    const pools = new BrowserPools({ PTBK_HOME: root });
+    const original = fsPromises.writeFile;
+    const failure = Object.assign(new Error('No space left for the browser pool lock'), { code: 'ENOSPC' });
+    fsPromises.writeFile = async (path, ...args) => {
+        if (String(path).endsWith('.lock')) throw failure;
+        return await original(path, ...args);
+    };
+    syncBuiltinESMExports();
+    const restore = () => { fsPromises.writeFile = original; syncBuiltinESMExports(); };
+    // A regression must fail promptly even in an implementation that retries: let its next attempt complete normally.
+    const guard = setTimeout(restore, 250);
+    try { await assert.rejects(pools.disconnect(join(root, 'profile'), 'fixture'), (error) => error === failure); }
+    finally { clearTimeout(guard); restore(); }
+});
 
 test('browser keys: named keys, characters and shortcuts become trusted key presses; editing shortcuts work on macOS', () => {
     assert.deepEqual(parseKeyPress('Enter', 'linux'), { key: 'Enter', code: 'Enter', keyCode: 13, text: '\r', modifiers: 0 });

@@ -98,7 +98,10 @@ export class BrowserPools {
             try {
                 await writeFile(lock, JSON.stringify({ pid: process.pid, at: new Date().toISOString() }), { flag: 'wx' });
                 break;
-            } catch {
+            } catch (error) {
+                // A vanished/read-only/full runtime directory is a filesystem failure, not another lock holder.
+                // Retrying it as contention can spin forever, including after fixture/engine teardown.
+                if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
                 const holder = await readJsonIfExists<{ pid?: number; at?: string }>(lock).catch(() => undefined);
                 const stale = !holder?.pid || !isProcessAlive(holder.pid) || (holder.at !== undefined && Date.now() - Date.parse(holder.at) > LOCK_STALE_MS);
                 if (stale) await rm(lock, { force: true });
