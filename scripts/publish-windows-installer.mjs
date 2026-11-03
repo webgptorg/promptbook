@@ -34,6 +34,10 @@ async function publishInstaller(installerPath) {
     const checksumName = `${name}.sha256`;
     const work = await mkdtemp(join(tmpdir(), 'ptbk-installer-'));
     try {
+        const installationNotes = [
+            `- **npm:** \`npm install -g ptbk@${release.version}\` (the ordinary CLI installation).`,
+            `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally, offers the local desktop client (selected by default), Codex and Claude Code, and creates an empty first-project folder. It then opens the selected desktop or CLI presentation of \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
+        ].join('\n');
         const checksumPath = join(work, checksumName);
         await writeFile(checksumPath, `${digest}  ${name}\n`);
         const exists = await gh(['release', 'view', tag, '--json', 'tagName,assets'])
@@ -47,8 +51,7 @@ async function publishInstaller(installerPath) {
             const notes = [
                 `Promptbook ${release.version}.`,
                 '',
-                `- **npm:** \`npm install -g ptbk@${release.version}\` (the ordinary CLI installation).`,
-                `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally, offers the local desktop client (selected by default), Codex and Claude Code, and creates an empty first-project folder. It then opens the selected desktop or CLI presentation of \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
+                installationNotes,
             ].join('\n');
             await gh(['release', 'create', tag, '--verify-tag', '--title', `ptbk ${release.version}`, '--notes', notes, ...(prerelease ? ['--prerelease'] : [])])
                 .catch(async (creationError) => {
@@ -73,6 +76,14 @@ async function publishInstaller(installerPath) {
         const downloaded = await sha256(join(verify, name));
         const published = (await readFile(join(verify, checksumName), 'utf8')).split(/\s+/)[0];
         if (downloaded !== digest || published !== digest) throw new Error(`The downloadable ${name} does not match its checksum (downloaded ${downloaded}, published ${published}, built ${digest}).`);
+        // The extension often creates the shared release first. Preserve its notes and add the verified installer's
+        // setup/init distinction even when this publisher did not create the release itself.
+        const details = JSON.parse(await gh(['release', 'view', tag, '--json', 'body']));
+        if (!details.body?.includes(name)) {
+            const notesPath = join(work, 'release-notes.md');
+            await writeFile(notesPath, `${details.body?.trim() || `Promptbook ${release.version}.`}\n\n${installationNotes}\n`);
+            await gh(['release', 'edit', tag, '--notes-file', notesPath]);
+        }
         process.stdout.write(`Published and verified ${name} (SHA-256 ${digest}) on the ${tag} GitHub Release.\n`);
     } finally {
         await rm(work, { recursive: true, force: true });
