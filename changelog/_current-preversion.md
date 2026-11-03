@@ -398,3 +398,7 @@
 - The existing `Promptbook.book-extension` now lives in `extensions/vscode` in this repository. Syntax highlighting, completion, hover, diagnostics, outline, folding and reference navigation use the current engine parser and vocabulary. Historical BookC previews remain read-only.
 - Normal builds stage the extension; `npm run package:vscode` creates a versioned VSIX and checksum. The Marketplace version derives automatically from the engine version while remaining newer than the legacy 1.x releases.
 - CI checks the extension, and every official engine release attaches its matching VSIX/checksum and publishes the existing Marketplace listing from the same release tag, using Trusted Publishing or the repository’s VSCE credential.
+
+## Practical CLI release-video preparation
+
+- Added a separate production status for the owner's requested practical CLI video for 0.119.0-47, preserving both existing videos and the original brief. Recorded the rejected ElevenLabs owner login and protected Wallet request; the exact requested voice remains unverified, with no new media or publication.
