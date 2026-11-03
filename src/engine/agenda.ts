@@ -3610,22 +3610,30 @@ export class Agenda {
             return;
         }
         if (router.legacy) this.logOnce('Manager is the former name of Router: it routes until the project migration converts agents/.core/manager.book into router.book.', 'info');
-        const created = await createAssignmentTask({ target, tasksDirectory: this.tasksDirectory, router: router.name, priority, timeZone: this.timeZone, taken: await this.takenNames() });
-        const routerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
-        const route = await this.route(routerTask);
-        if (route.kind !== 'routable') {
-            const { rm } = await import('node:fs/promises');
-            await rm(created.path, { force: true });
-            await this.routerBootstrapProblem(router.name, route);
-            return;
+        let reservedPath: string | undefined;
+        try {
+            const created = await createAssignmentTask({
+                target, tasksDirectory: this.tasksDirectory, router: router.name, priority, timeZone: this.timeZone, taken: await this.takenNames(),
+                reservePath: (path) => { reservedPath = path; this.authoredPaths.add(path); },
+            });
+            const routerTask = readTaskBook({ source: await readFile(created.path, 'utf8'), path: created.path, relativePath: toProjectRelative(this.options.project.root, created.path), order: 0, timeZone: this.timeZone })!;
+            const route = await this.route(routerTask);
+            if (route.kind !== 'routable') {
+                const { rm } = await import('node:fs/promises');
+                await rm(created.path, { force: true });
+                await this.routerBootstrapProblem(router.name, route);
+                return;
+            }
+            this.clearBlocker('setup');
+            this.log(`Routing "${target.title}": ${router.name} prerequisite {${created.name}} (${toProjectRelative(this.options.project.root, created.path)})`);
+            // Local evidence of the target (its own versioned trace is written when the target itself executes).
+            await (await TaskTrace.open(this.options.project, { name: target.title, source: target.source.relativePath })).event('assignment-requested', { routerTask: created.name, routerSource: toProjectRelative(this.options.project.root, created.path) }, { local: true });
+            const item = await this.buildWorkItem(routerTask, route, { createdPaths: [created.path, ...(options.createdPaths ?? [])] });
+            // Router changes the target's source: its run owns that file too.
+            if (item) await this.execute({ ...item, relatedTaskNames: [target.title] }, unit, [target.source.path]);
+        } finally {
+            if (reservedPath) this.authoredPaths.delete(reservedPath);
         }
-        this.clearBlocker('setup');
-        this.log(`Routing "${target.title}": ${router.name} prerequisite {${created.name}} (${toProjectRelative(this.options.project.root, created.path)})`);
-        // Local evidence of the target (its own versioned trace is written when the target itself executes).
-        await (await TaskTrace.open(this.options.project, { name: target.title, source: target.source.relativePath })).event('assignment-requested', { routerTask: created.name, routerSource: toProjectRelative(this.options.project.root, created.path) }, { local: true });
-        const item = await this.buildWorkItem(routerTask, route, { createdPaths: [created.path, ...(options.createdPaths ?? [])] });
-        // Router changes the target's source: its run owns that file too.
-        if (item) await this.execute({ ...item, relatedTaskNames: [target.title] }, unit, [target.source.path]);
     }
 
     /**
@@ -3855,6 +3863,8 @@ export class Agenda {
             this.claimDeferred.set(item.task.key, Date.now() + 5_000);
             return { kind: 'deferred', reason };
         }
+        // Ownership now protects these published helper Books; include their completion in this run's result.
+        for (const path of item.createdPaths) this.authoredPaths.delete(path);
         try {
             return await this.executeClaimed({ ...item, runId }, unit);
         } finally {

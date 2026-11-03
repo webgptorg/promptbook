@@ -102,6 +102,8 @@ export async function createAssignmentTask(options: {
     timeZone: string;
     /** Normalized names already used by Books (the new task gets a distinct readable name). */
     taken: ReadonlySet<string>;
+    /** Reserves engine authoring before the assignment file becomes visible to concurrent work. */
+    reservePath?: (path: string) => void;
 }): Promise<CreatedTask & { targetRef: string }> {
     if (!options.target.key) throw new PtbkError('The task needs a usable name before Router assignment.', { kind: 'internal' });
     const ref = options.target.ref;
@@ -113,6 +115,7 @@ export async function createAssignmentTask(options: {
         // Choosing an executor enables the target's work: supporting system work in any project (presentation only).
         commitments: [`TASK AGENT ${formatAgentReference(options.router)}`, `TASK PRIORITY ${options.priority}`, 'TASK PURPOSE SYSTEM', `TASK PARENT ${ref}`, `TASK ORIGIN ${ASSIGNMENT_ORIGIN} ${ref}`],
     });
+    options.reservePath?.(path);
     await writeFile(path, content, { flag: 'wx' });
     return { path, name, targetRef: ref };
 }

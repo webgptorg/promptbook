@@ -269,18 +269,22 @@ export async function captureSnapshot(environment: Pick<ExecutionEnvironment, 'p
     for (const entry of await gitStatus(environment.project.root, environment.repositoryRoot)) {
         if (isPathInside(runtimeDirectory, entry.path) || isPathInside(tracesDirectory, entry.path) || excluded.has(entry.path)) continue;
         if (!isPathInside(environment.project.root, entry.path)) continue;
-        snapshot[toProjectRelative(environment.project.root, entry.path)] = (await hashFileIfExists(entry.path)) ?? null;
+        const hash = await hashFileIfExists(entry.path);
+        // An untracked helper can be withdrawn after Git lists it. It is no longer a change to attribute or stage.
+        if (hash === undefined && entry.index === '?' && entry.worktree === '?') continue;
+        snapshot[toProjectRelative(environment.project.root, entry.path)] = hash ?? null;
     }
     return snapshot;
 }
 
 /**
- * Paths whose fingerprint changed since the pre-task snapshot.
+ * Still-dirty paths whose fingerprint changed since the pre-task snapshot. A tracked deletion stays present with
+ * `null`; a path that became clean or whose untracked file was withdrawn is no longer a pending change.
  *
  * @private task execution
  */
 export function changedPaths(before: Readonly<Record<string, string | null>>, after: Readonly<Record<string, string | null>>): string[] {
-    return [...new Set([...Object.keys(before), ...Object.keys(after)])].filter((path) => before[path] !== after[path]).sort();
+    return Object.keys(after).filter((path) => before[path] !== after[path]).sort();
 }
 
 /**
