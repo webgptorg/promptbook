@@ -273,6 +273,30 @@ function Add-UserPath([string] $Directory) {
     }
 }
 
+# Resolve the per-user known folder even before Windows has created it (new and redirected profiles).
+function Install-PtbkStartMenuShortcuts([string] $NodePath, [string] $Prefix, [string] $Ptbk) {
+    $programs = [Environment]::GetFolderPath([Environment+SpecialFolder]::Programs, [Environment+SpecialFolderOption]::DoNotVerify)
+    if (-not $programs) { throw 'Windows could not resolve the current user Start menu Programs folder.' }
+    $menu = Join-Path $programs 'Promptbook'
+    [IO.Directory]::CreateDirectory($menu) | Out-Null
+    $launcher = Join-Path $script:LogDirectory 'launch.ps1'
+    $launchLines = @(
+        ('$env:PATH = ' + (ConvertTo-PowerShellLiteral ((Split-Path $NodePath) + ';' + $Prefix + ';')) + ' + $env:PATH'),
+        'Set-Location -LiteralPath $env:USERPROFILE',
+        ('& ' + (ConvertTo-PowerShellLiteral $Ptbk))
+    )
+    Set-Content -LiteralPath $launcher -Value $launchLines -Encoding UTF8
+    $shell = New-Object -ComObject WScript.Shell
+    foreach ($name in @('Promptbook terminal', 'ptbk')) {
+        $shortcut = $shell.CreateShortcut((Join-Path $menu ($name + '.lnk')))
+        $shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $shortcut.Arguments = '-NoExit -NoProfile -ExecutionPolicy Bypass -File "' + $launcher + '"'
+        $shortcut.WorkingDirectory = $env:USERPROFILE
+        $shortcut.IconLocation = (Join-Path $script:LogDirectory 'promptbook.ico')
+        $shortcut.Save()
+    }
+}
+
 function Install-GitFromGitForWindows {
     # The official Git for Windows installer, verified against the checksum table of its GitHub release.
     $release = Invoke-RestMethod -UseBasicParsing -Uri 'https://api.github.com/repos/git-for-windows/git/releases/latest' -Headers @{ 'User-Agent' = 'promptbook-installer' }
@@ -553,25 +577,8 @@ if (-not $Plan) {
     if ($reported -notmatch [regex]::Escape($PromptbookVersion)) { Stop-Bootstrap 5 'ptbk verification' "$ptbk reports '$($reported.Trim())' instead of $PromptbookVersion." 'Click Retry.' }
     Write-Detail "Verified $ptbk ($PromptbookVersion)"
     Add-UserPath $prefix
-    $launcher = Join-Path $script:LogDirectory 'launch.ps1'
-    $launchLines = @(
-        ('$env:PATH = ' + (ConvertTo-PowerShellLiteral ((Split-Path $node.Path) + ';' + $prefix + ';')) + ' + $env:PATH'),
-        'Set-Location -LiteralPath $env:USERPROFILE',
-        ('& ' + (ConvertTo-PowerShellLiteral $ptbk))
-    )
-    Set-Content -LiteralPath $launcher -Value $launchLines -Encoding UTF8
-    $shell = New-Object -ComObject WScript.Shell
-    $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'Promptbook'
-    New-Item -ItemType Directory -Force -Path $menu | Out-Null
-    foreach ($name in @('Promptbook terminal', 'ptbk')) {
-        $shortcut = $shell.CreateShortcut((Join-Path $menu ($name + '.lnk')))
-        $shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-        $shortcut.Arguments = '-NoExit -NoProfile -ExecutionPolicy Bypass -File "' + $launcher + '"'
-        $shortcut.WorkingDirectory = $env:USERPROFILE
-        $shortcut.IconLocation = (Join-Path $script:LogDirectory 'promptbook.ico')
-        $shortcut.Save()
-    }
-
+    $script:CurrentStage = 'Start menu shortcuts'
+    Install-PtbkStartMenuShortcuts $node.Path $prefix $ptbk
 }
 
 # The desktop is a separate client of this verified system Node/CLI, never an embedded engine.

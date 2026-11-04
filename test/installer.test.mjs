@@ -446,3 +446,14 @@ test('a compatible read-only npm launcher at an ordinary prefix is reused withou
         assert.equal(result.code, 0, result.output);
     }
 });
+
+test('a fresh redirected Windows profile creates and reuses literal Start menu shortcuts', { skip: process.platform !== 'win32' }, async (t) => {
+    const shells = await availableShells;
+    assert.ok(shells.length, 'Windows provides PowerShell');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'shortcuts', '-NodePath', process.execPath], env);
+        assert.equal(result.code, 0, result.output);
+        assert.match(result.output, /Fresh profile Start menu shortcuts created and reused/);
+    }
+});
