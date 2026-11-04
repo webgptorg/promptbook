@@ -128,18 +128,20 @@ test('content work comes first: the Tasks tile and status show supporting system
 });
 
 test('focus is a double-line border and bold heading that never changes tile geometry', () => {
+    // Compare only focus: fresh observations could cross a minute and legitimately change the header clock.
+    const state = snapshot();
     const single = { '╔': '╭', '╗': '╮', '╚': '╰', '╝': '╯', '═': '─', '║': '│' };
-    const normalized = (focus) => renderHome(snapshot(), terminal(120, 30), view({ focus })).map(stripAnsi).map((line) => line.replace(/[╔╗╚╝═║]/g, (char) => single[char]));
-    const tiles = homeTiles(snapshot());
+    const normalized = (focus) => renderHome(state, terminal(120, 30), view({ focus })).map(stripAnsi).map((line) => line.replace(/[╔╗╚╝═║]/g, (char) => single[char]));
+    const tiles = homeTiles(state);
     const reference = normalized('harnesses');
     for (const tile of tiles) {
-        const lines = renderHome(snapshot(), terminal(120, 30), view({ focus: tile })).map(stripAnsi);
+        const lines = renderHome(state, terminal(120, 30), view({ focus: tile })).map(stripAnsi);
         assert.equal(lines.filter((line) => /[╔╗╚╝]/.test(line)).length, 2, `${tile}: exactly one tile has the double border`);
         assert.deepEqual(normalized(tile), reference, `${tile}: moving focus changes no size, position or content`);
     }
     // With colors the focused heading is bold and the others are not; the border alone is visible without color.
     const colored = { ...terminal(120, 30), style: { ...terminal(120, 30).style, bold: (text) => `<b>${text}</b>` } };
-    const text = renderHome(snapshot(), colored, view({ focus: 'system' })).join('\n');
+    const text = renderHome(state, colored, view({ focus: 'system' })).join('\n');
     assert.match(text, /<b> System <\/b>/);
     assert.doesNotMatch(text, /<b> Health <\/b>/);
 });

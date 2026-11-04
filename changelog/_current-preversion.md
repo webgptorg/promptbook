@@ -1,5 +1,9 @@
 # Unreleased
 
+## CI checks
+
+- Compare dashboard focus styles against the same observed snapshot, so crossing a real minute cannot fail the unchanged geometry/content assertions through an unrelated header clock update.
+
 ## Contribution instructions
 
 - Remove the blanket prohibition on committing changes from `AGENTS.md`.
