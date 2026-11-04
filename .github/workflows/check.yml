@@ -70,6 +70,7 @@ jobs:
       - name: Windows PowerShell 5.1 and PowerShell 7 folder and report regressions
         run: node --test test/installer.test.mjs
       - name: Compile the actual report dialog and test native copy, folder choice and retry
+        if: always()
         shell: powershell
         run: |
           choco install innosetup --no-progress -y | Out-Null
