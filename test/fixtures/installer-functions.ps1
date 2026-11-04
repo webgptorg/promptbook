@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory = $true)][string] $Bootstrap,
     [Parameter(Mandatory = $true)][string] $WorkDirectory,
-    [ValidateSet('downloads', 'archive', 'reuse', 'live-node')][string] $Mode
+    [ValidateSet('downloads', 'archive', 'reuse', 'live-node', 'permissions')][string] $Mode
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -19,6 +19,31 @@ foreach ($definition in $ast.FindAll({ param($node) $node -is [System.Management
 }
 $script:LogFile = Join-Path $WorkDirectory 'functions.log'
 $IsolatedPath = $false
+
+
+if ($Mode -eq 'permissions') {
+    $root = Join-Path $WorkDirectory 'write-denied'
+    [IO.Directory]::CreateDirectory($root) | Out-Null
+    $originalAcl = Get-Acl -LiteralPath $root
+    $acl = Get-Acl -LiteralPath $root
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent().User
+    $deny = New-Object Security.AccessControl.FileSystemAccessRule($identity, [Security.AccessControl.FileSystemRights]::Write, [Security.AccessControl.AccessControlType]::Deny)
+    $acl.AddAccessRule($deny)
+    $result = Join-Path $WorkDirectory 'permission-result.ini'
+    try {
+        Set-Acl -LiteralPath $root -AclObject $acl
+        $shell = (Get-Process -Id $PID).Path
+        & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $Bootstrap -PromptbookVersion '0.0.0-test' -ProjectsRoot $root -ValidateProjectsOnly -ResultFile $result
+        if ($LASTEXITCODE -ne 4) { throw "A denied write must be a project-folder failure, got $LASTEXITCODE." }
+        $global:LASTEXITCODE = 0
+    } finally {
+        Set-Acl -LiteralPath $root -AclObject $originalAcl
+    }
+    if (Get-ChildItem -LiteralPath $root -Force) { throw 'A denied write left project or probe files behind.' }
+    if (-not (Test-Path -LiteralPath $result)) { throw 'A denied write lost the installer result.' }
+    Write-Output 'Denied folder writes produce actionable diagnostics without changing permissions or user content.'
+    exit 0
+}
 
 if ($Mode -eq 'archive') {
     Add-Type -AssemblyName System.IO.Compression.FileSystem

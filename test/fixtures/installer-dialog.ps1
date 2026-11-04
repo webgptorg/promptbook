@@ -15,6 +15,7 @@ using System.Runtime.InteropServices;
 public static class InstallerDialogNative {
     public delegate bool EnumProc(IntPtr h, IntPtr p);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr FindWindow(string cls, string title);
+    public static IntPtr FindReportWindow() { return FindWindow(null, "Promptbook setup needs attention"); }
     [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc callback, IntPtr p);
     [DllImport("user32.dll")] public static extern bool EnumChildWindows(IntPtr parent, EnumProc callback, IntPtr p);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr h, StringBuilder text, int capacity);
@@ -37,7 +38,7 @@ $global:LASTEXITCODE = 0
 function Wait-Dialog {
     $deadline = [DateTime]::UtcNow.AddSeconds(20)
     do {
-        $window = [InstallerDialogNative]::FindWindow($null, 'Promptbook setup needs attention')
+        $window = [InstallerDialogNative]::FindReportWindow()
         if ($window -ne [IntPtr]::Zero) { return $window }
         Start-Sleep -Milliseconds 100
     } while ([DateTime]::UtcNow -lt $deadline)
@@ -79,7 +80,7 @@ function Read-CopiedReport([IntPtr] $Window, [string] $Expected) {
         Start-Sleep -Milliseconds 100
         $text = [Windows.Forms.Clipboard]::GetText()
         if ($text.Contains($Expected)) {
-            if ([InstallerDialogNative]::FindWindow($null, 'Promptbook setup needs attention') -eq [IntPtr]::Zero) { throw 'Copy report closed the dialog.' }
+            if ([InstallerDialogNative]::FindReportWindow() -eq [IntPtr]::Zero) { throw 'Copy report closed the dialog.' }
             if (-not $text.Contains('Version: 0.0.0-test')) { throw 'The copied report omitted the version.' }
             return $text
         }
@@ -87,7 +88,7 @@ function Read-CopiedReport([IntPtr] $Window, [string] $Expected) {
     throw "The native clipboard did not receive the expected report: $text"
 }
 
-$process = Start-Process -FilePath $Executable -ArgumentList @('/SP-', ('/LOG="' + (Join-Path $WorkDirectory 'setup.log') + '"'), ('/FixtureRoot="' + $WorkDirectory + '"')) -WindowStyle Normal -PassThru
+$process = Start-Process -FilePath $Executable -ArgumentList @('/SP-', ('/LOG="' + (Join-Path $WorkDirectory 'setup.log') + '"'), ('/FixtureRoot="' + $WorkDirectory + '"'), ('/Bootstrap="' + $Bootstrap + '"')) -WindowStyle Normal -PassThru
 try {
     $window = Wait-Dialog
     $first = Read-CopiedReport $window 'Exit code: 4'

@@ -79,3 +79,7 @@ The desktop executable and tray controller follow [the desktop contract](desktop
 ## Windows discovery and completion
 
 Show the Promptbook logo and license acceptance before installation. Create `Promptbook terminal` and `ptbk` Start menu shortcuts for the ordinary context-aware CLI, with the verified runtime and user home. With desktop selected, add `Promptbook` for the graphical client and register only its tray controller at sign-in. Uninstalling desktop removes that registration and its own files without stopping or deleting the separate engines/projects. Preserve lowercase `ptbk` in command examples. Failed or declined preparation must change the final page to an explicit incomplete result and return a nonzero setup exit code. Codex and Claude Code remain choices in ordinary init.
+
+## Unattended installer verification
+
+For reproducible Windows checks, `/ProjectsRoot="<path>"` and `/ProjectName="<name>"` select the same fields as the wizard. `/SkipProject=yes` selects its ordinary skip option. `/PrepareOnly=yes` explicitly suppresses initializer launch after verifying software and preparing the empty destination; completion states that project setup was not launched. These options compose with Inno Setup's standard silent/component switches, retain the same validation and nonzero incomplete outcomes, and never change ordinary double-click setup behavior.

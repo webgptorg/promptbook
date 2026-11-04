@@ -89,26 +89,7 @@ var
 
 #include "report-dialog.iss"
 
-{ Windows argv quoting must double trailing backslashes before the closing quote (including drive roots). }
-function Quoted(Value: String): String;
-var
-  I, J, Slashes, Count: Integer;
-begin
-  Result := '"';
-  Slashes := 0;
-  for I := 1 to Length(Value) do
-    if Value[I] = '\' then Slashes := Slashes + 1
-    else
-    begin
-      Count := Slashes;
-      if Value[I] = '"' then Count := Slashes * 2 + 1;
-      for J := 1 to Count do Result := Result + '\';
-      Result := Result + Value[I];
-      Slashes := 0;
-    end;
-  for J := 1 to Slashes * 2 do Result := Result + '\';
-  Result := Result + '"';
-end;
+#include "command-line.iss"
 
 { All preparation output stays in Setup, including when PowerShell fails unexpectedly. }
 procedure PreparationLog(const S: String; const Error, FirstLine: Boolean);
@@ -231,17 +212,19 @@ begin
   RootPage := CreateInputDirPage(PrerequisitesPage.ID, 'Projects folder', 'Where should your Promptbook projects live?',
     'Promptbook keeps each project in its own folder inside this one. It is an ordinary folder, not a project itself.', False, '');
   RootPage.Add('');
-  RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\ptbk\project');
+  RootPage.Values[0] := ExpandConstant('{param:ProjectsRoot|}');
+  if RootPage.Values[0] = '' then RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\ptbk\project');
 
   ProjectPage := CreateInputQueryPage(RootPage.ID, 'First project', 'Create your first project',
     'An empty folder is created for it. The setup assistant (ptbk init) then asks what you are working on; the folder name is only a name.');
   ProjectPage.Add('Project folder name:', False);
-  ProjectPage.Values[0] := 'my-first-project';
+  ProjectPage.Values[0] := ExpandConstant('{param:ProjectName|my-first-project}');
   SkipBox := TNewCheckBox.Create(ProjectPage);
   SkipBox.Parent := ProjectPage.Surface;
   SkipBox.Top := ProjectPage.Edits[0].Top + ProjectPage.Edits[0].Height + ScaleY(16);
   SkipBox.Width := ProjectPage.SurfaceWidth;
   SkipBox.Caption := 'Skip: only install Promptbook, do not create a project now';
+  SkipBox.Checked := ExpandConstant('{param:SkipProject|no}') = 'yes';
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -280,6 +263,7 @@ begin
   if SkipBox.Checked then Params := Params + ' -SkipProject'
   else Params := Params + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
   if AllowReplacement then Params := Params + ' -AllowPtbkReplacement';
+  if ExpandConstant('{param:PrepareOnly|no}') = 'yes' then Params := Params + ' -NoLaunch';
   if WizardIsComponentSelected('desktop') then Params := Params + ' -DesktopPath ' + Quoted(ExpandConstant('{app}\desktop\promptbook.exe'));
   { The process-scoped execution policy applies to this one bootstrap script only; no machine policy is changed. }
   Result := RunPreparation(ExpandConstant('{app}\bootstrap.ps1'), Params, Code);
@@ -334,6 +318,8 @@ begin
     WizardForm.FinishedHeadingLabel.Caption := 'Promptbook installation was not completed';
     WizardForm.FinishedLabel.Caption := LastFailure;
   end
+  else if (CurPageID = wpFinished) and (ExpandConstant('{param:PrepareOnly|no}') = 'yes') and not SkipBox.Checked then
+    WizardForm.FinishedLabel.Caption := 'Promptbook is installed and the empty project folder is prepared. Project setup was not launched. Open a terminal there and run: ptbk init'
   else if (CurPageID = wpFinished) and SkipBox.Checked then
   begin
     if WizardIsComponentSelected('desktop') then

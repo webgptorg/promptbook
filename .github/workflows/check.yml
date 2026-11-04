@@ -189,6 +189,29 @@ jobs:
           & ./installer/windows/prepare-artwork.ps1
           & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$numeric" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
+      - name: Run the compiled installer with nested literal paths, then preserve a collision and support project skip
+        shell: powershell
+        run: |
+          $installer = (Resolve-Path "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe").Path
+          $work = Join-Path $env:RUNNER_TEMP ('Compiled Installer ' + [char]0x00FC + ' [x] & co')
+          $root = Join-Path $work 'nested\ptbk\project'
+          $target = Join-Path $root 'first project'
+          $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/COMPONENTS=core', '/PrepareOnly=yes', ('/ProjectsRoot="' + $root + '"'), '/ProjectName="first project"', ('/LOG="' + $work + '.log"'))
+          $process = Start-Process -FilePath $installer -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { Get-Content -LiteralPath ($work + '.log'); throw "Compiled installer exited with $($process.ExitCode)" }
+          if (-not (Test-Path -LiteralPath $target -PathType Container)) { throw 'The compiled installer did not prepare the selected nested project.' }
+          if (Get-ChildItem -LiteralPath $target -Force) { throw 'PrepareOnly must leave the project empty, without running init.' }
+          $sentinel = Join-Path $target 'keep.txt'
+          [IO.File]::WriteAllText($sentinel, 'user file preserved')
+          $process = Start-Process -FilePath $installer -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -eq 0) { throw 'A nonempty project must make the compiled installer report an incomplete outcome.' }
+          if ([IO.File]::ReadAllText($sentinel) -ne 'user file preserved') { throw 'The compiled installer changed existing project content.' }
+          $blocked = Join-Path $work 'blocked-root'
+          [IO.File]::WriteAllText($blocked, 'root file preserved')
+          $skip = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/COMPONENTS=core', '/SkipProject=yes', ('/ProjectsRoot="' + $blocked + '"'))
+          $process = Start-Process -FilePath $installer -ArgumentList $skip -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'Skipping a project must succeed even with an unusable projects root.' }
+          if ([IO.File]::ReadAllText($blocked) -ne 'root file preserved') { throw 'Skipping touched the selected root.' }
       - uses: actions/upload-artifact@v6
         with:
           name: windows-desktop-installer-candidate

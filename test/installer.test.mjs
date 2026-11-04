@@ -62,7 +62,7 @@ async function runPowerShell(shell, args, env) {
 test('Windows installer sources and PowerShell workflow steps are pure ASCII (BOM-less files are read as ANSI on Windows)', async () => {
     // Windows PowerShell 5.1 and Inno Setup read a file without a BOM as ANSI: an em dash (E2 80 94) then contains a
     // right double quotation mark, which PowerShell treats as a string delimiter and the whole script fails to parse.
-    for (const file of ['installer/windows/bootstrap.ps1', 'installer/windows/promptbook.iss', 'installer/windows/report-dialog.iss', 'test/fixtures/installer-dialog.iss', 'test/fixtures/installer-dialog.ps1', 'test/fixtures/installer-functions.ps1', '.github/workflows/check.yml', '.github/workflows/publish.yml']) {
+    for (const file of ['installer/windows/bootstrap.ps1', 'installer/windows/promptbook.iss', 'installer/windows/report-dialog.iss', 'installer/windows/command-line.iss', 'test/fixtures/installer-dialog.iss', 'test/fixtures/installer-dialog.ps1', 'test/fixtures/installer-functions.ps1', '.github/workflows/check.yml', '.github/workflows/publish.yml']) {
         const content = await readFile(join(ROOT, file));
         const offset = content.findIndex((byte) => byte > 0x7f);
         const line = offset < 0 ? 0 : content.subarray(0, offset).toString('latin1').split('\n').length;
@@ -353,5 +353,20 @@ test('report sanitization removes credentials while keeping useful Windows path 
         assert.doesNotMatch(result.output, /fixture-secret|fixture-token|fixture-key|fixture-bearer/);
         assert.match(result.output, /C:\\Users\\test\\ptbk\\project/);
         assert.match(result.output, /\[redacted\]/);
+    }
+});
+
+
+test('a real Windows write denial remains a folder error without permission changes or probe files', { skip: process.platform !== 'win32' }, async (t) => {
+    const shells = await availableShells;
+    assert.ok(shells.length, 'Windows must provide PowerShell for the installer');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'permissions'], env);
+        assert.equal(result.code, 0, result.output);
+        const actual = await installerData(join(directory, 'permission-result.ini'));
+        assert.equal(actual.Code, '4');
+        assert.equal(actual.Stage, 'Projects folder');
+        assert.match(await readFile(actual.ReportFile, 'utf8'), /write-denied/);
     }
 });

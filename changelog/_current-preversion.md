@@ -7,6 +7,7 @@
 ## Windows installer preparation
 
 - Validate the complete projects path and first-project destination before changing software. Use literal .NET filesystem operations to create every missing parent and test writability, preserve colliding files/nonempty folders, reject linked project destinations and avoid creating a root when project creation is skipped. Keep path types and the underlying exception in diagnostics.
+- Preserve trailing backslashes in native Windows arguments, including drive roots. Exercise the production quoting helper through a compiled installer and real PowerShell, and run the full compiled installer against nested Unicode paths, preserved nonempty collisions and project skip; an explicit prepare-only mode verifies preparation without launching init.
 - Give every handled Windows preparation error and replacement decision a selectable report with **Copy report**, retained on the incomplete final page. Reports include version, Windows/PowerShell, stage, selected destination, error and recent diagnostics with common credential forms redacted. Native copy leaves Retry/Replace/Cancel independent; folder failures can select another root. Compile and exercise the shared dialog and Unicode clipboard on Windows in CI.
 
 - Fix the Inno Setup case fallback so the installer compiles on Windows. Keep isolated prerequisite checks focused on project creation, allowing PowerShell's own profile cache, and explicitly load the shell's utility module for Windows PowerShell 5.1 download/archive fixtures.
