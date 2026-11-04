@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory = $true)][string] $Bootstrap,
     [Parameter(Mandatory = $true)][string] $WorkDirectory,
-    [ValidateSet('downloads', 'archive', 'reuse', 'live-node', 'permissions', 'shim')][string] $Mode,
+    [ValidateSet('downloads', 'archive', 'reuse', 'live-node', 'permissions', 'shim', 'shortcuts')][string] $Mode,
     [string] $NodePath,
     [switch] $ReadOnlyShim
 )
@@ -21,6 +21,32 @@ foreach ($definition in $ast.FindAll({ param($node) $node -is [System.Management
 }
 $script:LogFile = Join-Path $WorkDirectory 'functions.log'
 $IsolatedPath = $false
+
+if ($Mode -eq 'shortcuts') {
+    $script:LogDirectory = Join-Path $WorkDirectory 'installer'
+    [IO.Directory]::CreateDirectory($script:LogDirectory) | Out-Null
+    $programs = [Environment]::GetFolderPath([Environment+SpecialFolder]::Programs, [Environment+SpecialFolderOption]::DoNotVerify)
+    if (-not $programs -or -not $programs.StartsWith($WorkDirectory, [StringComparison]::OrdinalIgnoreCase)) { throw "The fixture must own its known folder: $programs" }
+    if ([IO.Directory]::Exists($programs)) { throw 'The fixture must begin without a Start menu Programs directory.' }
+    $prefix = Join-Path $WorkDirectory 'npm'
+    $ptbk = Join-Path $prefix 'ptbk.cmd'
+    $shell = New-Object -ComObject WScript.Shell
+    foreach ($attempt in 1..2) {
+        Install-PtbkStartMenuShortcuts $NodePath $prefix $ptbk
+        $menu = Join-Path $programs 'Promptbook'
+        if (@(Get-ChildItem -LiteralPath $menu).Count -ne 2) { throw 'Repeated setup must keep exactly two CLI shortcuts.' }
+        foreach ($name in @('Promptbook terminal', 'ptbk')) {
+            $shortcut = $shell.CreateShortcut((Join-Path $menu ($name + '.lnk')))
+            if ($shortcut.TargetPath -ne (Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe')) { throw 'The shortcut must launch Windows PowerShell.' }
+            if ($shortcut.WorkingDirectory -ne $env:USERPROFILE) { throw 'The shortcut must keep the literal user home.' }
+            if ($shortcut.Arguments -notlike '*launch.ps1"') { throw 'The shortcut must use the prepared launcher.' }
+        }
+    }
+    $launcher = Get-Content -LiteralPath (Join-Path $script:LogDirectory 'launch.ps1') -Raw
+    if (-not $launcher.Contains((ConvertTo-PowerShellLiteral $ptbk))) { throw 'The launcher must invoke the verified CLI through a literal path.' }
+    Write-Output 'Fresh profile Start menu shortcuts created and reused'
+    exit 0
+}
 
 if ($Mode -eq 'shim') {
     $env:PATH = (Split-Path $NodePath) + [IO.Path]::PathSeparator + $env:PATH

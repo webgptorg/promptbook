@@ -80,7 +80,7 @@ The desktop executable and tray controller follow [the desktop contract](desktop
 
 ## Windows discovery and completion
 
-Show the Promptbook logo and license acceptance before installation. Create `Promptbook terminal` and `ptbk` Start menu shortcuts for the ordinary context-aware CLI, with the verified runtime and user home. With desktop selected, add `Promptbook` for the graphical client and register only its tray controller at sign-in. Uninstalling desktop removes that registration and its own files without stopping or deleting the separate engines/projects. Preserve lowercase `ptbk` in command examples. Failed or declined preparation must change the final page to an explicit incomplete result and return a nonzero setup exit code. Codex and Claude Code remain choices in ordinary init.
+Show the Promptbook logo and license acceptance before installation. Create `Promptbook terminal` and `ptbk` Start menu shortcuts for the ordinary context-aware CLI, with the verified runtime and user home. Resolve the per-user Programs known folder without requiring it to exist yet, create missing directories through literal paths, and reuse those shortcuts on repeated setup, including redirected profiles. With desktop selected, add `Promptbook` for the graphical client and register only its tray controller at sign-in. Uninstalling desktop removes that registration and its own files without stopping or deleting the separate engines/projects. Preserve lowercase `ptbk` in command examples. Failed or declined preparation must change the final page to an explicit incomplete result and return a nonzero setup exit code. Codex and Claude Code remain choices in ordinary init.
 
 ## Unattended installer verification
 
