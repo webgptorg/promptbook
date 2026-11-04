@@ -342,6 +342,17 @@ function Get-GlobalNpmPrefix($NpmTool) {
     return [IO.Path]::GetFullPath($prefix)
 }
 
+# npm's cmd-shim template assigns dp0 without quotes, splitting valid paths containing & into commands.
+# Repair only that known generated ptbk launcher; preserve custom launchers and every unrelated command.
+function Repair-PtbkCommandShim([string] $Path) {
+    $source = [IO.File]::ReadAllText($Path)
+    if ($source -notmatch '(?im)^SET dp0=%~dp0\r?$' -or $source -notmatch '(?i)node_modules\\ptbk\\bin\\ptbk\.js') { return }
+    $repaired = $source -replace '(?im)^SET dp0=%~dp0(?=\r?$)', 'SET "dp0=%~dp0"'
+    $repaired = $repaired -replace '(?im)^SETLOCAL(?=\r?$)', 'SETLOCAL DisableDelayedExpansion'
+    [IO.File]::WriteAllText($Path, $repaired, (New-Object Text.UTF8Encoding($false)))
+    Write-Log "Repaired the npm-generated ptbk command launcher for literal Windows paths: $Path"
+}
+
 
 # Record every existing ancestor's type so a file, inaccessible directory or broken link is diagnosable.
 function Write-ProjectPathDiagnostics([string] $Path) {
@@ -535,6 +546,7 @@ $prefix = if ($npm) { ([string] (Invoke-Native { & $npm.Path prefix --global }))
 $ptbk = Join-Path $prefix 'ptbk.cmd'
 if (-not $Plan) {
     if (-not (Test-Path -LiteralPath $ptbk)) { Stop-Bootstrap 5 'ptbk installation' "ptbk was not found at $ptbk after the installation." 'Click Retry.' }
+    Repair-PtbkCommandShim $ptbk
     $reported = (Invoke-Native { & $ptbk --version 2>$null } | Out-String)
     if ($reported -notmatch [regex]::Escape($PromptbookVersion)) { Stop-Bootstrap 5 'ptbk verification' "$ptbk reports '$($reported.Trim())' instead of $PromptbookVersion." 'Click Retry.' }
     Write-Detail "Verified $ptbk ($PromptbookVersion)"

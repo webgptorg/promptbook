@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)][string] $Bootstrap,
     [Parameter(Mandatory = $true)][string] $WorkDirectory,
-    [ValidateSet('downloads', 'archive', 'reuse', 'live-node', 'permissions')][string] $Mode
+    [ValidateSet('downloads', 'archive', 'reuse', 'live-node', 'permissions', 'shim')][string] $Mode,
+    [string] $NodePath
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -19,6 +20,45 @@ foreach ($definition in $ast.FindAll({ param($node) $node -is [System.Management
 }
 $script:LogFile = Join-Path $WorkDirectory 'functions.log'
 $IsolatedPath = $false
+
+if ($Mode -eq 'shim') {
+    $env:PATH = (Split-Path $NodePath) + [IO.Path]::PathSeparator + $env:PATH
+    $cli = Join-Path $WorkDirectory 'node_modules\ptbk\bin\ptbk.js'
+    [IO.Directory]::CreateDirectory((Split-Path $cli)) | Out-Null
+    [IO.File]::WriteAllText($cli, "console.log('0.0.0-test');")
+    $shim = Join-Path $WorkDirectory 'ptbk.cmd'
+    # The actual npm cmd-shim template, including the unquoted assignment that broke ampersand paths.
+    $source = @'
+@ECHO off
+GOTO start
+:find_dp0
+SET dp0=%~dp0
+EXIT /b
+:start
+SETLOCAL
+CALL :find_dp0
+IF EXIST "%dp0%\node.exe" (
+  SET "_prog=%dp0%\node.exe"
+) ELSE (
+  SET "_prog=node"
+)
+endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & "%_prog%" "%dp0%\node_modules\ptbk\bin\ptbk.js" %*
+'@
+    [IO.File]::WriteAllText($shim, $source)
+    Repair-PtbkCommandShim $shim
+    $repaired = [IO.File]::ReadAllText($shim)
+    foreach ($attempt in 1..2) {
+        $output = @(Invoke-Native { & $shim --version 2>&1 }) -join [Environment]::NewLine
+        if ($LASTEXITCODE -ne 0 -or $output.Trim() -ne '0.0.0-test') { throw "The npm launcher changed its literal path: $output" }
+        Repair-PtbkCommandShim $shim
+        if ([IO.File]::ReadAllText($shim) -ne $repaired) { throw 'Launcher repair must be idempotent.' }
+    }
+    [IO.File]::WriteAllText($shim, "@echo off")
+    Repair-PtbkCommandShim $shim
+    if ([IO.File]::ReadAllText($shim) -ne '@echo off') { throw 'A custom launcher was replaced.' }
+    Write-Output 'Npm launcher literal paths and custom launcher preservation verified'
+    exit 0
+}
 
 
 if ($Mode -eq 'permissions') {

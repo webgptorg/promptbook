@@ -6,6 +6,8 @@
 
 ## Windows installer preparation
 
+- Repair the known npm-generated ptbk command launcher's unquoted directory assignment before verification and handoff, so Unicode installation prefixes containing ampersands remain literal paths. Keep custom launchers unchanged and exercise the generated launcher in Windows PowerShell 5.1 and PowerShell 7.
+
 - Resolve blocked default project locations automatically: preserve legacy files such as `<home>/ptbk`, show `<home>/ptbk-projects` (or the next available numbered sibling), and use the same fallback in ordinary CLI project setup. Keep explicitly selected paths authoritative. Reserve npm's extensionless launcher before installing into a custom home-based global prefix, and retain the actual selected root in diagnostics and handoff. Cover the reported Windows 10 profile and real package installation with a home-based npm prefix.
 
 - Validate the complete projects path and first-project destination before changing software. Use literal .NET filesystem operations to create every missing parent and test writability, preserve colliding files/nonempty folders, reject linked project destinations and avoid creating a root when project creation is skipped. Keep path types and the underlying exception in diagnostics.

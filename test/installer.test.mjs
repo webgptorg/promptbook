@@ -425,3 +425,14 @@ test('default selection reserves the future npm launcher when the custom global 
         assert.deepEqual((await readdir(env.USERPROFILE)).filter((name) => name.toLowerCase() !== 'appdata'), []);
     }
 });
+
+test('npm-generated ptbk launchers preserve literal Windows paths and custom launchers stay untouched', { skip: process.platform !== 'win32' }, async (t) => {
+    const shells = await availableShells;
+    assert.ok(shells.length, 'Windows provides PowerShell');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'shim', '-NodePath', process.execPath], env);
+        assert.equal(result.code, 0, result.output);
+        assert.match(result.output, /Npm launcher literal paths and custom launcher preservation verified/);
+    }
+});
