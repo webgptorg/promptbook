@@ -55,6 +55,38 @@ jobs:
             dist-vscode/*.vsix
             dist-vscode/*.sha256
           if-no-files-found: error
+  windows-installer-regressions:
+    # Run the focused regressions early, including the real native dialog and Unicode Windows clipboard.
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Windows PowerShell 5.1 and PowerShell 7 folder and report regressions
+        run: node --test test/installer.test.mjs
+      - name: Compile the actual report dialog and test native copy, folder choice and retry
+        shell: powershell
+        run: |
+          choco install innosetup --no-progress -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed.' }
+          $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) { throw 'The Inno Setup compiler was not found.' }
+          & $iscc.FullName test\fixtures\installer-dialog.iss
+          if ($LASTEXITCODE -ne 0) { throw "Report fixture compilation exited with $LASTEXITCODE" }
+          $work = Join-Path $env:RUNNER_TEMP ('Installer Report ' + [char]0x00FC + ' [x] & co')
+          powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File test\fixtures\installer-dialog.ps1 -Executable (Resolve-Path dist-installer-test\report-dialog-fixture.exe).Path -Bootstrap (Resolve-Path installer\windows\bootstrap.ps1).Path -WorkDirectory $work
+          if ($LASTEXITCODE -ne 0) { throw "Native installer report fixture exited with $LASTEXITCODE" }
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: windows-installer-report-evidence
+          path: ${{ runner.temp }}/Installer Report *
+          if-no-files-found: warn
   windows-installer:
     # The Windows installer's bootstrap is validated on every check: script syntax, prerequisite detection with an
     # isolated PATH (no Node.js/npm/Git visible: everything planned, nothing installed), and a real run with the

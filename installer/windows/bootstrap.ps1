@@ -24,6 +24,7 @@ param(
     [switch] $NoLaunch,
     [string] $DesktopPath,
     [switch] $DetectOnly,
+    [switch] $ValidateProjectsOnly,
     [string] $DetectionFile,
     [string] $ResultFile,
     [string] $PackageSpec,
@@ -40,8 +41,8 @@ Set-StrictMode -Version 2
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { Write-Verbose 'The console encoding cannot be changed (no console attached).' }
 
 $script:LogDirectory = Join-Path $env:LOCALAPPDATA 'Promptbook\installer'
-New-Item -ItemType Directory -Force -Path $script:LogDirectory | Out-Null
-$script:LogFile = Join-Path $script:LogDirectory ("bootstrap-{0}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
+[System.IO.Directory]::CreateDirectory($script:LogDirectory) | Out-Null
+$script:LogFile = Join-Path $script:LogDirectory ("bootstrap-{0}-{1}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), [guid]::NewGuid().ToString('N'))
 $script:Step = 0
 $script:Total = if ($SkipProject) { 4 } else { 6 }
 $script:CurrentStage = 'Starting preparation'
@@ -53,8 +54,16 @@ function Invoke-Native([scriptblock] $Block) {
     try { & $Block } finally { $ErrorActionPreference = $previous }
 }
 
+# Reports contain setup diagnostics only, never an environment dump or credential-bearing URLs.
+function Protect-DiagnosticText([string] $Text) {
+    $Text = $Text -replace '(?i)(https?://)[^/\s@]+@', '$1[redacted]@'
+    $Text = $Text -replace '(?i)(Bearer\s+)[A-Za-z0-9._~+/=-]+', '$1[redacted]'
+    $Text = $Text -replace '(?i)((?:token|access[_-]?token|api[_-]?key|secret|password|_authToken|authorization)[\s"\x27]*[:=][\s"\x27]*)([^\s"\x27]+)', '$1[redacted]'
+    return $Text
+}
+
 function Write-Log([string] $Text) {
-    Add-Content -LiteralPath $script:LogFile -Value ("{0} {1}" -f (Get-Date -Format o), $Text) -Encoding UTF8
+    Add-Content -LiteralPath $script:LogFile -Value ("{0} {1}" -f (Get-Date -Format o), (Protect-DiagnosticText $Text)) -Encoding UTF8
 }
 
 # UTF-16 INI results remain readable by Inno Setup when paths/errors contain Unicode.
@@ -69,7 +78,27 @@ function Write-InstallerData([string] $Path, [string] $Section, [hashtable] $Val
 }
 
 function Write-InstallerResult([int] $Code, [string] $Stage, [string] $Message, [string] $NextAction) {
-    Write-InstallerData $ResultFile 'Result' @{ Code = $Code; Stage = $Stage; Message = $Message; NextAction = $NextAction; LogFile = $script:LogFile }
+    $reportFile = $script:LogFile + '.report.txt'
+    $report = @(
+        'Promptbook Windows installer report'
+        "Version: $PromptbookVersion"
+        ("Time: {0}" -f (Get-Date -Format o))
+        ("Windows: {0}; process: {1}-bit" -f [Environment]::OSVersion.VersionString, ([IntPtr]::Size * 8))
+        "PowerShell: $($PSVersionTable.PSVersion)"
+        "Stage: $Stage"
+        "Exit code: $Code"
+        "Message: $Message"
+        "Next action: $NextAction"
+        "Projects root: $ProjectsRoot"
+        "Project name: $ProjectName"
+        "Skip project: $SkipProject"
+        "Diagnostics: $script:LogFile"
+        ''
+        'Recent bootstrap diagnostics:'
+    )
+    if (Test-Path -LiteralPath $script:LogFile) { $report += @(Get-Content -LiteralPath $script:LogFile -Tail 160) }
+    [IO.File]::WriteAllText($reportFile, (Protect-DiagnosticText ($report -join [Environment]::NewLine)), (New-Object Text.UTF8Encoding($true)))
+    Write-InstallerData $ResultFile 'Result' @{ Code = $Code; Stage = $Stage; Message = (Protect-DiagnosticText $Message); NextAction = $NextAction; LogFile = $script:LogFile; ReportFile = $reportFile }
 }
 
 function Write-Step([string] $Text) {
@@ -262,10 +291,84 @@ function ConvertTo-PowerShellLiteral([string] $Text) {
     return "'" + $Text.Replace("'", "''") + "'"
 }
 
+
+# Record every existing ancestor's type so a file, inaccessible directory or broken link is diagnosable.
+function Write-ProjectPathDiagnostics([string] $Path) {
+    $current = $Path
+    while ($current) {
+        try {
+            $attributes = [IO.File]::GetAttributes($current)
+            Write-Log "PATH $current | $attributes"
+        } catch {
+            Write-Log "PATH $current | $($_.Exception.GetBaseException().Message)"
+        }
+        $parent = [IO.Path]::GetDirectoryName($current)
+        if ($parent -eq $current) { break }
+        $current = $parent
+    }
+}
+
+# Use .NET filesystem operations throughout: literal Unicode paths and all missing parents, independent of
+# PowerShell provider wildcard handling. CreateNew never replaces a file, including the writability probe.
+function Assert-WritableDirectory([string] $Path) {
+    Write-ProjectPathDiagnostics $Path
+    [IO.Directory]::CreateDirectory($Path) | Out-Null
+    $probe = [IO.Path]::Combine($Path, ('.ptbk-write-test-' + [guid]::NewGuid().ToString('N')))
+    $stream = $null
+    $created = $false
+    try {
+        $stream = [IO.File]::Open($probe, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+        $created = $true
+        $stream.WriteByte(0)
+        $stream.Flush()
+    } finally {
+        if ($null -ne $stream) { $stream.Dispose() }
+        if ($created) { [IO.File]::Delete($probe) }
+    }
+}
+
+# The same preflight is used by Setup before installation and by unattended/repeated bootstrap runs.
+# It creates only the ordinary root; the first project is created after required software is verified.
+function Get-ProjectDestination {
+    $script:CurrentStage = 'Projects folder'
+    if ([string]::IsNullOrWhiteSpace($ProjectsRoot)) { throw 'Choose a projects folder.' }
+    $root = [IO.Path]::GetFullPath($ProjectsRoot)
+    $script:CurrentStage = 'Project name'
+    if (-not (Test-ValidFolderName $ProjectName)) { throw "'$ProjectName' is not a valid Windows folder name. Choose a plain folder name without reserved names or a trailing dot." }
+    $target = [IO.Path]::Combine($root, $ProjectName)
+    $rootPrefix = $root.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    if (-not [IO.Path]::GetFullPath($target).StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw "'$ProjectName' points outside $root." }
+    $script:CurrentStage = 'Projects folder'
+    if (-not $Plan) { Assert-WritableDirectory $root }
+    $script:CurrentStage = 'Project folder'
+    if ([IO.File]::Exists($target)) { throw "$target is a file. Choose another project name; the file was kept." }
+    if ([IO.Directory]::Exists($target)) {
+        if (([IO.File]::GetAttributes($target) -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "$target is a directory link. Choose an ordinary project folder inside the projects root." }
+        if (@([IO.Directory]::EnumerateFileSystemEntries($target)).Count -gt 0) { throw "$target already exists and is not empty; nothing in it was changed. Choose another project name, or resume it with ptbk init." }
+        if (-not $Plan) { Assert-WritableDirectory $target }
+    }
+    return @{ Root = $root; Target = $target }
+}
+
 # Preserve unexpected PowerShell/.NET failures as actionable installer results, too.
 trap {
     Write-Log "Unexpected error at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.Message)"
     Stop-Bootstrap 5 $script:CurrentStage $_.Exception.Message 'Review the diagnostics and click Retry.'
+}
+
+# Folder problems are found before downloading or changing any software. Skipping a project needs no root.
+$destination = $null
+if (-not $DetectOnly -and -not $SkipProject) {
+    try { $destination = Get-ProjectDestination }
+    catch {
+        Write-Log $_.Exception.ToString()
+        Stop-Bootstrap 4 $script:CurrentStage ($_.Exception.GetBaseException().Message) 'Choose a writable projects folder or another project name, then retry.'
+    }
+}
+if ($ValidateProjectsOnly) {
+    Write-InstallerResult 0 'Project destination checked' 'The selected destination is available.' ''
+    if ($destination) { Write-InstallerData $DetectionFile 'Destination' @{ Root = $destination.Root; Target = $destination.Target } }
+    exit 0
 }
 
 Update-SessionPath
@@ -390,20 +493,6 @@ if ($DesktopPath) {
     }
 }
 
-# 4. The projects folder: an ordinary container, never a project or Git repository itself.
-Write-Step 'Projects folder'
-$root = [System.IO.Path]::GetFullPath($ProjectsRoot)
-if ($Plan) { Write-Detail "PLAN: use $root" }
-else {
-    try {
-        New-Item -ItemType Directory -Force -Path $root | Out-Null
-        $probe = Join-Path $root ('.ptbk-write-test-' + [guid]::NewGuid().ToString('N'))
-        Set-Content -LiteralPath $probe -Value 'ok' -Encoding ASCII
-        Remove-Item -LiteralPath $probe -Force
-    } catch { Stop-Bootstrap 4 'Projects folder' "$root cannot be created or written: $($_.Exception.Message)" 'Choose another projects folder.' }
-    Write-Detail $root
-}
-
 if ($SkipProject) {
     if ($DesktopPath -and -not $Plan -and -not $NoLaunch) {
         try { Start-Process -FilePath $DesktopPath -ArgumentList @('--skip-init') | Out-Null }
@@ -411,28 +500,30 @@ if ($SkipProject) {
     }
     Write-Host ''
     Write-Host 'Promptbook is installed. No project was created.' -ForegroundColor Green
-    Write-Host "To start one later: create an empty folder (for example in $root), open a terminal there and run: ptbk init"
+    Write-Host 'To start one later: open a terminal in an empty folder and run: ptbk init'
     Write-Log 'Done: project skipped.'
     Write-InstallerResult 2 'Complete' 'Promptbook is installed. No project was created.' ''
     exit 2
 }
 
-# 5. One empty child folder for the first project (never overwriting or reinitializing existing content).
-Write-Step 'First project folder'
-if (-not (Test-ValidFolderName $ProjectName)) { Stop-Bootstrap 4 'Project name' "'$ProjectName' is not a valid Windows folder name." 'Choose another name (no \ / : * ? " < > | and no reserved names).' }
-$target = Join-Path $root $ProjectName
-# A plain prefix comparison: -like would treat [ and ] in folder names as wildcards.
-$rootPrefix = $root.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
-if (-not [System.IO.Path]::GetFullPath($target).StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) { Stop-Bootstrap 4 'Project name' "'$ProjectName' points outside $root." 'Choose a plain folder name.' }
-if (Test-Path -LiteralPath $target) {
-    if (Get-ChildItem -LiteralPath $target -Force | Select-Object -First 1) {
-        Stop-Bootstrap 4 'Project folder' "$target already exists and is not empty; nothing in it was changed." 'Choose another project name. (To continue a started setup there, open a terminal in it and run ptbk init.)'
+# 4/5. Recheck after preparation; never hand off a missing, unwritable or newly nonempty destination.
+Write-Step 'Projects folder'
+try {
+    $destination = Get-ProjectDestination
+    $root = $destination.Root
+    $target = $destination.Target
+    if ($Plan) { Write-Detail "PLAN: use $root" } else { Write-Detail $root }
+    Write-Step 'First project folder'
+    if ($Plan) { Write-Detail "PLAN: create or reuse the empty folder $target" }
+    else {
+        $script:CurrentStage = 'Project folder'
+        Assert-WritableDirectory $target
+        if (@([IO.Directory]::EnumerateFileSystemEntries($target)).Count -gt 0) { throw "$target is no longer empty; nothing in it was changed." }
+        Write-Detail "Prepared the empty folder $target"
     }
-    Write-Detail "Reusing the existing empty folder $target"
-} elseif ($Plan) { Write-Detail "PLAN: create $target" }
-else {
-    New-Item -ItemType Directory -Path $target | Out-Null
-    Write-Detail "Created $target"
+} catch {
+    Write-Log $_.Exception.ToString()
+    Stop-Bootstrap 4 $script:CurrentStage ($_.Exception.GetBaseException().Message) 'Choose a writable projects folder or another project name, then retry.'
 }
 
 # 6. Hand off to the ordinary interactive initializer in a visible terminal that stays open.

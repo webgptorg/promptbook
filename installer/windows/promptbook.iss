@@ -84,10 +84,30 @@ var
   PreparationOutput: String;
   ResultFilePath: String;
   LastFailure: String;
+  FinishedReportButton: TNewButton;
 
+
+#include "report-dialog.iss"
+
+{ Windows argv quoting must double trailing backslashes before the closing quote (including drive roots). }
 function Quoted(Value: String): String;
+var
+  I, J, Slashes, Count: Integer;
 begin
-  Result := '"' + Value + '"';
+  Result := '"';
+  Slashes := 0;
+  for I := 1 to Length(Value) do
+    if Value[I] = '\' then Slashes := Slashes + 1
+    else
+    begin
+      Count := Slashes;
+      if Value[I] = '"' then Count := Slashes * 2 + 1;
+      for J := 1 to Count do Result := Result + '\';
+      Result := Result + Value[I];
+      Slashes := 0;
+    end;
+  for J := 1 to Slashes * 2 do Result := Result + '\';
+  Result := Result + '"';
 end;
 
 { All preparation output stays in Setup, including when PowerShell fails unexpectedly. }
@@ -170,7 +190,7 @@ begin
   if not RunPreparation(ExpandConstant('{tmp}\bootstrap.ps1'), ' -DetectOnly -DetectionFile ' + Quoted(DetectionFile), Code) or
     (Code <> 0) or not FileExists(DetectionFile) then
   begin
-    MsgBox(PreparationFailure('Required software could not be checked. Click Next to retry.'), mbError, MB_OK);
+    ShowFailure(PreparationFailure('Required software could not be checked. Click Next to retry.'), 'Back', False);
     Exit;
   end;
   Available := '';
@@ -184,7 +204,7 @@ begin
     Available := Available + 'Git ' + GetIniString('Prerequisites', 'GitVersion', '', DetectionFile) + #13#10
   else if GetIniInt('Prerequisites', 'GitNeedsRepair', 0, 0, 1, DetectionFile) = 1 then
   begin
-    MsgBox('Git is installed but does not run. Repair Git, then click Next to check again.', mbError, MB_OK);
+    ShowFailure('Git is installed but does not run. Repair Git, then click Next to check again.', 'Back', False);
     Exit;
   end
   else Required := Required + 'Git (required)' + #13#10;
@@ -198,42 +218,14 @@ begin
   Result := True;
 end;
 
-function IsValidFolderName(Name: String): Boolean;
-var
-  I: Integer;
-  Upper: String;
-begin
-  Result := (Length(Name) > 0) and (Trim(Name) = Name) and (Name[Length(Name)] <> '.') and (Name <> '.') and (Name <> '..');
-  for I := 1 to Length(Name) do
-    if Pos(Copy(Name, I, 1), '\/:*?"<>|') > 0 then Result := False;
-  Upper := Uppercase(Name);
-  if (Upper = 'CON') or (Upper = 'PRN') or (Upper = 'AUX') or (Upper = 'NUL') then Result := False;
-  if (Length(Upper) = 4) and ((Copy(Upper, 1, 3) = 'COM') or (Copy(Upper, 1, 3) = 'LPT')) and (Upper[4] >= '1') and (Upper[4] <= '9') then Result := False;
-end;
-
-function IsDirectoryEmpty(Path: String): Boolean;
-var
-  FindRec: TFindRec;
-begin
-  Result := True;
-  if FindFirst(AddBackslash(Path) + '*', FindRec) then
-  begin
-    try
-      repeat
-        if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
-        begin
-          Result := False;
-          Break;
-        end;
-      until not FindNext(FindRec);
-    finally
-      FindClose(FindRec);
-    end;
-  end;
-end;
-
 procedure InitializeWizard;
 begin
+  FinishedReportButton := TNewButton.Create(WizardForm);
+  FinishedReportButton.Parent := WizardForm;
+  FinishedReportButton.SetBounds(ScaleX(16), WizardForm.NextButton.Top, ScaleX(120), WizardForm.NextButton.Height);
+  FinishedReportButton.Caption := 'View report';
+  FinishedReportButton.OnClick := @FinishedReportClick;
+  FinishedReportButton.Visible := False;
   PreparationPage := CreateOutputMarqueeProgressPage('Preparing Promptbook', 'Required software and installation progress');
   PrerequisitesPage := CreateOutputMsgPage(wpSelectComponents, 'Required software', 'Checked on this computer', '');
   RootPage := CreateInputDirPage(PrerequisitesPage.ID, 'Projects folder', 'Where should your Promptbook projects live?',
@@ -254,7 +246,8 @@ end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
-  Target: String;
+  Code: Integer;
+  DestinationFile, Params: String;
 begin
   Result := True;
   if CurPageID = wpSelectComponents then
@@ -264,18 +257,18 @@ begin
   end;
   if (CurPageID = ProjectPage.ID) and not SkipBox.Checked then
   begin
-    if not IsValidFolderName(ProjectPage.Values[0]) then
+    DestinationFile := ExpandConstant('{tmp}\promptbook-destination.ini');
+    DeleteFile(DestinationFile);
+    Params := ' -ValidateProjectsOnly -DetectionFile ' + Quoted(DestinationFile) +
+      ' -ProjectsRoot ' + Quoted(RootPage.Values[0]) + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
+    if not RunPreparation(ExpandConstant('{tmp}\bootstrap.ps1'), Params, Code) or
+      (Code <> 0) or not FileExists(DestinationFile) then
     begin
-      MsgBox('Please enter a valid folder name (no \ / : * ? " < > | and no reserved names such as CON).', mbError, MB_OK);
+      ShowFailure(PreparationFailure('The project destination could not be checked. Choose another folder or name.'), 'Back', False);
       Result := False;
       Exit;
     end;
-    Target := AddBackslash(RootPage.Values[0]) + ProjectPage.Values[0];
-    if DirExists(Target) and not IsDirectoryEmpty(Target) then
-    begin
-      MsgBox('The folder ' + Target + ' already exists and is not empty. Nothing in it is changed; please choose another name.', mbError, MB_OK);
-      Result := False;
-    end;
+    RootPage.Values[0] := GetIniString('Destination', 'Root', RootPage.Values[0], DestinationFile);
   end;
 end;
 
@@ -294,9 +287,10 @@ end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var
-  Code: Integer;
+  Code, Decision: Integer;
   AllowReplace: Boolean;
   Done: Boolean;
+  Folder: String;
 begin
   if CurStep <> ssPostInstall then Exit;
   AllowReplace := False;
@@ -305,31 +299,28 @@ begin
   begin
     if not RunBootstrap(AllowReplace, Code) then
     begin
-      LastFailure := PreparationFailure('Windows PowerShell could not be started to prepare Promptbook.');
-      if MsgBox(LastFailure + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then Done := True;
+      Done := ShowFailure(PreparationFailure('Windows PowerShell could not be started to prepare Promptbook.'), 'Retry', False) <> mrOk;
       Continue;
     end;
     case Code of
-      0: begin BootstrapSucceeded := True; Done := True; end;
-      2: begin
-           BootstrapSucceeded := True;
-           Done := True;
-         end;
+      0, 2: begin BootstrapSucceeded := True; Done := True; end;
       3: begin
            LastFailure := PreparationFailure('Another installed ptbk version was found.');
            if (not AllowReplace) and (GetIniString('Result', 'Stage', '', ResultFilePath) = 'ptbk version') and
-             (MsgBox(LastFailure + #13#10#13#10 + 'Replace the global ptbk with {#Version}? (Project-local installations are never touched.)', mbConfirmation, MB_YESNO) = IDYES) then
+             (ShowFailure(LastFailure + #13#10#13#10 + 'Replace the global ptbk with {#Version}? Project-local installations are never touched.', 'Replace', False) = mrOk) then
              AllowReplace := True
-           else
-           begin
-             Done := True;
-           end;
+           else Done := True;
          end;
     else
       begin
-        LastFailure := PreparationFailure('Promptbook was not fully prepared. Your files were kept.');
-        if MsgBox(LastFailure + #13#10#13#10 + 'Retry now?', mbError, MB_RETRYCANCEL) = IDCANCEL then
-          Done := True;
+        Decision := ShowFailure(PreparationFailure('Promptbook was not fully prepared. Your files were kept.'), 'Retry', Code = 4);
+        if Decision = mrYes then
+        begin
+          Folder := RootPage.Values[0];
+          if BrowseForFolder('Choose a writable projects folder', Folder, False) then RootPage.Values[0] := Folder
+          else Done := True;
+        end
+        else if Decision <> mrOk then Done := True;
       end;
     end;
   end;
@@ -337,6 +328,7 @@ end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
+  FinishedReportButton.Visible := (CurPageID = wpFinished) and not BootstrapSucceeded;
   if (CurPageID = wpFinished) and not BootstrapSucceeded then
   begin
     WizardForm.FinishedHeadingLabel.Caption := 'Promptbook installation was not completed';

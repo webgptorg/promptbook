@@ -62,7 +62,7 @@ async function runPowerShell(shell, args, env) {
 test('Windows installer sources and PowerShell workflow steps are pure ASCII (BOM-less files are read as ANSI on Windows)', async () => {
     // Windows PowerShell 5.1 and Inno Setup read a file without a BOM as ANSI: an em dash (E2 80 94) then contains a
     // right double quotation mark, which PowerShell treats as a string delimiter and the whole script fails to parse.
-    for (const file of ['installer/windows/bootstrap.ps1', 'installer/windows/promptbook.iss', 'test/fixtures/installer-functions.ps1', '.github/workflows/check.yml', '.github/workflows/publish.yml']) {
+    for (const file of ['installer/windows/bootstrap.ps1', 'installer/windows/promptbook.iss', 'installer/windows/report-dialog.iss', 'test/fixtures/installer-dialog.iss', 'test/fixtures/installer-dialog.ps1', 'test/fixtures/installer-functions.ps1', '.github/workflows/check.yml', '.github/workflows/publish.yml']) {
         const content = await readFile(join(ROOT, file));
         const offset = content.findIndex((byte) => byte > 0x7f);
         const line = offset < 0 ? 0 : content.subarray(0, offset).toString('latin1').split('\n').length;
@@ -236,5 +236,122 @@ test('a previously prepared private Node runtime is reused despite a stale incom
         const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'reuse'], env);
         assert.equal(result.code, 0, result.output);
         assert.match(result.output, /Private runtime reused/);
+    }
+});
+
+
+test('project preflight creates all missing root parents literally and does not create or initialize the first project', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const resultFile = join(directory, 'result.ini');
+        const detection = join(directory, 'destination.ini');
+        // No -ProjectsRoot: exercise the exact multi-level home/ptbk/project default in the screenshot.
+        const args = [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-ValidateProjectsOnly', '-IsolatedPath', '-DetectionFile', detection, '-ResultFile', resultFile];
+        for (let attempt = 0; attempt < 2; attempt++) {
+            const result = await runPowerShell(shell, args, env);
+            assert.equal(result.code, 0, result.output);
+            const destination = await installerData(detection);
+            assert.equal(destination.Root, join(env.USERPROFILE, 'ptbk', 'project'));
+            assert.deepEqual(await readdir(destination.Root), [], 'no probe files, Git metadata or implicit project');
+            await assert.rejects(readdir(destination.Target), { code: 'ENOENT' });
+            const actual = await installerData(resultFile);
+            const report = await readFile(actual.ReportFile, 'utf8');
+            assert.match(report, /Version: 0\.0\.0-test/);
+            assert.match(report, /PowerShell: /);
+            assert.match(report, /Exit code: 0/);
+            assert.doesNotMatch(result.output, /Promptbook CLI ptbk|Downloading/);
+        }
+    }
+});
+
+test('folder errors are reported before software changes and retain the conflicting user file', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) for (const conflict of ['ancestor', 'root', 'project-file', 'nonempty', 'linked-project']) await t.test(shell + ': ' + conflict, async (t) => {
+        const { directory, env } = await isolatedUser(t);
+        const root = join(env.USERPROFILE, 'ptbk', 'project');
+        const target = join(root, 'first project');
+        let sentinel;
+        if (conflict === 'ancestor') {
+            sentinel = join(env.USERPROFILE, 'ptbk');
+        } else if (conflict === 'root') {
+            await mkdir(join(env.USERPROFILE, 'ptbk'));
+            sentinel = root;
+        } else {
+            await mkdir(root, { recursive: true });
+            if (conflict === 'linked-project') {
+                const outside = join(directory, 'outside');
+                await mkdir(outside);
+                await symlink(outside, target, process.platform === 'win32' ? 'junction' : 'dir');
+                sentinel = join(outside, 'keep.txt');
+            } else if (conflict === 'nonempty') {
+                await mkdir(target);
+                sentinel = join(target, 'keep.txt');
+            } else sentinel = target;
+        }
+        await writeFile(sentinel, 'user file preserved');
+        const resultFile = join(directory, 'result.ini');
+        // A real bootstrap run, without Plan or ValidateProjectsOnly, must fail before even probing tools.
+        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-ProjectName', 'first project', '-IsolatedPath', '-ResultFile', resultFile], env);
+        assert.equal(result.code, 4, result.output);
+        const actual = await installerData(resultFile);
+        assert.equal(actual.Code, '4');
+        assert.match(actual.Stage, /^Projects? folder$/);
+        assert.match(actual.NextAction, /Choose/);
+        assert.doesNotMatch(result.output, /Node\.js and npm|Promptbook CLI ptbk|Downloading/);
+        assert.equal(await readFile(sentinel, 'utf8'), 'user file preserved');
+        const report = await readFile(actual.ReportFile, 'utf8');
+        assert.ok(report.includes(actual.Message), report);
+        assert.ok(report.includes(root), report);
+        assert.match(report, /PATH .*ptbk/);
+    });
+});
+
+test('the same preflight refuses Windows device names, traversal and trailing dots before creating a root', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) for (const name of ['..', 'CON.txt', 'aux', 'LPT1.log', 'outside/child', 'trailing.']) {
+        const { directory, env } = await isolatedUser(t);
+        const resultFile = join(directory, 'result.ini');
+        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-ProjectName', name, '-ValidateProjectsOnly', '-ResultFile', resultFile], env);
+        assert.equal(result.code, 4, shell + ': ' + name + ': ' + result.output);
+        assert.equal((await installerData(resultFile)).Stage, 'Project name');
+        await assert.rejects(readdir(join(env.USERPROFILE, 'ptbk')), { code: 'ENOENT' });
+    }
+});
+
+test('project skip does not validate or create a projects root', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const blockedRoot = join(env.USERPROFILE, 'ptbk');
+        await writeFile(blockedRoot, 'kept');
+        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-SkipProject', '-Plan', '-IsolatedPath'], env);
+        assert.equal(result.code, 2, result.output);
+        assert.equal(await readFile(blockedRoot, 'utf8'), 'kept');
+    }
+});
+
+test('report sanitization removes credentials while keeping useful Windows path diagnostics', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const wrapper = join(directory, 'report.ps1');
+        await writeFile(wrapper, [
+            'param([string] $Bootstrap)',
+            '$tokens = $null; $errors = $null',
+            '$ast = [Management.Automation.Language.Parser]::ParseFile($Bootstrap, [ref] $tokens, [ref] $errors)',
+            "foreach ($f in $ast.FindAll({ param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) { . ([scriptblock]::Create($f.Extent.Text)) }",
+            "Protect-DiagnosticText 'https://user:fixture-secret@registry.invalid/npm?token=fixture-token api_key=fixture-key Authorization: Bearer fixture-bearer C:\\Users\\test\\ptbk\\project'",
+        ].join('\n'));
+        const result = await runPowerShell(shell, [wrapper, '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1')], env);
+        assert.equal(result.code, 0, result.output);
+        assert.doesNotMatch(result.output, /fixture-secret|fixture-token|fixture-key|fixture-bearer/);
+        assert.match(result.output, /C:\\Users\\test\\ptbk\\project/);
+        assert.match(result.output, /\[redacted\]/);
     }
 });
