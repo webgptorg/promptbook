@@ -20,7 +20,10 @@ var
 
 #include "..\..\installer\windows\report-dialog.iss"
 
-function InitializeSetup: Boolean;
+procedure ExitProcess(Code: Cardinal);
+  external 'ExitProcess@kernel32.dll stdcall';
+
+procedure InitializeWizard;
 var
   Work: String;
   Decisions: String;
@@ -33,5 +36,5 @@ begin
   ResultFilePath := '';
   Decisions := Decisions + ',' + IntToStr(ShowFailure('Windows PowerShell could not be started.', 'Retry', False));
   SaveStringToFile(AddBackslash(Work) + 'decisions.txt', Decisions, False);
-  Result := False;
+  ExitProcess(0);
 end;

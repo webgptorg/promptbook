@@ -15,6 +15,7 @@ using System.Runtime.InteropServices;
 public static class InstallerDialogNative {
     public delegate bool EnumProc(IntPtr h, IntPtr p);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr FindWindow(string cls, string title);
+    [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc callback, IntPtr p);
     [DllImport("user32.dll")] public static extern bool EnumChildWindows(IntPtr parent, EnumProc callback, IntPtr p);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr h, StringBuilder text, int capacity);
     [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr h, uint msg, IntPtr w, IntPtr l);
@@ -40,6 +41,15 @@ function Wait-Dialog {
         if ($window -ne [IntPtr]::Zero) { return $window }
         Start-Sleep -Milliseconds 100
     } while ([DateTime]::UtcNow -lt $deadline)
+    [InstallerDialogNative]::EnumWindows({
+        param($handle, $unused)
+        $text = New-Object Text.StringBuilder 4096
+        [InstallerDialogNative]::GetWindowText($handle, $text, $text.Capacity) | Out-Null
+        if ($text.Length -gt 0) { Write-Host ("Window: " + $text.ToString()) }
+        return $true
+    }, [IntPtr]::Zero) | Out-Null
+    $setupLog = Join-Path $WorkDirectory 'setup.log'
+    if (Test-Path -LiteralPath $setupLog) { Get-Content -LiteralPath $setupLog | Write-Host }
     throw 'The compiled installer did not show its report dialog.'
 }
 
@@ -77,7 +87,7 @@ function Read-CopiedReport([IntPtr] $Window, [string] $Expected) {
     throw "The native clipboard did not receive the expected report: $text"
 }
 
-$process = Start-Process -FilePath $Executable -ArgumentList @('/SP-', ('/FixtureRoot="' + $WorkDirectory + '"')) -WindowStyle Hidden -PassThru
+$process = Start-Process -FilePath $Executable -ArgumentList @('/SP-', ('/LOG="' + (Join-Path $WorkDirectory 'setup.log') + '"'), ('/FixtureRoot="' + $WorkDirectory + '"')) -WindowStyle Normal -PassThru
 try {
     $window = Wait-Dialog
     $first = Read-CopiedReport $window 'Exit code: 4'
