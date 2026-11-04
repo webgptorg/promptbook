@@ -84,6 +84,8 @@ var
   PreparationOutput: String;
   ResultFilePath: String;
   LastFailure: String;
+  AutomaticProjectsRoot: Boolean;
+  SuggestedProjectsRoot: String;
   FinishedReportButton: TNewButton;
 
 
@@ -189,6 +191,15 @@ begin
     Exit;
   end
   else Required := Required + 'Git (required)' + #13#10;
+  if AutomaticProjectsRoot and (RootPage.Values[0] = SuggestedProjectsRoot) then
+  begin
+    SuggestedProjectsRoot := GetIniString('Prerequisites', 'DefaultProjectsRoot', SuggestedProjectsRoot, DetectionFile);
+    RootPage.Values[0] := SuggestedProjectsRoot;
+    if GetIniString('Prerequisites', 'DefaultProjectsRootReason', '', DetectionFile) <> '' then
+      RootPage.Description := 'A safe alternative was selected because the usual location is unavailable.'
+    else
+      RootPage.Description := 'Where should your Promptbook projects live?';
+  end;
   PrerequisitesPage.MsgLabel.Caption := '';
   if Available <> '' then PrerequisitesPage.MsgLabel.Caption := 'Already installed and ready:' + #13#10 + Available + #13#10;
   if Required <> '' then
@@ -213,7 +224,9 @@ begin
     'Promptbook keeps each project in its own folder inside this one. It is an ordinary folder, not a project itself.', False, '');
   RootPage.Add('');
   RootPage.Values[0] := ExpandConstant('{param:ProjectsRoot|}');
+  AutomaticProjectsRoot := RootPage.Values[0] = '';
   if RootPage.Values[0] = '' then RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\ptbk\project');
+  SuggestedProjectsRoot := RootPage.Values[0];
 
   ProjectPage := CreateInputQueryPage(RootPage.ID, 'First project', 'Create your first project',
     'An empty folder is created for it. The setup assistant (ptbk init) then asks what you are working on; the folder name is only a name.');
@@ -238,12 +251,15 @@ begin
     Result := DetectPrerequisites;
     Exit;
   end;
+  if (CurPageID = RootPage.ID) and (RootPage.Values[0] <> SuggestedProjectsRoot) then
+    AutomaticProjectsRoot := False;
   if (CurPageID = ProjectPage.ID) and not SkipBox.Checked then
   begin
     DestinationFile := ExpandConstant('{tmp}\promptbook-destination.ini');
     DeleteFile(DestinationFile);
     Params := ' -ValidateProjectsOnly -DetectionFile ' + Quoted(DestinationFile) +
-      ' -ProjectsRoot ' + Quoted(RootPage.Values[0]) + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
+      ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
+    if not AutomaticProjectsRoot then Params := Params + ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
     if not RunPreparation(ExpandConstant('{tmp}\bootstrap.ps1'), Params, Code) or
       (Code <> 0) or not FileExists(DestinationFile) then
     begin
@@ -252,6 +268,7 @@ begin
       Exit;
     end;
     RootPage.Values[0] := GetIniString('Destination', 'Root', RootPage.Values[0], DestinationFile);
+    if AutomaticProjectsRoot then SuggestedProjectsRoot := RootPage.Values[0];
   end;
 end;
 
@@ -259,7 +276,8 @@ function RunBootstrap(AllowReplacement: Boolean; var Code: Integer): Boolean;
 var
   Params: String;
 begin
-  Params := ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
+  Params := '';
+  if not AutomaticProjectsRoot then Params := ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
   if SkipBox.Checked then Params := Params + ' -SkipProject'
   else Params := Params + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
   if AllowReplacement then Params := Params + ' -AllowPtbkReplacement';
@@ -267,6 +285,8 @@ begin
   if WizardIsComponentSelected('desktop') then Params := Params + ' -DesktopPath ' + Quoted(ExpandConstant('{app}\desktop\promptbook.exe'));
   { The process-scoped execution policy applies to this one bootstrap script only; no machine policy is changed. }
   Result := RunPreparation(ExpandConstant('{app}\bootstrap.ps1'), Params, Code);
+  RootPage.Values[0] := GetIniString('Result', 'ProjectsRoot', RootPage.Values[0], ResultFilePath);
+  if AutomaticProjectsRoot then SuggestedProjectsRoot := RootPage.Values[0];
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -301,7 +321,11 @@ begin
         if Decision = mrYes then
         begin
           Folder := RootPage.Values[0];
-          if BrowseForFolder('Choose a writable projects folder', Folder, False) then RootPage.Values[0] := Folder
+          if BrowseForFolder('Choose a writable projects folder', Folder, False) then
+          begin
+            RootPage.Values[0] := Folder;
+            AutomaticProjectsRoot := False;
+          end
           else Done := True;
         end
         else if Decision <> mrOk then Done := True;

@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { lstatSync, readFileSync, statSync } from 'node:fs';
 import { lchown, lstat, readdir } from 'node:fs/promises';
 import { homedir, userInfo } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -96,13 +96,47 @@ export function intendedUser(env: NodeJS.ProcessEnv = process.env): IntendedUser
 }
 
 /**
- * The shared home-based container of new projects: exactly `<home>/ptbk/project/` (lowercase `ptbk`, singular
- * `project`, one child per independent project). It is only a filesystem container, never a project or repository.
+ * Selects an available home-based projects container without changing existing files. When a file blocks
+ * `<home>/ptbk/project`, try `ptbk-projects`, then numbered siblings. Preserve permission and other OS errors.
+ *
+ * @private shared default-location policy, including the pre-Node Windows installer
+ */
+export function projectsRootForHome(home: string): string {
+    /** Checks existing ancestors without creating a directory or replacing an occupied item. */
+    const available = (path: string): boolean => {
+        for (let current = path; ; current = dirname(current)) {
+            try {
+                const entry = lstatSync(current);
+                if (!entry.isSymbolicLink()) return entry.isDirectory();
+                try {
+                    return statSync(current).isDirectory();
+                } catch (error) {
+                    if (['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) return false;
+                    throw error;
+                }
+            } catch (error) {
+                const code = (error as NodeJS.ErrnoException).code;
+                if (code === 'ENOTDIR') return false;
+                if (code !== 'ENOENT') throw error;
+                if (dirname(current) === current) throw error;
+            }
+        }
+    };
+    for (let index = 0; index < 100; index++) {
+        const candidate = index === 0 ? join(home, 'ptbk', 'project') : join(home, index === 1 ? 'ptbk-projects' : `ptbk-projects-${index}`);
+        if (available(candidate)) return candidate;
+    }
+    throw new Error('No available home-based projects location was found. Choose a projects folder explicitly.');
+}
+
+/**
+ * The shared home-based container for new projects, with a non-destructive fallback when a file blocks the preferred
+ * `<home>/ptbk/project/`. This is only a filesystem container, never a project or repository.
  *
  * @private user home and identity
  */
 export function sharedProjectsRoot(env: NodeJS.ProcessEnv = process.env): string {
-    return join(intendedUser(env).home, 'ptbk', 'project');
+    return projectsRootForHome(intendedUser(env).home);
 }
 
 /**

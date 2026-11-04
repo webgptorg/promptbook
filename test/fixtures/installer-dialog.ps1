@@ -31,7 +31,7 @@ $env:USERPROFILE = Join-Path $WorkDirectory 'home'
 [IO.Directory]::CreateDirectory($env:USERPROFILE) | Out-Null
 [IO.File]::WriteAllText((Join-Path $env:USERPROFILE 'ptbk'), 'user file kept')
 $resultFile = Join-Path $WorkDirectory 'result.ini'
-& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $Bootstrap -PromptbookVersion '0.0.0-test' -ResultFile $resultFile -NoLaunch
+& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $Bootstrap -PromptbookVersion '0.0.0-test' -ProjectsRoot (Join-Path $env:USERPROFILE 'ptbk\project') -ResultFile $resultFile -NoLaunch
 if ($LASTEXITCODE -ne 4) { throw "Expected folder refusal before prerequisites, got $LASTEXITCODE" }
 $global:LASTEXITCODE = 0
 

@@ -46,6 +46,9 @@ $script:LogFile = Join-Path $script:LogDirectory ("bootstrap-{0}-{1}.log" -f (Ge
 $script:Step = 0
 $script:Total = if ($SkipProject) { 4 } else { 6 }
 $script:CurrentStage = 'Starting preparation'
+$script:AutomaticProjectsRoot = -not $PSBoundParameters.ContainsKey('ProjectsRoot')
+$script:DeferProjectsRootCreation = $script:AutomaticProjectsRoot
+$script:DefaultProjectsRootReason = ''
 
 # Native programs may write progress to stderr; in Windows PowerShell 5.1 that must not become a terminating error.
 function Invoke-Native([scriptblock] $Block) {
@@ -90,6 +93,8 @@ function Write-InstallerResult([int] $Code, [string] $Stage, [string] $Message, 
         "Message: $Message"
         "Next action: $NextAction"
         "Projects root: $ProjectsRoot"
+        "Automatic projects root: $script:AutomaticProjectsRoot"
+        "Default location choice: $script:DefaultProjectsRootReason"
         "Project name: $ProjectName"
         "Skip project: $SkipProject"
         "Diagnostics: $script:LogFile"
@@ -98,7 +103,7 @@ function Write-InstallerResult([int] $Code, [string] $Stage, [string] $Message, 
     )
     if (Test-Path -LiteralPath $script:LogFile) { $report += @(Get-Content -LiteralPath $script:LogFile -Tail 160) }
     [IO.File]::WriteAllText($reportFile, (Protect-DiagnosticText ($report -join [Environment]::NewLine)), (New-Object Text.UTF8Encoding($true)))
-    Write-InstallerData $ResultFile 'Result' @{ Code = $Code; Stage = $Stage; Message = (Protect-DiagnosticText $Message); NextAction = $NextAction; LogFile = $script:LogFile; ReportFile = $reportFile }
+    Write-InstallerData $ResultFile 'Result' @{ Code = $Code; Stage = $Stage; Message = (Protect-DiagnosticText $Message); NextAction = $NextAction; LogFile = $script:LogFile; ReportFile = $reportFile; ProjectsRoot = $ProjectsRoot }
 }
 
 function Write-Step([string] $Text) {
@@ -293,6 +298,50 @@ function ConvertTo-PowerShellLiteral([string] $Text) {
     return "'" + $Text.Replace("'", "''") + "'"
 }
 
+# Read-only discovery: a file or unavailable link cannot be a directory ancestor. Never remove it.
+function Get-DirectoryBlocker([string] $Path) {
+    $current = [IO.Path]::GetFullPath($Path)
+    while ($current) {
+        try {
+            $attributes = [IO.File]::GetAttributes($current)
+            if (($attributes -band [IO.FileAttributes]::Directory) -eq 0 -or -not [IO.Directory]::Exists($current)) { return $current }
+            return ''
+        } catch {
+            $cause = $_.Exception.GetBaseException()
+            if ($cause -isnot [IO.FileNotFoundException] -and $cause -isnot [IO.DirectoryNotFoundException]) { throw }
+        }
+        $parent = [IO.Path]::GetDirectoryName($current)
+        if ($parent -eq $current) { break }
+        $current = $parent
+    }
+    return ''
+}
+
+# Match the CLI's home-based default policy. Only an implicit default may use another safe sibling.
+# Reserve npm's extensionless ptbk launcher even before npm creates it (a custom global prefix may be home).
+function Get-DefaultProjectsRoot([string] $HomeDirectory, [string] $NpmPrefix = '') {
+    $preferred = [IO.Path]::Combine([IO.Path]::Combine($HomeDirectory, 'ptbk'), 'project')
+    $reserved = if ($NpmPrefix) { [IO.Path]::GetFullPath([IO.Path]::Combine($NpmPrefix, 'ptbk')) } else { '' }
+    $reason = ''
+    foreach ($index in 0..99) {
+        $candidate = if ($index -eq 0) { $preferred } elseif ($index -eq 1) { [IO.Path]::Combine($HomeDirectory, 'ptbk-projects') } else { [IO.Path]::Combine($HomeDirectory, "ptbk-projects-$index") }
+        $blocker = Get-DirectoryBlocker $candidate
+        if (-not $blocker -and $reserved -and ($candidate.Equals($reserved, [StringComparison]::OrdinalIgnoreCase) -or $candidate.StartsWith($reserved + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase))) { $blocker = $reserved }
+        if (-not $blocker) { return @{ Root = $candidate; Reason = $reason } }
+        if ($index -eq 0) { $reason = "The usual projects location is blocked or reserved by a file at $blocker. Existing files are kept." }
+    }
+    throw 'No available home-based projects location was found. Choose a projects folder explicitly.'
+}
+
+# npm itself resolves its configuration; do not parse credential-bearing .npmrc files.
+function Get-GlobalNpmPrefix($NpmTool) {
+    if (-not $NpmTool -or -not $NpmTool.Usable) { return '' }
+    $global:LASTEXITCODE = 0
+    $prefix = ([string] (Invoke-Native { & $NpmTool.Path prefix --global 2>$null })).Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $prefix) { throw 'The npm global installation folder could not be determined.' }
+    return [IO.Path]::GetFullPath($prefix)
+}
+
 
 # Record every existing ancestor's type so a file, inaccessible directory or broken link is diagnosable.
 function Write-ProjectPathDiagnostics([string] $Path) {
@@ -341,7 +390,20 @@ function Get-ProjectDestination {
     $rootPrefix = $root.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
     if (-not [IO.Path]::GetFullPath($target).StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw "'$ProjectName' points outside $root." }
     $script:CurrentStage = 'Projects folder'
-    if (-not $Plan) { Assert-WritableDirectory $root }
+    if (-not $Plan) {
+        $blocker = Get-DirectoryBlocker $root
+        if ($blocker) { Write-ProjectPathDiagnostics $root; throw "$blocker is a file or unavailable link, not a projects directory. Nothing in it was changed." }
+        $probeRoot = $root
+        # Before npm's prefix is known, do not create a directory where npm may need its ptbk launcher.
+        if ($script:DeferProjectsRootCreation) {
+            while (-not [IO.Directory]::Exists($probeRoot)) {
+                $parent = [IO.Path]::GetDirectoryName($probeRoot)
+                if (-not $parent -or $parent -eq $probeRoot) { throw "The parent drive or share of $root is unavailable. Choose another projects folder." }
+                $probeRoot = $parent
+            }
+        }
+        Assert-WritableDirectory $probeRoot
+    }
     $script:CurrentStage = 'Project folder'
     if ([IO.File]::Exists($target)) { throw "$target is a file. Choose another project name; the file was kept." }
     if ([IO.Directory]::Exists($target)) {
@@ -359,6 +421,14 @@ trap {
 }
 
 # Folder problems are found before downloading or changing any software. Skipping a project needs no root.
+Update-SessionPath
+$defaultRuntime = $null
+if ($script:AutomaticProjectsRoot -and -not $SkipProject) {
+    $defaultRuntime = Get-NodeRuntime
+    $choice = Get-DefaultProjectsRoot $env:USERPROFILE (Get-GlobalNpmPrefix $defaultRuntime.Npm)
+    $ProjectsRoot = $choice.Root
+    $script:DefaultProjectsRootReason = $choice.Reason
+}
 $destination = $null
 if (-not $DetectOnly -and -not $SkipProject) {
     try { $destination = Get-ProjectDestination }
@@ -373,12 +443,12 @@ if ($ValidateProjectsOnly) {
     exit 0
 }
 
-Update-SessionPath
 if ($DetectOnly) {
     $script:CurrentStage = 'Checking required software'
     if (-not $DetectionFile) { throw 'Detection requires -DetectionFile.' }
-    $runtime = Get-NodeRuntime
+    $runtime = if ($defaultRuntime) { $defaultRuntime } else { Get-NodeRuntime }
     $gitTool = Get-Tool 'git' @('--version')
+    $choice = Get-DefaultProjectsRoot $env:USERPROFILE (Get-GlobalNpmPrefix $runtime.Npm)
     Write-InstallerData $DetectionFile 'Prerequisites' @{
         NodeReady = [int] $runtime.Ready
         NodeVersion = if ($runtime.Node) { [string] $runtime.Node.Version } else { '' }
@@ -386,6 +456,8 @@ if ($DetectOnly) {
         GitReady = [int] [bool] ($gitTool -and $gitTool.Usable)
         GitVersion = if ($gitTool) { [string] $gitTool.Version } else { '' }
         GitNeedsRepair = [int] [bool] ($gitTool -and -not $gitTool.Usable)
+        DefaultProjectsRoot = $choice.Root
+        DefaultProjectsRootReason = $choice.Reason
     }
     Write-InstallerResult 0 'Checking required software' 'Required software checked.' ''
     exit 0
@@ -433,6 +505,13 @@ if (-not $gitTool) {
 if ($gitTool) { Write-Detail "Git $($gitTool.Version) at $($gitTool.Path)" }
 
 # 3. The exact advertised ptbk version, globally for this user (a different version is never replaced silently).
+# Resolve the default again with npm's actual prefix before package installation can create its launcher.
+if ($script:AutomaticProjectsRoot -and -not $SkipProject) {
+    $choice = Get-DefaultProjectsRoot $env:USERPROFILE (Get-GlobalNpmPrefix $npm)
+    $ProjectsRoot = $choice.Root
+    $script:DefaultProjectsRootReason = $choice.Reason
+    if ($choice.Reason) { Write-Detail "$($choice.Reason) Using $ProjectsRoot" }
+}
 Write-Step "Promptbook CLI ptbk $PromptbookVersion"
 $spec = if ($PackageSpec) { $PackageSpec } else { "ptbk@$PromptbookVersion" }
 if ($Plan) { Write-Detail "PLAN: npm install --global $spec" }
@@ -511,6 +590,7 @@ if ($SkipProject) {
 # 4/5. Recheck after preparation; never hand off a missing, unwritable or newly nonempty destination.
 Write-Step 'Projects folder'
 try {
+    $script:DeferProjectsRootCreation = $false
     $destination = Get-ProjectDestination
     $root = $destination.Root
     $target = $destination.Target

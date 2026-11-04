@@ -160,6 +160,43 @@ jobs:
           if ((Get-Content -LiteralPath (Join-Path $target 'keep.txt')) -ne 'user file') { throw 'user content changed' }
           # The runner ends every PowerShell step with `exit $LASTEXITCODE`: the expected refusal must not fail the step.
           $global:LASTEXITCODE = 0
+      - name: Defaults preserve legacy files and reserve npm launchers before real candidate installation
+        shell: powershell
+        run: |
+          $originalHome = $env:USERPROFILE
+          $originalPrefix = $env:NPM_CONFIG_PREFIX
+          try {
+            foreach ($kind in @('legacy', 'future-launcher')) {
+              $work = Join-Path $env:RUNNER_TEMP ('Default Root ' + $kind + ' ' + [char]0x00FC + ' [x] & co')
+              $env:USERPROFILE = Join-Path $work 'home'
+              [IO.Directory]::CreateDirectory($env:USERPROFILE) | Out-Null
+              $occupied = Join-Path $env:USERPROFILE 'ptbk'
+              if ($kind -eq 'legacy') {
+                [IO.File]::WriteAllText($occupied, 'legacy user file')
+                $env:NPM_CONFIG_PREFIX = Join-Path $work 'npm'
+              } else {
+                $env:NPM_CONFIG_PREFIX = $env:USERPROFILE
+              }
+              $result = Join-Path $work 'result.ini'
+              foreach ($attempt in 1..2) {
+                powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -PackageSpec $env:PTBK_TARBALL -NoLaunch -ResultFile $result
+                if ($LASTEXITCODE -ne 0) { throw "Default bootstrap $kind exited with $LASTEXITCODE" }
+                $target = Join-Path $env:USERPROFILE 'ptbk-projects\my-first-project'
+                if (-not (Test-Path -LiteralPath $target -PathType Container)) { throw 'The safe default project was not prepared.' }
+                if (Get-ChildItem -LiteralPath $target -Force) { throw 'The prepared project must remain empty.' }
+                if (-not [IO.File]::Exists($occupied)) { throw 'The existing or future npm launcher path must remain a file.' }
+                if ($kind -eq 'legacy' -and [IO.File]::ReadAllText($occupied) -ne 'legacy user file') { throw 'The legacy file was replaced.' }
+              }
+              $hash = (Get-FileHash -LiteralPath $occupied).Hash
+              powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -ProjectsRoot (Join-Path $env:USERPROFILE 'ptbk\project') -NoLaunch
+              if ($LASTEXITCODE -ne 4) { throw 'An explicitly selected blocked root must fail instead of moving elsewhere.' }
+              if ((Get-FileHash -LiteralPath $occupied).Hash -ne $hash) { throw 'Explicit-path validation changed the occupied file.' }
+              $global:LASTEXITCODE = 0
+            }
+          } finally {
+            $env:USERPROFILE = $originalHome
+            $env:NPM_CONFIG_PREFIX = $originalPrefix
+          }
       - name: The handed-off command initializes the prepared folder (non-interactive substitute of the terminal)
         shell: powershell
         run: |
@@ -213,6 +250,19 @@ jobs:
           $process = Start-Process -FilePath $installer -ArgumentList $skip -WindowStyle Hidden -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw 'Skipping a project must succeed even with an unusable projects root.' }
           if ([IO.File]::ReadAllText($blocked) -ne 'root file preserved') { throw 'Skipping touched the selected root.' }
+          # The exact reported case: the wizard's default home/ptbk is an old ordinary file.
+          $originalHome = $env:USERPROFILE
+          try {
+            $env:USERPROFILE = Join-Path $work 'legacy-home'
+            [IO.Directory]::CreateDirectory($env:USERPROFILE) | Out-Null
+            $legacy = Join-Path $env:USERPROFILE 'ptbk'
+            [IO.File]::WriteAllText($legacy, '')
+            $automatic = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/COMPONENTS=core', '/PrepareOnly=yes')
+            $process = Start-Process -FilePath $installer -ArgumentList $automatic -WindowStyle Hidden -Wait -PassThru
+            if ($process.ExitCode -ne 0) { throw 'The compiled installer failed on a legacy file in the default location.' }
+            if (-not (Test-Path -LiteralPath (Join-Path $env:USERPROFILE 'ptbk-projects\my-first-project') -PathType Container)) { throw 'The compiled installer did not use the safe alternative.' }
+            if (-not [IO.File]::Exists($legacy) -or (Get-Item -LiteralPath $legacy).Length -ne 0) { throw 'The original empty legacy file was changed.' }
+          } finally { $env:USERPROFILE = $originalHome }
       - uses: actions/upload-artifact@v6
         with:
           name: windows-desktop-installer-candidate

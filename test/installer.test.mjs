@@ -240,7 +240,7 @@ test('a previously prepared private Node runtime is reused despite a stale incom
 });
 
 
-test('project preflight creates all missing root parents literally and does not create or initialize the first project', async (t) => {
+test('default preflight defers directory creation until npm can reserve its launcher path', async (t) => {
     const shells = await availableShells;
     if (!shells.length) return t.skip('no PowerShell is installed');
     for (const shell of shells) {
@@ -254,7 +254,7 @@ test('project preflight creates all missing root parents literally and does not 
             assert.equal(result.code, 0, result.output);
             const destination = await installerData(detection);
             assert.equal(destination.Root, join(env.USERPROFILE, 'ptbk', 'project'));
-            assert.deepEqual(await readdir(destination.Root), [], 'no probe files, Git metadata or implicit project');
+            await assert.rejects(readdir(join(env.USERPROFILE, 'ptbk')), { code: 'ENOENT' }, 'preflight must not occupy npm launcher paths before the global prefix is known');
             await assert.rejects(readdir(destination.Target), { code: 'ENOENT' });
             const actual = await installerData(resultFile);
             const report = await readFile(actual.ReportFile, 'utf8');
@@ -294,7 +294,7 @@ test('folder errors are reported before software changes and retain the conflict
         await writeFile(sentinel, 'user file preserved');
         const resultFile = join(directory, 'result.ini');
         // A real bootstrap run, without Plan or ValidateProjectsOnly, must fail before even probing tools.
-        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-ProjectName', 'first project', '-IsolatedPath', '-ResultFile', resultFile], env);
+        const result = await runPowerShell(shell, [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-ProjectsRoot', root, '-ProjectName', 'first project', '-IsolatedPath', '-ResultFile', resultFile], env);
         assert.equal(result.code, 4, result.output);
         const actual = await installerData(resultFile);
         assert.equal(actual.Code, '4');
@@ -368,5 +368,60 @@ test('a real Windows write denial remains a folder error without permission chan
         assert.equal(actual.Code, '4');
         assert.equal(actual.Stage, 'Projects folder');
         assert.match(await readFile(actual.ReportFile, 'utf8'), /write-denied/);
+    }
+});
+
+test('a blocked default selects the same safe alternative in preflight and prerequisite discovery', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) for (const conflict of ['ancestor', 'root', 'alternatives']) await t.test(shell + ': ' + conflict, async (t) => {
+        const { directory, env } = await isolatedUser(t);
+        const original = conflict === 'root' ? join(env.USERPROFILE, 'ptbk', 'project') : join(env.USERPROFILE, 'ptbk');
+        if (conflict === 'root') await mkdir(join(env.USERPROFILE, 'ptbk'));
+        await writeFile(original, 'legacy file preserved');
+        if (conflict === 'alternatives') {
+            await writeFile(join(env.USERPROFILE, 'ptbk-projects'), 'kept');
+            await writeFile(join(env.USERPROFILE, 'ptbk-projects-2'), 'kept too');
+        }
+        const expected = join(env.USERPROFILE, conflict === 'alternatives' ? 'ptbk-projects-3' : 'ptbk-projects');
+        const destination = join(directory, 'destination.ini');
+        const resultFile = join(directory, 'result.ini');
+        const base = [join(ROOT, 'installer/windows/bootstrap.ps1'), '-PromptbookVersion', '0.0.0-test', '-IsolatedPath', '-ResultFile', resultFile];
+        for (let attempt = 0; attempt < 2; attempt++) {
+            const result = await runPowerShell(shell, [...base, '-ValidateProjectsOnly', '-DetectionFile', destination], env);
+            assert.equal(result.code, 0, result.output);
+            assert.equal((await installerData(destination)).Root, expected);
+            const actual = await installerData(resultFile);
+            assert.equal(actual.ProjectsRoot, expected);
+            assert.match(await readFile(actual.ReportFile, 'utf8'), /Default location choice: .*blocked/);
+        }
+        const detection = join(directory, 'prerequisites.ini');
+        const result = await runPowerShell(shell, [...base, '-DetectOnly', '-DetectionFile', detection], env);
+        assert.equal(result.code, 0, result.output);
+        assert.equal((await installerData(detection)).DefaultProjectsRoot, expected);
+        assert.equal(await readFile(original, 'utf8'), 'legacy file preserved');
+        await assert.rejects(readdir(expected), { code: 'ENOENT' }, 'default discovery creates no project directories');
+    });
+});
+
+test('default selection reserves the future npm launcher when the custom global prefix is home', async (t) => {
+    const shells = await availableShells;
+    if (!shells.length) return t.skip('no PowerShell is installed');
+    for (const shell of shells) {
+        const { directory, env } = await isolatedUser(t);
+        const wrapper = join(directory, 'default-root.ps1');
+        await writeFile(wrapper, [
+            'param([string] $Bootstrap)',
+            '$tokens = $null; $errors = $null',
+            '$ast = [Management.Automation.Language.Parser]::ParseFile($Bootstrap, [ref] $tokens, [ref] $errors)',
+            "foreach ($f in $ast.FindAll({ param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) { . ([scriptblock]::Create($f.Extent.Text)) }",
+            '$choice = Get-DefaultProjectsRoot $env:USERPROFILE $env:USERPROFILE',
+            '[Console]::Write($choice.Root)',
+        ].join('\n'));
+        const result = await runPowerShell(shell, [wrapper, '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1')], env);
+        assert.equal(result.code, 0, result.output);
+        assert.equal(result.output.trim(), join(env.USERPROFILE, 'ptbk-projects'));
+        // Windows PowerShell may create its own AppData cache in a redirected fixture profile.
+        assert.deepEqual((await readdir(env.USERPROFILE)).filter((name) => name.toLowerCase() !== 'appdata'), []);
     }
 });
