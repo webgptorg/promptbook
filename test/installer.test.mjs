@@ -346,11 +346,11 @@ test('report sanitization removes credentials while keeping useful Windows path 
             '$tokens = $null; $errors = $null',
             '$ast = [Management.Automation.Language.Parser]::ParseFile($Bootstrap, [ref] $tokens, [ref] $errors)',
             "foreach ($f in $ast.FindAll({ param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) { . ([scriptblock]::Create($f.Extent.Text)) }",
-            "Protect-DiagnosticText 'https://user:fixture-secret@registry.invalid/npm?token=fixture-token api_key=fixture-key Authorization: Bearer fixture-bearer C:\\Users\\test\\ptbk\\project'",
+            "Protect-DiagnosticText 'https://user:fixture-secret@registry.invalid/npm?token=fixture-token api_key=fixture-key Authorization: Bearer fixture-bearer Authorization: Basic fixture-basic C:\\Users\\test\\ptbk\\project'",
         ].join('\n'));
         const result = await runPowerShell(shell, [wrapper, '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1')], env);
         assert.equal(result.code, 0, result.output);
-        assert.doesNotMatch(result.output, /fixture-secret|fixture-token|fixture-key|fixture-bearer/);
+        assert.doesNotMatch(result.output, /fixture-secret|fixture-token|fixture-key|fixture-bearer|fixture-basic/);
         assert.match(result.output, /C:\\Users\\test\\ptbk\\project/);
         assert.match(result.output, /\[redacted\]/);
     }

@@ -57,7 +57,7 @@ function Invoke-Native([scriptblock] $Block) {
 # Reports contain setup diagnostics only, never an environment dump or credential-bearing URLs.
 function Protect-DiagnosticText([string] $Text) {
     $Text = $Text -replace '(?i)(https?://)[^/\s@]+@', '$1[redacted]@'
-    $Text = $Text -replace '(?i)(Bearer\s+)[A-Za-z0-9._~+/=-]+', '$1[redacted]'
+    $Text = $Text -replace '(?i)((?:Bearer|Basic)\s+)[A-Za-z0-9._~+/=-]+', '$1[redacted]'
     $Text = $Text -replace '(?i)((?:token|access[_-]?token|api[_-]?key|secret|password|_authToken|authorization)[\s"\x27]*[:=][\s"\x27]*)([^\s"\x27]+)', '$1[redacted]'
     return $Text
 }
@@ -110,11 +110,13 @@ function Write-Step([string] $Text) {
 }
 
 function Write-Detail([string] $Text) {
+    $Text = Protect-DiagnosticText $Text
     Write-Host "      $Text"
     Write-Log "      $Text"
 }
 
 function Stop-Bootstrap([int] $Code, [string] $Stage, [string] $Message, [string] $NextAction) {
+    $Message = Protect-DiagnosticText $Message
     Write-Host ''
     Write-Host "Not completed: $Stage" -ForegroundColor Yellow
     Write-Host "  $Message"
