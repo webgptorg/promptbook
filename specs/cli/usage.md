@@ -1,5 +1,7 @@
 # Raw usage, attribution and cost views
 
+For [realtime voice](harness-voice.md), retain actual voice duration/provider usage separately from delegated reasoning/tool usage, under the owning chat/agent and selected named account. A muted but connected call is not assumed free; distinguish unknown subscription accounting from separately billed API rates. Final usage reconciliation replaces/coalesces cumulative observations without double-counting. Ordinary tool inspection does not start a paid test call.
+
 [Main specification](../_main.md) · [Traces](traces.md) · [Harness adapters](harness-plugins.md) · [Storage and Git](storage-and-git.md)
 
 The priority is faithful durable primary data, not an elaborate current dashboard. Record the finest usage actually exposed by each harness/tool, so future interfaces and calculations can improve without repeating work. Preserve raw usage independently of both price lists and derived totals.

@@ -2,6 +2,8 @@
 
 **Message audio:** Recorded speech equivalent to one attributed chat message, bound by `CHAT MESSAGE AUDIO`; text and audio are one utterance, unlike supplemental attachments. Finalized user/agent audio is a versioned project chat asset, with optional shared call timing and honest interrupted/incomplete status. See [audio binding](book-language/commitments/chat-message-audio.md).
 
+**Realtime voice chat:** Full-duplex speech in an ordinary Chat Book, controlled from its local terminal chat through a call-owned browser audio bridge. **Voice capability:** Optional common harness/session operations, initially native Codex/ChatGPT; other adapters explicitly report unsupported. **Media page:** Minimal audio/visualization/caption surface, independent of the project web dashboard/server. **Barge-in:** Interrupting spoken playback, distinct from cancelling underlying work. See [voice behavior](cli/voice-chats.md) and [adapter contract](cli/harness-voice.md).
+
 [Main specification](_main.md)
 
 **Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version actually loaded by the service, not latest or the viewer's installation. **promptbookVersion:** Saved initializing/last-migrating engine version in project configuration. **Project migration:** One deterministic mechanism for version-targeted configuration and Book transformations; one coordinator commits the complete applicable pass and version advance, including zero-step upgrades. See [migrations](cli/configuration-migrations.md).

@@ -42,6 +42,8 @@ Chat primarily coordinates, checks status and creates/manages tasks; substantial
 
 [CHAT MESSAGE AUDIO](book-language/commitments/chat-message-audio.md) binds recorded user/agent speech as another representation of its originating message, not supplemental input or a second request. Finalized audio files are project chat assets committed with their bindings by default, independently of task traces; preserve overlap timing, actual played speech and interrupted/incomplete capture honestly.
 
+[Local realtime voice](cli/voice-chats.md) joins the same chat through terminal controls and a call-owned ad hoc browser audio/visualization/caption page, independently of the project web dashboard/HTTP server or desktop app. The common [harness voice capability](cli/harness-voice.md) initially supports native Codex/ChatGPT login; other adapters explicitly report unsupported, and setup guidance follows actual installed-version/account readiness. Audio interruption and task cancellation remain distinct; chat persistence, task control, Pause and Stop retain their ordinary semantics.
+
 Chatter is the editable core default for human-led project conversation. New chat first offers Chatter (Enter) or another agent; only the latter expands all valid targets. Initial TEAM includes the other initialized roles; specialist advice and execution use normal consultation/tasks. Existing chats/questions retain their real authors. Human-facing messages persist immediately and use debounced scoped commits; task-internal consultations retain result attribution, and conversation-only consultations use scoped authoring persistence.
 
 Logical task identity, Git/source provenance and evidence location remain distinct. Trace directories exactly match source basenames, not normalized TASK names or opaque IDs. Evidence preserves declared names, revisions, actual tool instances, available harness output/events and enabled attributable browser recording. Init saves independent trace-commit, video-ignore and recording choices; runtime, secret stores and browser sessions stay ignored regardless.
@@ -60,7 +62,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 
 The target [version-zero App contract](app/integration.md) prioritizes App-started VPS installation/pairing, shared project init with real harness authentication, onboarding files, simple Wallet input, attributed multi-party plain-text chat, native project lifecycle and the update switch. The engine remains autonomous without clients or relay; the simple host service only discovers/launches/monitors processes and has no project/update scheduler. Central services see no readable project content or secrets. Existing local HTTP protections remain in force until a separately protected remote transport is implemented.
 
-Direct Book/forms editing, existing-CLI attachment/re-pairing, browser control, rich chat, background notifications and duplex media are designed for later. Terminal-in-App is the preferred service fallback for assessment, not a settled first-release implementation. Detailed task/run/chat/identity, security/release and UI contracts must be agreed with the App team; do not treat a predecessor-shaped draft API as an accepted Reborn contract.
+Direct Book/forms editing, existing-CLI attachment/re-pairing, browser control, rich chat, background notifications and remote duplex media are designed for later. The independent local terminal [voice mode](cli/voice-chats.md) does not expand the first remote App scope. Terminal-in-App is the preferred service fallback for assessment, not a settled first-release implementation. Detailed task/run/chat/identity, security/release and UI contracts must be agreed with the App team; do not treat a predecessor-shaped draft API as an accepted Reborn contract.
 
 ## Configuration and tools
 
@@ -80,6 +82,7 @@ Direct Book/forms editing, existing-CLI attachment/re-pairing, browser control, 
 - [Harnesses](cli/harnesses.md): Global executables, named authentication contexts, capabilities and authorized fallback.
 - [Remote harness authentication](cli/harness-authentication.md): Native Codex/Claude terminal login without a VPS browser, attended code/URL handling and service-user readiness.
 - [Harness adapters](cli/harness-plugins.md): Common typed setup/execution/evidence contracts and featured/More catalog.
+- [Harness voice capability](cli/harness-voice.md): Extensible realtime session/media/transcript operations, native Codex/ChatGPT first and explicit unsupported adapters.
 - [Harness updates](cli/harness-updates.md): Selected shared installations and safe maintenance.
 
 ## Installation and operation
@@ -138,6 +141,8 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Chats](cli/chats.md): Responsive multi-agent conversations, stable names, evolving titles and debounced persistence.
 - [Chat/task relationships](cli/chat-tasks.md): Task-first heavy work, source links, live cards, questions and results.
 - [Chat UI](cli/chat-ui.md): Chatter-first entry, existing threads and unread/actionable state.
+- [Local realtime voice](cli/voice-chats.md): Continuous speech in the same chat, committed audio and call-owned local media independent of the project web server.
+- [Voice presentation](cli/voice-chat-ui.md): Terminal call/mute controls, minimal browser visualization/captions and actionable setup guidance.
 - [Human interactions](cli/user-interactions.md): Ordinary attributed questions and once-only replies.
 - [Channels](cli/channels.md): Terminal, CLI, browser and API.
 

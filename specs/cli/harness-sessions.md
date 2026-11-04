@@ -18,6 +18,8 @@ The engine automatically launches/supervises the required local runtime, acquire
 
 Adapters must distinguish a received control input from a processed one under [task control](task-control.md). Unsupported live steering uses supported interrupt/continue or deferred delivery, with an honest pending state; it cannot silently drop the change or start a second executor. Shared runtimes must interrupt/close only the targeted owned work, preserving unrelated sessions/chats. Health, file ownership, permissions, traces and lifecycle remain authoritative.
 
+[Realtime voice](harness-voice.md) is an optional extension of this same session contract, with a call-owned media connection and explicit unsupported adapters. It retains the chat/agent's attributed context, input ownership and accepted-turn receipts; a voice call is not another task or a duplicate backing executor. Ending media does not end independent work. Native voice readiness and native TUI attachment are separate capabilities.
+
 ## Common view and actual native client
 
 The **Harnesses** home tile and page replace the former **Current work** tile/log and its execution detail. They show all open sessions, including idle ones, and access to retained ended-session evidence. Agents, Chats, Tasks, Tools, System operational log and the External activity log remain distinct views. The common selected-session detail always exists, even if native attachment is unavailable.

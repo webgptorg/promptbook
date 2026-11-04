@@ -43,6 +43,10 @@ Show live task boxes/cards under [chat/task relationships](chat-tasks.md): reada
 
 Discuss report is an explicit Chatter-targeted new-thread entry. Persist the exact displayed brief as its first Chatter message with source/time provenance; User replies normally. Never reopen the latest Chatter thread by default or add User to the one-agent `report.book` feed. See [report discussions](project-report.md#discuss-a-displayed-snapshot).
 
+## Realtime voice entry
+
+Direct and dashboard chat share [terminal voice controls and the minimal media page](voice-chat-ui.md). Start voice in the selected thread, preserve typing/drafts/task cards, and show actual call/caption/recording state. The separate ad hoc page supplies audio, visualization and read-only captions; it depends on neither the project web dashboard/server nor a desktop app. Unsupported harnesses and incomplete setup have actionable shared guidance rather than an unresponsive voice action.
+
 ## Acceptance outcomes
 
 Run direct chat and press Enter: reach Chatter immediately. Repeat from dashboard/browser. Choose another agent and reach ordinary, hidden/core and Expert targets; explicit agent input bypasses the first picker. Verify excluded non-speakers and missing Chatter diagnostics. Ask status without creating a task, then create authorized linked work. Open two same-agent threads with repeated titles/same clock tick, preserve separate histories and reopen without renaming. A opens another agent's original waiting thread; replying resumes linked work once. Closing chat leaves the engine alive and messages, drafts/read markers and identity intact across refresh/reconnect.

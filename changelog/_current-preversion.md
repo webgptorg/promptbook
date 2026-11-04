@@ -1,5 +1,10 @@
 # Unreleased
 
+## Specification: local realtime voice chat
+
+- Specify full-duplex voice in the same Chat Book from dashboard/standalone terminal chat, with terminal controls and a call-owned minimal browser audio/visualization/caption page independent of the project web dashboard/HTTP server and desktop app.
+- Extend the common harness/session contract with voice operations and truthful per-instance readiness: native Codex/ChatGPT first, explicit unsupported adapters elsewhere, actionable shared setup and no silent API billing fallback. Preserve one dispatch path, task-control authority, Pause/Stop, interruption semantics and media/recovery acceptance. This change updates specifications only.
+
 ## Specification: recorded chat utterances
 
 - Define `CHAT MESSAGE AUDIO` as an equivalent voice representation of one attributed message, with project-relative assets, optional shared call timing and explicit incomplete/interrupted capture. Preserve transcript/audio as one utterance rather than duplicate requests or supplemental attachments.

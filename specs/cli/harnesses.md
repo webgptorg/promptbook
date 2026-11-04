@@ -26,6 +26,8 @@ Browser website sessions and native harness authentication remain independent ev
 
 ## Selection and fallback
 
+For an explicit [voice chat](voice-chats.md), inspect all enabled registered instances through the common [voice capability](harness-voice.md), including chat-specific eligibility. At least one ready supported instance is required; an unrelated unsupported adapter cannot hide a working one. If none is ready, explain whether to install/add a supported harness, sign in, update or resolve account access. Initial support uses native Codex/ChatGPT login without an API billing fallback; retain ordinary text operation and tool management for every other adapter.
+
 Different variants may be chosen for their strengths even while the first listed variant is healthy. Within the same variant, use the first eligible usable enabled tool in array order; later instances are fallback for unavailable earlier ones, not arbitrary load-balancing. Supported chains include multiple subscriptions, subscription then API, and multiple authorized billing accounts. A recovered earlier instance regains priority on a future selection without terminating work already using a fallback.
 
 Preserve explicit task/model/account requirements. Respect configured paid-use limits; newly discovered keys do not authorize spending. After a known quota failure, use a configured authorized fallback promptly rather than waiting unnecessarily or retrying the exhausted account forever. If no candidate is usable, retain the actual wait and recheck opportunity under shared [progressive waiting](../concepts/progressive-waiting.md), honoring known quota resets and meaningful readiness changes without paid idle probes. Never replay completed external effects when changing harness/account.

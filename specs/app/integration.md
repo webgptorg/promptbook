@@ -82,7 +82,7 @@ Native project lifecycle remains required whichever fallback is selected. A serv
 - **Early version-one candidates:** attach a project initialized independently through CLI; re-pair after loss of the original device. They share technical foundations but may differ in identity/authority checks. Existing work continues without that device. For now recovery may require SSH/physical host access. Only a genuinely trivial existing-project attachment may be added to version zero; even one extra day is grounds to defer it. QR pairing is desirable for assessment, with no fixed placement/flow required for the first release.
 - Book source editing, then richer task/agent forms; diagnostics and reference warnings supplied by the engine.
 - File attachments outside onboarding, richer chat rendering/cards/references, detailed Usage/Health and graphs.
-- Full-duplex live audio processed by the engine, later video, and remote interaction with an engine browser tab for manual login. Design the connection for these later capabilities without implementing them all now.
+- Remote full-duplex live audio processed by the engine, later video, and remote interaction with an engine browser tab for manual login. Design the connection for these later capabilities without implementing them all now. The independent [local terminal voice mode](../cli/voice-chats.md) does not make remote App/relay audio a version-zero requirement.
 - Fine-grained project permissions, advanced/background notifications and offline work.
 
 Extensibility is required now; the complete future feature set is not.

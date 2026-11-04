@@ -9,3 +9,5 @@ Keep separate **who communicates** (a Chat Book's participants), **what requires
 Actions and messages from every client use shared ownership, project authentication, Git persistence and idempotency. A reply accepted/saved in one channel appears in all others and cannot be duplicated by reconnect or stale UI. Closing any client does not cancel a chat, queued task or running service. Channel differences may change input presentation but not a speaker's identity or thread content.
 
 See [chat UI](chat-ui.md), [service API](api.md) and [user interactions](user-interactions.md).
+
+[Local realtime voice](voice-chats.md) participates in the same Chat Book through terminal-owned controls and a temporary browser media page. Its transcripts and equivalent audio follow ordinary attribution, authority and persistence; recording/replay is not another input dispatch. This call-owned loopback bridge is independent of the project browser dashboard/HTTP server. Plain remote SSH and remote App/relay voice are outside the initial local mode.
