@@ -436,3 +436,13 @@ test('npm-generated ptbk launchers preserve literal Windows paths and custom lau
         assert.match(result.output, /Npm launcher literal paths and custom launcher preservation verified/);
     }
 });
+
+test('a compatible read-only npm launcher at an ordinary prefix is reused without a write', { skip: process.platform !== 'win32' }, async (t) => {
+    const shells = await availableShells;
+    for (const shell of shells) {
+        const directory = await temporaryDirectory(t, 'ptbk ordinary prefix');
+        if (/[&^!]/.test(directory)) return t.skip('the host temp location itself requires a launcher repair');
+        const result = await runPowerShell(shell, [join(ROOT, 'test/fixtures/installer-functions.ps1'), '-Bootstrap', join(ROOT, 'installer/windows/bootstrap.ps1'), '-WorkDirectory', directory, '-Mode', 'shim', '-NodePath', process.execPath, '-ReadOnlyShim'], process.env);
+        assert.equal(result.code, 0, result.output);
+    }
+});

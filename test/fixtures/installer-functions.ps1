@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)][string] $Bootstrap,
     [Parameter(Mandatory = $true)][string] $WorkDirectory,
     [ValidateSet('downloads', 'archive', 'reuse', 'live-node', 'permissions', 'shim')][string] $Mode,
-    [string] $NodePath
+    [string] $NodePath,
+    [switch] $ReadOnlyShim
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -45,6 +46,8 @@ IF EXIST "%dp0%\node.exe" (
 endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & "%_prog%" "%dp0%\node_modules\ptbk\bin\ptbk.js" %*
 '@
     [IO.File]::WriteAllText($shim, $source)
+    if ($ReadOnlyShim) { [IO.File]::SetAttributes($shim, [IO.FileAttributes]::ReadOnly) }
+    try {
     Repair-PtbkCommandShim $shim
     $repaired = [IO.File]::ReadAllText($shim)
     foreach ($attempt in 1..2) {
@@ -53,6 +56,10 @@ endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & "%_prog%" "%dp0%\node_m
         Repair-PtbkCommandShim $shim
         if ([IO.File]::ReadAllText($shim) -ne $repaired) { throw 'Launcher repair must be idempotent.' }
     }
+    } finally {
+        if ($ReadOnlyShim) { [IO.File]::SetAttributes($shim, [IO.FileAttributes]::Normal) }
+    }
+    if ($ReadOnlyShim -and [IO.File]::ReadAllText($shim) -ne $source) { throw 'A working read-only launcher was changed.' }
     [IO.File]::WriteAllText($shim, "@echo off")
     Repair-PtbkCommandShim $shim
     if ([IO.File]::ReadAllText($shim) -ne '@echo off') { throw 'A custom launcher was replaced.' }

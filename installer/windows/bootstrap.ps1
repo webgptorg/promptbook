@@ -345,6 +345,8 @@ function Get-GlobalNpmPrefix($NpmTool) {
 # npm's cmd-shim template assigns dp0 without quotes, splitting valid paths containing & into commands.
 # Repair only that known generated ptbk launcher; preserve custom launchers and every unrelated command.
 function Repair-PtbkCommandShim([string] $Path) {
+    # Ordinary compatible installations may be read-only. Only an affected path needs this repair.
+    if ($Path.IndexOfAny([char[]] '&^!') -lt 0) { return }
     $source = [IO.File]::ReadAllText($Path)
     if ($source -notmatch '(?im)^SET dp0=%~dp0\r?$' -or $source -notmatch '(?i)node_modules\\ptbk\\bin\\ptbk\.js') { return }
     $repaired = $source -replace '(?im)^SET dp0=%~dp0(?=\r?$)', 'SET "dp0=%~dp0"'
