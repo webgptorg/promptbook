@@ -50,6 +50,8 @@ A late user message is saved and handled normally, with new instructions evaluat
 
 ## Live operation and persistence
 
+Recorded speech uses [CHAT MESSAGE AUDIO](../book-language/commitments/chat-message-audio.md): the transcript and audio represent one attributed utterance. Preserve user and agent audio as finalized project chat assets and commit them with their bindings by default. This is separate from supplemental attachments and optional task traces; consumers must not feed both representations back as two user requests.
+
 Accept/save messages promptly during work. Stream in-progress reply text and progress as the provider makes them available rather than buffering the complete answer until its end. Durable partial chunks belong to the same reply, not a new message per token; interruption retains an explicitly unfinished reply. Deliver available progress as it arrives, accept follow-up input during a turn and synchronize one ordered history across clients without duplicate provider work. Preserve available provider/harness progress or reasoning summaries and the complete actual conversation in the Book; private internal reasoning the provider does not expose is not a required output.
 
 Different chats/tasks follow [independent concurrency](concurrency.md), without a shared work-count limit or one serial chat queue. Chat and necessary routing/consultations remain eligible during scheduling pause; newly created tasks wait for resume. Stopping/force stop remain authoritative. Checkpoint human waits promptly instead of keeping a provider/MCP call open until timeout.

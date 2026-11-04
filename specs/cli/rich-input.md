@@ -14,6 +14,8 @@ Ctrl+V and macOS Command+V enter the shared rich-paste logic for text, images an
 
 Collapsed display must never become persisted content. [Initialization](initialization.md) expands full text into `specs/_initial.md`, copies accepted attachments into the project and emits relative links. Other authoring workflows preserve equivalent payloads in their own source context. Accepted chat messages expand their full text/attachments into the selected `chats/*.book` document immediately and into bounded debounced Git batches by default, not only a transient runtime request. Do not lose drafts or commit merely on entering the chat view. Do not replace readable source with a proprietary composer dump.
 
+Share project-asset storage and scoped persistence with [recorded message audio](../book-language/commitments/chat-message-audio.md), while preserving its distinct equivalent-utterance binding. An uploaded audio file remains supplemental input unless explicitly identified as that message's spoken representation; never infer equivalence from the file extension or transcribe/re-submit the same voice message twice.
+
 Design references reviewed for this contract are the official [Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli), [Claude Code terminal configuration](https://code.claude.com/docs/en/terminal-config) and [Claude Code interactive mode](https://code.claude.com/docs/en/interactive-mode). Reuse the interaction principles, not provider-specific shortcuts, exact collapse thresholds or internal cache layouts.
 
 ## Acceptance outcomes

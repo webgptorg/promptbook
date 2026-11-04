@@ -1,5 +1,7 @@
 # Dictionary
 
+**Message audio:** Recorded speech equivalent to one attributed chat message, bound by `CHAT MESSAGE AUDIO`; text and audio are one utterance, unlike supplemental attachments. Finalized user/agent audio is a versioned project chat asset, with optional shared call timing and honest interrupted/incomplete status. See [audio binding](book-language/commitments/chat-message-audio.md).
+
 [Main specification](_main.md)
 
 **Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version actually loaded by the service, not latest or the viewer's installation. **promptbookVersion:** Saved initializing/last-migrating engine version in project configuration. **Project migration:** One deterministic mechanism for version-targeted configuration and Book transformations; one coordinator commits the complete applicable pass and version advance, including zero-step upgrades. See [migrations](cli/configuration-migrations.md).

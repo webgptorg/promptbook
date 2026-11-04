@@ -14,6 +14,8 @@ A clean repository is clean at completed operation boundaries unless another own
 
 Distinguish saved-to-file, pending Git, committed and failed persistence. A durably saved chat message is usable without waiting for its batched commit; never claim a commit before it exists. Dispatch still flushes a task's authoring commit and task completion flushes its checked result. Failed persistence retains saved files and recoverable pending batches rather than repeating successful model work/effects.
 
+[Message audio](../book-language/commitments/chat-message-audio.md) is a primary chat asset: include finalized user/agent recordings and their Book bindings in the owning conversation batch by default, independently of trace/video settings. Save text immediately, finalize bounded media segments and never commit a new binding without its finalized file or a previously committed asset. Preserve ordinary no-commit/ignore rules, report incomplete archival and retry only persistence after failure.
+
 ## Commit messages and history
 
 Every automatic engine subject starts with lowercase `ptbk: `, exactly once, followed by a meaningful operation summary. When actual agent work is responsible, include that agent's compact single-line textual visualization in backticks, using its shared [visual identity](../agents/visual-identity.md). Use the stable static identity, not an animation frame or a made-up system agent.

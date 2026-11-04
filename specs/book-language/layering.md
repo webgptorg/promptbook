@@ -14,6 +14,8 @@ When the actual state changes, append a new `CHAT STATUS open|waiting-for-user|r
 
 Append a new participant's `CHAT MEMBER` before that participant's first message, where the join actually happened. Do not move every later participant into the initial membership block. Likewise append `CHAT TITLE` changes at the time of the change, preserving prior titles. New messages retain actual author, timestamp and order.
 
+[CHAT MESSAGE AUDIO](commitments/chat-message-audio.md) belongs to its originating message, not a second chronological utterance. Live text/media finalization may complete that message's existing audio group while preserving every message/event position and earlier spoken text. It cannot reassign late audio to a newer message or replay the original request.
+
 ```book
 CHAT Review export
 CHAT MEMBER @User

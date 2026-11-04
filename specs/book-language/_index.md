@@ -11,6 +11,7 @@ The same syntax and parser apply to every entity kind. The first commitment esta
 - [References](references.md): One normalized name resolver and graph links across all three kinds.
 - [Inheritance](inheritance.md): Agent-only FROM, implicit Adam and termination.
 - [Commitments](commitments/_index.md): One document per canonical commitment.
+- [Message audio](commitments/chat-message-audio.md): Text and recorded speech as two representations of one chat utterance.
 - [Generated names](../cli/generated-names.md): Preventive task/chat naming, separate from language validity and filenames.
 - [VS Code extension](vscode.md): Editor support built and released with the same engine vocabulary.
 

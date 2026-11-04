@@ -22,6 +22,7 @@ Exactly one of these starts a Book. Its content is the entity's name; subsequent
 - [CHAT MEMBER](chat-member.md)
 - [CHAT TITLE](chat-title.md)
 - [CHAT MESSAGE](chat-message.md)
+- [CHAT MESSAGE AUDIO](chat-message-audio.md): Recorded speech equivalent to one message, with project assets and optional call timing.
 - [CHAT STATUS](chat-status.md)
 
 ## Agent and shared instructions

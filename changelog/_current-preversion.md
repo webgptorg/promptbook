@@ -1,5 +1,10 @@
 # Unreleased
 
+## Specification: recorded chat utterances
+
+- Define `CHAT MESSAGE AUDIO` as an equivalent voice representation of one attributed message, with project-relative assets, optional shared call timing and explicit incomplete/interrupted capture. Preserve transcript/audio as one utterance rather than duplicate requests or supplemental attachments.
+- Require default scoped Git persistence of finalized user/agent audio with its Book bindings, independently of optional task traces. Document source association, delayed finalization, playback fidelity and recovery acceptance; implementation is unchanged.
+
 ## CI checks
 
 - Compare dashboard focus styles against the same observed snapshot, so crossing a real minute cannot fail the unchanged geometry/content assertions through an unrelated header clock update.
