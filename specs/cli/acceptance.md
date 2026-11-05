@@ -88,12 +88,14 @@ These are verifiable product outcomes, not an implementation plan or evidence of
 
 - **W01:** Enabled configured browsers start/attach with the engine. Two engines using the same actual profile share one process and a connection pool without master/slave; each task uses its own tabs. Pause and first-launching-engine disconnect preserve the other connection; last managed disconnect closes the process.
 - **W02:** Browser restart/kill shows all connected engines as affected, preserves profile data and checkpoints/reconnects safely without replaying uncertain effects. Open test GitHub tab targets the actual selected instance. Never kill unrelated/external browsers or add a remote desktop requirement.
-- **W03:** An already signed-in session is reused. Missing login requests Wallet, never username/password in chat/model tools. Stored credentials apply automatically; missing/rejected credentials get one protected action, ordinary attention and only an affected-task wait. Optional remembered headful manual login stays possible.
+- **W03** Reuse a suitable signed-in session or apply stored credentials through Wallet. Missing or rejected credentials use one protected request and block only affected work. Exercise [manual login and the save choice](wallet.md#acceptance-outcomes) in both browser modes and verify that dependent automation requires handoff.
 - **W04:** First Wallet storage or init's optional Yes choice displays 12 recovery words through the same shared protected setup in protected owner UI, with no cryptocurrency/BIP jargon. Per-project ciphertext/envelopes stay ignored in the project; plaintext keys/credentials/words never enter Git, environment, chat, traces, screenshots or agent observation/decryption tools.
 - **W05:** Engine/OS reboot automatically unlocks on the provisioned host. Folder transfer requires one protected 12-word restoration, then works unattended. Wrong words/tampering preserve the existing vault; encrypted data plus words are needed for recovery. Headless Linux cannot depend on an interactive desktop keyring.
 - **W06:** File-lock deadlocks and shared-profile account/session interference are explicitly acknowledged and deferred. They do not imply automatic cycle-breaking, account isolation or a whole-engine pause.
 
 - **W07:** Wallet has a compact tile/page using one common attention mechanism. Missing credentials request protected input; answering clears only that input's attention promptly. The same login workflow remains verifying/waiting until actual access is proven; rejected credentials or further factors never create duplicate requests/accounts. Ordinary detail/export never reveals secrets, and unrelated work continues.
+
+- **W08** Exercise the [tab-control acceptance outcomes](browser-tab-control.md#acceptance-outcomes) and [temporary feature server acceptance outcomes](interactive-feature-bridges.md#acceptance-outcomes). Verify the same feature operations in the terminal and Windows/macOS, with only the terminal using the temporary server.
 
 ## Conversations, resolver and project maintenance
 

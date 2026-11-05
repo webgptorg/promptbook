@@ -1,6 +1,6 @@
 # Human-directed conversations and exceptional decisions
 
-[Chats](chats.md) · [Unattended operation](autonomous-operation.md) · [Chat presentation](chat-ui.md)
+[Chats](chats.md) · [Unattended operation](autonomous-operation.md) · [Chat presentation](chat-ui.md) · [User control](../concepts/user-control.md)
 
 Ordinary questions, decisions and nonsecret human-only actions are **messages from a concrete agent in a durable chat with @User**. Website username/password input is the explicit exception: [Wallet](wallet.md) owns a protected secret-input action, while chat can carry only its nonsecret reason/link/outcome. Never ask for the credential in chat. Challenges are handled autonomously when supported; only a genuinely human-only step requires actual human action with secret-safe entry. Technical Wallet updates do not receive a blanket confirmation requirement; any necessary Wallet action/decision belongs to its own protected notice rather than secret-entry chat. Ordinary nonsecret questions are not a second project entity called Request or an anonymous engine alert; they use the same Book messages, history and persistence as user-initiated chat. Wallet's protected action is the explicit secret-entry exception, not a new Book kind. TEAM @User, startup/access problems and exceptional recovery conditions can all initiate or continue an appropriate agent→User conversation. The agent author and affected task/project condition must be explicit.
 

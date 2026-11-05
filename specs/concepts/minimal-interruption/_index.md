@@ -14,6 +14,7 @@ The dashboard, project Books, Git history and External activity log already prov
 
 ## Reading and applying the principle
 
+- [User control](../user-control.md) covers intervention, exclusive takeover and continued independent work.
 - [Decision-making and attention](decision-making.md): autonomy, genuine human dependencies, recovery and authority.
 - [Content and system work](work-purpose.md): project-relative judgment, core provenance and evolving task classification.
 - [Authentication examples](authentication-examples.md): sessions, several accounts, Wallet and second factors.

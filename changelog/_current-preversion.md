@@ -1,5 +1,7 @@
 # Unreleased
 
+- Specify live browser tab control in either browser mode, explicit user handoff and optional Wallet password saving after manual sign-in. Define temporary CLI feature servers for tab control and voice, direct presentation in the Windows/macOS app and user priority during a takeover.
+
 - Write task completion, rollback and dependency updates atomically, and defer completion notifications until the active run releases its source. A concurrent queue scan can no longer turn a finishing task into a false removal notification or announce completion before its checks and commit settle. Cover both existing ownership and a claim made during the scan.
 
 - Keep automatic recovery and other internal retries eligible to wake the scheduler when their deadline passes during evaluation. This prevents a ten-minute idle delay that intermittently blocked Windows release validation; add deterministic coverage for overdue and future retries, including when later task work is scheduled.

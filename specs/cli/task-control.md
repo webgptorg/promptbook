@@ -1,6 +1,6 @@
 # Directing existing work through chat
 
-[Chatter](../agents/core-agents/chatter.md) · [Chats and tasks](chat-tasks.md) · [Task Books](task-books.md) · [Sessions](harness-sessions.md) · [Book layering](../book-language/layering.md)
+[Chatter](../agents/core-agents/chatter.md) · [Chats and tasks](chat-tasks.md) · [Task Books](task-books.md) · [Sessions](harness-sessions.md) · [Book layering](../book-language/layering.md) · [User control](../concepts/user-control.md)
 
 ## Responsibility flows from the user
 

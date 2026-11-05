@@ -45,7 +45,7 @@ Discuss report is an explicit Chatter-targeted new-thread entry. Persist the exa
 
 ## Realtime voice entry
 
-Direct and dashboard chat share [terminal voice controls and the minimal media page](voice-chat-ui.md). Start voice in the selected thread, preserve typing/drafts/task cards, and show actual call/caption/recording state. The separate ad hoc page supplies audio, visualization and read-only captions; it depends on neither the project web dashboard/server nor a desktop app. Unsupported harnesses and incomplete setup have actionable shared guidance rather than an unresponsive voice action.
+Direct terminal chat, terminal dashboard chat and desktop chat share [voice controls](voice-chat-ui.md). Start voice in the selected thread, preserve typing, drafts and task cards, and show actual call, caption and recording state. The CLI opens a temporary media page. The local desktop app renders the same media and controls inline. Unsupported harnesses and incomplete setup have actionable shared guidance.
 
 ## Acceptance outcomes
 
