@@ -54,6 +54,7 @@ integrity=$(openssl dgst -sha512 -binary "$gemini" | openssl base64 -A)
 test "$integrity" = 'lDJfCcYem6/6QZdwZFiGfOu1ZxJJ+j4wsr4HlmcYBfqUHTDXLKDv1MPUXYL2Ok1ygdfMve0F5KrW/ORNZRSHIg=='
 mkdir "$payload/gemini"
 tar -xzf "$gemini" --strip-components=1 -C "$payload/gemini"
+node apps/android/patch-gemini.mjs "$payload/gemini/bundle"
 (cd "$payload" && zip -q -r "$assets/runtime.zip" .)
 
 printf 'package io.ptbk.android;\nfinal class BuildVersion { static final String NAME = "%s"; static final String NODE_ARCH = "%s"; }\n' "$version" "$node_arch" \
