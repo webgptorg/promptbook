@@ -1221,14 +1221,17 @@ export class Agenda {
 
     /** Tells waiting chats about finished work, once each, also after a restart. */
     private async deliverTaskNotifications(): Promise<void> {
-        const waiting = this.taskControlStore.waiting();
+        // An active writer's source may be incomplete, or carry a completion stamp its check can still reject.
+        const waiting = this.taskControlStore.waiting().filter((notification) => !this.ownership.ownerOf(notification.source));
         if (!waiting.length) return;
         const { tasks } = await this.readQueue();
         for (const notification of waiting) {
+            // A run can acquire the source while the asynchronous queue scan is in progress.
+            if (this.ownership.ownerOf(notification.source)) continue;
             const task = tasks.find((candidate) => candidate.source.relativePath === notification.source);
             const result = this.recentResults.find((candidate) => nameKey(candidate.title) === nameKey(notification.task));
             const outcome = !task
-                ? 'its task no longer exists'
+                ? 'no longer exists'
                 : task.cycle > notification.cycle || task.status === 'done'
                   ? `is done${result?.summary ? `: ${result.summary}` : ''}${result?.commit ? ` (result commit ${result.commit.slice(0, 8)})` : ''}`
                   : task.status === 'cancelled'

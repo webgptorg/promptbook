@@ -1,7 +1,7 @@
 import { lstat, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
-import { ensureDirectory, hashFileIfExists, isPathInside, readTextIfExists, toProjectRelative } from '../common/fs.js';
+import { ensureDirectory, hashFileIfExists, isPathInside, readTextIfExists, toProjectRelative, writeFileAtomic } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import { creationTimestamp, formatIsoWithOffset } from '../common/time.js';
 import { ENGINE_VERSION } from '../common/version.js';
@@ -332,8 +332,9 @@ async function applyCompletion(environment: ExecutionEnvironment, item: WorkItem
         const annotation = `done ${formatIsoWithOffset(at, environment.timeZone)} by ${item.route.selection.agent} (${item.route.selection.harness}${item.route.selection.model ? ` ${item.route.selection.model}` : ''})`;
         updated = setMarkdownControl(original, { hash: task.source.sectionHash }, 'x', annotation);
     }
-    await writeFile(task.source.path, updated);
-    return { paths: [task.source.relativePath], revert: async () => writeFile(task.source.path, original) };
+    // Queue scans and notification readers must see a complete source throughout completion and rollback.
+    await writeFileAtomic(task.source.path, updated);
+    return { paths: [task.source.relativePath], revert: async () => writeFileAtomic(task.source.path, original) };
 }
 
 /**
@@ -638,7 +639,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             pending.prerequisites.push(name);
                             // The dependency is real Book data: the waiting task declares it (part of its own result).
                             if (task.source.kind === 'book') {
-                                await writeFile(task.source.path, appendCommitment(await readFile(task.source.path, 'utf8'), 'TASK DEPENDS ON', `{${name}}`));
+                                await writeFileAtomic(task.source.path, appendCommitment(await readFile(task.source.path, 'utf8'), 'TASK DEPENDS ON', `{${name}}`));
                                 hooks.own?.([task.source.path]);
                             }
                             await trace.event('prerequisite-created', { runId: record.runId, task: name });
@@ -944,7 +945,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 const now = await readFile(task.source.path, 'utf8').catch(() => undefined);
                 const stamped = backup.stamped?.trimEnd();
                 const appended = stamped && now?.startsWith(stamped) ? now.slice(stamped.length) : '';
-                await writeFile(task.source.path, appended.trim() ? `${backup.source.trimEnd()}${appended}` : backup.source);
+                await writeFileAtomic(task.source.path, appended.trim() ? `${backup.source.trimEnd()}${appended}` : backup.source);
                 for (const path of backup.created) await rm(resolve(project.root, path), { force: true });
             }
             await save({ completionApplied: false, completionBackup: undefined, createdPaths: record.createdPaths.filter((path) => !backup?.created.includes(path)) });

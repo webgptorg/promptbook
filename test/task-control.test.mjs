@@ -3,12 +3,13 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { Agenda } from '../dist/engine/agenda.js';
 import { StateStore } from '../dist/engine/state.js';
 import { isOutstandingReceipt, receiptLine, TaskControlStore } from '../dist/engine/task-control.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { ControlClient } from '../dist/service/control.js';
 import { readProcessRecord } from '../dist/service/records.js';
-import { findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
+import { findGenerated, git, initializedProject, ptbk, subjects, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /** Accepts every output. */
 const CHECK = 'process.exit(0);\n';
@@ -82,6 +83,39 @@ test('a notification is one persisted request, delivered once', async (t) => {
     assert.equal(reloaded.waiting()[0].id, 'n1', 'it survives a restart');
     await reloaded.delivered('n1', 'is done');
     assert.equal(reloaded.waiting().length, 0);
+});
+
+test('completion notifications wait for an owned source to settle, including ownership acquired during the queue scan', async (t) => {
+    for (const duringScan of [false, true]) {
+        const project = projectAt(await temporaryDirectory(t, 'ptbk notification race'));
+        const agenda = new Agenda({ project, mode: 'maintenance', instanceId: 'notification-fixture', env: process.env, cli: {}, persistent: false });
+        const request = { id: 'n1', task: 'Report', source: 'tasks/report.book', chat: 'Plan', by: 'Chatter', cycle: 0, at: new Date().toISOString() };
+        await agenda.taskControlStore.subscribe(request);
+        const delivered = [];
+        t.mock.method(agenda.chats, 'find', async () => ({ chat: { name: 'Plan', messages: [] } }));
+        t.mock.method(agenda.chats, 'append', async (_name, message) => { delivered.push(message.text); });
+        t.mock.method(agenda, 'refreshChats', async () => undefined);
+        const scan = t.mock.method(agenda, 'readQueue', async () => {
+            if (duringScan) agenda.ownership.tryAcquire('run', 'Report', [request.source]);
+            return { tasks: [] }; // A reader can observe a task source while its writer has truncated it.
+        });
+        if (!duringScan) agenda.ownership.tryAcquire('run', 'Report', [request.source]);
+        await agenda.deliverTaskNotifications();
+        assert.deepEqual(delivered, [], 'in-progress source writes are not proof that the task disappeared');
+        assert.equal(agenda.taskControlStore.waiting().length, 1, 'the notification remains pending');
+
+        // A completion stamp is still provisional until checks and persistence release the source.
+        scan.mock.mockImplementation(async () => ({ tasks: [{ source: { relativePath: request.source }, cycle: 1, status: 'done' }] }));
+        await agenda.deliverTaskNotifications();
+        assert.deepEqual(delivered, [], 'a provisional completion must not be reported as finished');
+        agenda.ownership.release('run');
+        agenda.recentResults = [{ title: 'Report', summary: 'Built report', commit: '1234567890abcdef' }];
+        await agenda.deliverTaskNotifications();
+        await agenda.deliverTaskNotifications();
+        assert.equal(delivered.length, 1, 'the settled completion is reported once');
+        assert.match(delivered[0], /is done: Built report \(result commit 12345678\)/);
+        assert.equal(agenda.taskControlStore.waiting().length, 0);
+    }
 });
 
 test('engine: a change reaches running work by interrupting and continuing it, with receipts, and the same provider session', { timeout: 240_000 }, async (t) => {
