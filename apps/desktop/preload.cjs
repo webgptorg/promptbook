@@ -19,6 +19,13 @@ contextBridge.exposeInMainWorld('desktop', {
     resize: (id, size) => ipcRenderer.send('desktop:resize', { id, ...size }),
     closeTerminal: (id) => ipcRenderer.invoke('desktop:close-terminal', id),
     answer: (id, promptId, answer) => ipcRenderer.invoke('desktop:answer', { id, promptId, answer }),
+    featureContext: (root) => ipcRenderer.invoke('desktop:feature-context', root),
+    openFeature: (request) => ipcRenderer.invoke('desktop:feature-open', request),
+    closeFeature: (id) => ipcRenderer.invoke('desktop:feature-close', id),
+    featureBounds: (feature, bounds) => ipcRenderer.send('desktop:feature-bounds', { feature, bounds }),
+    tabTabs: (root, browser) => ipcRenderer.invoke('desktop:tab-tabs', { root, browser }),
+    tabAction: (request) => ipcRenderer.invoke('desktop:tab-action', request),
+    voiceControl: (root, chat, action) => ipcRenderer.invoke('desktop:voice-control', { root, chat, action }),
     onEvent: (callback) => {
         const listener = (_event, value) => callback(value);
         ipcRenderer.on('desktop:event', listener);

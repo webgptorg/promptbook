@@ -1,4 +1,4 @@
-import { FeatureSurface, type FeatureSurfaceState } from './feature-server.js';
+import { FeatureSurface, type FeatureSurfaceState, type PresentedSurface, type SurfaceFactory } from './feature-server.js';
 import { voiceFeaturePage } from './voice-page.js';
 
 /**
@@ -42,7 +42,7 @@ export class VoiceSurfaceRelay {
     private closed = false;
 
     private constructor(
-        private readonly surface: FeatureSurface,
+        private readonly surface: PresentedSurface,
         private readonly channel: VoiceMediaChannel,
         private readonly onState: (state: FeatureSurfaceState, reason?: string) => void,
     ) {}
@@ -51,10 +51,19 @@ export class VoiceSurfaceRelay {
      * Starts the relay's temporary server for one call. `onState` reports waiting/attached/detached/expired/closed for
      * the terminal's status line.
      */
-    public static async open(input: { readonly agent: string; readonly chat: string; readonly channel: VoiceMediaChannel; readonly onState: (state: FeatureSurfaceState, reason?: string) => void }): Promise<VoiceSurfaceRelay> {
+    public static async open(input: {
+        readonly agent: string;
+        readonly chat: string;
+        readonly channel: VoiceMediaChannel;
+        readonly onState: (state: FeatureSurfaceState, reason?: string) => void;
+        /** Where the media page is presented: the terminal's temporary server by default, or the desktop app's view. */
+        readonly surface?: SurfaceFactory;
+        /** The page's hint about where the controls are. */
+        readonly hint?: string;
+    }): Promise<VoiceSurfaceRelay> {
         let relay: VoiceSurfaceRelay | undefined;
-        const surface = await FeatureSurface.start({
-            page: voiceFeaturePage({ agent: input.agent, chat: input.chat, hint: 'Controls are in your terminal. Closing this page ends the voice call; the chat and its work continue.' }),
+        const surface = await (input.surface ?? FeatureSurface.start)({
+            page: voiceFeaturePage({ agent: input.agent, chat: input.chat, hint: input.hint ?? 'Controls are in your terminal. Closing this page ends the voice call; the chat and its work continue.' }),
             permissions: 'microphone=(self), camera=(), geolocation=()',
             // A reload of the same page may recover within the call's own grace; the engine ends the call after it.
             reattachMs: 8_000,

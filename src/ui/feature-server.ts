@@ -53,6 +53,34 @@ export type FeatureSurfaceOptions = {
 };
 
 /**
+ * A presented feature surface as relays use it: the terminal's temporary server ({@link FeatureSurface}) or the
+ * desktop app's embedded view ({@link PortSurface} of `port-surface.ts`). The relay's media, inputs and state work the
+ * same over either.
+ *
+ * @private interactive feature surfaces
+ */
+export type PresentedSurface = {
+    /** The launch link (terminal) or the embedded view's address (desktop). */
+    readonly url: string;
+    readonly state: FeatureSurfaceState;
+    readonly attached: boolean;
+    /** Bytes waiting for the page (stale media frames are dropped above a bound). */
+    readonly backlog: number;
+    readonly send: (message: Readonly<Record<string, unknown>>) => void;
+    readonly sendBinary: (data: Buffer) => void;
+    /** A fresh invitation after an unused one expired. */
+    readonly retry: () => void;
+    readonly close: (reason?: string) => Promise<void>;
+};
+
+/**
+ * Creates the surface a relay presents through (the terminal's temporary server by default).
+ *
+ * @private interactive feature surfaces
+ */
+export type SurfaceFactory = (options: FeatureSurfaceOptions) => Promise<PresentedSurface>;
+
+/**
  * Default lifetime of an unused invitation.
  */
 const INVITATION_MS = 120_000;
@@ -184,11 +212,11 @@ export function socketTransportScript(): string {
  *
  * @private interactive feature surfaces
  */
-export function featureDocument(page: FeaturePage, nonce: string, transport: string): string {
+export function featureDocument(page: FeaturePage, nonce: string, transport: string, csp?: string): string {
     return `<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8">${csp ? `\n<meta http-equiv="Content-Security-Policy" content="${escapeHtml(csp)}">` : ''}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>${escapeHtml(page.title)}</title>

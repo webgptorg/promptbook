@@ -1,6 +1,6 @@
 import type { TabControlView, TabFrame, TabInput } from '../browser/tab-control.js';
 import { errorMessage } from '../common/errors.js';
-import { FeatureSurface, type FeatureSurfaceState } from './feature-server.js';
+import { FeatureSurface, type FeatureSurfaceState, type PresentedSurface, type SurfaceFactory } from './feature-server.js';
 import { tabFeaturePage } from './tab-page.js';
 
 /**
@@ -45,7 +45,7 @@ export class TabSurfaceRelay {
     private viewValue: TabControlView;
 
     private constructor(
-        private readonly surface: FeatureSurface,
+        private readonly surface: PresentedSurface,
         private readonly id: string,
         private readonly grant: string,
         private readonly channel: TabControlChannel,
@@ -64,9 +64,11 @@ export class TabSurfaceRelay {
         readonly hint?: string;
         readonly onState: (state: FeatureSurfaceState, reason?: string) => void;
         readonly onView?: (view: TabControlView) => void;
+        /** Where the viewer is presented: the terminal's temporary server by default, or the desktop app's view. */
+        readonly surface?: SurfaceFactory;
     }): Promise<TabSurfaceRelay> {
         let relay: TabSurfaceRelay | undefined;
-        const surface = await FeatureSurface.start({
+        const surface = await (input.surface ?? FeatureSurface.start)({
             page: tabFeaturePage({ browser: input.control.browser, hint: input.hint ?? 'Return control to the agent (and any Wallet choice) from your terminal. Closing this page keeps the tab with you.' }),
             permissions: 'clipboard-read=(self), clipboard-write=(self), microphone=(), camera=(), geolocation=()',
             // A reload of the same viewer tab recovers within this window; later, reopen control from the terminal.

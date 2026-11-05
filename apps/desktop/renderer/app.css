@@ -314,6 +314,75 @@ main {
     color: var(--danger);
 }
 
+#feature-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 40vh;
+    padding: 8px 12px;
+    overflow: auto;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+}
+
+.feature-switch, .feature-row, .feature-form, .feature-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.feature-switch .spacer {
+    flex: 1;
+}
+
+.feature-switch button {
+    padding: 4px 10px;
+}
+
+.feature-switch button.active {
+    border-color: var(--accent);
+    background: var(--surface);
+}
+
+.feature-row {
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.feature-row small {
+    display: block;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
+.feature-row.warning {
+    color: var(--warning);
+}
+
+.feature-row.success {
+    color: var(--success);
+}
+
+.feature-row.offer {
+    border: 1px solid var(--accent);
+}
+
+.feature-form {
+    padding: 6px 10px;
+}
+
+.feature-form select, .feature-form input {
+    max-width: 320px;
+    min-width: 0;
+}
+
+#feature-pane > .empty {
+    margin: 24px;
+}
+
 #overview-pane {
     padding: 24px clamp(16px, 3vw, 32px);
     overflow: auto;

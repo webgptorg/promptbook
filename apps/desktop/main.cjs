@@ -1,5 +1,5 @@
 'use strict';
-const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, nativeTheme, shell } = require('electron');
+const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, nativeTheme, protocol, session, shell } = require('electron');
 const { fork } = require('node:child_process');
 const { readFileSync, renameSync, writeFileSync } = require('node:fs');
 const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
@@ -14,6 +14,22 @@ const isMac = process.platform === 'darwin';
 
 /** Supported appearance preferences, including a live system default. */
 const themeSources = new Set(['system', 'light', 'dark']);
+
+/**
+ * Embedded feature views (a live tab viewer, a voice media page) load their document from this privileged secure
+ * scheme of their own in-memory session; nothing else is served there.
+ */
+const FEATURE_URL = 'ptbk-feature://surface/';
+protocol.registerSchemesAsPrivileged([{ scheme: 'ptbk-feature', privileges: { standard: true, secure: true } }]);
+
+/** Live feature views by id: the owning window, the kind and their embedded view. */
+const features = new Map();
+
+/** Messages of the CLI controller about features not registered here yet (a feature's first output). */
+const earlyFeatureOutput = new Map();
+
+/** Features whose view was removed; their late output is dropped. */
+const closedFeatures = new Set();
 
 /** The tray controller owns client windows and attachments, never the engines. */
 const windows = new Map();
@@ -89,6 +105,7 @@ async function startBridge() {
     let diagnostic = '';
     bridge.stderr.on('data', (chunk) => { diagnostic = (diagnostic + chunk).slice(-4000); });
     bridge.on('message', (message) => {
+        if (message && typeof message.feature === 'string') { featureOutput(message); return; }
         const entry = pending.get(message.id);
         if (!entry) return;
         pending.delete(message.id);
@@ -118,6 +135,107 @@ async function controller(method, params = {}) {
         pending.set(id, { resolve: done, reject: fail, timer });
         bridge.send({ id, method, params }, (error) => { if (error) { clearTimeout(timer); pending.delete(id); fail(error); } });
     });
+}
+
+/** Posts ordered, reply-less input of a feature view to the CLI controller. */
+function bridgeSend(message) {
+    if (bridge?.connected) bridge.send(message);
+}
+
+/** Output of a feature: page messages go to its own view only; state and views go to its owning window's shell. */
+function featureOutput(message) {
+    const feature = features.get(message.feature);
+    if (!feature) {
+        if (closedFeatures.has(message.feature)) return;
+        const queue = earlyFeatureOutput.get(message.feature) || [];
+        if (queue.length < 200) queue.push(message);
+        earlyFeatureOutput.set(message.feature, queue);
+        return;
+    }
+    const out = message.out;
+    if (out && (out.kind === 'message' || out.kind === 'binary')) {
+        if (feature.view && !feature.view.webContents.isDestroyed()) feature.view.webContents.send('feature:in', out.kind === 'binary' ? { kind: 'binary', data: Buffer.from(String(out.data), 'base64') } : { kind: 'message', data: String(out.data) });
+    } else if (out && out.kind === 'state') {
+        emit(feature.entry, { type: 'feature', feature: feature.id, kind: feature.kind, state: out.state, reason: out.reason });
+        // The feature ended on its own (handed back, ended, lost, or the call ended): its view goes away.
+        if (out.state === 'closed') removeFeatureView(feature);
+    }
+    if (message.view) emit(feature.entry, { type: 'feature', feature: feature.id, kind: feature.kind, view: message.view });
+}
+
+/** Removes a feature's embedded view (the feature itself is closed separately). */
+function removeFeatureView(feature) {
+    features.delete(feature.id);
+    closedFeatures.add(feature.id);
+    earlyFeatureOutput.delete(feature.id);
+    const view = feature.view;
+    feature.view = undefined;
+    if (!view) return;
+    try { feature.entry.window.contentView.removeChildView(view); } catch {}
+    if (!view.webContents.isDestroyed()) view.webContents.close();
+}
+
+/** Closes a feature from this app: the view closes and the controller ends it under its own rules. */
+function closeFeature(feature, reason) {
+    if (!features.has(feature.id)) return;
+    bridgeSend({ featureIn: feature.id, in: { kind: 'closed', reason } });
+    void controller('feature-close', { feature: feature.id, reason }).catch(() => {});
+    emit(feature.entry, { type: 'feature', feature: feature.id, kind: feature.kind, state: 'closed', reason });
+    removeFeatureView(feature);
+}
+
+/**
+ * Permissions of an embedded feature view, only while it is live: the voice page may use the microphone (audio only,
+ * subject to the operating system's consent); the tab viewer may use the clipboard for the user's explicit copy and
+ * paste. Everything else, and every other view, stays denied.
+ */
+function featurePermission(feature, contents, permission, details) {
+    if (!features.has(feature.id) || !feature.view || contents !== feature.view.webContents) return false;
+    if (feature.kind === 'voice') return permission === 'media' && (details?.mediaTypes ? details.mediaTypes.every((type) => type === 'audio') : details?.mediaType !== 'video');
+    if (feature.kind === 'tab') return permission === 'clipboard-read' || permission === 'clipboard-sanitized-write';
+    return false;
+}
+
+/** Clamps a feature view to the owning window (zero size hides it). */
+function setFeatureBounds(feature, bounds) {
+    if (!feature.view || !bounds) return;
+    const [width, height] = feature.entry.window.getContentSize();
+    const x = Math.max(0, Math.min(width, Math.round(Number(bounds.x) || 0)));
+    const y = Math.max(0, Math.min(height, Math.round(Number(bounds.y) || 0)));
+    feature.view.setBounds({ x, y, width: Math.max(0, Math.min(width - x, Math.round(Number(bounds.width) || 0))), height: Math.max(0, Math.min(height - y, Math.round(Number(bounds.height) || 0))) });
+}
+
+/**
+ * Presents a feature in place: a sandboxed view with context isolation, no Node, its own in-memory session and only the
+ * narrow feature preload. Its document comes from the CLI controller with a restrictive content security policy.
+ */
+async function showFeature(entry, kind, root, result, bounds) {
+    const partition = `desktop-feature-${entry.window.id}-${result.feature}`;
+    const featureSession = session.fromPartition(partition);
+    // A restarted controller numbers its features again: the partition's previous document handler is replaced.
+    if (featureSession.protocol.isProtocolHandled('ptbk-feature')) featureSession.protocol.unhandle('ptbk-feature');
+    featureSession.protocol.handle('ptbk-feature', (request) => request.url === FEATURE_URL
+        ? new Response(result.document, { headers: { 'content-type': 'text/html; charset=utf-8', 'content-security-policy': result.policy, 'permissions-policy': result.permissions, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff' } })
+        : new Response('', { status: 404 }));
+    const view = new WebContentsView({ webPreferences: { preload: join(__dirname, 'feature-preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, partition, spellcheck: false } });
+    const feature = { id: result.feature, entry, kind, root, control: result.control?.id, view };
+    features.set(feature.id, feature);
+    protect(view.webContents, entry.window, (url) => url === FEATURE_URL);
+    featureSession.setPermissionRequestHandler((contents, permission, callback, details) => callback(featurePermission(feature, contents, permission, details)));
+    featureSession.setPermissionCheckHandler((contents, permission, _origin, details) => featurePermission(feature, contents, permission, details));
+    view.webContents.on('render-process-gone', () => closeFeature(feature, 'The view stopped unexpectedly.'));
+    entry.window.contentView.addChildView(view);
+    setFeatureBounds(feature, bounds);
+    for (const message of earlyFeatureOutput.get(feature.id) || []) featureOutput(message);
+    earlyFeatureOutput.delete(feature.id);
+    await view.webContents.loadURL(FEATURE_URL);
+}
+
+/** The live feature of a shell-owned window, or a refusal. */
+function ownedFeature(entry, id) {
+    const feature = features.get(id);
+    if (!feature || feature.entry !== entry) throw new Error('This live view is no longer open.');
+    return feature;
 }
 
 /** Only the packaged shell's main frame may invoke desktop capabilities. */
@@ -186,7 +304,12 @@ function createWindow(options = {}) {
     protect(window.webContents, window, (url) => url.split('#')[0] === shellUrl);
     window.once('ready-to-show', () => window.show());
     window.webContents.once('did-finish-load', () => emit(entry, { type: 'launch', ...options }));
-    window.on('close', () => { hideDashboard(entry); for (const id of entry.terminals.keys()) closeTerminal(entry, id); });
+    window.on('close', () => {
+        hideDashboard(entry);
+        for (const id of entry.terminals.keys()) closeTerminal(entry, id);
+        // Its voice calls end; its tab viewers detach and their tabs stay protected for the user.
+        for (const feature of [...features.values()]) if (feature.entry === entry) closeFeature(feature, 'The window was closed.');
+    });
     window.on('closed', () => windows.delete(window.id));
     void window.loadURL(shellUrl);
     return entry;
@@ -316,6 +439,59 @@ ipcMain.handle('desktop:dashboard', async (event, { root, bounds }) => {
     return { root, instanceId: result.instanceId };
 });
 ipcMain.on('desktop:bounds', (event, bounds) => { try { setBounds(owner(event), bounds); } catch {} });
+ipcMain.handle('desktop:feature-context', async (event, root) => {
+    owner(event);
+    if (typeof root !== 'string') throw new Error('Select a project first.');
+    return await controller('feature-context', { root });
+});
+ipcMain.handle('desktop:feature-open', async (event, request) => {
+    const entry = owner(event);
+    const kind = request?.kind;
+    if (!['tab', 'voice'].includes(kind) || typeof request.root !== 'string') throw new Error('Invalid live view request.');
+    const params = {};
+    for (const key of ['request', 'browser', 'target', 'url', 'chat', 'id']) if (typeof request[key] === 'string' && request[key] && request[key].length <= 4096) params[key] = request[key];
+    if (kind === 'voice' && [...features.values()].some((feature) => feature.entry === entry && feature.kind === 'voice')) throw new Error('Voice is already live in this window. End it first.');
+    const method = kind === 'voice' ? 'voice-open' : params.id ? 'tab-reopen' : 'tab-open';
+    // The window is the voice call's controlling client (its media grant stays with this window's view).
+    const result = await controller(method, { root: request.root, ...params, ...(kind === 'voice' ? { client: `desktop-${process.pid}-${entry.window.id}` } : {}) });
+    for (const feature of [...features.values()]) if (kind === 'tab' && result.control && feature.control === result.control.id && feature.id !== result.feature) removeFeatureView(feature);
+    closedFeatures.delete(result.feature);
+    try {
+        await showFeature(entry, kind, request.root, result, request.bounds);
+    } catch (error) {
+        const feature = features.get(result.feature);
+        if (feature) closeFeature(feature, 'The live view could not open.');
+        else void controller('feature-close', { feature: result.feature, reason: 'The live view could not open.' }).catch(() => {});
+        throw error;
+    }
+    return { feature: result.feature, control: result.control };
+});
+ipcMain.handle('desktop:feature-close', (event, id) => { closeFeature(ownedFeature(owner(event), id), 'The view was closed.'); });
+ipcMain.on('desktop:feature-bounds', (event, { feature, bounds } = {}) => { try { setFeatureBounds(ownedFeature(owner(event), feature), bounds); } catch {} });
+ipcMain.handle('desktop:tab-tabs', async (event, { root, browser } = {}) => {
+    owner(event);
+    if (typeof root !== 'string') throw new Error('Select a project first.');
+    return await controller('tab-tabs', { root, ...(typeof browser === 'string' ? { browser } : {}) });
+});
+ipcMain.handle('desktop:tab-action', async (event, { root, id, action, offer, answer } = {}) => {
+    owner(event);
+    if (typeof root !== 'string' || typeof id !== 'string' || !['handback', 'end', 'offer'].includes(action)) throw new Error('Invalid tab control action.');
+    if (action === 'offer' && (typeof offer !== 'string' || !['yes', 'no'].includes(answer))) throw new Error('Answer the save offer with Yes or No.');
+    return await controller('tab-action', { root, id, action, ...(action === 'offer' ? { offer, answer } : {}) });
+});
+ipcMain.handle('desktop:voice-control', async (event, { root, chat, action } = {}) => {
+    owner(event);
+    if (typeof root !== 'string' || typeof chat !== 'string') throw new Error('Choose the chat first.');
+    return await controller('voice-control', { root, chat, action });
+});
+/** Messages of an embedded feature view: accepted only from that live view's own main frame, then relayed in order. */
+ipcMain.on('feature:out', (event, payload) => {
+    const feature = [...features.values()].find((item) => item.view && item.view.webContents === event.sender);
+    if (!feature || event.senderFrame !== event.sender.mainFrame || event.senderFrame.url !== FEATURE_URL) return;
+    if (payload?.kind === 'hello') bridgeSend({ featureIn: feature.id, in: { kind: 'hello' } });
+    else if (payload?.kind === 'message' && typeof payload.data === 'string' && payload.data.length <= 1024 * 1024) bridgeSend({ featureIn: feature.id, in: { kind: 'message', data: payload.data } });
+    else if (payload?.kind === 'binary' && payload.data instanceof Uint8Array && payload.data.length <= 1024 * 1024) bridgeSend({ featureIn: feature.id, in: { kind: 'binary', data: Buffer.from(payload.data).toString('base64') } });
+});
 ipcMain.on('desktop:hide-dashboard', (event) => { try { hideDashboard(owner(event)); } catch {} });
 ipcMain.handle('desktop:new-window', (event, root) => { owner(event); createWindow({ root: typeof root === 'string' ? root : undefined }); });
 ipcMain.handle('desktop:directory', async (event) => { const entry = owner(event); const result = await dialog.showOpenDialog(entry.window, { properties: ['openDirectory', 'createDirectory'] }); return result.canceled ? undefined : result.filePaths[0]; });

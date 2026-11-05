@@ -36,6 +36,7 @@
     "files": [
       "main.cjs",
       "preload.cjs",
+      "feature-preload.cjs",
       "model.cjs",
       "prompt-server.cjs",
       "bridge.mjs",
