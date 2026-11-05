@@ -357,7 +357,7 @@ type StoredRecord = {
 /**
  * One persisted login request.
  */
-type StoredAction = WalletActionView & { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly settledAt?: string; readonly record?: string };
+type StoredAction = WalletActionView & { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly settledAt?: string; readonly record?: string; readonly resolvedBy?: 'save' | 'manual' };
 
 /**
  * Decrypted content of a record (only inside the Wallet and the trusted sign-in).
@@ -588,6 +588,16 @@ export function originsRelated(a: string, b: string): boolean {
     } catch {
         return false;
     }
+}
+
+/**
+ * Whether two origins are the same service: the same origin (also for hosts without a registrable site, such as an IP
+ * address) or origins of one site.
+ *
+ * @private Wallet
+ */
+export function serviceMatches(a: string, b: string): boolean {
+    return originMatches(a, b) || originsRelated(a, b);
 }
 
 /**
@@ -1811,9 +1821,105 @@ export class WalletSubEngine {
     }
 
     /** The state of a login action waiting work refers to (undefined: unknown, never blocks). */
-    public action(id: string): { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly origin: string; readonly problem: WalletActionView['problem'] } | undefined {
+    public action(id: string): { readonly state: 'pending' | 'resolved' | 'dismissed'; readonly origin: string; readonly problem: WalletActionView['problem']; readonly resolvedBy?: 'save' | 'manual' } | undefined {
         const action = this.actions.find((candidate) => candidate.id === id);
-        return action ? { state: action.state, origin: action.origin, problem: action.problem } : undefined;
+        return action ? { state: action.state, origin: action.origin, problem: action.problem, ...(action.resolvedBy ? { resolvedBy: action.resolvedBy } : {}) } : undefined;
+    }
+
+    /**
+     * The context of a pending request for **Sign in manually**: its service, account and the browser it needs. It
+     * works whatever the Wallet's readiness (a locked Wallet only cannot remember the password afterwards).
+     */
+    public manualSignIn(id: string): { readonly request: string; readonly origin: string; readonly account?: string; readonly browser?: string } {
+        const action = this.actions.find((candidate) => candidate.id === id && candidate.state === 'pending');
+        if (!action) throw new PtbkError('No pending Wallet request has that id (it may have been completed or rejected meanwhile).', { kind: 'not-found' });
+        return { request: action.id, origin: action.origin, ...(action.account ? { account: action.account } : {}), ...(action.browser ? { browser: action.browser } : {}) };
+    }
+
+    /**
+     * Whether to offer remembering a credential the user submitted on the website itself: `save` (no such login yet),
+     * `update` (the saved login of that username has another password) or `none` (the same values are saved already,
+     * or the Wallet cannot save now). The revision lets a stale answer be refused.
+     */
+    public manualOffer(candidate: { readonly origin: string; readonly username: string; readonly password: string }): { readonly kind: 'none' | 'save' | 'update'; readonly account: string; readonly record?: string; readonly revision?: string } {
+        let origin: string;
+        try {
+            origin = normalizeOrigin(candidate.origin);
+        } catch {
+            return { kind: 'none', account: '' };
+        }
+        const username = candidate.username.trim();
+        if (this.state !== 'ready' || !this.key || !username || !candidate.password) return { kind: 'none', account: maskAccount(username) };
+        const existing = this.records.find((record) => originMatches(record.origin, origin) && this.usernameOf(record)?.toLowerCase() === username.toLowerCase());
+        if (!existing) return { kind: 'save', account: walletLabel(origin, username) };
+        const same = (() => {
+            try {
+                return this.credentials(existing).password === candidate.password;
+            } catch {
+                return false;
+            }
+        })();
+        return same ? { kind: 'none', account: existing.account } : { kind: 'update', account: existing.account, record: existing.id, revision: existing.updatedAt };
+    }
+
+    /**
+     * Yes to the save offer of a manual sign-in: the ordinary encrypted add/update with duplicate and revision checks.
+     * It settles no request (the manual sign-in itself does, after its handoff) and creates no alert. The exact values
+     * just signed in, so the record is verified by that evidence without a second login.
+     */
+    public async saveFromManualSignIn(candidate: { readonly origin: string; readonly username: string; readonly password: string }, expected: { readonly record?: string; readonly revision?: string }): Promise<string> {
+        const outcome = await this.mutex.run(async (): Promise<string> => {
+            const key = this.requireReady();
+            const origin = normalizeOrigin(candidate.origin);
+            const username = candidate.username.trim();
+            if (!username || !candidate.password) throw new PtbkError('The sign-in did not include a username and password to save.', { kind: 'usage' });
+            const existing = this.records.find((record) => originMatches(record.origin, origin) && this.usernameOf(record)?.toLowerCase() === username.toLowerCase());
+            // A stale answer cannot overwrite a newer record, nor duplicate one saved meanwhile.
+            if (expected.record ? !existing || existing.id !== expected.record || existing.updatedAt !== expected.revision : existing) throw new PtbkError('The saved login changed since the offer was shown, so nothing was saved.', { kind: 'conflict' });
+            const now = new Date().toISOString();
+            const fields = existing ? this.fieldsOf(existing) : [];
+            const record: StoredRecord = {
+                id: existing?.id ?? randomBytes(6).toString('hex'),
+                origin,
+                account: existing?.account ?? walletLabel(origin, username),
+                createdAt: existing?.createdAt ?? now,
+                updatedAt: now,
+                verification: { state: 'verified', at: now, reason: 'Signed in with exactly these values during your manual sign-in.' },
+                secret: seal(key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ origin, username, password: candidate.password, ...(fields.length ? { fields } : {}) } satisfies Credentials), 'utf8')),
+            };
+            this.records = existing ? this.records.map((item) => (item.id === existing.id ? record : item)) : [...this.records, record];
+            await this.writeRecords();
+            return `${existing ? 'Updated the password of' : 'Saved'} the login "${record.account}" for ${origin}. You stay signed in.`;
+        });
+        this.options.log(`Wallet: ${outcome}`);
+        this.remember({ action: 'wallet-save', applied: true, outcome });
+        return outcome;
+    }
+
+    /**
+     * After a manual sign-in was handed back: revalidated access to the request's service (and account) satisfies it
+     * and every other pending request it covers; anything else leaves them waiting.
+     */
+    public async satisfyByManualSignIn(id: string, access: { readonly origin: string; readonly account?: string }): Promise<{ readonly resolved: boolean; readonly reason: string }> {
+        const result = await this.mutex.run(async (): Promise<{ resolved: boolean; reason: string; settled: number }> => {
+            const action = this.actions.find((candidate) => candidate.id === id);
+            if (!action) return { resolved: false, reason: 'the Wallet request no longer exists.', settled: 0 };
+            if (action.state !== 'pending') return { resolved: true, reason: `The request for ${action.origin} was already ${action.state === 'resolved' ? 'completed' : 'rejected'}.`, settled: 0 };
+            if (!serviceMatches(access.origin, action.origin)) return { resolved: false, reason: `the tab is signed in to ${access.origin}, not to ${action.origin}.`, settled: 0 };
+            const covered = (candidate: StoredAction): boolean => candidate.state === 'pending' && serviceMatches(access.origin, candidate.origin) && (!candidate.account || (access.account ?? '').toLowerCase() === candidate.account.toLowerCase());
+            if (!covered(action)) return { resolved: false, reason: `Wallet could not confirm the account ${action.account} in the tab.`, settled: 0 };
+            const satisfied = this.actions.filter(covered);
+            const now = new Date().toISOString();
+            this.actions = this.actions.map((candidate) => (satisfied.includes(candidate) ? { ...candidate, state: 'resolved', settledAt: now, resolvedBy: 'manual' } : candidate));
+            await this.writeActions();
+            return { resolved: true, reason: `Your sign-in to ${action.origin} completed ${satisfied.length === 1 ? 'the request' : `${satisfied.length} requests`}; the waiting work revalidates the tab and continues.`, settled: satisfied.length };
+        });
+        if (result.settled) {
+            this.options.log(`Wallet: ${result.reason}`);
+            this.options.onSettled?.();
+        }
+        this.options.onChange();
+        return { resolved: result.resolved, reason: result.reason };
     }
 
     /**

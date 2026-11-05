@@ -14,6 +14,7 @@ import { createRedactor } from '../common/redact.js';
 import { promptbookAppData } from '../common/app-data.js';
 import { BrowserRecorder, type ScreencastPort } from './recording.js';
 import { BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
+import { TabReservations } from './tab-reservations.js';
 import { parseKeyPress, type KeyPress } from './input.js';
 import { progressiveDelay, WAITING_POLICIES } from '../engine/progressive-waiting.js';
 import {
@@ -261,7 +262,7 @@ function staleReference(ref: number): PtbkError {
  */
 class CdpConnection {
     private nextId = 1;
-    private readonly pending = new Map<number, { resolve: (value: Record<string, unknown>) => void; reject: (error: Error) => void }>();
+    private readonly pending = new Map<number, { resolve: (value: Record<string, unknown>) => void; reject: (error: Error) => void; sessionId?: string }>();
     private readonly listeners = new Set<(message: Record<string, unknown>) => void>();
     private readonly closeListeners = new Set<() => void>();
 
@@ -297,7 +298,7 @@ class CdpConnection {
     public send(method: string, params: Record<string, unknown> = {}, sessionId?: string): Promise<Record<string, unknown>> {
         const id = this.nextId++;
         return new Promise((resolve, reject) => {
-            this.pending.set(id, { resolve, reject });
+            this.pending.set(id, { resolve, reject, ...(sessionId ? { sessionId } : {}) });
             this.socket.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
         });
     }
@@ -326,9 +327,17 @@ class CdpConnection {
         return () => this.listeners.delete(listener);
     }
 
-    /** Notifies when the connection closes (browser exit or crash). */
-    public onClose(listener: () => void): void {
+    /** Notifies when the connection closes (browser exit or crash); returns the unsubscribe function. */
+    public onClose(listener: () => void): () => void {
         this.closeListeners.add(listener);
+        return () => this.closeListeners.delete(listener);
+    }
+
+    /** Commands of one session still waiting for their result (an operation in flight on that tab). */
+    public pendingFor(sessionId: string): number {
+        let count = 0;
+        for (const entry of this.pending.values()) if (entry.sessionId === sessionId) count++;
+        return count;
     }
 
     /** Closes the socket (an intentional close does not notify close listeners). */
@@ -337,6 +346,26 @@ class CdpConnection {
         this.socket.close();
     }
 }
+
+/**
+ * The DevTools protocol connection of an engine's shared browser as the tab-control session uses it.
+ *
+ * @private project browser
+ */
+export type CdpLink = Pick<CdpConnection, 'send' | 'on' | 'waitFor' | 'onClose' | 'pendingFor'>;
+
+/**
+ * How long the set of user-controlled tabs of a profile is reused before it is read again (every engine sharing the
+ * profile notices a new reservation within this bound; control starts only after it).
+ *
+ * @private project browser
+ */
+export const RESERVATION_CACHE_MS = 300;
+
+/**
+ * How often a connected engine checks the profile's tab reservations between its tasks' actions.
+ */
+const RESERVATION_WATCH_MS = 1_000;
 
 /**
  * Observed health of one named browser's connection (engine-owned diagnosis and recovery; never inferred from
@@ -392,6 +421,14 @@ export class ProjectBrowser {
     private health: BrowserHealth = { state: 'not-started', ownership: { state: 'unknown' }, recovery: { attempts: 0, state: 'idle' } };
     /** Tabs of this engine's active tasks, by task scope. */
     private readonly sessions = new Map<string, TaskBrowser>();
+    /** The shared browser-control boundary of the profile (user-controlled tabs of every connected engine). */
+    public readonly reservations: TabReservations;
+    /** The user-controlled tabs as last read (briefly reused). */
+    private reservedCache?: { readonly at: number; readonly profile: string; readonly tabs: ReadonlySet<string> };
+    /** Called before this engine disconnects (user-controlled tabs are closed rather than left to another engine). */
+    public beforeDisconnect?: () => Promise<void>;
+    /** Checks the shared reservations while connected. */
+    private reservationWatch?: NodeJS.Timeout;
 
     public constructor(
         private readonly project: Project,
@@ -404,8 +441,72 @@ export class ProjectBrowser {
         private readonly recordingEnabled: () => boolean = () => true,
         private readonly pools: BrowserPools = new BrowserPools(env),
         /** This engine's identity in the pool. */
-        private readonly instanceId: string = `pid-${process.pid}`,
-    ) {}
+        public readonly instanceId: string = `pid-${process.pid}`,
+    ) {
+        this.reservations = new TabReservations(env);
+    }
+
+    /** The project directory of this engine. */
+    public get projectRoot(): string {
+        return this.project.root;
+    }
+
+    /** The actual profile directory of the current connection. */
+    public get profile(): string | undefined {
+        return this.connectedProfile;
+    }
+
+    /**
+     * Tabs of this profile a user controls now, across every engine connected to it (reused for a short bound, so
+     * every engine notices a new reservation before the user's control starts).
+     */
+    public async reservedTabs(): Promise<ReadonlySet<string>> {
+        const profile = this.connectedProfile;
+        if (!profile) return new Set();
+        const cached = this.reservedCache;
+        if (cached && cached.profile === profile && Date.now() - cached.at < RESERVATION_CACHE_MS) return cached.tabs;
+        const tabs = new Set((await this.reservations.list(profile).catch(() => [])).map((entry) => entry.targetId));
+        this.reservedCache = { at: Date.now(), profile, tabs };
+        return tabs;
+    }
+
+    /** Forgets the cached reservations (this engine just changed one). */
+    public invalidateReservations(): void {
+        this.reservedCache = undefined;
+    }
+
+    /** The open tabs of the shared browser with the task of this engine working in each (for choosing a tab to control). */
+    public async pages(): Promise<Array<BrowserTab & { readonly task?: string; readonly reserved: boolean }>> {
+        const connection = await this.connect();
+        const reserved = await this.reservedTabs();
+        return (await listPages(connection)).map((page) => ({ ...page, ...(this.ownerOf(page.targetId) ? { task: this.ownerOf(page.targetId)!.scope } : {}), reserved: reserved.has(page.targetId) }));
+    }
+
+    /** The task of this engine working in a tab. */
+    public ownerOf(targetId: string): TaskBrowser | undefined {
+        return [...this.sessions.values()].find((session) => session.ownTabs.has(targetId));
+    }
+
+    /** The connection the tab-control session uses. */
+    public async link(): Promise<CdpLink> {
+        return await this.connect();
+    }
+
+    /** A user handed a tab back: tasks that gave it up are told to revalidate it before acting on it. */
+    public handedBack(targetId: string, url: string | undefined): void {
+        this.invalidateReservations();
+        for (const session of this.sessions.values()) session.returned(targetId, url);
+    }
+
+    /**
+     * The agent operation in flight on a tab, if any: its task's session still waits for DevTools results there (the
+     * user's control starts at the next safe boundary).
+     */
+    public busyOn(targetId: string): boolean {
+        const owner = this.ownerOf(targetId);
+        const sessionId = owner?.currentSession(targetId);
+        return Boolean(sessionId && this.connection?.pendingFor(sessionId));
+    }
 
     /** Configuration of the next use: the retained one while tasks use the connection, otherwise the saved one. */
     private config(): BrowserToolRecord | undefined {
@@ -572,6 +673,8 @@ export class ProjectBrowser {
     public async restart(): Promise<ControlOutcome> {
         const tool = this.config();
         if (!tool) return this.acted('restart', 'failed', `The browser tool "${this.name}" is no longer configured.`);
+        const controlled = await this.controlledElsewhere('restart');
+        if (controlled) return controlled;
         const profile = browserProfileDirectory(this.project, tool, this.env);
         const tabs = this.sessions.size;
         try {
@@ -598,6 +701,8 @@ export class ProjectBrowser {
     public async kill(): Promise<ControlOutcome> {
         const tool = this.config();
         if (!tool) return this.acted('kill', 'failed', `The browser tool "${this.name}" is no longer configured.`);
+        const controlled = await this.controlledElsewhere('kill');
+        if (controlled) return controlled;
         const profile = browserProfileDirectory(this.project, tool, this.env);
         const killed = await this.pools.kill(profile);
         this.dropConnection('The browser was killed.');
@@ -605,6 +710,17 @@ export class ProjectBrowser {
         const others = killed.affected.filter((connection) => connection.instanceId !== this.instanceId).map((connection) => connection.project);
         if (!killed.killed) return this.acted('kill', 'succeeded', `No Promptbook-started browser process was running for "${this.name}".`);
         return this.acted('kill', 'succeeded', `Killed the browser "${this.name}" (its profile is kept)${others.length ? `; also affected: ${others.join(', ')}` : ''}. The next use starts it again.`);
+    }
+
+    /**
+     * A profile-wide operation conflicts with a tab a user controls: it is deferred (not applied) until that tab is
+     * handed back or its use ended, so the user's session is never cut off by automation.
+     */
+    private async controlledElsewhere(action: 'restart' | 'kill'): Promise<ControlOutcome | undefined> {
+        this.invalidateReservations();
+        const reserved = await this.reservedTabs();
+        if (!reserved.size) return undefined;
+        return this.acted(action, 'deferred', `Deferred: you control ${reserved.size === 1 ? 'a tab' : `${reserved.size} tabs`} of the browser "${this.name}". Return control to the agent or end your use of the tab first; nothing was ${action === 'kill' ? 'killed' : 'restarted'}.`);
     }
 
     /** Opens https://github.com/ in the actual shared browser to show that it works (a visible window keeps the tab). */
@@ -703,13 +819,35 @@ export class ProjectBrowser {
         this.record = record;
         this.connectedProfile = profile;
         this.connectedWith = tool;
+        // A user may take a tab from any engine of the profile: its tasks here give it up promptly, also between actions.
+        clearInterval(this.reservationWatch);
+        this.reservationWatch = setInterval(() => void this.enforceReservations(), RESERVATION_WATCH_MS);
+        this.reservationWatch.unref();
         this.health = { ...this.health, actualMode: record.headless ? 'headless' : 'headful' };
         if (launched) this.note ??= undefined;
         return connection;
     }
 
+    /** Tasks working in a tab a user now controls give it up (once no operation of theirs is in flight on it). */
+    private async enforceReservations(): Promise<void> {
+        const connection = this.connection;
+        if (!connection || !this.sessions.size) return;
+        const reserved = await this.reservedTabs();
+        if (!reserved.size) return;
+        for (const session of this.sessions.values()) await session.giveUp(connection, reserved).catch(() => undefined);
+    }
+
+    /** A user takes control of a tab from this engine: the task working in it gives it up now. */
+    public async yieldToUser(targetId: string): Promise<void> {
+        const connection = this.connection;
+        if (!connection) return;
+        for (const session of this.sessions.values()) await session.giveUp(connection, new Set([targetId]), true).catch(() => undefined);
+    }
+
     /** Forgets the connection and every task tab of it (the shared process itself is not touched). */
     private dropConnection(reason: string): void {
+        clearInterval(this.reservationWatch);
+        this.reservationWatch = undefined;
         this.connection?.close();
         this.connection = undefined;
         this.record = undefined;
@@ -718,6 +856,8 @@ export class ProjectBrowser {
 
     /** Handles a lost connection: task tabs end, the next use reconnects (relaunching the process if needed). */
     private connectionLost(reason: string): void {
+        clearInterval(this.reservationWatch);
+        this.reservationWatch = undefined;
         this.connection = undefined;
         this.record = undefined;
         for (const session of this.sessions.values()) session.reset(reason);
@@ -758,6 +898,7 @@ export class ProjectBrowser {
 
     /** Disconnects this engine from the shared browser; the process closes when it was the last managed connection. */
     public async disconnect(): Promise<void> {
+        await this.beforeDisconnect?.().catch(() => undefined);
         const profile = this.connectedProfile;
         const lastKnown = this.record;
         const wasConnected = Boolean(this.connection);
@@ -767,6 +908,18 @@ export class ProjectBrowser {
         if (profile) await this.pools.disconnect(profile, this.instanceId, lastKnown).catch(() => undefined);
         if (wasConnected) this.setHealth({ state: 'stopped', ownership: { state: 'free' } });
     }
+}
+
+/**
+ * The address an address-bar entry opens: an entry without a scheme is a website (plain HTTP for local addresses).
+ *
+ * @private project browser
+ */
+export function browserAddress(input: string): string {
+    const trimmed = input.trim();
+    if (!trimmed) throw new PtbkError('Name the URL to open.', { kind: 'usage' });
+    const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) || /^(about|blob|data|javascript|mailto|tel|view-source):/i.test(trimmed);
+    return hasScheme ? trimmed : `${/^(localhost|127\.|0\.0\.0\.0|\[::1\])/i.test(trimmed) ? 'http' : 'https'}://${trimmed}`;
 }
 
 /**
@@ -797,6 +950,12 @@ export class TaskBrowser {
     public readonly recorder: BrowserRecorder;
     /** URL the task works on (diagnostics). */
     public url?: string;
+    /** What the agent learns with its next page result (a tab the user took or returned). */
+    private notice?: string;
+    /** The recording is paused because the user took the tab this task worked in. */
+    private yieldedRecording = false;
+    /** This task received the raw DevTools endpoint (tab control states that it cannot be held back). */
+    private rawEndpoint = false;
 
     public constructor(
         private readonly browser: ProjectBrowser,
@@ -831,13 +990,77 @@ export class TaskBrowser {
         this.targetId = undefined;
     }
 
-    /** Ensures the connection and this task's working tab, with recording following that tab. */
+    /**
+     * Gives up the tab a user took over: the agent never acts on, inspects or records it again until it is handed back
+     * (the user-controlled interval is a labelled gap of the recording).
+     */
+    private async yieldTab(connection: CdpConnection, targetId: string): Promise<void> {
+        if (!this.yieldedRecording) {
+            await this.recorder.pause('The user took control of this tab; the user-controlled interval is not recorded.');
+            this.yieldedRecording = true;
+        }
+        const previous = this.sessionId;
+        this.navigationListener?.();
+        this.navigationListener = undefined;
+        this.sessionId = undefined;
+        this.targetId = undefined;
+        this.ownTabs.delete(targetId);
+        this.yielded.add(targetId);
+        if (previous) await connection.send('Target.detachFromTarget', { sessionId: previous }).catch(() => undefined);
+        this.notice = `Note: the user took control of the tab ${targetId} you worked in. Do not act on it or wait for it here; it is handed back only when they choose. You now work in another tab of your own.`;
+    }
+
+    /**
+     * Gives up a tab a user now controls between actions: the one it works in (unless an operation of it is still in
+     * flight there and `now` is not set) or another of its own tabs.
+     */
+    public async giveUp(connection: CdpConnection, reserved: ReadonlySet<string>, now = false): Promise<void> {
+        if (this.targetId && reserved.has(this.targetId) && (now || !this.sessionId || !connection.pendingFor(this.sessionId))) await this.yieldTab(connection, this.targetId);
+        for (const targetId of [...this.ownTabs]) {
+            if (!reserved.has(targetId) || targetId === this.targetId) continue;
+            this.ownTabs.delete(targetId);
+            this.yielded.add(targetId);
+            this.notice ??= `Note: the user took control of your tab ${targetId}. Do not act on it or wait for it here; it is handed back only when they choose.`;
+        }
+    }
+
+    /** Tabs this task gave up to a user (returned ones may be selected again). */
+    private readonly yielded = new Set<string>();
+
+    /** The DevTools session this task has on a tab (when it currently works in it). */
+    public currentSession(targetId: string): string | undefined {
+        return this.targetId === targetId ? this.sessionId : undefined;
+    }
+
+    /** A tab this task gave up was handed back by the user: the agent revalidates it before acting on it. */
+    public returned(targetId: string, url: string | undefined): void {
+        if (!this.yielded.delete(targetId)) return;
+        this.notice = `Note: the user handed back the tab ${targetId}${url ? ` (now at ${url})` : ''}. It may have changed while they used it: select it with browser_tabs and read it again before acting on it, and recheck the latest instructions.`;
+    }
+
+    /** The note for the agent's next page result (given once). */
+    private takeNotice(): string {
+        const notice = this.notice;
+        this.notice = undefined;
+        return notice ? `${notice}\n\n` : '';
+    }
+
+    /**
+     * Ensures the connection and this task's working tab, with recording following that tab. A tab a user controls
+     * is never used: the current one is given up (with a note for the agent), and only tabs no user controls are chosen.
+     */
     private async active(): Promise<{ connection: CdpConnection; sessionId: string }> {
         const connection = await this.browser.connect();
+        const reserved = await this.browser.reservedTabs();
+        if (this.targetId && reserved.has(this.targetId)) await this.yieldTab(connection, this.targetId);
         if (!this.sessionId) {
-            // Another of this task's tabs, else a new tab of its own (never another task's).
-            const own = (await listPages(connection)).find((page) => this.ownTabs.has(page.targetId));
+            // Another of this task's tabs, else a new tab of its own (never another task's or a user-controlled one).
+            const own = (await listPages(connection)).find((page) => this.ownTabs.has(page.targetId) && !reserved.has(page.targetId));
             await this.attachPage(connection, own?.targetId ?? (await this.newTab(connection)));
+        }
+        if (this.yieldedRecording) {
+            this.yieldedRecording = false;
+            await this.recorder.resume();
         }
         this.navigationListener ??= connection.on((message) => {
             if (message.method !== 'Page.frameNavigated' || message.sessionId !== this.sessionId) return;
@@ -902,8 +1125,9 @@ export class TaskBrowser {
         return matches[0]!.targetId;
     }
 
-    /** Refuses to take over or close a tab another active task works in. */
-    private guard(targetId: string): void {
+    /** Refuses to take over or close a tab another active task works in or a user controls. */
+    private async guard(targetId: string): Promise<void> {
+        if ((await this.browser.reservedTabs()).has(targetId)) throw new PtbkError(`The tab ${targetId} is controlled by the user now; it is not yours to use until they hand it back. Work in your own tabs (open one with browser_tabs action new).`, { kind: 'conflict' });
         if (this.browser.tabsOfOthers(this.scope).has(targetId)) throw new PtbkError(`The tab ${targetId} belongs to another task working in this browser now; work in your own tabs (open one with browser_tabs action new).`, { kind: 'usage' });
     }
 
@@ -915,7 +1139,8 @@ export class TaskBrowser {
 
     /** After an action: continues in a tab the action opened (a link to a new window, `window.open`), as a person would. */
     private async followNewTab(connection: CdpConnection, before: ReadonlySet<string>): Promise<string> {
-        const opened = (await listPages(connection)).filter((page) => !before.has(page.targetId));
+        const reserved = await this.browser.reservedTabs();
+        const opened = (await listPages(connection)).filter((page) => !before.has(page.targetId) && !reserved.has(page.targetId));
         const tab = opened[opened.length - 1];
         if (!tab) return '';
         this.ownTabs.add(tab.targetId);
@@ -936,16 +1161,12 @@ export class TaskBrowser {
         const tabs = (await listPages(connection)).filter((candidate) => this.ownTabs.has(candidate.targetId)).length;
         const omitted = page.omitted ? `\n… ${page.omitted} more elements are not listed (scroll to them, or use browser_evaluate).` : '';
         const note = this.browser.modeNote;
-        return `${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} of your tabs are open; browser_tabs lists and switches them)` : ''}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${note ? `\n\nNote: ${note}` : ''}`;
+        return `${this.takeNotice()}${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} of your tabs are open; browser_tabs lists and switches them)` : ''}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${note ? `\n\nNote: ${note}` : ''}`;
     }
 
     /** Navigates the current tab (or a new one) to any URL and waits for it to load (bounded). */
     public async open(url: string, newTab = false): Promise<string> {
-        const trimmed = url.trim();
-        if (!trimmed) throw new PtbkError('Name the URL to open.', { kind: 'usage' });
-        // An address without a scheme is a website, as in the address bar (plain HTTP for local addresses).
-        const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) || /^(about|blob|data|javascript|mailto|tel|view-source):/i.test(trimmed);
-        const address = hasScheme ? trimmed : `${/^(localhost|127\.|0\.0\.0\.0|\[::1\])/i.test(trimmed) ? 'http' : 'https'}://${trimmed}`;
+        const address = browserAddress(url);
         const { connection } = await this.active();
         if (newTab) await this.attachPage(connection, await this.newTab(connection));
         const sessionId = this.sessionId!;
@@ -984,8 +1205,10 @@ export class TaskBrowser {
         const { connection } = await this.active();
         const pages = await listPages(connection);
         const others = this.browser.tabsOfOthers(this.scope);
-        const mark = (page: BrowserTab): string => (page.targetId === this.targetId ? '*' : this.ownTabs.has(page.targetId) ? '-' : others.has(page.targetId) ? 'x' : 'o');
-        return `Open tabs (* = the tab you work in, - = your other tabs, x = another task's tab (not yours to use), o = other tabs; a unique prefix of an id is enough):\n${pages.map((page) => `${mark(page)} ${page.targetId}  ${page.title || '(untitled)'}  ${page.url}`).join('\n')}`;
+        const reserved = await this.browser.reservedTabs();
+        const mark = (page: BrowserTab): string => (reserved.has(page.targetId) ? 'u' : page.targetId === this.targetId ? '*' : this.ownTabs.has(page.targetId) ? '-' : others.has(page.targetId) ? 'x' : 'o');
+        // A user-controlled tab is listed without its address or title: it is not observed while the user has it.
+        return `${this.takeNotice()}Open tabs (* = the tab you work in, - = your other tabs, x = another task's tab (not yours to use), u = controlled by the user (not yours to use), o = other tabs; a unique prefix of an id is enough):\n${pages.map((page) => (reserved.has(page.targetId) ? `u ${page.targetId}  (controlled by the user)` : `${mark(page)} ${page.targetId}  ${page.title || '(untitled)'}  ${page.url}`)).join('\n')}`;
     }
 
     /** Opens a new tab (optionally at a URL), switches to a tab or closes one (never another task's). */
@@ -998,7 +1221,7 @@ export class TaskBrowser {
         }
         const targetId = id?.trim() ? await this.resolveTab(connection, id) : this.targetId;
         if (!targetId) throw new PtbkError('Name the tab id (browser_tabs lists them).', { kind: 'usage' });
-        this.guard(targetId);
+        await this.guard(targetId);
         if (action === 'select') {
             await this.attachPage(connection, targetId);
             return await this.read();
@@ -1203,6 +1426,15 @@ export class TaskBrowser {
     public async protocol(method: string, params: Readonly<Record<string, unknown>>, scope: 'page' | 'browser'): Promise<string> {
         if (!/^[A-Z][A-Za-z]*\.[a-z][A-Za-z]*$/.test(method.trim())) throw new PtbkError('Name a DevTools protocol method such as Page.printToPDF or Emulation.setGeolocationOverride.', { kind: 'usage' });
         const { connection, sessionId } = await this.active();
+        if (scope === 'browser') {
+            // While a user controls a tab of this browser, browser-wide commands cannot reach it: none naming it, none
+            // attaching to every target and none ending the browser under the user.
+            const reserved = await this.browser.reservedTabs();
+            const text = JSON.stringify(params);
+            const reaching = [...reserved].find((targetId) => text.includes(targetId));
+            const sweeping = reserved.size > 0 && /^(Target\.(setAutoAttach|attachToBrowserTarget|exposeDevToolsProtocol|setDiscoverTargets|getTargets)|Browser\.(close|crash|crashGpuProcess)|Storage\.clear)/.test(method.trim());
+            if (reaching || sweeping) throw new PtbkError(`${method.trim()} would reach a tab the user controls now; it is not available until they hand it back. Use your own tabs.`, { kind: 'conflict' });
+        }
         const result = await withTimeout(connection.send(method.trim(), { ...params }, scope === 'browser' ? undefined : sessionId), SCRIPT_TIMEOUT_MS, method);
         return truncate(JSON.stringify(result, null, 2), MAX_PAGE_TEXT);
     }
@@ -1210,8 +1442,15 @@ export class TaskBrowser {
     /** The local DevTools endpoint of the shared browser for the agent's own automation scripts. */
     public async devtoolsEndpoint(): Promise<string> {
         await this.active();
+        // A raw endpoint bypasses the tab boundary, so it is not handed out while a user controls a tab here.
+        if ((await this.browser.reservedTabs()).size) throw new PtbkError(`The raw DevTools endpoint of "${this.name}" is unavailable while the user controls one of its tabs; use the browser tools (they keep to your own tabs).`, { kind: 'conflict' });
         const devtools = this.browser.devtools;
         if (!devtools) throw new PtbkError(`The browser "${this.name}" exposes no DevTools endpoint right now; try again.`, { kind: 'technical' });
+        const profile = this.browser.profile;
+        if (profile && !this.rawEndpoint) {
+            this.rawEndpoint = true;
+            await this.browser.reservations.grantRawEndpoint(profile, `${this.browser.instanceId}/${this.scope}`, this.browser.projectRoot).catch(() => undefined);
+        }
         const http = `http://127.0.0.1:${devtools.port}`;
         return [
             `HTTP endpoint: ${http}`,
@@ -1470,7 +1709,12 @@ export class TaskBrowser {
     public async release(): Promise<void> {
         this.navigationListener?.();
         this.navigationListener = undefined;
-        const tabs = [...this.ownTabs];
+        const profile = this.browser.profile;
+        if (this.rawEndpoint && profile) await this.browser.reservations.revokeRawEndpoint(profile, `${this.browser.instanceId}/${this.scope}`);
+        this.rawEndpoint = false;
+        // A tab the user controls stays open and theirs; it is never closed with the task.
+        const reserved = await this.browser.reservedTabs().catch(() => new Set<string>());
+        const tabs = [...this.ownTabs].filter((targetId) => !reserved.has(targetId));
         this.ownTabs.clear();
         this.sessionId = undefined;
         this.targetId = undefined;

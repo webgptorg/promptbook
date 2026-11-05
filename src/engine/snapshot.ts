@@ -4,6 +4,7 @@ import type { HarnessSessionsView } from '../harness/sessions.js';
 import type { TaskControlView } from './task-control.js';
 import type { ProfileSource } from '../tools/model.js';
 import type { BadgeActivity } from '../ui/badges.js';
+import type { TabControlView } from '../browser/tab-control.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { ActionLogView } from './action-log.js';
 import type { EngineUpdateView } from './engine-update.js';
@@ -672,6 +673,8 @@ export type ServiceSnapshot = {
     readonly browser?: BrowserDetailView;
     /** Every named browser tool. */
     readonly browsers?: readonly BrowserDetailView[];
+    /** Tabs users control live (who controls each, and whether it awaits handoff; never a frame or an input). */
+    readonly tabControls?: readonly TabControlView[];
     /** The shared named tool inventory. */
     readonly tools?: ToolsView;
     /** Git synchronization, present only while autosync is enabled. */

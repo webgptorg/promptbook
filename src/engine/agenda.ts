@@ -75,6 +75,7 @@ import {
 import { HarnessPool, instanceEnvironment } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
+import type { TabControlView } from '../browser/tab-control.js';
 import { WalletSubEngine, type LoginContext } from '../wallet/wallet.js';
 import { readOperatorIntent, saveOperatorIntent, type ManualPauseCause } from './operator-intent.js';
 import { EngineUpdater } from './engine-update.js';
@@ -156,6 +157,8 @@ export type AgendaOptions = {
     readonly afterWork?: (task: Task) => Promise<void>;
     /** Named browser tools owned by the service: inspections for the dashboard pages and the names held by work. */
     readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
+    /** Tabs users control live in this engine's browsers. */
+    readonly tabControls?: () => readonly TabControlView[];
     /** Opens a separate, fresh login context of the project browser for a Wallet credential test. */
     readonly walletLoginContext?: (origin: string) => Promise<LoginContext>;
     /** Browser tools of a short agent session looking for a Wallet test's one-time code, in their own scope of the project browser. */
@@ -2691,6 +2694,7 @@ export class Agenda {
             executions: executions.filter((execution) => execution.status === 'active'),
             browser: this.options.browsers?.primary(),
             browsers: this.options.browsers?.all(),
+            ...(this.options.tabControls?.().length ? { tabControls: this.options.tabControls() } : {}),
             tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
             sync: this.sync.view(),
             health: this.health?.view(),
@@ -5149,9 +5153,11 @@ export class Agenda {
             const walletFeedback =
                 wallet?.state === 'dismissed'
                     ? `The owner rejected the Wallet request for ${wallet.origin}: nothing was provided and it will not be asked again for this task. You are not signed in. Continue with another authorized route that does not need it, or report the task as blocked by this unmet prerequisite.`
-                    : wallet?.state === 'resolved'
-                      ? `The owner completed the Wallet request for ${wallet.origin}. Saved input is not yet a verified sign-in: open the page again and call wallet_login, then verify the access you need.`
-                      : undefined;
+                    : wallet?.state === 'resolved' && wallet.resolvedBy === 'manual'
+                      ? `The owner signed in to ${wallet.origin} manually in a tab of the project browser and handed it back. While they had it, the tab may have changed: check its current page and state against your latest instructions, verify the access you need, then continue (the browser session is signed in; do not sign in again unless the site asks).`
+                      : wallet?.state === 'resolved'
+                        ? `The owner completed the Wallet request for ${wallet.origin}. Saved input is not yet a verified sign-in: open the page again and call wallet_login, then verify the access you need.`
+                        : undefined;
             await this.state.unpark({ ...record, preSnapshot, instanceId: this.options.instanceId, ...(walletFeedback ? { feedback: walletFeedback } : {}) });
             this.log(record.waitingWallet ? `Resuming "${record.taskTitle}": its Wallet request was ${wallet?.state === 'dismissed' ? 'rejected' : 'settled'}.` : `Resuming "${record.taskTitle}" after your reply${chat ? ` in {${chat}}` : ''}.`);
             return true;

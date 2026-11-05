@@ -729,6 +729,50 @@ test('Wallet one-time codes: obtained by the agent where it can, otherwise one p
     for (const file of await filesBelow(project)) assert.ok(!file.content.includes('424242') && !file.content.includes('111111'), `${file.path} holds no code`);
 });
 
+test('Wallet manual sign-in: the save offer, a revision-checked save that settles nothing, and resolution only by the requested service and account', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet manual');
+    const project = join(root, 'project');
+    await mkdir(project, { recursive: true });
+    let settled = 0;
+    const wallet = new WalletSubEngine({ project: { root: project, runtime: { root: join(project, '.ptbk') } }, env: { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, onSettled: () => void settled++, log: () => undefined });
+    await wallet.initialize();
+    const page = { browser: 'shared', inspect: async () => ({ origin: 'https://mail.example', form: 'password' }), signIn: async () => ({ result: 'rejected' }) };
+    const request = await wallet.login(page, { reason: 'read the inbox', task: 'Inbox', account: 'jane@mail.example' });
+    assert.equal(request.status, 'waiting');
+    assert.deepEqual(wallet.manualSignIn(request.action), { request: request.action, origin: 'https://mail.example', account: 'jane@mail.example', browser: 'shared' });
+    const candidate = { origin: 'https://mail.example', username: 'jane@mail.example', password: 'first secret' };
+    assert.equal(wallet.manualOffer(candidate).kind, 'none', 'a Wallet that is not set up offers nothing');
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+
+    // A new credential is offered for saving; saving it does not settle the request and is verified by the sign-in.
+    const offer = wallet.manualOffer(candidate);
+    assert.equal(offer.kind, 'save');
+    assert.match(await wallet.saveFromManualSignIn(candidate, offer), /Saved the login/);
+    assert.equal(wallet.action(request.action).state, 'pending', 'saving is no sign-in of the request');
+    assert.equal(settled, 0);
+    assert.equal(wallet.view().records[0].verification.state, 'verified');
+    await assert.rejects(wallet.saveFromManualSignIn(candidate, offer), /changed since the offer/, 'a repeated answer never duplicates the record');
+    assert.equal(wallet.manualOffer(candidate).kind, 'none', 'the same values need no prompt');
+
+    // A changed password is an update with a revision check: a stale answer cannot overwrite a newer record.
+    const changed = { ...candidate, password: 'second secret' };
+    const update = wallet.manualOffer(changed);
+    assert.equal(update.kind, 'update');
+    await wallet.save({ origin: 'https://mail.example', username: 'jane@mail.example', password: 'third secret' });
+    await assert.rejects(wallet.saveFromManualSignIn(changed, update), /changed since the offer/);
+
+    // Only revalidated access to the requested service and account completes the request (and its matching ones).
+    const pending = await wallet.login(page, { reason: 'read the inbox', task: 'Inbox', account: 'jane@mail.example' });
+    assert.deepEqual(await wallet.satisfyByManualSignIn(pending.action, { origin: 'https://other.example', account: 'jane@mail.example' }), { resolved: false, reason: 'the tab is signed in to https://other.example, not to https://mail.example.' });
+    assert.equal((await wallet.satisfyByManualSignIn(pending.action, { origin: 'https://mail.example', account: 'bob@mail.example' })).resolved, false, 'a different account does not satisfy it');
+    const done = await wallet.satisfyByManualSignIn(pending.action, { origin: 'https://mail.example', account: 'Jane@Mail.example' });
+    assert.ok(done.resolved, done.reason);
+    assert.deepEqual(wallet.action(pending.action), { state: 'resolved', origin: 'https://mail.example', problem: pending.problem, resolvedBy: 'manual' });
+    assert.ok(settled >= 1, 'the waiting work resumes');
+    for (const file of await filesBelow(project)) assert.ok(!/first secret|second secret/.test(file.content), `${file.path} holds no password in clear text`);
+});
+
 test('Wallet one-time code in the real browser: the owner\'s code is typed into the site\'s code step and verified', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
     const teardown = [];
     const root = await temporaryDirectory(t, 'ptbk wallet code browser', teardown);

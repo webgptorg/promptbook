@@ -13,6 +13,7 @@ import { parseUsageRequest } from '../engine/usage.js';
 import type { VoiceMediaInput } from '../engine/voice-calls.js';
 import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
+import { TabControls, type TabControlWallet, type TabInput } from '../browser/tab-control.js';
 import { describeProfileSource } from '../tools/model.js';
 import { WALLET_ACTIONS, applyChatAction, applyControlAction, applySettings, applyToolAction, applyWalletAction, type BrowserControls } from './actions.js';
 import { CONTROL_CONTRACT, startControlServer } from './control.js';
@@ -70,6 +71,8 @@ export class ServiceHost {
     private knownRun = false;
     private connection: ConnectionView = { local: { state: 'disabled' } };
     private readonly browsers: BrowserFleet;
+    /** Tabs the user controls live (reserved for every engine of their profile until handed back). */
+    private readonly tabs: TabControls;
     /** Every execution process this engine starts, so a force stop (also from outside) ends all of them. */
     private readonly owned: OwnedProcessRecorder;
 
@@ -130,8 +133,10 @@ export class ServiceHost {
                 all: () => (this.agenda.effectiveSettings ? this.browsers.inspectAll() : []),
                 inUse: () => this.browsers.inUse(),
             },
+            tabControls: () => this.tabs?.views() ?? [],
         });
         this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange(), this.instanceId);
+        this.tabs = new TabControls({ onChange: () => this.agenda.notifyChange(), log: (text) => this.agenda.log(text) });
         this.agenda.onChange(() => {
             if (this.effects.state.clients.length) this.effects.observe(snapshotEffects(this.agenda.snapshot()));
         });
@@ -153,6 +158,83 @@ export class ServiceHost {
             kill: (name) => this.browsers.control('kill', name),
             testTab: (name) => this.browsers.control('test-tab', name),
         };
+    }
+
+    /** A project browser by name (the first enabled one by default). */
+    private browserNamed(name: string | undefined): NonNullable<ReturnType<BrowserFleet['instance']>> {
+        const chosen = name || this.browsers.enabledNames()[0];
+        const browser = chosen ? this.browsers.instance(chosen) : undefined;
+        if (!browser) throw new PtbkError(chosen ? `No browser named "${chosen}" is configured.` : 'No browser is enabled for this project.', { kind: 'not-found' });
+        return browser;
+    }
+
+    /** Live tab-control operations of the local control channel. */
+    private async tabControl(method: string, params: Readonly<Record<string, unknown>>): Promise<unknown> {
+        const text = (key: string): string | undefined => (typeof params[key] === 'string' && params[key] ? (params[key] as string) : undefined);
+        if (method === 'tab-control-list') return { controls: this.tabs.views() };
+        if (method === 'tab-control-tabs') {
+            const browser = this.browserNamed(text('browser'));
+            return { browser: browser.name, tabs: (await browser.pages()).map((page) => ({ targetId: page.targetId, url: page.url, title: page.title, ...(page.task ? { task: page.task } : {}), reserved: page.reserved })) };
+        }
+        if (method === 'tab-control-open') {
+            const request = text('request');
+            let wallet: TabControlWallet | undefined;
+            let browserName = text('browser');
+            let url = text('url');
+            if (request) {
+                const context = this.agenda.wallet.manualSignIn(request);
+                browserName ??= context.browser && this.browsers.instance(context.browser) ? context.browser : undefined;
+                url ??= context.origin;
+                wallet = {
+                    request: context.request,
+                    origin: context.origin,
+                    ...(context.account ? { account: context.account } : {}),
+                    offer: async (candidate) => this.agenda.wallet.manualOffer(candidate),
+                    save: async (candidate, expected) => await this.agenda.wallet.saveFromManualSignIn(candidate, expected),
+                    satisfy: async (access) => await this.agenda.wallet.satisfyByManualSignIn(context.request, access),
+                };
+            }
+            const session = await this.tabs.open({ browser: this.browserNamed(browserName), ...(text('target') ? { target: text('target') } : {}), ...(url && !text('target') ? { url } : {}), purpose: wallet ? 'wallet' : 'browse', ...(wallet ? { wallet } : {}) });
+            return { control: session.view(), grant: session.claim() };
+        }
+        const session = this.tabs.get(String(params.id ?? ''));
+        const grant = String(params.grant ?? '');
+        switch (method) {
+            case 'tab-control-poll':
+                return await session.poll(grant, { version: Number(params.version ?? 0) || 0, frame: Number(params.frame ?? 0) || 0 }, Math.min(20_000, Math.max(0, Number(params.wait ?? 0) || 0)));
+            case 'tab-control-attach':
+                return { control: await session.viewerAttached(grant) };
+            case 'tab-control-detach':
+                return { control: session.viewerDetached(grant) };
+            case 'tab-control-input':
+                await session.input(grant, Array.isArray(params.events) ? (params.events as TabInput[]) : []);
+                return { ok: true };
+            case 'tab-control-navigate': {
+                const action = String(params.action ?? '');
+                if (!['go', 'back', 'forward', 'reload'].includes(action)) throw new PtbkError(`Unknown navigation "${action}".`, { kind: 'usage' });
+                return { control: await session.navigate(grant, action as 'go', text('url')) };
+            }
+            case 'tab-control-clipboard': {
+                const action = String(params.action ?? '');
+                if (!['copy', 'cut', 'paste'].includes(action)) throw new PtbkError(`Unknown clipboard action "${action}".`, { kind: 'usage' });
+                return await session.clipboard(grant, action as 'copy', typeof params.text === 'string' ? params.text : undefined);
+            }
+            case 'tab-control-resize':
+                await session.resize(grant, { width: Number(params.width) || 1280, height: Number(params.height) || 800, scale: Number(params.scale) || 1 });
+                return { ok: true };
+            case 'tab-control-handback':
+                return { control: await session.handBack() };
+            case 'tab-control-end':
+                return { control: await session.endUse() };
+            case 'tab-control-offer': {
+                const answer = String(params.answer ?? '');
+                if (answer !== 'yes' && answer !== 'no') throw new PtbkError('Answer the save offer with yes or no.', { kind: 'usage' });
+                return { outcome: await session.answerOffer(String(params.offer ?? ''), answer), control: session.view() };
+            }
+            case 'tab-control-reopen':
+                return { control: session.view(), grant: session.reopen() };
+        }
+        throw new PtbkError(`Unknown tab control method "${method}".`, { kind: 'usage' });
     }
 
     /** Local HTTP address, when serving. */
@@ -278,6 +360,8 @@ export class ServiceHost {
             await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
         };
         const forced = this.agenda.forceStopped;
+        // A tab the user controls is closed rather than left to another engine's automation.
+        await bounded(() => this.tabs.closeAll('The engine stopped, so the tab you controlled was closed (nothing was handed back to the agent).'));
         // Recording evidence is finalized even on force stop (bounded); this engine leaves its shared browsers (a
         // browser other engines still use stays, the last disconnection closes it).
         await bounded(() => this.browsers.close());
@@ -384,6 +468,23 @@ export class ServiceHost {
                 if (!['end', 'mute-mic', 'unmute-mic', 'mute-output', 'unmute-output'].includes(action)) throw new PtbkError(`Unknown voice action "${action}".`, { kind: 'usage' });
                 return await agenda.voiceControl(String(params.name ?? ''), action as 'end');
             }
+            // Live tab control: the viewer's frames and inputs need its grant (only the presenting client has it); the
+            // lifecycle choices are the owner's from any local client of this engine.
+            case 'tab-control-tabs':
+            case 'tab-control-open':
+            case 'tab-control-list':
+            case 'tab-control-poll':
+            case 'tab-control-attach':
+            case 'tab-control-detach':
+            case 'tab-control-input':
+            case 'tab-control-navigate':
+            case 'tab-control-clipboard':
+            case 'tab-control-resize':
+            case 'tab-control-handback':
+            case 'tab-control-end':
+            case 'tab-control-offer':
+            case 'tab-control-reopen':
+                return await this.tabControl(method, params);
             case 'voice-heartbeat':
                 return agenda.voiceHeartbeat(String(params.name ?? '')) ?? null;
             case 'task-inventory':
