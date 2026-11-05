@@ -68,6 +68,8 @@ A background engine [updates itself](specs/cli/updates.md) when it has no other 
 
 **macOS:** download the matching DMG from [GitHub Releases](https://github.com/webgptorg/promptbook/releases). Choose `arm64` for Apple Silicon or `x64` for Intel, then drag Promptbook into Applications. Node.js, npm and the matching engine are included. Project setup uses Git from your Mac, such as Git from the Xcode Command Line Tools. See the [desktop installation guide](apps/desktop/README.md#macos-installation) for signing and login details.
 
+**Android preview:** download the ARM64 APK from [GitHub Releases](https://github.com/webgptorg/promptbook/releases). It includes the local engine, Node.js, Git and Gemini CLI. The app runs the engine in an Android foreground service and opens the project dashboard. See the [Android installation guide](apps/android/README.md) for setup and signing details.
+
 ## Deploy to your own server
 
 **A clean Ubuntu 24.04 LTS x86-64 server** with systemd, outbound HTTPS and root or sudo access over SSH needs no preinstalled Node.js, npm, Git, Chrome or AI harness: use the [one-command installation](#clean-ubuntu-vps). It prepares the server through the [shared installer](deploy/ubuntu/install.sh) and opens `ptbk init` as a dedicated non-sudo `promptbook` user. Sign-in to Codex or Claude Code is finished on your phone or computer; see the [server guide](deploy/README.md#finish-setup-over-ssh).

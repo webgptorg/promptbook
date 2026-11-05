@@ -1,0 +1,59 @@
+name: Check Promptbook Android
+on:
+  push:
+    branches: ['reborn/**']
+    paths: ['apps/android/**', 'src/**', 'specs/**', 'package*.json', 'scripts/build.mjs', '.github/workflows/android.yml', '.github/workflows/publish.yml']
+  pull_request:
+    branches: ['reborn/**']
+    paths: ['apps/android/**', 'src/**', 'specs/**', 'package*.json', 'scripts/build.mjs', '.github/workflows/android.yml', '.github/workflows/publish.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: sdkmanager --install 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
+      - run: npm ci
+      - name: Assemble the downloadable ARM64 preview
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          bash apps/android/build-apk.sh "$PWD/apps/android/release/Promptbook-$version-android-arm64-preview.apk"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: promptbook-android-arm64-preview
+          path: apps/android/release/*.apk
+          if-no-files-found: error
+      - name: Assemble the emulator build
+        env:
+          PTBK_ANDROID_ABI: x86_64
+          PTBK_ANDROID_TEST: '1'
+        run: bash apps/android/build-apk.sh "$RUNNER_TEMP/promptbook-emulator.apk"
+      - name: Run the installed engine and dashboard on Android
+        run: |
+          sudo chown "$(id -u)" /dev/kvm
+          sdkmanager --install 'platform-tools' 'emulator' 'system-images;android-36;default;x86_64'
+          echo no | avdmanager create avd -n promptbook-ci -k 'system-images;android-36;default;x86_64'
+          "$ANDROID_HOME/emulator/emulator" -avd promptbook-ci -no-window -no-snapshot -no-audio -no-boot-anim -gpu swiftshader_indirect -memory 2048 -cores 2 > "$RUNNER_TEMP/promptbook-emulator.log" 2>&1 &
+          emulator_pid=$!
+          trap 'kill "$emulator_pid" 2>/dev/null || true' EXIT
+          timeout 240 adb wait-for-device
+          timeout 180 bash -c 'until [[ $(adb shell getprop sys.boot_completed | tr -d "\r") == 1 ]]; do sleep 2; done'
+          bash apps/android/test/emulator.sh "$RUNNER_TEMP/promptbook-emulator.apk"
+      - name: Emulator diagnostics
+        if: failure()
+        run: |
+          tail -100 "$RUNNER_TEMP/promptbook-emulator.log" || true
+          adb logcat -d -t 500 || true

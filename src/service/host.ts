@@ -46,6 +46,8 @@ export type HostOptions = {
     readonly supervisorPid?: number;
     /** Launch correlation nonce. */
     readonly launchNonce?: string;
+    /** Private app credential for the embedded dashboard, which binds to an ephemeral loopback port. */
+    readonly dashboardAccessKey?: string;
     /** Plain event stream. */
     readonly onEvent?: (text: string, level: 'info' | 'warning' | 'error') => void;
 };
@@ -182,7 +184,8 @@ export class ServiceHost {
                         agenda: this.agenda,
                         control: (action, params) => applyControlAction(this.agenda, action, params, this.browserControls),
                         token: this.token,
-                        port: setting<number | undefined>(settings, 'server.port'),
+                        port: this.options.dashboardAccessKey ? 0 : setting<number | undefined>(settings, 'server.port'),
+                        dashboardAccessKey: this.options.dashboardAccessKey,
                     });
                     this.publishConnection({ local: { state: 'ready', url: this.http.url, port: this.http.port } });
                 } catch (error) {

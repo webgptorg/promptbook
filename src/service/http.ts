@@ -9,7 +9,7 @@ import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
 import { secretToken } from '../common/ids.js';
 import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
-import { assertLocalRequest, authenticateLocalRequest } from './auth.js';
+import { assertLocalRequest, authenticateLocalRequest, matchesCredential } from './auth.js';
 import { TASK_SORT_FIELDS, filterTasks, groupSupportingWork, sortTasks, taskFilterChoices, type TaskFilter, type TaskSortField } from '../tasks/views.js';
 
 /**
@@ -91,6 +91,8 @@ export type HttpServerOptions = {
     readonly token: string;
     /** Requested port (exact) or undefined for automatic search from 3000. */
     readonly port?: number;
+    /** Optional app-owned credential required before a browser can bootstrap a dashboard session. */
+    readonly dashboardAccessKey?: string;
 };
 
 /**
@@ -121,7 +123,9 @@ async function listen(server: Server, port: number | undefined): Promise<number>
                 server.once('listening', onListening);
                 server.listen(candidate, '127.0.0.1');
             });
-            return candidate;
+            const address = server.address();
+            if (address && typeof address !== 'string') return address.port;
+            throw new Error('The dashboard listener has no TCP address.');
         } catch (error) {
             lastError = error;
             if ((error as NodeJS.ErrnoException).code !== 'EADDRINUSE') break;
@@ -190,10 +194,24 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         const url = new URL(request.url ?? '/', 'http://localhost');
         const method = request.method ?? 'GET';
         const asset = STATIC_FILES[url.pathname];
+        const accessKey = options.dashboardAccessKey;
+        const appCookie = request.headers.cookie?.split(';').map((value) => value.trim()).find((value) => value.startsWith('ptbk-app='))?.slice('ptbk-app='.length);
+        const appSession = accessKey === undefined || matchesCredential(appCookie, accessKey);
         if (method === 'GET' && asset) {
+            const header = request.headers['x-ptbk-app'];
+            const bootstrap = accessKey !== undefined && asset === 'index.html' && typeof header === 'string' && matchesCredential(header, accessKey);
+            if (!appSession && !bootstrap) {
+                sendJson(response, 401, { error: 'Open the dashboard from the Promptbook app.' });
+                return;
+            }
             const content = await readFile(join(spaDirectory, asset));
             const extension = asset.split('.').pop()!;
-            response.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': CONTENT_TYPES[extension]!, 'Cache-Control': asset === 'index.html' ? 'no-store' : 'private, max-age=300' });
+            response.writeHead(200, {
+                ...SECURITY_HEADERS,
+                'Content-Type': CONTENT_TYPES[extension]!,
+                'Cache-Control': asset === 'index.html' ? 'no-store' : 'private, max-age=300',
+                ...(bootstrap ? { 'Set-Cookie': `ptbk-app=${accessKey}; HttpOnly; SameSite=Strict; Path=/` } : {}),
+            });
             response.end(content);
             return;
         }
@@ -208,7 +226,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         if (url.pathname === '/api/session' && method === 'GET') {
             // A custom header makes browser bootstrap a same-origin, non-simple request. No cookie or persistent
             // device session is created; the capability expires when this engine stops.
-            if (request.headers['x-ptbk-client'] !== 'dashboard') {
+            if (!appSession || request.headers['x-ptbk-client'] !== 'dashboard') {
                 sendJson(response, 401, { error: 'Local dashboard bootstrap header required.' });
                 return;
             }

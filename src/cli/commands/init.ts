@@ -19,7 +19,7 @@ import { formatModelRow } from '../../book/model.js';
 import { redactUrl } from '../../engine/sync.js';
 import { applyToolOperationsToConfig, type ToolOperation } from '../../tools/operations.js';
 import { inspectBrowserTool } from '../../tools/readiness.js';
-import { describeProfileSource, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord } from '../../tools/model.js';
+import { describeProfileSource, harnessPluginId, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord } from '../../tools/model.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
 import { clearSetupDraft, readSetupDraft, saveSetupDraft } from '../../project/draft.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
@@ -301,10 +301,11 @@ async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Prom
  * preparatory harness checks and naming call, happen before it). Confirmation completes technical setup, preserves
  * the initial input in `specs/_initial.md`, saves one ordinary Expert task and commits setup; starting the agenda is
  * the caller's job (`ptbk init` starts it, `ptbk start` continues its own start).
+ * An embedded app may supply its packaged harness and omit desktop browser setup. Its first model call is ordinary work.
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: HarnessToolRecord } = {}): Promise<InitResult> {
     const { terminal } = context;
     const interactive = terminal.interactive;
     const style = terminal.style;
@@ -1360,7 +1361,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         else if (inspection?.usable) alreadyReady.push(`${plugin.displayName}: ${inspection.summary}`);
         else unresolved.push(`${plugin.displayName}: ${inspection?.summary ?? 'not inspected'}${inspection?.nextAction ? ` → ${inspection.nextAction}` : ''}`);
     }
-    if (!selected.length && !(configBefore && enabledHarnesses(configBefore).length)) notes.push('No harness is selected: the agenda runs but waits for tools until one is added (`ptbk tool add HARNESS …`).');
+    if (!options.embeddedHarness && !selected.length && !(configBefore && enabledHarnesses(configBefore).length)) notes.push('No harness is selected: the agenda runs but waits for tools until one is added (`ptbk tool add HARNESS …`).');
 
     const tasksDirectory = configBefore ? setting<string>(configBefore, 'paths.tasks') : 'tasks';
     const agentsDirectory = configBefore ? setting<string>(configBefore, 'paths.agents') : 'agents';
@@ -1379,7 +1380,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     // Router starts directly runnable: the first selected harness that passed its real check, with its plugin's coded
     // defaults.
     const routerModel = async (): Promise<string | undefined> => {
-        const id = selected.find((candidate) => state.checks.get(candidate)?.ok) ?? selected.find((candidate) => state.inspections.get(candidate)?.usable) ?? selected[0] ?? (configBefore ? enabledHarnesses(configBefore)[0] : undefined);
+        const id = selected.find((candidate) => state.checks.get(candidate)?.ok) ?? selected.find((candidate) => state.inspections.get(candidate)?.usable) ?? selected[0] ?? (configBefore ? enabledHarnesses(configBefore)[0] : undefined) ?? (options.embeddedHarness ? harnessPluginId(options.embeddedHarness.variant) : undefined);
         const plugin = id ? harnessPlugin(id) : undefined;
         if (!plugin) return undefined;
         const catalog = plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
@@ -1492,10 +1493,13 @@ export async function initializeProject(context: CommandContext, options: { proj
     // One simple browser from the familiar picker; advanced profiles/accounts are managed later.
     const browserProfile = profileFromSpelling(state.browserProfile ?? 'global');
     const firstBrowser = typedTools.find((tool): tool is BrowserToolRecord => tool.type === 'BROWSER');
-    if (!firstBrowser) {
+    if (!firstBrowser && !options.embeddedHarness) {
         operations.push({ kind: 'add', tool: { type: 'BROWSER', variant: 'CHROME', name: MIGRATED_BROWSER_NAME, profileSource: browserProfile.source, ...(browserProfile.path ? { profilePath: browserProfile.path } : {}), isHeadless: (state.browserMode ?? 'headless') !== 'headful' } });
-    } else if (option<string>(context, 'browser-profile') !== undefined || option<string>(context, 'browser-mode') !== undefined) {
+    } else if (firstBrowser && (option<string>(context, 'browser-profile') !== undefined || option<string>(context, 'browser-mode') !== undefined)) {
         operations.push({ kind: 'modify', name: firstBrowser.name, changes: { ...(option<string>(context, 'browser-profile') !== undefined ? { profileSource: browserProfile.source, profilePath: browserProfile.path ?? null } : {}), ...(option<string>(context, 'browser-mode') !== undefined ? { isHeadless: state.browserMode !== 'headful' } : {}) } });
+    }
+    if (options.embeddedHarness && !typedTools.some((tool) => tool.name === options.embeddedHarness?.name)) {
+        operations.push({ kind: 'add', tool: options.embeddedHarness });
     }
     // Each selected integration gets one native instance named after it (existing instances are kept as they are).
     for (const id of selected) {

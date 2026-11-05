@@ -164,6 +164,52 @@ jobs:
           dmg=(apps/desktop/release/Promptbook-*-macos-${{ matrix.arch }}*.dmg)
           bash apps/desktop/test/macos-dmg.sh "${dmg[0]}"
           node scripts/publish-desktop-installer.mjs "${dmg[0]}"
+  android-apk:
+    # Android embeds the exact tagged engine and shares the existing release asset publisher.
+    if: github.repository == 'webgptorg/promptbook'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm run release:validate
+      - run: sdkmanager --install 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
+      - run: npm ci
+      - name: Build and publish the matching signed APK and checksum
+        env:
+          PTBK_ANDROID_KEYSTORE_BASE64: ${{ secrets.PTBK_ANDROID_KEYSTORE_BASE64 }}
+          PTBK_ANDROID_STORE_PASSWORD: ${{ secrets.PTBK_ANDROID_STORE_PASSWORD }}
+          PTBK_ANDROID_KEY_ALIAS: ${{ secrets.PTBK_ANDROID_KEY_ALIAS }}
+          PTBK_ANDROID_KEY_PASSWORD: ${{ secrets.PTBK_ANDROID_KEY_PASSWORD }}
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          suffix=
+          if [[ -z "$PTBK_ANDROID_KEYSTORE_BASE64" ]]; then suffix=-preview; fi
+          apk="$RUNNER_TEMP/Promptbook-$version-android-arm64$suffix.apk"
+          # Reuse a previously uploaded APK on retries, including its original signing identity.
+          if gh release download "$RELEASE_TAG" --pattern "${apk##*/}" --output "$apk"; then
+            bash apps/android/verify-apk.sh "$apk"
+          else
+            bash apps/android/build-apk.sh "$apk"
+          fi
+          node scripts/publish-desktop-installer.mjs "$apk"
   vscode-extension:
     # The extension is built from source and needs neither npm nor the installer.
     # Both asset publishers tolerate concurrent creation of the matching GitHub Release.

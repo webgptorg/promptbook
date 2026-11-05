@@ -167,6 +167,38 @@ test('loopback HTTP boundary: local bootstrap and controls, rebinding/proxy reje
     assert.equal(await requestStatus('api/state', browserHeaders), 401);
 });
 
+test('embedded dashboard requires a private application credential before minting browser sessions', async (t) => {
+    const { startHttpServer } = await import('../dist/service/http.js');
+    const snapshot = { project: { name: 'mobile fixture' } };
+    const options = {
+        agenda: { snapshot: () => snapshot },
+        control: async () => ({ applied: true }),
+        token: 'owner-token',
+        dashboardAccessKey: 'private-app-key',
+        port: 0,
+    };
+    const server = await startHttpServer(options);
+    t.after(() => server.close());
+    assert.ok(server.port > 0);
+    assert.equal(Number(new URL(server.url).port), server.port);
+    assert.equal((await fetch(server.url)).status, 401);
+    const client = { 'X-PTBK-Client': 'dashboard' };
+    const session = (headers) => fetch(`${server.url}api/session`, { headers: { ...client, ...headers } });
+    assert.equal((await session({})).status, 401);
+    assert.equal((await session({ Cookie: 'ptbk-app=unrelated' })).status, 401);
+    const dashboard = await fetch(server.url, { headers: { 'X-PTBK-App': options.dashboardAccessKey } });
+    assert.equal(dashboard.status, 200);
+    const cookie = dashboard.headers.get('set-cookie');
+    assert.match(cookie, /HttpOnly; SameSite=Strict/);
+    const headers = { Cookie: cookie.split(';')[0] };
+    assert.equal((await fetch(`${server.url}assets/app.js`, { headers })).status, 200);
+    const { csrf } = await (await session(headers)).json();
+    assert.deepEqual(await (await fetch(`${server.url}api/state`, { headers: { 'X-PTBK-CSRF': csrf } })).json(), snapshot);
+    const replacement = await startHttpServer({ ...options, dashboardAccessKey: 'new-app-key' });
+    t.after(() => replacement.close());
+    assert.equal((await fetch(`${replacement.url}api/session`, { headers: { ...client, ...headers } })).status, 401);
+});
+
 test('local origin validation accepts default HTTP port spelling and still rejects a different listener', async () => {
     const { assertLocalRequest } = await import('../dist/service/auth.js');
     for (const host of ['127.0.0.1', 'localhost', '127.0.0.1:80', 'localhost:80']) {

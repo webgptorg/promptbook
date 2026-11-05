@@ -1,5 +1,7 @@
 # Unreleased
 
+- Ship a signed ARM64 Android preview alongside the desktop installers. It bundles Reborn, Node.js, Git and Gemini CLI, runs the local project in a foreground service, and reuses the project dashboard behind an app-only bootstrap credential.
+
 
 - Polish the shared Windows and macOS desktop UI with system, sun and moon appearance controls, resizable panels, project status and attention dots, and a conversation layout with a separate reply area. Bundle the official Inter and Outfit fonts for offline use.
 
