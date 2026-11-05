@@ -107,7 +107,8 @@ test('recorded audio is a committed project chat asset bound once, never another
             commit: async (paths, subject) => {
                 await git(root, ['add', '--', ...paths]);
                 await git(root, ['commit', '-qm', subject]);
-                committed.push(paths.map((path) => path.slice(root.length + 1)));
+                // Inspect Git's actual portable paths, including on Windows where native paths use backslashes.
+                committed.push((await git(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', '-z', 'HEAD'])).split('\0').filter(Boolean));
                 return 'sha';
             },
         },
@@ -142,7 +143,8 @@ test('recorded audio is a committed project chat asset bound once, never another
     assert.match(await resolveMessageAudio(root, first.audio[0].path), /audio-call-1-user-1\.webm$/);
     const outside = await temporaryDirectory(t, 'ptbk audio outside');
     await writeFile(join(outside, 'secret.webm'), 'secret');
-    await symlink(join(outside, 'secret.webm'), join(root, 'escape.webm'));
-    await assert.rejects(resolveMessageAudio(root, 'escape.webm'), /outside the project/);
+    // A directory junction exercises escaping audio on Windows without requiring symlink privileges.
+    await symlink(outside, join(root, 'escape'), process.platform === 'win32' ? 'junction' : 'dir');
+    await assert.rejects(resolveMessageAudio(root, 'escape/secret.webm'), /outside the project/);
     await assert.rejects(resolveMessageAudio(root, '../x.webm'), /cannot leave/);
 });
