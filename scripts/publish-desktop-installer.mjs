@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { createReadStream } from 'node:fs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
@@ -17,11 +18,13 @@ async function gh(args, options = {}) {
 
 /** SHA-256 of a file. */
 async function sha256(path) {
-    return createHash('sha256').update(await readFile(path)).digest('hex');
+    const hash = createHash('sha256');
+    for await (const chunk of createReadStream(path)) hash.update(chunk);
+    return hash.digest('hex');
 }
 
 /**
- * Publishes the Windows installer of a release to its GitHub Release, idempotently: an identical existing asset is
+ * Publishes a desktop installer to its GitHub Release, idempotently: an identical existing asset is
  * reused, a different one is never overwritten (the release is then incomplete and reported), and the actual
  * downloadable asset is verified against the published checksum afterwards.
  */
@@ -29,14 +32,19 @@ async function publishInstaller(installerPath) {
     const release = await validateRelease(process.env.RELEASE_TAG);
     const tag = `v${release.version}`;
     const name = basename(installerPath);
-    if (!name.includes(release.version)) throw new Error(`The installer ${name} does not identify version ${release.version}.`);
+    const windows = name === `Promptbook-Setup-${release.version}-windows-x64.exe`;
+    const macNames = ['arm64', 'x64'].flatMap((arch) => {
+        const prefix = `Promptbook-${release.version}-macos-${arch}`;
+        return [`${prefix}.dmg`, ...(release.version.includes('-') ? [`${prefix}-unsigned.dmg`] : [])];
+    });
+    if (!windows && !macNames.includes(name)) throw new Error(`The installer ${name} does not identify a supported platform and version ${release.version}.`);
     const digest = await sha256(installerPath);
     const checksumName = `${name}.sha256`;
     const work = await mkdtemp(join(tmpdir(), 'ptbk-installer-'));
     try {
         const installationNotes = [
             `- **npm:** \`npm install -g ptbk@${release.version}\` (the ordinary CLI installation).`,
-            `- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally, offers the local desktop client (selected by default), and creates an empty first-project folder. Required missing software is prepared inside the installer; AI harnesses are selected later in project setup. It then opens the selected desktop or CLI presentation of \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`,
+            ...(windows ? [`- **Windows installer:** \`${name}\` prepares missing prerequisites (Node.js, npm, Git), installs ptbk ${release.version} globally, offers the local desktop client (selected by default), and creates an empty first-project folder. Required missing software is prepared inside the installer; AI harnesses are selected later in project setup. It then opens the selected desktop or CLI presentation of \`ptbk init\`, where the project itself is initialized (intent, tools, login, Git and the background start). SHA-256: \`${digest}\`.`] : []),
         ].join('\n');
         const checksumPath = join(work, checksumName);
         await writeFile(checksumPath, `${digest}  ${name}\n`);
@@ -78,11 +86,13 @@ async function publishInstaller(installerPath) {
         if (downloaded !== digest || published !== digest) throw new Error(`The downloadable ${name} does not match its checksum (downloaded ${downloaded}, published ${published}, built ${digest}).`);
         // The extension often creates the shared release first. Preserve its notes and add the verified installer's
         // setup/init distinction even when this publisher did not create the release itself.
-        const details = JSON.parse(await gh(['release', 'view', tag, '--json', 'body']));
-        if (!details.body?.includes(name)) {
-            const notesPath = join(work, 'release-notes.md');
-            await writeFile(notesPath, `${details.body?.trim() || `Promptbook ${release.version}.`}\n\n${installationNotes}\n`);
-            await gh(['release', 'edit', tag, '--notes-file', notesPath]);
+        if (windows) {
+            const details = JSON.parse(await gh(['release', 'view', tag, '--json', 'body']));
+            if (!details.body?.includes(name)) {
+                const notesPath = join(work, 'release-notes.md');
+                await writeFile(notesPath, `${details.body?.trim() || `Promptbook ${release.version}.`}\n\n${installationNotes}\n`);
+                await gh(['release', 'edit', tag, '--notes-file', notesPath]);
+            }
         }
         process.stdout.write(`Published and verified ${name} (SHA-256 ${digest}) on the ${tag} GitHub Release.\n`);
     } finally {
@@ -91,5 +101,5 @@ async function publishInstaller(installerPath) {
 }
 
 const installer = process.argv[2];
-if (!installer) throw new Error('Usage: node scripts/publish-windows-installer.mjs <path to the installer .exe>');
+if (!installer) throw new Error('Usage: node scripts/publish-desktop-installer.mjs <path to the installer .exe or .dmg>');
 await publishInstaller(installer);

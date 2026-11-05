@@ -1102,3 +1102,133 @@ button.link {
 .activity-controls select {
     max-width: 100%;
 }
+
+/* The desktop window supplies its own wordmark and lets the shared dashboard grow with its content. */
+:root[data-desktop] {
+    --bg: #f7f9fc;
+    --surface: #ffffff;
+    --surface-2: #eef4fb;
+    --border: #cfd9e7;
+    --text: #1b2739;
+    --muted: #596577;
+    --accent: #17386c;
+    --accent-ink: #ffffff;
+    --success: #087044;
+    --warning: #895208;
+    --danger: #a12434;
+    --attention-bg: #fff7e6;
+    --attention-border: #b7791f;
+    --radius: 8px;
+    --sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-desktop] {
+        --bg: #111318;
+        --surface: #172235;
+        --surface-2: #1c2a41;
+        --border: #394962;
+        --text: #f1f5fc;
+        --muted: #b2bfd2;
+        --accent: #9dbbf0;
+        --accent-ink: #102347;
+        --success: #86dfae;
+        --warning: #ffcc73;
+        --danger: #ffa1a7;
+        --attention-bg: #34291d;
+        --attention-border: #bc852e;
+    }
+}
+
+:root[data-desktop] .topbar {
+    position: static;
+    border-bottom: 1px solid var(--border);
+}
+
+:root[data-desktop] .topbar .brand {
+    display: none;
+}
+
+:root[data-desktop] .header-status {
+    flex-wrap: wrap;
+    white-space: normal;
+}
+
+:root[data-desktop] .header-details {
+    display: inline;
+}
+
+:root[data-desktop] .page-header {
+    top: 0;
+}
+
+:root[data-desktop] body.home-view {
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+}
+
+:root[data-desktop] body.home-view .app {
+    padding: 16px;
+}
+
+:root[data-desktop] .home-wrap {
+    height: auto;
+    gap: 14px;
+}
+
+:root[data-desktop] .brief,
+:root[data-desktop] .brief-actions {
+    flex-wrap: wrap;
+}
+
+:root[data-desktop] .home {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    grid-template-rows: none;
+    gap: 12px;
+}
+
+:root[data-desktop] .tile {
+    min-height: 96px;
+    padding: 12px 14px;
+    overflow: visible;
+}
+
+:root[data-desktop] .tile:hover:not(.attention) {
+    background: var(--surface-2);
+}
+
+:root[data-desktop] .tile:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+:root[data-desktop] .tile-title,
+:root[data-desktop] .tile:focus-visible .tile-title,
+:root[data-desktop] .card > h2 {
+    color: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+:root[data-desktop] .tile.attention .tile-title,
+:root[data-desktop] .attention > h2 {
+    color: var(--warning);
+}
+
+:root[data-desktop] .tile.attention.error .tile-title {
+    color: var(--danger);
+}
+
+:root[data-desktop] .tile-line {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+:root[data-desktop] .tile-line .row {
+    flex-wrap: wrap;
+}

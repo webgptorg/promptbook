@@ -117,7 +117,52 @@ jobs:
             ForEach-Object { "== $($_.Name)"; Get-Content -LiteralPath $_.FullName }
       - name: Publish and verify the installer on the GitHub Release
         shell: pwsh
-        run: node scripts/publish-windows-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
+        run: node scripts/publish-desktop-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
+  macos-desktop:
+    # The DMG embeds the exact tagged engine, so building it does not wait for registry propagation.
+    if: github.repository == 'webgptorg/promptbook'
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, arch: arm64 }
+          - { os: macos-15-intel, arch: x64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          architecture: ${{ matrix.arch }}
+          cache: npm
+      - run: npm run release:validate
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci --prefix apps/desktop
+      - name: Package the matching macOS application
+        run: npm --prefix apps/desktop run package:macos -- --release
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Verify and publish the downloadable DMG and checksum
+        run: |
+          dmg=(apps/desktop/release/Promptbook-*-macos-${{ matrix.arch }}*.dmg)
+          bash apps/desktop/test/macos-dmg.sh "${dmg[0]}"
+          node scripts/publish-desktop-installer.mjs "${dmg[0]}"
   vscode-extension:
     # The extension is built from source and needs neither npm nor the installer.
     # Both asset publishers tolerate concurrent creation of the matching GitHub Release.

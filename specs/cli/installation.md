@@ -6,6 +6,10 @@ The repository publishes one npm package, `ptbk`, providing the `ptbk` command. 
 
 Install globally with `npm install -g ptbk`, then invoke `ptbk`. Alternatively, install locally in dependencies or devDependencies and use `npx ptbk` or an npm script; a local installation does not add the executable to the system PATH. Global and local Promptbook installations are independent of the always-global [harness installations](harnesses.md).
 
+## macOS desktop entry point
+
+Each version ships an Apple Silicon and Intel DMG through [releasing](releasing.md). Drag Promptbook into Applications and open it to use the same [desktop client](desktop.md) and project wizard as on Windows. The app includes its own matching engine, Node.js and npm. Git remains a project prerequisite and may be provided by the Xcode Command Line Tools or another existing installation. The ordinary npm CLI remains available separately.
+
 ## Windows installer entry point
 
 Each version also ships a thin [Windows installer](windows-installer.md) on its GitHub Release. It prepares missing Node.js/npm/Git prerequisites, installs the corresponding ordinary global `ptbk` package, proposes a home-based projects root and offers an empty first-project directory. The normal handoff opens a terminal in that project and automatically runs the existing interactive `ptbk init` with its destination selected.

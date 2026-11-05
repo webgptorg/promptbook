@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/design/readme-wordmark.svg" alt="promptbook" width="570" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/design/readme-wordmark-dark.svg" />
+    <img src="https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/design/readme-wordmark.svg" alt="Promptbook" width="570" />
+  </picture>
 </p>
 
 <h1 align="center">You used to give AI tasks<br />Now it works for you</h1>
@@ -61,6 +64,8 @@ Agents explicitly call you with `+@User` when they need a response. Viewing that
 A background engine [updates itself](specs/cli/updates.md) when it has no other work: stable minor and patch releases of its major version, or a running prerelease to its stable release. It never installs a version your `ptbk.json` `updates` pin or range excludes, or one that needs a newer Node.js than your host runs, and you can switch it off on the dashboard's System page. Release signing and rollout delays are still being agreed with the platform, so your host access and backups still matter.
 
 **Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source). The installer offers the local desktop client (selected by default), Codex and Claude Code. The desktop uses the same engine and initializer as the CLI, with an embedded CLI terminal; closing a window leaves your engines running. CLI-only installation remains available.
+
+**macOS:** download the matching DMG from [GitHub Releases](https://github.com/webgptorg/promptbook/releases). Choose `arm64` for Apple Silicon or `x64` for Intel, then drag Promptbook into Applications. Node.js, npm and the matching engine are included. Project setup uses Git from your Mac, such as Git from the Xcode Command Line Tools. See the [desktop installation guide](apps/desktop/README.md#macos-installation) for signing and login details.
 
 ## Deploy to your own server
 
