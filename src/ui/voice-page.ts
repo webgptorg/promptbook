@@ -1,3 +1,5 @@
+import type { FeaturePage } from './feature-server.js';
+
 /**
  * Escapes text for HTML.
  */
@@ -16,25 +18,20 @@ function scriptValue(value: unknown): string {
 }
 
 /**
- * The dedicated media page of one voice call: an animated orb reflecting actual audio activity, the call/microphone
- * state, read-only live captions and, only when the browser requires it, one activation button for the microphone and
- * sound. It is a technical audio surface: no project navigation, no task/tool controls and no message composer; the
- * terminal stays the controller.
+ * The media surface of one voice call: an animated orb reflecting actual audio activity, the call/microphone state,
+ * read-only live captions and, only when the browser requires it, one activation button for the microphone and sound.
+ * It is a technical audio surface: no project navigation, no task/tool controls and no message composer. The terminal
+ * serves it from the call's temporary feature server; the desktop app embeds the same page in the chat. Either way the
+ * chat stays the controller.
  *
  * @private voice media page
  */
-export function voicePage(input: { readonly agent: string; readonly chat: string; readonly nonce: string; readonly socket: string }): string {
-    return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Voice · ${html(input.agent)}</title>
-<style nonce="${input.nonce}">
-:root { color-scheme: light dark; --bg: #f6f5f2; --fg: #1d1d1f; --muted: #6b6b70; --accent: #3a6df0; --warn: #b5541a; --orb: #3a6df0; }
-@media (prefers-color-scheme: dark) { :root { --bg: #121214; --fg: #ececf0; --muted: #9a9aa3; --accent: #7a9cff; --warn: #f0a070; --orb: #6f92ff; } }
-* { box-sizing: border-box; }
-body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; align-items: center; justify-content: center; }
+export function voiceFeaturePage(input: { readonly agent: string; readonly chat: string; readonly hint: string }): FeaturePage {
+    return {
+        title: `Voice · ${input.agent}`,
+        style: `:root { --orb: #3a6df0; }
+@media (prefers-color-scheme: dark) { :root { --orb: #6f92ff; } }
+body { min-height: 100vh; font-size: 16px; display: flex; align-items: center; justify-content: center; }
 main { width: min(560px, 100% - 32px); text-align: center; padding: 32px 0; }
 .orb { --level: 0; width: 160px; height: 160px; margin: 0 auto 28px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--orb) 55%, white), var(--orb)); transform: scale(calc(0.9 + var(--level) * 0.5)); transition: transform 90ms linear, opacity 300ms; opacity: 0.55; }
 .orb.listening { opacity: 0.8; }
@@ -55,11 +52,8 @@ h1 { font-size: 22px; margin: 0 0 4px; }
 button { font: inherit; font-weight: 600; padding: 12px 20px; border-radius: 10px; border: 0; background: var(--accent); color: white; cursor: pointer; margin: 0 0 18px; }
 button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
 .hint { color: var(--muted); font-size: 13px; margin-top: 22px; }
-[hidden] { display: none !important; }
-</style>
-</head>
-<body>
-<main>
+`,
+        body: `<main>
 <div id="orb" class="orb idle" aria-hidden="true"></div>
 <h1>${html(input.agent)}</h1>
 <p class="chat">Voice in {${html(input.chat)}}</p>
@@ -69,19 +63,18 @@ button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
 <p id="problem" class="problem" hidden></p>
 <section id="captions" class="captions" aria-label="Live captions" aria-live="polite"></section>
 <audio id="voice" autoplay hidden></audio>
-<p class="hint">Controls are in your terminal. Closing this page ends the voice call; the chat and its work continue.</p>
+<p class="hint">${html(input.hint)}</p>
 </main>
-<script nonce="${input.nonce}">
-(() => {
-  const SOCKET = ${scriptValue(input.socket)};
+`,
+        script: `(() => {
   const AGENT = ${scriptValue(input.agent)};
   const RATE = 24000;
   const $ = (id) => document.getElementById(id);
   const orb = $('orb'), stateLine = $('state'), micLine = $('mic'), activate = $('activate'), problem = $('problem'), captions = $('captions'), voice = $('voice');
-  let socket, context, peer, stream, remote, taps = [], micMuted = false, outputMuted = false, ended = false, loud = 0, level = 0, speaking = false, quietSince = 0;
+  let context, peer, stream, remote, taps = [], micMuted = false, outputMuted = false, ended = false, loud = 0, level = 0, speaking = false, quietSince = 0;
   const finals = [];
   const provisional = { user: '', assistant: '' };
-  const send = (message) => { if (socket && socket.readyState === 1) socket.send(JSON.stringify(message)); };
+  const send = (message) => surface.send(message);
   const setLevel = (value) => { level = Math.max(value, level * 0.85); orb.style.setProperty('--level', String(Math.min(1, level * 4))); };
   const showProblem = (text) => { problem.textContent = text || ''; problem.hidden = !text; };
   const renderCaptions = () => {
@@ -108,7 +101,7 @@ button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
       const samples = event.inputBuffer.getChannelData(0), value = rms(samples);
       onLevel(value);
       if (tag === 0 && micMuted) return;
-      if (socket && socket.readyState === 1) socket.send(tagged(tag, resample(samples, context.sampleRate)));
+      surface.sendBinary(tagged(tag, resample(samples, context.sampleRate)));
     };
     taps.push(source, processor, silent);
   };
@@ -184,21 +177,19 @@ button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
     orb.className = 'orb';
   };
   activate.addEventListener('click', () => void capture());
-  socket = new WebSocket(SOCKET);
-  socket.onopen = () => { send({ type: 'format', sampleRate: RATE }); void capture(); };
-  socket.onmessage = (event) => {
-    const message = JSON.parse(event.data);
+  surface.onopen = ({ recovered }) => {
+    send({ type: 'format', sampleRate: RATE });
+    // A recovered connection of the same page keeps its media; a reload negotiates again within the same call.
+    if (!recovered || !peer) void capture();
+  };
+  surface.onmessage = (message) => {
     if (message.type === 'state') render(message.view);
     else if (message.type === 'answer' && peer) peer.setRemoteDescription({ type: 'answer', sdp: message.sdp }).catch((error) => { showProblem('The voice connection failed: ' + error.message); send({ type: 'page', rtc: 'failed' }); });
     else if (message.type === 'caption') { provisional[message.role] = message.text; renderCaptions(); }
     else if (message.type === 'final') { provisional[message.role] = ''; finals.push({ role: message.role, text: message.text }); renderCaptions(); }
-    else if (message.type === 'duplicate' || message.type === 'ended') finish(message.reason);
   };
-  socket.onclose = () => { if (!ended) finish('The voice call is no longer connected. Start it again from the terminal.'); };
-  addEventListener('pagehide', () => { if (socket) socket.close(); });
+  surface.onclose = (reason) => finish(reason || 'The voice call ended.');
 })();
-</script>
-</body>
-</html>
-`;
+`,
+    };
 }

@@ -42,7 +42,7 @@ import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, resolv
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
 import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type ConversationContext, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
 import type { VoiceCallView } from '../chats/voice-call.js';
-import { VoiceCalls, type VoiceAvailabilityReport } from './voice-calls.js';
+import { VoiceCalls, type VoiceAvailabilityReport, type VoiceMediaInput } from './voice-calls.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
@@ -1883,7 +1883,7 @@ export class Agenda {
         };
     }
 
-    // ── Realtime voice (terminal-controlled, call-owned media bridge) ─────────
+    // ── Realtime voice (one call controller; the media surface belongs to the controlling client) ─────────
 
     /** Live voice calls of this engine. */
     private voiceCallsInstance?: VoiceCalls;
@@ -1907,15 +1907,26 @@ export class Agenda {
     }
 
     /**
-     * Starts realtime voice in an existing chat for its controlling terminal (allowed during Pause like text chat; task
-     * work stays paused). Returns the call and its private media page URL.
+     * Starts realtime voice in an existing chat for its controlling client (allowed during Pause like text chat; task
+     * work stays paused). Returns the call and the scoped grant of its one media surface: the terminal serves that
+     * surface from its own temporary server, the desktop app embeds it in the chat.
      */
-    public async voiceStart(name: string): Promise<{ readonly call: VoiceCallView; readonly url: string }> {
+    public async voiceStart(name: string, controller?: string): Promise<{ readonly call: VoiceCallView; readonly grant: string }> {
         if (this.stopRequested) throw new PtbkError('The engine is stopping; voice cannot start now.', { kind: 'conflict', effect: 'Text chat keeps working.' });
         await this.pool.refresh();
-        const started = await this.voiceCalls.start(name);
+        const started = await this.voiceCalls.start(name, controller);
         this.touch();
         return started;
+    }
+
+    /** What the media surface of a call reports (attachment, messages and recorded audio, in order). */
+    public voiceMedia(name: string, grant: string, input: VoiceMediaInput): VoiceCallView {
+        return this.voiceCalls.media(name, grant, input);
+    }
+
+    /** Events for a call's media surface (bounded long poll). */
+    public async voiceMediaEvents(name: string, grant: string, after: number, waitMs: number): Promise<{ readonly events: ReadonlyArray<{ readonly seq: number; readonly event: Readonly<Record<string, unknown>> }>; readonly over: boolean }> {
+        return await this.voiceCalls.mediaEvents(name, grant, after, waitMs);
     }
 
     /** Ends or mutes the chat's live voice call. */

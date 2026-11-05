@@ -1,8 +1,7 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import type { VoiceEvent, VoiceSession } from '../harness/voice.js';
 import type { MessageAudioStatus } from './message-audio.js';
 import type { MessageAudioInput } from './store.js';
-import { VoiceBridge } from './voice-bridge.js';
 
 /**
  * Observed state of a voice call, from actual events only (never Listening without delivered microphone audio).
@@ -12,7 +11,7 @@ import { VoiceBridge } from './voice-bridge.js';
 export type VoiceCallState = 'connecting' | 'awaiting-browser' | 'listening' | 'speaking' | 'reconnecting' | 'ending' | 'ended' | 'failed';
 
 /**
- * A voice call as every client sees it (the private page URL is given only to the controlling terminal).
+ * A voice call as every client sees it (the media grant is given only to the controlling client).
  *
  * @private voice calls
  */
@@ -32,7 +31,7 @@ export type VoiceCallView = {
     readonly micMuted: boolean;
     /** Spoken output muted (playback silenced; the provider keeps speaking and recording continues). */
     readonly outputMuted: boolean;
-    /** The media page: not opened yet, owning the media, or gone (the call ends unless it returns). */
+    /** The media surface: not opened yet, owning the media, or gone (the call ends unless it returns). */
     readonly page: 'waiting' | 'connected' | 'detached';
     /** Browser microphone and playback state reported by the page. */
     readonly mic?: 'live' | 'denied' | 'missing' | 'unavailable';
@@ -215,10 +214,11 @@ class Recording {
 }
 
 /**
- * One live voice call in an existing chat: the call-owned media bridge, the provider voice session and the transcript
- * and recording pipeline into the same Chat Book. Ending (explicitly, by page closure, lost terminal lease, provider
- * loss or engine Stop) releases the microphone, playback, provider session and bridge in bounded time and never ends
- * the chat or its independent work.
+ * One live voice call in an existing chat: the call controller shared by every presentation, its one authorized media
+ * owner (the terminal's temporary media page or the desktop chat's embedded surface), the provider voice session and
+ * the transcript and recording pipeline into the same Chat Book. Ending (explicitly, by closure or loss of the media
+ * surface, a lost controlling-client lease, provider loss or engine Stop) releases the microphone, playback, provider
+ * session and surface in bounded time and never ends the chat or its independent work.
  *
  * @private voice calls
  */
@@ -237,7 +237,6 @@ export class VoiceCall {
     private readonly archive: string[] = [];
     private readonly started = Date.now();
     private endedAt?: string;
-    private bridge?: VoiceBridge;
     private session?: VoiceSession;
     private pageTimer?: NodeJS.Timeout;
     private leaseTimer?: NodeJS.Timeout;
@@ -272,40 +271,97 @@ export class VoiceCall {
         return Date.now() - this.started;
     }
 
-    /** Opens the media bridge (before the provider session, so its URL exists). */
-    public async openBridge(): Promise<string> {
-        this.bridge = await VoiceBridge.start(
-            { agent: this.agent, chat: this.chat },
-            {
-                onAudio: (side, pcm, sampleRate) => this.audio(side, pcm, sampleRate),
-                onMessage: (message) => this.pageMessage(message),
-                onAttached: () => {
-                    clearTimeout(this.pageTimer);
-                    this.page = 'connected';
-                    if (this.state === 'reconnecting') this.state = this.mic === 'live' ? 'listening' : 'awaiting-browser';
-                    this.changed();
-                },
-                onDetached: () => {
-                    this.page = 'detached';
-                    this.mic = undefined;
-                    if (this.state !== 'ending' && this.state !== 'ended' && this.state !== 'failed') this.state = 'reconnecting';
-                    this.changed();
-                    clearTimeout(this.pageTimer);
-                    this.pageTimer = setTimeout(() => void this.end('The voice page was closed.'), this.timing.pageGraceMs);
-                    this.pageTimer.unref();
-                },
-            },
-        );
+    /**
+     * Opens the call for its one media owner (the controlling client's surface) and starts the controlling client's
+     * lease. Returns the scoped media grant, which only that client receives.
+     */
+    public open(controller?: string): string {
+        this.controller = controller;
         this.leaseTimer = setInterval(() => {
-            if (Date.now() > this.leaseUntil) void this.end('The controlling terminal is gone.');
+            if (Date.now() > this.leaseUntil) void this.end('The controlling terminal or window is gone.');
         }, Math.min(2_000, this.timing.leaseMs / 3));
         this.leaseTimer.unref();
-        return this.bridge.url;
+        return this.grant;
     }
 
-    /** The private page URL (controller only). */
-    public get url(): string | undefined {
-        return this.bridge?.url;
+    /** The scoped media grant of this call's one media owner. */
+    public readonly grant = randomBytes(18).toString('base64url');
+
+    /** The client that started the call and owns its media surface. */
+    public controller?: string;
+
+    /** Whether a presented grant is this call's (constant time). */
+    public authorized(grant: string): boolean {
+        const left = Buffer.from(grant);
+        const right = Buffer.from(this.grant);
+        return left.length === right.length && timingSafeEqual(left, right);
+    }
+
+    /** Events queued for the media surface (bounded; the surface fetches them in order). */
+    private readonly outbox: Array<{ readonly seq: number; readonly event: Readonly<Record<string, unknown>> }> = [];
+    private outboxSeq = 0;
+    private readonly outboxWaiters = new Set<() => void>();
+
+    /** Queues an event for the media surface. */
+    private send(event: Readonly<Record<string, unknown>>): void {
+        this.outbox.push({ seq: ++this.outboxSeq, event });
+        // Captions and states are superseded quickly; a stalled surface never grows the queue without bound.
+        if (this.outbox.length > 400) this.outbox.splice(0, this.outbox.length - 400);
+        for (const wake of [...this.outboxWaiters]) wake();
+    }
+
+    /**
+     * Events for the media surface after `after`, waiting (bounded) for the next one. `over` once the call ended and
+     * every event was delivered.
+     */
+    public async mediaEvents(after: number, waitMs: number): Promise<{ readonly events: ReadonlyArray<{ readonly seq: number; readonly event: Readonly<Record<string, unknown>> }>; readonly over: boolean }> {
+        const pending = (): typeof this.outbox => this.outbox.filter((item) => item.seq > after);
+        if (!pending().length && !this.over && waitMs > 0) {
+            await new Promise<void>((resolve) => {
+                const timer = setTimeout(done, waitMs);
+                function done(): void {
+                    clearTimeout(timer);
+                    waiters.delete(done);
+                    resolve();
+                }
+                const waiters = this.outboxWaiters;
+                waiters.add(done);
+            });
+        }
+        return { events: pending(), over: this.over };
+    }
+
+    /** The media surface attached (first open, a reconnect or a reload of the same owner). */
+    public mediaAttached(): void {
+        if (this.over) return;
+        clearTimeout(this.pageTimer);
+        this.page = 'connected';
+        if (this.state === 'reconnecting') this.state = this.mic === 'live' ? 'listening' : 'awaiting-browser';
+        this.changed();
+    }
+
+    /** The media surface went away: the call ends unless it returns within the grace. */
+    public mediaDetached(reason = 'The voice page was closed.'): void {
+        if (this.over || this.state === 'ending') return;
+        this.page = 'detached';
+        this.mic = undefined;
+        this.state = 'reconnecting';
+        this.changed();
+        clearTimeout(this.pageTimer);
+        this.pageTimer = setTimeout(() => void this.end(reason), this.timing.pageGraceMs);
+        this.pageTimer.unref();
+    }
+
+    /** One message of the media surface (device and playback state, the WebRTC offer, barge-in, playback idle). */
+    public mediaMessage(message: Readonly<Record<string, unknown>>): void {
+        if (this.over) return;
+        this.pageMessage(message);
+    }
+
+    /** Recorded PCM of the media surface (mono Int16LE): the delivered microphone or the agent's received voice. */
+    public mediaAudio(side: 'user' | 'agent', pcm: Buffer, sampleRate: number): void {
+        if (sampleRate < 8_000 || sampleRate > 96_000 || pcm.length < 2 || pcm.length % 2 !== 0) return;
+        this.audio(side, pcm, sampleRate);
     }
 
     /** Whether the provider session is connected (its answer was given to the page). */
@@ -333,7 +389,7 @@ export class VoiceCall {
                 return;
             }
             this.session = session;
-            this.bridge?.send({ type: 'answer', sdp: session.answer });
+            this.send({ type: 'answer', sdp: session.answer });
             this.state = this.mic === 'live' ? 'listening' : 'awaiting-browser';
             this.changed();
         } catch (error) {
@@ -411,7 +467,7 @@ export class VoiceCall {
                     this.captions.assistant = `${this.captions.assistant ?? ''}${event.delta}`;
                     this.state = 'speaking';
                 }
-                this.bridge?.send({ type: 'caption', role: event.role, text: event.role === 'user' ? this.captions.user : this.captions.assistant });
+                this.send({ type: 'caption', role: event.role, text: event.role === 'user' ? this.captions.user : this.captions.assistant });
                 this.changed();
                 break;
             case 'transcript':
@@ -436,7 +492,7 @@ export class VoiceCall {
         const clean = text.trim();
         if (role === 'user') this.captions.user = undefined;
         else this.captions.assistant = undefined;
-        this.bridge?.send({ type: 'final', role, text: clean });
+        this.send({ type: 'final', role, text: clean });
         if (!clean) return this.changed();
         const userAudio = role === 'user' ? this.user.take('complete') : [];
         this.queue = this.queue.then(async () => {
@@ -528,7 +584,7 @@ export class VoiceCall {
 
     /** Publishes the state to the page and every client. */
     private changed(): void {
-        this.bridge?.send({ type: 'state', view: { state: this.state, micMuted: this.micMuted, outputMuted: this.outputMuted, ...(this.problem ? { problem: this.problem } : {}) } });
+        this.send({ type: 'state', view: { state: this.state, micMuted: this.micMuted, outputMuted: this.outputMuted, ...(this.problem ? { problem: this.problem } : {}) } });
         this.host.onChange();
     }
 
@@ -545,7 +601,8 @@ export class VoiceCall {
             clearTimeout(this.replyTimer);
             clearInterval(this.leaseTimer);
             await this.session?.end().catch(() => undefined);
-            await this.bridge?.close(reason).catch(() => undefined);
+            // The media surface releases the microphone, playback and its temporary listener on this event.
+            this.send({ type: 'ended', reason });
             // Output still playing at the end was cut off.
             if (this.pendingReply !== undefined) this.finishReply('interrupted');
             await this.queue;

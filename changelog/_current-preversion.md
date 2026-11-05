@@ -1,5 +1,6 @@
 # Unreleased
 
+- Serve realtime voice's media page from a temporary feature server owned by the terminal process instead of the engine. It uses a free loopback port and a single-use invitation in the URL fragment, which only the page's authenticated handshake redeems, so previews and prefetches cannot. Host and origin are checked, one page owns the media, and a reload of the same tab can recover through its session grant. Unused links expire, and closing the page releases the port. The engine keeps one call controller with a scoped media grant for the controlling client only, and the terminal shows **Waiting for browser** until the page attaches. Voice works with the project HTTP server disabled.
 
 - Polish the shared Windows and macOS desktop UI with system, sun and moon appearance controls, resizable panels, project status and attention dots, and a conversation layout with a separate reply area. Bundle the official Inter and Outfit fonts for offline use.
 

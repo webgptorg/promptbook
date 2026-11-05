@@ -10,6 +10,7 @@ import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js
 import type { ConnectionView } from '../engine/snapshot.js';
 import { ProjectEffects, effectsRequest, snapshotEffects } from '../engine/effects.js';
 import { parseUsageRequest } from '../engine/usage.js';
+import type { VoiceMediaInput } from '../engine/voice-calls.js';
 import { browserTools } from '../browser/agent-tools.js';
 import { BrowserFleet } from '../browser/fleet.js';
 import { describeProfileSource } from '../tools/model.js';
@@ -364,12 +365,20 @@ export class ServiceHost {
             case 'chat-send':
                 // The authenticated local control channel of the engine host may attach local files.
                 return await applyChatAction(agenda, method, params, typeof params.via === 'string' ? params.via : 'cli', { trusted: true });
-            // Realtime voice is controlled from a local terminal through this control channel only: the dashboard's HTTP
-            // API never starts calls or receives a media page URL.
+            // Realtime voice is controlled from a local terminal or the local desktop app through this control channel
+            // only: the project HTTP API never starts calls or receives a media grant.
             case 'voice-availability':
                 return await agenda.voiceAvailability(String(params.name ?? ''));
             case 'voice-start':
-                return await agenda.voiceStart(String(params.name ?? ''));
+                return await agenda.voiceStart(String(params.name ?? ''), typeof params.client === 'string' ? params.client : undefined);
+            case 'voice-media':
+                return agenda.voiceMedia(String(params.name ?? ''), String(params.grant ?? ''), {
+                    attach: params.attach === true,
+                    ...(params.detach === true || typeof params.detach === 'string' ? { detach: params.detach as true | string } : {}),
+                    items: Array.isArray(params.items) ? (params.items as VoiceMediaInput['items']) : [],
+                });
+            case 'voice-media-events':
+                return await agenda.voiceMediaEvents(String(params.name ?? ''), String(params.grant ?? ''), Number(params.after ?? 0) || 0, Number(params.wait ?? 0) || 0);
             case 'voice-control': {
                 const action = String(params.action ?? '');
                 if (!['end', 'mute-mic', 'unmute-mic', 'mute-output', 'unmute-output'].includes(action)) throw new PtbkError(`Unknown voice action "${action}".`, { kind: 'usage' });

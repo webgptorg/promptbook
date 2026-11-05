@@ -17,6 +17,8 @@ import { ProjectClient } from './project-client.js';
 import { terminalHasFocus } from './keys.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import { openInBrowser } from '../common/open-url.js';
+import { VoiceSurfaceRelay, type VoiceMediaChannel } from './voice-surface.js';
+import type { FeatureSurfaceState } from './feature-server.js';
 import { remoteTerminal } from '../harness/voice.js';
 import type { VoiceCallView } from '../chats/voice-call.js';
 
@@ -72,13 +74,22 @@ export type ChatSource = {
  * @private chat client
  */
 export type VoiceControls = {
-    /** Starts (or returns the live) call; its private page URL is for this terminal only. */
-    readonly start: (name: string) => Promise<{ readonly call: VoiceCallView; readonly url: string }>;
+    /** Starts (or returns this client's live) call; the media grant is for this terminal's own media surface only. */
+    readonly start: (name: string) => Promise<{ readonly call: VoiceCallView; readonly grant: string }>;
     /** Ends or mutes the call. */
     readonly control: (name: string, action: 'end' | 'mute-mic' | 'unmute-mic' | 'mute-output' | 'unmute-output') => Promise<VoiceCallView>;
     /** Renews this terminal's lease (the call ends when the terminal is gone). */
     readonly heartbeat: (name: string) => Promise<VoiceCallView | null>;
+    /** Delivers what this terminal's media surface reported (attachment, messages, audio, detachment). */
+    readonly media: (name: string, grant: string, input: Parameters<VoiceMediaChannel['media']>[0]) => Promise<unknown>;
+    /** Events for this terminal's media surface (a bounded long poll). */
+    readonly events: (name: string, grant: string, after: number) => Promise<Awaited<ReturnType<VoiceMediaChannel['events']>>>;
 };
+
+/**
+ * This process's identity as the controlling client of its voice calls (another terminal cannot take the media over).
+ */
+const VOICE_CLIENT = `cli-${process.pid}-${Math.random().toString(36).slice(2, 10)}`;
 
 /**
  * Builds a chat source over a control-style request function (running service or in-process host).
@@ -101,9 +112,11 @@ export function controlChatSource(request: (method: string, params?: Readonly<Re
         },
         replies: true,
         voice: {
-            start: async (name) => (await request('voice-start', { name })) as { call: VoiceCallView; url: string },
+            start: async (name) => (await request('voice-start', { name, client: VOICE_CLIENT })) as { call: VoiceCallView; grant: string },
             control: async (name, action) => (await request('voice-control', { name, action })) as VoiceCallView,
             heartbeat: async (name) => (await request('voice-heartbeat', { name })) as VoiceCallView | null,
+            media: async (name, grant, input) => await request('voice-media', { name, grant, ...input }),
+            events: async (name, grant, after) => (await request('voice-media-events', { name, grant, after, wait: 15_000 })) as Awaited<ReturnType<VoiceMediaChannel['events']>>,
         },
     };
 }
@@ -126,7 +139,7 @@ export function voiceLive(call: VoiceCallView | undefined): boolean {
 export function voiceLines(call: VoiceCallView, width: number): Array<{ readonly text: string; readonly tone: 'accent' | 'muted' | 'warning' }> {
     const labels: Record<VoiceCallView['state'], string> = {
         connecting: 'connecting…',
-        'awaiting-browser': call.mic === 'denied' ? 'microphone denied in the browser' : call.playback === 'blocked' ? 'click the voice page to allow sound' : call.page === 'connected' ? 'waiting for the microphone (allow it on the voice page)' : 'waiting for the voice page in your browser',
+        'awaiting-browser': call.mic === 'denied' ? 'microphone denied in the browser' : call.playback === 'blocked' ? 'click the voice page to allow sound' : call.page === 'connected' ? 'waiting for the microphone (allow it on the voice page)' : 'Waiting for browser',
         listening: 'listening',
         speaking: `${call.agent} is speaking`,
         reconnecting: 'voice page closed; reopen it or the call ends',
@@ -217,6 +230,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     const reportedSeen = new Set<string>();
     /** A voice start/control request in flight (never two at once). */
     let voiceBusy = false;
+    /** This terminal's temporary media surface of the live call (served from this process). */
+    let voiceRelay: { readonly chat: string; readonly relay: VoiceSurfaceRelay; state: FeatureSurfaceState; opened: boolean } | undefined;
     const projectClient = options.projectClient ?? new ProjectClient(terminal, source.effects, { title: true, changed: () => draw(), activate: (effect) => {
         notice = effect.chat === name ? `Notification for this chat, message ${effect.message ?? ''}. Your draft is kept.` : effect.chat ? `Attention in {${effect.chat}}. Open that chat after saving your draft.` : `Attention in ${effect.domain}. Open this project's dashboard to respond.`;
         draw();
@@ -250,6 +265,9 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         // An ended call stays visible briefly (and while its recording is incomplete), then the ordinary chat returns.
         const call = detail?.voice && (voiceLive(detail.voice) || detail.voice.archive.length || Date.now() - Date.parse(detail.voice.endedAt ?? '') < 30_000) ? detail.voice : undefined;
         if (call) for (const line of voiceLines(call, width - 4)) cards.push(line.tone === 'accent' ? style.accent(line.text) : line.tone === 'warning' ? style.warning(line.text) : style.muted(line.text));
+        // Until the page attaches, the link stays available here (the automatic opening may have failed).
+        const relayed = voiceRelay;
+        if (call && voiceLive(call) && relayed && relayed.chat === name && relayed.state === 'waiting') cards.push(style.muted(`  Voice page: ${relayed.relay.url}`));
         const top = renderPanel({ title: `${marks.bullet} Chat`, titleRight: options.embedded ? 'Esc back to dashboard' : 'Ctrl+C close', lines: [...header, ...cards], width, tone: detail?.summary.status === 'waiting-for-user' ? 'attention' : 'accent', unicode: terminal.unicode, style });
         const question = awaited();
         const choices = question?.choices ?? [];
@@ -399,9 +417,27 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             } else {
                 notice = 'Starting voice…';
                 draw();
-                const started = await source.voice.start(chat);
-                const opened = await openInBrowser(started.url);
-                notice = opened ? 'The voice page opened in your browser: allow the microphone there. Controls stay here.' : `Open the voice page in your browser on this computer: ${started.url}`;
+                const voice = source.voice;
+                const started = await voice.start(chat);
+                await voiceRelay?.relay.close();
+                // The call's own temporary server in this process; the project HTTP server is not involved.
+                const relay = await VoiceSurfaceRelay.open({
+                    agent: started.call.agent,
+                    chat,
+                    channel: {
+                        media: async (input) => await voice.media(chat, started.grant, input),
+                        events: async (after) => await voice.events(chat, started.grant, after),
+                    },
+                    onState: (state) => {
+                        if (voiceRelay?.relay !== relay) return;
+                        voiceRelay.state = state;
+                        if (state === 'expired') notice = 'The voice page was not opened in time, so the call ended. Ctrl+G starts voice again.';
+                        draw();
+                    },
+                });
+                voiceRelay = { chat, relay, state: 'waiting', opened: false };
+                voiceRelay.opened = await openInBrowser(relay.url);
+                notice = voiceRelay.opened ? 'Waiting for browser: the voice page opened there; allow the microphone. Controls stay here.' : 'Waiting for browser: open the voice link below in a browser on this computer.';
             }
         } catch (error) {
             notice = `Voice is not available: ${errorMessage(error)}`;
@@ -472,8 +508,10 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     const close = (): void => {
         if (closed) return;
         closed = true;
-        // Leaving the chat ends its voice call (the chat, its history and its work continue).
+        // Leaving the chat ends its voice call (the chat, its history and its work continue) and its media surface.
         if (source.voice && name && voiceLive(detail?.voice)) void source.voice.control(name, 'end').catch(() => undefined);
+        void voiceRelay?.relay.close('The terminal chat was closed, so the voice call ended.');
+        voiceRelay = undefined;
         keyboard.stop();
         clearInterval(timer);
         if (!options.projectClient) projectClient.close();

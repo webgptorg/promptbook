@@ -6,31 +6,43 @@ import { connect } from 'node:net';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { ChatStore } from '../dist/chats/store.js';
-import { VoiceBridge } from '../dist/chats/voice-bridge.js';
 import { VoiceCall } from '../dist/chats/voice-call.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../dist/harness/registry.js';
 import { VoiceUnavailableError, remoteTerminal, voiceSupport } from '../dist/harness/voice.js';
 import { guidance } from '../dist/engine/voice-calls.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { ControlClient } from '../dist/service/control.js';
+import { FeatureSurface } from '../dist/ui/feature-server.js';
+import { VoiceSurfaceRelay } from '../dist/ui/voice-surface.js';
+import { voiceFeaturePage } from '../dist/ui/voice-page.js';
 import { readProcessRecord } from '../dist/service/records.js';
 import { fakeHarness, git, initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
- * A minimal WebSocket client standing in for the media page (masked client frames, as a browser sends them).
+ * A minimal WebSocket client standing in for a surface page (masked client frames, as a browser sends them). It
+ * connects to the surface's socket and authenticates with the invitation of the URL fragment (or a session grant);
+ * `pong: false` simulates a page whose computer is gone (pings stay unanswered).
  */
-async function mediaClient(url, { origin, path } = {}) {
+async function surfaceClient(url, { origin, host, path = '/surface', token, session, pong = true, hello = true } = {}) {
     const page = new URL(url);
     const socket = connect(Number(page.port), '127.0.0.1');
     await new Promise((resolve, reject) => socket.once('connect', resolve).once('error', reject));
-    socket.write(`GET ${path ?? `${page.pathname}/media`} HTTP/1.1\r\nHost: ${page.host}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${randomBytes(16).toString('base64')}\r\nSec-WebSocket-Version: 13\r\nOrigin: ${origin ?? page.origin}\r\n\r\n`);
-    const client = { status: 0, messages: [], binary: [], closed: undefined };
+    socket.write(`GET ${path} HTTP/1.1\r\nHost: ${host ?? page.host}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${randomBytes(16).toString('base64')}\r\nSec-WebSocket-Version: 13\r\nOrigin: ${origin ?? page.origin}\r\n\r\n`);
+    const client = { status: 0, messages: [], binary: [], closed: undefined, session: undefined };
     let buffer = Buffer.alloc(0);
     let headers = true;
     let finish;
     client.closed = new Promise((resolve) => (finish = resolve));
     socket.on('close', () => finish());
     socket.on('error', () => finish());
+    const frame = (opcode, payload) => {
+        if (socket.destroyed) return;
+        const mask = randomBytes(4);
+        const masked = Buffer.from(payload);
+        for (let index = 0; index < masked.length; index++) masked[index] ^= mask[index % 4];
+        const header = masked.length < 126 ? Buffer.from([0x80 | opcode, 0x80 | masked.length]) : Buffer.concat([Buffer.from([0x80 | opcode, 0x80 | 126]), Buffer.from([masked.length >> 8, masked.length & 0xff])]);
+        socket.write(Buffer.concat([header, mask, masked]));
+    };
     const statusKnown = new Promise((resolve) => {
         socket.on('data', (chunk) => {
             buffer = Buffer.concat([buffer, chunk]);
@@ -58,18 +70,15 @@ async function mediaClient(url, { origin, path } = {}) {
                 if (buffer.length < offset + length) return;
                 const payload = buffer.subarray(offset, offset + length);
                 buffer = buffer.subarray(offset + length);
-                if (opcode === 0x1) client.messages.push(JSON.parse(payload.toString('utf8')));
-                else if (opcode === 0x2) client.binary.push(Buffer.from(payload));
+                if (opcode === 0x1) {
+                    const message = JSON.parse(payload.toString('utf8'));
+                    if (message.type === 'welcome') client.session = message.session;
+                    client.messages.push(message);
+                } else if (opcode === 0x2) client.binary.push(Buffer.from(payload));
+                else if (opcode === 0x9 && pong) frame(0xa, payload);
             }
         });
     });
-    const frame = (opcode, payload) => {
-        const mask = randomBytes(4);
-        const masked = Buffer.from(payload);
-        for (let index = 0; index < masked.length; index++) masked[index] ^= mask[index % 4];
-        const header = masked.length < 126 ? Buffer.from([0x80 | opcode, 0x80 | masked.length]) : Buffer.concat([Buffer.from([0x80 | opcode, 0x80 | 126]), Buffer.from([masked.length >> 8, masked.length & 0xff])]);
-        socket.write(Buffer.concat([header, mask, masked]));
-    };
     client.sendText = (value) => frame(0x1, Buffer.from(JSON.stringify(value)));
     client.sendBinary = (data) => frame(0x2, data);
     client.close = () => {
@@ -77,6 +86,12 @@ async function mediaClient(url, { origin, path } = {}) {
         socket.end();
     };
     await statusKnown;
+    if (client.status === 101 && hello) {
+        const invitation = token ?? new URLSearchParams(page.hash.slice(1)).get('t');
+        client.sendText(session ? { type: 'hello', session } : { type: 'hello', token: invitation });
+        await waitFor(() => client.messages.some((message) => message.type === 'welcome' || message.type === 'refused'), { timeoutMs: 5_000, message: 'handshake' });
+        client.welcomed = client.messages.some((message) => message.type === 'welcome');
+    }
     return client;
 }
 
@@ -170,52 +185,124 @@ test('Codex voice availability follows the installed release and the native acco
     assert.equal(log2.filter((entry) => entry.method === 'thread/realtime/stop').length >= 1, true);
 });
 
-test('media bridge: private token and exact origin, one media owner, reload reattaches; no project operations', async () => {
-    const events = [];
-    const bridge = await VoiceBridge.start({ agent: 'Accountant', chat: 'Invoices' }, { onAudio: (side, data, rate) => events.push(['audio', side, data.length, rate]), onMessage: (message) => events.push(['message', message.type]), onAttached: () => events.push(['attached']), onDetached: () => events.push(['detached']) });
+/** Waits a little (lets batched relay traffic arrive). */
+const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+test('temporary feature server: loopback, single-use invitation redeemed only by the handshake, host/origin checks, one owner, recovery and cleanup', async () => {
+    const states = [];
+    const received = [];
+    const surface = await FeatureSurface.start({
+        page: { title: 'Test surface', style: '', body: '<main>Surface body</main>', script: 'void 0;' },
+        reattachMs: 2_000,
+        livenessMs: 900,
+        onMessage: (message) => received.push(message),
+        onBinary: (data) => received.push(['binary', data.length]),
+        onState: (state, detail) => states.push([state, Boolean(detail.recovered)]),
+    });
     try {
-        assert.match(bridge.url, /^http:\/\/127\.0\.0\.1:\d+\/voice\/[\w-]{20,}$/);
-        const page = await fetch(bridge.url);
+        assert.match(surface.url, /^http:\/\/127\.0\.0\.1:\d+\/#t=[\w-]{20,}$/, 'an OS-allocated loopback port; the invitation lives in the fragment');
+        const token = new URL(surface.url).hash;
+        // A preview or prefetch fetches the page (the fragment never reaches the server): nothing is redeemed.
+        const page = await fetch(surface.url);
         assert.equal(page.status, 200);
-        const csp = page.headers.get('content-security-policy');
-        assert.match(csp, /default-src 'none'/);
-        assert.match(csp, new RegExp(`connect-src ws://127\\.0\\.0\\.1:${bridge.port}`));
+        assert.match(page.headers.get('content-security-policy'), new RegExp(`default-src 'none'.*connect-src ws://127\\.0\\.0\\.1:${surface.port}`));
+        assert.equal(page.headers.get('cache-control'), 'no-store');
+        assert.equal(page.headers.get('referrer-policy'), 'no-referrer');
         const html = await page.text();
-        assert.match(html, /Allow microphone and sound/);
-        assert.doesNotMatch(html, /<textarea|<input|<form|\/api\//i, 'no composer, form or project API');
-        assert.equal((await fetch(bridge.url.replace(/\/voice\/.*/, '/voice/wrong'))).status, 404);
-        assert.equal((await fetch(new URL('/api/status', bridge.url))).status, 404);
-        assert.equal((await mediaClient(bridge.url, { origin: 'http://evil.example' })).status, 403);
-        assert.equal((await mediaClient(bridge.url, { path: '/voice/wrong/media' })).status, 403);
-        const first = await mediaClient(bridge.url);
-        assert.equal(first.status, 101);
-        await waitFor(() => events.some((event) => event[0] === 'attached'), { timeoutMs: 5_000, message: 'attach' });
-        first.sendText({ type: 'format', sampleRate: 16_000 });
-        first.sendBinary(frame('user'));
-        first.sendBinary(frame('agent'));
-        first.sendBinary(Buffer.from([7, 0, 0]));
-        await waitFor(() => events.filter((event) => event[0] === 'audio').length === 2, { timeoutMs: 5_000, message: 'audio' });
-        assert.deepEqual(events.filter((event) => event[0] === 'audio'), [['audio', 'user', 4096, 16_000], ['audio', 'agent', 4096, 16_000]], 'tagged recording frames; an unknown tag is dropped');
-        // A duplicate tab gets no microphone or playback.
-        const duplicate = await mediaClient(bridge.url);
-        await duplicate.closed;
-        assert.equal(duplicate.messages[0]?.type, 'duplicate');
-        assert.equal(bridge.attached, true, 'the first page keeps the media');
-        // Reload: the old page goes, the new one reattaches to the same call.
-        first.close();
-        await waitFor(() => events.some((event) => event[0] === 'detached'), { timeoutMs: 5_000, message: 'detach' });
-        const reloaded = await mediaClient(bridge.url);
-        assert.equal(reloaded.status, 101);
-        await waitFor(() => events.filter((event) => event[0] === 'attached').length === 2, { timeoutMs: 5_000, message: 'reattach' });
-        bridge.send({ type: 'answer', sdp: 'v=0' });
-        await waitFor(() => reloaded.messages.some((message) => message.type === 'answer'), { timeoutMs: 5_000, message: 'answer' });
-        await bridge.close('Ended from the terminal.');
-        await reloaded.closed;
-        assert.equal(reloaded.messages.at(-1).type, 'ended');
-        assert.equal((await fetch(bridge.url).catch(() => undefined))?.status ?? 'closed', 'closed', 'the bridge ends with its call');
+        assert.match(html, /Surface body/);
+        assert.ok(!html.includes(token.slice(3)), 'the page carries no invitation');
+        assert.equal(surface.state, 'waiting');
+        // DNS-rebound host names, other paths and methods, wrong origins and paths are refused.
+        assert.equal((await new Promise((resolve) => connect(surface.port, '127.0.0.1').on('data', (chunk) => resolve(Number(/HTTP\/1\.1 (\d+)/.exec(chunk.toString())[1]))).end(`GET / HTTP/1.1\r\nHost: evil.example:${surface.port}\r\n\r\n`))), 421);
+        assert.equal((await fetch(new URL('/api/status', surface.url))).status, 404);
+        assert.equal((await fetch(surface.url.split('#')[0], { method: 'POST' })).status, 405);
+        assert.equal((await surfaceClient(surface.url, { origin: 'http://evil.example' })).status, 403);
+        assert.equal((await surfaceClient(surface.url, { host: `localhost:${surface.port}` })).status, 403);
+        assert.equal((await surfaceClient(surface.url, { path: '/other' })).status, 403);
+        assert.equal((await surfaceClient(surface.url, { token: 'wrong-token-value-wrong-token' })).welcomed, false);
+        // Simultaneous redemptions: exactly one page gets the session.
+        const [one, two] = await Promise.all([surfaceClient(surface.url), surfaceClient(surface.url)]);
+        assert.equal([one, two].filter((client) => client.welcomed).length, 1, 'the invitation is redeemed once');
+        const owner = one.welcomed ? one : two;
+        await waitFor(() => surface.attached, { timeoutMs: 2_000, message: 'attached' });
+        owner.sendText({ type: 'ping-from-page' });
+        owner.sendBinary(Buffer.from([1, 2, 3]));
+        await waitFor(() => received.length === 2, { timeoutMs: 2_000, message: 'page data' });
+        assert.deepEqual(received, [{ type: 'ping-from-page' }, ['binary', 3]]);
+        surface.send({ type: 'to-page' });
+        await waitFor(() => owner.messages.some((message) => message.type === 'to-page'), { timeoutMs: 2_000, message: 'owner data' });
+        // The original URL cannot attach another page; a duplicated tab with the copied session grant is refused too.
+        assert.equal((await surfaceClient(surface.url)).welcomed, false);
+        assert.equal((await surfaceClient(surface.url, { session: owner.session })).welcomed, false, 'no concurrent owner');
+        assert.throws(() => surface.retry(), /attached/);
+        // A transient loss recovers with the scoped session grant of the same page.
+        owner.close();
+        await waitFor(() => surface.state === 'detached', { timeoutMs: 2_000, message: 'detached' });
+        const recovered = await surfaceClient(surface.url, { session: owner.session });
+        assert.equal(recovered.welcomed, true);
+        await waitFor(() => states.some(([state, again]) => state === 'attached' && again), { timeoutMs: 2_000, message: 'recovered' });
+        // A backgrounded page answers pings and keeps its session; a page that stops answering is lost in bounded time.
+        await pause(1_500);
+        assert.equal(surface.attached, true, 'a live idle page stays attached');
+        recovered.close();
+        await waitFor(() => !surface.attached, { timeoutMs: 2_000, message: 'detached again' });
+        const silent = await surfaceClient(surface.url, { session: owner.session, pong: false });
+        assert.equal(silent.welcomed, true);
+        await silent.closed;
+        assert.equal(surface.state, 'detached', 'an unanswered page counts as lost');
+        // After the reattach window the old grant is revoked; only an explicit retry issues a fresh link.
+        await pause(2_600);
+        assert.equal((await surfaceClient(surface.url, { session: owner.session })).welcomed, false);
+        const fresh = surface.retry();
+        assert.notEqual(fresh, surface.url.replace(/#.*/, token));
+        assert.equal((await surfaceClient(fresh)).welcomed, true);
+        // Closing tells the page why, revokes it and releases the port.
+        const last = owner;
+        await surface.close('Ended by its owner.');
+        assert.equal(surface.state, 'closed');
+        await assert.rejects(fetch(surface.url));
+        void last;
     } finally {
-        await bridge.close();
+        await surface.close();
     }
+    // An unused invitation expires.
+    const expiring = await FeatureSurface.start({ page: { title: 't', style: '', body: '', script: '' }, invitationMs: 300, onMessage: () => undefined, onState: (state) => states.push([state, false]) });
+    try {
+        await waitFor(() => expiring.state === 'expired', { timeoutMs: 6_000, message: 'expiry' });
+        assert.equal((await surfaceClient(expiring.url)).welcomed, false);
+        assert.equal((await surfaceClient(expiring.retry())).welcomed, true, 'a retry issues a working link');
+    } finally {
+        await expiring.close();
+    }
+});
+
+/**
+ * The terminal's media relay of a call, with the engine's call operations applied directly (as `VoiceCalls.media`).
+ */
+async function relayFor(call, onState = () => undefined) {
+    return await VoiceSurfaceRelay.open({
+        agent: call.agent,
+        chat: call.chat,
+        channel: {
+            media: async (input) => {
+                if (input.attach) call.mediaAttached();
+                for (const item of input.items ?? []) {
+                    if (item.kind === 'message') call.mediaMessage(item.message);
+                    else call.mediaAudio(item.side, Buffer.from(item.data, 'base64'), item.rate);
+                }
+                if (input.detach) call.mediaDetached(typeof input.detach === 'string' ? input.detach : undefined);
+            },
+            events: async (after) => await call.mediaEvents(after, 1_000),
+        },
+        onState,
+    });
+}
+
+test('voice media page: one surface page without composer, project API or socket address of its own', () => {
+    const page = voiceFeaturePage({ agent: 'Accountant', chat: 'Invoices', hint: 'Controls are in your terminal.' });
+    assert.match(page.body, /Allow microphone and sound/);
+    assert.doesNotMatch(`${page.body}${page.script}`, /<textarea|<input|<form|\/api\/|new WebSocket/i, 'no composer, form, project API or own transport');
+    assert.match(page.script, /surface\.send/);
 });
 
 test('voice call: page offer negotiates once per page, attributed transcripts and recordings in the same Book, mute, barge-in, untranscribed speech and closure', async (t) => {
@@ -243,9 +330,12 @@ test('voice call: page offer negotiates once per page, attributed transcripts an
         log: () => undefined,
     };
     const call = new VoiceCall(name, 'Accountant', 'openai-codex', 'codex', host, { pageGraceMs: 300, leaseMs: 60_000 });
-    const url = await call.openBridge();
+    const grant = call.open('terminal-1');
+    assert.ok(call.authorized(grant) && !call.authorized('other'), 'one scoped media grant');
     assert.equal(call.view().state, 'awaiting-browser', 'the call waits for its page');
-    const page = await mediaClient(url);
+    const relay = await relayFor(call);
+    const page = await surfaceClient(relay.url);
+    assert.equal(page.welcomed, true);
     page.sendText({ type: 'format', sampleRate: 24_000 });
     page.sendText({ type: 'offer', sdp: OFFER });
     await waitFor(() => page.messages.some((message) => message.type === 'answer'), { timeoutMs: 5_000, message: 'the answer' });
@@ -256,11 +346,14 @@ test('voice call: page offer negotiates once per page, attributed transcripts an
     await waitFor(() => call.view().state === 'listening', { timeoutMs: 5_000, message: 'listening' });
     // The user speaks: recorded; while muted nothing is recorded (the page disables its track).
     page.sendBinary(frame('user'));
+    await pause(500);
     call.control('mute-mic');
     await waitFor(() => page.messages.some((message) => message.type === 'state' && message.view.micMuted), { timeoutMs: 5_000, message: 'mute reaches the page' });
     page.sendBinary(frame('user', pcm().fill(0x7f)));
+    await pause(500);
     call.control('unmute-mic');
     page.sendBinary(frame('user'));
+    await pause(500);
     // Provisional captions are never messages; the final transcript is one message by the real speaker.
     emit({ type: 'caption', role: 'user', delta: 'Ahoj, jaký' });
     assert.equal(call.view().captions.user, 'Ahoj, jaký');
@@ -268,6 +361,7 @@ test('voice call: page offer negotiates once per page, attributed transcripts an
     emit({ type: 'transcript', role: 'user', text: 'Ahoj, jaký je stav?' });
     page.sendText({ type: 'output', state: 'speaking' });
     page.sendBinary(frame('agent'));
+    await pause(500);
     emit({ type: 'caption', role: 'assistant', delta: 'Všechno' });
     emit({ type: 'transcript', role: 'assistant', text: 'Všechno běží podle plánu.' });
     await waitFor(async () => (await store.find(name)).chat.messages.length === 4, { timeoutMs: 5_000, message: 'both utterances saved' });
@@ -286,10 +380,12 @@ test('voice call: page offer negotiates once per page, attributed transcripts an
     assert.equal(userWav.length, 44 + 2 * 4096, 'two delivered chunks; the muted one is not recorded');
     assert.match(await readFile((await store.find(name)).path, 'utf8'), /CHAT MESSAGE AUDIO/);
     assert.equal(call.view().accepted, 2);
-    // A reload: the old page goes, the new page's offer replaces the provider session of the same call.
+    // A reload: the old page goes, the same tab recovers with its session, and its new offer replaces the provider
+    // session of the same call.
     page.close();
     await waitFor(() => call.view().state === 'reconnecting', { timeoutMs: 5_000, message: 'reconnecting' });
-    const reloaded = await mediaClient(url);
+    const reloaded = await surfaceClient(relay.url, { session: page.session });
+    assert.equal(reloaded.welcomed, true);
     reloaded.sendText({ type: 'offer', sdp: OFFER });
     await waitFor(() => reloaded.messages.some((message) => message.type === 'answer'), { timeoutMs: 5_000, message: 'second answer' });
     assert.equal(sessions.length, 2);
@@ -297,10 +393,12 @@ test('voice call: page offer negotiates once per page, attributed transcripts an
     reloaded.sendText({ type: 'page', mic: 'live', playback: 'ok' });
     // Speech without a transcript is kept, never bound to invented words.
     reloaded.sendBinary(frame('user'));
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    // Closing the page ends the call after its short grace; the chat stays.
+    await pause(500);
+    // Closing the page ends the call after its short grace; the chat stays, and the temporary listener is released.
     reloaded.close();
     await waitFor(() => call.over, { timeoutMs: 5_000, message: 'call end' });
+    await waitFor(() => relay.surfaceState === 'closed', { timeoutMs: 5_000, message: 'the relay closes with the call' });
+    await assert.rejects(fetch(relay.url));
     assert.equal(call.view().state, 'ended');
     assert.equal(sessions[1].ended, 1, 'the provider session is released');
     assert.equal(kept.length, 1);
@@ -313,26 +411,31 @@ test('voice call: page offer negotiates once per page, attributed transcripts an
 test('voice call: a refused provider fails the call with its reason; the chat is untouched', async () => {
     const host = { connect: async () => { throw new Error('Codex realtime voice was refused: not available for this plan. This ChatGPT account does not offer realtime voice.'); }, append: async () => 1, record: async () => ({ problems: [] }), keepUntranscribed: async () => undefined, onChange: () => undefined, log: () => undefined };
     const call = new VoiceCall('Chat', 'Chatter', 'openai-codex', 'codex', host, { pageGraceMs: 10_000, leaseMs: 60_000 });
-    const url = await call.openBridge();
-    const page = await mediaClient(url);
+    call.open();
+    const relay = await relayFor(call);
+    const page = await surfaceClient(relay.url);
     page.sendText({ type: 'offer', sdp: OFFER });
     await page.closed;
     assert.equal(call.view().state, 'failed');
     assert.match(call.view().problem, /refused.*does not offer realtime voice/);
     assert.equal(page.messages.at(-1).type, 'ended');
+    assert.match(page.messages.at(-1).reason, /refused/);
 });
 
 test('voice call: a terminal that stops renewing its lease ends the call in bounded time', async () => {
     let ended = false;
     const host = { connect: async () => ({ dispatch: 'native', answer: 'v=0', supplyContext: async () => undefined, end: async () => void (ended = true) }), append: async () => 1, record: async () => ({ problems: [] }), keepUntranscribed: async () => undefined, onChange: () => undefined, log: () => undefined };
     const call = new VoiceCall('Chat', 'Chatter', 'openai-codex', 'codex', host, { pageGraceMs: 10_000, leaseMs: 300 });
-    const url = await call.openBridge();
-    const page = await mediaClient(url);
+    call.open();
+    const relay = await relayFor(call);
+    const page = await surfaceClient(relay.url);
     page.sendText({ type: 'offer', sdp: OFFER });
     call.heartbeat();
     await waitFor(() => call.over, { timeoutMs: 5_000, message: 'lease expiry' });
     assert.equal(ended, true);
     assert.equal(call.view().state, 'ended');
+    await page.closed;
+    await waitFor(() => relay.surfaceState === 'closed', { timeoutMs: 5_000, message: 'listener released' });
 });
 
 /** Sends one control request to the project's engine. */
@@ -355,26 +458,41 @@ test('engine: voice in an existing chat during Pause, native dispatch without a 
     await waitFor(async () => (await control(project, 'chat-get', { name })).messages.length >= 2, { message: 'the written reply' });
     const before = await turns();
 
-    const started = await control(project, 'voice-start', { name });
-    assert.match(started.url, /^http:\/\/127\.0\.0\.1:\d+\/voice\//);
+    const started = await control(project, 'voice-start', { name, client: 'terminal-a' });
+    assert.equal(started.url, undefined, 'the engine serves no media page itself');
     assert.equal(started.call.harness, 'openai-codex');
-    // Every client sees the call; only the controlling terminal gets its private page URL.
+    // Every client sees the call; only the controlling terminal gets its media grant.
     const detail = await control(project, 'chat-get', { name });
     assert.equal(detail.voice.id, started.call.id);
-    assert.ok(!JSON.stringify(detail).includes(new URL(started.url).pathname), 'the private page URL is not shared');
-    // Starting again returns the live call, never a second paid session.
-    assert.equal((await control(project, 'voice-start', { name })).call.id, started.call.id);
-
-    const page = await mediaClient(started.url);
+    assert.ok(!JSON.stringify(detail).includes(started.grant), 'the media grant is not shared');
+    // Starting again returns the live call to its own terminal, never a second paid session or input owner.
+    assert.equal((await control(project, 'voice-start', { name, client: 'terminal-a' })).call.id, started.call.id);
+    await assert.rejects(control(project, 'voice-start', { name, client: 'terminal-b' }), /already live/);
+    await assert.rejects(control(project, 'voice-media', { name, grant: 'not-the-grant', items: [] }), /belongs to this media surface/);
+    // The terminal's own temporary server relays the page; the project HTTP server is not involved.
+    const relay = await VoiceSurfaceRelay.open({
+        agent: started.call.agent,
+        chat: name,
+        channel: {
+            media: async (input) => await control(project, 'voice-media', { name, grant: started.grant, ...input }),
+            events: async (after) => await control(project, 'voice-media-events', { name, grant: started.grant, after, wait: 5_000 }),
+        },
+        onState: () => undefined,
+    });
+    t.after(async () => await relay.close());
+    const page = await surfaceClient(relay.url);
+    assert.equal(page.welcomed, true);
     page.sendText({ type: 'format', sampleRate: 24_000 });
     page.sendText({ type: 'offer', sdp: OFFER });
     await waitFor(() => page.messages.some((message) => message.type === 'answer'), { message: 'the provider answer for the page' });
     page.sendText({ type: 'page', mic: 'live', playback: 'ok', rtc: 'connected' });
     for (let index = 0; index < 4; index++) page.sendBinary(frame('user'));
+    await pause(600);
     await waitFor(async () => (await control(project, 'chat-get', { name })).messages.some((message) => message.text === 'Všechno běží podle plánu.'), { message: 'the spoken exchange in the chat' });
     await control(project, 'voice-heartbeat', { name });
     page.sendText({ type: 'output', state: 'speaking' });
     for (let index = 0; index < 4; index++) page.sendBinary(frame('agent'));
+    await pause(600);
     page.sendText({ type: 'output', state: 'idle' });
     const book = async () => await readFile(join(project, 'chats', (await control(project, 'chat-get', { name })).summary.path.split('/').pop()), 'utf8').catch(async () => await readFile(join(project, (await control(project, 'chat-get', { name })).summary.path), 'utf8'));
     await waitFor(async () => ((await book()).match(/CHAT MESSAGE AUDIO/g) ?? []).length === 2, { message: 'both recordings bound' });
@@ -402,10 +520,12 @@ test('engine: voice in an existing chat during Pause, native dispatch without a 
     // A typed message during the call reaches the voice session as context, once.
     await control(project, 'chat-send', { name, text: 'TYPED_DURING_CALL', via: 'test' });
     await waitFor(async () => (await readFile(voiceLog, 'utf8')).includes('TYPED_DURING_CALL'), { message: 'context delivery' });
-    // Stop ends the call: page, provider session and bridge; recordings are committed with their bindings.
+    // Stop ends the call: page, provider session and the terminal's listener; recordings are committed with their
+    // bindings.
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
     await page.closed;
     assert.equal(page.messages.at(-1).type, 'ended');
+    await waitFor(() => relay.surfaceState === 'closed', { timeoutMs: 20_000, message: 'the relay closes with the call' });
     assert.ok(calls.length && (await readFile(voiceLog, 'utf8')).includes('thread/realtime/stop'));
     const assets = (await git(project, ['ls-files', 'chats/_assets'])).trim().split('\n').filter(Boolean);
     assert.equal(assets.filter((file) => file.endsWith('.wav')).length, 2, 'both recordings are versioned');

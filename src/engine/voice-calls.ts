@@ -53,6 +53,20 @@ export type VoiceCallsHost = {
 const AVAILABILITY_TTL_MS = 60_000;
 
 /**
+ * What a media surface delivers in one ordered batch.
+ *
+ * @private voice calls
+ */
+export type VoiceMediaInput = {
+    /** The surface attached (first open or a recovered connection). */
+    readonly attach?: boolean;
+    /** Messages and recorded audio (base64 mono Int16LE PCM at `rate`), in the order the surface produced them. */
+    readonly items?: ReadonlyArray<{ readonly kind: 'message'; readonly message: Readonly<Record<string, unknown>> } | { readonly kind: 'audio'; readonly side: 'user' | 'agent'; readonly rate: number; readonly data: string }>;
+    /** The surface went away (true, or the reason). */
+    readonly detach?: boolean | string;
+};
+
+/**
  * Persisted natively accepted voice turns: chat key → message count accepted by the voice path.
  */
 type DispatchedState = { readonly version: 1; readonly chats: Record<string, number> };
@@ -110,14 +124,16 @@ export class VoiceCalls {
     }
 
     /**
-     * Starts a voice call in an existing chat (one per chat; a live one is returned again, never a second paid call).
-     * Returns the call and its private page URL for the controlling terminal.
+     * Starts a voice call in an existing chat (one per chat; a live one is returned again to its own controlling
+     * client, never a second paid call). Returns the call and the scoped media grant of its one media owner, given only
+     * to the client that started it; another client sees the live call but cannot become a second input owner.
      */
-    public async start(chatName: string): Promise<{ readonly call: VoiceCallView; readonly url: string }> {
+    public async start(chatName: string, controller?: string): Promise<{ readonly call: VoiceCallView; readonly grant: string }> {
         const existing = this.calls.get(nameKey(chatName));
-        if (existing && !existing.over && existing.url) {
+        if (existing && !existing.over) {
+            if (existing.controller !== controller) throw new PtbkError(`Voice is already live in {${chatName}} from another terminal or window.`, { kind: 'conflict', effect: 'Text chat keeps working; end the call there first.' });
             existing.heartbeat();
-            return { call: existing.view(), url: existing.url };
+            return { call: existing.view(), grant: existing.grant };
         }
         const report = await this.availability(chatName, { fresh: true });
         if (!report.selected) throw new PtbkError(report.guidance ?? 'No voice-capable harness is ready.', { kind: 'setup', effect: 'Text chat keeps working.', data: { voice: report } });
@@ -193,7 +209,7 @@ export class VoiceCalls {
         );
         this.calls.set(nameKey(chatName), call);
         this.known.set(nameKey(chatName), speaker.stored.chat.messages.length);
-        const url = await call.openBridge();
+        const grant = call.open(controller);
         const startedAt = new Date().toISOString();
         void this.untilOver(call).then(async () => {
             await tools?.close().catch(() => undefined);
@@ -202,8 +218,35 @@ export class VoiceCalls {
             const records = usageRecords({ observations: usage.usage ? [{ at: new Date().toISOString(), usage: usage.usage, semantics: 'cumulative' }] : [], startedAt, harness: plugin.id, tool: tool.name, authentication: 'account', outcome: `voice-call ${usage.seconds}s`, attribution: { agent: speaker.agent.name, owner: speaker.agent.name, initiator: 'User', work: { kind: 'chat', chat: speaker.stored.chat.name, run: call.id } } });
             await appendUsage(chatUsageFile(context.project, speaker.stored.path), records).catch(() => undefined);
         });
-        this.host.log(`Voice call opened in {${speaker.stored.chat.name}} with ${speaker.agent.name} through ${tool.name}; waiting for its voice page.`);
-        return { call: call.view(), url };
+        this.host.log(`Voice call opened in {${speaker.stored.chat.name}} with ${speaker.agent.name} through ${tool.name}; waiting for its media surface.`);
+        return { call: call.view(), grant };
+    }
+
+    /** The live call of a chat for its media owner (refused without the call's grant). */
+    private owned(chatName: string, grant: string): VoiceCall {
+        const call = this.calls.get(nameKey(chatName));
+        if (!call || !call.authorized(grant)) throw new PtbkError(`No voice call of {${chatName}} belongs to this media surface.`, { kind: 'not-found' });
+        return call;
+    }
+
+    /**
+     * Delivers what the media surface of a call reports, in order: attachment and detachment, its messages (device and
+     * playback state, the WebRTC offer, barge-in) and recorded audio of both sides.
+     */
+    public media(chatName: string, grant: string, input: VoiceMediaInput): VoiceCallView {
+        const call = this.owned(chatName, grant);
+        if (input.attach) call.mediaAttached();
+        for (const item of input.items ?? []) {
+            if (item.kind === 'message' && item.message && typeof item.message === 'object') call.mediaMessage(item.message);
+            else if (item.kind === 'audio' && (item.side === 'user' || item.side === 'agent') && typeof item.data === 'string') call.mediaAudio(item.side, Buffer.from(item.data, 'base64'), Number(item.rate));
+        }
+        if (input.detach) call.mediaDetached(typeof input.detach === 'string' ? input.detach : undefined);
+        return call.view();
+    }
+
+    /** Events for the media surface after `after` (a bounded long poll). */
+    public async mediaEvents(chatName: string, grant: string, after: number, waitMs: number): Promise<{ readonly events: ReadonlyArray<{ readonly seq: number; readonly event: Readonly<Record<string, unknown>> }>; readonly over: boolean }> {
+        return await this.owned(chatName, grant).mediaEvents(after, Math.max(0, Math.min(waitMs, 25_000)));
     }
 
     /** Resolves once a call is over. */
