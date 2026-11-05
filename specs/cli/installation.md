@@ -12,9 +12,9 @@ Each version ships an Apple Silicon and Intel DMG through [releasing](releasing.
 
 ## Windows installer entry point
 
-Each version also ships a thin [Windows installer](windows-installer.md) on its GitHub Release. It prepares missing Node.js/npm/Git prerequisites, installs the corresponding ordinary global `ptbk` package, proposes a home-based projects root and offers an empty first-project directory. The normal handoff opens a terminal in that project and automatically runs the existing interactive `ptbk init` with its destination selected.
+Each version also ships a thin [Windows installer](windows-installer.md) on its GitHub Release. It prepares missing Node.js/npm/Git prerequisites, installs the corresponding global `ptbk` package, and opens the optional desktop client. The client presents project setup when appropriate. With CLI-only installation, users can later open Promptbook terminal and run `ptbk init`.
 
-This is an additional distribution/onboarding path, not a replacement for npm or a separate engine/initializer. The optional [desktop client](desktop.md) presents the same initialization flow graphically. Reuse compatible existing prerequisites, preserve unrelated installations and follow the installer's exact-version, permission, retry and safe-directory rules. Global use is preferred in ordinary init; project-local installation remains an explicit alternative. Automatic artifact creation and publication are part of [releasing](releasing.md).
+This is an additional distribution/onboarding path, not a replacement for npm or a separate engine/initializer. The optional [desktop client](desktop.md) presents the same initialization flow graphically. Reuse compatible existing prerequisites, preserve unrelated installations and follow the installer's exact-version, permission, and retry rules. Global use is preferred in ordinary init; project-local installation remains an explicit alternative. Automatic artifact creation and publication are part of [releasing](releasing.md).
 
 ## Server deployment entry point
 

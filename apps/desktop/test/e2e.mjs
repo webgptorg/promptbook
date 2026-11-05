@@ -39,9 +39,10 @@ test('desktop windows and native terminals are independent clients of the same p
     page.on('pageerror', (error) => process.stderr.write(`Desktop renderer: ${error.message}\n`));
     await page.getByRole('heading', { name: 'Your projects' }).waitFor();
     assert.equal(await page.locator('tbody tr').count(), 1);
-    const appearance = page.getByLabel('Theme');
-    assert.equal(await appearance.inputValue(), 'system');
-    await appearance.selectOption('dark');
+    const appearance = page.getByRole('group', { name: 'Theme' });
+    const selectedTheme = (window, theme) => window.locator(`#appearance [data-theme="${theme}"][aria-pressed="true"]`);
+    await selectedTheme(page, 'system').waitFor();
+    await appearance.getByRole('button', { name: 'Dark' }).click();
     await page.waitForFunction(() => matchMedia('(prefers-color-scheme: dark)').matches);
     await page.waitForFunction(() => {
         const logo = document.querySelector('.brand img');
@@ -50,9 +51,17 @@ test('desktop windows and native terminals are independent clients of the same p
     const opening = application.waitForEvent('window');
     await page.getByRole('button', { name: 'New window', exact: true }).click();
     const second = await opening;
-    await second.waitForFunction(() => document.querySelector('#appearance')?.value === 'dark');
-    await second.getByLabel('Theme').selectOption('light');
-    await page.waitForFunction(() => document.querySelector('#appearance')?.value === 'light' && matchMedia('(prefers-color-scheme: light)').matches);
+    await selectedTheme(second, 'dark').waitFor();
+    await second.getByRole('group', { name: 'Theme' }).getByRole('button', { name: 'Light' }).click();
+    await selectedTheme(page, 'light').waitFor();
+    await page.waitForFunction(() => matchMedia('(prefers-color-scheme: light)').matches);
+    await page.locator('tbody .status-dot').waitFor();
+    assert.match(await page.locator('tbody .state').textContent(), /^pause\b/);
+    const divider = page.getByRole('separator', { name: 'Projects sidebar width' });
+    const initialWidth = Number(await divider.getAttribute('aria-valuenow'));
+    assert.ok(initialWidth > 0);
+    await divider.press('ArrowRight');
+    await page.waitForFunction((width) => Number(document.querySelector('#sidebar-divider').getAttribute('aria-valuenow')) > width, initialWidth);
     assert.equal(await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length), 2);
     await page.getByRole('button', { name: 'Open', exact: true }).click();
     await page.getByRole('button', { name: 'Open in terminal', exact: true }).click();
@@ -75,8 +84,10 @@ test('desktop windows and native terminals are independent clients of the same p
     const restarted = await launch();
     try {
         const window = await restarted.firstWindow();
-        await window.waitForFunction(() => document.querySelector('#appearance')?.value === 'light' && matchMedia('(prefers-color-scheme: light)').matches);
-        await window.getByLabel('Theme').selectOption('system');
+        await selectedTheme(window, 'light').waitFor();
+        await window.waitForFunction(() => matchMedia('(prefers-color-scheme: light)').matches);
+        await window.getByRole('group', { name: 'Theme' }).getByRole('button', { name: 'System' }).click();
+        await selectedTheme(window, 'system').waitFor();
         assert.equal(await window.evaluate(() => window.desktop.theme()), 'system');
     } finally {
         await restarted.close();

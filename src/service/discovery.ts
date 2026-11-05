@@ -126,6 +126,8 @@ export type EngineSummary = {
     readonly intent?: string;
     readonly work?: string;
     readonly waitingChats: number;
+    /** Shared dashboard attention, when exposed by this engine version. */
+    readonly needsAttention?: boolean;
     readonly observedAt: string;
 };
 
@@ -185,6 +187,7 @@ type SnapshotLike = {
     readonly current?: { readonly agent: { readonly name: string }; readonly taskTitle: string };
     readonly wait?: { readonly reason: string };
     readonly chats?: { readonly waiting: readonly unknown[] };
+    readonly attention?: object;
 };
 
 /**
@@ -199,6 +202,7 @@ export function summaryOfSnapshot(snapshot: SnapshotLike): EngineSummary {
         intent: snapshot.service.lifecycle?.intent,
         work: snapshot.current ? `${snapshot.current.agent.name}: ${snapshot.current.taskTitle}` : snapshot.wait?.reason,
         waitingChats: snapshot.chats?.waiting.length ?? 0,
+        ...(snapshot.attention && { needsAttention: Object.keys(snapshot.attention).length > 0 }),
         observedAt: snapshot.observedAt,
     };
 }

@@ -32,6 +32,14 @@ Embed [live browser tab control](browser-tab-control.md) and [realtime voice](vo
 
 Harness sign-in runs its real native terminal workflow inside the application. Harness sessions retain their actual identity and the shared Observe/exclusive/shared takeover and lease rules. Open the existing session through the terminal dashboard; never represent a fresh unrelated harness invocation as the running session. Closing an observing terminal does not stop an engine or its harness work.
 
+### Appearance and layout
+
+Use the public [Promptbook brand guide](https://www.ptbk.io/en/branding) for the wordmark, palette, Inter interface text and Outfit headings. Show the current appearance with an icon control for system, light and dark. Keep the system default and save explicit preferences across windows and restarts.
+
+Allow dragging the divider next to the projects sidebar and between the setup form and its embedded terminal. Provide keyboard resizing and preserve usable space for both panels. Show the project’s observed lifecycle in the sidebar and overview with a dot and a text label. Shared dashboard attention takes precedence over a live status color, with distinct indicators for a verified stop and unknown connectivity. Respect reduced motion.
+
+Present desktop conversations with a separate header, a scrollable transcript with distinct user and agent bubbles, and a dedicated reply area below. Keep draft, sending, task, attention and read behavior shared with the existing graphical dashboard.
+
 ## One initializer, two presentations
 
 With no known projects, opening the application starts the first-project wizard. New project invokes the same intent-first initialization state machine and domain operations as `ptbk init`, with clickable choices, text fields and file attachments. There is no second initializer or project format. The CLI keeps its terminal presentation. Shared prompts may expose a private authenticated presentation transport; options, validation, Back, cancellation, review, deferred writes, login verification, Git, setup commits and the single background start remain owned by normal init.
@@ -40,9 +48,9 @@ Native sign-in and any terminal-only interactions remain available in the embedd
 
 ## Installation and isolation
 
-The Windows wizard offers engine/CLI, the desktop application (selected by default), and optional Codex and Claude Code CLI installations. Harness installation does not imply sign-in or a configured project; ordinary init owns those choices and real verification. Prepare only missing selected harnesses and do not update an existing executable implicitly. The desktop package and installer match the release version. Desktop completion opens the application instead of an external terminal; CLI-only completion preserves the existing terminal handoff. Skipping first-project setup suppresses the initial wizard for that launch.
+The Windows wizard offers the engine/CLI and the desktop application (selected by default). The desktop package and installer match the release version. Successful installation opens the ordinary desktop entry point, where first-project setup follows the same flow as on macOS. CLI-only completion points to the Start menu terminal and later explicit `ptbk init`. Ordinary init owns harness choices and sign-in.
 
-Keep Node.js, npm and Git prerequisite discovery, safe destinations, exact-version verification, retry behavior, PATH and project preservation. Desktop uninstall removes its own shortcuts/startup registration only, preserving engines, projects, Node.js, Git and harnesses. A desktop failure must not be reported as a successful desktop installation.
+Keep Node.js, npm and Git prerequisite discovery, exact-version verification, retry behavior, PATH and project preservation. Desktop uninstall removes its own shortcuts/startup registration only, preserving engines, projects, Node.js, Git and harnesses. A desktop failure must not be reported as a successful desktop installation.
 
 On macOS, provide a drag-to-Applications DMG for Apple Silicon and one for Intel. Bundle standalone native Node.js, npm, and the engine built from the exact release source. The app opens and discovers local projects without installing a global `ptbk` or changing system PATH. Use system or user-installed Git and discover common Homebrew and user executable directories for Git and harnesses. npm-based harness setup uses a writable user prefix. Run the application from its installed location so ordinary engine persistence points at a stable path. Upgrades replace the application bundle after its engines have been stopped. The user’s projects and harnesses live outside the app.
 
@@ -53,7 +61,7 @@ Deny renderer permission requests by default. After explicit call start, permit 
 ## Acceptance
 
 - On macOS, mount each architecture’s actual DMG, copy its app and confirm the exact bundled CLI version, npm, the tray and native PTY. Exercise multiwindow, setup cancellation and engine lifetime with the same fixture as Windows.
-- On Windows, install with and without desktop/harness components; verify the matching executable, shortcuts, login startup and GUI/CLI handoff. A clean machine needs no manual commands.
+- On Windows, install with and without the desktop component; verify the matching executable, shortcuts, login startup and the absence of project-folder creation during installation. A clean machine needs no manual commands.
 - Open two windows and an ordinary terminal on one engine; pause/chat/control changes agree. Close either window and verify the same engine/supervisor survives.
 - Reboot/sign in: the tray appears without opening a window, while existing engine persistence rules remain unchanged. CLI-only/headless use never loads Electron.
 - Complete, go back, cancel and resume the same initializer from graphical presentation, with native login in its terminal and complete attachment payloads.

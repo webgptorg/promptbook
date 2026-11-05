@@ -1,7 +1,8 @@
 <#
 .SYNOPSIS
     Promptbook Windows bootstrap: prepares Node.js, npm and Git, installs the exact released ptbk version globally,
-    prepares an empty first-project folder and opens a terminal that runs the ordinary interactive `ptbk init` there.
+    and opens the optional desktop client. The installer always supplies -SkipProject; standalone diagnostics can
+    still exercise the earlier explicit folder handoff.
 
 .DESCRIPTION
     A thin onboarding layer, not a second engine or initializer: project setup, tools, login, Git and the background
@@ -92,11 +93,12 @@ function Write-InstallerResult([int] $Code, [string] $Stage, [string] $Message, 
         "Exit code: $Code"
         "Message: $Message"
         "Next action: $NextAction"
-        "Projects root: $ProjectsRoot"
-        "Automatic projects root: $script:AutomaticProjectsRoot"
-        "Default location choice: $script:DefaultProjectsRootReason"
-        "Project name: $ProjectName"
-        "Skip project: $SkipProject"
+        if (-not $SkipProject) {
+            "Projects root: $ProjectsRoot"
+            "Automatic projects root: $script:AutomaticProjectsRoot"
+            "Default location choice: $script:DefaultProjectsRootReason"
+            "Project name: $ProjectName"
+        }
         "Diagnostics: $script:LogFile"
         ''
         'Recent bootstrap diagnostics:'
@@ -485,7 +487,7 @@ if ($DetectOnly) {
     if (-not $DetectionFile) { throw 'Detection requires -DetectionFile.' }
     $runtime = if ($defaultRuntime) { $defaultRuntime } else { Get-NodeRuntime }
     $gitTool = Get-Tool 'git' @('--version')
-    $choice = Get-DefaultProjectsRoot $env:USERPROFILE (Get-GlobalNpmPrefix $runtime.Npm)
+    $choice = if ($SkipProject) { @{ Root = ''; Reason = '' } } else { Get-DefaultProjectsRoot $env:USERPROFILE (Get-GlobalNpmPrefix $runtime.Npm) }
     Write-InstallerData $DetectionFile 'Prerequisites' @{
         NodeReady = [int] $runtime.Ready
         NodeVersion = if ($runtime.Node) { [string] $runtime.Node.Version } else { '' }
@@ -502,7 +504,8 @@ if ($DetectOnly) {
 
 Write-Log "Promptbook bootstrap for ptbk $PromptbookVersion (plan: $Plan, skip project: $SkipProject)"
 Write-Host "Promptbook $PromptbookVersion - preparing your computer" -ForegroundColor White
-Write-Host 'This installs what ptbk needs, then opens the setup assistant (ptbk init) in a terminal.'
+if ($SkipProject) { Write-Host 'This installs Promptbook and its required software.' }
+else { Write-Host 'This installs what ptbk needs, then opens the setup assistant (ptbk init) in a terminal.' }
 Write-Host ''
 
 # 1. Reuse compatible Node and npm, otherwise prepare a private runtime.
@@ -597,12 +600,13 @@ if ($DesktopPath) {
 
 if ($SkipProject) {
     if ($DesktopPath -and -not $Plan -and -not $NoLaunch) {
-        try { Start-Process -FilePath $DesktopPath -ArgumentList @('--skip-init') | Out-Null }
+        try { Start-Process -FilePath $DesktopPath | Out-Null }
         catch { Stop-Bootstrap 6 'Desktop handoff' $_.Exception.Message 'Open Promptbook from the Start menu, or retry.' }
     }
     Write-Host ''
     Write-Host 'Promptbook is installed. No project was created.' -ForegroundColor Green
-    Write-Host 'To start one later: open a terminal in an empty folder and run: ptbk init'
+    if ($DesktopPath) { Write-Host 'Open the Promptbook app to create or manage projects.' }
+    else { Write-Host 'Open Promptbook terminal from the Start menu and run: ptbk init' }
     Write-Log 'Done: project skipped.'
     Write-InstallerResult 2 'Complete' 'Promptbook is installed. No project was created.' ''
     exit 2

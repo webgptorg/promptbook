@@ -195,6 +195,9 @@ test('Windows preparation uses hidden captured output and leaves harness selecti
     assert.match(setup, /CreateOutputMarqueeProgressPage\(/);
     assert.doesNotMatch(setup, /\bSW_SHOW\b|see the terminal window|stage reported in the terminal/);
     assert.doesNotMatch(setup, /Name: "(codex|claude)"|install if missing/);
+    assert.doesNotMatch(setup, /CreateInput(?:Dir|Query)Page|-ProjectsRoot|-ProjectName|-ValidateProjectsOnly/);
+    assert.match(setup, /Params := ' -SkipProject';/, 'normal installation always selects software-only preparation');
+    assert.match(bootstrap, /Start-Process -FilePath \$DesktopPath \| Out-Null/, 'opens the normal desktop entry point');
     assert.doesNotMatch(bootstrap, /InstallCodex|InstallClaude|@openai\/codex|@anthropic-ai\/claude-code/);
 });
 

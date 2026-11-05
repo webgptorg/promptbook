@@ -48,6 +48,11 @@ const STATIC_FILES: Readonly<Record<string, string>> = {
     '/assets/app.js': 'app.js',
     '/assets/app.css': 'app.css',
     '/assets/icon.svg': 'icon.svg',
+    '/assets/fonts/fonts.css': 'fonts/fonts.css',
+    '/assets/fonts/inter-latin.woff2': 'fonts/inter-latin.woff2',
+    '/assets/fonts/inter-latin-ext.woff2': 'fonts/inter-latin-ext.woff2',
+    '/assets/fonts/outfit-latin.woff2': 'fonts/outfit-latin.woff2',
+    '/assets/fonts/outfit-latin-ext.woff2': 'fonts/outfit-latin-ext.woff2',
 };
 
 /**
@@ -58,6 +63,7 @@ const CONTENT_TYPES: Readonly<Record<string, string>> = {
     js: 'text/javascript; charset=utf-8',
     css: 'text/css; charset=utf-8',
     svg: 'image/svg+xml',
+    woff2: 'font/woff2',
 };
 
 /**
