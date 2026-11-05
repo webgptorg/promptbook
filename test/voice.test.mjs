@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { randomBytes } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile } from 'node:fs/promises';
 import { connect } from 'node:net';
@@ -16,84 +15,7 @@ import { FeatureSurface } from '../dist/ui/feature-server.js';
 import { VoiceSurfaceRelay } from '../dist/ui/voice-surface.js';
 import { voiceFeaturePage } from '../dist/ui/voice-page.js';
 import { readProcessRecord } from '../dist/service/records.js';
-import { fakeHarness, git, initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
-
-/**
- * A minimal WebSocket client standing in for a surface page (masked client frames, as a browser sends them). It
- * connects to the surface's socket and authenticates with the invitation of the URL fragment (or a session grant);
- * `pong: false` simulates a page whose computer is gone (pings stay unanswered).
- */
-async function surfaceClient(url, { origin, host, path = '/surface', token, session, pong = true, hello = true } = {}) {
-    const page = new URL(url);
-    const socket = connect(Number(page.port), '127.0.0.1');
-    await new Promise((resolve, reject) => socket.once('connect', resolve).once('error', reject));
-    socket.write(`GET ${path} HTTP/1.1\r\nHost: ${host ?? page.host}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${randomBytes(16).toString('base64')}\r\nSec-WebSocket-Version: 13\r\nOrigin: ${origin ?? page.origin}\r\n\r\n`);
-    const client = { status: 0, messages: [], binary: [], closed: undefined, session: undefined };
-    let buffer = Buffer.alloc(0);
-    let headers = true;
-    let finish;
-    client.closed = new Promise((resolve) => (finish = resolve));
-    socket.on('close', () => finish());
-    socket.on('error', () => finish());
-    const frame = (opcode, payload) => {
-        if (socket.destroyed) return;
-        const mask = randomBytes(4);
-        const masked = Buffer.from(payload);
-        for (let index = 0; index < masked.length; index++) masked[index] ^= mask[index % 4];
-        const header = masked.length < 126 ? Buffer.from([0x80 | opcode, 0x80 | masked.length]) : Buffer.concat([Buffer.from([0x80 | opcode, 0x80 | 126]), Buffer.from([masked.length >> 8, masked.length & 0xff])]);
-        socket.write(Buffer.concat([header, mask, masked]));
-    };
-    const statusKnown = new Promise((resolve) => {
-        socket.on('data', (chunk) => {
-            buffer = Buffer.concat([buffer, chunk]);
-            if (headers) {
-                const end = buffer.indexOf('\r\n\r\n');
-                if (end < 0) return;
-                client.status = Number(/^HTTP\/1\.1 (\d+)/.exec(buffer.subarray(0, end).toString())?.[1] ?? 0);
-                buffer = buffer.subarray(end + 4);
-                headers = false;
-                resolve();
-            }
-            while (buffer.length >= 2) {
-                const opcode = buffer[0] & 0x0f;
-                let length = buffer[1] & 0x7f;
-                let offset = 2;
-                if (length === 126) {
-                    if (buffer.length < 4) return;
-                    length = buffer.readUInt16BE(2);
-                    offset = 4;
-                } else if (length === 127) {
-                    if (buffer.length < 10) return;
-                    length = Number(buffer.readBigUInt64BE(2));
-                    offset = 10;
-                }
-                if (buffer.length < offset + length) return;
-                const payload = buffer.subarray(offset, offset + length);
-                buffer = buffer.subarray(offset + length);
-                if (opcode === 0x1) {
-                    const message = JSON.parse(payload.toString('utf8'));
-                    if (message.type === 'welcome') client.session = message.session;
-                    client.messages.push(message);
-                } else if (opcode === 0x2) client.binary.push(Buffer.from(payload));
-                else if (opcode === 0x9 && pong) frame(0xa, payload);
-            }
-        });
-    });
-    client.sendText = (value) => frame(0x1, Buffer.from(JSON.stringify(value)));
-    client.sendBinary = (data) => frame(0x2, data);
-    client.close = () => {
-        frame(0x8, Buffer.from([0x03, 0xe8]));
-        socket.end();
-    };
-    await statusKnown;
-    if (client.status === 101 && hello) {
-        const invitation = token ?? new URLSearchParams(page.hash.slice(1)).get('t');
-        client.sendText(session ? { type: 'hello', session } : { type: 'hello', token: invitation });
-        await waitFor(() => client.messages.some((message) => message.type === 'welcome' || message.type === 'refused'), { timeoutMs: 5_000, message: 'handshake' });
-        client.welcomed = client.messages.some((message) => message.type === 'welcome');
-    }
-    return client;
-}
+import { fakeHarness, git, initializedProject, ptbk, surfaceClient, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
  * Loud (speech-like) or silent mono 24 kHz PCM of ~85 ms.

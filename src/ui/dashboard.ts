@@ -53,7 +53,11 @@ import { symbols, type TerminalProfile } from './terminal.js';
 import { TitleAnimation, type DashboardTitleContext } from './terminal-title.js';
 import { projectStatusMarker } from './terminal-title.js';
 import { ProjectClient } from './project-client.js';
-import { CANCELLED, POINTER_PICK_HINT, composeText, inputLine, matchesFilter, windowAround } from './prompts.js';
+import { CANCELLED, POINTER_PICK_HINT, composeText, inputLine, matchesFilter, selectOne, windowAround } from './prompts.js';
+import { openInBrowser } from '../common/open-url.js';
+import type { TabControlView } from '../browser/tab-control.js';
+import type { FeatureSurfaceState } from './feature-server.js';
+import { TabSurfaceRelay } from './tab-surface.js';
 import { runBookEditor, type BookDraft, type BookSourceClient } from './book-editor.js';
 import { TASK_SORT_FIELDS, taskFilterChoices, type TaskInventoryItem } from '../tasks/views.js';
 import { formatAgentReference } from '../book/references.js';
@@ -80,6 +84,11 @@ export type DashboardSource = {
     readonly inventory: () => Promise<TaskInventoryItem[]>;
     /** Book sources through the engine's shared read/save operations. */
     readonly books: BookSourceClient;
+    /**
+     * Live tab control of the engine's browsers (local clients only): the lifecycle choices and, with the viewer's
+     * grant, its frames and inputs. An aborted `signal` ends a frame poll at once.
+     */
+    readonly tabs?: (method: string, params: Readonly<Record<string, unknown>>, signal?: AbortSignal) => Promise<unknown>;
     /** Read-only inspection of shared engine readers (external-action records); never a mutation. */
     readonly inspect: (method: string, params?: Readonly<Record<string, unknown>>) => Promise<unknown>;
     /** The invocation owns the service lifetime (foreground start / run). */
@@ -406,7 +415,13 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         };
     };
 
-    const pageContext = (): PageContext => ({ snapshot, terminal, frame, inventory, owning: source.owning });
+    /**
+     * Tab viewers this terminal presents, by tab-control id (each its own temporary feature server in this process).
+     * Leaving the dashboard closes them, which detaches the viewers without handing a tab back.
+     */
+    const viewers = new Map<string, { relay: TabSurfaceRelay; state: FeatureSurfaceState }>();
+
+    const pageContext = (): PageContext => ({ snapshot, terminal, frame, inventory, owning: source.owning, viewers: new Map([...viewers].map(([id, entry]) => [id, { url: entry.relay.url, state: entry.state }])), tabControl: Boolean(source.tabs) });
 
     const draw = (): void => {
         if (plain || nested) return;
@@ -889,6 +904,116 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         draw();
     };
 
+    /** Serves the viewer of a claimed tab control and opens it in the system browser. */
+    const presentTab = async (control: TabControlView, grant: string): Promise<void> => {
+        const tabs = source.tabs!;
+        await viewers.get(control.id)?.relay.close();
+        const relay = await TabSurfaceRelay.open({
+            control,
+            grant,
+            channel: tabs,
+            onState: (state) => {
+                const entry = viewers.get(control.id);
+                if (entry?.relay !== relay) return;
+                entry.state = state;
+                if (state === 'expired') notify('The tab viewer link was not opened in time. Press V for a fresh link; the tab stays with you.');
+                if (state === 'closed') viewers.delete(control.id);
+                draw();
+            },
+        });
+        viewers.set(control.id, { relay, state: 'waiting' });
+        const opened = await openInBrowser(relay.url);
+        notify(opened ? 'Waiting for browser: the tab viewer opened there. Return control to the agent from here (H) when you are done.' : 'Waiting for browser: open the viewer link shown here in a browser on this computer.');
+    };
+
+    /** Takes control of a tab (or a new tab, or a Wallet request's sign-in page) and presents its viewer. */
+    const takeControl = async (params: Readonly<Record<string, unknown>>): Promise<void> => {
+        if (!source.tabs) {
+            notify('Live tab control needs a local terminal attached to the engine.');
+            return;
+        }
+        try {
+            notify('Reserving the tab…');
+            const result = (await source.tabs('tab-control-open', params)) as { control: TabControlView; grant: string };
+            await presentTab(result.control, result.grant);
+        } catch (error) {
+            notify(`Tab control: ${errorMessage(error)}`);
+        }
+    };
+
+    /** Picks a tab of a browser (or a new one) to take control of. */
+    const chooseTab = async (browser: string): Promise<void> => {
+        if (!source.tabs) {
+            notify('Live tab control needs a local terminal attached to the engine.');
+            return;
+        }
+        let listing: { tabs: ReadonlyArray<{ targetId: string; url: string; title: string; task?: string; reserved: boolean }> };
+        try {
+            listing = (await source.tabs('tab-control-tabs', { browser })) as typeof listing;
+        } catch (error) {
+            notify(`Tab control: ${errorMessage(error)}`);
+            return;
+        }
+        const frame = { title: 'ptbk dashboard', step: `Tools · ${browser} · take control` };
+        const choice = await outside(async () => {
+            const picked = await selectOne<string>(terminal, {
+                frame,
+                question: 'Which tab do you want to control? (agents keep away from it until you return it)',
+                choices: [
+                    { value: '', label: 'A new tab', description: 'opens in the same profile' },
+                    ...listing.tabs.map((tab) => ({ value: tab.targetId, label: tab.reserved ? '(controlled by a user)' : `${tab.title || '(untitled)'}`, description: tab.reserved ? 'not available' : `${tab.url}${tab.task ? ` · used by ${tab.task}` : ''}`, disabled: tab.reserved })),
+                ],
+            });
+            if (picked === CANCELLED) return undefined;
+            if (picked) return { target: picked };
+            const address = await inputLine(terminal, { frame, question: 'Address to open (empty: a blank tab):', optional: true });
+            return address === CANCELLED ? undefined : { url: address.trim() || 'about:blank' };
+        });
+        if (choice) await takeControl({ browser, ...choice });
+    };
+
+    /** Lifecycle choices of a controlled tab: explicit handoff, end of use, or fresh viewer access. */
+    const tabLifecycle = async (control: TabControlView, action: 'handback' | 'end' | 'reopen'): Promise<void> => {
+        const tabs = source.tabs;
+        if (!tabs) return;
+        try {
+            if (action === 'reopen') {
+                const local = viewers.get(control.id);
+                if (local && local.state === 'expired') {
+                    local.relay.retry();
+                    local.state = 'waiting';
+                    const opened = await openInBrowser(local.relay.url);
+                    notify(opened ? 'Waiting for browser: a fresh viewer link opened there.' : 'Waiting for browser: open the fresh viewer link shown here.');
+                    return;
+                }
+                const result = (await tabs(local ? 'tab-control-reopen' : 'tab-control-open', local ? { id: control.id } : { browser: control.browser, target: control.targetId })) as { control: TabControlView; grant: string };
+                await presentTab(result.control, result.grant);
+                return;
+            }
+            const result = (await tabs(action === 'handback' ? 'tab-control-handback' : 'tab-control-end', { id: control.id })) as { control: TabControlView };
+            notify(result.control.state === 'controlled' ? (result.control.problem ?? 'The tab stays with you.') : (result.control.outcome ?? 'Control of the tab ended.'));
+        } catch (error) {
+            notify(`Tab control: ${errorMessage(error)}`);
+        }
+    };
+
+    /** Answers Wallet's save offer of a manual sign-in for this occurrence. */
+    const answerOffer = async (control: TabControlView, answer: 'yes' | 'no'): Promise<void> => {
+        if (!source.tabs || !control.offer) return;
+        try {
+            const result = (await source.tabs('tab-control-offer', { id: control.id, offer: control.offer.id, answer })) as { outcome: string };
+            notify(result.outcome);
+        } catch (error) {
+            notify(`Wallet: ${errorMessage(error)}`);
+        }
+    };
+
+    /** The live control of the focused Wallet request, if any. */
+    const requestControl = (request: string): TabControlView | undefined => (snapshot.tabControls ?? []).find((control) => control.request === request && control.state !== 'returned' && control.state !== 'ended' && control.state !== 'lost');
+
+    /** The newest live control of a browser, if any. */
+    const browserControl = (browser: string): TabControlView | undefined => [...(snapshot.tabControls ?? [])].reverse().find((control) => control.browser === browser && (control.state === 'controlled' || control.state === 'opening'));
+
     /** A Wallet operation through the engine's shared implementation; its outcome (never a secret) is shown. */
     const runWallet = async (method: string, params: Readonly<Record<string, unknown>> = {}): Promise<unknown> => {
         try {
@@ -974,6 +1099,12 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         if (!wallet) return;
         const focused = walletItems(wallet)[page.focus];
         const unset = wallet.state === 'empty' || wallet.state === 'setup';
+        // Wallet's save offer of a manual sign-in shown with the focused request: Y saves, N does not (this occurrence).
+        const offered = focused?.kind === 'request' ? requestControl(focused.id) : undefined;
+        if ((key === 'y' || key === 'n') && offered?.offer) {
+            void answerOffer(offered, key === 'y' ? 'yes' : 'no');
+            return;
+        }
         if (key === 's') {
             if (unset) void walletSetup();
             else notify(wallet.state === 'ready' ? 'The Wallet is already set up.' : 'This project already has a Wallet: restore it with R.');
@@ -993,6 +1124,16 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         // Mark as seen ends only this request's alert (it keeps waiting); Reject request denies and ends it. Both name the
         // step the owner saw, so a request that moved on in the meantime is not changed.
         else if (key === 'm' && focused?.kind === 'request') void runWallet('wallet-seen', { request: focused.id, step: focused.step });
+        // Sign in manually in the request's own browser profile; the tab and the offer are then handled here too.
+        else if (key === 'b' && focused?.kind === 'request') {
+            const control = requestControl(focused.id);
+            if (control) void tabLifecycle(control, 'reopen');
+            else void takeControl({ request: focused.id });
+        } else if ((key === 'h' || key === 'e' || key === 'v') && focused?.kind === 'request' && requestControl(focused.id)) {
+            const control = requestControl(focused.id)!;
+            if (key === 'e') confirmThen(`End your use of the sign-in tab for ${focused.origin} without handing it back? The tab closes; the request keeps waiting.`, async () => await tabLifecycle(control, 'end'));
+            else void tabLifecycle(control, key === 'h' ? 'handback' : 'reopen');
+        }
         else if (key === 'x' && focused?.kind === 'request')
             confirmThen(`Reject the ${focused.problem === 'code' ? 'code' : 'login'} request for ${focused.origin}?`, async () => void (await runWallet('wallet-reject', { request: focused.id, step: focused.step })), [
                 style.muted('The waiting work is told that nothing was provided (it is not signed in) and this request is not asked again for it. To keep it waiting without its alert, press M (Mark as seen) instead.'),
@@ -1393,7 +1534,14 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 } else if (key === 'n' && page.kind === 'tools') void openForm(() => addToolForm(terminal));
                 else if (key === 'm' && focused) void openForm(() => modifyToolForm(terminal, focused));
                 else if (key === 'd' && focused) confirmThen(`Permanently remove the configuration of "${focused.name}"? (Disable keeps it; profiles, native logins and .env history are never deleted.)`, () => runTool({ operation: { kind: 'remove', name: focused.name } }));
-                else if (['1', '2', '3', '4', '5'].includes(text) && focused) {
+                else if (text === '6' && focused) {
+                    if (focused.type !== 'BROWSER') notify('Tab control applies to browser tools.');
+                    else void chooseTab(focused.name);
+                } else if (page.kind === 'tool' && focused?.type === 'BROWSER' && (key === 'h' || key === 'e' || key === 'v') && browserControl(focused.name)) {
+                    const control = browserControl(focused.name)!;
+                    if (key === 'e') confirmThen('End your use of the controlled tab without handing it back? The tab closes and no agent takes it over.', async () => await tabLifecycle(control, 'end'));
+                    else void tabLifecycle(control, key === 'h' ? 'handback' : 'reopen');
+                } else if (['1', '2', '3', '4', '5'].includes(text) && focused) {
                     if (focused.type !== 'BROWSER') notify('Browser recovery applies to browser tools.');
                     else if (text === '3' || text === '4') {
                         // Restart and kill act on the profile's shared process: every connected engine is affected.
@@ -1701,6 +1849,8 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     })();
     const reason = await done;
     finished = undefined;
+    // The viewers end with this dashboard; their tabs stay with the user (no handoff) until returned or reopened.
+    await Promise.all([...viewers.values()].map(async (entry) => await entry.relay.close('The terminal dashboard closed. The tab stays with you until you return it from a dashboard.')));
     process.stdout.write(`${style.muted(`Left the dashboard at ${formatShortTime(Date.now())}.`)}${source.owning ? '' : style.muted(reason === 'ended' ? ' The service is no longer running.' : ' The service keeps running; `ptbk stop` stops it.')}\n`);
     return reason;
 }

@@ -242,6 +242,42 @@ test('the Wallet tile and page show readiness, requests and labels with the comm
     assert.match(code.legend, /M mark as seen · X reject request/);
 });
 
+test('Wallet manual sign-in and Browser tab control: tab ownership and handoff shown apart from authentication, the save offer outside the stream', () => {
+    const at = new Date().toISOString();
+    const wallet = { state: 'ready', summary: '1 login request waiting', records: [], pending: [{ id: 'a1', origin: 'https://news.example', problem: 'missing', reason: 'A login is needed.', tasks: ['Weekly update'], browser: 'project-browser', createdAt: at, requests: 1 }] };
+    const control = { id: 'tab-1', browser: 'project-browser', targetId: 'T1', purpose: 'wallet', request: 'a1', state: 'controlled', viewer: 'waiting', url: 'https://news.example/home', canGoBack: true, canGoForward: false, mode: 'headless', limitations: [], startedAt: at };
+    const context = (tabControls, extra = {}) => ({ snapshot: snapshot({ wallet, ...(tabControls ? { tabControls } : {}) }), terminal: terminal(140, 40), frame: 0, owning: false, tabControl: true, ...extra });
+    const text = (page) => page.body.map(stripAnsi).join('\n');
+
+    // Before: the focused request offers Sign in manually (only where this client can present the viewer).
+    assert.match(pageBody(pageForTile('wallet'), context()).legend, /B sign in manually/);
+    assert.doesNotMatch(pageBody(pageForTile('wallet'), { ...context(), tabControl: false }).legend, /sign in manually/);
+
+    // During: who has the tab and that it awaits the handoff; this terminal's link while the viewer waits.
+    const viewers = new Map([['tab-1', { url: 'http://127.0.0.1:5555/#t=secret-token', state: 'waiting' }]]);
+    const during = pageBody(pageForTile('wallet'), context([control], { viewers }));
+    assert.match(text(during), /You control this tab · headless · Waiting for browser · awaiting your handoff · https:\/\/news\.example\/home/);
+    assert.match(text(during), /Viewer: http:\/\/127\.0\.0\.1:5555\//);
+    assert.match(during.legend, /H return control to agent · V reopen viewer · E end use/);
+    assert.doesNotMatch(during.legend, /B sign in manually/);
+
+    // A detected sign-in does not hand the tab back; the save offer is a nonblocking Yes/No in the dashboard.
+    const offered = pageBody(pageForTile('wallet'), context([{ ...control, viewer: 'connected', signIn: { detected: true, origin: 'https://news.example' }, offer: { id: 'o1', kind: 'update', origin: 'https://news.example', account: 'jane' } }]));
+    assert.match(text(offered), /Sign-in to https:\/\/news\.example detected; the tab stays with you until you return it \(H\)/);
+    assert.match(text(offered), /Update password in Wallet\? jane for https:\/\/news\.example · Y yes · N no/);
+    assert.match(offered.legend, /Y save · N don’t save/);
+    assert.doesNotMatch(offered.legend, /N add login/, 'N answers the offer while it is shown');
+    assert.match(text(offered), /viewer open in another window/);
+
+    // The Browser page lists tabs the user controls, and offers taking control of a tab.
+    const tools = { revision: 1, items: [{ name: 'project-browser', type: 'BROWSER', variant: 'CHROME', variantLabel: 'Chrome', order: 1, isEnabled: true, summary: 'ready', state: 'ready', fields: {} }] };
+    const browserPage = (controls) => pageBody({ kind: 'tool', name: 'project-browser', scroll: 0 }, { ...context(controls), snapshot: snapshot({ wallet, tools, ...(controls ? { tabControls: controls } : {}) }) });
+    const page = browserPage([{ ...control, purpose: 'browse', request: undefined, task: 'Weekly update', title: 'News' }]);
+    assert.match(text(page), /Tabs you control\n  Tab · taken from Weekly update · News\n\s+You control this tab/);
+    assert.match(page.legend, /6 take control of a tab · H return control to agent · V reopen viewer · E end use/);
+    assert.doesNotMatch(browserPage(undefined).legend, /H return control/, 'without a controlled tab only taking control is offered');
+});
+
 test('Usage tile and page: a seven-day summary with grouping-specific labels, visible billing mode and certainty, no price internals', () => {
     const totals = (change = {}) => ({ units: 3, input: 12000, output: 3400, cachedInput: 0, reasoning: 0, reportedCostUsd: 0, calculated: { apiUsd: 0.42, subscriptionEquivalentUsd: 1.5, priced: 2, estimated: 1, unpriced: 0 }, billing: { subscription: 2, api: 1, unknown: 0 }, coverage: { reported: 2, unavailable: 1, costReported: 0 }, ...change });
     const usage = {

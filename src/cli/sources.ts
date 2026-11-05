@@ -26,6 +26,7 @@ export function controlSource(client: ControlClient): DashboardSource {
             read: (input) => client.request<BookSource>('book-source', { ...input }),
             save: (input) => client.request<BookSaveOutcome>('book-save', { ...input }, 120_000),
         },
+        tabs: (method, params, signal) => client.request(method, { ...params }, 60_000, signal),
         inspect: (method, params) => client.request(method, { ...(params ?? {}) }),
         owning: false,
     };
@@ -49,6 +50,7 @@ export function hostSource(host: ServiceHost): DashboardSource {
             read: (input) => host.control<BookSource>('book-source', { ...input }),
             save: (input) => host.control<BookSaveOutcome>('book-save', { ...input }),
         },
+        tabs: (method, params) => host.control(method, params),
         inspect: (method, params) => host.control(method, params ?? {}),
         owning: true,
     };

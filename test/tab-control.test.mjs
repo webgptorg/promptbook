@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -7,7 +7,12 @@ import { findBrowserExecutable } from '../dist/browser/browser.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
 import { TabControls } from '../dist/browser/tab-control.js';
 import { TabReservations } from '../dist/browser/tab-reservations.js';
-import { temporaryDirectory, waitFor } from './helpers.mjs';
+import { projectAt } from '../dist/project/workspace.js';
+import { ControlClient } from '../dist/service/control.js';
+import { readProcessRecord } from '../dist/service/records.js';
+import { TabSurfaceRelay } from '../dist/ui/tab-surface.js';
+import { tabFeaturePage } from '../dist/ui/tab-page.js';
+import { initializedProject, ptbk, surfaceClient, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /**
  * Whether a real Chrome-compatible browser can run here.
@@ -221,4 +226,76 @@ test('live tab control: one tab is reserved for the user across engines of the p
     assert.ok(!(await alpha.pages()).some((page) => page.targetId === ended.targetId), 'ending use closes the tab');
     assert.deepEqual(await reservations.list(alpha.profile), [], 'nothing stays reserved');
     assert.ok(!logs.some((line) => /secret|hunter2|ab pasted/.test(line)), 'logs never carry typed values');
+});
+
+test('tab viewer page: a trusted toolbar over the stream, no project control, Wallet choice or socket address of its own', () => {
+    const page = tabFeaturePage({ browser: 'shared', hint: 'Return control from your terminal.' });
+    for (const control of ['id="back"', 'id="forward"', 'id="reload"', 'id="address"', 'id="shortcut"', 'id="copy"', 'id="paste"', 'id="stage"']) assert.ok(page.body.includes(control), control);
+    assert.doesNotMatch(page.body + page.script, /Return control to agent|Save to Wallet|\/api\/|ws:\/\//, 'the handoff and Wallet choices stay in the dashboard; the page only uses its surface transport');
+    assert.doesNotMatch(page.script, /readText\(\)[^;]*setInterval|setInterval\([^)]*clipboard/, 'no background clipboard synchronization');
+});
+
+test('engine: tab control over the local control channel, presented by the terminal relay; closing the viewer keeps the tab with the user until the handoff', { skip: await realBrowserSkip(), timeout: 240_000 }, async (t) => {
+    const executable = await findBrowserExecutable({ variant: 'CHROME' });
+    const { project, env: baseEnv } = await initializedProject(t, { check: 'process.exit(0);\n' });
+    const env = { ...baseEnv, CHROME_PATH: executable };
+    const server = site();
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const url = (path) => `http://127.0.0.1:${server.address().port}${path}`;
+    t.after(() => {
+        server.closeAllConnections();
+        server.close();
+    });
+    assert.equal((await ptbk(['start', '--no-persist', '--raw', '--no-server'], { cwd: project, env })).code, 0);
+    assert.equal((await ptbk(['pause', '--raw'], { cwd: project, env })).code, 0);
+    const control = async (method, params = {}, signal) => await new ControlClient(projectAt(project), await readProcessRecord(projectAt(project))).request(method, params, 60_000, signal);
+
+    const opened = await control('tab-control-open', { url: url('/input') });
+    assert.equal(opened.control.state, 'controlled');
+    assert.ok(opened.grant);
+    const snapshot = await control('snapshot');
+    assert.equal(snapshot.tabControls[0].id, opened.control.id, 'every client sees who controls the tab');
+    assert.ok(!JSON.stringify(snapshot).includes(opened.grant), 'the viewer grant is not shared');
+    assert.equal((await control('tab-control-tabs')).tabs.find((tab) => tab.targetId === opened.control.targetId).reserved, true);
+    await assert.rejects(control('tab-control-poll', { id: opened.control.id, grant: 'not the grant', version: 0, frame: 0, wait: 0 }), /no longer authorized/);
+
+    // The terminal's own temporary server presents the viewer (the project HTTP server is off).
+    const states = [];
+    const relay = await TabSurfaceRelay.open({ control: opened.control, grant: opened.grant, channel: control, onState: (state) => states.push(state) });
+    t.after(async () => await relay.close());
+    const page = await surfaceClient(relay.url);
+    t.after(() => page.close());
+    assert.equal(page.welcomed, true);
+    page.sendText({ type: 'resize', width: 900, height: 600, scale: 1 });
+    await waitFor(() => page.binary.length > 0, { timeoutMs: 20_000, message: 'a streamed frame' });
+    assert.equal(page.binary.at(-1).subarray(0, 2).toString('hex'), 'ffd8', 'frames arrive as JPEG');
+    assert.ok(page.messages.some((message) => message.type === 'view' && message.view.url === url('/input')), 'the toolbar gets the actual address');
+    page.sendText({ type: 'input', events: [{ type: 'mouse', action: 'down', x: 0.5, y: 0.2, button: 'left', buttons: 1, clickCount: 1 }, { type: 'mouse', action: 'up', x: 0.5, y: 0.2, button: 'left', clickCount: 1 }, { type: 'text', text: 'from the viewer' }] });
+    page.sendText({ type: 'input', events: [{ type: 'key', action: 'down', key: 'a', code: 'KeyA', keyCode: 65, modifiers: 2, command: 'selectAll' }, { type: 'key', action: 'up', key: 'a', code: 'KeyA', keyCode: 65, modifiers: 2 }] });
+    page.sendText({ type: 'clipboard', action: 'copy' });
+    await waitFor(() => page.messages.find((message) => message.type === 'clipboard'), { timeoutMs: 10_000, message: 'the explicit copy' });
+    assert.equal(page.messages.find((message) => message.type === 'clipboard').text, 'from the viewer');
+    page.sendText({ type: 'navigate', action: 'go', url: url('/second') });
+    await waitFor(() => page.messages.some((message) => message.type === 'view' && message.view.url === url('/second') && message.view.canGoBack), { timeoutMs: 10_000, message: 'navigation from the toolbar' });
+
+    // Closing the page detaches the viewer: no handoff, the tab stays reserved and fresh access reopens it.
+    page.close();
+    await waitFor(async () => (await control('snapshot')).tabControls[0].viewer === 'detached', { timeoutMs: 30_000, message: 'the viewer to detach' });
+    assert.equal((await control('snapshot')).tabControls[0].state, 'controlled');
+    const reopened = await control('tab-control-reopen', { id: opened.control.id });
+    assert.notEqual(reopened.grant, opened.grant);
+    await waitFor(() => relay.surfaceState === 'closed', { timeoutMs: 20_000, message: 'the replaced viewer to close' });
+
+    // The explicit handoff from any local client returns the tab to automation.
+    const returned = await control('tab-control-handback', { id: opened.control.id });
+    assert.equal(returned.control.state, 'returned');
+    assert.equal((await control('tab-control-tabs')).tabs.find((tab) => tab.targetId === opened.control.targetId).reserved, false);
+
+    // A tab controlled at engine stop is closed, not left to another engine's automation.
+    const kept = await control('tab-control-open', { url: url('/kept') });
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+    const tabs = join(env.PTBK_HOME, 'browser-pools', 'tabs');
+    const left = (await readdir(tabs, { recursive: true }).catch(() => [])).filter((name) => /tab-[^/\\]+\.json$/.test(name));
+    assert.ok(kept.control.id);
+    assert.deepEqual(left, [], 'nothing stays reserved after the engine stopped');
 });

@@ -27,6 +27,7 @@ import type { UsageFilter, UsageRow, UsageSummary, UsageTotals } from '../engine
 import { canShowImage, imageSequence, type ImageOverlay } from './terminal-images.js';
 import { symbols, type TerminalProfile } from './terminal.js';
 import type { WalletView } from '../wallet/wallet.js';
+import type { TabControlView } from '../browser/tab-control.js';
 import type { HistoryDetail, HistoryView } from '../project/history.js';
 import { ACTION_GROUPINGS, ACTION_SORTS, type ActionGrouping, type ActionRow, type ActionSort, type ActionView } from '../engine/action-impact.js';
 import type { ActionLinks, ActionSummary } from '../engine/action-log.js';
@@ -337,6 +338,45 @@ export function pageForTile(tile: HomeTile): DashboardPage {
 }
 
 /**
+ * Whether a tab control is over (returned, ended or lost).
+ */
+function controlOver(control: TabControlView): boolean {
+    return control.state === 'returned' || control.state === 'ended' || control.state === 'lost';
+}
+
+/**
+ * Indented lines of one user-controlled tab: who has it and whether it awaits the handoff, the viewer (and this
+ * terminal's launch link while it waits), limitations, Wallet's sign-in state and save offer, and the outcome.
+ */
+function tabControlLines(control: TabControlView, context: PageContext, style: TerminalProfile['style']): string[] {
+    const local = context.viewers?.get(control.id);
+    const viewer = local
+        ? local.state === 'attached'
+            ? 'viewer open here'
+            : local.state === 'waiting'
+              ? 'Waiting for browser'
+              : local.state === 'expired'
+                ? 'viewer link expired (V for a fresh one)'
+                : 'viewer closed (V reopens it)'
+        : control.viewer === 'connected'
+          ? 'viewer open in another window'
+          : 'no viewer open (V opens one)';
+    const lines: string[] = [];
+    if (controlOver(control)) {
+        lines.push(style.muted(`      ${control.state === 'returned' ? 'Handed back' : control.state === 'lost' ? 'Control lost' : 'Use ended'}${control.endedAt ? ` ${formatShortTime(Date.parse(control.endedAt))}` : ''}: ${control.outcome ?? control.problem ?? ''}`));
+        return lines;
+    }
+    lines.push(`      ${style.warning('You control this tab')}${style.muted(` · ${control.mode} · ${viewer} · awaiting your handoff${control.url ? ` · ${terminalSafe(control.url)}` : ''}`)}`);
+    if (local && (local.state === 'waiting' || local.state === 'expired')) lines.push(style.muted(`      Viewer: ${local.url}`));
+    for (const limitation of control.limitations) lines.push(style.warning(`      ${limitation}`));
+    if (control.signIn?.detected) lines.push(style.success(`      Sign-in to ${control.signIn.origin ?? 'the service'} detected; the tab stays with you until you return it (H).`));
+    if (control.offer) lines.push(`      ${style.bold(control.offer.kind === 'update' ? 'Update password in Wallet?' : 'Save to Wallet?')} ${terminalSafe(control.offer.account)} for ${control.offer.origin} ${style.muted('· Y yes · N no')}`);
+    if (control.problem) lines.push(style.warning(`      ${control.problem}`));
+    else if (control.outcome) lines.push(style.muted(`      ${control.outcome}`));
+    return lines;
+}
+
+/**
  * Inputs every page body reads.
  *
  * @private terminal dashboard pages
@@ -349,6 +389,10 @@ export type PageContext = {
     readonly inventory?: readonly TaskInventoryItem[];
     /** This invocation owns the engine (foreground). */
     readonly owning: boolean;
+    /** Tab viewers this terminal presents (by tab-control id): their launch link and surface state. */
+    readonly viewers?: ReadonlyMap<string, { readonly url: string; readonly state: string }>;
+    /** This client can present live tab control (a local terminal attached to the engine). */
+    readonly tabControl?: boolean;
 };
 
 /**
@@ -587,6 +631,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                               : 'no saved login';
                 // A request marked as seen keeps waiting here; only its alert ended.
                 body.push(`${row()} ${action.origin}${action.account ? ` · ${action.account}` : ''} ${style.warning(`· ${problem}`)}${style.muted(` · ${action.tasks.length ? `for ${action.tasks.join(', ')}` : 'requested'} · since ${time(action.createdAt)}${action.requests > 1 ? ` · ${action.requests}×` : ''}`)}${action.seenAt ? style.muted(` · seen ${time(action.seenAt)}, still waiting`) : style.warning(' · new')}`);
+                // Authentication (this request) and tab ownership (its manual sign-in) are separate states.
+                const control = [...(snapshot.tabControls ?? [])].reverse().find((candidate) => candidate.request === action.id);
+                if (control) body.push(...tabControlLines(control, context, style));
             }
             if (!wallet.pending.length) body.push(style.muted('  Nothing waits for a login.'));
             body.push('', style.bold(`Saved logins (${wallet.lockedRecords ?? wallet.records.length})`));
@@ -613,7 +660,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             body.push('', style.muted('Agents never receive passwords: the Wallet signs in for them. Passwords, the 12 words for recovery and keys are never shown here.'));
             const focused = items[page.focus];
             // Mark as seen and Reject request apply to a focused request in every Wallet state; opening the page does neither.
-            const requestKeys = focused?.kind === 'request' ? [...(focused.seen ? [] : ['M mark as seen']), 'X reject request'] : [];
+            const manual = focused?.kind === 'request' ? (snapshot.tabControls ?? []).find((control) => control.request === focused.id && !controlOver(control)) : undefined;
+            const manualKeys = focused?.kind !== 'request' || !context.tabControl ? [] : manual ? [...(manual.offer ? ['Y save · N don’t save'] : []), 'H return control to agent', 'V reopen viewer', 'E end use'] : ['B sign in manually'];
+            const requestKeys = focused?.kind === 'request' ? [...manualKeys, ...(focused.seen ? [] : ['M mark as seen']), 'X reject request'] : [];
             const keys = [
                 ...requestKeys,
                 ...(wallet.state === 'empty' || wallet.state === 'setup'
@@ -622,7 +671,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                       ? [...(wallet.state === 'locked' ? ['R restore with the 12 words for recovery'] : []), ...(wallet.management?.canReset ? ['Z reset (no key: all old logins are lost)'] : [])]
                       : wallet.state === 'ready'
                         ? [
-                              'N add login',
+                              ...(manual?.offer ? [] : ['N add login']),
                               'I import from Bitwarden',
                               'G new 12 words',
                               ...(focused
@@ -655,7 +704,17 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             if (!item) return { title: `Tools › ${page.name}`, context: 'This tool is no longer configured.', body: [style.muted('It was removed (possibly from another client).')], legend: back };
             const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name) ?? (snapshot.browser?.name === item.name ? snapshot.browser : undefined) : undefined;
             const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : [])];
-            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart · 4 kill · 5 test GitHub tab' : ''} · ${back}` };
+            const controls = item.type === 'BROWSER' ? (snapshot.tabControls ?? []).filter((control) => control.browser === item.name) : [];
+            if (controls.length) {
+                body.push('', style.bold('Tabs you control'));
+                for (const control of controls) {
+                    body.push(`  ${control.purpose === 'wallet' ? 'Manual sign-in' : 'Tab'}${control.task ? style.muted(` · taken from ${control.task}`) : ''}${control.title ? ` · ${terminalSafe(control.title)}` : ''}`);
+                    body.push(...tabControlLines(control, context, style));
+                }
+            }
+            const live = controls.some((control) => !controlOver(control));
+            const tabKeys = item.type === 'BROWSER' && context.tabControl ? ` · 6 take control of a tab${live ? ' · H return control to agent · V reopen viewer · E end use' : ''}` : '';
+            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart · 4 kill · 5 test GitHub tab' : ''}${tabKeys} · ${back}` };
         }
         case 'agents': {
             const items = teamOrder(snapshot, page.sort, context.inventory);

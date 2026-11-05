@@ -795,6 +795,8 @@ export class TabControlSession {
     /** The trusted toolbar: an address, Back, Forward or Reload. A new address never changes a Wallet request's service. */
     public async navigate(grant: string, action: 'go' | 'back' | 'forward' | 'reload', url?: string): Promise<TabControlView> {
         this.require(grant);
+        // Inputs delivered before the toolbar action take effect first.
+        await this.queue;
         const sessionId = this.sessionId;
         if (!sessionId || this.stateValue !== 'controlled') return this.view();
         // The toolbar shows where the tab went once the navigation commits (bounded; a slow site keeps streaming).
@@ -824,6 +826,8 @@ export class TabControlSession {
      */
     public async clipboard(grant: string, action: 'copy' | 'cut' | 'paste', text?: string): Promise<{ readonly text?: string }> {
         this.require(grant);
+        // A copy reads the selection the inputs before it made.
+        await this.queue;
         const sessionId = this.sessionId;
         if (!sessionId || this.stateValue !== 'controlled') return {};
         if (action === 'paste') {
