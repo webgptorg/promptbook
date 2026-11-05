@@ -1,12 +1,15 @@
 'use strict';
-const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, shell } = require('electron');
+const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, shell } = require('electron');
 const { fork } = require('node:child_process');
 const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
 const { randomUUID } = require('node:crypto');
-const { join, resolve, basename } = require('node:path');
+const { join, resolve, basename, delimiter } = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { ACTIONS, localDashboardUrl, terminalArguments, dashboardPage, terminalSize } = require('./model.cjs');
 const { createPromptServer } = require('./prompt-server.cjs');
+
+/** macOS packages carry their own CLI runtime and use native application menus. */
+const isMac = process.platform === 'darwin';
 
 /** The tray controller owns client windows and attachments, never the engines. */
 const windows = new Map();
@@ -21,18 +24,38 @@ let refreshingTray = false;
 let quitInProgress = false;
 let clipboardDirectory;
 
-/** Resolves the separately installed Node/CLI; Electron never acts as the engine runtime. */
+/** Adds the usual user tool locations to the environment inherited from Finder. */
+function bundledRuntime() {
+    const home = app.getPath('home');
+    const runtimeRoot = join(process.resourcesPath, 'runtime');
+    const nodeBin = join(runtimeRoot, 'bin');
+    const prefix = process.env.NPM_CONFIG_PREFIX || process.env.npm_config_prefix || join(home, '.local');
+    const paths = [nodeBin, ...(process.env.PATH || '').split(delimiter).filter(Boolean),
+        join(prefix, 'bin'), join(home, '.local', 'bin'), '/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin'];
+    return { installation: join(runtimeRoot, 'ptbk'), nodePath: join(nodeBin, 'node'),
+        env: { PATH: [...new Set(paths)].join(delimiter), npm_config_prefix: prefix } };
+}
+
+/** Resolves the release's standalone Node/CLI; Electron never acts as the engine runtime. */
 async function resolveRuntime() {
-    const file = process.env.PTBK_DESKTOP_RUNTIME || join(process.env.LOCALAPPDATA || app.getPath('userData'), 'Promptbook', 'desktop', 'runtime.json');
+    const override = process.env.PTBK_DESKTOP_RUNTIME;
     let config;
-    try { config = JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, '')); }
-    catch (error) {
-        if (error.code !== 'ENOENT' || app.isPackaged) throw new Error(`The CLI runtime is unavailable. Repair the Promptbook installation. ${error.message}`);
+    if (isMac && app.isPackaged && !override) {
+        config = bundledRuntime();
+    } else if (isMac && !override) {
         config = { installation: resolve(__dirname, '../..'), nodePath: process.env.PTBK_DESKTOP_NODE || 'node' };
+    } else {
+        const file = override || join(process.env.LOCALAPPDATA || app.getPath('userData'), 'Promptbook', 'desktop', 'runtime.json');
+        try { config = JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, '')); }
+        catch (error) {
+            if (error.code !== 'ENOENT' || app.isPackaged || override) throw new Error(`The CLI runtime is unavailable. Repair the Promptbook installation. ${error.message}`);
+            config = { installation: resolve(__dirname, '../..'), nodePath: process.env.PTBK_DESKTOP_NODE || 'node' };
+        }
     }
     if (typeof config.installation !== 'string' || typeof config.nodePath !== 'string') throw new Error('Invalid desktop runtime configuration. Repair the installation.');
     const manifest = JSON.parse(await readFile(join(config.installation, 'package.json'), 'utf8'));
     if (manifest.name !== 'ptbk') throw new Error('The desktop runtime does not identify an installed ptbk package.');
+    if (isMac && app.isPackaged && !override && manifest.version !== app.getVersion()) throw new Error('The bundled CLI version does not match the desktop application.');
     await access(join(config.installation, 'bin', 'ptbk.js'));
     return { ...config, version: manifest.version, bin: join(config.installation, 'bin', 'ptbk.js') };
 }
@@ -40,7 +63,10 @@ async function resolveRuntime() {
 /** Starts a read/control adapter using the actual system Node, with a private parent/child IPC channel. */
 async function startBridge() {
     runtime = await resolveRuntime();
-    bridge = fork(app.isPackaged ? join(process.resourcesPath, 'bridge.mjs') : join(__dirname, 'bridge.mjs'), [runtime.installation], { execPath: runtime.nodePath, execArgv: [], stdio: ['ignore', 'ignore', 'pipe', 'ipc'], windowsHide: true });
+    bridge = fork(app.isPackaged ? join(process.resourcesPath, 'bridge.mjs') : join(__dirname, 'bridge.mjs'), [runtime.installation], {
+        execPath: runtime.nodePath, execArgv: [], env: isMac ? { ...process.env, ...runtime.env } : process.env,
+        stdio: ['ignore', 'ignore', 'pipe', 'ipc'], windowsHide: true,
+    });
     let diagnostic = '';
     bridge.stderr.on('data', (chunk) => { diagnostic = (diagnostic + chunk).slice(-4000); });
     bridge.on('message', (message) => {
@@ -134,7 +160,7 @@ function closeTerminal(entry, id) {
 
 /** Opens an independent local view; the process/tray survives the last closed window. */
 function createWindow(options = {}) {
-    const window = new BrowserWindow({ width: 1280, height: 850, minWidth: 800, minHeight: 600, title: 'Promptbook', icon: iconPath(), show: false,
+    const window = new BrowserWindow({ width: 1280, height: 850, minWidth: 800, minHeight: 600, title: 'Promptbook', ...(!isMac && { icon: iconPath() }), show: false,
         webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false } });
     const entry = { window, terminals: new Map(), view: undefined, root: options.root, page: undefined };
     windows.set(window.id, entry);
@@ -149,6 +175,13 @@ function createWindow(options = {}) {
 
 /** Location of the same product icon used by the installer. */
 function iconPath() { return app.isPackaged ? join(process.resourcesPath, 'icon.ico') : join(__dirname, 'icon.ico'); }
+
+/** macOS expects a small PNG for its menu bar; the app bundle supplies the Dock icon. */
+function trayIcon() {
+    if (!isMac) return iconPath();
+    const logo = app.isPackaged ? join(process.resourcesPath, 'tray.png') : join(__dirname, '../../design/logo-blue-transparent-256.png');
+    return nativeImage.createFromPath(logo).resize({ width: 18, height: 18 });
+}
 
 /** Graceful or explicitly forced host-wide quit, using current registry/controller state on every pass. */
 async function quitAll() {
@@ -328,7 +361,6 @@ if (!app.requestSingleInstanceLock()) app.exit(0);
 if (process.argv.includes('--quit-client')) app.exit(0);
 app.on('second-instance', (_event, argv) => { if (argv.includes('--quit-client')) { quitting = true; app.quit(); } else if (!argv.includes('--tray')) createWindow(launchOptions(argv)); });
 app.on('window-all-closed', () => {});
-app.on('activate', () => { if (!windows.size) createWindow(); });
 app.on('before-quit', () => { quitting = true; for (const entry of windows.values()) for (const id of entry.terminals.keys()) closeTerminal(entry, id); if (bridge?.connected) bridge.disconnect(); if (clipboardDirectory) void clipboardDirectory.then((directory) => rm(directory, { recursive: true, force: true })).catch(() => {}); });
 
 /** Startup initializes only the client adapter and tray; it never calls project Start/Resume. */
@@ -337,16 +369,30 @@ const ready = app.whenReady().then(async () => {
 });
 void app.whenReady().then(async () => {
     app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/', copyright: 'Promptbook — your AI, on your machine' });
-    tray = new Tray(iconPath());
+    tray = new Tray(trayIcon());
     tray.on('double-click', () => createWindow());
     const menu = Menu.buildFromTemplate([
+        ...(isMac ? [{ label: 'Promptbook', submenu: [
+            { label: 'About Promptbook', click: () => app.showAboutPanel() },
+            { label: 'Open at Login', type: 'checkbox', enabled: app.isPackaged, checked: app.isPackaged && app.getLoginItemSettings().openAtLogin,
+                click: (item) => {
+                    app.setLoginItemSettings({ openAtLogin: item.checked });
+                    item.checked = app.getLoginItemSettings().openAtLogin;
+                } },
+            { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' },
+            { type: 'separator' }, { role: 'quit' },
+        ] }] : []),
         { label: 'File', submenu: [{ label: 'New window', accelerator: 'CmdOrCtrl+Shift+N', click: () => createWindow() }, { label: 'New project…', click: () => createWindow({ init: true }) }, { type: 'separator' }, { role: 'close' }, { label: 'Quit Promptbook and engines…', click: () => void quitAll() }] },
-        { role: 'editMenu' }, { role: 'viewMenu' }, { label: 'Help', submenu: [{ label: 'About Promptbook', click: () => app.showAboutPanel() }] },
+        { role: 'editMenu' }, { role: 'viewMenu' },
+        ...(isMac ? [{ role: 'windowMenu' }] : [{ label: 'Help', submenu: [{ label: 'About Promptbook', click: () => app.showAboutPanel() }] }]),
     ]);
     Menu.setApplicationMenu(menu);
     await refreshTray();
     setInterval(() => void refreshTray(), 3000).unref();
     if (process.argv.includes('--quit-client')) { app.quit(); return; }
-    if (!process.argv.includes('--tray')) createWindow(launchOptions(process.argv));
+    if (!process.argv.includes('--tray') && !(isMac && app.isPackaged && app.getLoginItemSettings().wasOpenedAtLogin) && !windows.size) {
+        createWindow(launchOptions(process.argv));
+    }
+    app.on('activate', () => { if (!windows.size) createWindow(); });
 }).catch((error) => dialog.showErrorBox('Promptbook could not open', error.message));
 void ready.catch(() => {});

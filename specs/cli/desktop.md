@@ -6,13 +6,13 @@
 
 Specifications define behavior; the project engine implements it; the CLI and terminal dashboard are the primary control interface. The optional desktop application is a thin local client derived from those interfaces. Future features must remain fully usable in the CLI, without installing desktop dependencies or running a graphical session. Desktop work must not change existing CLI behavior to accommodate its presentation.
 
-Ship Windows first, using Electron, xterm.js and a real PTY. Keep platform boundaries suitable for a later macOS version, without claiming macOS/Linux distribution now. This is local control on the computer running the engines, separate from the future remote customer App.
+Ship Windows and macOS desktop clients from one Electron, xterm.js and native PTY implementation. Platform code handles packaging, startup integration, icons and locating the standalone CLI runtime. This is local control on the computer running the engines, separate from the future remote customer App.
 
 Preserve the existing per-project supervisors, engine ownership, discovery registry and OS-startup rules. Do not introduce a global engine or a new always-running engine supervisor. Shared refactoring is permitted when observable CLI/engine semantics are preserved. Clients never own scheduling, Git transactions, credentials or project state.
 
-## Windows, tray and lifetime
+## Tray and lifetime
 
-The optional desktop installation provides a background tray controller and any number of independent windows. The tray controller starts at Windows sign-in without opening a window or starting/resuming a project. Engine startup remains governed by existing persistence. An engine-only npm installation has no tray or Electron dependency.
+The optional desktop installation provides a background tray controller and any number of independent windows. The tray controller starts at Windows sign-in without opening a window or starting/resuming a project. On macOS, Open at Login is an opt-in native login item. Login opens the controller without opening the first-project wizard or starting a project. The Dock icon reopens a window. Standard macOS Quit closes the client, and Quit Promptbook and engines uses the explicit host-wide operation below. Engine startup remains governed by existing persistence. An engine-only npm installation has no tray or Electron dependency.
 
 Closing a window closes only that client view and its terminal attachments. Other windows, the tray and all engines keep running. Multiple graphical windows and ordinary terminals may observe/control the same project; shared actions and chat changes propagate from the same engine.
 
@@ -38,11 +38,14 @@ The Windows wizard offers engine/CLI, the desktop application (selected by defau
 
 Keep Node.js, npm and Git prerequisite discovery, safe destinations, exact-version verification, retry behavior, PATH and project preservation. Desktop uninstall removes its own shortcuts/startup registration only, preserving engines, projects, Node.js, Git and harnesses. A desktop failure must not be reported as a successful desktop installation.
 
+On macOS, provide a drag-to-Applications DMG for Apple Silicon and one for Intel. Bundle standalone native Node.js, npm, and the engine built from the exact release source. The app opens and discovers local projects without installing a global `ptbk` or changing system PATH. Use system or user-installed Git and discover common Homebrew and user executable directories for Git and harnesses. npm-based harness setup uses a writable user prefix. Run the application from its installed location so ordinary engine persistence points at a stable path. Upgrades replace the application bundle after its engines have been stopped. The user’s projects and harnesses live outside the app.
+
 The graphical shell loads packaged local content with context isolation, sandboxing, no renderer Node integration and a narrow validated preload interface. Project dashboards run without a privileged preload. Allow only verified loopback engine addresses; forbid arbitrary navigation and permission requests. Authenticate private prompt transport, bind terminal ownership to its window, bound messages/buffers and validate command arguments. Spawn Node/CLI with argument arrays, never interpolated shell commands. External browser links require an explicit user gesture and an http(s) URL.
 
 ## Acceptance
 
-- Install with and without desktop/harness components; verify the matching executable, shortcuts, login startup and GUI/CLI handoff. A clean machine needs no manual commands.
+- On macOS, mount each architecture’s actual DMG, copy its app and confirm the exact bundled CLI version, npm, the tray and native PTY. Exercise multiwindow, setup cancellation and engine lifetime with the same fixture as Windows.
+- On Windows, install with and without desktop/harness components; verify the matching executable, shortcuts, login startup and GUI/CLI handoff. A clean machine needs no manual commands.
 - Open two windows and an ordinary terminal on one engine; pause/chat/control changes agree. Close either window and verify the same engine/supervisor survives.
 - Reboot/sign in: the tray appears without opening a window, while existing engine persistence rules remain unchanged. CLI-only/headless use never loads Electron.
 - Complete, go back, cancel and resume the same initializer from graphical presentation, with native login in its terminal and complete attachment payloads.

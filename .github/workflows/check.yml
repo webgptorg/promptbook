@@ -32,6 +32,37 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:full
+  macos-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, arch: arm64 }
+          - { os: macos-15-intel, arch: x64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          architecture: ${{ matrix.arch }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci --prefix apps/desktop
+      - run: npm --prefix apps/desktop test
+      - run: npm --prefix apps/desktop run package:macos
+      - name: Verify the DMG and run the packaged application
+        run: bash apps/desktop/test/macos-dmg.sh apps/desktop/release/Promptbook-*-macos-${{ matrix.arch }}-unsigned.dmg
+      - uses: actions/upload-artifact@v6
+        with:
+          name: macos-desktop-candidate-${{ matrix.arch }}
+          path: apps/desktop/release/*.dmg
+          if-no-files-found: error
   vscode-extension:
     runs-on: ubuntu-latest
     timeout-minutes: 15

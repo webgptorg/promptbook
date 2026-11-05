@@ -12,10 +12,19 @@ test('desktop windows and native terminals are independent clients of the same p
     const { project, env, directory } = await initializedProject(t);
     const runtimeConfig = join(directory, 'desktop-runtime.json');
     await writeFile(runtimeConfig, JSON.stringify({ installation: fileURLToPath(new URL('../../../', import.meta.url)), nodePath: process.execPath }));
+    const packagedMac = process.platform === 'darwin' && Boolean(process.env.PTBK_DESKTOP_EXECUTABLE);
+    const desktopEnv = { ...env };
+    if (packagedMac) {
+        delete desktopEnv.PTBK_DESKTOP_NODE;
+        delete desktopEnv.PTBK_DESKTOP_RUNTIME;
+    } else {
+        desktopEnv.PTBK_DESKTOP_NODE = process.execPath;
+        desktopEnv.PTBK_DESKTOP_RUNTIME = runtimeConfig;
+    }
     const started = await ptbk(['start', '--paused', '--no-dashboard', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     const before = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
-    const application = await _electron.launch({ executablePath: process.env.PTBK_DESKTOP_EXECUTABLE || electron, args: [...(process.env.PTBK_DESKTOP_EXECUTABLE ? [] : [fileURLToPath(new URL('../', import.meta.url))]), '--skip-init'], env: { ...env, PTBK_DESKTOP_NODE: process.execPath, PTBK_DESKTOP_RUNTIME: runtimeConfig }, timeout: 45000 });
+    const application = await _electron.launch({ executablePath: process.env.PTBK_DESKTOP_EXECUTABLE || electron, args: [...(process.env.PTBK_DESKTOP_EXECUTABLE ? [] : [fileURLToPath(new URL('../', import.meta.url))]), '--skip-init'], env: desktopEnv, timeout: 45000 });
     t.after(() => application.close().catch(() => {}));
     const page = await application.firstWindow();
     page.on('pageerror', (error) => process.stderr.write(`Desktop renderer: ${error.message}\n`));

@@ -62,6 +62,8 @@ A background engine [updates itself](specs/cli/updates.md) when it has no other 
 
 **Windows:** download the EXE from [GitHub Releases](https://github.com/webgptorg/promptbook/releases), or follow the [installation guide](https://www.ptbk.io/en/open-source). The installer offers the local desktop client (selected by default), Codex and Claude Code. The desktop uses the same engine and initializer as the CLI, with an embedded CLI terminal; closing a window leaves your engines running. CLI-only installation remains available.
 
+**macOS:** download the matching DMG from [GitHub Releases](https://github.com/webgptorg/promptbook/releases). Choose `arm64` for Apple Silicon or `x64` for Intel, then drag Promptbook into Applications. Node.js, npm and the matching engine are included. Project setup uses Git from your Mac, such as Git from the Xcode Command Line Tools. See the [desktop installation guide](apps/desktop/README.md#macos-installation) for signing and login details.
+
 ## Deploy to your own server
 
 **A clean Ubuntu 24.04 LTS x86-64 server** with systemd, outbound HTTPS and root or sudo access over SSH needs no preinstalled Node.js, npm, Git, Chrome or AI harness: use the [one-command installation](#clean-ubuntu-vps). It prepares the server through the [shared installer](deploy/ubuntu/install.sh) and opens `ptbk init` as a dedicated non-sudo `promptbook` user. Sign-in to Codex or Claude Code is finished on your phone or computer; see the [server guide](deploy/README.md#finish-setup-over-ssh).
