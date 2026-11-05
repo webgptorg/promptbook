@@ -55,4 +55,7 @@ dist-installer/
 
 # Old before `reborn/2026-10`
 /apps/agents-server
+/apps/coder-landing
+/apps/playground
+/apps/utils
 /packages
