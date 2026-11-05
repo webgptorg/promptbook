@@ -63,7 +63,9 @@ function show(next) {
     if (next !== 'dashboard') api.hideDashboard();
     mode = next;
     for (const pane of ['overview', 'dashboard', 'terminal']) $(`${pane}-pane`).hidden = pane !== mode;
-    $('heading').textContent = next === 'overview' ? 'Your projects' : host.rows.find((row) => row.projectRoot === selected)?.projectName || 'Promptbook';
+    const heading = $('heading');
+    heading.textContent = next === 'overview' ? 'Your projects' : host.rows.find((row) => row.projectRoot === selected)?.projectName || 'Promptbook';
+    heading.title = heading.textContent;
     requestAnimationFrame(layout);
 }
 

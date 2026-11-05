@@ -1,5 +1,7 @@
 # Unreleased
 
+- Bring the Promptbook wordmark and ink-blue palette to the desktop controller. Its project dashboard uses clickable, keyboard-accessible tiles in a scrollable grid with room for their summaries.
+
 - Follow the system appearance in the desktop app by default and remember a light or dark override across windows and restarts.
 
 - Set the README wordmark in Inter Light for “prompt” and Inter Bold for “book”, with artwork for light and dark backgrounds.

@@ -3,11 +3,14 @@
 /*
  * Promptbook browser dashboard: a small framework-free client of the project service API.
  * All live data comes from /api/state (long polling); all controls go through the API.
- * The root is a no-scroll home screen of tiles; each tile opens a full page (#/<page>, Back returns).
+ * Each home tile opens a full page (#/<page>, Back returns).
  */
 (() => {
     const app = document.getElementById('app');
     const headerStatus = document.getElementById('header-status');
+    /** The desktop window opts into a different layout for the same local dashboard. */
+    const desktop = new URLSearchParams(location.search).get('view') === 'desktop';
+    document.documentElement.toggleAttribute('data-desktop', desktop);
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const state = {
         snapshot: null,
@@ -1575,6 +1578,7 @@
         if (domain === 'actions' && state.activity && state.activity.stack.length) Object.assign(state.activity, { position: {}, stack: [], view: null, loaded: null });
         render(state.snapshot);
         window.scrollTo(0, 0);
+        if (desktop) app.querySelector('.page-header button')?.focus({ preventScroll: true });
     }
 
     /** Returns to the home screen (Back control, Escape or browser history). */
@@ -1604,13 +1608,20 @@
         acknowledgeVisibleChat();
         state.interactions++;
         let changed = false;
-        for (const item of state.attention.values()) {
+        for (const [domain, item] of state.attention) {
             if (!item.seen && state.interactions - item.since >= ATTENTION_SETTLE_INTERACTIONS) {
                 item.seen = true;
                 changed = true;
+                if (desktop && !state.page) {
+                    // Keep the original button under the pointer until its click is delivered.
+                    const tile = app.querySelector(`[data-tile="${CSS.escape(domain)}"]`);
+                    tile?.classList.replace('new', 'seen');
+                    tile?.querySelector('.new-label')?.remove();
+                    tile?.setAttribute('aria-label', tileLabel(domain, item));
+                }
             }
         }
-        if (changed && !state.page) render(state.snapshot);
+        if (changed && !state.page && !desktop) render(state.snapshot);
     }
 
     /** Formats MiB for health values. */
@@ -1786,24 +1797,34 @@
         );
     }
 
-    /** The no-scroll home screen: the saved brief, compact tiles, a focused tile (operator's cursor) and independent attention. */
+    /** Announces attention without relying on the visual marker or color. */
+    function tileLabel(domain, attention) {
+        return `${TITLES[domain]}${attention ? ` — needs attention${attention.seen ? '' : ' (new)'}` : ''}`;
+    }
+
+    /** Renders the same brief, tiles and attention in both the browser and desktop layouts. */
     function renderHome(snapshot) {
         const tiles = homeTiles(snapshot);
         if (!tiles.includes(state.focus)) state.focus = 'harnesses';
-        const columns = homeColumns(tiles.length);
-        const lines = tileLineBudget(tiles.length);
-        const grid = h('section', { className: 'home', role: 'grid', 'aria-label': 'Dashboard home', style: `--columns:${columns};--rows:${Math.ceil(tiles.length / columns)}` });
+        const columns = desktop ? undefined : homeColumns(tiles.length);
+        const lines = desktop ? undefined : tileLineBudget(tiles.length);
+        const grid = h('section', {
+            className: 'home',
+            role: desktop ? undefined : 'grid',
+            'aria-label': 'Dashboard home',
+            style: columns ? `--columns:${columns};--rows:${Math.ceil(tiles.length / columns)}` : undefined,
+        });
         for (const domain of tiles) {
             const attention = state.attention.get(domain);
-            const classes = ['tile', attention ? `attention ${attention.tone === 'error' ? 'error' : ''} ${attention.seen ? 'seen' : 'new'}` : '', state.focus === domain ? 'focused' : ''].filter(Boolean).join(' ');
+            const classes = ['tile', attention ? `attention ${attention.tone === 'error' ? 'error' : ''} ${attention.seen ? 'seen' : 'new'}` : '', !desktop && state.focus === domain ? 'focused' : ''].filter(Boolean).join(' ');
             grid.append(
                 h(
                     'button',
                     {
                         className: classes,
                         'data-tile': domain,
-                        tabindex: state.focus === domain ? '0' : '-1',
-                        'aria-label': `${TITLES[domain]}${attention ? ` — needs attention${attention.seen ? '' : ' (new)'}` : ''}`,
+                        tabindex: desktop ? undefined : state.focus === domain ? '0' : '-1',
+                        'aria-label': tileLabel(domain, attention),
                         onclick: () => openPage(domain),
                         onfocus: () => (state.focus = domain),
                     },
@@ -2826,13 +2847,13 @@
             }
         } else if (focusTile && !state.page) {
             const tile = app.querySelector(`[data-tile="${CSS.escape(state.focus)}"]`);
-            if (tile) tile.focus();
+            if (tile) tile.focus({ preventScroll: desktop });
         } else if (focusActivity) {
             // Arrivals rebuild the page: keyboard selection stays on the same row or control.
             const control = app.querySelector(`[data-activity="${CSS.escape(focusActivity)}"]`);
             if (control) control.focus({ preventScroll: true });
         }
-        if (state.page) window.scrollTo(0, scroll);
+        if (desktop || state.page) window.scrollTo(0, scroll);
         // The sticky page header sits right below the (possibly wrapped) top bar.
         const topbar = document.querySelector('.topbar');
         if (topbar) document.documentElement.style.setProperty('--topbar-height', `${topbar.offsetHeight}px`);
@@ -2913,17 +2934,20 @@
             if (state.page === 'tasks') loadTasks(true);
             if (state.page === 'usage') loadUsage(true);
             render(state.snapshot);
+            if (desktop && !state.page) app.querySelector(`[data-tile="${CSS.escape(state.focus)}"]`)?.focus();
             // Within the External activity log, Back returns one level with its selection and scroll.
             if (state.page === 'actions') activityBackTo((history.state && history.state.depth) || 0);
         });
-        // The home grid follows the viewport (also when only its height changes).
-        let layout = '';
-        new ResizeObserver(() => {
-            const tiles = state.snapshot ? homeTiles(state.snapshot).length : 0;
-            const next = `${homeColumns(tiles)}:${tileLineBudget(tiles)}`;
-            if (!state.page && state.snapshot && next !== layout) render(state.snapshot);
-            layout = next;
-        }).observe(document.documentElement);
+        if (!desktop) {
+            // The compact browser grid follows the viewport, including its height.
+            let layout = '';
+            new ResizeObserver(() => {
+                const tiles = state.snapshot ? homeTiles(state.snapshot).length : 0;
+                const next = `${homeColumns(tiles)}:${tileLineBudget(tiles)}`;
+                if (!state.page && state.snapshot && next !== layout) render(state.snapshot);
+                layout = next;
+            }).observe(document.documentElement);
+        }
         document.addEventListener('pointerdown', interacted);
         document.addEventListener('wheel', interacted, { passive: true });
         document.addEventListener('touchstart', interacted, { passive: true });
@@ -2933,7 +2957,7 @@
             if (event.key === 'Escape' && state.page && !typing) {
                 event.preventDefault();
                 goHome();
-            } else if (!state.page && !typing && (event.key.startsWith('Arrow') || event.key === 'Enter')) {
+            } else if (!desktop && !state.page && !typing && (event.key.startsWith('Arrow') || event.key === 'Enter')) {
                 const onTile = event.target && event.target.getAttribute && event.target.getAttribute('data-tile');
                 if (onTile && event.key === 'Enter') return;
                 event.preventDefault();

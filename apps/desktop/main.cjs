@@ -296,7 +296,8 @@ ipcMain.handle('desktop:action', async (event, { action, roots }) => {
 ipcMain.handle('desktop:dashboard', async (event, { root, bounds }) => {
     const entry = owner(event);
     const result = await controller('dashboard', { root });
-    const url = localDashboardUrl(result.url);
+    const url = new URL(localDashboardUrl(result.url));
+    url.searchParams.set('view', 'desktop');
     hideDashboard(entry);
     const view = new WebContentsView({ webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, partition: `desktop-project-${entry.window.id}` } });
     entry.view = view;
@@ -304,14 +305,14 @@ ipcMain.handle('desktop:dashboard', async (event, { root, bounds }) => {
     entry.page = undefined;
     entry.window.contentView.addChildView(view);
     setBounds(entry, bounds);
-    protect(view.webContents, entry.window, (target) => { try { return new URL(target).origin === new URL(url).origin; } catch { return false; } });
+    protect(view.webContents, entry.window, (target) => { try { return new URL(target).origin === url.origin; } catch { return false; } });
     view.webContents.on('did-navigate-in-page', (_event, target) => {
         entry.page = dashboardPage(target);
         emit(entry, { type: 'page', page: entry.page });
     });
     view.webContents.on('render-process-gone', () => emit(entry, { type: 'error', message: 'The graphical view closed. Reopen the project or use its CLI dashboard.' }));
     view.webContents.on('did-fail-load', (_event, _code, description) => { hideDashboard(entry); emit(entry, { type: 'error', message: `The graphical dashboard could not load: ${description}. Open its CLI dashboard.` }); });
-    await view.webContents.loadURL(url);
+    await view.webContents.loadURL(url.href);
     return { root, instanceId: result.instanceId };
 });
 ipcMain.on('desktop:bounds', (event, bounds) => { try { setBounds(owner(event), bounds); } catch {} });

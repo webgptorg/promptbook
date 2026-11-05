@@ -1,5 +1,6 @@
 import { build } from 'esbuild';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { copyFile, readFile, writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { windowsIcon } from './icon.mjs';
 
@@ -12,5 +13,8 @@ if (manifest.name !== 'ptbk-desktop') throw new Error('Invalid desktop package t
 await mkdir(new URL('./renderer/vendor/', import.meta.url), { recursive: true });
 await build({ entryPoints: [fileURLToPath(new URL('./renderer/app.js', import.meta.url))], bundle: true, platform: 'browser', target: 'chrome140', outfile: fileURLToPath(new URL('./renderer/vendor/app.js', import.meta.url)) });
 await writeFile(new URL('./renderer/vendor/xterm.css', import.meta.url), await readFile(new URL('./node_modules/@xterm/xterm/css/xterm.css', import.meta.url)));
+for (const wordmark of ['readme-wordmark.svg', 'readme-wordmark-dark.svg']) {
+    await copyFile(join(root, 'design', wordmark), new URL(`./renderer/vendor/${wordmark}`, import.meta.url));
+}
 await writeFile(new URL('./icon.ico', import.meta.url), windowsIcon(await readFile(`${root}/design/logo-blue-transparent-256.png`)));
 process.stdout.write(`Built optional desktop client ${engine.version}.\n`);
