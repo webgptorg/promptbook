@@ -2,6 +2,7 @@ import { runProcess } from '../../../common/process.js';
 import { stripAnsi } from '../../../ui/ansi.js';
 import { baseInspection, helpText, numericUsage, observedSessionSupport, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginFailure, LoginLocation, ParserState } from '../../types.js';
+import { codexVoice } from './voice.js';
 
 /**
  * Environment variables that could switch Codex to API billing.
@@ -268,4 +269,5 @@ export const plugin: HarnessPlugin = {
     }),
     buildInvocation,
     parseLine,
+    voice: codexVoice,
 };

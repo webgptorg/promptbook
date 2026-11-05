@@ -40,7 +40,9 @@ import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
 import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
-import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
+import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type ConversationContext, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
+import type { VoiceCallView } from '../chats/voice-call.js';
+import { VoiceCalls, type VoiceAvailabilityReport } from './voice-calls.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
@@ -841,6 +843,8 @@ export class Agenda {
                     continue;
                 }
                 if (!isHumanFacing(stored.chat) || !awaitsReply(stored.chat) || stored.chat.status === 'resolved') continue;
+                // Speech the native voice path already accepted is never answered again in text.
+                if ((await this.voiceCalls.nativelyAccepted(stored.chat.name)) >= stored.chat.messages.length) continue;
                 // An answer a task waits for resumes the task; a clarifying question in a still-waiting chat gets a reply.
                 const awaited = await this.isAwaitedByTask(stored.chat.name);
                 if (!(awaited ? stored.chat.status === 'waiting-for-user' : stored.chat.status === 'open')) continue;
@@ -1007,6 +1011,8 @@ export class Agenda {
         } finally {
             clearInterval(reconciling);
             await this.sessions.flush();
+            // Voice calls end first, so their final recordings join the chat batch flushed below.
+            await this.voiceCallsInstance?.endAll('The engine stopped.').catch(() => undefined);
             this.stopWatching();
             // A graceful stop or restart commits saved chat messages; a force stop leaves them to recovery.
             if (this.shutdown !== 'force') await this.chatBatches.flush().catch(() => undefined);
@@ -1700,7 +1706,8 @@ export class Agenda {
         const live = this.liveReplies.get(detail.summary.name);
         const recheck = this.chatRecheckViews().find((view) => nameKey(view.chat) === nameKey(detail.summary.name));
         const requests = await this.chatRequestViews(detail.summary.name);
-        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}) };
+        const voice = this.voiceCallsInstance?.view(detail.summary.name);
+        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}), ...(voice ? { voice } : {}) };
     }
 
     /** Outstanding human requests of one chat with their responsible agent and relevance checks (no check is triggered). */
@@ -1846,6 +1853,80 @@ export class Agenda {
         return written;
     }
 
+    /**
+     * The shared context of conversation work (written chat replies and voice calls): the same tools, task control and
+     * authority in both.
+     */
+    private conversationContext(): ConversationContext {
+        return {
+            project: this.options.project,
+            settings: this.settings,
+            catalog: this.catalog,
+            pool: this.pool,
+            chats: this.chats,
+            env: this.options.env,
+            signal: this.ownedWork.signal,
+            sessions: this.sessions,
+            taskControl: {
+                status: async (query) => await this.taskStatus(query),
+                change: async (input) => await this.taskControl(input),
+                notify: async (input) => await this.taskNotify(input),
+            },
+            createTask: async (input) => await this.createChatTask(input),
+            inviteAgent: async (input) => await this.chatInvite(input.chat, input.agent),
+            scheduleLearning: async (input) => await this.scheduleChatLearning(input),
+            establishedExecution: async (chat) => [...(await this.state.readActiveRecords()), ...(await this.state.readParked())].find((record) => record.waitingChat === chat || record.recoveryChat === chat)?.routing,
+            onActivity: (text) => this.log(text),
+        };
+    }
+
+    // ── Realtime voice (terminal-controlled, call-owned media bridge) ─────────
+
+    /** Live voice calls of this engine. */
+    private voiceCallsInstance?: VoiceCalls;
+
+    /** The engine's voice calls (created on first use). */
+    private get voiceCalls(): VoiceCalls {
+        if (!this.voiceCallsInstance) {
+            this.voiceCallsInstance = new VoiceCalls({
+                conversation: () => this.conversationContext(),
+                onChange: () => this.touch(),
+                log: (text) => this.log(text),
+                stateDirectory: this.options.project.runtime.state,
+            });
+        }
+        return this.voiceCallsInstance;
+    }
+
+    /** Voice availability of a chat across every registered harness instance (never opens a paid call). */
+    public async voiceAvailability(name: string): Promise<VoiceAvailabilityReport> {
+        return await this.voiceCalls.availability(name, { fresh: true });
+    }
+
+    /**
+     * Starts realtime voice in an existing chat for its controlling terminal (allowed during Pause like text chat; task
+     * work stays paused). Returns the call and its private media page URL.
+     */
+    public async voiceStart(name: string): Promise<{ readonly call: VoiceCallView; readonly url: string }> {
+        if (this.stopRequested) throw new PtbkError('The engine is stopping; voice cannot start now.', { kind: 'conflict', effect: 'Text chat keeps working.' });
+        await this.pool.refresh();
+        const started = await this.voiceCalls.start(name);
+        this.touch();
+        return started;
+    }
+
+    /** Ends or mutes the chat's live voice call. */
+    public async voiceControl(name: string, action: 'end' | 'mute-mic' | 'unmute-mic' | 'mute-output' | 'unmute-output'): Promise<VoiceCallView> {
+        const view = await this.voiceCalls.control(name, action);
+        this.touch();
+        return view;
+    }
+
+    /** Renews the controlling terminal's lease of the chat's call (a lost terminal ends it in bounded time). */
+    public voiceHeartbeat(name: string): VoiceCallView | undefined {
+        return this.voiceCalls.heartbeat(name);
+    }
+
     /** Chats created per client request key (retries return the same chat). */
     private readonly createdChats = new Map<string, string>();
 
@@ -1884,29 +1965,12 @@ export class Agenda {
                     if (controlled) await this.sessions.untilAutomaticInput(controlled.key, `Reply in {${name}}`, this.ownedWork.signal);
                     turn = await replyInChat(
                         {
-                            project: this.options.project,
-                            settings: this.settings,
-                            catalog: this.catalog,
-                            pool: this.pool,
-                            chats: this.chats,
-                            env: this.options.env,
-                            signal: this.ownedWork.signal,
-                            sessions: this.sessions,
-                            taskControl: {
-                                status: async (query) => await this.taskStatus(query),
-                                change: async (input) => await this.taskControl(input),
-                                notify: async (input) => await this.taskNotify(input),
-                            },
-                            createTask: async (input) => await this.createChatTask(input),
-                            inviteAgent: async (input) => await this.chatInvite(input.chat, input.agent),
-                            scheduleLearning: async (input) => await this.scheduleChatLearning(input),
-                            establishedExecution: async (chat) => [...(await this.state.readActiveRecords()), ...(await this.state.readParked())].find((record) => record.waitingChat === chat || record.recoveryChat === chat)?.routing,
+                            ...this.conversationContext(),
                             onLive: (chat, live) => {
                                 if (live) this.liveReplies.set(chat, live);
                                 else this.liveReplies.delete(chat);
                                 this.touch();
                             },
-                            onActivity: (text) => this.log(text),
                         },
                         name,
                         options,
@@ -2851,6 +2915,11 @@ export class Agenda {
             return pending ? { ...rest, persistence: { state: pending.failure ? 'failed' : 'pending', since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } : rest;
         });
         this.scheduleAttentionReview();
+        // A live voice call learns about messages that arrived from elsewhere (typed text, written replies, results).
+        for (const call of this.voiceCallsInstance?.live() ?? []) {
+            const stored = await this.chats.find(call.chat).catch(() => undefined);
+            if (stored) await this.voiceCalls.observe(call.chat, stored.chat.messages).catch(() => undefined);
+        }
         this.touch();
     }
 
@@ -2893,6 +2962,8 @@ export class Agenda {
         clearTimeout(this.reportCommitTimer);
         clearTimeout(this.attentionTimer);
         this.attentionOwnerInstance?.stop();
+        // Stop, force stop and panic end every voice call: microphone, playback, provider session and bridge.
+        void this.voiceCallsInstance?.endAll('The engine stopped.');
         this.sync.end();
         this.health?.stop();
     }

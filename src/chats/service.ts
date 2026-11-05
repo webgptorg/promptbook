@@ -1,4 +1,5 @@
 import type { ComposedSegment } from '../ui/composer.js';
+import type { VoiceCallView } from './voice-call.js';
 import { PtbkError } from '../common/errors.js';
 import { commitmentsOf } from '../book/parse.js';
 import { findActiveReferences, formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName, toReference } from '../book/references.js';
@@ -61,6 +62,8 @@ export type ChatDetail = {
     readonly recheck?: ChatRecheckView;
     /** Outstanding human requests of this chat (seen or not) with their responsible agent and relevance checks. */
     readonly requests?: readonly ChatRequestView[];
+    /** The chat's realtime voice call (live or just ended), without its private page URL. */
+    readonly voice?: VoiceCallView;
     readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final'; readonly audio?: readonly MessageAudio[] }>;
 };
 

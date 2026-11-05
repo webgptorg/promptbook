@@ -364,6 +364,19 @@ export class ServiceHost {
             case 'chat-send':
                 // The authenticated local control channel of the engine host may attach local files.
                 return await applyChatAction(agenda, method, params, typeof params.via === 'string' ? params.via : 'cli', { trusted: true });
+            // Realtime voice is controlled from a local terminal through this control channel only: the dashboard's HTTP
+            // API never starts calls or receives a media page URL.
+            case 'voice-availability':
+                return await agenda.voiceAvailability(String(params.name ?? ''));
+            case 'voice-start':
+                return await agenda.voiceStart(String(params.name ?? ''));
+            case 'voice-control': {
+                const action = String(params.action ?? '');
+                if (!['end', 'mute-mic', 'unmute-mic', 'mute-output', 'unmute-output'].includes(action)) throw new PtbkError(`Unknown voice action "${action}".`, { kind: 'usage' });
+                return await agenda.voiceControl(String(params.name ?? ''), action as 'end');
+            }
+            case 'voice-heartbeat':
+                return agenda.voiceHeartbeat(String(params.name ?? '')) ?? null;
             case 'task-inventory':
                 return await agenda.taskInventory();
             case 'book-source':

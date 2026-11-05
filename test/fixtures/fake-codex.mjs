@@ -115,8 +115,9 @@ if (args[0] === 'resume') {
             const line = buffer.slice(0, index);
             buffer = buffer.slice(index + 1);
             const message = JSON.parse(line);
-            if (message.id === 1) print({ id: 1, result: {} });
-            if (message.id === 2) print({ id: 2, result: { data: [{ model: 'fake-model-1' }, { model: 'fake-model-2' }] } });
+            if (message.method === 'initialize') print({ id: message.id, result: { userAgent: `${message.params?.clientInfo?.name ?? 'client'}/0.166.0 (fake)` } });
+            else if (message.method === 'model/list') print({ id: message.id, result: { data: [{ model: 'fake-model-1' }, { model: 'fake-model-2' }] } });
+            else if (message.method) realtime(message);
         }
     });
     process.stdin.on('end', () => process.exit(0));
@@ -456,4 +457,54 @@ async function main() {
         done(`Wrote ${file}`);
     }
     print({ type: 'turn.completed', usage: { input_tokens: 10, output_tokens: 5 } });
+}
+
+
+/**
+ * Deterministic realtime voice of the fake app server, mirroring Codex with a ChatGPT login: the websocket transport
+ * requires API-key auth and only realtime v3 WebRTC calls are accepted. $FAKE_CODEX_VOICE selects the release/account:
+ * `ready` (default), `old` (no realtime interface), `api-key` (an API-key login) or `denied` (no realtime access). Every
+ * request is appended to $FAKE_CODEX_VOICE_LOG with the app-server `-c` overrides. $FAKE_CODEX_VOICE_DELAY_MS (default
+ * 800) after answering the offer, the provider "hears" one Czech question and answers it (transcripts and usage).
+ */
+function realtime(message) {
+    const mode = process.env.FAKE_CODEX_VOICE ?? 'ready';
+    const reply = (result) => message.id !== undefined && print({ id: message.id, result });
+    const notify = (method, params) => print({ method, params });
+    if (process.env.FAKE_CODEX_VOICE_LOG) appendFileSync(process.env.FAKE_CODEX_VOICE_LOG, `${JSON.stringify({ method: message.method, params: message.params, config: configOverrides() })}\n`);
+    switch (message.method) {
+        case 'thread/realtime/listVoices':
+            if (mode === 'old') return print({ id: message.id, error: { code: -32601, message: 'Method not found' } });
+            return reply({ voices: { v1: ['cove'], v2: ['marin'], defaultV1: 'cove', defaultV2: 'marin' } });
+        case 'account/read':
+            if (process.env.FAKE_CODEX_SIGNED_OUT) return reply({ account: null, requiresOpenaiAuth: true });
+            return reply({ account: mode === 'api-key' ? { type: 'apiKey' } : { type: 'chatgpt', email: 'fixture@example.test', planType: 'plus' }, requiresOpenaiAuth: true });
+        case 'thread/start':
+            return reply({ thread: { id: 'thr-voice' }, model: 'fake-model-1', modelProvider: 'openai', serviceTier: null });
+        case 'thread/realtime/start': {
+            reply({});
+            const params = message.params ?? {};
+            if (params.transport?.type !== 'webrtc') return notify('thread/realtime/error', { threadId: 'thr-voice', message: 'realtime conversation requires API key auth' });
+            if (params.version !== 'v3') return notify('thread/realtime/error', { threadId: 'thr-voice', message: 'AVAS realtime calls require realtime v1 or v3' });
+            if (mode === 'denied') return notify('thread/realtime/error', { threadId: 'thr-voice', message: 'Realtime voice is not available for this plan.' });
+            if (!String(params.transport.sdp).includes('m=audio')) return notify('thread/realtime/error', { threadId: 'thr-voice', message: 'Offer did not have an audio media section.' });
+            notify('thread/realtime/started', { threadId: 'thr-voice', realtimeSessionId: 'rt-fake', version: 'v3' });
+            notify('thread/realtime/sdp', { threadId: 'thr-voice', sdp: 'v=0\r\ns=fake-answer\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n' });
+            setTimeout(() => {
+                notify('thread/realtime/transcript/delta', { threadId: 'thr-voice', role: 'user', delta: 'Ahoj, jaký' });
+                notify('thread/realtime/transcript/done', { threadId: 'thr-voice', role: 'user', text: 'Ahoj, jaký je stav projektu?' });
+                notify('thread/realtime/transcript/delta', { threadId: 'thr-voice', role: 'assistant', delta: 'Všechno' });
+                notify('thread/realtime/transcript/done', { threadId: 'thr-voice', role: 'assistant', text: 'Všechno běží podle plánu.' });
+                notify('thread/tokenUsage/updated', { threadId: 'thr-voice', turnId: 't1', tokenUsage: { total: { totalTokens: 120, inputTokens: 100, cachedInputTokens: 0, cacheWriteInputTokens: 0, outputTokens: 20, reasoningOutputTokens: 0 }, last: {}, modelContextWindow: null } });
+            }, Number(process.env.FAKE_CODEX_VOICE_DELAY_MS ?? 800));
+            return;
+        }
+        case 'thread/realtime/appendText':
+            return reply({});
+        case 'thread/realtime/stop':
+            reply({});
+            return notify('thread/realtime/closed', { threadId: 'thr-voice', reason: 'stopped' });
+        default:
+            if (message.id !== undefined) print({ id: message.id, error: { code: -32601, message: `Method not found: ${message.method}` } });
+    }
 }

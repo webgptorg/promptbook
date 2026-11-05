@@ -1,4 +1,5 @@
 import type { HarnessToolRecord, HarnessVariant, ThinkingLevel } from '../tools/model.js';
+import type { HarnessVoiceSupport } from './voice.js';
 
 /**
  * How a harness is authenticated.
@@ -371,6 +372,8 @@ export type HarnessPlugin = {
     readonly sessions?: HarnessSessionSupport;
     /** Final assistant message when the format has no explicit message events (plain-text output). */
     readonly finalMessageFromOutput?: (stdout: string) => string;
+    /** Realtime voice implementation (absent: the shared not-implemented result of `voiceSupport`). */
+    readonly voice?: HarnessVoiceSupport;
 };
 
 /**

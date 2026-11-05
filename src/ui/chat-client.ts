@@ -16,6 +16,9 @@ import type { EffectsReply, EffectsRequest } from '../engine/effects.js';
 import { ProjectClient } from './project-client.js';
 import { terminalHasFocus } from './keys.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import { openInBrowser } from '../common/open-url.js';
+import { remoteTerminal } from '../harness/voice.js';
+import type { VoiceCallView } from '../chats/voice-call.js';
 
 /**
  * Outcome of sending a chat message.
@@ -59,6 +62,22 @@ export type ChatSource = {
     readonly seen?: (name: string, messages: readonly number[]) => Promise<void>;
     /** Whether agent replies are produced (a running service or this client); otherwise they wait for the service. */
     readonly replies: boolean;
+    /** Realtime voice of the running engine on this computer (absent without a local engine control channel). */
+    readonly voice?: VoiceControls;
+};
+
+/**
+ * Terminal control of a chat's realtime voice call.
+ *
+ * @private chat client
+ */
+export type VoiceControls = {
+    /** Starts (or returns the live) call; its private page URL is for this terminal only. */
+    readonly start: (name: string) => Promise<{ readonly call: VoiceCallView; readonly url: string }>;
+    /** Ends or mutes the call. */
+    readonly control: (name: string, action: 'end' | 'mute-mic' | 'unmute-mic' | 'mute-output' | 'unmute-output') => Promise<VoiceCallView>;
+    /** Renews this terminal's lease (the call ends when the terminal is gone). */
+    readonly heartbeat: (name: string) => Promise<VoiceCallView | null>;
 };
 
 /**
@@ -81,7 +100,49 @@ export function controlChatSource(request: (method: string, params?: Readonly<Re
             await request('chat-seen', { name, messages });
         },
         replies: true,
+        voice: {
+            start: async (name) => (await request('voice-start', { name })) as { call: VoiceCallView; url: string },
+            control: async (name, action) => (await request('voice-control', { name, action })) as VoiceCallView,
+            heartbeat: async (name) => (await request('voice-heartbeat', { name })) as VoiceCallView | null,
+        },
     };
+}
+
+/**
+ * Whether a voice call is still live (not ended or failed).
+ *
+ * @private chat client
+ */
+export function voiceLive(call: VoiceCallView | undefined): boolean {
+    return Boolean(call && call.state !== 'ended' && call.state !== 'failed');
+}
+
+/**
+ * Terminal presentation of a voice call: its actual state, mute states, serving tool, provisional captions and
+ * problems (incomplete recording included).
+ *
+ * @private chat client
+ */
+export function voiceLines(call: VoiceCallView, width: number): Array<{ readonly text: string; readonly tone: 'accent' | 'muted' | 'warning' }> {
+    const labels: Record<VoiceCallView['state'], string> = {
+        connecting: 'connecting…',
+        'awaiting-browser': call.mic === 'denied' ? 'microphone denied in the browser' : call.playback === 'blocked' ? 'click the voice page to allow sound' : call.page === 'connected' ? 'waiting for the microphone (allow it on the voice page)' : 'waiting for the voice page in your browser',
+        listening: 'listening',
+        speaking: `${call.agent} is speaking`,
+        reconnecting: 'voice page closed; reopen it or the call ends',
+        ending: 'ending…',
+        ended: 'ended',
+        failed: 'failed',
+    };
+    const live = voiceLive(call);
+    const lines: Array<{ text: string; tone: 'accent' | 'muted' | 'warning' }> = [
+        { text: `♪ Voice · ${labels[call.state]}${live ? ` · mic ${call.micMuted ? 'muted' : 'on'} · sound ${call.outputMuted ? 'muted' : 'on'}` : ''} · ${call.tool ?? call.harness}`, tone: live && call.state !== 'awaiting-browser' && call.state !== 'reconnecting' ? 'accent' : live ? 'warning' : 'muted' },
+    ];
+    if (call.captions.user) lines.push({ text: `  You (provisional): ${truncate(call.captions.user, width - 24)}`, tone: 'muted' });
+    if (call.captions.assistant) lines.push({ text: `  ${call.agent} (provisional): ${truncate(call.captions.assistant, width - 30)}`, tone: 'muted' });
+    if (call.problem) lines.push({ text: `  ${truncate(call.problem, width - 4)}`, tone: 'warning' });
+    for (const problem of call.archive.slice(-2)) lines.push({ text: `  ${truncate(problem, width - 4)}`, tone: 'warning' });
+    return lines;
 }
 
 /**
@@ -154,6 +215,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     let lastInput = Date.now();
     /** Calling messages already reported as displayed (each is sent once). */
     const reportedSeen = new Set<string>();
+    /** A voice start/control request in flight (never two at once). */
+    let voiceBusy = false;
     const projectClient = options.projectClient ?? new ProjectClient(terminal, source.effects, { title: true, changed: () => draw(), activate: (effect) => {
         notice = effect.chat === name ? `Notification for this chat, message ${effect.message ?? ''}. Your draft is kept.` : effect.chat ? `Attention in {${effect.chat}}. Open that chat after saving your draft.` : `Attention in ${effect.domain}. Open this project's dashboard to respond.`;
         draw();
@@ -183,6 +246,10 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             return [`${tone(`${card.state === 'completed' ? marks.ok : card.state === 'failed' ? marks.fail : card.state === 'waiting' ? marks.warn : marks.bullet} ${card.state}`)} ${truncate(`{${card.name}}`, Math.max(20, width - 30))}${card.detail ? style.muted(` · ${truncate(card.detail.split('\n')[0]!, 60)}`) : ''}`, ...(card.receipts ?? []).map((receipt) => style.muted(`  ${truncate(receipt, Math.max(20, width - 8))}`))];
         });
         if ((detail?.tasks?.length ?? 0) > cards.length) cards.unshift(style.muted(`${detail!.tasks!.length - cards.length} earlier task(s) on the Tasks page`));
+        // The voice call's actual state; text input and task cards stay available during it.
+        // An ended call stays visible briefly (and while its recording is incomplete), then the ordinary chat returns.
+        const call = detail?.voice && (voiceLive(detail.voice) || detail.voice.archive.length || Date.now() - Date.parse(detail.voice.endedAt ?? '') < 30_000) ? detail.voice : undefined;
+        if (call) for (const line of voiceLines(call, width - 4)) cards.push(line.tone === 'accent' ? style.accent(line.text) : line.tone === 'warning' ? style.warning(line.text) : style.muted(line.text));
         const top = renderPanel({ title: `${marks.bullet} Chat`, titleRight: options.embedded ? 'Esc back to dashboard' : 'Ctrl+C close', lines: [...header, ...cards], width, tone: detail?.summary.status === 'waiting-for-user' ? 'attention' : 'accent', unicode: terminal.unicode, style });
         const question = awaited();
         const choices = question?.choices ?? [];
@@ -217,7 +284,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             style,
         });
         const keys = input.keys().map((key) => key.replace(/^Enter submit$/, 'Enter send').replace(/^Esc cancel$/, options.embedded ? 'Esc back' : 'Ctrl+C close (the service keeps running)'));
-        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(choiceFocus !== undefined ? ['Esc back to your message'] : choices.length && editor.empty ? ['↑↓ choose an answer', ...(terminal.pointer ? [POINTER_PICK_HINT] : [])] : []), ...(detail?.messages.some((message) => message.phase === 'progress') ? [`Ctrl+R ${showThinking ? 'hide' : 'show'} thinking`] : [])].join(' · ')}`, width));
+        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(choiceFocus !== undefined ? ['Esc back to your message'] : choices.length && editor.empty ? ['↑↓ choose an answer', ...(terminal.pointer ? [POINTER_PICK_HINT] : [])] : []), ...(detail?.messages.some((message) => message.phase === 'progress') ? [`Ctrl+R ${showThinking ? 'hide' : 'show'} thinking`] : []), ...voiceKeys()].join(' · ')}`, width));
         // On its own line: behind the long legend a failed send would be cut off.
         const noticeLines = notice ? wrap(`${marks.arrow} ${notice}`, width - 4).map((line) => `  ${line}`) : [];
         const available = Math.max(3, height - top.length - composer.length - noticeLines.length - 1);
@@ -304,8 +371,66 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         );
     };
 
+    /** The voice shortcuts that apply now (shown, never silently capturing typed text). */
+    const voiceKeys = (): string[] => {
+        if (!source.voice || !name) return [];
+        return voiceLive(detail?.voice) ? [`Ctrl+G end voice`, `Ctrl+N ${detail!.voice!.micMuted ? 'unmute' : 'mute'} mic`, `Ctrl+X ${detail!.voice!.outputMuted ? 'unmute' : 'mute'} sound`] : ['Ctrl+G start voice chat'];
+    };
+
+    /** Starts or ends voice in this chat; failures keep text chat and the draft. */
+    const toggleVoice = async (): Promise<void> => {
+        if (voiceBusy) return;
+        if (!source.voice) {
+            notice = 'Voice needs the project engine running on this computer (`ptbk start`).';
+            return draw();
+        }
+        if (!name) {
+            notice = 'Send a first message to create the chat, then start voice in it.';
+            return draw();
+        }
+        voiceBusy = true;
+        const chat = name;
+        try {
+            if (voiceLive(detail?.voice)) {
+                await source.voice.control(chat, 'end');
+                notice = 'Voice ended. The chat and its work continue; your draft is kept.';
+            } else if (remoteTerminal(process.env)) {
+                notice = 'Voice uses this computer’s microphone and speakers; over SSH they are not available. Text chat keeps working.';
+            } else {
+                notice = 'Starting voice…';
+                draw();
+                const started = await source.voice.start(chat);
+                const opened = await openInBrowser(started.url);
+                notice = opened ? 'The voice page opened in your browser: allow the microphone there. Controls stay here.' : `Open the voice page in your browser on this computer: ${started.url}`;
+            }
+        } catch (error) {
+            notice = `Voice is not available: ${errorMessage(error)}`;
+        } finally {
+            voiceBusy = false;
+        }
+        await refresh();
+    };
+
+    /** Mutes or unmutes the live call's microphone or sound. */
+    const muteVoice = async (side: 'mic' | 'output'): Promise<void> => {
+        const call = detail?.voice;
+        if (!source.voice || !name || !call || !voiceLive(call) || voiceBusy) return;
+        voiceBusy = true;
+        try {
+            const muted = side === 'mic' ? call.micMuted : call.outputMuted;
+            await source.voice.control(name, `${muted ? 'unmute' : 'mute'}-${side}`);
+        } catch (error) {
+            notice = errorMessage(error);
+        } finally {
+            voiceBusy = false;
+        }
+        await refresh();
+    };
+
     const refresh = async (): Promise<void> => {
         if (!name) return;
+        // This terminal controls a live call: its heartbeat keeps the lease (a lost terminal ends the call).
+        if (source.voice && voiceLive(detail?.voice)) await source.voice.heartbeat(name).catch(() => undefined);
         try {
             const next = await source.get(name);
             const changed = !detail || next.messages.length !== detail.messages.length || next.summary.status !== detail.summary.status;
@@ -347,6 +472,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     const close = (): void => {
         if (closed) return;
         closed = true;
+        // Leaving the chat ends its voice call (the chat, its history and its work continue).
+        if (source.voice && name && voiceLive(detail?.voice)) void source.voice.control(name, 'end').catch(() => undefined);
         keyboard.stop();
         clearInterval(timer);
         if (!options.projectClient) projectClient.close();
@@ -386,6 +513,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             showThinking = !showThinking;
             return draw();
         }
+        if (event.type === 'key' && event.ctrl && event.name === 'g') return void toggleVoice();
+        if (event.type === 'key' && event.ctrl && (event.name === 'n' || event.name === 'x') && voiceLive(detail?.voice)) return void muteVoice(event.name === 'n' ? 'mic' : 'output');
         // With an empty composer the arrows reach the offered answers: selectable, however many there are.
         const offered = awaited()?.choices ?? [];
         if (event.type === 'key' && offered.length && editor.empty && !input.attaching) {

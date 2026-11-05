@@ -58,6 +58,7 @@ export type KeyName =
     | 't'
     | 'v'
     | 'n'
+    | 'g'
     | 'x';
 
 /** Project-session input middleware, shared by nested composers and protected forms. */
@@ -144,6 +145,7 @@ const CONTROL: Readonly<Record<string, KeyEvent>> = {
     '\x14': { type: 'key', name: 't', ctrl: true },
     '\x16': { type: 'key', name: 'v', ctrl: true },
     '\x0e': { type: 'key', name: 'n', ctrl: true },
+    '\x07': { type: 'key', name: 'g', ctrl: true },
     '\x18': { type: 'key', name: 'x', ctrl: true },
 };
 
