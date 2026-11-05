@@ -51,3 +51,11 @@ dist-installer/
 /apps/desktop/renderer/vendor/
 /apps/desktop/release/
 /apps/desktop/icon.ico
+
+
+# Old before `reborn/2026-10`
+/apps/agents-server
+/apps/coder-landing
+/apps/playground
+/apps/utils
+/packages
