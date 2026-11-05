@@ -18,7 +18,7 @@ npm ci
 bash apps/android/build-apk.sh "$PWD/apps/android/release/Promptbook-android-preview.apk"
 ```
 
-The build takes the native runtime packages and their hashes from the signed Termux package index. The APK includes the package provenance, license notices and Git source in `assets/runtime.zip` under `licenses/`. The Gemini CLI package is pinned and integrity-checked. Android installs the native executables in its immutable native library directory. The WebView authenticates to the engine's ephemeral loopback server with a new app credential each time the engine starts.
+The build takes the native runtime packages and their hashes from the signed Termux package index. The APK includes the package provenance, license notices and Git, Bash and Readline source in `assets/runtime.zip` under `licenses/`. The Gemini CLI package is pinned and integrity-checked. Android installs the native executables in its immutable native library directory. The WebView authenticates to the engine's ephemeral loopback server with a new app credential each time the engine starts.
 
 The publish workflow builds and verifies the APK from the same tag as the desktop installers and attaches it and its SHA-256 checksum to that release. Android updates require the same signing key. Configure these GitHub Actions secrets for a persistent release signing identity:
 

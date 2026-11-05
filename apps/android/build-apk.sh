@@ -7,10 +7,11 @@ out=${1:?Usage: bash apps/android/build-apk.sh /absolute/path/to/Promptbook.apk}
 out=$(realpath -m "$out")
 version=$(node -p 'require("./package.json").version')
 version_code=$(node --input-type=module - "$version" <<'JS'
-const match = /^(\d+)\.(\d+)\.(\d+)(?:-(\d+))?$/.exec(process.argv[2]);
-if (!match) throw new Error('Android releases require the Promptbook numeric version format.');
+const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(process.argv[2]);
+if (!match) throw new Error('Android releases require a Promptbook version.');
 const [major, minor, patch] = match.slice(1, 4).map(Number);
-const prerelease = match[4] === undefined ? 999 : Number(match[4]);
+const serial = match[4]?.match(/(?:^|\.)(\d+)$/)?.[1];
+const prerelease = match[4] === undefined ? 999 : Number(serial ?? 0);
 if (major > 20 || minor > 999 || patch > 99 || (match[4] && prerelease > 998)) {
     throw new Error('This release version does not fit in the Android version code.');
 }
@@ -23,8 +24,8 @@ platform="$sdk/platforms/android-36/android.jar"
 ndk=${ANDROID_NDK_HOME:-"$sdk/ndk/28.2.13676358"}
 abi=${PTBK_ANDROID_ABI:-arm64-v8a}
 case "$abi" in
-    arm64-v8a) arch=aarch64 ;;
-    x86_64) arch=x86_64 ;;
+    arm64-v8a) arch=aarch64; node_arch=arm64 ;;
+    x86_64) arch=x86_64; node_arch=x64 ;;
     *) echo "Unsupported Android ABI $abi" >&2; exit 1 ;;
 esac
 min_sdk=28
@@ -55,7 +56,7 @@ mkdir "$payload/gemini"
 tar -xzf "$gemini" --strip-components=1 -C "$payload/gemini"
 (cd "$payload" && zip -q -r "$assets/runtime.zip" .)
 
-printf 'package io.ptbk.android;\nfinal class BuildVersion { static final String NAME = "%s"; }\n' "$version" \
+printf 'package io.ptbk.android;\nfinal class BuildVersion { static final String NAME = "%s"; static final String NODE_ARCH = "%s"; }\n' "$version" "$node_arch" \
     > "$build/generated/io/ptbk/android/BuildVersion.java"
 "$tools/aapt2" compile --dir apps/android/res -o "$build/resources.zip"
 test_flags=()

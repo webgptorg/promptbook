@@ -84,8 +84,11 @@ fi
 test "$(curl --silent --max-time 10 --noproxy '*' -o /dev/null -w '%{http_code}' \
     -H "Host: 127.0.0.1:$port" -H 'X-PTBK-Client: dashboard' "http://127.0.0.1:$host_port/api/session")" = 401
 
-# Reborn probes the real APK-installed harness using the environment of the app.
-adb shell run-as "$app" sh -c "'export LD_LIBRARY_PATH=\$PWD/cache/engine/$version/links PTBK_ANDROID_NODE=\$(readlink -f cache/engine/$version/bin/node) PTBK_ANDROID_GEMINI=\$PWD/cache/engine/$version/gemini/bundle/gemini.js HOME=\$PWD/files/home TMPDIR=\$PWD/files/tmp; cache/engine/$version/bin/gemini --version'" | grep -F '0.67.0'
+# Check the installed harness and the native commands its shell and search tools use.
+versions=$(adb shell run-as "$app" sh -c "'set -e; runtime=\$PWD/cache/engine/$version; export LD_LIBRARY_PATH=\$runtime/links PTBK_ANDROID_NODE=\$(readlink -f \$runtime/bin/node) PTBK_ANDROID_GEMINI=\$runtime/gemini/bundle/gemini.js HOME=\$PWD/files/home TMPDIR=\$PWD/files/tmp; \$runtime/bin/bash -c \"echo bash-ready\"; \$runtime/gemini/bundle/rg-android-x64 --version; \$runtime/bin/gemini --version'")
+grep -Fx 'bash-ready' <<< "$versions"
+grep -F 'ripgrep ' <<< "$versions"
+grep -F '0.67.0' <<< "$versions"
 
 # The engine must answer with the activity closed, and finish when asked to stop.
 adb shell input keyevent KEYCODE_HOME

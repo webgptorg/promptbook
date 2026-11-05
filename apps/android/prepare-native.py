@@ -21,6 +21,7 @@ TOOLS = {
     'bin/node': 'libptbk_node.so',
     'bin/git': 'libptbk_git.so',
     'libexec/git-core/git-remote-https': 'libptbk_git_remote.so',
+    'bin/bash': 'libptbk_bash.so',
     'bin/rg': 'libptbk_rg.so',
 }
 
@@ -59,7 +60,7 @@ def repository_index(work, arch):
 
 def download_packages(work, index):
     """Resolve the Termux package dependencies from one coherent index."""
-    pending = ['nodejs-lts', 'git', 'ripgrep', 'ca-certificates']
+    pending = ['nodejs-lts', 'git', 'bash', 'ripgrep', 'ca-certificates']
     selected = {}
     while pending:
         name = pending.pop()
@@ -122,27 +123,44 @@ def pack_libraries(source, native, arch):
     return dependencies
 
 
-def git_source(work, licenses, version):
-    """Ship the source and patches corresponding to the Git program distributed in this APK."""
-    history = json.loads(download(f'{TERMUX_API}/commits?path=packages/git&per_page=12', work / 'git-history.json').read_text())
+def include_source(work, licenses, package, version):
+    """Ship the matching source and patches for the bundled GPL programs."""
+    recipe_path = f'packages/{package}'
+    history = json.loads(download(f'{TERMUX_API}/commits?path={recipe_path}&per_page=12',
+                                  work / f'{package}-history.json').read_text())
     for commit in history:
         ref = commit['sha']
-        recipe_url = f'https://raw.githubusercontent.com/termux/termux-packages/{ref}/packages/git/build.sh'
-        recipe = download(recipe_url, licenses / 'git-termux-build.sh').read_text()
+        recipe_url = f'https://raw.githubusercontent.com/termux/termux-packages/{ref}/{recipe_path}/build.sh'
+        recipe = download(recipe_url, licenses / f'{package}-termux-build.sh').read_text()
         upstream = re.search(r'^TERMUX_PKG_VERSION="?([\d.]+)"?$', recipe, re.M)
         revision = re.search(r'^TERMUX_PKG_REVISION="?(\d+)"?$', recipe, re.M)
         if not upstream or version != upstream[1] + (f'-{revision[1]}' if revision else ''):
             continue
         digest = re.search(r'^TERMUX_PKG_SHA256=([0-9a-f]{64})', recipe, re.M)[1]
-        source = f'git-{upstream[1]}.tar.xz'
-        download(f'https://mirrors.kernel.org/pub/software/scm/git/{source}', licenses / source, digest)
-        files = json.loads(download(f'{TERMUX_API}/contents/packages/git?ref={ref}', work / 'git-recipe-files.json').read_text())
+        if package == 'git':
+            source = f'git-{upstream[1]}.tar.xz'
+            download(f'https://mirrors.kernel.org/pub/software/scm/git/{source}', licenses / source, digest)
+        else:
+            main_version, patch_number = upstream[1].rsplit('.', 1)
+            source = f'{package}-{main_version}.tar.gz'
+            root = f'https://mirrors.kernel.org/gnu/{package}'
+            download(f'{root}/{source}', licenses / source, digest)
+            patch_prefix = f'{package}{main_version.replace(".", "")}'
+            checksums = dict(re.findall(r'PATCH_CHECKSUMS\[(\d{3})\]=([0-9a-f]{64})', recipe))
+            def patch_source(number):
+                index = f'{number:03d}'
+                filename = f'{patch_prefix}-{index}'
+                download(f'{root}/{package}-{main_version}-patches/{filename}', licenses / filename, checksums[index])
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                list(pool.map(patch_source, range(1, int(patch_number) + 1)))
+        files = json.loads(download(f'{TERMUX_API}/contents/{recipe_path}?ref={ref}',
+                                    work / f'{package}-recipe-files.json').read_text())
         for file in files:
             if file['type'] == 'file' and file['name'].endswith('.patch'):
-                download(file['download_url'], licenses / f'git-{file["name"]}')
-        (licenses / 'git-termux-source.txt').write_text(f'https://github.com/termux/termux-packages/tree/{ref}/packages/git\n')
+                download(file['download_url'], licenses / f'{package}-{file["name"]}')
+        (licenses / f'{package}-termux-source.txt').write_text(f'https://github.com/termux/termux-packages/tree/{ref}/{recipe_path}\n')
         return
-    raise ValueError(f'Could not find the corresponding Termux build recipe for Git {version}.')
+    raise ValueError(f'Could not find the corresponding Termux build recipe for {package} {version}.')
 
 
 def main():
@@ -167,7 +185,8 @@ def main():
             shutil.copytree(license_dir, licenses / name, ignore_dangling_symlinks=True)
         versions.append(f"{name} {fields['Version']} {TERMUX}/{fields['Filename']} {fields['SHA256']}")
     (licenses / 'termux-packages.txt').write_text('\n'.join(versions) + '\n')
-    git_source(work, licenses, selected['git']['Version'].split(':')[-1])
+    for package in ('git', 'bash', 'readline'):
+        include_source(work, licenses, package, selected[package]['Version'].split(':')[-1])
 
 
 if __name__ == '__main__':

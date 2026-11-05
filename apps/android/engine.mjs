@@ -42,7 +42,7 @@ try {
                 name: 'gemini',
                 isEnabled: true,
                 authentication: 'API_KEY',
-                apiKey: '${{ env.PTBK_ANDROID_GEMINI_KEY }}',
+                apiKeyEnv: 'PTBK_ANDROID_GEMINI_KEY',
             },
         });
         if (result.outcome !== 'ready') throw new Error(result.unresolved.join(' ') || 'Project setup is incomplete.');

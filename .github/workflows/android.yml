@@ -47,9 +47,16 @@ jobs:
           sudo chown "$(id -u)" /dev/kvm
           sdkmanager --install 'platform-tools' 'emulator' 'system-images;android-36;default;x86_64'
           echo no | avdmanager create avd -n promptbook-ci -k 'system-images;android-36;default;x86_64'
-          "$ANDROID_HOME/emulator/emulator" -avd promptbook-ci -no-window -no-snapshot -no-audio -no-boot-anim -gpu swiftshader_indirect -memory 2048 -cores 2 > "$RUNNER_TEMP/promptbook-emulator.log" 2>&1 &
+          "$ANDROID_HOME/emulator/emulator" -avd promptbook-ci -no-window -no-snapshot -no-audio -no-boot-anim -no-metrics -gpu swiftshader_indirect -memory 2048 -cores 2 > "$RUNNER_TEMP/promptbook-emulator.log" 2>&1 &
           emulator_pid=$!
-          trap 'kill "$emulator_pid" 2>/dev/null || true' EXIT
+          cleanup() {
+            result=$?
+            if (( result != 0 )); then
+              timeout 15 adb logcat -d -t 500 > "$RUNNER_TEMP/promptbook-logcat.log" 2>&1 || true
+            fi
+            kill "$emulator_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
           timeout 240 adb wait-for-device
           timeout 180 bash -c 'until [[ $(adb shell getprop sys.boot_completed | tr -d "\r") == 1 ]]; do sleep 2; done'
           bash apps/android/test/emulator.sh "$RUNNER_TEMP/promptbook-emulator.apk"
@@ -57,4 +64,4 @@ jobs:
         if: failure()
         run: |
           tail -100 "$RUNNER_TEMP/promptbook-emulator.log" || true
-          adb logcat -d -t 500 || true
+          tail -500 "$RUNNER_TEMP/promptbook-logcat.log" || true

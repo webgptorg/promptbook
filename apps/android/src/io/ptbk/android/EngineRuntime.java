@@ -26,10 +26,16 @@ final class EngineRuntime {
         File project = directory(new File(files, "project"));
         File home = directory(new File(files, "home"));
         File temporary = directory(new File(files, "tmp"));
+        File gemini = new File(runtime, "gemini/bundle");
+        File bash = new File(nativeDir, "libptbk_bash.so");
+        File ripgrep = new File(nativeDir, "libptbk_rg.so");
         link(bin, "node", node);
         link(bin, "git", new File(nativeDir, "libptbk_git.so"));
         link(bin, "gemini", new File(nativeDir, "libptbk_gemini.so"));
-        link(bin, "rg", new File(nativeDir, "libptbk_rg.so"));
+        link(bin, "bash", bash);
+        link(bin, "rg", ripgrep);
+        // Gemini looks for a packaged ripgrep before considering system paths.
+        link(gemini, "rg-android-" + BuildVersion.NODE_ARCH, ripgrep);
         File remote = new File(nativeDir, "libptbk_git_remote.so");
         link(gitCore, "git-remote-http", remote);
         link(gitCore, "git-remote-https", remote);
@@ -45,7 +51,7 @@ final class EngineRuntime {
         env.put("HOME", home.getAbsolutePath());
         env.put("TMPDIR", temporary.getAbsolutePath());
         env.put("LD_LIBRARY_PATH", links.getAbsolutePath());
-        env.put("SHELL", "/system/bin/sh");
+        env.put("SHELL", new File(bin, "bash").getAbsolutePath());
         env.put("GIT_EXEC_PATH", gitCore.getAbsolutePath());
         env.put("GIT_TEMPLATE_DIR", new File(runtime, "git-templates").getAbsolutePath());
         env.put("GIT_CONFIG_NOSYSTEM", "1");
@@ -57,7 +63,7 @@ final class EngineRuntime {
         env.put("GIT_CONFIG_VALUE_1", "promptbook@localhost");
         env.put("PTBK_BROWSER_START", "lazy");
         env.put("PTBK_ANDROID_NODE", node.getAbsolutePath());
-        env.put("PTBK_ANDROID_GEMINI", new File(runtime, "gemini/bundle/gemini.js").getAbsolutePath());
+        env.put("PTBK_ANDROID_GEMINI", new File(gemini, "gemini.js").getAbsolutePath());
         env.put("PTBK_ANDROID_DASHBOARD_KEY", dashboardKey);
         if (!geminiKey.isEmpty()) env.put("PTBK_ANDROID_GEMINI_KEY", geminiKey);
         return builder.start();

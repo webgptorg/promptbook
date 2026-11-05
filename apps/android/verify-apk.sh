@@ -13,7 +13,7 @@ metadata=$("$tools/aapt2" dump badging "$apk")
 grep -F "name='io.ptbk.android'" <<< "$metadata"
 grep -F "versionName='$version'" <<< "$metadata"
 grep -Fx "native-code: '$abi'" <<< "$metadata"
-for file in libptbk_node.so libptbk_git.so libptbk_git_remote.so libptbk_rg.so libptbk_gemini.so; do
+for file in libptbk_node.so libptbk_git.so libptbk_git_remote.so libptbk_bash.so libptbk_rg.so libptbk_gemini.so; do
     unzip -Z1 "$apk" "lib/$abi/$file" >/dev/null
 done
 unzip -Z1 "$apk" assets/runtime.zip >/dev/null
