@@ -4,11 +4,9 @@
 
 ## Purpose and boundary
 
-Give nontechnical users, initially a marketing agency, a short path from downloading Promptbook to the existing interactive `ptbk init`. They must not need to understand npm, install Git/Node.js manually, choose a project location from scratch or type the first command. Instructions and demonstration videos can begin with the shared initializer already open in the selected desktop or terminal presentation.
+Give users a short path from downloading Promptbook to opening the local application. The Windows wizard prepares required software, installs the exact released engine and CLI, and offers the [local desktop client](desktop.md) as a default-selected component. Existing global/local npm and CLI-only workflows remain supported. Harness selection, sign-in, Git configuration, and project creation belong to ordinary init.
 
-Windows is the initial scope; installers for other operating systems are future work. Offer the optional [local desktop client](desktop.md), selected by default, alongside the engine/CLI. Harness selection and installation, including Codex and Claude Code, belong to the ordinary project initializer rather than Windows installer components. Existing global/local npm and CLI-only workflows remain supported.
-
-The installer is a very thin bootstrap layer: prepare prerequisites, install the ordinary npm package, prepare an empty destination and launch the selected desktop client or ordinary CLI. Do not fork the engine, reimplement the initialization wizard, configure project tools/authentication separately or introduce another scheduler/updater. Project semantics remain in the [shared domain logic](../coding-standards/shared-logic.md).
+Project setup starts inside the desktop application, using the same experience as macOS. The installer has no project location or name fields, creates no project directories, and never runs `ptbk init` itself.
 
 ## Download and version contract
 
@@ -28,55 +26,31 @@ An incompatible Node.js installation remains intact; the installer selects its p
 
 Before installation, show the actual detection results: compatible software already available and the missing Node.js/npm or Git that will be installed. Required missing dependencies cannot be deselected; do not ask users to decide whether a tool is installed or present generic "install if missing" options.
 
-Prepare a usable global `ptbk` installation for the initiating user. Keep preparation in the installer window, with an animated progress bar and current stage, while capturing technical output in diagnostics. Do not open PowerShell, command prompt or download progress windows during preparation. The deliberately interactive CLI-only initializer is opened only after preparation succeeds. Ordinary OS permission prompts are allowed where needed, but use elevation only for operations that require it. Project creation and CLI handoff run as the original user, not as an elevated administrator or a different administrator account.
+Prepare a usable global `ptbk` installation for the initiating user. Keep preparation in the installer window, with an animated progress bar and current stage, while capturing technical output in diagnostics. Do not open PowerShell, command prompt or download progress windows during preparation. Ordinary OS permission prompts are allowed where needed, but use elevation only for operations that require it. The desktop application opens as the original user after successful preparation.
 
-Make the selected executables available immediately to the launched terminal, including fresh PATH changes, and to subsequent ordinary terminals. Do not require a log-out, manual environment-variable editing or a pre-existing Windows Terminal application. Never bypass OS security warnings or relax machine-wide execution policy to make launching work. An unavoidable platform/restart prerequisite is an explicit incomplete state with a recovery action, not a successful handoff.
-
-## Project location
-
-Propose a writable projects root beneath the initiating user's actual home, defaulting to `<resolved-user-home>/ptbk/project/` under the shared [home/identity policy](workspace.md#home-directory-and-shared-projects-root). Show the resolved path and allow a different location. Create it if missing, otherwise reuse it. This is an ordinary container for independent project directories, not itself a Promptbook project, Git repository or global engine workspace.
-
-If a legacy file or unavailable link occupies either segment of that default, select the shared safe alternative `<home>/ptbk-projects` (then numbered siblings when needed), explain the alternative and display its resolved path in the wizard. Preserve the occupying item, including an empty file. Reserve npm's extensionless `ptbk` launcher at its resolved global prefix even before it exists; do not create a projects directory where npm needs that launcher. Recheck the default after preparing Node/npm. Explicitly supplied or edited locations never move to another folder automatically. Read-only default discovery creates no project directories; create the accepted container only after the software location is known.
-
-Offer **Create the first project** with an editable, sensible folder name and a way to skip it. Create one empty child directory for the accepted project. Folder naming is not a project brief; intent is still collected by init. Do not prepopulate Books, `ptbk.json`, package metadata or `.git` in either the projects root or its new child.
-
-Validate the complete projects root and valid Windows child name before installing or changing prerequisites or the CLI, and recheck before handoff. Create all missing parent directories using literal filesystem paths. A file where a directory is needed, inaccessible ancestor, unavailable link, or existing nonempty destination is an actionable folder error; preserve the conflicting item. An existing first-project directory link is refused rather than initializing outside the selected root. Keep the original failing path, ancestor types and underlying OS error in diagnostics. Skipping project creation does not require or create a projects root.
-
-Validate writability and valid Windows names before handoff. A collision must not overwrite content: offer another name or explicit reuse of an existing empty directory. Do not silently initialize a nonempty directory, create a duplicate project on retry, or interpret a project name as a path escaping the selected root. Spaces, Unicode and shell-special characters in valid paths must be handled safely without changing their meaning or executing them as commands.
-
-Skipping the first project leaves the CLI installed and reports that no project was initialized. It must not initialize the projects root as a fallback. With desktop selected, open its project overview without starting first-project setup on that launch; New project returns to shared init. CLI-only completion explains how to run init later.
+Make the selected executables available immediately to the launched application and to subsequent ordinary terminals, including fresh PATH changes. Do not require a log-out, manual environment-variable editing or a pre-existing Windows Terminal application. Never bypass OS security warnings or relax machine-wide execution policy to make launching work. An unavoidable platform/restart prerequisite is an explicit incomplete state with a recovery action, not a successful handoff.
 
 ## Client handoff
 
-With desktop selected, completion opens its visible window and the shared graphical initializer for the accepted first-project directory. With desktop deselected, completion opens a visible interactive terminal **and starts `ptbk init` automatically** in that directory. Pass the same destination explicitly through the existing `--path` selection so init reuses it instead of asking the user to choose another current-directory/subfolder location. Resolve the intended installed CLI rather than accidentally invoking another version or downloading one through an unpinned command.
+With desktop selected, open the application through its ordinary launch entry point after successful installation. It discovers known projects and uses its normal first-launch behavior. The desktop initializer owns [intent, location and name](initialization.md#initial-input-and-destination). With CLI-only selected, point users to the Start menu’s **Promptbook terminal** and `ptbk init` when they are ready.
 
-The terminal supports the existing interactive wizard with working input/output. Show the command being run, keep the terminal open after success, cancellation or error, and leave the user in the project directory. CLI-only users continue in the CLI. With desktop selected, open its clickable presentation of the same initializer instead; native terminal-only steps run in its embedded terminal. From this point, the normal intent-first wizard owns local/global package choice, Git preparation, tools and login, configuration, setup commits and background start.
-
-Installer completion does not mean project initialization, authentication or the first task has completed. Do not start a second engine or dashboard around init; its ordinary completion and `ptbk dashboard` hint remain authoritative. Closing the installer must not terminate the handed-off terminal or an engine subsequently started by init.
-
-If automatic terminal launch is unavailable, report the failed handoff distinctly and provide Retry plus the exact project directory and correctly quoted command to run. A merely prepared/copied command is a recovery path, not the normal successful automatic-handoff experience. Cancelling init preserves its normal resumable behavior rather than causing an installer retry loop.
+Report desktop launch failures separately with a retry and the Start menu recovery path. Installation success reports software availability. The application reports project initialization, authentication and engine startup through their ordinary flows.
 
 ## Retry and preservation
 
-Separate preparation, directory creation and terminal handoff outcomes. A failed download, denied permission or package installation must stop the dependent steps, show the actual failed stage, error and useful retry action directly in the installer, and retain readable diagnostics without secrets. Unexpected PowerShell exceptions use the same result channel; no message may rely on a separate terminal window. Retry transient downloads and verify their checksums before use. Never launch an initializer against missing/unverified dependencies or claim a project is ready merely because the installer finished.
+Separate software preparation and desktop launch outcomes. A failed download, denied permission or package installation stops dependent steps and shows the failed stage, error and a useful retry action directly in the installer. Keep readable, redacted diagnostics and verify downloads before use. Unexpected PowerShell exceptions use the same result channel.
 
-Every handled preparation error, invalid destination and installed-version decision offers **Copy report**. The report is selectable/scrollable and includes the exact installer version, OS/PowerShell, failed stage/code, selected destination, useful recovery action and recent diagnostics, with credentials redacted and no environment dump. Copying must keep the dialog open without choosing Retry, Replace or Cancel; report access remains on the incomplete final page. If PowerShell or report creation fails, the native dialog still provides a minimal report. Folder failures after preparation allow selecting another projects root without discarding satisfied installation steps.
+Every handled preparation error and installed-version decision offers **Copy report**. The selectable report includes the installer version, OS/PowerShell, failed stage/code, recovery action and recent diagnostics. Copying keeps the dialog open and report access remains available on the incomplete final page. If PowerShell or report creation fails, the native dialog still provides a minimal report.
 
-Repeating setup rechecks and reuses satisfied prerequisites, the requested package version and approved empty destination. Do not duplicate PATH entries, reset project configuration, delete existing user files or launch duplicate initializers from repeated completion actions. Resume already-started project setup through ordinary CLI behavior with explicit user intent, not by treating its now-nonempty directory as a new empty project. Reinstallation, repair and any removal of the bootstrap layer preserve user projects and shared Node.js/npm/Git installations.
+Repeating setup reuses satisfied prerequisites and the requested package version. Preserve user projects, their configuration and shared Node.js/npm/Git installations across retries, repairs and uninstall.
 
 ## Acceptance outcomes
 
-- **Clean Windows:** Without Node.js, npm, Git or Windows Terminal, downloading and running the supported installer prepares the dependencies and exact released CLI, offers a home-based first project, and opens its working interactive initializer without manual shell commands.
-- **Existing or partial prerequisites:** Compatible tools are unchanged; only missing prerequisites are installed. Missing npm, stale PATH, incompatible versions and an existing different `ptbk` version have explicit outcomes without silent toolchain replacement/downgrade.
-- **Paths and collisions:** A home/project path containing spaces, Unicode and valid shell-special characters works; unwritable/invalid paths are diagnosed, nonempty collisions preserve every file, and the projects root never becomes an implicit Git/Promptbook project.
-- **Normal CLI parity:** The selected directory is reused, intent remains the first project-setup input, and ordinary local-install, Git, authentication, update and completion behavior is retained. There is one initializer and at most the ordinary single project engine, with no installer-specific project format or extra start.
-- **Interrupted/repeated setup:** Download failure, denied elevation, cancellation and a second installer run retain progress safely. No required failed step is reported as successful, no user data is removed, and retries do not duplicate projects or launches.
-- **Handoff or skip:** The normal path executes init and keeps its terminal open; launch failure supplies a visible recovery action. Skipping project creation installs the CLI without initializing any directory. Closing the bootstrapper leaves an already-handed-off terminal/engine alone.
-- **Release integration:** Every published version has a downloadable matching installer as well as the existing npm package. A missing, corrupt or mismatched artifact makes the release incomplete; clean-machine checks and retry behavior follow [release publication](releasing.md).
-
-## Desktop components and completion
-
-The desktop executable and tray controller follow [the desktop contract](desktop.md). Install a matching release payload, register only the tray at Windows sign-in and launch a visible application window at completion. Closing that window leaves the engines and tray alone. Normal init owns harness preparation and authentication. Desktop failure is an incomplete installation with retry diagnostics. CLI-only selection keeps the terminal handoff described above.
+- **Clean Windows:** Prepare missing prerequisites and the exact released CLI. With desktop selected, open the same application experience as on macOS.
+- **CLI only:** Install the CLI and explain how to invoke `ptbk init` from Promptbook terminal later.
+- **Existing or partial prerequisites:** Reuse compatible tools and report incompatible or different installations without silently replacing them.
+- **Interrupted or repeated setup:** Preserve progress and existing user data. Project directories remain untouched, including where a previous default location contains an ordinary file.
+- **Release integration:** Every published version has a verified matching Windows installer alongside the npm package.
 
 ## Windows discovery and completion
 
@@ -84,4 +58,4 @@ Show the Promptbook logo and license acceptance before installation. Create `Pro
 
 ## Unattended installer verification
 
-For reproducible Windows checks, `/ProjectsRoot="<path>"` and `/ProjectName="<name>"` select the same fields as the wizard. `/SkipProject=yes` selects its ordinary skip option. `/PrepareOnly=yes` explicitly suppresses initializer launch after verifying software and preparing the empty destination; completion states that project setup was not launched. These options compose with Inno Setup's standard silent/component switches, retain the same validation and nonzero incomplete outcomes, and never change ordinary double-click setup behavior.
+For reproducible Windows checks, `/PrepareOnly=yes` suppresses opening the desktop application after verifying and installing the selected software. It composes with Inno Setup’s standard silent and component switches and retains nonzero incomplete outcomes.

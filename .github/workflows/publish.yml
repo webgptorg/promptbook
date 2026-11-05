@@ -101,11 +101,12 @@ jobs:
         run: |
           # The version was published moments ago: an installation failure (exit 5) is retried while the registry propagates it.
           foreach ($attempt in 1..6) {
-            powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -ProjectsRoot (Join-Path $env:RUNNER_TEMP 'Promptbook Release') -ProjectName 'first project' -AllowPtbkReplacement -NoLaunch
+            powershell -NoProfile -ExecutionPolicy Bypass -File .\installer\windows\bootstrap.ps1 -PromptbookVersion $env:PTBK_VERSION -SkipProject -AllowPtbkReplacement -NoLaunch
             if ($LASTEXITCODE -ne 5) { break }
             Start-Sleep -Seconds 20
           }
-          if ($LASTEXITCODE -ne 0) { throw "bootstrap exited with $LASTEXITCODE" }
+          if ($LASTEXITCODE -ne 2) { throw "bootstrap exited with $LASTEXITCODE" }
+          $global:LASTEXITCODE = 0
           # npm.cmd explicitly: plain `npm` may resolve to npm.ps1, which the execution policy can block.
           $reported = & (Join-Path (npm.cmd prefix --global).Trim() 'ptbk.cmd') --version
           if ($reported -notmatch [regex]::Escape($env:PTBK_VERSION)) { throw "installed ptbk reports $reported" }

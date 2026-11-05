@@ -1,19 +1,21 @@
 :root {
     color-scheme: light;
-    --bg: #f7f9fc;
+    --bg: #ffffff;
     --panel: #ffffff;
     --surface: #eef4fb;
     --hover: #e5edf8;
     --line: #cfd9e7;
     --text: #1b2739;
+    --heading: #111318;
     --muted: #596577;
     --accent: #17386c;
     --accent-ink: #ffffff;
     --success: #087044;
+    --warning: #895208;
     --danger: #a12434;
     --radius: 8px;
     --sidebar-width: 216px;
-    font: 14px/1.5 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+    font: 14px/1.5 Inter, system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,10 +27,12 @@
         --hover: #243652;
         --line: #394962;
         --text: #f1f5fc;
+        --heading: #f1f5fc;
         --muted: #b2bfd2;
         --accent: #9dbbf0;
         --accent-ink: #102347;
         --success: #86dfae;
+        --warning: #ffcc73;
         --danger: #ffa1a7;
     }
 }
@@ -41,7 +45,7 @@ body {
     margin: 0;
     height: 100vh;
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    grid-template-columns: auto 8px minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
     overflow: hidden;
     background: var(--bg);
@@ -54,7 +58,7 @@ header {
     align-items: center;
     gap: 12px;
     min-height: 64px;
-    padding: 10px 20px;
+    padding: 12px 20px;
     background: var(--panel);
     border-bottom: 1px solid var(--line);
 }
@@ -67,7 +71,7 @@ header {
 
 .brand img {
     display: block;
-    width: 168px;
+    width: 180px;
     height: auto;
 }
 
@@ -133,24 +137,100 @@ button.primary:not(:disabled):hover {
 
 .appearance {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--surface);
+}
+
+header .appearance button {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
     color: var(--muted);
+}
+
+.appearance svg {
+    width: 18px;
+    height: 18px;
+}
+
+header .appearance button[aria-pressed=true] {
+    border-color: var(--line);
+    background: var(--panel);
+    color: var(--accent);
 }
 
 aside {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: clamp(160px, var(--sidebar-width), min(480px, 45vw));
     min-height: 0;
     padding: 16px 12px;
     background: var(--surface);
-    border-right: 1px solid var(--line);
+}
+
+.pane-divider {
+    position: relative;
+    background: var(--surface);
+    touch-action: none;
+    user-select: none;
+}
+
+.pane-divider::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    background: var(--line);
+}
+
+.pane-divider[aria-orientation=vertical] {
+    cursor: col-resize;
+}
+
+.pane-divider[aria-orientation=vertical]::after {
+    width: 1px;
+    margin-inline: auto;
+}
+
+.pane-divider[aria-orientation=horizontal] {
+    flex: 0 0 8px;
+    cursor: row-resize;
+}
+
+.pane-divider[aria-orientation=horizontal]::after {
+    height: 1px;
+    margin-block: auto;
+}
+
+.pane-divider:is(:hover, :active, :focus-visible)::after {
+    background: var(--accent);
+}
+
+.pane-divider[aria-orientation=vertical]:is(:hover, :active, :focus-visible)::after {
+    width: 3px;
+}
+
+.pane-divider[aria-orientation=horizontal]:is(:hover, :active, :focus-visible)::after {
+    height: 3px;
+}
+
+.pane-divider:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
 }
 
 .wide {
     width: 100%;
     text-align: left;
+    white-space: normal;
 }
 
 .section-label {
@@ -192,6 +272,7 @@ nav small, footer {
 
 nav small {
     display: block;
+    padding-inline-start: 18px;
     font-weight: 400;
 }
 
@@ -236,6 +317,12 @@ main {
 #overview-pane {
     padding: 24px clamp(16px, 3vw, 32px);
     overflow: auto;
+}
+
+h1, h2, #heading {
+    color: var(--heading);
+    font-family: Outfit, Inter, system-ui, sans-serif;
+    font-weight: 600;
 }
 
 h1 {
@@ -291,7 +378,14 @@ td button {
     padding: 5px 9px;
 }
 
+.project-name, .state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .state {
+    display: inline-flex;
     padding: 3px 8px;
     border: 1px solid var(--line);
     border-radius: 16px;
@@ -299,8 +393,42 @@ td button {
     white-space: nowrap;
 }
 
-.state.running {
-    color: var(--success);
+.status-dot {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 10px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+.status-dot[data-status=running],
+.status-dot[data-status=pausing] {
+    background: var(--success);
+}
+
+.status-dot[data-status=stopped],
+.status-dot[data-status=stopping] {
+    background: var(--danger);
+}
+
+.status-dot[data-status=attention] {
+    background: var(--warning);
+}
+
+.status-dot:is([data-status=unreachable], [data-status=unknown], [data-status=missing]) {
+    border: 1px solid var(--muted);
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .status-dot:is([data-status=pausing], [data-status=stopping], [data-status=attention]) {
+        animation: status-pulse 1.5s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes status-pulse {
+    from { opacity: 1; }
+    to { opacity: .4; }
 }
 
 .empty {
@@ -358,11 +486,12 @@ td button {
 }
 
 #prompt-pane {
-    max-height: 58%;
+    flex: 0 1 auto;
+    height: var(--prompt-height, auto);
+    max-height: 72%;
     padding: 18px 24px;
     overflow: auto;
     background: var(--panel);
-    border-bottom: 1px solid var(--line);
 }
 
 .step {
@@ -483,7 +612,7 @@ form .toolbar {
         padding-inline: 12px;
     }
 
-    header button, .appearance select {
+    header button {
         padding-inline: 8px;
     }
 }

@@ -352,7 +352,7 @@
                 if (field.value.trim()) onSend(field.value);
             }
         });
-        return h('div', {}, field, h('div', { className: 'row', style: 'margin-top:8px' }, h('button', { className: 'primary', disabled, onclick: () => (field.value.trim() ? onSend(field.value) : field.focus()) }, 'Send'), h('span', { className: 'muted' }, 'Ctrl+Enter sends')));
+        return h('div', { className: 'composer' }, field, h('div', { className: 'row composer-actions' }, h('button', { className: 'primary', disabled, onclick: () => (field.value.trim() ? onSend(field.value) : field.focus()) }, 'Send'), h('span', { className: 'muted' }, 'Ctrl+Enter sends')));
     }
 
     function renderAttention(snapshot) {
@@ -423,7 +423,9 @@
             return card;
         }
         const { summary, messages } = chat.detail;
-        card.append(
+        const header = h('div', { className: 'conversation-header' });
+        const heading = desktop ? header : card;
+        heading.append(
             h(
                 'h2',
                 {},
@@ -432,9 +434,10 @@
                 h('span', { className: 'row' }, pill(summary.status === 'waiting-for-user' ? 'waiting for you' : summary.status, summary.status === 'waiting-for-user' ? 'warn' : summary.status === 'open' ? 'ok' : ''), h('button', { onclick: () => ((state.chat = null), render(state.snapshot)) }, 'Close')),
             ),
         );
-        if (summary.title && summary.title !== summary.name) card.append(h('div', { className: 'meta muted chat-name', title: 'The chat’s name (its identity)' }, `{${summary.name}}`));
+        if (summary.title && summary.title !== summary.name) heading.append(h('div', { className: 'meta muted chat-name', title: 'The chat’s name (its identity)' }, `{${summary.name}}`));
         const persistence = summary.persistence ? (summary.persistence.state === 'failed' ? ` · saved, commit failing (${summary.persistence.failure || 'retrying'})` : ' · saved, commit pending') : '';
-        card.append(h('div', { className: 'meta muted' }, `${summary.members.join(', ')} · ${summary.path}${summary.links.length ? ` · links ${summary.links.join(', ')}` : ''}${persistence}`));
+        heading.append(h('div', { className: 'meta muted' }, `${summary.members.join(', ')} · ${summary.path}${summary.links.length ? ` · links ${summary.links.join(', ')}` : ''}${persistence}`));
+        if (desktop) card.append(header);
         // Live task cards: work this chat created or links, with its actual state; the Tasks page has the details.
         const tasks = chat.detail.tasks || [];
         if (tasks.length) {

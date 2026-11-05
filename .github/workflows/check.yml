@@ -261,41 +261,27 @@ jobs:
           & ./installer/windows/prepare-artwork.ps1
           & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$numeric" installer\windows\promptbook.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
-      - name: Run the compiled installer with nested literal paths, then preserve a collision and support project skip
+      - name: Run the compiled installer twice without creating or modifying project folders
         shell: powershell
         run: |
           $installer = (Resolve-Path "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe").Path
           $work = Join-Path $env:RUNNER_TEMP ('Compiled Installer ' + [char]0x00FC + ' [x] & co')
-          $root = Join-Path $work 'nested\ptbk\project'
-          $target = Join-Path $root 'first project'
-          $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/COMPONENTS=core', '/PrepareOnly=yes', ('/ProjectsRoot="' + $root + '"'), '/ProjectName="first project"', ('/LOG="' + $work + '.log"'))
-          $process = Start-Process -FilePath $installer -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
-          if ($process.ExitCode -ne 0) { Get-Content -LiteralPath ($work + '.log'); throw "Compiled installer exited with $($process.ExitCode)" }
-          if (-not (Test-Path -LiteralPath $target -PathType Container)) { throw 'The compiled installer did not prepare the selected nested project.' }
-          if (Get-ChildItem -LiteralPath $target -Force) { throw 'PrepareOnly must leave the project empty, without running init.' }
-          $sentinel = Join-Path $target 'keep.txt'
-          [IO.File]::WriteAllText($sentinel, 'user file preserved')
-          $process = Start-Process -FilePath $installer -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
-          if ($process.ExitCode -eq 0) { throw 'A nonempty project must make the compiled installer report an incomplete outcome.' }
-          if ([IO.File]::ReadAllText($sentinel) -ne 'user file preserved') { throw 'The compiled installer changed existing project content.' }
-          $blocked = Join-Path $work 'blocked-root'
-          [IO.File]::WriteAllText($blocked, 'root file preserved')
-          $skip = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/COMPONENTS=core', '/SkipProject=yes', ('/ProjectsRoot="' + $blocked + '"'))
-          $process = Start-Process -FilePath $installer -ArgumentList $skip -WindowStyle Hidden -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw 'Skipping a project must succeed even with an unusable projects root.' }
-          if ([IO.File]::ReadAllText($blocked) -ne 'root file preserved') { throw 'Skipping touched the selected root.' }
-          # The exact reported case: the wizard's default home/ptbk is an old ordinary file.
+          [IO.Directory]::CreateDirectory($work) | Out-Null
           $originalHome = $env:USERPROFILE
           try {
-            $env:USERPROFILE = Join-Path $work 'legacy-home'
+            $env:USERPROFILE = Join-Path $work 'fixture home'
             [IO.Directory]::CreateDirectory($env:USERPROFILE) | Out-Null
             $legacy = Join-Path $env:USERPROFILE 'ptbk'
-            [IO.File]::WriteAllText($legacy, '')
-            $automatic = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/COMPONENTS=core', '/PrepareOnly=yes')
-            $process = Start-Process -FilePath $installer -ArgumentList $automatic -WindowStyle Hidden -Wait -PassThru
-            if ($process.ExitCode -ne 0) { throw 'The compiled installer failed on a legacy file in the default location.' }
-            if (-not (Test-Path -LiteralPath (Join-Path $env:USERPROFILE 'ptbk-projects\my-first-project') -PathType Container)) { throw 'The compiled installer did not use the safe alternative.' }
-            if (-not [IO.File]::Exists($legacy) -or (Get-Item -LiteralPath $legacy).Length -ne 0) { throw 'The original empty legacy file was changed.' }
+            [IO.File]::WriteAllText($legacy, 'user file preserved')
+            $project = Join-Path $work 'should not be created'
+            $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/COMPONENTS=core', '/PrepareOnly=yes', ('/ProjectsRoot="' + $project + '"'), '/ProjectName="first project"', ('/LOG="' + $work + '.log"'))
+            foreach ($attempt in 1..2) {
+              $process = Start-Process -FilePath $installer -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
+              if ($process.ExitCode -ne 0) { Get-Content -LiteralPath ($work + '.log'); throw "Compiled installer exited with $($process.ExitCode)" }
+              if (Test-Path -LiteralPath $project) { throw 'The installer used a removed project argument.' }
+              if (Test-Path -LiteralPath (Join-Path $env:USERPROFILE 'ptbk-projects')) { throw 'The installer created a fallback projects folder.' }
+              if ([IO.File]::ReadAllText($legacy) -ne 'user file preserved') { throw 'The installer changed an existing user file.' }
+            }
           } finally { $env:USERPROFILE = $originalHome }
       - uses: actions/upload-artifact@v6
         with:

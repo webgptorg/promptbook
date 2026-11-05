@@ -2,9 +2,7 @@
 ;
 ; Built automatically by the "Publish ptbk" workflow from the same release tag as the npm package:
 ;   iscc /DVersion=0.119.0-22 /DNumericVersion=0.119.0.22 installer\windows\promptbook.iss
-; It installs only the bootstrap script per user (no administrator rights of its own), asks for the projects folder
-; and the first project's folder name, then runs the bootstrap, which installs missing prerequisites (Windows asks
-; for permission when a prerequisite needs it), the exact ptbk version, and opens a terminal running `ptbk init`.
+; Installs the exact ptbk version and required software, then opens the optional desktop client.
 
 #ifndef Version
   #error Pass the release version: iscc /DVersion=<version> /DNumericVersion=<a.b.c.d> promptbook.iss
@@ -75,17 +73,12 @@ Filename: "{app}\desktop\promptbook.exe"; Parameters: "--quit-client"; RunOnceId
 [Code]
 var
   BootstrapSucceeded: Boolean;
-  RootPage: TInputDirWizardPage;
-  ProjectPage: TInputQueryWizardPage;
-  SkipBox: TNewCheckBox;
   PrerequisitesPage: TOutputMsgWizardPage;
   PreparationPage: TOutputMarqueeProgressWizardPage;
   PreparationStage: String;
   PreparationOutput: String;
   ResultFilePath: String;
   LastFailure: String;
-  AutomaticProjectsRoot: Boolean;
-  SuggestedProjectsRoot: String;
   FinishedReportButton: TNewButton;
 
 
@@ -170,7 +163,7 @@ begin
   ExtractTemporaryFile('bootstrap.ps1');
   DetectionFile := ExpandConstant('{tmp}\promptbook-prerequisites.ini');
   DeleteFile(DetectionFile);
-  if not RunPreparation(ExpandConstant('{tmp}\bootstrap.ps1'), ' -DetectOnly -DetectionFile ' + Quoted(DetectionFile), Code) or
+  if not RunPreparation(ExpandConstant('{tmp}\bootstrap.ps1'), ' -SkipProject -DetectOnly -DetectionFile ' + Quoted(DetectionFile), Code) or
     (Code <> 0) or not FileExists(DetectionFile) then
   begin
     ShowFailure(PreparationFailure('Required software could not be checked. Click Next to retry.'), 'Back', False);
@@ -191,15 +184,6 @@ begin
     Exit;
   end
   else Required := Required + 'Git (required)' + #13#10;
-  if AutomaticProjectsRoot and (RootPage.Values[0] = SuggestedProjectsRoot) then
-  begin
-    SuggestedProjectsRoot := GetIniString('Prerequisites', 'DefaultProjectsRoot', SuggestedProjectsRoot, DetectionFile);
-    RootPage.Values[0] := SuggestedProjectsRoot;
-    if GetIniString('Prerequisites', 'DefaultProjectsRootReason', '', DetectionFile) <> '' then
-      RootPage.Description := 'A safe alternative was selected because the usual location is unavailable.'
-    else
-      RootPage.Description := 'Where should your Promptbook projects live?';
-  end;
   PrerequisitesPage.MsgLabel.Caption := '';
   if Available <> '' then PrerequisitesPage.MsgLabel.Caption := 'Already installed and ready:' + #13#10 + Available + #13#10;
   if Required <> '' then
@@ -220,81 +204,31 @@ begin
   FinishedReportButton.Visible := False;
   PreparationPage := CreateOutputMarqueeProgressPage('Preparing Promptbook', 'Required software and installation progress');
   PrerequisitesPage := CreateOutputMsgPage(wpSelectComponents, 'Required software', 'Checked on this computer', '');
-  RootPage := CreateInputDirPage(PrerequisitesPage.ID, 'Projects folder', 'Where should your Promptbook projects live?',
-    'Promptbook keeps each project in its own folder inside this one. It is an ordinary folder, not a project itself.', False, '');
-  RootPage.Add('');
-  RootPage.Values[0] := ExpandConstant('{param:ProjectsRoot|}');
-  AutomaticProjectsRoot := RootPage.Values[0] = '';
-  if RootPage.Values[0] = '' then RootPage.Values[0] := ExpandConstant('{%USERPROFILE}\ptbk\project');
-  SuggestedProjectsRoot := RootPage.Values[0];
-
-  ProjectPage := CreateInputQueryPage(RootPage.ID, 'First project', 'Create your first project',
-    'An empty folder is created for it. The setup assistant (ptbk init) then asks what you are working on; the folder name is only a name.');
-  ProjectPage.Add('Project folder name:', False);
-  ProjectPage.Values[0] := ExpandConstant('{param:ProjectName|my-first-project}');
-  SkipBox := TNewCheckBox.Create(ProjectPage);
-  SkipBox.Parent := ProjectPage.Surface;
-  SkipBox.Top := ProjectPage.Edits[0].Top + ProjectPage.Edits[0].Height + ScaleY(16);
-  SkipBox.Width := ProjectPage.SurfaceWidth;
-  SkipBox.Caption := 'Skip: only install Promptbook, do not create a project now';
-  SkipBox.Checked := ExpandConstant('{param:SkipProject|no}') = 'yes';
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
-var
-  Code: Integer;
-  DestinationFile, Params: String;
 begin
   Result := True;
-  if CurPageID = wpSelectComponents then
-  begin
-    Result := DetectPrerequisites;
-    Exit;
-  end;
-  if (CurPageID = RootPage.ID) and (RootPage.Values[0] <> SuggestedProjectsRoot) then
-    AutomaticProjectsRoot := False;
-  if (CurPageID = ProjectPage.ID) and not SkipBox.Checked then
-  begin
-    DestinationFile := ExpandConstant('{tmp}\promptbook-destination.ini');
-    DeleteFile(DestinationFile);
-    Params := ' -ValidateProjectsOnly -DetectionFile ' + Quoted(DestinationFile) +
-      ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
-    if not AutomaticProjectsRoot then Params := Params + ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
-    if not RunPreparation(ExpandConstant('{tmp}\bootstrap.ps1'), Params, Code) or
-      (Code <> 0) or not FileExists(DestinationFile) then
-    begin
-      ShowFailure(PreparationFailure('The project destination could not be checked. Choose another folder or name.'), 'Back', False);
-      Result := False;
-      Exit;
-    end;
-    RootPage.Values[0] := GetIniString('Destination', 'Root', RootPage.Values[0], DestinationFile);
-    if AutomaticProjectsRoot then SuggestedProjectsRoot := RootPage.Values[0];
-  end;
+  if CurPageID = wpSelectComponents then Result := DetectPrerequisites;
 end;
 
 function RunBootstrap(AllowReplacement: Boolean; var Code: Integer): Boolean;
 var
   Params: String;
 begin
-  Params := '';
-  if not AutomaticProjectsRoot then Params := ' -ProjectsRoot ' + Quoted(RootPage.Values[0]);
-  if SkipBox.Checked then Params := Params + ' -SkipProject'
-  else Params := Params + ' -ProjectName ' + Quoted(ProjectPage.Values[0]);
+  Params := ' -SkipProject';
   if AllowReplacement then Params := Params + ' -AllowPtbkReplacement';
   if ExpandConstant('{param:PrepareOnly|no}') = 'yes' then Params := Params + ' -NoLaunch';
   if WizardIsComponentSelected('desktop') then Params := Params + ' -DesktopPath ' + Quoted(ExpandConstant('{app}\desktop\promptbook.exe'));
   { The process-scoped execution policy applies to this one bootstrap script only; no machine policy is changed. }
   Result := RunPreparation(ExpandConstant('{app}\bootstrap.ps1'), Params, Code);
-  RootPage.Values[0] := GetIniString('Result', 'ProjectsRoot', RootPage.Values[0], ResultFilePath);
-  if AutomaticProjectsRoot then SuggestedProjectsRoot := RootPage.Values[0];
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var
-  Code, Decision: Integer;
+  Code: Integer;
   AllowReplace: Boolean;
   Done: Boolean;
-  Folder: String;
 begin
   if CurStep <> ssPostInstall then Exit;
   AllowReplace := False;
@@ -303,7 +237,8 @@ begin
   begin
     if not RunBootstrap(AllowReplace, Code) then
     begin
-      Done := ShowFailure(PreparationFailure('Windows PowerShell could not be started to prepare Promptbook.'), 'Retry', False) <> mrOk;
+      LastFailure := PreparationFailure('Windows PowerShell could not be started to prepare Promptbook.');
+      Done := ShowFailure(LastFailure, 'Retry', False) <> mrOk;
       Continue;
     end;
     case Code of
@@ -317,18 +252,8 @@ begin
          end;
     else
       begin
-        Decision := ShowFailure(PreparationFailure('Promptbook was not fully prepared. Your files were kept.'), 'Retry', Code = 4);
-        if Decision = mrYes then
-        begin
-          Folder := RootPage.Values[0];
-          if BrowseForFolder('Choose a writable projects folder', Folder, False) then
-          begin
-            RootPage.Values[0] := Folder;
-            AutomaticProjectsRoot := False;
-          end
-          else Done := True;
-        end
-        else if Decision <> mrOk then Done := True;
+        LastFailure := PreparationFailure('Promptbook was not fully prepared. Your files were kept.');
+        Done := ShowFailure(LastFailure, 'Retry', False) <> mrOk;
       end;
     end;
   end;
@@ -342,14 +267,12 @@ begin
     WizardForm.FinishedHeadingLabel.Caption := 'Promptbook installation was not completed';
     WizardForm.FinishedLabel.Caption := LastFailure;
   end
-  else if (CurPageID = wpFinished) and (ExpandConstant('{param:PrepareOnly|no}') = 'yes') and not SkipBox.Checked then
-    WizardForm.FinishedLabel.Caption := 'Promptbook is installed and the empty project folder is prepared. Project setup was not launched. Open a terminal there and run: ptbk init'
-  else if (CurPageID = wpFinished) and SkipBox.Checked then
+  else if CurPageID = wpFinished then
   begin
     if WizardIsComponentSelected('desktop') then
-      WizardForm.FinishedLabel.Caption := 'Promptbook is installed. Use New project in the application whenever you are ready.'
+      WizardForm.FinishedLabel.Caption := 'Promptbook is installed. Open the application to create or manage your projects.'
     else
-      WizardForm.FinishedLabel.Caption := 'Promptbook is installed. To create a project, open a terminal in an empty folder and run: ptbk init';
+      WizardForm.FinishedLabel.Caption := 'Promptbook is installed. Open Promptbook terminal from the Start menu and run ptbk init when you are ready to create a project.';
   end;
 end;
 

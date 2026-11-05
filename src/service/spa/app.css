@@ -726,6 +726,10 @@ details summary {
 }
 
 
+.composer-actions {
+    margin-top: 8px;
+}
+
 .chats .messages {
     max-height: 55vh;
     overflow-y: auto;
@@ -1105,11 +1109,12 @@ button.link {
 
 /* The desktop window supplies its own wordmark and lets the shared dashboard grow with its content. */
 :root[data-desktop] {
-    --bg: #f7f9fc;
+    --bg: #ffffff;
     --surface: #ffffff;
     --surface-2: #eef4fb;
     --border: #cfd9e7;
     --text: #1b2739;
+    --heading: #111318;
     --muted: #596577;
     --accent: #17386c;
     --accent-ink: #ffffff;
@@ -1119,7 +1124,8 @@ button.link {
     --attention-bg: #fff7e6;
     --attention-border: #b7791f;
     --radius: 8px;
-    --sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+    --sans: Inter, system-ui, sans-serif;
+    --display: Outfit, var(--sans);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1129,6 +1135,7 @@ button.link {
         --surface-2: #1c2a41;
         --border: #394962;
         --text: #f1f5fc;
+        --heading: #f1f5fc;
         --muted: #b2bfd2;
         --accent: #9dbbf0;
         --accent-ink: #102347;
@@ -1231,4 +1238,138 @@ button.link {
 
 :root[data-desktop] .tile-line .row {
     flex-wrap: wrap;
+}
+
+
+:root[data-desktop] :is(h1, h2, h3, .tile-title) {
+    font-family: var(--display);
+    font-weight: 600;
+}
+
+:root[data-desktop] .page-header h1 {
+    color: var(--heading);
+}
+
+/* Desktop conversation: the transcript scrolls between the conversation header and reply field. */
+:root[data-desktop] body:has(.thread .messages) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+}
+
+:root[data-desktop] :is(.app, .page, .page-body):has(.thread .messages) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+}
+
+:root[data-desktop] .app:has(.thread .messages) {
+    width: 100%;
+    max-width: 1100px;
+    padding-block: 4px 12px;
+}
+
+:root[data-desktop] .chats.thread {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
+}
+
+:root[data-desktop] .conversation-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    overflow-wrap: anywhere;
+}
+
+:root[data-desktop] .conversation-header h2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 4px;
+    color: var(--heading);
+    font-size: 19px;
+}
+
+:root[data-desktop] .thread .task-cards {
+    display: flex;
+    flex: 0 0 auto;
+    max-height: 96px;
+    margin: 0;
+    padding: 8px 16px;
+    overflow: auto;
+}
+
+:root[data-desktop] .thread .task-card {
+    flex: 0 0 auto;
+    max-width: min(440px, 90%);
+}
+
+:root[data-desktop] .thread .messages {
+    flex: 1 1 auto;
+    min-height: 75px;
+    max-height: none;
+    gap: 14px;
+    margin: 0;
+    padding: 18px clamp(12px, 4vw, 34px);
+    background: color-mix(in srgb, var(--surface-2) 45%, var(--surface));
+}
+
+:root[data-desktop] .thread .message {
+    display: block;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    max-width: min(88%, 680px);
+    padding: 10px 14px;
+    border-radius: 5px 16px 16px;
+    background: var(--surface);
+    overflow-wrap: anywhere;
+}
+
+:root[data-desktop] .thread .message.user {
+    align-self: flex-end;
+    border-color: transparent;
+    border-radius: 16px 5px 16px 16px;
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+:root[data-desktop] .thread .message.user :is(.meta, .muted) {
+    color: inherit;
+    opacity: .9;
+}
+
+:root[data-desktop] .thread .message .meta {
+    margin-bottom: 4px;
+}
+
+:root[data-desktop] .thread > .choices {
+    max-height: 96px;
+    overflow: auto;
+    padding: 8px 16px;
+}
+
+:root[data-desktop] .thread > p {
+    margin: 8px 16px;
+}
+
+:root[data-desktop] .thread .composer {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+}
+
+:root[data-desktop] .thread .composer textarea {
+    display: block;
+    min-height: 54px;
+    max-height: 25vh;
+}
+
+:root[data-desktop] .thread .composer-actions {
+    flex-direction: row-reverse;
+    justify-content: space-between;
 }

@@ -5,7 +5,7 @@ import { createRichInput } from './rich-input.js';
 /** Local view state contains no credentials, project business rules or engine ownership. */
 const api = window.desktop;
 const $ = (id) => document.getElementById(id);
-const appearance = $('appearance');
+const themeButtons = [...$('appearance').querySelectorAll('button')];
 const terminals = new Map();
 const earlyEvents = new Map();
 let host = { rows: [] };
@@ -16,7 +16,6 @@ let launch;
 let observed = false;
 let refreshing = false;
 let busy = false;
-let themeSource = 'system';
 
 /** DOM helper: project names, errors and prompt text are always text nodes. */
 function element(tag, attrs = {}, ...children) {
@@ -41,9 +40,10 @@ function notice(message, error = false) {
 
 /** Keeps the appearance selector in sync with the app-wide preference. */
 function showTheme(source) {
-    themeSource = source;
-    appearance.value = source;
-    appearance.disabled = false;
+    for (const button of themeButtons) {
+        button.setAttribute('aria-pressed', String(button.dataset.theme === source));
+        button.disabled = false;
+    }
 }
 
 /** Fits client-owned terminal content and the native unprivileged dashboard view. */
@@ -56,6 +56,56 @@ function layout() {
         const item = terminals.get(activeTerminal);
         if (item) { item.fit.fit(); api.resize(activeTerminal, { cols: item.term.cols, rows: item.term.rows }); }
     }
+}
+
+/** A local panel edge supports pointer drag and the standard separator keyboard controls. */
+function resizePane(divider, pane, { axis, variable, range }) {
+    const horizontal = axis === 'x';
+    const size = () => pane.getBoundingClientRect()[horizontal ? 'width' : 'height'];
+    const coordinate = (event) => horizontal ? event.clientX : event.clientY;
+    const reflect = () => {
+        if (!pane.getClientRects().length) return;
+        const [min, max] = range();
+        divider.setAttribute('aria-valuemin', min);
+        divider.setAttribute('aria-valuemax', max);
+        divider.setAttribute('aria-valuenow', Math.round(size()));
+    };
+    const set = (value) => {
+        const [min, max] = range();
+        pane.style.setProperty(variable, `${Math.min(max, Math.max(min, value))}px`);
+    };
+    let drag;
+    divider.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0 || drag) return;
+        divider.focus();
+        divider.setPointerCapture(event.pointerId);
+        drag = { id: event.pointerId, start: coordinate(event), size: size() };
+        event.preventDefault();
+    });
+    divider.addEventListener('pointermove', (event) => {
+        if (drag?.id === event.pointerId) set(drag.size + coordinate(event) - drag.start);
+    });
+    divider.addEventListener('lostpointercapture', () => { drag = undefined; });
+    divider.addEventListener('keydown', (event) => {
+        const [min, max] = range();
+        const backward = horizontal ? 'ArrowLeft' : 'ArrowUp';
+        const forward = horizontal ? 'ArrowRight' : 'ArrowDown';
+        const value = { [backward]: size() - 16, [forward]: size() + 16, Home: min, End: max }[event.key];
+        if (value === undefined) return;
+        event.preventDefault();
+        set(value);
+    });
+    new ResizeObserver(reflect).observe(pane);
+    window.addEventListener('resize', reflect);
+}
+
+/** Shows the host's current lifecycle and, separately, any existing attention signal. */
+function projectStatus(row) {
+    const state = row.status === 'live' ? row.state || 'unknown' : row.status;
+    const attention = row.needsAttention ?? (row.waitingChats > 0);
+    const tone = attention && row.status === 'live' ? 'attention' : state;
+    const label = tone === 'attention' ? `${state} · needs attention` : state;
+    return { dot: element('span', { className: 'status-dot', 'data-status': tone, 'aria-hidden': 'true' }), label };
 }
 
 /** Changing views never invokes a lifecycle operation or closes another terminal. */
@@ -71,7 +121,11 @@ function show(next) {
 
 /** Lists the host's durable projects, including stopped ones. */
 function renderProjects() {
-    $('projects').replaceChildren(...host.rows.map((row) => element('button', { className: selected === row.projectRoot ? 'selected' : '', onclick: () => void openProject(row.projectRoot) }, row.projectName, element('small', {}, row.state || row.status))));
+    $('projects').replaceChildren(...host.rows.map((row) => {
+        const { dot, label } = projectStatus(row);
+        return element('button', { className: selected === row.projectRoot ? 'selected' : '', onclick: () => void openProject(row.projectRoot) },
+            element('span', { className: 'project-name' }, dot, row.projectName), element('small', {}, label));
+    }));
     $('version').textContent = `ptbk ${host.version || ''}`;
 }
 
@@ -95,13 +149,16 @@ function renderOverview() {
         if (!roots.length) notice('Select one or more project rows first.');
         else void applyAction(action, roots);
     } }, label)));
-    const body = element('tbody', {}, ...host.rows.map((row) => element('tr', {},
-        element('td', {}, element('input', { type: 'checkbox', 'data-project': row.projectRoot, 'aria-label': `Select ${row.projectName}` })),
-        element('td', {}, element('strong', {}, row.projectName), element('small', {}, row.projectRoot), row.reason ? element('small', {}, row.reason) : ''),
-        element('td', {}, element('span', { className: `state ${row.state || ''}` }, row.state || row.status)),
-        element('td', {}, row.work || '—'),
-        element('td', {}, element('button', { onclick: () => void openProject(row.projectRoot) }, 'Open'), ' ', element('button', { onclick: () => void applyAction(row.status === 'live' ? 'stop' : 'start', [row.projectRoot]), disabled: row.status === 'unreachable' || row.status === 'missing' }, row.status === 'live' ? 'Stop' : 'Start')),
-    )));
+    const body = element('tbody', {}, ...host.rows.map((row) => {
+        const { dot, label } = projectStatus(row);
+        return element('tr', {},
+            element('td', {}, element('input', { type: 'checkbox', 'data-project': row.projectRoot, 'aria-label': `Select ${row.projectName}` })),
+            element('td', {}, element('strong', {}, row.projectName), element('small', {}, row.projectRoot), row.reason ? element('small', {}, row.reason) : ''),
+            element('td', {}, element('span', { className: 'state' }, dot, label)),
+            element('td', {}, row.work || '—'),
+            element('td', {}, element('button', { onclick: () => void openProject(row.projectRoot) }, 'Open'), ' ', element('button', { onclick: () => void applyAction(row.status === 'live' ? 'stop' : 'start', [row.projectRoot]), disabled: row.status === 'unreachable' || row.status === 'missing' }, row.status === 'live' ? 'Stop' : 'Start')),
+        );
+    }));
     const table = element('table', {}, element('thead', {}, element('tr', {}, element('th', {}, element('input', { type: 'checkbox', 'aria-label': 'Select all projects', onchange: (event) => document.querySelectorAll('[data-project]').forEach((input) => { input.checked = event.target.checked; }) })), ...['Project', 'State', 'Current work', ''].map((label) => element('th', {}, label)))), body);
     const checked = selectedRoots();
     const empty = element('div', { className: 'empty' },
@@ -200,6 +257,7 @@ function renderPrompt() {
     const prompt = item?.prompt;
     const pane = $('prompt-pane');
     pane.hidden = !prompt;
+    $('prompt-divider').hidden = !prompt;
     if (!prompt) { pane.replaceChildren(); requestAnimationFrame(() => { layout(); if (mode === 'terminal') item?.term.focus(); }); return; }
     const form = element('form');
     const controls = [];
@@ -281,12 +339,13 @@ api.onEvent((event) => {
     else if (event.type === 'error') { api.hideDashboard(); notice(event.message, true); }
     else if (event.terminal) terminalEvent(event);
 });
-appearance.onchange = () => {
-    void api.theme(appearance.value).catch((error) => {
-        appearance.value = themeSource;
-        notice(`Could not save the appearance setting. ${error.message}`, true);
-    });
-};
+for (const button of themeButtons) {
+    button.onclick = () => {
+        void api.theme(button.dataset.theme).catch((error) => {
+            notice(`Could not save the appearance setting. ${error.message}`, true);
+        });
+    };
+}
 void api.theme().then(showTheme).catch((error) => notice(error.message, true));
 $('overview').onclick = () => { show('overview'); renderOverview(); };
 $('new-project').onclick = () => void newProject();
@@ -296,7 +355,11 @@ $('cli').onclick = () => {
     // The main process retains the current graphical page and validates its corresponding CLI name.
     void openTerminal(mode === 'overview' || !selected ? 'global' : 'dashboard', selected);
 };
-new ResizeObserver(layout).observe($('workspace'));
+resizePane($('sidebar-divider'), $('project-sidebar'), { axis: 'x', variable: '--sidebar-width', range: () => [160, Math.min(480, Math.floor(innerWidth * 0.45))] });
+resizePane($('prompt-divider'), $('prompt-pane'), { axis: 'y', variable: '--prompt-height', range: () => [96, Math.floor($('terminal-pane').clientHeight * 0.72)] });
+const paneObserver = new ResizeObserver(layout);
+paneObserver.observe($('workspace'));
+paneObserver.observe($('terminal-host'));
 window.addEventListener('resize', layout);
 void refresh();
 setInterval(() => void refresh(), 2500);

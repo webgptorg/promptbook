@@ -61,6 +61,8 @@ export type GlobalRow = {
     readonly work?: string;
     readonly intent?: string;
     readonly waitingChats?: number;
+    /** Existing engine attention signal for graphical status indicators. */
+    readonly needsAttention?: boolean;
     readonly reason?: string;
     readonly observedAt: string;
     readonly client?: ControlClient;
@@ -114,7 +116,7 @@ export async function observeHost(env: NodeJS.ProcessEnv = process.env): Promise
             const knownEntry = knownByRoot.get(root);
             const engine = owners.get(root);
             const base = { key: root, projectRoot: root, projectName: engine?.entry.projectName ?? knownEntry?.projectName ?? basename(root), known: knownEntry, observedAt };
-            const live = (owner: EngineIdentity, client: ControlClient, summary: EngineSummary): GlobalRow => ({ ...base, status: 'live', engine: identityOf(owner), client, state: summary.state, work: summary.work, intent: summary.intent, waitingChats: summary.waitingChats, observedAt: summary.observedAt });
+            const live = (owner: EngineIdentity, client: ControlClient, summary: EngineSummary): GlobalRow => ({ ...base, status: 'live', engine: identityOf(owner), client, state: summary.state, work: summary.work, intent: summary.intent, waitingChats: summary.waitingChats, needsAttention: summary.needsAttention, observedAt: summary.observedAt });
             if (engine?.status === 'live') return live(engine.entry, engine.client, engine.summary);
             if (engine?.status === 'unreachable') return { ...base, status: 'unreachable', engine: identityOf(engine.entry), reason: engine.reason };
             if (!(await isDirectory(root))) return { ...base, status: 'missing', reason: 'The project directory no longer exists.' };

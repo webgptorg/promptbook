@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { copyFile, readFile, writeFile, mkdir } from 'node:fs/promises';
+import { cp, copyFile, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { windowsIcon } from './icon.mjs';
@@ -17,5 +17,6 @@ for (const wordmark of ['readme-wordmark.svg', 'readme-wordmark-dark.svg']) {
     await copyFile(join(root, 'design', wordmark), new URL(`./renderer/vendor/${wordmark}`, import.meta.url));
 }
 await copyFile(join(root, 'design/brand/promptbook-robot.svg'), new URL('./renderer/vendor/promptbook-robot.svg', import.meta.url));
+await cp(join(root, 'design', 'brand', 'fonts'), new URL('./renderer/vendor/fonts/', import.meta.url), { recursive: true });
 await writeFile(new URL('./icon.ico', import.meta.url), windowsIcon(await readFile(`${root}/design/logo-blue-transparent-256.png`)));
 process.stdout.write(`Built optional desktop client ${engine.version}.\n`);

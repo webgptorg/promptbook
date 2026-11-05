@@ -26,5 +26,6 @@ await mkdir(join(dist, 'service', 'spa'), { recursive: true });
 for (const file of await readdir(join(root, 'src', 'service', 'spa'))) {
     await copyFile(join(root, 'src', 'service', 'spa', file), join(dist, 'service', 'spa', file));
 }
+await cp(join(root, 'design', 'brand', 'fonts'), join(dist, 'service', 'spa', 'fonts'), { recursive: true });
 await cp(join(root, 'specs'), join(dist, 'expert'), { recursive: true, filter: (source) => !source.endsWith('.DS_Store') });
 process.stdout.write('Built dist/ (ESM runtime, dashboard assets, Expert documentation).\n');
