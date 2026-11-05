@@ -42,6 +42,8 @@ Retain state-appropriate pause/resume controls, wait skipping and explicit grace
 
 Browser recheck/retry/restart/kill/test-GitHub-tab targets the named profile pool through engine operations, clearly showing effects on all connected engines. Wallet uses protected input and the common attention mechanism. Synchronize now calls the one shared coordinator and is absent while autosync is off.
 
+The [interactive feature server](interactive-feature-bridges.md) provides the temporary browser surface for live tab control and voice. The terminal stays the controller and exposes the session status, launch link and applicable end or handoff actions.
+
 O may switch dashboard/plain presentation interactively; End can follow focused activity where applicable. Background tool/sync/health updates do not steal focus or discard an edit.
 
 ## Raw output

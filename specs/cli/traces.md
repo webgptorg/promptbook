@@ -30,7 +30,7 @@ Record source revision, selected agent/harness/model/thinking level and versions
 
 ## Browser video and secrets
 
-When enabled, capture playable project-browser actions owned by the task in headless/headful mode, with relevant tab transitions and segmented attempts/occurrences. Capture no unrelated desktop, user browser, other project or next task. Exclude/mask login/password/2FA frames, cookies, tokens and secrets in text/video; label gaps. Disabled, unsupported, failed or partial capture is explicit. Optional evidence failure does not unnecessarily block safe work; required evidence may be an acceptance condition.
+When enabled, capture playable project-browser actions owned by the task in headless/headful mode, with relevant tab transitions and segmented attempts/occurrences. Exclude unrelated desktop, user browser, other project or next task and the whole [user-controlled tab interval](browser-tab-control.md#exclusive-control-and-handoff). Exclude or mask login/password/2FA frames, cookies, tokens and secrets in text/video and label gaps. Disabled, unsupported, failed or partial capture is explicit. Optional evidence failure does not unnecessarily block safe work. Required evidence may be an acceptance condition.
 
 [Trace policy](trace-configuration.md) decides whether finalized evidence/video join the task's **one result commit**, with accepted changes, TASK DONE, follow-ups and task-internal agent messages. Human-facing messages saved in scoped conversation batches are linked, not retroactively absorbed. Commit metadata uses `Task-Name: <name>`, not TASK ID or filename identity. A commit cannot contain its own SHA in its tree; retain post-commit events without a bookkeeping commit loop.
 

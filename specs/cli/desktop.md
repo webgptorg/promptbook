@@ -28,6 +28,8 @@ Reuse global observation and individual/bulk Start, Start paused, Pause, Resume,
 
 Reuse the existing graphical dashboard presentation and shared controls. Every project page has Open in terminal, opening the corresponding page of the actual CLI dashboard in xterm.js; keep the selected project and supported entity context. A general CLI/global-dashboard fallback remains available, including when the engine's HTTP server is disabled or its graphical view is unavailable. New CLI functionality must always be reachable through this fallback before bespoke graphical presentation exists.
 
+Embed [live browser tab control](browser-tab-control.md) and [realtime voice](voice-chat-ui.md) directly in their graphical dashboard pages. Use the same authorization, lifecycle and outcomes as the terminal, with local media and input in the desktop client. The [temporary browser surface](interactive-feature-bridges.md) is used when the user is in the actual CLI dashboard, including its embedded terminal presentation. Closing a graphical window ends its owned media surfaces under their individual rules.
+
 Harness sign-in runs its real native terminal workflow inside the application. Harness sessions retain their actual identity and the shared Observe/exclusive/shared takeover and lease rules. Open the existing session through the terminal dashboard; never represent a fresh unrelated harness invocation as the running session. Closing an observing terminal does not stop an engine or its harness work.
 
 ### Appearance and layout
@@ -52,7 +54,9 @@ Keep Node.js, npm and Git prerequisite discovery, exact-version verification, re
 
 On macOS, provide a drag-to-Applications DMG for Apple Silicon and one for Intel. Bundle standalone native Node.js, npm, and the engine built from the exact release source. The app opens and discovers local projects without installing a global `ptbk` or changing system PATH. Use system or user-installed Git and discover common Homebrew and user executable directories for Git and harnesses. npm-based harness setup uses a writable user prefix. Run the application from its installed location so ordinary engine persistence points at a stable path. Upgrades replace the application bundle after its engines have been stopped. The user’s projects and harnesses live outside the app.
 
-The graphical shell loads packaged local content with context isolation, sandboxing, no renderer Node integration and a narrow validated preload interface. Project dashboards run without a privileged preload. Allow only verified loopback engine addresses; forbid arbitrary navigation and permission requests. Authenticate private prompt transport, bind terminal ownership to its window, bound messages/buffers and validate command arguments. Spawn Node/CLI with argument arrays, never interpolated shell commands. External browser links require an explicit user gesture and an http(s) URL.
+The graphical shell loads packaged local content with context isolation, sandboxing, no renderer Node integration and a narrow validated preload interface. Project dashboards run without a privileged preload. Allow only verified loopback engine addresses and reject arbitrary shell navigation. Authenticate private prompt transport, bind terminal ownership to its window, bound messages/buffers and validate command arguments. Spawn Node/CLI with argument arrays, never interpolated shell commands. External browser links require an explicit user gesture and an http(s) URL.
+
+Deny renderer permission requests by default. After explicit call start, permit microphone access only from the verified voice surface of the owning window and active local call, subject to OS consent. Apply the scoped clipboard action rules to the trusted tab viewer. Streamed pages cannot acquire desktop permissions or navigate the app shell. Validate feature messages against the owning window and active operation and revoke feature access when that operation ends.
 
 ## Acceptance
 
@@ -62,5 +66,6 @@ The graphical shell loads packaged local content with context isolation, sandbox
 - Reboot/sign in: the tray appears without opening a window, while existing engine persistence rules remain unchanged. CLI-only/headless use never loads Electron.
 - Complete, go back, cancel and resume the same initializer from graphical presentation, with native login in its terminal and complete attachment payloads.
 - Open each page in the CLI terminal. Attach to a real session using normal observation/takeover rules; detach without ending work.
+- On Windows and macOS, start voice inside a chat and control a headless browser tab inside the app. Verify neither starts a temporary CLI server. Check microphone/clipboard permission scope, Wallet save choices and explicit browser handoff. Close the window and verify voice ends while the tab remains protected against automatic takeover.
 - Quit with live, paused, unreachable and concurrently started engines; distinguish graceful acceptance from verified completion, retain the tray on failures, and never force without explicit confirmation.
 - Reject untrusted IPC senders, arbitrary remote URLs, cross-window terminal control and invalid/stale prompt answers. Build/package checks include the native Windows PTY.

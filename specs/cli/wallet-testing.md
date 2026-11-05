@@ -10,6 +10,8 @@ Show live understandable progress: what is being checked, whether login/access a
 
 An already signed-in session alone cannot prove that this particular stored credential works. Verify the selected credential through a suitably separate login context or equivalent supported verifier while avoiding unnecessary logout/disruption of existing sessions. Check the resulting service/account identity. If actual credential verification is unavailable/incomplete, say so rather than report success from session reuse.
 
+For [a credential offered after manual sign-in](wallet.md#remembering-a-password-from-manual-sign-in), the same verifier may accept trusted proof linking the exact submitted values to the verified service/account and resulting access. Reuse that evidence without a second login. If it establishes only that the session has access, keep the saved record unverified and let an explicit Test verify it later.
+
 ## Incomplete verification and latest outcome
 
 Saving a credential and verifying it are separate outcomes. When a pending login auto-resolves while its protected form is open, retain the user's input and allow the reusable-credential save under [Wallet's resolution rules](wallet.md#resolution-during-protected-input). Session reuse can resolve the access request but cannot mark that saved password tested; saving/testing must not reopen or rerun completed work. Preserve newly supplied records as **unverified** if verification is cancelled, a factor is unfinished or the service is temporarily unavailable. Record the actual incomplete/failure reason rather than delete usable user input or label a temporary outage as a proven bad password. Ordinary credential mutations retain their existing protected storage contract.

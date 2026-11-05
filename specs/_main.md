@@ -4,6 +4,8 @@ Promptbook is one npm package, `ptbk`, providing the `ptbk` command-line utility
 
 ## Core operating principles
 
+**[User control takes priority](concepts/user-control.md)** whenever the user intervenes. Preserve their active work and give their current instructions precedence over conflicting agent actions. An explicit takeover protects the affected resource while independent authorized work continues. For a browser tab, the user decides when to hand control back.
+
 **[External-action impact](concepts/external-action-impact.md)** uses a decimal logarithmic scale, executing-agent evaluation and deterministic aggregation/30-day aging. The External activity log records logical operations including failed attempts, groups inherent batches by default and offers ungrouped/task/agent views. **[Shared common knowledge](concepts/common-knowledge.md)** lives at `https://ptbk.io/book` with its own release cycle; project Adam references it and internal Expert inherits that project Adam, so Teacher receives it transitively. User forks/pins and historical evaluation provenance remain intact.
 
 **[Autonomy and minimal interruption](concepts/minimal-interruption/_index.md)** is foundational across the system. Its dedicated knowledge directory contains the operator/staff analogy, decision rules, authentication/technical/content examples and acceptance cases. Active attention requires a concrete human decision/input/action; inspectable progress, significant completion and autonomous repair alone do not qualify. Every attention-producing condition has a [responsible agent](cli/notifications.md#ownership-and-continuing-relevance): its creator, or Fixer for system/orphaned notices. The owner supervises continuing relevance through shared [progressive waiting](concepts/progressive-waiting.md), withdraws obsolete waits and appends the reason to the originating chat without rewriting history or cancelling user input; automatic agent checks respect Pause. The existing dashboard preserves voluntary inspection and final operator control. Tasker, Router and working agents receive the applicable knowledge through ordinary context. [Content/system purpose](concepts/minimal-interruption/work-purpose.md) is relative to project scope and independent of core provenance or engine-owned definitions; [TASK PURPOSE](book-language/commitments/task-purpose.md) changes append to the Book with source-preserved history.
@@ -42,7 +44,7 @@ Chat primarily coordinates, checks status and creates/manages tasks; substantial
 
 [CHAT MESSAGE AUDIO](book-language/commitments/chat-message-audio.md) binds recorded user/agent speech as another representation of its originating message, not supplemental input or a second request. Finalized audio files are project chat assets committed with their bindings by default, independently of task traces; preserve overlap timing, actual played speech and interrupted/incomplete capture honestly.
 
-[Local realtime voice](cli/voice-chats.md) joins the same chat through terminal controls and a call-owned ad hoc browser audio/visualization/caption page, independently of the project web dashboard/HTTP server or desktop app. The common [harness voice capability](cli/harness-voice.md) initially supports native Codex/ChatGPT login; other adapters explicitly report unsupported, and setup guidance follows actual installed-version/account readiness. Audio interruption and task cancellation remain distinct; chat persistence, task control, Pause and Stop retain their ordinary semantics.
+[Local realtime voice](cli/voice-chats.md) runs in the same chat from the terminal or the local Windows/macOS app. The terminal opens a [temporary browser surface](cli/interactive-feature-bridges.md) independent of the project HTTP server. The app presents audio, controls and captions inside the chat. The common [harness voice capability](cli/harness-voice.md) initially supports native Codex/ChatGPT login. Other adapters explicitly report unsupported, and setup guidance follows actual installed-version/account readiness. Audio interruption and task cancellation remain distinct. Chat persistence, task control, Pause and Stop retain their ordinary semantics.
 
 Chatter is the editable core default for human-led project conversation. New chat first offers Chatter (Enter) or another agent; only the latter expands all valid targets. Initial TEAM includes the other initialized roles; specialist advice and execution use normal consultation/tasks. Existing chats/questions retain their real authors. Human-facing messages persist immediately and use debounced scoped commits; task-internal consultations retain result attribution, and conversation-only consultations use scoped authoring persistence.
 
@@ -62,7 +64,7 @@ Keep specifications in English, concise and focused on observable behavior, impo
 
 The target [version-zero App contract](app/integration.md) prioritizes App-started VPS installation/pairing, shared project init with real harness authentication, onboarding files, simple Wallet input, attributed multi-party plain-text chat, native project lifecycle and the update switch. The engine remains autonomous without clients or relay; the simple host service only discovers/launches/monitors processes and has no project/update scheduler. Central services see no readable project content or secrets. Existing local HTTP protections remain in force until a separately protected remote transport is implemented.
 
-Direct Book/forms editing, existing-CLI attachment/re-pairing, browser control, rich chat, background notifications and remote duplex media are designed for later. The independent local terminal [voice mode](cli/voice-chats.md) does not expand the first remote App scope. Terminal-in-App is the preferred service fallback for assessment, not a settled first-release implementation. Detailed task/run/chat/identity, security/release and UI contracts must be agreed with the App team; do not treat a predecessor-shaped draft API as an accepted Reborn contract.
+Direct Book/forms editing, existing-CLI attachment/re-pairing, browser control, rich chat, background notifications and remote duplex media are designed for later. [Live tab control](cli/browser-tab-control.md) and [voice](cli/voice-chats.md) in the terminal and local desktop app use local connections. Terminal-in-App is the preferred service fallback for assessment, not a settled first-release implementation. Detailed task/run/chat/identity, security/release and UI contracts must be agreed with the App team; do not treat a predecessor-shaped draft API as an accepted Reborn contract.
 
 ## Configuration and tools
 
@@ -75,6 +77,7 @@ Direct Book/forms editing, existing-CLI attachment/re-pairing, browser control, 
 - [Live tool use](cli/tool-runtime.md): Continuous readiness, current-task additions and retained acquired uses.
 - [Environment references and editing](cli/environment.md): Symbolic secrets, non-destructive changes and local audit history.
 - [Browser](cli/browser.md): Profile connection pools, task tabs, lifecycle, diagnostics and shared restart/kill/test actions.
+- [Live browser tab control](cli/browser-tab-control.md) covers headless and headful interaction, including Wallet manual sign-in and explicit handoff.
 - [Wallet](cli/wallet.md): Project login sub-engine, automatic credential use and protected human input.
 - [Project encryption](cli/project-encryption.md): Full-record encryption, recovery words and unattended protected host unlock.
 - [Wallet import](cli/wallet-import.md): Shared extensible Bitwarden import in init/Wallet with individual/all/none selection.
@@ -131,6 +134,7 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Dashboard layout](cli/dashboard-layout.md): Main regions and consistent drill-down hierarchy.
 - [Dashboard details](cli/dashboard-details.md): Execution, tool management, per-browser diagnostics and conditional synchronization.
 - [Terminal dashboard](cli/terminal.md): Independent attachment and keyboard controls.
+- [Interactive feature servers](cli/interactive-feature-bridges.md) define the temporary CLI browser surface and its direct desktop presentation.
 - [Terminal titles](cli/terminal-title.md): Self-naming tab/window titles, TTY gating, sanitization and opt-out.
 - [Attention, sounds and desktop notifications](cli/notifications.md): Agent-owned relevance checks and automatic withdrawal, immutable chat history with resolution messages, preserved user input, durable seen state and optional client effects; global/init delivery behavior is excluded.
 - [Deferred macOS sleep prevention](cli/power-management.md): Research on engine-owned idle-sleep assertions and the separate closed-lid problem, without enabling a power feature now.
@@ -141,8 +145,8 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Chats](cli/chats.md): Responsive multi-agent conversations, stable names, evolving titles and debounced persistence.
 - [Chat/task relationships](cli/chat-tasks.md): Task-first heavy work, source links, live cards, questions and results.
 - [Chat UI](cli/chat-ui.md): Chatter-first entry, existing threads and unread/actionable state.
-- [Local realtime voice](cli/voice-chats.md): Continuous speech in the same chat, committed audio and call-owned local media independent of the project web server.
-- [Voice presentation](cli/voice-chat-ui.md): Terminal call/mute controls, minimal browser visualization/captions and actionable setup guidance.
+- [Local realtime voice](cli/voice-chats.md) covers continuous speech in the same chat, committed audio and call-owned media.
+- [Voice presentation](cli/voice-chat-ui.md) covers call controls, audio and captions in terminal and desktop chat.
 - [Human interactions](cli/user-interactions.md): Ordinary attributed questions and once-only replies.
 - [Channels](cli/channels.md): Terminal, CLI, browser and API.
 

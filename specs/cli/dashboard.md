@@ -47,3 +47,5 @@ The browser shares the **Harnesses** tile/page replacing Current work, common se
 ## Local desktop attachment
 
 The optional [desktop client](desktop.md) is another local observer/controller. CLI remains the primary interface. `ptbk dashboard --view <page>` opens a named home page directly without changing service state; it conflicts with `--global`. Every graphical page can fall back to that CLI page in the embedded terminal.
+
+The standalone project web dashboard shares the normal project state, including Wallet and chat status. Direct [voice and tab-control media surfaces](interactive-feature-bridges.md) are specified for the local desktop app and interactive CLI. The project SPA and its HTTP server are separate from the temporary CLI feature servers.

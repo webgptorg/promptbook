@@ -1,6 +1,6 @@
 # Browser tools, shared profiles and login
 
-[Main specification](../_main.md) · [Tools](tools.md) · [Live tool use](tool-runtime.md) · [Wallet](wallet.md)
+[Main specification](../_main.md) · [Tools](tools.md) · [Live tool use](tool-runtime.md) · [Wallet](wallet.md) · [Live tab control](browser-tab-control.md)
 
 A project may configure multiple named browser tools. The browser sub-engine belongs to that project; the **browser process for an actual profile can be shared by several project engines**. Browser sessions and harness/model authentication remain independent. Ordinary init keeps simple choices; additional profiles/accounts use shared tool management.
 
@@ -33,7 +33,9 @@ Task/agent instructions determine authority for consequential actions. A session
 
 If already signed in, use the existing session. If not, request [Wallet](wallet.md): it applies saved credentials automatically or asks for protected input and returns only nonsecret outcome. Agents do not obtain/type the password. During trusted secret entry, observation/JavaScript/raw CDP paths, screenshots and traces must not reveal credential values; agent tooling cannot bypass that boundary. Preserve full ordinary browsing outside this protected operation. Direct unrestricted access cannot be claimed secret-isolated under [project encryption](project-encryption.md).
 
-Manual sign-in in an existing headful browser remains possible, with optional protected Wallet remembering. Do not pretend a GUI appeared on a headless host. A new remote desktop/VNC/CDP screen-sharing login UI is deferred. Browser instructions explicitly authorize attempting supported CAPTCHA solving autonomously during registration, login and other authorized browsing. Use autonomously accessible codes or protected manual factor input through trusted Wallet operations and complete technical steps without routine user prompts. Do not classify every CAPTCHA/2FA step as human-only; request the user's actual action only when necessary, retaining the same verified-login workflow. A successful CAPTCHA is not by itself proof of authenticated access.
+The user can [take control of a single tab](browser-tab-control.md) for manual sign-in or ordinary browser interaction, using its current headless or headful mode. Enforce the tab reservation across the profile pool and return the tab to automation only on explicit handoff. Wallet owns any [offer to remember a password](wallet.md#remembering-a-password-from-manual-sign-in).
+
+Browser instructions explicitly authorize attempting supported CAPTCHA solving autonomously during registration, login and other authorized browsing. Use autonomously accessible codes or protected manual factor input through trusted Wallet operations and complete technical steps without routine user prompts. Request human CAPTCHA or 2FA input only when necessary, within the same workflow. Successful completion of a challenge alone cannot verify authenticated access.
 
 ## Diagnostics, restart, kill and test tab
 
@@ -46,12 +48,12 @@ Use bounded automatic diagnosis/reconnect/retry and ordinary [automatic repair](
 - **Kill browser**, terminating the verified Promptbook-managed profile process without deleting its data;
 - **Open test GitHub tab**, opening `https://github.com/` in that actual browser to check it works.
 
-These target the selected **profile pool**, not an unrelated browser or the whole engine. A restart/kill affects **every connected engine**: show that scope/current uses, checkpoint affected work and coordinate one operation. Restart reconnects remaining clients; kill reports the interruption truthfully, and ordinary subsequent retry policy remains visible. Do not automatically replay uncertain website effects. No generic “Open browser” or remote-control window is required as a substitute for the test-tab action.
+These target the selected **profile pool**, not an unrelated browser or the whole engine. A restart/kill affects **every connected engine**: show that scope/current uses, checkpoint affected work and coordinate one operation. Restart reconnects remaining clients; kill reports the interruption truthfully, and ordinary subsequent retry policy remains visible. Do not automatically replay uncertain website effects. Opening the test tab and taking control of a tab are separate actions.
 
 Runtime controls do not remove/disable tools, delete sessions or create Git commits. Saved configuration changes retain immediate scoped tool commits and their in-use protections. An incompatible or externally owned process is diagnosed without a blanket Chrome kill. Force-stopping a project disconnects its pool participation; a shared process stays alive for other engines. Host panic targeting all connected engines closes their now-unused managed browser under the same pool rule.
 
 ## Evidence and acceptance
 
-Record only attributable task-tab activity when enabled; exclude unrelated tabs/projects and all secret entry. Keep named-tool/attempt provenance in the actual source-filename trace directory. Persistent profiles survive stopping/restart/kill.
+Record only attributable task-tab activity when enabled. Exclude unrelated tabs/projects, all secret entry and the full interval of user-controlled tab access. Keep named-tool/attempt provenance in the actual source-filename trace directory. Persistent profiles survive stopping/restart/kill.
 
-Start two engines with the default profile: one browser process, two pool connections, task-specific tabs and no master/slave. Pause either and disconnect the engine that launched it: the other keeps working. Last disconnect closes the managed process. Test isolated/existing/custom sources, concurrent startup, dropped connections, effective mode and eager startup without a task. Restart/kill clearly affects all connected engines; test GitHub opens in the selected instance. Verify live tool changes, full headless/headful ordinary interaction and Wallet secrecy; do not claim shared-session/account isolation or introduce remote desktop.
+Start two engines with the default profile: one browser process, two pool connections, task-specific tabs and no master/slave. Pause either and disconnect the engine that launched it: the other keeps working. Last disconnect closes the managed process. Test isolated/existing/custom sources, concurrent startup, dropped connections, effective mode and eager startup without a task. Restart/kill clearly affects all connected engines; test GitHub opens in the selected instance. Verify live tool changes, full headless/headful ordinary interaction, [manual control](browser-tab-control.md#acceptance-outcomes) and Wallet secrecy.
