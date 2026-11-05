@@ -2,6 +2,8 @@
 
 - Disable automatic Vercel deployments from Reborn for the retired Coder landing page, Playground and Utils apps. Their former app directories contain only the Git deployment opt-out for the legacy projects. Remove the obsolete VS Code launch commands.
 
+- Disable electron-builder's inferred updater publishing while packaging desktop installers. A release GitHub token must not make DMG creation generate update metadata for an absent update feed; the workflow publishes and verifies the installers itself. Exercise this token-bearing environment in desktop regression tests and native macOS validation.
+
 - Fix Windows release validation of recorded chat audio by checking the actual Git commit's portable paths. Keep the assertion that the recording and its message binding are committed together, and exercise escaping audio and Files paths through directory junctions without requiring elevated Windows symlink privileges.
 
 - Bring the Promptbook wordmark and ink-blue palette to the desktop controller. Its project dashboard uses clickable, keyboard-accessible tiles in a scrollable grid with room for their summaries.

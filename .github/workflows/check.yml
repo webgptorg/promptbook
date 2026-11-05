@@ -56,6 +56,9 @@ jobs:
       - run: npm ci --prefix apps/desktop
       - run: npm --prefix apps/desktop test
       - run: npm --prefix apps/desktop run package:macos
+        env:
+          # Match the release environment, including electron-builder's token-based publisher detection.
+          GH_TOKEN: ${{ github.token }}
       - name: Verify the DMG and run the packaged application
         run: bash apps/desktop/test/macos-dmg.sh apps/desktop/release/Promptbook-*-macos-${{ matrix.arch }}-unsigned.dmg
       - uses: actions/upload-artifact@v6
