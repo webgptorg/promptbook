@@ -25,7 +25,7 @@ Reserve identity plus the concise brief in responsive height/width calculations;
 
 The home screen contains compact tiles for operational domains. A tile shows only the smallest useful summary: healthy/idle/busy counts, current work, actionable problem summary or another bounded state. It is a navigation/control surface, not the complete content of that domain. The detailed inventory, diagnostics, lists and long explanations live on the corresponding page.
 
-At minimum preserve the existing domains as compact tiles/pages: **Harnesses**, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, **Usage**, **External activity log**, **History**, **Files**, Connection, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
+At minimum preserve the existing domains as compact tiles/pages: **Harnesses**, **System**, **Health**, Tools, **Wallet**, Agents, Chats, Tasks, **Usage**, **External activity log**, **History**, **Files**, App, and Synchronization only when autosync is enabled. System owns engine/lifecycle/manual-pause controls and pause-reason inspection; Health is the UI for the per-engine [Health sub-engine](health-sub-engine.md). The exact grid and ordering may adapt to the available geometry, but operator attention and current service state remain prominent.
 
 ## Focus and attention are independent
 

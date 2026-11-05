@@ -68,9 +68,9 @@ Provide **Synchronize now**, invoking one cycle of the shared [synchronization c
 
 When autosync is off, omit this dedicated tile/page rather than showing a permanently inactive box. General configuration inspection can still report the stored choice.
 
-## Connection page
+## App page
 
-Keep connection information secondary on the home screen. The Connection page owns the verified local address, HTTP state and link detail. Long URLs must not force the dashboard home screen to scroll.
+The App page replaces the former Connection page and presents the project's [App connection](../app/connection.md): Not linked, Linked, Connecting, Refused or Problem with the next step; the engine ID, fingerprint code and App address; each relay's state, last problem and next retry; the last heartbeat and any clock skew; and whether opening the project from the App works yet. The tile stays compact, and long addresses must not force the home screen to scroll. An unlinked project is neutral; only an actionable problem raises attention. The local dashboard address is not presented here or anywhere else.
 
 ## System page
 

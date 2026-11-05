@@ -30,7 +30,7 @@ This automatic attachment also happens when `ptbk start` discovers that the sele
 
 Explicit `--foreground` already owns its live foreground view and does not open a second attached dashboard; raw foreground emits plain events. Report truthful launch state before/within the handoff and never wait for the first task result.
 
-Connection information reports the actual loopback address and readiness for this computer. Respect raw output and local authentication controls; hint `ptbk dashboard`, `ptbk show` and `ptbk stop`. Do not wait for the first task. Init's finite finish uses its separate [UX](initialization-ui.md).
+Report one compact [App connection](../app/connection.md) line: the linked App address, or that the project is not linked and how to link it. Do not print the local dashboard address. Respect raw output and local authentication controls; hint `ptbk dashboard`, `ptbk show` and `ptbk stop`. Do not wait for the first task. Init's finite finish uses its separate [UX](initialization-ui.md).
 
 ## Automatic progression and synchronization
 

@@ -18,6 +18,8 @@ The root command is `ptbk`. Bare interactive invocation offers the context-depen
 | `dashboard --global` | Host-wide known-project table including stopped entries, individual/bulk lifecycle controls and stopped-entry removal. |
 | `panic` | Confirmed host-wide force stop of accessible active engines and owned execution; `--yes` skips confirmation. No soft/pause variants. |
 | `status`, `show` | Print the same saved brief and shared state snapshot once, then exit without generation or lifecycle changes. |
+| `connect` | Link the project to the Promptbook App with `--link <code>`, or print its [App connection](../app/connection.md) status (`--json`). |
+| `disconnect` | Stop the project's App connection on this computer and forget the link, keeping the engine identity. |
 | `tool` | Named tool list/show/add/modify/move/enable/disable/remove using shared saved management. See [tool commands](tool-management.md). |
 | `chat` | New Chatter-first persistent conversation or explicit existing thread, without a dashboard requirement. |
 | `ask` | Compatibility/quick submission or enquiry using the same chat/task model. |

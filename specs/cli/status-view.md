@@ -26,9 +26,9 @@ Agent [mascot badges](../agents/visual-identity.md) accompany readable names and
 
 Keep concrete tool/authentication/browser/recovery blockers visible through bounded rechecks even with details closed. Show the actual cause, next action and next check when known; an answered request alone does not prove repair. Skip wait cannot dismiss readiness, grant authority or bypass a resource requirement. A waiting engine with no active provider call is not waiting for inference.
 
-## Local connection
+## App connection
 
-Show the actual loopback HTTP address, readiness and errors for this computer. This connection region is distinct from Git synchronization. Never guess another project's port or present stopped/disabled endpoints as usable. No-server disables HTTP while local engine control remains available. Raw output and browser/API state carry equivalent local connection information without credentials. Rendering never starts a service or changes authentication.
+Show the project's [App connection](../app/connection.md): link state, App address, fingerprint, relays and last heartbeat, with the actual problem and next retry. This region is distinct from Git synchronization. Raw output and browser/API state carry the same information without the link code, keys or signatures. The loopback HTTP address is the private transport of local clients; it is kept in the snapshot's technical `localApi` field and the process record, never presented as a connection. No-server disables HTTP while local engine control and the App connection remain available. Rendering never starts a service, links a project or changes authentication.
 
 `ptbk status`/`show` prominently print the same last complete [saved brief](project-report-ui.md) once and exit, including with a stopped service/no harness, preserving original time and honest missing/stale/pending data. Reading never calls a model, generates reports or starts the service. Separate External activity log/History/Files summarize external effects, Git messages/topology and read-only project content; long Books use the common viewer/editor core.
 
