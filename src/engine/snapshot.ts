@@ -611,7 +611,15 @@ export type DashboardDomain = 'harnesses' | 'system' | 'health' | 'wallet' | 'ch
  *
  * @private shared status view model
  */
-export type DomainAttention = { readonly key: string; readonly tone: 'warning' | 'error' };
+export type DomainAttention = {
+    readonly key: string;
+    readonly tone: 'warning' | 'error';
+    /**
+     * Responsible agents of the current requests: their creators, or Fixer for system-originated and orphaned
+     * attention (Health, tools/harnesses, synchronization, a Wallet request without an initiating agent).
+     */
+    readonly owners?: readonly string[];
+};
 
 /**
  * The shared project status, identical for terminal, browser and API.

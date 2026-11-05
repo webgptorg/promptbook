@@ -9,6 +9,7 @@ import { chatAgents, isConsultationRecord, isHumanFacing, type ChatBook } from '
 import { questionAuthor, routeUserMessage, type ChatTaskCard } from './chat-tasks.js';
 import type { LiveReply } from './conversation.js';
 import type { ChatStore, ChatSummary, ChatWrite } from './store.js';
+import type { MessageAudio } from './message-audio.js';
 
 /**
  * A selectable target agent of a new chat.
@@ -58,7 +59,29 @@ export type ChatDetail = {
     readonly live?: LiveReply;
     /** A failed reply waiting for its automatic recheck. */
     readonly recheck?: ChatRecheckView;
-    readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final' }>;
+    /** Outstanding human requests of this chat (seen or not) with their responsible agent and relevance checks. */
+    readonly requests?: readonly ChatRequestView[];
+    readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final'; readonly audio?: readonly MessageAudio[] }>;
+};
+
+/**
+ * One outstanding human request of a chat as every client shows it: its calling message, author, responsible agent and
+ * the actual last/next relevance check (or its paused/unavailable state). Inspecting it never triggers a check.
+ *
+ * @private chats
+ */
+export type ChatRequestView = {
+    readonly id: string;
+    /** 1-based position of the calling message. */
+    readonly message: number;
+    /** Author of the calling message. */
+    readonly sender: string;
+    /** Responsible agent (the author, or Fixer after a transfer). */
+    readonly owner: string;
+    /** Whether an active viewer already saw it (it keeps waiting either way). */
+    readonly seen: boolean;
+    /** Relevance supervision by the owner. */
+    readonly check?: { readonly state: 'scheduled' | 'checking' | 'paused' | 'unavailable'; readonly nextAt: string; readonly lastCheckAt?: string; readonly lastOutcome?: string };
 };
 
 /**
@@ -116,7 +139,7 @@ export async function chatDetail(store: ChatStore, name: string): Promise<ChatDe
     const stored = await store.find(name);
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
     const summary = (await store.summaries()).find((item) => item.path === stored.relativePath)!;
-    return { summary, messages: stored.chat.messages.map((message) => ({ sender: message.sender, at: message.at, text: message.text, choices: message.choices, ...(message.phase ? { phase: message.phase } : {}) })) };
+    return { summary, messages: stored.chat.messages.map((message) => ({ sender: message.sender, at: message.at, text: message.text, choices: message.choices, ...(message.phase ? { phase: message.phase } : {}), ...(message.audio?.length ? { audio: message.audio } : {}) })) };
 }
 
 /**

@@ -1,4 +1,5 @@
 import { normalizeAgentName } from '../book/references.js';
+import { SYSTEM_ATTENTION_OWNER } from './attention-owner.js';
 import type { DashboardDomain, DomainAttention, QueueItemView, ServiceSnapshot } from './snapshot.js';
 
 /**
@@ -84,7 +85,29 @@ export function domainAttention(snapshot: Omit<ServiceSnapshot, 'attention'>): P
     const attention: Partial<Record<DashboardDomain, DomainAttention>> = {};
     for (const domain of DOMAINS) {
         const item = attentionOf(snapshot, domain);
-        if (item) attention[domain] = item;
+        if (item) attention[domain] = { ...item, owners: ownersOf(snapshot, domain) };
     }
     return attention;
+}
+
+/**
+ * Responsible agents of one domain's current requests ([attention ownership](specs/cli/notifications.md)): the author
+ * of each chat ping (or its transferred owner), the agents whose work opened a Wallet request or asks in a task, and
+ * Fixer for system-originated attention without an initiating agent.
+ */
+function ownersOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: DashboardDomain): string[] {
+    const name = (reference: string): string => reference.replace(/^@/, '').replace(/^\{|\}$/g, '');
+    const unique = (names: readonly string[]): string[] => [...new Set(names.filter(Boolean))];
+    switch (domain) {
+        case 'chats':
+            return unique((snapshot.chats.pings ?? []).map((ping) => ping.owner ?? name(ping.sender)));
+        case 'wallet': {
+            const pending = snapshot.wallet?.pending.filter((action) => !action.seenAt) ?? [];
+            return unique(pending.length ? pending.map((action) => action.agents?.[0] ?? SYSTEM_ATTENTION_OWNER) : [SYSTEM_ATTENTION_OWNER]);
+        }
+        case 'tasks':
+            return unique(snapshot.queue.filter((item) => item.readiness === 'awaiting-user').map((item) => (item.agent ? name(item.agent) : SYSTEM_ATTENTION_OWNER)));
+        default:
+            return [SYSTEM_ATTENTION_OWNER];
+    }
 }

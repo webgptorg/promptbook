@@ -6,7 +6,7 @@ import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, listDirectory, readJsonIfExists, toProjectRelative, writeFileAtomic, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
 import { formatIsoWithOffset } from '../common/time.js';
-import { normalizeAgentName, parseReferenceValue, pingsUser } from '../book/references.js';
+import { formatAgentReference, normalizeAgentName, parseReferenceValue, pingsUser, referenceName } from '../book/references.js';
 import { CHATS_DIRECTORY } from '../project/books.js';
 import type { Project } from '../project/workspace.js';
 import { newTaskPath } from '../tasks/authoring.js';
@@ -14,7 +14,7 @@ import { generatedName } from '../tasks/identity.js';
 import { formatModelRow, type ModelRow } from '../book/model.js';
 import { MAX_ATTACHMENT_BYTES, materializeAttachments } from '../ui/attachments.js';
 import type { ComposedSegment } from '../ui/composer.js';
-import { ChatAttention, pingId, type ChatPing } from './attention.js';
+import { ChatAttention, pingId, pingOwner, type ChatPing } from './attention.js';
 import { appendChatCommitments, appendChatMessage, appendChatModel, chatAgent, chatDisplayTitle, hasMember, isConsultationRecord, isHumanFacing, parseChatBook, renderChatBook, replaceChatMessage, setChatStatus, type ChatBook, type ChatMessage, type ChatStatus } from './chat-book.js';
 
 /**
@@ -109,6 +109,8 @@ export type ChatPingView = {
     readonly at: string;
     /** The calling message (bounded preview; the full message stays in the chat). */
     readonly text: string;
+    /** Responsible agent when it differs from the author (transferred to Fixer). */
+    readonly owner?: string;
 };
 
 /**
@@ -447,6 +449,88 @@ export class ChatStore {
         });
     }
 
+    /**
+     * Every outstanding human request of the chats (seen or not, never resolved or withdrawn), with its responsible
+     * agent: the input of attention ownership and relevance supervision.
+     */
+    public async outstandingRequests(): Promise<OutstandingRequest[]> {
+        const pings = await this.attention.list().catch(() => [] as ChatPing[]);
+        const requests: OutstandingRequest[] = [];
+        for (const stored of await this.list()) {
+            if (!isHumanFacing(stored.chat)) continue;
+            for (const ping of unresolvedPings(stored.chat, pings)) {
+                requests.push({ ...ping, owner: pingOwner(ping), text: stored.chat.messages[ping.message - 1]?.text ?? '', relativePath: stored.relativePath, links: stored.chat.links, status: stored.chat.status, messages: stored.chat.messages.length });
+            }
+        }
+        return requests;
+    }
+
+    /**
+     * Withdraws outstanding human requests of a chat that verified evidence made obsolete (all of them when `messages`
+     * is omitted), under [attention ownership](specs/cli/notifications.md): the questions, their active User prefixes,
+     * authorship and membership stay in history; only their wait and attention are retired in every client. The
+     * responsible agent appends **one** ordinary explanation (joining first when it is not a member), without a new
+     * active User ping. When no human dependency remains, the chat's applicable `CHAT STATUS open` follows. Withdrawing
+     * again (racing checks, retries, restart) changes nothing.
+     */
+    public async withdrawRequests(name: string, input: { readonly messages?: readonly number[]; readonly by: string; readonly reason: string; readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>> }): Promise<ChatWrite & { readonly withdrawn: readonly number[]; readonly remaining: number }> {
+        return await this.mutex.run(async () => {
+            const stored = await this.find(name);
+            if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
+            const pings = await this.attention.list();
+            const outstanding = unresolvedPings(stored.chat, pings);
+            const wanted = input.messages ? new Set(input.messages) : undefined;
+            const targets = outstanding.filter((ping) => !wanted || wanted.has(ping.message));
+            if (!targets.length) return { ...stored, withdrawn: [], remaining: outstanding.length };
+            const by = referenceName(input.by);
+            const ids = await this.attention.withdraw({ key: stored.chat.key, messages: targets.map((ping) => ping.message), by, reason: input.reason, implicit: targets.filter((ping) => ping.implicit) });
+            if (!ids.length) return { ...stored, withdrawn: [], remaining: outstanding.length };
+            const remaining = outstanding.length - targets.length;
+            const sender = formatAgentReference(by);
+            const original = await readFile(stored.path, 'utf8');
+            const source = hasMember(stored.chat, sender) ? original : appendChatCommitments(original, [`CHAT MEMBER ${sender}`]);
+            const updated = appendChatMessage(source, { sender, text: passiveResolution(input.reason), at: this.now() }, !remaining && stored.chat.status === 'waiting-for-user' ? 'open' : undefined);
+            await writeFileAtomic(stored.path, updated);
+            const chat = parseChatBook(updated);
+            await this.attention.recordWithdrawalMessage(ids, chat.messages.length);
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, { 'Attention-Resolved': targets.map((ping) => String(ping.message)), ...input.trailers }) : { persistence: 'uncommitted' as const };
+            return { ...stored, chat, ...persisted, withdrawn: targets.map((ping) => ping.message), remaining };
+        });
+    }
+
+    /**
+     * Completes withdrawals whose explanation was not appended (an interruption between retiring the wait and saving
+     * the message): the message is appended once, recognized when it already exists, and the wait never reopens.
+     */
+    public async reconcileWithdrawals(): Promise<number> {
+        const pending = (await this.attention.list().catch(() => [] as ChatPing[])).filter((ping) => ping.withdrawn && !ping.withdrawn.message);
+        let completed = 0;
+        for (const ping of pending) {
+            const withdrawal = ping.withdrawn!;
+            await this.mutex.run(async () => {
+                const stored = await this.find(ping.chat);
+                if (!stored) return;
+                const sender = formatAgentReference(withdrawal.by);
+                const text = passiveResolution(withdrawal.reason);
+                const existing = stored.chat.messages.findIndex((message, index) => index >= ping.message && message.senderKey === (parseReferenceValue(sender)?.normalized ?? '') && message.text === text);
+                if (existing >= 0) {
+                    await this.attention.recordWithdrawalMessage([ping.id], existing + 1);
+                    return;
+                }
+                const remaining = unresolvedPings(stored.chat, await this.attention.list()).length;
+                const original = await readFile(stored.path, 'utf8');
+                const source = hasMember(stored.chat, sender) ? original : appendChatCommitments(original, [`CHAT MEMBER ${sender}`]);
+                const updated = appendChatMessage(source, { sender, text, at: this.now() }, !remaining && stored.chat.status === 'waiting-for-user' ? 'open' : undefined);
+                await writeFileAtomic(stored.path, updated);
+                const chat = parseChatBook(updated);
+                await this.attention.recordWithdrawalMessage([ping.id], chat.messages.length);
+                if (isHumanFacing(chat)) await this.persist(stored.path, chat.name, { 'Attention-Resolved': String(ping.message) });
+                completed++;
+            });
+        }
+        return completed;
+    }
+
     /** Changes only the durable status (e.g. resolving a request without a new message). */
     public async setStatus(name: string, status: ChatStatus): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
@@ -544,13 +628,59 @@ export class ChatStore {
 }
 
 /**
+ * One outstanding human request of a chat with its responsible agent (seen or not).
+ *
+ * @private chats
+ */
+export type OutstandingRequest = Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at' | 'seenAt' | 'implicit'> & {
+    /** Responsible agent (the author, or Fixer after a transfer). */
+    readonly owner: string;
+    /** Whether responsibility was transferred from the author. */
+    readonly transferredAt?: string;
+    /** The calling message. */
+    readonly text: string;
+    /** Project-relative path of the chat Book. */
+    readonly relativePath: string;
+    /** Links of the chat (e.g. the task the question serves). */
+    readonly links: readonly string[];
+    /** Durable status of the chat. */
+    readonly status: ChatStatus;
+    /** Messages of the chat now. */
+    readonly messages: number;
+};
+
+/**
+ * A resolution explanation as ordinary passive prose: an announcement of cleanup never pings the human again.
+ */
+function passiveResolution(reason: string): string {
+    const text = reason.trim().replace(/\+(@User\b|\{\s*User\s*\})/gi, '$1');
+    return text || 'This is no longer needed.';
+}
+
+/**
+ * Every unresolved occurrence of one chat (seen or not): its recorded explicit pings, plus the awaited message of a
+ * legacy waiting question without any occurrence.
+ */
+function unresolvedPings(chat: ChatBook, pings: readonly ChatPing[]): Array<ChatPing & { readonly implicit?: true }> {
+    const own = pings.filter((ping) => ping.key === chat.key && ping.message <= chat.messages.length);
+    const unresolved: Array<ChatPing & { readonly implicit?: true }> = own.filter((ping) => !ping.resolvedAt);
+    if (chat.status === 'waiting-for-user' && isHumanFacing(chat) && !own.length) {
+        let position = chat.messages.length;
+        while (position > 0 && (chat.messages[position - 1]!.phase === 'progress' || isUserSender(chat.messages[position - 1]!.sender))) position--;
+        const awaited = chat.messages[position - 1];
+        if (awaited) unresolved.push({ id: pingId(chat.key, position), chat: chat.name, key: chat.key, message: position, sender: awaited.sender, at: awaited.at, implicit: true });
+    }
+    return unresolved.sort((a, b) => a.message - b.message);
+}
+
+/**
  * The unseen, unresolved occurrences of one chat: its recorded explicit pings, plus the awaited message of a chat
  * waiting for the user that has no occurrence at all (a question written before explicit pings existed). Once a chat
  * has a recorded occurrence, later agent messages without the literal prefix stay passive.
  */
-function outstandingPings(chat: ChatBook, pings: readonly ChatPing[]): Array<Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at' | 'implicit'>> {
+function outstandingPings(chat: ChatBook, pings: readonly ChatPing[]): Array<Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at' | 'implicit' | 'owner'>> {
     const own = pings.filter((ping) => ping.key === chat.key && ping.message <= chat.messages.length);
-    const outstanding: Array<Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at' | 'implicit'>> = own.filter((ping) => !ping.seenAt && !ping.resolvedAt);
+    const outstanding: Array<Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at' | 'implicit' | 'owner'>> = own.filter((ping) => !ping.seenAt && !ping.resolvedAt);
     if (chat.status === 'waiting-for-user' && isHumanFacing(chat) && !own.length) {
         let position = chat.messages.length;
         while (position > 0 && (chat.messages[position - 1]!.phase === 'progress' || isUserSender(chat.messages[position - 1]!.sender))) position--;
@@ -567,7 +697,7 @@ function outstandingPings(chat: ChatBook, pings: readonly ChatPing[]): Array<Pic
  */
 export function summarize(chat: ChatBook, relativePath: string, seen: number, pings: readonly ChatPing[] = []): ChatSummary {
     const last = chat.messages[chat.messages.length - 1];
-    const outstanding = outstandingPings(chat, pings).map((ping): ChatPingView => ({ id: ping.id, message: ping.message, sender: ping.sender, at: ping.at, text: (chat.messages[ping.message - 1]?.text ?? '').slice(0, PING_PREVIEW_LENGTH) }));
+    const outstanding = outstandingPings(chat, pings).map((ping): ChatPingView => ({ id: ping.id, message: ping.message, sender: ping.sender, at: ping.at, text: (chat.messages[ping.message - 1]?.text ?? '').slice(0, PING_PREVIEW_LENGTH), ...(ping.owner ? { owner: ping.owner } : {}) }));
     const awaiting = chat.status === 'waiting-for-user' ? [...chat.messages].reverse().find((message) => message.senderKey !== 'user') : undefined;
     return {
         name: chat.name,

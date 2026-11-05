@@ -499,6 +499,12 @@
         const recheck = chat.detail.recheck;
         if (!live && recheck) thread.append(h('p', { className: 'muted' }, `The reply failed (${recheck.cause}). Automatic recheck at ${time(recheck.nextAt)}; writing again retries now.`));
         else if (!live && answer && answer.sender.replace(/^@/, '').toLowerCase() === 'user' && summary.status === 'open') thread.append(h('p', { className: 'muted' }, `Waiting for ${summary.agent || 'the agent'}’s reply…`));
+        // Outstanding requests: the responsible agent and its actual relevance check (shown, never triggered).
+        for (const request of chat.detail.requests || []) {
+            const check = request.check;
+            const status = !check ? '' : check.state === 'paused' ? 'its automatic check waits while the engine is paused' : check.state === 'unavailable' ? `its check is pending${check.lastOutcome ? ` (${check.lastOutcome})` : ''}` : check.state === 'checking' ? 'checking whether it is still needed now' : `checks whether it is still needed at ${time(check.nextAt)}`;
+            thread.append(h('p', { className: 'muted request-supervision' }, `Message ${request.message} waits for you · ${request.owner} is responsible${status ? ` and ${status}` : ''}.`));
+        }
         card.append(thread);
         const busy = state.busy.has(summary.name);
         if (summary.humanFacing || summary.joinable) {

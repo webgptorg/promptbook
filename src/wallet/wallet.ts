@@ -121,6 +121,11 @@ export type WalletActionView = {
     readonly reason: string;
     /** Tasks waiting for it. */
     readonly tasks: readonly string[];
+    /**
+     * Agents whose work initiated it (the first is responsible for its continuing relevance); without one, the request
+     * is system-originated and Fixer is responsible. Wallet itself keeps the technical verification.
+     */
+    readonly agents?: readonly string[];
     readonly browser?: string;
     readonly createdAt: string;
     /** How many times work requested it (deduplicated into this one action). */
@@ -1815,7 +1820,7 @@ export class WalletSubEngine {
      * Creates (or joins) the one pending login request of a website/account: repeated and concurrent requests of the
      * same login share it, and every waiting task is listed.
      */
-    private async request(input: { readonly origin: string; readonly account?: string; readonly problem: WalletActionView['problem']; readonly reason: string; readonly task?: string; readonly browser: string; readonly fields?: readonly string[]; readonly login?: string }): Promise<StoredAction> {
+    private async request(input: { readonly origin: string; readonly account?: string; readonly problem: WalletActionView['problem']; readonly reason: string; readonly task?: string; readonly agent?: string; readonly browser: string; readonly fields?: readonly string[]; readonly login?: string }): Promise<StoredAction> {
         const sameAccount = (action: StoredAction): boolean => originMatches(action.origin, input.origin) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase();
         // A recent rejection of the same step for the same work (or, without a task, of a request without one). It is
         // bounded in time, so recurring work with the same title may ask again on a later run.
@@ -1847,11 +1852,12 @@ export class WalletSubEngine {
                 reason: input.reason,
                 requests: existing.requests + 1,
                 tasks: input.task && !existing.tasks.includes(input.task) ? [...existing.tasks, input.task] : existing.tasks,
+                ...(input.agent || existing.agents?.length ? { agents: input.agent && !(existing.agents ?? []).includes(input.agent) ? [...(existing.agents ?? []), input.agent] : (existing.agents ?? []) } : {}),
                 ...(newStep ? { step: (step ?? 0) + 1 } : { ...(step ? { step } : {}), ...(seenAt ? { seenAt } : {}) }),
             };
             this.actions = this.actions.map((candidate) => (candidate.id === existing.id ? action : candidate));
         } else {
-            action = { id: randomBytes(5).toString('hex'), origin: input.origin, ...(input.account ? { account: input.account } : {}), problem: input.problem, ...asked, reason: input.reason, tasks: input.task ? [input.task] : [], browser: input.browser, createdAt: new Date().toISOString(), requests: 1, state: 'pending' };
+            action = { id: randomBytes(5).toString('hex'), origin: input.origin, ...(input.account ? { account: input.account } : {}), problem: input.problem, ...asked, reason: input.reason, tasks: input.task ? [input.task] : [], ...(input.agent ? { agents: [input.agent] } : {}), browser: input.browser, createdAt: new Date().toISOString(), requests: 1, state: 'pending' };
             this.actions = [...this.actions, action];
             this.options.log(`Wallet: ${input.reason} Add it on the Wallet page.`, 'warning');
         }
@@ -1871,6 +1877,8 @@ export class WalletSubEngine {
             readonly account?: string;
             readonly reason?: string;
             readonly task?: string;
+            /** The agent whose work needs the login (responsible for the request it may create). */
+            readonly agent?: string;
             /** The related service domains' logins turned out not to apply to this site. */
             readonly ignoreRelated?: boolean;
             /** The site asks for a one-time code the agent cannot obtain itself: the owner enters it in protected input. */
@@ -1890,7 +1898,7 @@ export class WalletSubEngine {
         const purpose = request.reason?.trim() ? ` (${request.reason.trim().slice(0, 200)})` : '';
         return await this.mutex.run(async (): Promise<WalletLoginResult> => {
             const waitFor = async (problem: WalletActionView['problem'], reason: string, asked?: { readonly fields: readonly string[]; readonly login: string }): Promise<WalletLoginResult> => {
-                const action = await this.request({ origin, account, problem, reason, task: request.task, browser: page.browser, ...asked });
+                const action = await this.request({ origin, account, problem, reason, task: request.task, ...(request.agent ? { agent: request.agent } : {}), browser: page.browser, ...asked });
                 // The owner already rejected this very request for this work: it is not created or alerted again.
                 if (action.state === 'dismissed') return { status: 'rejected', origin, action: action.id, problem };
                 return { status: 'waiting', origin, action: action.id, problem, reason };

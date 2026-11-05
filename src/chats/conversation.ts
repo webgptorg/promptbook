@@ -683,6 +683,168 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
 }
 
 /**
+ * Time limit of one bounded relevance assessment.
+ */
+const RELEVANCE_TIMEOUT_MS = 5 * 60_000;
+
+/**
+ * One outstanding request given to a relevance assessment.
+ *
+ * @private chats
+ */
+export type RelevanceRequest = {
+    readonly id: string;
+    readonly chat: string;
+    /** Project-relative path of the chat Book (its usage evidence belongs there). */
+    readonly relativePath: string;
+    readonly at: string;
+    /** The calling message. */
+    readonly text: string;
+    /** Later messages of the chat (bounded). */
+    readonly later: readonly string[];
+    /** Links of the chat (e.g. the task the question serves). */
+    readonly links: readonly string[];
+};
+
+/**
+ * A bounded paid relevance assessment by the responsible agent of its outstanding human requests (one read-only
+ * session for related requests, usage attributed to the agent and its chat). It is supervision, not another attempt
+ * of the blocked work: nothing is executed, no task is claimed and nothing is posted. Returns per-request verdicts, or
+ * why the agent cannot assess now (an honest pending check).
+ *
+ * @private chats
+ */
+export async function assessAttentionRelevance(
+    context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>,
+    input: { readonly agent: string; readonly requests: readonly RelevanceRequest[]; readonly digest?: string },
+): Promise<{ readonly verdicts: ReadonlyArray<{ readonly id: string; readonly needed: boolean; readonly reason?: string }> } | { readonly unavailable: string }> {
+    const agent = await resolveEffectiveAgent(context.catalog, formatAgentReference(input.agent));
+    const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
+    if (errors.length) return { unavailable: `${input.agent} cannot check its requests: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
+    const route = await readOnlyRoute(agent, undefined, { catalog: context.catalog, pool: context.pool, settings: context.settings });
+    if (route.kind !== 'routable') return { unavailable: route.reason };
+    const plugin = route.plugin;
+    const instance = context.pool.instance(route.selection.tool!)!;
+    const labels = input.requests.map((_, index) => `r${index + 1}`);
+    const prompt = [
+        `# Are your requests to the owner still needed?\n\nYou are **${agent.name}** in the project at \`${context.project.root}\`. You asked the project owner for something (or took responsibility for such a request). Human attention is expensive: you are responsible for withdrawing a request as soon as the owner's contribution is satisfied another way or no longer needed.`,
+        `## Your role\n\n${renderAgentInstructions(agent) || '_No additional instructions._'}`,
+        input.digest ? `## Current situation (from the engine)\n\n${input.digest}` : '',
+        ...input.requests.map((request, index) =>
+            [
+                `## Request ${labels[index]} — chat {${request.chat}} (${request.relativePath}), asked ${request.at}`,
+                '',
+                request.text.slice(0, 4_000),
+                request.links.length ? `\nLinked: ${request.links.join(', ')}` : '',
+                request.later.length ? `\nLater messages in the chat:\n${request.later.map((line) => `- ${line.slice(0, 600)}`).join('\n')}` : '\nNo later messages.',
+            ].join('\n'),
+        ),
+        [
+            '## How to decide',
+            '',
+            '- Check the current evidence (project files, Git history, the chat). Withdraw only when the needed contribution verifiably exists already or the latest authorized intent no longer needs it.',
+            '- Age, a missing reply, an absent viewer or a seen notice are never evidence of resolution. A changed requirement does not mean the requested action happened.',
+            '- This is read-only: never modify files, never perform the blocked work and never ask anything.',
+            '',
+            'Reply with exactly one JSON object and nothing else:',
+            `{"requests":[{"id":"${labels[0]}","needed":true,"reason":"…"}]}`,
+            'For a request that is no longer needed, `reason` is one short sentence addressed to the owner for the chat, e.g. "The invoice is now in invoices/2026-10.pdf, so I no longer need it." Never write +@User.',
+        ].join('\n'),
+    ]
+        .filter(Boolean)
+        .join('\n\n');
+    const directory = await ensureDirectory(context.project.runtime.temporary);
+    const promptFile = join(directory, `relevance-${shortId()}.md`);
+    await writeFile(promptFile, prompt);
+    context.onActivity?.(`${agent.name} is checking whether its requests to the owner are still needed`);
+    let result;
+    try {
+        result = await runHarnessInSession(
+            context.sessions,
+            {
+                key: `attention-relevance:${shortId(6)}`,
+                agent: agent.name,
+                work: { kind: 'helper', purpose: 'Checking whether requests to the owner are still needed' },
+                tool: instance.name,
+                harnessVersion: route.inspection.version,
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                authentication: route.inspection.authentication,
+                account: instance.accountProfile,
+                ephemeral: true,
+            },
+            plugin,
+            {
+                projectRoot: context.project.root,
+                cwd: context.project.root,
+                prompt,
+                promptFile,
+                readOnly: true,
+                env: instanceEnvironment(plugin, instance, context.pool.credential(instance), context.env),
+                timeoutMs: RELEVANCE_TIMEOUT_MS,
+                signal: context.signal,
+                allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
+                authentication: route.inspection.authentication,
+                readableDirectories: [],
+                model: route.selection.model,
+                thinkingLevel: route.selection.thinkingLevel,
+                baseUrl: route.selection.baseUrl,
+            },
+            route.inspection.executablePath ?? plugin.executable,
+        );
+    } finally {
+        await rm(promptFile, { force: true });
+    }
+    const first = input.requests[0]!;
+    await appendUsage(
+        chatUsageFile(context.project, join(context.project.root, first.relativePath)),
+        usageRecords({
+            observations: result.observations,
+            startedAt: result.startedAt,
+            harness: route.selection.harness,
+            tool: instance.name,
+            model: result.model ?? route.selection.model,
+            authentication: route.inspection.authentication,
+            outcome: result.outcome,
+            attribution: { agent: agent.name, owner: agent.name, initiator: 'engine', work: { kind: 'chat', chat: first.chat, source: first.relativePath } },
+        }),
+    ).catch(() => undefined);
+    if (result.outcome === 'quota') context.pool.markQuota(instance.name, result);
+    if (result.outcome !== 'completed') return { unavailable: result.diagnostic || `The check ended ${result.outcome}.` };
+    const verdicts = parseRelevanceVerdicts(result.finalMessage, labels);
+    if (!verdicts) return { unavailable: `${agent.name} gave no readable verdict.` };
+    return { verdicts: verdicts.map((verdict) => ({ ...verdict, id: input.requests[labels.indexOf(verdict.id)]!.id })) };
+}
+
+/**
+ * Reads the JSON verdicts of a relevance assessment (`{"requests":[{"id","needed","reason"}]}`), keeping only known
+ * labels. Undefined when no readable verdict exists (the request then simply stays needed).
+ *
+ * @private chats
+ */
+export function parseRelevanceVerdicts(text: string, labels: readonly string[]): Array<{ readonly id: string; readonly needed: boolean; readonly reason?: string }> | undefined {
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start < 0 || end <= start) return undefined;
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(text.slice(start, end + 1));
+    } catch {
+        return undefined;
+    }
+    const items = (parsed as { requests?: unknown })?.requests;
+    if (!Array.isArray(items)) return undefined;
+    const verdicts: Array<{ id: string; needed: boolean; reason?: string }> = [];
+    for (const item of items) {
+        if (!item || typeof item !== 'object') continue;
+        const { id, needed, reason } = item as Record<string, unknown>;
+        if (typeof id !== 'string' || !labels.includes(id) || typeof needed !== 'boolean' || verdicts.some((verdict) => verdict.id === id)) continue;
+        verdicts.push({ id, needed, ...(typeof reason === 'string' && reason.trim() ? { reason: reason.trim().slice(0, 600) } : {}) });
+    }
+    return verdicts;
+}
+
+/**
  * Time limit of the agent session looking for a credential test's one-time code.
  */
 const LOGIN_CODE_TIMEOUT_MS = 3 * 60_000;

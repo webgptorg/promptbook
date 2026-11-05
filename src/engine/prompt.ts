@@ -10,13 +10,24 @@ import { applicableChanges } from '../tasks/task-direction.js';
 import { RESULT_MARKER } from './result.js';
 
 /**
+ * Ownership and continuing relevance of human requests ([attention ownership](specs/cli/notifications.md)), part of
+ * every agent's ordinary context; Fixer receives system and orphaned requests through the same rules.
+ *
+ * @private agent prompt
+ */
+export const ATTENTION_OWNERSHIP_INSTRUCTION =
+    "Human attention costs more than agent time, so asking is an exceptional responsibility: you own every request you create (Fixer owns system-originated requests and those whose author no longer exists) until it is answered or no longer needed. Promptbook rechecks your outstanding requests on a progressively slower schedule (about a minute first, up to a week), with deterministic checks first, a bounded paid check by you only when evidence changed, sooner checks on relevant events and no automatic checks while the engine is paused. When verified evidence shows the human's contribution is satisfied or no longer needed under the latest authorized intent, the request is withdrawn: its wait and alert are retired in every client, the original question and ping stay unchanged in history, and you append one short ordinary explanation (for example \"The invoice is now available, so I no longer need it.\") without a new +@User. Age, silence or a seen notice never prove resolution, a changed requirement does not mean the requested action happened, and withdrawing never cancels the user's draft or open form.";
+
+/**
  * The active User-ping convention of working and chat agents: genuinely requesting the human means `+@User`, while a
  * plain mention, progress and ordinary results request nothing (and a seen question is not an answer).
  *
  * @private agent instructions
  */
-export const USER_PING_INSTRUCTION =
-    'Write `+@User` (or `+{User}`) in a message only when you genuinely need a reply, decision or action from the human: it invites them into the chat if needed and alerts them once for that message. A plain `@User`, progress updates and ordinary results never request attention, and you never re-ping an unchanged question. Seeing your message is not an answer, approval or permission to continue; wait for the actual reply.';
+export const USER_PING_INSTRUCTION = [
+    'Write `+@User` (or `+{User}`) in a message only when you genuinely need a reply, decision or action from the human: it invites them into the chat if needed and alerts them once for that message. A plain `@User`, progress updates and ordinary results never request attention, and you never re-ping an unchanged question. Seeing your message is not an answer, approval or permission to continue; wait for the actual reply.',
+    ATTENTION_OWNERSHIP_INSTRUCTION,
+].join(' ');
 
 /**
  * Maximal characters of additional project context included verbatim.

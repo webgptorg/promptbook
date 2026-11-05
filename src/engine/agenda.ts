@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { AttentionOwner, evidenceFingerprint, type RelevanceVerdict } from './attention-owner.js';
 import { nextProgressiveWait, outcomeFingerprint, restoreProgressiveWait, WAITING_POLICIES, withInitialDelay, type ProgressiveSchedule, type WaitingPolicy } from './progressive-waiting.js';
 import { watch, type FSWatcher } from 'node:fs';
 import { readFile, stat, writeFile } from 'node:fs/promises';
@@ -34,12 +35,12 @@ import { ACTIONS_DIRECTORY, distinctName, generatedName, traceDirectoryOf } from
 import { BookIndex } from '../project/books.js';
 import { parseBook } from '../book/parse.js';
 import { renderDeclaration } from '../book/write.js';
-import { ChatStore, type ChatSummary, type ChatWrite } from '../chats/store.js';
+import { ChatStore, type ChatSummary, type ChatWrite, type OutstandingRequest } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
-import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView } from '../chats/service.js';
+import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
-import { composeProjectBrief, findLoginCode, replyInChat, type LiveReply } from '../chats/conversation.js';
+import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
 import { checkHarnessVersion, updateHarness } from '../harness/maintenance.js';
@@ -287,6 +288,11 @@ const RECOVERY_CHOICES = ['Retry the task', 'Acknowledge the failure'] as const;
 const RECOVERY_RECHECK_MS = WAITING_POLICIES.taskRecovery.initialMs;
 
 /**
+ * Quiet period after chat or lifecycle changes before outstanding human requests are reconciled with their owners.
+ */
+const ATTENTION_REVIEW_DEBOUNCE_MS = 2_000;
+
+/**
  * Changed conditions bring a recheck forward, but never sooner than this after it was scheduled (flapping readiness
  * cannot cause a burst of paid rechecks).
  */
@@ -430,6 +436,10 @@ export class Agenda {
     private readonly recoveryDue = new Map<string, number>();
     /** Automatic rechecks of failed chat replies by normalized chat name; a timer is armed while the recheck waits. */
     private readonly chatRechecks = new Map<string, { readonly name: string; readonly schedule: ChatReplyRecheck; timer?: NodeJS.Timeout }>();
+    /** Supervision of outstanding human requests by their responsible agents (created on first use). */
+    private attentionOwnerInstance?: AttentionOwner;
+    /** Debounce of attention reconciliation. */
+    private attentionTimer?: NodeJS.Timeout;
     /**
      * Progressive waits of the supervisor loop (tools, setup blockers, a failing pre-work check) by condition key: an
      * unchanged condition rechecks less and less often; only a due round advances, so unrelated wake-ups neither
@@ -651,6 +661,85 @@ export class Agenda {
             });
         }
         return this.chatStore;
+    }
+
+    /**
+     * Responsible-agent supervision of outstanding human requests: owners (Fixer for orphaned requests), progressive
+     * relevance checks and verified withdrawal (one shared operation for every client).
+     */
+    private get attentionOwner(): AttentionOwner {
+        if (!this.attentionOwnerInstance) {
+            this.attentionOwnerInstance = new AttentionOwner({
+                chats: this.chats,
+                stateDirectory: this.options.project.runtime.state,
+                agentsAllowed: () => this.claimable && !this.stopRequested,
+                agentExists: (name) => !this.catalog || this.catalog.index.winnerOf(normalizeAgentName(name))?.kind === 'agent',
+                obsolete: async (request) => await this.obsoleteRequest(request),
+                evidence: async (request) => await this.requestEvidence(request),
+                assess: async (owner, requests) => await this.assessRequests(owner, requests),
+                onWithdrawn: async () => {
+                    await this.refreshChats();
+                    this.wake();
+                },
+                onChange: () => this.touch(),
+                log: (text, level) => this.log(text, level ?? 'info'),
+                // `PTBK_ATTENTION_RECHECK_MS` shortens the first check for fixtures; growth and the one-week cap stay.
+                policy: withInitialDelay(WAITING_POLICIES.attention, Number(this.options.env.PTBK_ATTENTION_RECHECK_MS) || undefined),
+            });
+        }
+        return this.attentionOwnerInstance;
+    }
+
+    /** Debounced reconciliation of attention ownership after chat and lifecycle changes. */
+    private scheduleAttentionReview(): void {
+        if (this.options.mode === 'maintenance' || this.stopRequested) return;
+        clearTimeout(this.attentionTimer);
+        this.attentionTimer = setTimeout(() => void this.attentionOwner.reconcile(), ATTENTION_REVIEW_DEBOUNCE_MS);
+        this.attentionTimer.unref?.();
+    }
+
+    /**
+     * Deterministic obsolescence of an outstanding request without a model: every task its chat serves was cancelled
+     * or retired (the work was withdrawn). A request a checkpointed task waits for is handled by that checkpoint.
+     */
+    private async obsoleteRequest(request: OutstandingRequest): Promise<string | undefined> {
+        if (await this.isAwaitedByTask(request.chat)) return undefined;
+        const linked = request.links.map((link) => parseReferenceValue(link)?.normalized).filter((key): key is string => Boolean(key));
+        if (!linked.length) return undefined;
+        const tasks = (await this.readQueue()).tasks.filter((task) => !task.shadowedBy && linked.includes(task.key));
+        if (!tasks.length || tasks.length !== linked.length) return undefined;
+        if (!tasks.every((task) => task.status === 'cancelled' || task.status === 'retired')) return undefined;
+        const task = tasks[0]!;
+        return `${formatAgentReference(task.title)} was ${task.status === 'cancelled' ? 'cancelled' : 'retired'}, so I no longer need this.`;
+    }
+
+    /** Fingerprint of the evidence relevant to a request: its chat, linked tasks and the project's latest commit. */
+    private async requestEvidence(request: OutstandingRequest): Promise<string> {
+        const linked = request.links.map((link) => parseReferenceValue(link)?.normalized).filter((key): key is string => Boolean(key));
+        const tasks = linked.length ? (await this.readQueue()).tasks.filter((task) => linked.includes(task.key)).map((task) => [task.key, task.status, task.doneStamps.length]) : [];
+        await this.refreshLastCommit().catch(() => undefined);
+        return evidenceFingerprint([request.messages, request.status, tasks, this.lastCommit?.sha ?? '', this.walletEvidence()]);
+    }
+
+    /** Nonsecret Wallet state relevant to login requests (pending requests and their steps). */
+    private walletEvidence(): string {
+        const wallet = this.wallet?.view();
+        return wallet ? `${wallet.state}:${wallet.pending.map((action) => `${action.id}:${action.problem}:${action.step ?? 0}`).join(',')}:${wallet.records.length}` : '';
+    }
+
+    /** A bounded paid relevance assessment of one owner's related requests (read-only, attributed usage). */
+    private async assessRequests(owner: string, requests: readonly OutstandingRequest[]): Promise<{ readonly verdicts: readonly RelevanceVerdict[] } | { readonly unavailable: string }> {
+        if (!this.catalog || !this.settings) return { unavailable: 'The engine is still starting.' };
+        const input: RelevanceRequest[] = [];
+        for (const request of requests) {
+            const stored = await this.chats.find(request.chat);
+            const later = (stored?.chat.messages ?? []).slice(request.message).filter((message) => message.phase !== 'progress').slice(-12).map((message) => `${message.sender}: ${message.text.replace(/\s+/g, ' ')}`);
+            input.push({ id: request.id, chat: request.chat, relativePath: request.relativePath, at: request.at, text: request.text, later, links: request.links });
+        }
+        return await assessAttentionRelevance(
+            { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: this.ownedWork.signal, onActivity: (text) => this.log(text), sessions: this.sessions },
+            { agent: owner, requests: input, digest: this.reportDigest() },
+        );
     }
 
     /** Effective task source directory. */
@@ -1278,6 +1367,8 @@ export class Agenda {
             this.interruptTaskWork();
         }
         if (!this.pauseActive) this.pauseSettling = false;
+        // Automatic owner checks waited during Pause; Resume reconciles current evidence (at most one due check).
+        this.scheduleAttentionReview();
         // A paused wait ends so that a resolved reason resumes (or a new one holds) at once.
         this.waiter?.resolve('woken');
         this.touch();
@@ -1608,7 +1699,17 @@ export class Agenda {
         const summary = pending ? { ...detail.summary, persistence: { state: pending.failure ? ('failed' as const) : ('pending' as const), since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } : detail.summary;
         const live = this.liveReplies.get(detail.summary.name);
         const recheck = this.chatRecheckViews().find((view) => nameKey(view.chat) === nameKey(detail.summary.name));
-        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}) };
+        const requests = await this.chatRequestViews(detail.summary.name);
+        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}) };
+    }
+
+    /** Outstanding human requests of one chat with their responsible agent and relevance checks (no check is triggered). */
+    private async chatRequestViews(name: string): Promise<ChatRequestView[]> {
+        const key = nameKey(name);
+        const checks = this.attentionOwnerInstance?.views() ?? {};
+        return (await this.chats.outstandingRequests().catch(() => []))
+            .filter((request) => nameKey(request.chat) === key)
+            .map((request) => ({ id: request.id, message: request.message, sender: request.sender, owner: request.owner, seen: Boolean(request.seenAt), ...(checks[request.id] ? { check: checks[request.id]! } : {}) }));
     }
 
     /** Failed chat replies waiting for their automatic recheck (shared by every client). */
@@ -2749,6 +2850,7 @@ export class Agenda {
             void _previous;
             return pending ? { ...rest, persistence: { state: pending.failure ? 'failed' : 'pending', since: pending.since, ...(pending.failure ? { failure: pending.failure } : {}) } } : rest;
         });
+        this.scheduleAttentionReview();
         this.touch();
     }
 
@@ -2789,6 +2891,8 @@ export class Agenda {
         clearTimeout(this.configTimer);
         for (const entry of this.chatRechecks.values()) clearTimeout(entry.timer);
         clearTimeout(this.reportCommitTimer);
+        clearTimeout(this.attentionTimer);
+        this.attentionOwnerInstance?.stop();
         this.sync.end();
         this.health?.stop();
     }
@@ -4534,7 +4638,7 @@ export class Agenda {
      * Whether the user replied in a chat after the awaited message (a reply among `choices` when they are required,
      * otherwise among the awaited message's own offered choices, or any reply when none were offered).
      */
-    private async chatReplyOf(name: string, awaitedMessages: number | undefined, choices?: readonly string[], answerMessage?: number): Promise<{ readonly answered: boolean; readonly answer?: string; readonly missing?: boolean }> {
+    private async chatReplyOf(name: string, awaitedMessages: number | undefined, choices?: readonly string[], answerMessage?: number): Promise<{ readonly answered: boolean; readonly answer?: string; readonly missing?: boolean; readonly withdrawn?: string }> {
         const stored = await this.chats.find(name);
         if (!stored) return { answered: !choices, missing: true };
         const messages = stored.chat.messages;
@@ -4542,6 +4646,9 @@ export class Agenda {
         const routed = answerMessage !== undefined ? messages[answerMessage - 1] : undefined;
         if (routed?.senderKey === 'user' && (!choices || choices.includes(routed.text.trim()))) return { answered: true, answer: routed.text.trim() };
         const awaited = awaitedMessages ?? messages.length;
+        // A question its responsible agent withdrew (verified obsolete) is settled without a synthetic answer.
+        const withdrawn = (await this.chats.attention.list().catch(() => [])).find((ping) => ping.key === stored.chat.key && ping.message === awaited && ping.withdrawn);
+        if (withdrawn) return { answered: true, withdrawn: withdrawn.withdrawn!.reason };
         const question = messages[awaited - 1];
         const offered = choices ?? question?.choices;
         for (const message of messages.slice(awaited)) {
@@ -4996,8 +5103,15 @@ export class Agenda {
             // Another question waiting in the same chat keeps it waiting for the owner.
             const others = (await this.state.readParked()).some((other) => other.waitingChat === chat || other.recoveryChat === chat);
             const agent = record.handover?.agent ?? record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent');
+            // The responsible agent withdraws exactly the awaited question (other dependencies keep waiting) and
+            // explains it once; history and the original ping stay.
+            const awaited = record.awaitedMessages ?? (await this.chats.find(chat))?.chat.messages.length;
             await this.chats
-                .append(chat, { sender: formatAgentReference(referenceName(agent)), text: `No reply is needed anymore: ${reason}. The question stays here for reference.` }, { ...(others ? {} : { status: record.phase === 'failed' ? 'resolved' : 'open' }), trailers: { 'Task-Name': record.taskTitle } })
+                .withdrawRequests(chat, { ...(awaited ? { messages: [awaited] } : {}), by: referenceName(agent), reason: `No reply is needed anymore: ${reason}. The question stays here for reference.`, trailers: { 'Task-Name': record.taskTitle } })
+                .then(async (written) => {
+                    // A failure-recovery question resolves its chat; an ordinary question leaves it open.
+                    if (!others && !written.remaining && record.phase === 'failed') await this.chats.setStatus(chat, 'resolved');
+                })
                 .catch((error: unknown) => this.log(`The question in {${chat}} could not be closed: ${errorMessage(error)}`, 'warning'));
         }
         await (await TaskTrace.open(this.options.project, { name: record.taskTitle, source: record.sourcePath })).event('checkpoint-retired', { runId: record.runId, phase: record.phase, reason, chat: chat ?? null }, { local: true }).catch(() => undefined);

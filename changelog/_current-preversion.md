@@ -1,5 +1,12 @@
 # Unreleased
 
+## Agent-owned attention and automatic request resolution
+
+- Every outstanding request for the user now has one responsible owner: the agent that asked. Fixer owns system-originated requests (health, harnesses, tools, sync, setup and Wallet requests without an initiating agent), and requests whose author no longer exists move to Fixer durably. The original message keeps its author. Domain attention, chat detail and Wallet pending actions expose the owner.
+- The engine supervises whether each request is still needed. Deterministic domain truth runs first, without a model and even during Pause; for example, every linked task was cancelled or retired. After that comes a progressive owner relevance check, from about one minute up to one week. It coalesces an owner's related requests into one read-only assessment, runs paid inference only when evidence changed since asking or the last check, never runs automatic agent checks while paused, and reports an honest *unavailable* state when no usable harness exists.
+- Withdrawing a request never edits or deletes history. The wait is retired once, the owner joins the chat when needed and appends one passive explanation that does not ping the user again, and other requests in the chat keep waiting. When the last one clears, the chat returns to its ordinary status. Racing checks, retries and restarts withdraw once, and an interrupted explanation is completed on the next start.
+- Terminal and browser chats show which message waits for the user, who is responsible and when it is next checked. Agents learn the ownership rules in their instructions. Chat detail now also passes recorded message audio through to clients.
+
 ## Progressive waiting and retry scheduling
 
 - Add one engine-owned progressive-waiting (exponential backoff) policy with domain bounds. Attention relevance checks start around one minute and may reach one week. Task, chat-reply and brief rechecks, Git synchronization, update recovery, browser relaunch, the tools wait, setup blockers and a failing pre-work check all use it instead of their own timer arithmetic. Known resets and deadlines take precedence, and repeated equivalent failures wait longest.

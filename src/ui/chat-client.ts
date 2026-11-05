@@ -264,6 +264,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         } else if (!live && detail && awaitsReply(detail) && detail.summary.status === 'open') {
             body.push(style.muted(source.replies ? `${marks.wait} Waiting for ${detail.summary.agent ?? 'the agent'}'s reply…` : `${marks.wait} The reply is written when the project's service runs (\`ptbk start\`).`));
         }
+        // Outstanding requests: who is responsible and when it is rechecked (inspection never triggers a check).
+        for (const request of detail?.requests ?? []) body.push(style.muted(truncate(`${marks.wait} ${requestSupervisionLine(request)}`, width - 2)));
         scroll = Math.max(0, Math.min(scroll, Math.max(0, body.length - available)));
         const end = body.length - scroll;
         const visible = body.slice(Math.max(0, end - available), end);
@@ -460,4 +462,23 @@ function savedNotice(sent: ChatSent): string {
     if (sent.commit) return `Saved and committed (${sent.commit.slice(0, 8)}).`;
     if (sent.persistence === 'pending') return 'Saved; its commit follows shortly.';
     return 'Saved.';
+}
+
+/**
+ * One line describing an outstanding request's responsible agent and its actual relevance check state.
+ *
+ * @private chat client
+ */
+export function requestSupervisionLine(request: NonNullable<ChatDetail['requests']>[number], now: number = Date.now()): string {
+    const check = request.check;
+    const state = !check
+        ? ''
+        : check.state === 'paused'
+          ? 'its automatic check waits while the engine is paused'
+          : check.state === 'unavailable'
+            ? `its check is pending${check.lastOutcome ? ` (${check.lastOutcome})` : ''}`
+            : check.state === 'checking'
+              ? 'checking whether it is still needed now'
+              : `checks whether it is still needed ${formatShortTime(Date.parse(check.nextAt), now)}`;
+    return `Message ${request.message} waits for you · ${request.owner} is responsible${state ? ` and ${state}` : ''}.`;
 }

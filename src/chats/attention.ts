@@ -28,7 +28,29 @@ export type ChatPing = {
     readonly resolvedAt?: string;
     /** A legacy waiting question without the literal prefix: recorded only once it was seen or resolved. */
     readonly implicit?: true;
+    /**
+     * Responsible agent when it differs from the author: an outstanding request whose author is no longer a usable
+     * project agent is transferred to Fixer durably, without rewriting the original authorship or alerting again.
+     */
+    readonly owner?: string;
+    /** When responsibility was transferred (ISO). */
+    readonly transferredAt?: string;
+    /**
+     * Verified automatic resolution: the responsible agent withdrew the request because the human contribution is
+     * satisfied or no longer needed. The question and its ping stay in history; only its wait/attention is retired.
+     * `message` is the 1-based position of the appended explanation (absent while that append is still pending).
+     */
+    readonly withdrawn?: { readonly at: string; readonly by: string; readonly reason: string; readonly message?: number };
 };
+
+/**
+ * The responsible agent of an attention occurrence: its recorded owner, else the author of the calling message.
+ *
+ * @private chat attention
+ */
+export function pingOwner(ping: Pick<ChatPing, 'owner' | 'sender'>): string {
+    return ping.owner ?? ping.sender.replace(/^@/, '').replace(/^\{|\}$/g, '');
+}
 
 /**
  * Format of the shared attention file.
@@ -120,6 +142,56 @@ export class ChatAttention {
                 changed++;
             }
             return changed;
+        });
+    }
+
+    /**
+     * Withdraws outstanding occurrences of a chat (by message position) as automatically resolved by their responsible
+     * agent. Already resolved or withdrawn occurrences are untouched, so racing checks, retries and restarts withdraw
+     * once. A legacy question without a recorded occurrence is recorded as withdrawn. Returns the withdrawn ids.
+     */
+    public async withdraw(input: { readonly key: string; readonly messages: readonly number[]; readonly by: string; readonly reason: string; readonly implicit?: readonly Pick<ChatPing, 'id' | 'chat' | 'key' | 'message' | 'sender' | 'at'>[] }): Promise<string[]> {
+        const now = new Date().toISOString();
+        const wanted = new Set(input.messages);
+        const withdrawn: string[] = [];
+        await this.update((pings) => {
+            for (const [index, ping] of pings.entries()) {
+                if (ping.key !== input.key || ping.resolvedAt || !wanted.has(ping.message)) continue;
+                pings[index] = { ...ping, resolvedAt: now, withdrawn: { at: now, by: input.by, reason: input.reason } };
+                withdrawn.push(ping.id);
+            }
+            for (const candidate of input.implicit ?? []) {
+                if (!wanted.has(candidate.message) || pings.some((ping) => ping.id === candidate.id)) continue;
+                pings.push({ ...candidate, implicit: true, resolvedAt: now, withdrawn: { at: now, by: input.by, reason: input.reason } });
+                withdrawn.push(candidate.id);
+            }
+            return withdrawn.length;
+        });
+        return withdrawn;
+    }
+
+    /** Records the position of the appended explanation of withdrawn occurrences (completing an interrupted append). */
+    public async recordWithdrawalMessage(ids: readonly string[], message: number): Promise<void> {
+        const wanted = new Set(ids);
+        await this.update((pings) => {
+            let changed = 0;
+            for (const [index, ping] of pings.entries()) {
+                if (!wanted.has(ping.id) || !ping.withdrawn || ping.withdrawn.message) continue;
+                pings[index] = { ...ping, withdrawn: { ...ping.withdrawn, message } };
+                changed++;
+            }
+            return changed;
+        });
+    }
+
+    /** Transfers responsibility of an outstanding occurrence (e.g. to Fixer when its author no longer exists). */
+    public async transfer(id: string, owner: string): Promise<boolean> {
+        return await this.update((pings) => {
+            const index = pings.findIndex((ping) => ping.id === id);
+            const ping = pings[index];
+            if (!ping || ping.resolvedAt || pingOwner(ping) === owner) return false;
+            pings[index] = { ...ping, owner, transferredAt: new Date().toISOString() };
+            return true;
         });
     }
 
