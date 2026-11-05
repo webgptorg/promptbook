@@ -1,5 +1,7 @@
 # Unreleased
 
+- Adopt deep ink blue (#17386C) for the README logo and the symbol used in desktop packaging.
+
 - Ship the shared Electron desktop client for Apple Silicon and Intel Macs as versioned DMGs with a bundled CLI, Node.js and npm. Check both installers on native runners and publish them with verified checksums alongside the Windows installer.
 
 - Match the README wordmark to the Promptbook brand kit. The vector cube’s vertical edge now matches the cap height of the lettering.
