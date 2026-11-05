@@ -16,7 +16,7 @@ Reviewed planning saves produce their scoped `ptbk: ` commit on every supported 
 
 For an authorized release tag or manual dispatch in the official repository, validate the exact immutable tag across the complete check matrix before uploading the single `ptbk` package. The publication job remains blocked when validation fails. A skipped publication following failed validation is an unsuccessful release outcome.
 
-Successful publication means the tagged version, matching manifest/lockfile and distributable are validated, npm accepts the package with provenance, and bounded public-registry verification confirms the expected version, tarball integrity and default installation channel. Disposable unversioned local/global installations must report that released engine version. The same version's Windows installer and both macOS DMGs must also be built, verified and downloadable from its GitHub Release under the requirements below. Required check and publication jobs finish successfully; logs retain actionable evidence for failures.
+Successful publication means the tagged version, matching manifest/lockfile and distributable are validated, npm accepts the package with provenance, and bounded public-registry verification confirms the expected version, tarball integrity and default installation channel. Disposable unversioned local/global installations must report that released engine version. The same version's Windows installer, both macOS DMGs and the Android APK must also be built, verified and downloadable from its GitHub Release. Required check and publication jobs finish successfully and retain actionable diagnostics for failures.
 
 ### Additional Windows release artifact
 
@@ -35,6 +35,12 @@ Build a drag-to-Applications DMG on native Apple Silicon and Intel runners from 
 Before uploading, mount each DMG, copy its application and check the bundled CLI version and architecture, npm, the real Electron PTY and shared client behavior. Upload both DMGs with architecture and version in their filenames and a separate SHA-256 for each. Download and verify each published asset against its checksum. Run packaged smoke tests on both architectures in Check as well.
 
 Stable macOS releases require Developer ID signing and Apple notarization with stapled tickets. A prerelease can use a clearly labelled `-unsigned.dmg` candidate with an ad-hoc signature when Apple credentials are absent. An incomplete signing configuration or failed signing or notarization fails the macOS job.
+
+### Additional Android release artifact
+
+Build an ARM64 APK with the exact tagged engine, the Android runtime prerequisites and the local dashboard. Publish the signed APK and its SHA-256 checksum as assets on the same release. With no persistent signing key, use a clearly labelled preview signed for that build. Installing an update over an existing copy requires the same signing identity.
+
+Check the APK signature, embedded version and native architecture. On branch changes, test the installed Android app in an emulator, including the real local engine, the setup Git commit, WebView access and the engine remaining available after the app goes to the background. The [Android installation guide](../../apps/android/README.md) describes the preview scope and signing setup.
 
 ### Partial publication and retries
 

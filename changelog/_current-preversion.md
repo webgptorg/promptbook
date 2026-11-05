@@ -4,6 +4,8 @@
 - Add **Sign in manually** for a pending Wallet request in the same browser profile. When the sign-in to the requested service is seen, Wallet offers **Save to Wallet?** or **Update password in Wallet?** for the credential submitted on the site. Saving checks duplicates and revisions, marks the record verified by that sign-in and does not settle the request. After the handoff, only a revalidated sign-in to the requested service and account completes the request, and the waiting work resumes knowing that the owner signed in.
 
 - Serve realtime voice's media page from a temporary feature server owned by the terminal process instead of the engine. It uses a free loopback port and a single-use invitation in the URL fragment, which only the page's authenticated handshake redeems, so previews and prefetches cannot. Host and origin are checked, one page owns the media, and a reload of the same tab can recover through its session grant. Unused links expire, and closing the page releases the port. The engine keeps one call controller with a scoped media grant for the controlling client only, and the terminal shows **Waiting for browser** until the page attaches. Voice works with the project HTTP server disabled.
+- Ship a signed ARM64 Android preview alongside the desktop installers. It bundles Reborn, Node.js, Git and Gemini CLI, runs the local project in a foreground service, and reuses the project dashboard behind an app-only bootstrap credential.
+
 
 - Polish the shared Windows and macOS desktop UI with system, sun and moon appearance controls, resizable panels, project status and attention dots, and a conversation layout with a separate reply area. Bundle the official Inter and Outfit fonts for offline use.
 

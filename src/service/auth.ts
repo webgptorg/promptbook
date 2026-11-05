@@ -4,8 +4,9 @@ import { PtbkError } from '../common/errors.js';
 
 /**
  * Compares credentials without a content-dependent early exit.
+ * @private local HTTP authentication
  */
-function matchesCredential(value: string | undefined, expected: string): boolean {
+export function matchesCredential(value: string | undefined, expected: string): boolean {
     if (!value) return false;
     const actual = Buffer.from(value);
     const wanted = Buffer.from(expected);

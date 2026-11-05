@@ -230,6 +230,7 @@ export class EngineUpdater {
 
     /** Why this engine cannot run automatic updates, if it cannot. */
     private get limitation(): string | undefined {
+        if (this.options.env.PTBK_ANDROID_NODE) return 'Install a newer Promptbook APK from GitHub Releases to update the Android engine.';
         if (this.options.mode === 'maintenance') return 'A maintenance operation never updates the engine.';
         if (this.installation.scope === 'development') return 'This engine runs from a source checkout; update it by pulling and rebuilding the checkout.';
         if (this.installation.scope === 'npx') return 'This engine runs from the transient npx cache; install ptbk locally or globally for automatic updates.';

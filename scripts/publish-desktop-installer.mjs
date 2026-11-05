@@ -24,7 +24,7 @@ async function sha256(path) {
 }
 
 /**
- * Publishes a desktop installer to its GitHub Release, idempotently: an identical existing asset is
+ * Publishes an installer to its GitHub Release, idempotently: an identical existing asset is
  * reused, a different one is never overwritten (the release is then incomplete and reported), and the actual
  * downloadable asset is verified against the published checksum afterwards.
  */
@@ -37,7 +37,8 @@ async function publishInstaller(installerPath) {
         const prefix = `Promptbook-${release.version}-macos-${arch}`;
         return [`${prefix}.dmg`, ...(release.version.includes('-') ? [`${prefix}-unsigned.dmg`] : [])];
     });
-    if (!windows && !macNames.includes(name)) throw new Error(`The installer ${name} does not identify a supported platform and version ${release.version}.`);
+    const android = [`Promptbook-${release.version}-android-arm64.apk`, `Promptbook-${release.version}-android-arm64-preview.apk`].includes(name);
+    if (!windows && !macNames.includes(name) && !android) throw new Error(`The installer ${name} does not identify a supported platform and version ${release.version}.`);
     const digest = await sha256(installerPath);
     const checksumName = `${name}.sha256`;
     const work = await mkdtemp(join(tmpdir(), 'ptbk-installer-'));
@@ -101,5 +102,5 @@ async function publishInstaller(installerPath) {
 }
 
 const installer = process.argv[2];
-if (!installer) throw new Error('Usage: node scripts/publish-desktop-installer.mjs <path to the installer .exe or .dmg>');
+if (!installer) throw new Error('Usage: node scripts/publish-desktop-installer.mjs <path to the installer .exe, .dmg or .apk>');
 await publishInstaller(installer);
