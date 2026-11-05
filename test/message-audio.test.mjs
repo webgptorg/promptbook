@@ -107,7 +107,7 @@ test('recorded audio is a committed project chat asset bound once, never another
             commit: async (paths, subject) => {
                 await git(root, ['add', '--', ...paths]);
                 await git(root, ['commit', '-qm', subject]);
-                committed.push(paths.map((path) => path.slice(root.length + 1)));
+                committed.push(paths);
                 return 'sha';
             },
         },
@@ -126,7 +126,7 @@ test('recorded audio is a committed project chat asset bound once, never another
     assert.equal(await readFile(join(root, first.audio[0].path), 'utf8'), 'webm-bytes');
     const files = await git(root, ['ls-files']);
     assert.ok(files.includes(first.audio[0].path), 'the recording itself is committed by default');
-    assert.ok(committed.at(-1).some((path) => path.endsWith('.book')) && committed.at(-1).includes(first.audio[0].path), 'binding and file are committed together');
+    assert.ok(committed.at(-1).includes(created.path) && committed.at(-1).includes(join(root, first.audio[0].path)), 'binding and file are committed together');
     const replay = await store.recordAudio(created.chat.name, 1, [{ id: 'call-1 user 1', extension: 'webm', data: Buffer.from('webm-bytes') }]);
     assert.deepEqual(replay.audio, [], 'reconnect/finalization replay binds nothing twice');
     const agent = await store.recordAudio(created.chat.name, 2, [{ id: 'call-1 chatter 1', extension: 'webm', data: Buffer.from('agent'), status: 'interrupted', timing: { call: 'call-1', startMs: 1500, endMs: 2600 } }]);

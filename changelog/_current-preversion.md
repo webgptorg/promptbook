@@ -53,6 +53,7 @@
 
 ## CI checks
 
+- Compare the recorded chat audio and its Book binding using native filesystem paths so the archive test also passes on Windows.
 - Compare dashboard focus styles against the same observed snapshot, so crossing a real minute cannot fail the unchanged geometry/content assertions through an unrelated header clock update.
 
 ## Contribution instructions
