@@ -1,5 +1,7 @@
 # Unreleased
 
+- Set the README wordmark in Inter Light for “prompt” and Inter Bold for “book”, with artwork for light and dark backgrounds.
+
 - Adopt deep ink blue (#17386C) for the README logo and the symbol used in desktop packaging.
 
 - Ship the shared Electron desktop client for Apple Silicon and Intel Macs as versioned DMGs with a bundled CLI, Node.js and npm. Check both installers on native runners and publish them with verified checksums alongside the Windows installer.

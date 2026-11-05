@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/design/readme-wordmark.svg" alt="promptbook" width="570" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/design/readme-wordmark-dark.svg" />
+    <img src="https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/design/readme-wordmark.svg" alt="Promptbook" width="570" />
+  </picture>
 </p>
 
 <h1 align="center">You used to give AI tasks<br />Now it works for you</h1>
