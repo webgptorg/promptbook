@@ -301,7 +301,8 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const inspection = route.inspection;
     const contextFile = setting<string | null>(context.settings, 'paths.context');
     const projectInstructions = contextFile ? await readTextIfExists(join(context.project.root, contextFile)) : undefined;
-    let transcript = chat.messages.map((message) => `**${message.sender}** (${message.at}):\n${message.text}${message.choices?.length ? `\n(offered choices: ${message.choices.join(' | ')})` : ''}`).join('\n\n');
+    // Recorded speech is the same utterance as its text: it enters the context once, marked as spoken.
+    let transcript = chat.messages.map((message) => `**${message.sender}** (${message.at}${message.audio?.length ? ', spoken' : ''}):\n${message.text}${message.choices?.length ? `\n(offered choices: ${message.choices.join(' | ')})` : ''}`).join('\n\n');
     if (transcript.length > MAX_TRANSCRIPT_CHARACTERS) transcript = `[… earlier messages omitted; read ${stored.relativePath} for the full chat]\n\n${transcript.slice(-MAX_TRANSCRIPT_CHARACTERS)}`;
     const created: string[] = [];
     const tools: BridgeTool[] = plugin.capabilities.mcp

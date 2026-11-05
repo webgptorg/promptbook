@@ -114,6 +114,13 @@
         setTimeout(() => element.remove(), 3500);
     }
 
+    /** Label of a message's recorded speech (the same rule as the terminal): available, interrupted or incomplete. */
+    function messageAudioLabel(audio) {
+        if (!audio || !audio.length) return '';
+        const state = audio.some((segment) => segment.status === 'incomplete') ? 'audio incomplete' : audio.some((segment) => segment.status === 'interrupted') ? 'audio interrupted' : 'audio available';
+        return audio.length > 1 ? `${state} · ${audio.length} segments` : state;
+    }
+
     /** Formats an ISO time as local short time. */
     function time(iso) {
         if (!iso) return '';
@@ -468,6 +475,8 @@
                 h('div', { className: 'meta' }, h('strong', {}, user ? 'You' : message.sender), ` · ${time(message.at)}${message.phase === 'progress' ? ' · working…' : ''}`, pinged ? h('span', { className: 'warn' }, ' · asks you (new)') : null),
                 h('div', { className: 'text' }, message.text),
                 message.choices && message.choices.length ? h('div', { className: 'muted' }, `Offered: ${message.choices.join(' | ')}`) : null,
+                // Recorded speech of this same message (CHAT MESSAGE AUDIO), distinct from attachments; never resent.
+                messageAudioLabel(message.audio) ? h('div', { className: 'muted message-audio' }, `♪ ${messageAudioLabel(message.audio)}`) : null,
             );
             thread.append(article);
             if (pinged && observer) observer.observe(article);

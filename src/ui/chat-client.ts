@@ -1,7 +1,8 @@
 import { errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
 import { formatShortTime } from '../common/time.js';
-import { awaitsReply, collapseThinking } from '../chats/chat-book.js';
+import { awaitsReply, collapseThinking, type ChatMessage } from '../chats/chat-book.js';
+import { messageAudioLabel } from '../chats/message-audio.js';
 import type { ChatAgentChoice, ChatDetail } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
@@ -241,6 +242,9 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             body.push(`${user ? style.accent(style.bold('You')) : style.bold(message.sender)} ${style.muted(`${message.at}${message.phase === 'progress' ? ' · working…' : ''}`)}${pinged}`);
             for (const line of wrap(message.text, width - 4)) body.push(`  ${message.phase === 'progress' ? style.muted(line) : line}`);
             if (message.choices?.length) body.push(`  ${style.muted(`offered: ${message.choices.join(' | ')}`)}`);
+            // Recorded speech of this same message (not an attachment); replaying it never resends anything.
+            const audio = messageAudioLabel((message as Pick<ChatMessage, 'audio'>).audio);
+            if (audio) body.push(`  ${style.muted(`♪ ${audio}`)}`);
             while (lineMessages.length < body.length) lineMessages.push(position);
             body.push('');
         }

@@ -1,5 +1,11 @@
 # Unreleased
 
+## Recorded chat utterances
+
+- Parse `CHAT MESSAGE AUDIO` as one multiword commitment that binds recorded speech to the exact preceding `CHAT MESSAGE`, in order, with optional shared call timing and `complete`/`interrupted`/`incomplete` status. Orphan bindings, malformed JSON, invalid timing and unsafe or escaping paths are diagnosed; the message text stays intact.
+- Store finalized user/agent recordings as project chat assets (`chats/_assets/<chat>/<message>/audio-<segment>.<ext>`) and append their bindings to the originating message's group, even after later replies. The recording is committed with its binding by default. Replayed segments are not bound twice. Git-ignored recordings are reported as an incomplete archive instead of being force-added.
+- Show **audio available**, interrupted or incomplete on the message in terminal and browser chats, separately from attachments. The transcript enters agent context once, marked as spoken.
+
 ## Specification: local realtime voice chat
 
 - Specify full-duplex voice in the same Chat Book from dashboard/standalone terminal chat, with terminal controls and a call-owned minimal browser audio/visualization/caption page independent of the project web dashboard/HTTP server and desktop app.

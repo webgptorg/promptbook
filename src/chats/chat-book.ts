@@ -2,6 +2,7 @@ import { modelOfDocument, renderModelLines, type ModelConstraint } from '../book
 import { commitmentsOf, parseBook, type BookDiagnostic, type BookDocument } from '../book/parse.js';
 import { formatAgentReference, invalidReferenceMessage, normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { needsLiteralEscape, renderDeclaration } from '../book/write.js';
+import { messageAudioGroups, type MessageAudio } from './message-audio.js';
 
 /**
  * Durable action state of a chat (independent of per-viewer read markers).
@@ -36,6 +37,11 @@ export type ChatMessage = {
      * that ends a turn which had progress. An ordinary message has no phase.
      */
     readonly phase?: ChatMessagePhase;
+    /**
+     * Recorded speech of this same utterance (`CHAT MESSAGE AUDIO` right after the body), in order: another
+     * representation of the message, never another message, attachment or request.
+     */
+    readonly audio?: readonly MessageAudio[];
 };
 
 /**
@@ -247,6 +253,9 @@ export function parseChatBook(source: string): ChatBook {
     const modelResult = modelOfDocument(document, { multiple: 'last' });
     diagnostics.push(...modelResult.diagnostics);
     const messageCommitments = commitmentsOf(document, 'CHAT MESSAGE');
+    // Recorded speech binds to the exact message before its group; orphan or malformed bindings are diagnosed.
+    const audio = messageAudioGroups(document);
+    diagnostics.push(...audio.diagnostics);
     const messages: ChatMessage[] = [];
     for (const commitment of messageCommitments) {
         const header = /^(\{[^{}]+\}|@\S+)\s+(\S+)(?:\s+(progress|final))?$/.exec(commitment.value.trim());
@@ -263,7 +272,8 @@ export function parseChatBook(source: string): ChatBook {
         const text = raw.map((line) => (line.startsWith('\\') ? line.slice(1) : line)).join('\n');
         const sender = header[1]!;
         const phase = header[3] as ChatMessagePhase | undefined;
-        messages.push({ sender, senderKey: parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender), at: header[2]!, text, choices: choices.length ? choices : undefined, ...(phase ? { phase } : {}) });
+        const recorded = audio.groups.get(commitment);
+        messages.push({ sender, senderKey: parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender), at: header[2]!, text, choices: choices.length ? choices : undefined, ...(phase ? { phase } : {}), ...(recorded?.length ? { audio: recorded } : {}) });
     }
     // The latest valid title wins; earlier ones stay in the Book as its history.
     const titles = commitmentsOf(document, 'CHAT TITLE').map((commitment) => commitment.value.split('\n')[0]!.trim());

@@ -59,6 +59,13 @@ export const COMMITMENTS: readonly CommitmentDefinition[] = [
     { keyword: 'LINK', aliases: ['LINKS'], scope: 'any', kind: 'repeatable-control', description: 'Directed reference to another agent, task or chat (no scheduling or authority).' },
     { keyword: 'CHAT MEMBER', aliases: [], scope: 'chat', kind: 'repeatable-control', description: 'Participant of a chat (`@User` and one or more agents, the first being the main agent; or the two agents of a consultation). A joining agent is appended before its first message.' },
     { keyword: 'CHAT MESSAGE', aliases: [], scope: 'chat', kind: 'instruction', description: 'One durable message: `CHAT MESSAGE <sender> <timestamp> [progress|final]` followed by its text.' },
+    {
+        keyword: 'CHAT MESSAGE AUDIO',
+        aliases: [],
+        scope: 'chat',
+        kind: 'repeatable-control',
+        description: 'Recorded speech of the CHAT MESSAGE right before it, as one JSON object `{"path":"…","status":"complete|interrupted|incomplete","call":"…","startMs":0,"endMs":0}`: another representation of the same utterance, never another message or request.',
+    },
     { keyword: 'CHAT TITLE', aliases: [], scope: 'chat', kind: 'repeatable-control', description: 'Evolving human-facing topic title (the latest wins); never renames the chat, whose `CHAT` name stays its identity.' },
     { keyword: 'CHAT STATUS', aliases: [], scope: 'chat', kind: 'repeatable-control', description: '`open`, `waiting-for-user` or `resolved`, appended at each actual transition (the last valid one wins; without one a chat is open).' },
     { keyword: 'PERSONA', aliases: ['PERSONAE'], scope: 'agent', kind: 'instruction', description: 'Role and identity of the agent.' },

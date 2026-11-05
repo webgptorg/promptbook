@@ -1,5 +1,7 @@
-import { readFile, stat, writeFile } from 'node:fs/promises';
-import { basename, dirname, join, relative, sep } from 'node:path';
+import { copyFile, readFile, stat, writeFile } from 'node:fs/promises';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
+import { ignoredPaths } from '../project/git.js';
+import { appendMessageAudio, type MessageAudio, type MessageAudioStatus, type MessageAudioTiming } from './message-audio.js';
 import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, listDirectory, readJsonIfExists, toProjectRelative, writeFileAtomic, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
@@ -28,6 +30,27 @@ export type ChatPersistence = {
     readonly commit?: (paths: readonly string[], subject: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>>) => Promise<string | undefined>;
     /** Records a written path as owned but uncommitted (explicit no-commit mode). */
     readonly uncommitted?: (path: string) => Promise<void>;
+};
+
+/**
+ * One finalized recorded segment handed to {@link ChatStore.recordAudio}: its stable identity (the same segment
+ * finalized again is not stored twice), the file or bytes and its honest recording state.
+ *
+ * @private chats
+ */
+export type MessageAudioInput = {
+    /** Stable segment identity (e.g. `<call>-user-3`); it names the stored asset. */
+    readonly id: string;
+    /** File extension of the recording (`webm`, `wav`, `ogg`, …). */
+    readonly extension: string;
+    /** A finalized file to copy into the project. */
+    readonly file?: string;
+    /** Or the finalized bytes. */
+    readonly data?: Uint8Array;
+    /** Recording state (`complete` by default). */
+    readonly status?: MessageAudioStatus;
+    /** Shared call timing, when known. */
+    readonly timing?: MessageAudioTiming;
 };
 
 /**
@@ -377,6 +400,50 @@ export class ChatStore {
         await this.mutex.run(async () => {
             const stored = await this.find(name);
             if (stored && isHumanFacing(stored.chat)) await this.persist(stored.path, stored.chat.name, {}, undefined, paths);
+        });
+    }
+
+    /**
+     * Binds finalized recorded speech to one existing message (1-based position) as another representation of that
+     * same utterance: each segment is stored once as a project chat asset (`chats/_assets/<chat>/<message>/`) and its
+     * `CHAT MESSAGE AUDIO` line joins the message's group in the same save. The binding and its file are versioned
+     * together in the chat's ordinary batch by default, independently of traces. A segment identity that is already
+     * bound (reconnect, repeated finalization) changes nothing, and nothing is dispatched again. An asset that Git
+     * ignores is reported as an incomplete archive rather than silently treated as saved.
+     */
+    public async recordAudio(name: string, message: number, segments: readonly MessageAudioInput[]): Promise<ChatWrite & { readonly audio: readonly MessageAudio[]; readonly archive: { readonly complete: boolean; readonly problems: readonly string[] } }> {
+        return await this.mutex.run(async () => {
+            const stored = await this.find(name);
+            if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });
+            const target = stored.chat.messages[message - 1];
+            if (!Number.isInteger(message) || !target) throw new PtbkError(`The chat "${stored.chat.name}" has no message ${message} to record audio for.`, { kind: 'usage', effect: 'Nothing was saved.' });
+            const directory = join(this.directory, CHAT_ASSETS_DIRECTORY, basename(stored.path).replace(/\.book$/i, ''), String(message));
+            const bound = new Set((target.audio ?? []).map((audio) => audio.path));
+            const files: string[] = [];
+            const audio: MessageAudio[] = [];
+            for (const segment of segments) {
+                const id = segment.id.normalize('NFKC').replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^[-.]+|[-.]+$/g, '').slice(0, 80);
+                const extension = segment.extension.replace(/^\./, '').toLowerCase();
+                if (!id || !/^[a-z0-9]{1,8}$/.test(extension)) throw new PtbkError(`The audio segment "${segment.id}" needs a readable identity and a file extension.`, { kind: 'usage', effect: 'Nothing was saved.' });
+                const file = join(directory, `audio-${id}.${extension}`);
+                const path = toProjectRelative(this.project.root, file);
+                if (bound.has(path) || audio.some((existing) => existing.path === path)) continue;
+                await ensureDirectory(directory);
+                if (segment.data) await writeFileAtomic(file, segment.data);
+                else if (segment.file && resolve(segment.file) !== file) await copyFile(segment.file, file);
+                else if (!(await stat(file).catch(() => undefined))?.isFile()) throw new PtbkError(`The audio segment "${segment.id}" has no finalized file.`, { kind: 'usage', effect: 'Nothing was saved.' });
+                files.push(file);
+                audio.push({ path, status: segment.status ?? 'complete', ...(segment.timing ? { timing: segment.timing } : {}) });
+            }
+            if (!audio.length) return { ...stored, audio: [], archive: { complete: true, problems: [] } };
+            const updated = appendMessageAudio(await readFile(stored.path, 'utf8'), message - 1, audio);
+            await writeFileAtomic(stored.path, updated);
+            const chat = parseChatBook(updated);
+            const ignored = this.options.persistence?.commit || this.options.persistence?.schedule ? await ignoredPaths(this.project.root, files).catch(() => new Set<string>()) : new Set<string>();
+            const problems = [...ignored].map((file) => `${toProjectRelative(this.project.root, file)} is ignored by Git, so the recording is not versioned with its binding.`);
+            // Ignored recordings are never force-added; the binding is versioned and the gap reported.
+            const persisted = isHumanFacing(chat) ? await this.persist(stored.path, chat.name, { 'Chat-Audio': audio.map((item) => item.path) }, undefined, files.filter((file) => !ignored.has(file))) : { persistence: 'uncommitted' as const };
+            return { ...stored, chat, ...persisted, audio, archive: { complete: !problems.length, problems } };
         });
     }
 
