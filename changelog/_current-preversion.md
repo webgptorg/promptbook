@@ -1,5 +1,11 @@
 # Unreleased
 
+## Progressive waiting and retry scheduling
+
+- Add one engine-owned progressive-waiting (exponential backoff) policy with domain bounds. Attention relevance checks start around one minute and may reach one week. Task, chat-reply and brief rechecks, Git synchronization, update recovery, browser relaunch, the tools wait, setup blockers and a failing pre-work check all use it instead of their own timer arithmetic. Known resets and deadlines take precedence, and repeated equivalent failures wait longest.
+- Waiting for tools, a configuration/workspace blocker or a failing pre-work check no longer polls every 2–5 minutes forever. The interval grows while the condition is unchanged; an early wake-up keeps the scheduled time, and changed conditions restart a short interval.
+- Git synchronization now persists its failure backoff. A restart continues the same schedule instead of retrying at the fastest cadence, and boundary triggers keep coalescing into it. Restored chat-reply rechecks reconcile clock changes and long downtime into at most one due check.
+
 ## Recorded chat utterances
 
 - Parse `CHAT MESSAGE AUDIO` as one multiword commitment that binds recorded speech to the exact preceding `CHAT MESSAGE`, in order, with optional shared call timing and `complete`/`interrupted`/`incomplete` status. Orphan bindings, malformed JSON, invalid timing and unsafe or escaping paths are diagnosed; the message text stays intact.

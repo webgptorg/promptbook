@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { nextProgressiveWait, outcomeFingerprint, restoreProgressiveWait, WAITING_POLICIES, withInitialDelay, type ProgressiveSchedule, type WaitingPolicy } from './progressive-waiting.js';
 import { watch, type FSWatcher } from 'node:fs';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
@@ -234,17 +235,15 @@ const SESSION_RECONCILE_MS = 5_000;
  */
 const USAGE_REFRESH_MS = 60_000;
 
-const BLOCKER_RECHECK_MS = 5 * 60_000;
+/**
+ * First recheck of a setup/configuration blocker; repeated unchanged blockers back off through the shared setup policy.
+ */
+const BLOCKER_RECHECK_MS = WAITING_POLICIES.setup.initialMs;
 
 /**
  * How often reassigned work looks again whether its new agent is free. Nothing is running meanwhile, so it stays cheap.
  */
 const REASSIGNMENT_RECHECK_MS = 15_000;
-
-/**
- * Recheck interval while the running engine waits for usable tools (file changes and tool commands wake it sooner).
- */
-const TOOLS_RECHECK_MS = 2 * 60_000;
 
 /**
  * Longest idle sleep before reevaluating sources and time.
@@ -283,15 +282,9 @@ const RECOVERY_CHOICES = ['Retry the task', 'Acknowledge the failure'] as const;
 
 /**
  * First delay of a cause-aware recheck once a task's immediate budgets (and Fixer's round) are exhausted
- * (`PTBK_RECOVERY_RECHECK_MS` overrides it, e.g. for fixtures); later rounds back off up to {@link RECOVERY_MAX_MS}.
+ * (`PTBK_RECOVERY_RECHECK_MS` overrides it, e.g. for fixtures); later rounds follow the shared task-recovery policy.
  */
-const RECOVERY_RECHECK_MS = 15 * 60_000;
-
-/**
- * Longest wait between automatic rechecks of a failed task (also used for repeated equivalent failures under unchanged
- * conditions, so an unavailable provider never causes paid idle loops).
- */
-const RECOVERY_MAX_MS = 24 * 3_600_000;
+const RECOVERY_RECHECK_MS = WAITING_POLICIES.taskRecovery.initialMs;
 
 /**
  * Changed conditions bring a recheck forward, but never sooner than this after it was scheduled (flapping readiness
@@ -301,66 +294,20 @@ const RECOVERY_MIN_SPACING_MS = 60_000;
 
 /**
  * First delay of the automatic recheck of a failed chat reply (`PTBK_CHAT_REPLY_RECHECK_MS` overrides it, e.g. for
- * fixtures); someone waits in the chat, so it starts sooner than a task's and backs off up to {@link CHAT_REPLY_MAX_MS}.
+ * fixtures); someone waits in the chat, so it starts sooner than a task's and is capped lower.
  */
-const CHAT_REPLY_RECHECK_MS = 60_000;
+const CHAT_REPLY_RECHECK_MS = WAITING_POLICIES.chatReply.initialMs;
 
 /**
- * Longest wait between automatic rechecks of a failed chat reply (also for repeated equivalent failures).
- */
-const CHAT_REPLY_MAX_MS = 3_600_000;
-
-/**
- * Delay before the next automatic recheck: exponential per round with suitable spreading, capped, and the longest
- * wait once the same failure repeated under unchanged conditions.
+ * The next round of a cause-aware recheck after a failure, shared by tasks, chat replies and Chatter's brief through
+ * the engine's one [progressive-waiting](../../specs/concepts/progressive-waiting.md) policy: the failure's
+ * fingerprint under its conditions, how often an equivalent failure repeated under unchanged conditions and the
+ * spread, capped, growing delay of the domain.
  *
  * @private agenda supervisor
  */
-export function recoveryDelay(rounds: number, equivalent: number, base: number = RECOVERY_RECHECK_MS, random: () => number = Math.random, max: number = RECOVERY_MAX_MS): number {
-    const planned = equivalent >= 2 ? max : Math.min(base * 4 ** Math.max(0, rounds - 1), max);
-    return Math.round(Math.max(Math.min(base, max), Math.min(planned * (0.9 + random() * 0.2), max)));
-}
-
-/**
- * Comparison form of a failure explanation: equivalent failures differ only in counts, times and identifiers.
- */
-function failureKey(failure: string): string {
-    return failure
-        .toLowerCase()
-        .replace(/[0-9a-f]{8,}/g, '#')
-        .replace(/\d+/g, '#')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-/**
- * Fingerprint of a failure together with its conditions: equal fingerprints are an equivalent failure (no new evidence).
- */
-function recheckFingerprint(failure: { readonly cause: string; readonly conditions: string }): string {
-    return createHash('sha256').update(`${failureKey(failure.cause)}\n${failure.conditions}`).digest('hex').slice(0, 16);
-}
-
-/**
- * The next round of a cause-aware recheck after a failure, shared by tasks, chat replies and Chatter's brief: the
- * failure's fingerprint under its conditions, how often an equivalent failure repeated under unchanged conditions and
- * the spread, capped delay of {@link recoveryDelay}.
- *
- * @private agenda supervisor
- */
-export function nextRecheck(previous: RecheckSchedule | undefined, failure: { readonly cause: string; readonly conditions: string }, delays: { readonly base: number; readonly max: number }, now: number = Date.now()): RecheckSchedule {
-    const fingerprint = recheckFingerprint(failure);
-    const equivalent = previous?.fingerprint === fingerprint ? previous.equivalent + 1 : 0;
-    const rounds = (previous?.rounds ?? 0) + 1;
-    return {
-        rounds,
-        since: previous?.since ?? new Date(now).toISOString(),
-        scheduledAt: new Date(now).toISOString(),
-        nextAt: new Date(now + recoveryDelay(rounds, equivalent, delays.base, Math.random, delays.max)).toISOString(),
-        cause: failure.cause,
-        fingerprint,
-        conditions: failure.conditions,
-        equivalent,
-    };
+export function nextRecheck(previous: RecheckSchedule | undefined, failure: { readonly cause: string; readonly conditions: string }, policy: WaitingPolicy, now: number = Date.now()): RecheckSchedule {
+    return nextProgressiveWait(previous, failure, policy, now);
 }
 
 /**
@@ -401,10 +348,10 @@ const REPORT_INTERVAL_MS = 6 * 3_600_000;
 const REPORT_EVENT_SPACING_MS = 30 * 60_000;
 
 /**
- * First delay of the cause-aware recheck of a failed brief generation; later rounds back off up to
- * {@link RECOVERY_MAX_MS} (also for repeated equivalent failures, so an unavailable provider causes no paid idle loop).
+ * First delay of the cause-aware recheck of a failed brief generation; later rounds follow the shared report policy
+ * (repeated equivalent failures wait longest, so an unavailable provider causes no paid idle loop).
  */
-const REPORT_RECHECK_MS = 15 * 60_000;
+const REPORT_RECHECK_MS = WAITING_POLICIES.report.initialMs;
 
 /**
  * Summary of the manual pause reason by its cause (shown wherever pause reasons are listed).
@@ -483,6 +430,12 @@ export class Agenda {
     private readonly recoveryDue = new Map<string, number>();
     /** Automatic rechecks of failed chat replies by normalized chat name; a timer is armed while the recheck waits. */
     private readonly chatRechecks = new Map<string, { readonly name: string; readonly schedule: ChatReplyRecheck; timer?: NodeJS.Timeout }>();
+    /**
+     * Progressive waits of the supervisor loop (tools, setup blockers, a failing pre-work check) by condition key: an
+     * unchanged condition rechecks less and less often; only a due round advances, so unrelated wake-ups neither
+     * advance nor reset it, while a substantive change of its conditions restarts a short interval.
+     */
+    private readonly loopWaits = new Map<string, ProgressiveSchedule>();
     /** No new background claim before this time (pause between tasks). */
     private pacingUntil = 0;
     /** Listeners waiting for an active unit to finish (settling towards stop). */
@@ -621,6 +574,7 @@ export class Agenda {
             },
             onChange: () => this.touch(),
             log: (text, level) => this.log(text, level),
+            backoff: { load: async () => await this.state.readSyncBackoff(), save: async (schedule) => await this.state.writeSyncBackoff(schedule) },
         });
         this.actions = new ActionLog({
             project: options.project,
@@ -802,7 +756,9 @@ export class Agenda {
                 const awaited = await this.isAwaitedByTask(stored.chat.name);
                 if (!(awaited ? stored.chat.status === 'waiting-for-user' : stored.chat.status === 'open')) continue;
                 // A reply that failed before the restart keeps its scheduled recheck unless its tools changed meanwhile.
-                const recheck = rechecks[stored.chat.name];
+                // Restored without resetting its backoff: an overdue round is one due check now, never a catch-up burst.
+                const saved = rechecks[stored.chat.name];
+                const recheck = saved ? { ...saved, ...restoreProgressiveWait(saved, WAITING_POLICIES.chatReply) } : undefined;
                 if (recheck && Date.parse(recheck.nextAt) > Date.now() && recheck.conditions === conditions) {
                     this.armChatRecheck(stored.chat.name, recheck);
                     continue;
@@ -1884,6 +1840,22 @@ export class Agenda {
     }
 
     /**
+     * The current round of one supervisor-loop wait under the shared progressive-waiting policy: a due (or first)
+     * round schedules the next growing interval; an early wake-up keeps the scheduled time; changed conditions restart
+     * a short interval. Returns the remaining wait and the next recheck time.
+     */
+    private loopWait(key: string, policy: WaitingPolicy, outcome: { readonly cause: string; readonly conditions: string }): { readonly waitMs: number; readonly nextAt: string } {
+        const now = Date.now();
+        let schedule = this.loopWaits.get(key);
+        if (schedule && schedule.conditions !== outcome.conditions) schedule = undefined;
+        if (!schedule || Date.parse(schedule.nextAt) <= now) {
+            schedule = nextProgressiveWait(schedule, outcome, policy, now);
+            this.loopWaits.set(key, schedule);
+        }
+        return { waitMs: Math.max(1_000, Date.parse(schedule.nextAt) - now), nextAt: schedule.nextAt };
+    }
+
+    /**
      * Fingerprint of what a chat reply or brief recheck depends on: the tools (a new or repaired tool brings it forward).
      */
     private toolConditions(): string {
@@ -1908,7 +1880,7 @@ export class Agenda {
         }
         const now = Date.now();
         const schedule: ChatReplyRecheck = {
-            ...nextRecheck(this.chatRechecks.get(nameKey(name))?.schedule, { cause, conditions: this.toolConditions() }, { base: Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS, max: CHAT_REPLY_MAX_MS }, now),
+            ...nextRecheck(this.chatRechecks.get(nameKey(name))?.schedule, { cause, conditions: this.toolConditions() }, withInitialDelay(WAITING_POLICIES.chatReply, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || undefined), now),
             ...(agent ? { agent } : {}),
             ...(owed ? { followUp: true } : {}),
         };
@@ -2893,9 +2865,11 @@ export class Agenda {
                 return;
             }
             const constraint = required && !this.updater.isDue ? ` Engine update: ${this.updater.view().reason}` : '';
-            await this.wait(Math.min(BLOCKER_RECHECK_MS, Math.max(1_000, (this.updater.wakeAt() ?? Infinity) - Date.now())), { kind: 'setup', reason: `${blocker.title}: ${blocker.reason}${constraint}`, action: blocker.action, skippable: false });
+            const setupWait = this.loopWait('setup', WAITING_POLICIES.setup, { cause: blocker.reason, conditions: `${blocker.kind}:${blocker.title}` });
+            await this.wait(Math.min(setupWait.waitMs, Math.max(1_000, (this.updater.wakeAt() ?? Infinity) - Date.now())), { kind: 'setup', reason: `${blocker.title}: ${blocker.reason}${constraint}`, action: blocker.action, skippable: false });
             return;
         }
+        this.loopWaits.delete('setup');
         // Shared harness executables are only updated while nothing runs them.
         if (!this.units.size) await this.maintainHarnesses();
         this.maintainPriceLists();
@@ -2921,10 +2895,13 @@ export class Agenda {
         // Unfinished work that cannot be routed for lack of tools is a running resource wait (never a plain idle).
         if (waitingForTools && (candidates.length || evaluated.some((item) => isUnfinished(item.readiness)))) {
             // A running engine waiting for resources (not a pause or stop): controls, refresh and rechecks stay alive.
-            this.setBlocker({ kind: 'tools', title: 'Waiting for tools', reason: waitingForTools.reason, action: waitingForTools.action, recheckAt: new Date(Date.now() + TOOLS_RECHECK_MS).toISOString(), ...(waitingForTools.automatic ? { automatic: true } : {}) });
-            await this.wait(TOOLS_RECHECK_MS, { kind: 'tools', reason: `Waiting for tools: ${waitingForTools.reason}`, action: waitingForTools.action, skippable: false });
+            // Deterministic readiness rechecks back off (never paid); tool changes and commands wake the loop sooner.
+            const toolsWait = this.loopWait('tools', WAITING_POLICIES.tools, { cause: waitingForTools.reason, conditions: this.toolConditions() });
+            this.setBlocker({ kind: 'tools', title: 'Waiting for tools', reason: waitingForTools.reason, action: waitingForTools.action, recheckAt: toolsWait.nextAt, ...(waitingForTools.automatic ? { automatic: true } : {}) });
+            await this.wait(toolsWait.waitMs, { kind: 'tools', reason: `Waiting for tools: ${waitingForTools.reason}`, action: waitingForTools.action, skippable: false });
             return;
         }
+        this.loopWaits.delete('tools');
         if (candidates.length) {
             const dirty = await this.unrelatedChanges();
             const policy = setting<string>(this.settings, 'execution.gitChanges');
@@ -4326,7 +4303,7 @@ export class Agenda {
         // A generation interrupted by stopping or a pause is no failure: a pending request is written after the restart or resume.
         if (this.stopRequested || this.ownedWork.signal.aborted || this.pauseActive) return;
         const now = Date.now();
-        const recheck = nextRecheck(this.reportRecheck, { cause, conditions: this.toolConditions() }, { base: this.reportRecheckBase(), max: RECOVERY_MAX_MS }, now);
+        const recheck = nextRecheck(this.reportRecheck, { cause, conditions: this.toolConditions() }, withInitialDelay(WAITING_POLICIES.report, this.reportRecheckBase()), now);
         await this.writeReportRecheck(recheck);
         this.log(
             `The project brief was not written (${cause}); the saved brief stays. Nobody needs to retry it: automatic recheck ${recheck.rounds} is due ${formatShortTime(Date.parse(recheck.nextAt), now, this.timeZone)}${recheck.equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when tools change or on Refresh.`,
@@ -4494,7 +4471,7 @@ export class Agenda {
     private async assessFailure(record: ActiveRecord): Promise<{ readonly cause: string; readonly conditions: string; readonly equivalent: boolean }> {
         const cause = record.failure ?? 'unknown reason';
         const conditions = await this.recoveryConditions(record);
-        return { cause, conditions, equivalent: record.recovery?.fingerprint === recheckFingerprint({ cause, conditions }) };
+        return { cause, conditions, equivalent: record.recovery?.fingerprint === outcomeFingerprint({ cause, conditions }) };
     }
 
     /**
@@ -4504,7 +4481,7 @@ export class Agenda {
      */
     private async scheduleRecovery(record: ActiveRecord, assessment: Awaited<ReturnType<Agenda['assessFailure']>>): Promise<void> {
         const previous = record.recovery;
-        const schedule = nextRecheck(previous, assessment, { base: Number(this.options.env.PTBK_RECOVERY_RECHECK_MS) || RECOVERY_RECHECK_MS, max: RECOVERY_MAX_MS });
+        const schedule = nextRecheck(previous, assessment, withInitialDelay(WAITING_POLICIES.taskRecovery, Number(this.options.env.PTBK_RECOVERY_RECHECK_MS) || undefined));
         const { rounds, equivalent, nextAt } = schedule;
         const agent = referenceName(record.routing.agent ?? setting<string>(this.settings, 'routing.defaultAgent'));
         const tried = `${record.handover ? `${referenceName(record.handover.from)}, then ${record.handover.agent},` : agent} used ${record.attempt} attempt(s) and ${record.technicalRetries} technical retr${record.technicalRetries === 1 ? 'y' : 'ies'}: ${assessment.cause}`;
@@ -4673,12 +4650,14 @@ export class Agenda {
         const result = await runCheck(this.options.project.root, check, { env: this.options.env });
         if (result.passed) {
             this.checkedBefore = true;
+            this.loopWaits.delete('pre-work-check');
             return true;
         }
         if (mode === 'yes-and-fail') {
             const reason = `The project check \`${check}\` fails before work (exit ${String(result.exitCode)}).`;
-            this.setBlocker({ kind: 'setup', title: 'Pre-work check fails', reason, action: 'Fix the project (or run `ptbk fix`); ptbk rechecks automatically.', recheckAt: new Date(Date.now() + BLOCKER_RECHECK_MS).toISOString() });
-            await this.wait(BLOCKER_RECHECK_MS, { kind: 'setup', reason, skippable: false });
+            const checkWait = this.loopWait('pre-work-check', WAITING_POLICIES.setup, { cause: reason, conditions: check });
+            this.setBlocker({ kind: 'setup', title: 'Pre-work check fails', reason, action: 'Fix the project (or run `ptbk fix`); ptbk rechecks automatically.', recheckAt: checkWait.nextAt });
+            await this.wait(checkWait.waitMs, { kind: 'setup', reason, skippable: false });
             return false;
         }
         if (!this.claimable) return false;

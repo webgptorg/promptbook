@@ -1,6 +1,7 @@
 import { createRedactor } from '../common/redact.js';
 import { git, resolveCommitIdentity } from '../project/git.js';
 import type { SyncView } from './snapshot.js';
+import { nextProgressiveWait, restoreProgressiveWait, WAITING_POLICIES, type ProgressiveSchedule } from './progressive-waiting.js';
 
 /**
  * Default interval of the background pull attempt.
@@ -8,11 +9,6 @@ import type { SyncView } from './snapshot.js';
  * @private Git synchronization
  */
 export const SYNC_INTERVAL_MS = 60_000;
-
-/**
- * Longest backoff between automatic attempts after repeated failures.
- */
-const MAX_BACKOFF_MS = 30 * 60_000;
 
 /**
  * Last lines of a Git error kept in a (redacted) diagnostic.
@@ -68,6 +64,8 @@ export type SyncHost = {
     readonly onIntegrated: () => Promise<void>;
     readonly onChange: () => void;
     readonly log: (text: string, level: 'info' | 'warning' | 'error') => void;
+    /** Persisted failure backoff: a restart keeps the progression instead of resetting to the fastest cadence. */
+    readonly backoff?: { readonly load: () => Promise<ProgressiveSchedule | undefined>; readonly save: (schedule: ProgressiveSchedule | undefined) => Promise<void> };
 };
 
 /**
@@ -83,6 +81,8 @@ export class SyncCoordinator {
     private running?: Promise<SyncOutcome>;
     private again = false;
     private failures = 0;
+    /** Shared progressive-waiting schedule of the current failure (absent while healthy). */
+    private backoff?: ProgressiveSchedule;
     private timer?: NodeJS.Timeout;
     private startedBranch?: string;
     private readonly redact = createRedactor();
@@ -93,6 +93,13 @@ export class SyncCoordinator {
     public async begin(): Promise<void> {
         const root = this.host.repositoryRoot();
         if (root) this.startedBranch = (await git(root, ['symbolic-ref', '--quiet', '--short', 'HEAD'])).stdout.trim() || undefined;
+        // A failure backoff from before a restart continues where it was (at most one due attempt, no reset).
+        const saved = await this.host.backoff?.load().catch(() => undefined);
+        if (saved && !this.backoff) {
+            this.backoff = restoreProgressiveWait(saved, WAITING_POLICIES.sync);
+            this.failures = this.backoff.rounds;
+            this.set({ reason: saved.cause, nextAttemptAt: this.backoff.nextAt });
+        }
         clearInterval(this.timer);
         this.timer = setInterval(() => {
             if (this.host.enabled()) void this.request('timer');
@@ -148,9 +155,12 @@ export class SyncCoordinator {
 
     /** Registers a failed remote attempt with bounded exponential backoff. */
     private failed(state: SyncView['state'], reason: string): SyncOutcome {
-        this.failures++;
-        const delay = Math.min(MAX_BACKOFF_MS, SYNC_INTERVAL_MS * 2 ** Math.min(this.failures - 1, 6));
-        this.set({ phase: 'idle', state, reason, nextAttemptAt: new Date(Date.now() + delay).toISOString() });
+        // The shared progressive-waiting policy (healthy cadence stays separate); boundary triggers coalesce meanwhile.
+        this.backoff = nextProgressiveWait(this.backoff, { cause: reason, conditions: state }, WAITING_POLICIES.sync);
+        this.failures = this.backoff.rounds;
+        const delay = Math.max(0, Date.parse(this.backoff.nextAt) - Date.now());
+        void this.host.backoff?.save(this.backoff).catch(() => undefined);
+        this.set({ phase: 'idle', state, reason, nextAttemptAt: this.backoff.nextAt });
         if (this.failures === 1 || this.failures % 10 === 0) this.host.log(`Synchronization ${state}: ${reason} (local work continues; next attempt in ${Math.round(delay / 1000)}s).`, 'warning');
         return { outcome: state === 'pending' ? 'pending' : state === 'unconfigured' ? 'unconfigured' : 'failed', message: reason };
     }
@@ -226,6 +236,10 @@ export class SyncCoordinator {
             this.set({ lastPublicationAt: new Date().toISOString() });
         }
         this.failures = 0;
+        if (this.backoff) {
+            this.backoff = undefined;
+            void this.host.backoff?.save(undefined).catch(() => undefined);
+        }
         const pending = outgoing > 0;
         this.set({ phase: 'idle', state: pending ? 'pending' : 'synchronized', reason: pending ? `${outgoing} local commit(s) wait for publication.` : undefined, outgoing, nextAttemptAt: new Date(Date.now() + SYNC_INTERVAL_MS).toISOString() });
         return { outcome: pending ? 'pending' : 'synchronized', message: pending ? `${outgoing} local commit(s) wait for publication.` : `Synchronized with ${upstream}.` };

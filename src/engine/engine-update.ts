@@ -14,6 +14,7 @@ import { readKnownProjects } from '../service/known-projects.js';
 import { readRegistry, verifyEngine } from '../service/discovery.js';
 import type { TaskInventoryItem, TaskRunView } from '../tasks/views.js';
 import type { QueueItemView, ResultView } from './snapshot.js';
+import { progressiveDelay, WAITING_POLICIES } from './progressive-waiting.js';
 
 /**
  * Inventory reference of the engine's self-update system task (it has no project Book).
@@ -65,11 +66,6 @@ const INSTALL_TIMEOUT_MS = 10 * 60_000;
  * Immediate technical attempts of one installation before cause-aware rechecks take over.
  */
 const TECHNICAL_ATTEMPTS = 2;
-
-/**
- * Rechecks after failed update runs (the last value repeats); never a tight loop and never a "try again?" question.
- */
-const RECHECK_DELAYS_MS = [3_600_000, 4 * 3_600_000, 12 * 3_600_000, 24 * 3_600_000];
 
 /**
  * Recheck while another engine of a shared installation is busy or updating it.
@@ -557,7 +553,9 @@ export class EngineUpdater {
     /** Records a failed run with its cause-aware recheck (backing off; never a question). */
     private async fail(detail: string, from: string, to: string): Promise<void> {
         const failures = (this.record.failures ?? 0) + 1;
-        const delay = RECHECK_DELAYS_MS[Math.min(failures, RECHECK_DELAYS_MS.length) - 1]!;
+        // Shared progressive waiting: growing, capped rechecks (never a tight loop or a "try again?" question); the
+        // successful update-check cadence is separate.
+        const delay = progressiveDelay(WAITING_POLICIES.updateRecovery, failures);
         this.phase = 'failed';
         await this.save({ run: undefined, failures, failure: detail, nextAttemptAt: new Date(Date.now() + delay).toISOString(), deferral: undefined, ...this.finished({ at: new Date().toISOString(), from, to, outcome: 'failed', detail }) });
     }

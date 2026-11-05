@@ -1,4 +1,5 @@
 import type { HarnessSessionRecord } from '../harness/sessions.js';
+import type { ProgressiveSchedule } from './progressive-waiting.js';
 import { appendFile, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ensureDirectory, listDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
@@ -86,24 +87,7 @@ export type AttemptRecord = {
  *
  * @private runtime state
  */
-export type RecheckSchedule = {
-    /** Rechecks scheduled so far. */
-    readonly rounds: number;
-    /** First failure of this recovery (ISO). */
-    readonly since: string;
-    /** When this round was scheduled (ISO). */
-    readonly scheduledAt: string;
-    /** Next automatic recheck (ISO). */
-    readonly nextAt: string;
-    /** The last failure. */
-    readonly cause: string;
-    /** Fingerprint of the last failure together with its conditions. */
-    readonly fingerprint: string;
-    /** Fingerprint of the conditions alone: a change brings the recheck forward. */
-    readonly conditions: string;
-    /** Consecutive rounds that ended in an equivalent failure under unchanged conditions. */
-    readonly equivalent: number;
-};
+export type RecheckSchedule = ProgressiveSchedule;
 
 /**
  * The persisted cause-aware recovery of a failed task: the shared recheck schedule (its conditions are the task source,
@@ -556,6 +540,17 @@ export class StateStore {
     /** Persists the scheduled rechecks of failed chat replies. */
     public async writeChatRechecks(rechecks: Record<string, ChatReplyRecheck>): Promise<void> {
         await writeJsonAtomic(this.file('chat-replies.json'), rechecks);
+    }
+
+    /** Reads the persisted failure backoff of Git synchronization (absent when the last cycle succeeded). */
+    public async readSyncBackoff(): Promise<ProgressiveSchedule | undefined> {
+        return (await readJsonIfExists<ProgressiveSchedule>(this.file('sync-backoff.json')).catch(() => undefined)) ?? undefined;
+    }
+
+    /** Persists (or clears) the failure backoff of Git synchronization. */
+    public async writeSyncBackoff(schedule: ProgressiveSchedule | undefined): Promise<void> {
+        if (schedule) await writeJsonAtomic(this.file('sync-backoff.json'), schedule);
+        else await rm(this.file('sync-backoff.json'), { force: true });
     }
 
     /** Reads task control records, instruction receipts and notifications. */

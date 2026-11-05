@@ -15,6 +15,7 @@ import { promptbookAppData } from '../common/app-data.js';
 import { BrowserRecorder, type ScreencastPort } from './recording.js';
 import { BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
 import { parseKeyPress, type KeyPress } from './input.js';
+import { progressiveDelay, WAITING_POLICIES } from '../engine/progressive-waiting.js';
 import {
     MAX_PAGE_TEXT,
     clearLoginFieldsScript,
@@ -100,11 +101,6 @@ const MOUSE_BUTTONS = { left: 1, right: 2, middle: 4 } as const;
  * Bounded automatic launch attempts before a failure becomes a visible blocker.
  */
 const LAUNCH_ATTEMPTS = 3;
-
-/**
- * Delay before an automatic relaunch attempt (doubles per attempt).
- */
-const LAUNCH_RETRY_MS = 3000;
 
 /**
  * Candidate executables of each browser adapter per platform (in preference order).
@@ -657,7 +653,8 @@ export class ProjectBrowser {
                     this.setHealth({ state: 'failed', recovery: { attempts: attempt, state: 'blocked', blocker: kind === 'conflict' ? 'The profile is held by a browser Promptbook did not start; ptbk retries when a task needs the browser.' : kind === 'technical' ? `Startup failed ${attempt} times; the next task use retries.` : 'Needs setup: see the last failure.' } });
                     throw error;
                 }
-                const wait = LAUNCH_RETRY_MS * 2 ** (attempt - 1);
+                // The bounded immediate burst uses the shared progressive-waiting policy; later uses recheck on demand.
+                const wait = progressiveDelay(WAITING_POLICIES.browserLaunch, attempt);
                 this.setHealth({ state: 'recovering', recovery: { attempts: attempt, state: 'retrying', nextRetryAt: new Date(Date.now() + wait).toISOString() } });
                 await delay(wait);
             }
