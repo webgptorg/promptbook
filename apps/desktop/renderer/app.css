@@ -383,6 +383,13 @@ main {
     margin: 24px;
 }
 
+#voice-strip {
+    flex-shrink: 0;
+    height: 168px;
+    border-top: 1px solid var(--line);
+    background: var(--panel);
+}
+
 #overview-pane {
     padding: 24px clamp(16px, 3vw, 32px);
     overflow: auto;

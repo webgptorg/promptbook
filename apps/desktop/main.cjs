@@ -217,7 +217,8 @@ async function showFeature(entry, kind, root, result, bounds) {
     featureSession.protocol.handle('ptbk-feature', (request) => request.url === FEATURE_URL
         ? new Response(result.document, { headers: { 'content-type': 'text/html; charset=utf-8', 'content-security-policy': result.policy, 'permissions-policy': result.permissions, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff' } })
         : new Response('', { status: 404 }));
-    const view = new WebContentsView({ webPreferences: { preload: join(__dirname, 'feature-preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, partition, spellcheck: false } });
+    // A live view keeps streaming and speaking while it is out of sight (zero size behind the dashboard).
+    const view = new WebContentsView({ webPreferences: { preload: join(__dirname, 'feature-preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, partition, spellcheck: false, backgroundThrottling: false } });
     const feature = { id: result.feature, entry, kind, root, control: result.control?.id, view };
     features.set(feature.id, feature);
     protect(view.webContents, entry.window, (url) => url === FEATURE_URL);

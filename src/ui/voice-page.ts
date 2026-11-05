@@ -52,6 +52,16 @@ h1 { font-size: 22px; margin: 0 0 4px; }
 button { font: inherit; font-weight: 600; padding: 12px 20px; border-radius: 10px; border: 0; background: var(--accent); color: white; cursor: pointer; margin: 0 0 18px; }
 button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
 .hint { color: var(--muted); font-size: 13px; margin-top: 22px; }
+@media (max-height: 300px) {
+  body { align-items: stretch; justify-content: flex-start; }
+  main { width: auto; max-width: none; display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.4fr); column-gap: 16px; align-items: start; text-align: left; padding: 10px 16px; }
+  .orb { grid-row: 1 / span 6; width: 56px; height: 56px; margin: 4px 0 0; }
+  h1 { font-size: 16px; }
+  .chat, .state, .mic, button { margin-bottom: 4px; }
+  button { padding: 6px 12px; }
+  .captions { grid-column: 3; grid-row: 1 / span 6; min-height: 0; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--muted) 30%, transparent); padding: 0 0 0 12px; }
+  .hint { display: none; }
+}
 `,
         body: `<main>
 <div id="orb" class="orb idle" aria-hidden="true"></div>

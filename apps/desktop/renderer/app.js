@@ -65,9 +65,22 @@ function layout() {
         const item = terminals.get(activeTerminal);
         if (item) { item.fit.fit(); api.resize(activeTerminal, { cols: item.term.cols, rows: item.term.rows }); }
     }
-    // Only the selected live view is visible; the others keep running with zero size.
-    const pane = $('feature-pane').getBoundingClientRect();
-    for (const id of features.keys()) api.featureBounds(id, mode === 'feature' && id === activeFeature ? { x: pane.x, y: pane.y, width: pane.width, height: pane.height } : { x: 0, y: 0, width: 0, height: 0 });
+    // The selected live view fills the pane; a voice call stays below the dashboard so its chat remains usable.
+    // Other views keep running with zero size.
+    const area = (id) => { const rect = $(id).getBoundingClientRect(); return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }; };
+    for (const [id, item] of features) {
+        if (mode === 'feature' && id === activeFeature) api.featureBounds(id, area('feature-pane'));
+        else if (item.kind === 'voice' && !$('voice-strip').hidden && item.root === selected) api.featureBounds(id, area('voice-strip'));
+        else api.featureBounds(id, { x: 0, y: 0, width: 0, height: 0 });
+    }
+}
+
+/** Shows the voice strip under the dashboard while this project's call is live here. */
+function syncVoiceStrip() {
+    const live = [...features.values()].some((item) => item.kind === 'voice' && item.root === selected);
+    const strip = $('voice-strip');
+    const hidden = !(live && mode === 'dashboard');
+    if (strip.hidden !== hidden) { strip.hidden = hidden; requestAnimationFrame(layout); }
 }
 
 /** A local panel edge supports pointer drag and the standard separator keyboard controls. */
@@ -166,7 +179,10 @@ async function openFeature(request) {
         for (const event of earlyFeatureEvents.get(result.feature) || []) featureEvent(event);
         earlyFeatureEvents.delete(result.feature);
         featureForm = undefined;
-        if (features.has(result.feature)) selectFeature(result.feature);
+        // Voice joins the current chat in a strip below the dashboard; a tab viewer takes the pane.
+        if (!features.has(result.feature)) renderFeatureBar(true);
+        else if (request.kind === 'voice') { if (mode === 'dashboard') renderFeatureBar(true); else void openProject(root); }
+        else selectFeature(result.feature);
     } catch (error) { notice(error.message, true); }
     void refreshFeatures();
 }
@@ -246,6 +262,7 @@ function renderFeatureBar(force = false) {
     const own = [...features].filter(([, item]) => item.root === selected);
     const visible = !!selected && (mode === 'dashboard' || mode === 'feature') && (!!context || own.length > 0);
     const signature = JSON.stringify({ visible, mode, activeFeature, context, own, featureForm, voiceCall });
+    syncVoiceStrip();
     if (!force && signature === featureSignature) return;
     featureSignature = signature;
     // An open form keeps its selection while the context refreshes.
