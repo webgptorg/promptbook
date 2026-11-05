@@ -178,7 +178,9 @@ test('live tab control: one tab is reserved for the user across engines of the p
     // Manual Wallet sign-in: the credential submitted on the site becomes a save offer once the sign-in is seen.
     const saved = [];
     const satisfied = [];
+    let settledNote;
     const wallet = {
+        settled: () => settledNote,
         request: 'request-1',
         origin,
         offer: async (candidate) => ({ kind: 'save', account: candidate.username }),
@@ -210,6 +212,12 @@ test('live tab control: one tab is reserved for the user across engines of the p
     assert.deepEqual(saved, [{ origin, username: 'alice', password: 'secret' }]);
     await assert.rejects(signIn.answerOffer(view.offer.id, 'yes'), /no longer current/, 'a stale answer saves nothing');
     assert.equal(satisfied.length, 0, 'saving does not settle the request');
+    // A request settled by another route meanwhile is a nonblocking note: the tab stays with the user.
+    assert.equal(signIn.view().requestSettled, undefined);
+    settledNote = 'The sign-in request was completed meanwhile.';
+    assert.equal(signIn.view().requestSettled, settledNote);
+    assert.equal(signIn.state, 'controlled');
+    settledNote = undefined;
     const done = await signIn.handBack();
     assert.equal(done.state, 'returned');
     assert.deepEqual(satisfied, [{ origin, account: 'alice', evidence: true }]);

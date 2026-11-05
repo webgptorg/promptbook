@@ -194,6 +194,12 @@ export class ServiceHost {
                     offer: async (candidate) => this.agenda.wallet.manualOffer(candidate),
                     save: async (candidate, expected) => await this.agenda.wallet.saveFromManualSignIn(candidate, expected),
                     satisfy: async (access) => await this.agenda.wallet.satisfyByManualSignIn(context.request, access),
+                    settled: () => {
+                        const action = this.agenda.wallet.action(context.request);
+                        if (!action) return 'The sign-in request no longer exists. You may finish here or leave; the tab stays with you until you return it.';
+                        if (action.state === 'pending') return undefined;
+                        return `The sign-in request was ${action.state === 'resolved' ? 'completed' : 'rejected'} meanwhile. You may finish here or leave; the tab stays with you until you return it.`;
+                    },
                 };
             }
             const session = await this.tabs.open({ browser: this.browserNamed(browserName), ...(text('target') ? { target: text('target') } : {}), ...(url && !text('target') ? { url } : {}), purpose: wallet ? 'wallet' : 'browse', ...(wallet ? { wallet } : {}) });

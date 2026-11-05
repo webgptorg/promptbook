@@ -277,6 +277,7 @@ function renderFeatureBar(force = false) {
         if (control.offer) rows.push(element('div', { className: 'feature-row offer' },
             element('span', {}, element('strong', {}, control.offer.kind === 'update' ? 'Update the password in Wallet?' : 'Save this login to Wallet?'), ` ${control.offer.account} for ${control.offer.origin}`),
             element('span', { className: 'feature-buttons' }, element('button', { className: 'primary', onclick: () => void tabAction(control, 'offer', 'yes') }, 'Yes'), element('button', { onclick: () => void tabAction(control, 'offer', 'no') }, 'No'))));
+        if (control.requestSettled) rows.push(element('div', { className: 'feature-row' }, control.requestSettled));
         if (control.problem) rows.push(element('div', { className: 'feature-row warning' }, control.problem));
     }
     for (const request of context?.pending || []) {

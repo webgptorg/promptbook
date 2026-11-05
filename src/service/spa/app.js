@@ -780,7 +780,7 @@
                 if (browser.tabs && browser.tabs.length) rows.push(['Task tabs', browser.tabs.map((tab) => `${tab.task}${tab.url ? ` (${tab.url})` : ''}`).join('; ')]);
                 // Tabs a user controls live: who has each and that it awaits the explicit handoff (shown, not controlled, here).
                 const controlled = (snapshot.tabControls || []).filter((control) => control.browser === browser.name && !controlOver(control));
-                if (controlled.length) rows.push(['User control', controlled.map((control) => `${control.purpose === 'wallet' ? 'manual sign-in' : 'a tab'}${control.task ? ` taken from ${control.task}` : ''}${control.url ? ` at ${control.url}` : ''} · ${control.viewer === 'connected' ? 'viewer open' : 'no viewer open'} · awaiting the user's handoff`).join('; ')]);
+                if (controlled.length) rows.push(['User control', controlled.map((control) => `${control.purpose === 'wallet' ? 'manual sign-in' : 'a tab'}${control.task ? ` taken from ${control.task}` : ''}${control.url ? ` at ${control.url}` : ''} · ${control.viewer === 'connected' ? 'viewer open' : 'no viewer open'} · awaiting the user's handoff${control.requestSettled ? ` · ${control.requestSettled}` : ''}`).join('; ')]);
                 const others = connections.filter((connection) => !connection.self).map((connection) => connection.project);
                 const scope = others.length ? ` It also affects ${others.length} other connected project(s): ${others.join(', ')}.` : '';
                 return h(

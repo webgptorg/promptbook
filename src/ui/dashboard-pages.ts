@@ -371,6 +371,7 @@ function tabControlLines(control: TabControlView, context: PageContext, style: T
     for (const limitation of control.limitations) lines.push(style.warning(`      ${limitation}`));
     if (control.signIn?.detected) lines.push(style.success(`      Sign-in to ${control.signIn.origin ?? 'the service'} detected; the tab stays with you until you return it (H).`));
     if (control.offer) lines.push(`      ${style.bold(control.offer.kind === 'update' ? 'Update password in Wallet?' : 'Save to Wallet?')} ${terminalSafe(control.offer.account)} for ${control.offer.origin} ${style.muted('· Y yes · N no')}`);
+    if (control.requestSettled) lines.push(style.muted(`      ${control.requestSettled}`));
     if (control.problem) lines.push(style.warning(`      ${control.problem}`));
     else if (control.outcome) lines.push(style.muted(`      ${control.outcome}`));
     return lines;

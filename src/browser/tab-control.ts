@@ -50,6 +50,11 @@ export type TabControlView = {
     readonly signIn?: { readonly detected: boolean; readonly origin?: string };
     /** Wallet's offer to remember the password used for the verified sign-in (nonsecret). */
     readonly offer?: { readonly id: string; readonly kind: 'save' | 'update'; readonly origin: string; readonly account: string };
+    /**
+     * The Wallet request was settled by another route while the user still controls the tab: a nonblocking note (the tab
+     * stays with the user until the handoff, and the user may finish or leave).
+     */
+    readonly requestSettled?: string;
     /** The latest problem or outcome in the user's words. */
     readonly problem?: string;
     readonly outcome?: string;
@@ -99,6 +104,8 @@ export type TabControlWallet = {
     readonly save: (candidate: SignInCandidate, expected: { readonly record?: string; readonly revision?: string }) => Promise<string>;
     /** After the handoff: the original request is satisfied by this verified access (or the reason it is not). */
     readonly satisfy: (access: { readonly origin: string; readonly account?: string; readonly evidence: boolean }) => Promise<{ readonly resolved: boolean; readonly reason: string }>;
+    /** Whether the request was settled meanwhile by another route, in the user's words (nothing while it is pending). */
+    readonly settled?: () => string | undefined;
 };
 
 /**
@@ -360,11 +367,22 @@ export class TabControlSession {
             limitations: [...this.limitations],
             ...(this.signIn ? { signIn: { ...this.signIn } } : {}),
             ...(this.offer ? { offer: { id: this.offer.id, kind: this.offer.kind, origin: this.offer.origin, account: this.offer.account } } : {}),
+            ...(this.requestNote() ? { requestSettled: this.requestNote()! } : {}),
             ...(this.problem ? { problem: this.problem } : {}),
             ...(this.outcome ? { outcome: this.outcome } : {}),
             startedAt: this.startedAt,
             ...(this.endedAt ? { endedAt: this.endedAt } : {}),
         };
+    }
+
+    /** A note that the Wallet request was settled elsewhere while this tab is still controlled (never after its end). */
+    private requestNote(): string | undefined {
+        if (!this.wallet?.settled || this.over) return undefined;
+        try {
+            return this.wallet.settled();
+        } catch {
+            return undefined;
+        }
     }
 
     /** Publishes a change to pollers and every client. */
