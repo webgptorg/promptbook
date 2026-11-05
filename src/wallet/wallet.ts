@@ -1859,7 +1859,15 @@ export class WalletSubEngine {
                 return false;
             }
         })();
-        return same ? { kind: 'none', account: existing.account } : { kind: 'update', account: existing.account, record: existing.id, revision: existing.updatedAt };
+        return same ? { kind: 'none', account: existing.account } : { kind: 'update', account: existing.account, record: existing.id, revision: this.revisionOf(existing) };
+    }
+
+    /**
+     * The revision of a saved record for stale-answer checks: its update time and a digest of its sealed secret, whose
+     * fresh nonce changes on every save (two saves within the same millisecond still differ). Nonsecret.
+     */
+    private revisionOf(record: StoredRecord): string {
+        return `${record.updatedAt}#${createHash('sha256').update(JSON.stringify(record.secret)).digest('hex').slice(0, 16)}`;
     }
 
     /**
@@ -1875,7 +1883,7 @@ export class WalletSubEngine {
             if (!username || !candidate.password) throw new PtbkError('The sign-in did not include a username and password to save.', { kind: 'usage' });
             const existing = this.records.find((record) => originMatches(record.origin, origin) && this.usernameOf(record)?.toLowerCase() === username.toLowerCase());
             // A stale answer cannot overwrite a newer record, nor duplicate one saved meanwhile.
-            if (expected.record ? !existing || existing.id !== expected.record || existing.updatedAt !== expected.revision : existing) throw new PtbkError('The saved login changed since the offer was shown, so nothing was saved.', { kind: 'conflict' });
+            if (expected.record ? !existing || existing.id !== expected.record || this.revisionOf(existing) !== expected.revision : existing) throw new PtbkError('The saved login changed since the offer was shown, so nothing was saved.', { kind: 'conflict' });
             const now = new Date().toISOString();
             const fields = existing ? this.fieldsOf(existing) : [];
             const record: StoredRecord = {
