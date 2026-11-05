@@ -1,6 +1,6 @@
 # Unreleased
 
-- Fix Windows release validation of recorded chat audio by checking the actual Git commit's portable paths. Keep the assertion that the recording and its message binding are committed together, and exercise escaping audio through a directory junction without requiring elevated Windows symlink privileges.
+- Fix Windows release validation of recorded chat audio by checking the actual Git commit's portable paths. Keep the assertion that the recording and its message binding are committed together, and exercise escaping audio and Files paths through directory junctions without requiring elevated Windows symlink privileges.
 
 - Bring the Promptbook wordmark and ink-blue palette to the desktop controller. Its project dashboard uses clickable, keyboard-accessible tiles in a scrollable grid with room for their summaries.
 
