@@ -41,9 +41,10 @@ try {
     execFileSync(node, [npmCli, 'ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: installation, stdio: 'inherit' });
     const name = `Promptbook-${engine.version}-macos-${arch}${signed ? '' : '-unsigned'}.dmg`;
     if (!signed) {
-        // Use a local ad-hoc signature even on Apple Silicon. This artifact carries no Developer ID.
+        // The DMG check requires an ad-hoc signature on pull requests too. This path uses no Developer ID.
         process.env.CSC_IDENTITY_AUTO_DISCOVERY = 'false';
         for (const key of signingInputs) delete process.env[key];
+        process.env.CSC_FOR_PULL_REQUEST = 'true';
     }
     await build({
         projectDir: desktop,

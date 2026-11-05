@@ -59,6 +59,7 @@
 
 ## CI checks
 
+- Apply the macOS test app's ad-hoc signature in pull request builds so both DMG checks can verify and launch it.
 - Compare dashboard focus styles against the same observed snapshot, so crossing a real minute cannot fail the unchanged geometry/content assertions through an unrelated header clock update.
 
 ## Contribution instructions
