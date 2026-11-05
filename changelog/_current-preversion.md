@@ -14,7 +14,7 @@
 
 - Follow the system appearance in the desktop app by default and remember a light or dark override across windows and restarts.
 
-- Use Inter Bold for the entire Promptbook wordmark in the README and desktop controller, with artwork for light and dark backgrounds.
+- Use Inter Medium for `prompt` and Inter Bold for `book` in the README and desktop controller. Add the lowercase `ptbk` lockup and the isometric homepage robot to the shared brand assets.
 
 - Adopt deep ink blue (#17386C) for the README logo and the symbol used in desktop packaging.
 

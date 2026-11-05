@@ -1,5 +1,9 @@
 # Local desktop client
 
+Windows and macOS share the same [Promptbook wordmark and robot artwork](../../design/README.md).
+The header follows the application's selected appearance. The empty project view uses
+the homepage robot as a supporting illustration.
+
 [Main specification](../_main.md) · [Windows installer](windows-installer.md) · [Global dashboard](global-dashboard.md) · [Initialization](initialization.md) · [Harness sessions](harness-sessions.md)
 
 ## Authority and scope

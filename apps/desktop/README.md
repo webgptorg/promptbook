@@ -1,6 +1,11 @@
 # Local desktop controller
 
-An optional Electron client for the local `ptbk` engine on Windows and macOS. The CLI remains the primary interface; this package is not included in the npm engine's dependencies.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../design/readme-wordmark-dark.svg">
+  <img src="../../design/readme-wordmark.svg" alt="Promptbook" width="230">
+</picture>
+
+An optional Electron client for the local `ptbk` engine on Windows and macOS. The renderer uses the [shared Promptbook brand](../../design/README.md). The CLI remains the primary interface; this package is not included in the npm engine's dependencies.
 
 From the repository root:
 

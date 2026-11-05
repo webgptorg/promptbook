@@ -104,7 +104,13 @@ function renderOverview() {
     )));
     const table = element('table', {}, element('thead', {}, element('tr', {}, element('th', {}, element('input', { type: 'checkbox', 'aria-label': 'Select all projects', onchange: (event) => document.querySelectorAll('[data-project]').forEach((input) => { input.checked = event.target.checked; }) })), ...['Project', 'State', 'Current work', ''].map((label) => element('th', {}, label)))), body);
     const checked = selectedRoots();
-    $('overview-pane').replaceChildren(element('h1', {}, 'Your projects'), element('p', {}, 'One engine per project. Any number of views.'), ...(host.problem ? [element('p', { className: 'error-text' }, host.problem)] : []), toolbar, host.rows.length ? table : element('div', { className: 'empty' }, element('h2', {}, 'Start your first project'), element('p', {}, 'The setup assistant uses the same workflow as ptbk init.'), element('button', { className: 'primary', onclick: () => void newProject() }, 'Create a project')));
+    const empty = element('div', { className: 'empty' },
+        element('img', { src: 'vendor/promptbook-robot.svg', alt: '', width: 72, height: 72 }),
+        element('h2', {}, 'Start your first project'),
+        element('p', {}, 'The setup assistant uses the same workflow as ptbk init.'),
+        element('button', { className: 'primary', onclick: () => void newProject() }, 'Create a project'),
+    );
+    $('overview-pane').replaceChildren(element('h1', {}, 'Your projects'), element('p', {}, 'One engine per project. Any number of views.'), ...(host.problem ? [element('p', { className: 'error-text' }, host.problem)] : []), toolbar, host.rows.length ? table : empty);
     for (const input of document.querySelectorAll('[data-project]')) input.checked = checked.includes(input.dataset.project);
 }
 

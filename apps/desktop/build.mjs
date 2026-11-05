@@ -16,5 +16,6 @@ await writeFile(new URL('./renderer/vendor/xterm.css', import.meta.url), await r
 for (const wordmark of ['readme-wordmark.svg', 'readme-wordmark-dark.svg']) {
     await copyFile(join(root, 'design', wordmark), new URL(`./renderer/vendor/${wordmark}`, import.meta.url));
 }
+await copyFile(join(root, 'design/brand/promptbook-robot.svg'), new URL('./renderer/vendor/promptbook-robot.svg', import.meta.url));
 await writeFile(new URL('./icon.ico', import.meta.url), windowsIcon(await readFile(`${root}/design/logo-blue-transparent-256.png`)));
 process.stdout.write(`Built optional desktop client ${engine.version}.\n`);

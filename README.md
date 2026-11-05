@@ -11,6 +11,7 @@
   <a href="#quickstart"><strong>Quickstart</strong></a> ·
   <a href="#deploy-to-your-own-server"><strong>Deploy</strong></a> ·
   <a href="https://www.ptbk.io/en"><strong>Website</strong></a> ·
+  <a href="design/README.md"><strong>Brand</strong></a> ·
   <a href="specs/_main.md"><strong>Specifications</strong></a> ·
   <a href="https://www.ptbk.io/en/partnership"><strong>For partners</strong></a>
 </p>
