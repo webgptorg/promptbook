@@ -5,6 +5,7 @@ import { createRichInput } from './rich-input.js';
 /** Local view state contains no credentials, project business rules or engine ownership. */
 const api = window.desktop;
 const $ = (id) => document.getElementById(id);
+const appearance = $('appearance');
 const terminals = new Map();
 const earlyEvents = new Map();
 let host = { rows: [] };
@@ -15,6 +16,7 @@ let launch;
 let observed = false;
 let refreshing = false;
 let busy = false;
+let themeSource = 'system';
 
 /** DOM helper: project names, errors and prompt text are always text nodes. */
 function element(tag, attrs = {}, ...children) {
@@ -35,6 +37,13 @@ function notice(message, error = false) {
     $('notice').classList.toggle('error', error);
     $('notice').textContent = message || '';
     layout();
+}
+
+/** Keeps the appearance selector in sync with the app-wide preference. */
+function showTheme(source) {
+    themeSource = source;
+    appearance.value = source;
+    appearance.disabled = false;
 }
 
 /** Fits client-owned terminal content and the native unprivileged dashboard view. */
@@ -260,9 +269,17 @@ function terminalEvent(event) {
 
 api.onEvent((event) => {
     if (event.type === 'launch') { launch = event; if (observed) void applyLaunch(); }
+    else if (event.type === 'theme') showTheme(event.source);
     else if (event.type === 'error') { api.hideDashboard(); notice(event.message, true); }
     else if (event.terminal) terminalEvent(event);
 });
+appearance.onchange = () => {
+    void api.theme(appearance.value).catch((error) => {
+        appearance.value = themeSource;
+        notice(`Could not save the appearance setting. ${error.message}`, true);
+    });
+};
+void api.theme().then(showTheme).catch((error) => notice(error.message, true));
 $('overview').onclick = () => { show('overview'); renderOverview(); };
 $('new-project').onclick = () => void newProject();
 $('new-window').onclick = () => void api.newWindow(selected);

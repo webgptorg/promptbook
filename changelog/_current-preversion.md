@@ -1,5 +1,7 @@
 # Unreleased
 
+- Follow the system appearance in the desktop app by default and remember a light or dark override across windows and restarts.
+
 - Set the README wordmark in Inter Light for “prompt” and Inter Bold for “book”, with artwork for light and dark backgrounds.
 
 - Adopt deep ink blue (#17386C) for the README logo and the symbol used in desktop packaging.

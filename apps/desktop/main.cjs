@@ -1,6 +1,7 @@
 'use strict';
-const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, shell } = require('electron');
+const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, nativeTheme, shell } = require('electron');
 const { fork } = require('node:child_process');
+const { readFileSync, renameSync, writeFileSync } = require('node:fs');
 const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
 const { randomUUID } = require('node:crypto');
 const { join, resolve, basename, delimiter } = require('node:path');
@@ -10,6 +11,9 @@ const { createPromptServer } = require('./prompt-server.cjs');
 
 /** macOS packages carry their own CLI runtime and use native application menus. */
 const isMac = process.platform === 'darwin';
+
+/** Supported appearance preferences, including a live system default. */
+const themeSources = new Set(['system', 'light', 'dark']);
 
 /** The tray controller owns client windows and attachments, never the engines. */
 const windows = new Map();
@@ -23,6 +27,21 @@ let quitting = false;
 let refreshingTray = false;
 let quitInProgress = false;
 let clipboardDirectory;
+
+/** Stores the client preference in the app profile, outside all projects. */
+function themeFile() {
+    return join(app.getPath('userData'), 'appearance');
+}
+
+/** Old profiles and invalid settings fall back to the operating system. */
+function loadTheme() {
+    try {
+        const source = readFileSync(themeFile(), 'utf8').trim();
+        if (themeSources.has(source)) nativeTheme.themeSource = source;
+    } catch {
+        // A preference file is optional and must not block the desktop app.
+    }
+}
 
 /** Adds the usual user tool locations to the environment inherited from Finder. */
 function bundledRuntime() {
@@ -247,6 +266,21 @@ async function refreshTray() {
 }
 
 ipcMain.handle('desktop:observe', async (event) => { owner(event); return { ...await controller('observe'), home: app.getPath('home'), version: app.getVersion() }; });
+ipcMain.handle('desktop:theme', (event, source) => {
+    owner(event);
+    if (source === undefined) return nativeTheme.themeSource;
+    if (!themeSources.has(source)) throw new Error('Invalid appearance setting.');
+    if (source !== nativeTheme.themeSource) {
+        // Serialize the small atomic write across all client windows before changing the live theme.
+        const file = themeFile();
+        const temporary = `${file}.tmp`;
+        writeFileSync(temporary, `${source}\n`, { mode: 0o600 });
+        renameSync(temporary, file);
+        nativeTheme.themeSource = source;
+        for (const entry of windows.values()) emit(entry, { type: 'theme', source });
+    }
+    return source;
+});
 ipcMain.handle('desktop:action', async (event, { action, roots }) => {
     const entry = owner(event);
     if (!ACTIONS.has(action) || !Array.isArray(roots) || !roots.length || roots.length > 1000 || roots.some((root) => typeof root !== 'string')) throw new Error('Invalid project action.');
@@ -368,6 +402,7 @@ const ready = app.whenReady().then(async () => {
     await startBridge();
 });
 void app.whenReady().then(async () => {
+    loadTheme();
     app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/', copyright: 'Promptbook — your AI, on your machine' });
     tray = new Tray(trayIcon());
     tray.on('double-click', () => createWindow());

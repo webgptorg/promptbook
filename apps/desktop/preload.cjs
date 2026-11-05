@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 /** Only fixed operations are exposed; raw IPC and Node never reach the renderer or project dashboard. */
 contextBridge.exposeInMainWorld('desktop', {
     observe: () => ipcRenderer.invoke('desktop:observe'),
+    theme: (source) => ipcRenderer.invoke('desktop:theme', source),
     action: (action, roots) => ipcRenderer.invoke('desktop:action', { action, roots }),
     dashboard: (root, bounds) => ipcRenderer.invoke('desktop:dashboard', { root, bounds }),
     bounds: (bounds) => ipcRenderer.send('desktop:bounds', bounds),
