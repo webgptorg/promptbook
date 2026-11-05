@@ -733,6 +733,26 @@
         return snapshot.browsers && snapshot.browsers.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : [];
     }
 
+    /** Whether a user-controlled tab is over (returned, ended or lost). */
+    function controlOver(control) {
+        return control.state === 'returned' || control.state === 'ended' || control.state === 'lost';
+    }
+
+    /**
+     * The manual sign-in of a Wallet request (shared state only): tab ownership and the awaited handoff are shown apart
+     * from the request's authentication; the live viewer and its choices are in the terminal or the desktop app.
+     */
+    function manualSignInNote(snapshot, action) {
+        const control = (snapshot.tabControls || []).filter((candidate) => candidate.request === action.id).pop();
+        if (!control) return null;
+        if (controlOver(control)) return h('div', { className: 'muted' }, `Manual sign-in: ${control.outcome || control.problem || 'ended'}`);
+        const parts = [`You are signing in manually in a tab of the ${control.browser} browser (${control.mode}); it stays with you until you return control to the agent.`];
+        parts.push(control.viewer === 'connected' ? 'The viewer is open.' : 'No viewer is open; reopen it from the terminal or the desktop app.');
+        if (control.signIn && control.signIn.detected) parts.push(`Sign-in to ${control.signIn.origin || action.origin} detected.`);
+        if (control.offer) parts.push(`Wallet offers to ${control.offer.kind === 'update' ? 'update the saved password' : 'save the password'} of ${control.offer.account}; answer where you control the tab.`);
+        return h('div', { className: 'notice' }, parts.join(' '));
+    }
+
     function renderBrowserDetails(snapshot) {
         const browsers = browsersOf(snapshot);
         if (!browsers.length) return h('p', { className: 'muted' }, 'Browser information is not available from this service.');
@@ -758,6 +778,9 @@
                 const connections = browser.connections || [];
                 if (connections.length) rows.push(['Engines', connections.map((connection) => (connection.self ? 'this project' : connection.project)).join(', ')]);
                 if (browser.tabs && browser.tabs.length) rows.push(['Task tabs', browser.tabs.map((tab) => `${tab.task}${tab.url ? ` (${tab.url})` : ''}`).join('; ')]);
+                // Tabs a user controls live: who has each and that it awaits the explicit handoff (shown, not controlled, here).
+                const controlled = (snapshot.tabControls || []).filter((control) => control.browser === browser.name && !controlOver(control));
+                if (controlled.length) rows.push(['User control', controlled.map((control) => `${control.purpose === 'wallet' ? 'manual sign-in' : 'a tab'}${control.task ? ` taken from ${control.task}` : ''}${control.url ? ` at ${control.url}` : ''} · ${control.viewer === 'connected' ? 'viewer open' : 'no viewer open'} · awaiting the user's handoff`).join('; ')]);
                 const others = connections.filter((connection) => !connection.self).map((connection) => connection.project);
                 const scope = others.length ? ` It also affects ${others.length} other connected project(s): ${others.join(', ')}.` : '';
                 return h(
@@ -2026,6 +2049,7 @@
                     { className: 'notice' },
                     h('strong', {}, `${action.origin}${action.account ? ` · ${action.account}` : ''} · ${problem}`),
                     h('div', { className: 'muted' }, `${action.reason} ${action.tasks.length ? `For ${action.tasks.join(', ')}.` : ''} Since ${time(action.createdAt)}${action.requests > 1 ? ` · requested ${action.requests}×` : ''}.${action.seenAt ? ` Seen ${time(action.seenAt)}, still waiting.` : ''}`),
+                    manualSignInNote(snapshot, action),
                     h('div', { className: 'row' }, action.problem === 'code' ? h('button', { className: 'primary', onclick: () => walletCodeDialog(action) }, 'Enter the code') : action.problem === 'field' && wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletFieldDialog(action) }, 'Add the fields') : wallet.state === 'ready' ? h('button', { className: 'primary', onclick: () => walletLoginDialog({ origin: action.origin, action: action.id }) }, 'Add this login') : null,
                         // Mark as seen ends only this request's alert (it keeps waiting); Reject request denies and ends it.
                         // Both name the step the owner saw, so a request that moved on in the meantime is not changed.
