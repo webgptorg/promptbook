@@ -68,7 +68,7 @@ dashboard_ready=0
 for attempt in $(seq 1 10); do
     adb shell uiautomator dump /sdcard/ptbk-window.xml >/dev/null
     window=$(adb shell cat /sdcard/ptbk-window.xml)
-    if [[ $window == *'class="android.webkit.WebView"'* && ( $window == *'text="Resume"'* || $window == *'text="Remove manual pause"'* ) ]]; then
+    if [[ $window == *'class="android.webkit.WebView"'* && $window == *'text="Dashboard home"'* && $window == *'text="System"'* ]]; then
         dashboard_ready=1
         break
     fi

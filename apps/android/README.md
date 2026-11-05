@@ -4,7 +4,7 @@ The Android preview is a single APK for ARM64 devices with Android 9 or newer. I
 
 1. Download `Promptbook-<version>-android-arm64.apk` or `Promptbook-<version>-android-arm64-preview.apk` from [GitHub Releases](https://github.com/webgptorg/promptbook/releases). Open it and allow your download app to install it if Android prompts you.
 2. Open Promptbook and tap **Start engine**. You can inspect the dashboard and Git history without model credentials. To try model work, enter a Gemini API key before starting. The app keeps the key for that engine session only.
-3. The engine starts paused. Use **Resume** in the dashboard to authorize the initial task and later scheduled work. Returning to the home screen leaves the service running. Use **Stop engine** in the app or **Stop** in its notification to end the session.
+3. The engine starts paused. Open **System → Resume** in the dashboard to authorize the initial task and later scheduled work. Returning to the Android home screen leaves the service running. Use **Stop engine** in the app or **Stop** in its notification to end the session.
 
 Android can suspend or stop the service, including when the device is idle or the app is force-stopped. Open the app and start the engine again after a shutdown or reboot. The Git project and Book files are kept in the app's private storage. The preview is limited to the built-in Gemini harness and one local project. Desktop browser automation, native Wallet unlock, Codex voice, and importing existing projects are outside this preview.
 
