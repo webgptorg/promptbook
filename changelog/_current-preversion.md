@@ -1,5 +1,7 @@
 # Unreleased
 
+- Fix Windows release validation of recorded chat audio by checking the actual Git commit's portable paths. Keep the assertion that the recording and its message binding are committed together, and exercise escaping audio and Files paths through directory junctions without requiring elevated Windows symlink privileges.
+
 - Bring the Promptbook wordmark and ink-blue palette to the desktop controller. Its project dashboard uses clickable, keyboard-accessible tiles in a scrollable grid with room for their summaries.
 
 - Follow the system appearance in the desktop app by default and remember a light or dark override across windows and restarts.
@@ -53,7 +55,7 @@
 
 ## CI checks
 
-- Compare the recorded chat audio and its Book binding using native filesystem paths so the archive test also passes on Windows.
+- Apply the macOS test app's ad-hoc signature in pull request builds so both DMG checks can verify and launch it.
 - Compare dashboard focus styles against the same observed snapshot, so crossing a real minute cannot fail the unchanged geometry/content assertions through an unrelated header clock update.
 
 ## Contribution instructions

@@ -107,7 +107,8 @@ test('recorded audio is a committed project chat asset bound once, never another
             commit: async (paths, subject) => {
                 await git(root, ['add', '--', ...paths]);
                 await git(root, ['commit', '-qm', subject]);
-                committed.push(paths);
+                // Inspect Git's actual portable paths, including on Windows where native paths use backslashes.
+                committed.push((await git(root, ['diff-tree', '--no-commit-id', '--name-only', '-r', '-z', 'HEAD'])).split('\0').filter(Boolean));
                 return 'sha';
             },
         },
@@ -126,7 +127,7 @@ test('recorded audio is a committed project chat asset bound once, never another
     assert.equal(await readFile(join(root, first.audio[0].path), 'utf8'), 'webm-bytes');
     const files = await git(root, ['ls-files']);
     assert.ok(files.includes(first.audio[0].path), 'the recording itself is committed by default');
-    assert.ok(committed.at(-1).includes(created.path) && committed.at(-1).includes(join(root, first.audio[0].path)), 'binding and file are committed together');
+    assert.ok(committed.at(-1).some((path) => path.endsWith('.book')) && committed.at(-1).includes(first.audio[0].path), 'binding and file are committed together');
     const replay = await store.recordAudio(created.chat.name, 1, [{ id: 'call-1 user 1', extension: 'webm', data: Buffer.from('webm-bytes') }]);
     assert.deepEqual(replay.audio, [], 'reconnect/finalization replay binds nothing twice');
     const agent = await store.recordAudio(created.chat.name, 2, [{ id: 'call-1 chatter 1', extension: 'webm', data: Buffer.from('agent'), status: 'interrupted', timing: { call: 'call-1', startMs: 1500, endMs: 2600 } }]);
@@ -142,7 +143,8 @@ test('recorded audio is a committed project chat asset bound once, never another
     assert.match(await resolveMessageAudio(root, first.audio[0].path), /audio-call-1-user-1\.webm$/);
     const outside = await temporaryDirectory(t, 'ptbk audio outside');
     await writeFile(join(outside, 'secret.webm'), 'secret');
-    await symlink(join(outside, 'secret.webm'), join(root, 'escape.webm'));
-    await assert.rejects(resolveMessageAudio(root, 'escape.webm'), /outside the project/);
+    // A directory junction exercises escaping audio on Windows without requiring symlink privileges.
+    await symlink(outside, join(root, 'escape'), process.platform === 'win32' ? 'junction' : 'dir');
+    await assert.rejects(resolveMessageAudio(root, 'escape/secret.webm'), /outside the project/);
     await assert.rejects(resolveMessageAudio(root, '../x.webm'), /cannot leave/);
 });

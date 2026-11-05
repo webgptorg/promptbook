@@ -82,12 +82,13 @@ test('Files: confined nonhidden browsing with readable formatting; hidden, escap
     await writeFile(join(project, 'pixel.png'), Buffer.from('89504e470d0a1a0a0000000d4948445200000001000000010806000000', 'hex'));
     await writeFile(join(project, 'clip.mp4'), Buffer.alloc(16));
     await writeFile(join(outside, 'secret.txt'), 'outside\n');
-    await symlink(join(outside, 'secret.txt'), join(project, 'escape.txt'));
+    // Directory junctions preserve the escape check without elevated symlink privileges on Windows.
+    await symlink(outside, join(project, 'escape.txt'), process.platform === 'win32' ? 'junction' : 'dir');
     const root = await listFolder(project, '');
     assert.deepEqual(root.entries.map((entry) => entry.name), ['docs', 'agent.book', 'clip.mp4', 'escape.txt', 'pixel.png', 'ptbk.json'], 'folders first; hidden entries never listed');
     assert.equal(root.entries.find((entry) => entry.name === 'escape.txt').type, 'link-outside', 'a link leaving the project is never followed');
     assert.deepEqual([fileKind('a.book'), fileKind('a.md'), fileKind('a.json'), fileKind('a.png'), fileKind('a.mp4'), fileKind('a.bin')], ['book', 'markdown', 'json', 'image', 'video', 'binary']);
-    for (const path of ['.env', '.ptbk/wallet/vault.json', '../x', 'escape.txt', 'docs/../.env']) await assert.rejects(readProjectFile(project, path), /not an accessible project path|outside the project/, path);
+    for (const path of ['.env', '.ptbk/wallet/vault.json', '../x', 'escape.txt', 'escape.txt/secret.txt', 'docs/../.env']) await assert.rejects(readProjectFile(project, path), /not an accessible project path|outside the project/, path);
     const json = await readProjectFile(project, 'ptbk.json');
     assert.equal(json.text, '{\n    "a": 1,\n    "b": {\n        "c": [\n            1,\n            2\n        ]\n    }\n}', 'JSON is shown formatted');
     const image = await readProjectFile(project, 'pixel.png');
