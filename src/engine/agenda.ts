@@ -3141,12 +3141,19 @@ export class Agenda {
             await this.runEngineUpdate();
             return;
         }
+        await this.waitForNextWork(evaluated);
+    }
+
+    /** Waits for scheduled work or an internal retry after the current evaluation has finished. */
+    private async waitForNextWork(evaluated: readonly EvaluatedTask[]): Promise<void> {
+        const waitingForTools = this.tools.waiting;
         const waiting = evaluated.filter((item) => item.readiness.kind === 'waiting-until').map((item) => (item.readiness as { until: number }).until);
-        const earliest = (times: readonly number[]): number | undefined => times.filter((until) => until > Date.now()).reduce<number | undefined>((first, until) => (first === undefined || until < first ? until : first), undefined);
-        const nextTime = earliest([...waiting, ...(this.nextKnownTime ? [this.nextKnownTime] : [])]);
+        /** Internal deadlines can become due while evaluation runs; they still require a prompt next iteration. */
+        const earliest = (times: readonly number[]): number | undefined => times.filter(Number.isFinite).reduce<number | undefined>((first, until) => (first === undefined || until < first ? until : first), undefined);
+        const nextTime = earliest([...waiting, ...(this.nextKnownTime ? [this.nextKnownTime] : [])].filter((until) => until > Date.now()));
         this.nextKnownTime = nextTime;
         // Internal retries (resumable runs, deferred claims, a failed brief's recheck) also wake the loop, without being
-        // presented as scheduled work.
+        // presented as scheduled work. Overdue retries must not fall through to the ten-minute idle wait.
         const wakeAt = earliest([...(nextTime ? [nextTime] : []), ...this.resumeAfter.values(), ...this.claimDeferred.values(), ...this.recoveryDue.values(), ...(this.reportRecheck ? [Date.parse(this.reportRecheck.nextAt)] : []), ...(this.updater.wakeAt() ? [this.updater.wakeAt()!] : [])]);
         const blocked = evaluated.filter((item) => ['blocked', 'needs-recovery', 'failed'].includes(item.readiness.kind));
         const reason = this.executing
@@ -3159,7 +3166,7 @@ export class Agenda {
                   ? `No unfinished work. Waiting for tools: ${waitingForTools.reason}`
                   : (this.idleReason ?? 'No unfinished work.');
         this.phase = 'idle';
-        await this.wait(wakeAt ? Math.min(Math.max(1_000, wakeAt - Date.now()), IDLE_RECHECK_MS) : IDLE_RECHECK_MS, { kind: nextTime ? 'schedule' : 'idle', reason, skippable: false });
+        await this.wait(wakeAt !== undefined ? Math.min(Math.max(1_000, wakeAt - Date.now()), IDLE_RECHECK_MS) : IDLE_RECHECK_MS, { kind: nextTime ? 'schedule' : 'idle', reason, skippable: false });
     }
 
     /** Whether the last loop wait was skipped by the operator. */

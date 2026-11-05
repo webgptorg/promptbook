@@ -35,3 +35,23 @@ test('a wake-up raised while publishing the waiting view cannot be lost before w
         assert.equal(await Promise.race([waiting, new Promise((resolve) => { timer = setTimeout(() => resolve('lost wake'), 250); })]), 'woken');
     } finally { clearTimeout(timer); unsubscribe(); agenda.wake(); await waiting; }
 });
+
+test('an internal retry that becomes due during evaluation still wakes the scheduler before later scheduled work', async (t) => {
+    const project = projectAt(await temporaryDirectory(t, 'ptbk overdue retry'));
+    const now = Date.parse('2026-11-05T12:00:00Z');
+    t.mock.method(Date, 'now', () => now);
+    for (const field of ['recoveryDue', 'resumeAfter', 'claimDeferred']) {
+        for (const remaining of [-1, 0, 5_000]) {
+            const agenda = new Agenda({ project, mode: 'maintenance', instanceId: 'overdue-retry-fixture', env: process.env, cli: {}, persistent: false });
+            t.mock.getter(agenda, 'timeZone', () => 'UTC');
+            agenda[field].set('fixture-run', now + remaining);
+            const nextTask = now + 60_000;
+            const waits = [];
+            t.mock.method(agenda, 'wait', async (ms, view) => { waits.push({ ms, view }); return 'elapsed'; });
+            await agenda.waitForNextWork([{ readiness: { kind: 'waiting-until', until: nextTask } }]);
+            assert.equal(waits.length, 1);
+            assert.equal(waits[0].ms, Math.max(1_000, remaining), `${field}: a retry due in ${remaining} ms cannot fall through to the later task or idle delay`);
+            assert.equal(agenda.nextKnownTime, nextTask, 'internal retries do not replace the next scheduled task');
+        }
+    }
+});
