@@ -1,5 +1,7 @@
 # Unreleased
 
+- Match the README wordmark to the Promptbook brand kit. The vector cube’s vertical edge now matches the cap height of the lettering.
+
 ## Realtime voice chat
 
 - Add an optional realtime voice capability to the harness plugin contract. Availability is inspected without opening a paid call, and the contract defines a session start, context supply and end. Normalized transcript, usage, error and closure events carry no provider protocol. OpenAI Codex with a native ChatGPT login is the first implementation. Every other adapter returns the shared *not implemented* result and never a fake session.
