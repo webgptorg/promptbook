@@ -37,6 +37,8 @@ export type RelayEndpoint = {
 export type AppSettings = {
     /** The dashboard API origin (`https://…`, no path). */
     readonly dashboardUrl: string;
+    /** A saved registration supplies the origin unless the operator explicitly sets one. */
+    readonly dashboardUrlIsDefault?: true;
     /** The engine domain when configured; otherwise it is pinned from the first verified registration. */
     readonly engineDomain?: string;
     /** Operator override of the registration's relays (development and tests). */
@@ -120,5 +122,5 @@ export function appSettings(env: NodeJS.ProcessEnv = process.env): AppSettings {
             throw new PtbkError(`PTBK_RELAYS must name 1 to ${String(MAX_RELAYS)} different relays.`, { kind: 'configuration' });
         }
     }
-    return { dashboardUrl, ...(engineDomain ? { engineDomain } : {}), ...(relays ? { relays } : {}) };
+    return { dashboardUrl, ...(!env.PTBK_DASHBOARD_URL ? { dashboardUrlIsDefault: true } : {}), ...(engineDomain ? { engineDomain } : {}), ...(relays ? { relays } : {}) };
 }

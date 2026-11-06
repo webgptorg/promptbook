@@ -1,10 +1,12 @@
 import { CONFORMANCE_BUILD } from '../../app/build.js';
-import { storedAppView, type SetupLinkOutcome } from '../../app/connection.js';
+import { storedAppView, type AppPairingOutcome, type SetupLinkOutcome } from '../../app/connection.js';
 import { loadEngineIdentity } from '../../app/identity.js';
-import { forgetRegistration, readRegistration, registerEngine, storeRegistration, type RegistrationOutcome } from '../../app/registration.js';
+import { forgetRegistration, parseAppLink, readRegistration, registerEngine, storeRegistration, type RegistrationOutcome } from '../../app/registration.js';
 import { appDirectory, appSettings } from '../../app/settings.js';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
 import type { AppConnectionView } from '../../engine/snapshot.js';
+import { onboardingTarget, readOnboarding } from '../../onboarding/draft.js';
+import { onboardingClient, pendingOnboarding } from '../../onboarding/local.js';
 import type { Project } from '../../project/workspace.js';
 import { lookupService } from '../../service/control.js';
 import { appDetailLines, appPlainLines, appState } from '../../ui/app-connection.js';
@@ -25,7 +27,8 @@ async function currentView(project: Project, env: NodeJS.ProcessEnv): Promise<Ap
     const lookup = await lookupService(project);
     if (lookup.state === 'running' && lookup.engine.compatible) {
         try {
-            return await lookup.client.request<AppConnectionView>('app-status');
+            const view = await lookup.client.request<AppConnectionView | undefined>('app-status');
+            if (view) return view;
         } catch {
             // An engine without the App connection (older or maintenance): describe the stored link instead.
         }
@@ -81,19 +84,31 @@ function reloadNote(reload: EngineReload, linked: boolean): string {
  * @private command
  */
 export default async function connect(context: CommandContext): Promise<number> {
-    const project = await selectedProject(context);
+    const onboarding = option<string>(context, 'onboarding');
+    if (onboarding && context.explicit.has('path')) throw usageError('Use either --path or --onboarding.', 'connect');
+    const selected = onboarding ? await pendingOnboarding(onboarding, context.env) : await selectedProject(context);
+    const draft = onboarding ? await readOnboarding(selected) : undefined;
+    const project = draft?.step === 'done' && draft.folder ? onboardingTarget(selected, draft.folder) : selected;
     const json = flag(context, 'json') === true;
+    const pending = draft && draft.step !== 'done' ? await onboardingClient(project, context.env) : undefined;
     if (flag(context, 'setup-link') === true || flag(context, 'reset-owner') === true) return await ownerAccess(context, project, json);
     const given = option<string>(context, 'link');
     if (given !== undefined && !given.trim()) throw usageError('--link needs the link code from the Promptbook App.', 'connect', 'Run `ptbk connect --link <code>` with the code shown in the App.');
-    const linkCode = (given ?? context.env.PTBK_LINK_CODE)?.trim();
-    if (!linkCode) {
+    const link = (given ?? context.env.PTBK_LINK_CODE)?.trim();
+    if (!link) {
         const view = await currentView(project, context.env);
         if (json) printJson(view);
         else renderView(context, view);
         return view.state === 'problem' ? EXIT.failure : EXIT.success;
     }
-    const settings = appSettings(context.env);
+    if (pending) {
+        const result = await pending.request<AppPairingOutcome>('app-link', { link }, 90_000);
+        if (json) printJson(result);
+        else if (result.outcome === 'refused') context.terminal.write(result.message + '\n');
+        else renderView(context, result.app, { title: 'Paired with Promptbook App', tone: 'success' });
+        return result.outcome === 'refused' ? EXIT.incomplete : EXIT.success;
+    }
+    const { linkCode, settings } = parseAppLink(link, context.env);
     const directory = appDirectory(project.runtime.app, context.env);
     const identity = await loadEngineIdentity(directory, { create: true });
     if (!identity) throw new Error('The engine identity could not be created.');
@@ -188,7 +203,7 @@ async function requestOwnerAccess(project: Project, method: 'app-setup-link' | '
  * printed only to an interactive terminal (or as `--json` when asked) and never to a log; the reset first ends every
  * passkey and session after the operator types the start of the engine ID (or `--yes`).
  */
-async function ownerAccess(context: CommandContext, project: Project, json: boolean): Promise<number> {
+export async function ownerAccess(context: CommandContext, project: Project, json: boolean): Promise<number> {
     const { terminal } = context;
     const reset = flag(context, 'reset-owner') === true;
     const wait = flag(context, 'wait') !== false;

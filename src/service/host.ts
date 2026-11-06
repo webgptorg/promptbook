@@ -457,7 +457,7 @@ export class ServiceHost {
         // browser other engines still use stays, the last disconnection closes it).
         await bounded(() => this.browsers.close());
         if (forced) await bounded(() => this.owned.terminateRemaining(1000));
-        this.uiLoader?.stop();
+        await bounded(() => this.uiLoader?.stop());
         await bounded(() => this.appConnection?.stop());
         await bounded(() => this.http?.close());
         this.http = undefined;
@@ -498,6 +498,13 @@ export class ServiceHost {
                 return agenda.snapshot();
             case 'app-status':
                 return this.appConnection?.view() ?? agenda.snapshot().app;
+            case 'app-link': {
+                if (!this.appConnection) throw new PtbkError('This engine run has no App connection.', { kind: 'unsupported' });
+                if (typeof params.link !== 'string') throw new PtbkError('Provide a pairing URL.', { kind: 'usage' });
+                const result = await this.appConnection.pair(params.link);
+                if (result.outcome === 'refused') return { applied: false, outcome: result.message };
+                return { applied: result.outcome === 'linked', outcome: 'Paired with Promptbook App.' };
+            }
             case 'app-setup-link':
                 if (!this.appConnection) throw new PtbkError('This engine run has no App connection (maintenance mode).', { kind: 'unsupported' });
                 return await this.appConnection.setupLink();

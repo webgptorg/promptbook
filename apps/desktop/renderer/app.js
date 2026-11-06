@@ -481,6 +481,25 @@ function renderPrompt() {
     pane.hidden = !prompt;
     $('prompt-divider').hidden = !prompt;
     if (!prompt) { pane.replaceChildren(); requestAnimationFrame(() => { layout(); if (mode === 'terminal') item?.term.focus(); }); return; }
+    if (prompt.kind === 'harness-login') {
+        const cancel = async (action) => {
+            try { await api.answer(activeTerminal, prompt.id, { action }); }
+            catch (error) { notice(error.message, true); }
+        };
+        const login = prompt.login;
+        pane.replaceChildren(
+            element('div', { className: 'step' }, prompt.frame?.step || 'Harness sign-in'),
+            element('h2', {}, prompt.question),
+            ...(login?.url === 'https://auth.openai.com/codex/device' ? [
+                element('p', {}, element('a', { href: login.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open OpenAI sign-in')),
+                element('p', {}, 'One-time code ', element('code', {}, login.userCode)),
+            ] : []),
+            element('p', { className: 'hint' }, 'Waiting for the provider to confirm sign-in.'),
+            element('div', { className: 'toolbar' }, element('button', { onclick: () => void cancel('back') }, 'Back')),
+        );
+        requestAnimationFrame(layout);
+        return;
+    }
     const form = element('form');
     const controls = [];
     let rich;

@@ -7,6 +7,7 @@ import { selectedProject } from '../common.js';
 import { flag, type CommandContext } from '../context.js';
 import { attachDashboard } from '../dashboard-handoff.js';
 import { newProjectFromGlobalDashboard } from './init.js';
+import { onboardingFromDashboard } from './onboarding.js';
 import { delegateToEngine } from '../engine-delegation.js';
 import { controlSource } from '../sources.js';
 
@@ -38,7 +39,7 @@ async function globalDashboard(context: CommandContext): Promise<number> {
         },
         context.env,
         // New project: the same initializer as `ptbk init`, limited to a new child of the shared projects home.
-        { create: async () => await newProjectFromGlobalDashboard(context) },
+        { create: async () => await newProjectFromGlobalDashboard(context), onboarding: async () => await onboardingFromDashboard(context) },
     );
     return EXIT.success;
 }

@@ -31,8 +31,11 @@ function xml(text: string): string {
 /**
  * Command that resumes the project's service after login/boot (idempotent, never prompts).
  */
-function resumeCommand(project: Project, nodePath: string): string[] {
-    return [nodePath, join(ENGINE_ROOT, 'bin', 'ptbk.js'), 'start', '--resume-service', '--non-interactive', '--raw', '--path', project.root];
+function resumeCommand(project: Project, nodePath: string, onboarding: boolean): string[] {
+    const entry = [nodePath, join(ENGINE_ROOT, 'bin', 'ptbk.js')];
+    return onboarding
+        ? [...entry, 'onboarding', '--id', project.name, '--resume-service', '--non-interactive', '--raw']
+        : [...entry, 'start', '--resume-service', '--non-interactive', '--raw', '--path', project.root];
 }
 
 /**
@@ -51,9 +54,9 @@ async function writeIfChanged(path: string, content: string): Promise<boolean> {
  *
  * @private startup persistence
  */
-export async function registerPersistence(project: Project, nodePath: string, path: string): Promise<PersistenceOutcome> {
+export async function registerPersistence(project: Project, nodePath: string, path: string, onboarding = false): Promise<PersistenceOutcome> {
     const name = registrationName(project);
-    const command = resumeCommand(project, nodePath);
+    const command = resumeCommand(project, nodePath, onboarding);
     try {
         if (process.platform === 'darwin') {
             const directory = await ensureDirectory(join(homedir(), 'Library', 'LaunchAgents'));

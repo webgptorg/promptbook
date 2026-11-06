@@ -306,7 +306,7 @@ async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Prom
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'> } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string } } = {}): Promise<InitResult> {
     const { terminal } = context;
     const { embeddedHarness } = options;
     const interactive = terminal.interactive;
@@ -335,7 +335,7 @@ export async function initializeProject(context: CommandContext, options: { proj
 
     const base = resolve(context.cwd, options.projectRoot ?? option<string>(context, 'path') ?? '.');
     const explicitDestination = !options.homeOnly && Boolean(options.projectRoot || option<string>(context, 'subfolder') || context.explicit.has('path'));
-    const flaggedIntent = await intentFromFlags(context);
+    const flaggedIntent: IntentInput | undefined = options.prepared ? { segments: options.prepared.segments, source: 'draft' } : await intentFromFlags(context);
     const selfUpdate = option<string>(context, 'self-update');
     // Checked in the background while the user describes the project (bounded, best-effort).
     const updateCheck: Promise<UpdateCheck | undefined> =
@@ -1112,6 +1112,10 @@ export async function initializeProject(context: CommandContext, options: { proj
      */
     const nameProject = async (): Promise<void> => {
         if (!state.newProject) return;
+        if (options.prepared) {
+            state.title = options.prepared.title;
+            return;
+        }
         const brief = (state.intent?.segments ?? []).map((segment) => (segment.type === 'text' ? segment.text : `[${segment.kind}: ${segment.name}]`)).join('');
         const namer = (state.selected ?? []).find((id) => state.checks.get(id)?.ok);
         const key = `${namer ?? ''}\u0000${brief}`;
@@ -1759,6 +1763,13 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
  * @private command
  */
 export default async function init(context: CommandContext): Promise<number> {
+    if (flag(context, 'prepare-only')) {
+        const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'setup-link', 'json', 'persist', 'wait', 'non-interactive', 'interactive', 'raw', 'no-ui', 'terminal-title']);
+        if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('With --prepare-only, project decisions come from onboarding after the engine starts.', 'init');
+        const { prepareOnboarding } = await import('./onboarding.js');
+        return await prepareOnboarding(context);
+    }
+    if (['link', 'link-stdin', 'setup-link', 'json'].some((name) => context.explicit.has(name))) throw usageError('Use these engine setup options with --prepare-only.', 'init');
     validateCombinations(context);
     if (flag(context, 'start') === false && (context.explicit.has('port') || context.explicit.has('server'))) {
         throw usageError('--no-start conflicts with service options (--port, --no-server).', 'init');

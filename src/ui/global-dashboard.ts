@@ -305,7 +305,10 @@ export async function runGlobalDashboard(
     terminal: TerminalProfile,
     attach: (row: GlobalRow) => Promise<string | undefined>,
     env: NodeJS.ProcessEnv = process.env,
-    options: { readonly create?: () => Promise<{ readonly message: string; readonly projectRoot?: string }> } = {},
+    options: {
+        readonly create?: () => Promise<{ readonly message: string; readonly projectRoot?: string }>;
+        readonly onboarding?: () => Promise<{ readonly message: string; readonly projectRoot?: string }>;
+    } = {},
 ): Promise<void> {
     if (!terminal.pretty || !terminal.interactive) {
         await runPlainGlobalDashboard(terminal, env);
@@ -405,7 +408,7 @@ export async function runGlobalDashboard(
                 ? style.accent(fitLegend(['All projects:', 'S start stopped', 'Shift+S start stopped paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove stopped', 'Esc cancel'], width, '  '))
                 : modal?.kind === 'confirm'
                   ? style.warning(` ${truncate(modal.prompt, width - 2)}`)
-                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', ...(options.create ? ['N new project'] : []), 'S start', 'Shift+S start paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
+                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', ...(options.create ? ['N new project'] : []), ...(options.onboarding ? ['I pair or resume setup'] : []), 'S start', 'Shift+S start paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
         lines.push(legend);
         if (feedback && !modal) lines.push(` ${style.accent(marks.arrow)} ${truncate(feedback, width - 4)}`);
         screen.draw(lines);
@@ -540,15 +543,14 @@ export async function runGlobalDashboard(
     /**
      * New project through the caller's shared initializer, in the ordinary terminal (like attaching), then back here.
      */
-    const create = async (): Promise<void> => {
-        if (!options.create) return;
+    const create = async (action: NonNullable<typeof options.create>): Promise<void> => {
         attached = true;
         title.stop();
         keyboard.stop();
         screen.leave();
         let outcome: { readonly message: string; readonly projectRoot?: string };
         try {
-            outcome = await options.create();
+            outcome = await action();
         } catch (error) {
             outcome = { message: `New project failed: ${errorMessage(error)}` };
         }
@@ -607,7 +609,8 @@ export async function runGlobalDashboard(
         const key = event.text.toLowerCase();
         const action = actionOfKey(event.text);
         if (key === 'q') close();
-        else if (key === 'n' && options.create) void create();
+        else if (key === 'n' && options.create) void create(options.create);
+        else if (key === 'i' && options.onboarding) void create(options.onboarding);
         else if (key === 'a') {
             modal = { kind: 'bulk' };
             draw();

@@ -298,9 +298,10 @@ export class UiLoader {
     }
 
     /** Stops checking (a check in flight is aborted). */
-    public stop(): void {
+    public async stop(): Promise<void> {
         clearInterval(this.timer);
         this.abort.abort();
+        await this.running;
     }
 
     /** Whether this build can install releases (a trust policy and a store). */

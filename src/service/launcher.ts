@@ -52,6 +52,8 @@ export type LaunchRequest = {
     readonly cliBrowser?: LaunchMetadata['cliBrowser'];
     readonly tasksDirectory?: string;
     readonly persistent: boolean;
+    /** Launches a pending initialization in its private staging area. */
+    readonly onboarding?: true;
     readonly env: NodeJS.ProcessEnv;
     /**
      * Start an absent engine directly paused: its manual pause reason is installed before the worker exists, so it holds
@@ -143,6 +145,7 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
             tasksDirectory: request.tasksDirectory,
             env: discoveryEnvironment(request.env),
             persistent: request.persistent,
+            ...(request.onboarding ? { onboarding: true } : {}),
             intentionallyStopped: false,
             launchNonce: nonce,
             savedAt: new Date().toISOString(),
@@ -158,7 +161,7 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
             if (record?.launchNonce === nonce) {
                 const lookup = await lookupService(project);
                 if (lookup.state === 'running') {
-                    const persistence = request.persistent ? await registerPersistence(project, process.execPath, metadata.env.PATH ?? metadata.env.Path ?? '') : undefined;
+                    const persistence = request.persistent ? await registerPersistence(project, process.execPath, metadata.env.PATH ?? metadata.env.Path ?? '', request.onboarding) : undefined;
                     if (!request.persistent) await unregisterPersistence(project);
                     return { started: true, lookup, persistence };
                 }

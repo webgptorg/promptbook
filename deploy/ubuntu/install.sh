@@ -14,13 +14,15 @@ log=/var/log/promptbook-install.log
 
 usage() {
     printf '%s\n' \
-        'Usage: sudo bash install.sh [--version <published-version>] [--prepare-only | --init [--path <project-folder>] [-- <ptbk init options>]]' \
+        'Usage: sudo bash install.sh [--version <published-version>] [--prepare-only [--link <url> | --link-stdin] | --init [--path <project-folder>] [-- <ptbk init options>]]' \
         '' \
         'Prepares a dedicated non-sudo promptbook user, Node.js 24, npm, Git, Chrome, boot persistence and the published' \
         'ptbk engine. Run ptbk init as promptbook afterwards, or use --init to start it in this terminal.' \
         '' \
         '  --version <v>    exact published version (default: npm latest, resolved once; an installed engine is reused)' \
         '  --prepare-only   prerequisites only (the default; stated explicitly by unattended provider scripts)' \
+        '  --link <url>     with --prepare-only: pair and start an engine before project setup' \
+        '  --link-stdin     read that one-time pairing URL from stdin (keeps it out of sudo arguments)' \
         '  --init           then start the setup assistant (ptbk init) as promptbook in this terminal' \
         '  --path <folder>  with --init: project folder inside /var/lib/promptbook, confirmed by init (default: init offers' \
         '                   /var/lib/promptbook/ptbk/project/<name>)' \
@@ -36,6 +38,9 @@ fail() {
 
 requested_version=''
 project_path=''
+pairing_url=''
+link_stdin=false
+link_argument=false
 prepare_only=false
 hand_off=false
 init_args=()
@@ -44,6 +49,14 @@ while (( $# )); do
         --help | -h) usage; exit 0 ;;
         --prepare-only) prepare_only=true ;;
         --init) hand_off=true ;;
+        --link)
+            (( $# >= 2 )) || fail '--link needs the App pairing URL.'
+            [[ "$link_argument" == false ]] || fail 'Give only one App pairing URL.'
+            link_argument=true
+            pairing_url="$2"
+            shift
+            ;;
+        --link-stdin) link_stdin=true ;;
         --version | --path)
             (( $# >= 2 )) || fail "$1 needs a value."
             if [[ "$1" == --path ]]; then
@@ -67,6 +80,15 @@ done
 requested_version="${requested_version:-latest}"
 if [[ "$prepare_only" == true && "$hand_off" == true ]]; then fail 'Use either --prepare-only or --init, not both.'; fi
 if [[ "$hand_off" == false && ( -n "$project_path" || ${#init_args[@]} -gt 0 ) ]]; then fail '--path and ptbk init options need --init.'; fi
+if [[ "$link_argument" == true || "$link_stdin" == true ]]; then
+    [[ "$hand_off" == false ]] || fail 'Pair before setup with --prepare-only.'
+    [[ "$link_argument" == false || "$link_stdin" == false ]] || fail 'Use either --link or --link-stdin.'
+    if [[ "$link_stdin" == true ]]; then
+        IFS= read -r pairing_url || [[ -n "$pairing_url" ]] || fail 'No App pairing URL was received.'
+    fi
+    pairing_pattern='^https://[^[:space:]#@?]+/link#[a-z2-7]{25}[aeimquy4]$'
+    [[ "$pairing_url" =~ $pairing_pattern ]] || fail 'Copy the complete HTTPS pairing URL from Promptbook App.'
+fi
 if [[ ! "$requested_version" =~ ^(latest|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
     fail 'Use latest or an exact published semantic version.'
 fi
@@ -112,6 +134,7 @@ fi
 attended_terminal=false
 if { : </dev/tty >/dev/tty; } 2>/dev/null; then attended_terminal=true; fi
 
+exec 3>&1 4>&2
 exec > >(tee -a "$log") 2>&1
 logger="${!:-}"
 trap 'printf "Promptbook installation failed at line %s. See %s; project files were not initialized.\n" "$LINENO" "$log" >&2' ERR
@@ -228,6 +251,18 @@ runuser --login "$engine_user" --command 'ptbk --version && systemctl --user sho
 printf '%s\n' "$resolved_version" > /opt/promptbook/installed-version
 printf '\nPrerequisites ready: ptbk %s, Node.js %s, %s, %s.\n' "$resolved_version" "$(node --version)" "$(git --version)" "$(google-chrome-stable --version 2>/dev/null || printf 'Chrome')"
 printf 'The engine runs as the non-sudo user %s (home %s). Lingering is enabled, so its project service can start at boot once init registers it.\n' "$engine_user" "$engine_home"
+
+if [[ -n "$pairing_url" ]]; then
+    if ! runuser --login "$engine_user" --command 'ptbk init --help' | grep -- '--prepare-only' >/dev/null; then
+        fail 'This installed ptbk version lacks engine-first setup. Update it to a release with --prepare-only and retry.'
+    fi
+    printf '\nStarting a pending initialization as %s. The owner setup link is printed to this session.\n' "$engine_user"
+    status=0
+    printf '%s\n' "$pairing_url" | runuser --login "$engine_user" --command \
+        'cd ~ && PTBK_LOGIN_LOCATION=remote exec ptbk init --prepare-only --link-stdin --setup-link --non-interactive --json' >&3 2>&4 || status=$?
+    unset pairing_url
+    exit "$status"
+fi
 
 if [[ "$hand_off" == false ]]; then
     printf '\nServer prepared; initialization pending. No agenda or AI account has been configured.\nOpen the setup assistant in an interactive SSH terminal with:\n  %s\nor run: sudo -iu %s, then cd ~/projects/my-agenda && ptbk init --path "$PWD"\n' "$continuation" "$engine_user"

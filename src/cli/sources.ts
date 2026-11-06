@@ -17,7 +17,7 @@ export function controlSource(client: ControlClient): DashboardSource {
     return {
         snapshot: () => client.request<ServiceSnapshot>('snapshot'),
         watch: (since, signal) => client.request<ServiceSnapshot>('watch', { since, timeoutMs: 20_000 }, 35_000, signal),
-        action: (name, params) => client.request<{ outcome: string; applied?: boolean }>(name, { ...(params ?? {}) }),
+        action: (name, params) => client.request<{ outcome: string; applied?: boolean }>(name, { ...(params ?? {}) }, name === 'app-link' ? 90_000 : 30_000),
         chats: controlChatSource((method, params) => client.request(method, params ?? {}), 'terminal'),
         tool: (request) => client.request<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>, 120_000),
         wallet: (method, params) => client.request(method, { ...(params ?? {}) }, 120_000),

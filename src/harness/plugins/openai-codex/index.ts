@@ -82,6 +82,15 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
  */
 const LOGIN_CALLBACK_PORT = 1455;
 
+/** Reads the official CLI's device prompt without forwarding the native output. */
+function deviceChallenge(output: string): { url: string; userCode: string } | undefined {
+    const text = stripAnsi(output);
+    const url = 'https://auth.openai.com/codex/device';
+    if (!text.includes(url)) return undefined;
+    const match = /\b(?:enter this one-time code|code to enter)\b[^\r\n]*(?:\r?\n\s*|:\s*)([A-Z0-9]{3,12}(?:-[A-Z0-9]{3,12}){1,3})(?=\s|$)/i.exec(text);
+    return match ? { url, userCode: match[1]! } : undefined;
+}
+
 /**
  * Sign-in methods of the installed Codex: device-code login (`--device-auth`, when this version has it) first on a
  * remote host, the browser callback login first locally. Never an API key for a native ChatGPT login.
@@ -97,6 +106,7 @@ async function loginMethods(context: HarnessContext, location: LoginLocation): P
               instructions:
                   'Codex shows a link and a one-time code. Open the link on your phone or computer, sign in with ChatGPT and enter the code there; this terminal continues by itself. Device-code login may first need enabling in your ChatGPT security settings, or permission from your workspace administrator.',
               terminal: 'relay',
+              deviceChallenge,
           }
         : undefined;
     if (location === 'local') {

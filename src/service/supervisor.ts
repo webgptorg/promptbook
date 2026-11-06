@@ -86,7 +86,7 @@ async function supervise(): Promise<void> {
         const current = await readLaunchMetadata(project);
         if (terminating || !current?.persistent || current.intentionallyStopped) return;
         try {
-            installPausedStart(project, 'unexpected-loss');
+            if (!current.onboarding) installPausedStart(project, 'unexpected-loss');
         } catch (error) {
             // Never restore an unpaused engine after an unexpected exit.
             process.stderr.write(`${new Date().toISOString()} the paused restart could not be prepared (${String((error as Error)?.message ?? error)}); not restarting\n`);

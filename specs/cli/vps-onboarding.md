@@ -24,6 +24,10 @@ Use init's ordinary intent-first workflow and [destination policy](initializatio
 
 The launcher is a thin bootstrap. Do not duplicate destination selection, core-agent preparation, tool configuration, Wallet setup, setup commits, migration, first-task creation or start/dashboard logic in a shell script. Use the shared init/start operations, including their cancellations, explicit overrides and honest outcomes. Selected harnesses are installed and authenticated by their shared adapters during attended init; the bootstrap does not silently pick a provider or require an API key.
 
+## Pair an engine before project setup
+
+Supply an App pairing URL to the prerequisite installer with `--prepare-only --link-stdin` or `--link`. After preparation it runs the pending engine as the service user and prints the separate owner setup link. The [App onboarding flow](../app/onboarding.md) keeps the brief and harness choices on the engine.
+
 ## Remote operation and provider provisioning
 
 An interactive SSH session is sufficient for supported technical setup. A missing server desktop must not block supported native harness authentication; use shared [remote-login setup](harness-authentication.md), display its instructions in the terminal and let the owner finish the human part on another device. Default the project browser to headless when no usable display exists, without conflating it with harness authentication. Website logins are a separate capability and may still need their own protected human interaction.

@@ -4,7 +4,7 @@ import { HEARTBEAT_INTERVAL_MS, buildHeartbeat, hostFigures, nextHeartbeatSeq, s
 import { loadEngineIdentity, type EngineIdentity } from './identity.js';
 import type { TestTlsOptions } from './net.js';
 import { CONFORMANCE_BUILD } from './build.js';
-import { engineVersion, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
+import { engineVersion, parseAppLink, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
 import { DEFAULT_DASHBOARD_URL, appSettings, isTunnelMode, type AppSettings, type RelayEndpoint } from './settings.js';
 import { RelayLink } from './tunnel/relay-link.js';
 import { AccessStore, type Actor } from './web/access.js';
@@ -92,8 +92,16 @@ export type AppWebHandlers = {
 };
 
 /**
- * What asking for the owner setup link gave: the link (shown only in the operator's terminal), what is still missing
- * before the engine's address works, or an owner who already exists.
+ * The result of exchanging an operator's pairing URL with the App registry.
+ *
+ * @private App connection
+ */
+export type AppPairingOutcome =
+    | { readonly outcome: 'linked' | 'already-linked'; readonly app: AppConnectionView }
+    | { readonly outcome: 'refused'; readonly code: string; readonly message: string };
+
+/**
+ * The one-time owner setup URL or the reason it is not available.
  *
  * @private App connection
  */
@@ -178,11 +186,40 @@ export class AppConnection {
         return this.view();
     }
 
+    /** Exchanges an operator-supplied pairing URL once, without passing it in the service's saved launch. */
+    public async pair(link: string): Promise<AppPairingOutcome> {
+        let result!: AppPairingOutcome;
+        await this.serialize(async () => {
+            if (!this.running) throw new PtbkError('The App connection is not running.', { kind: 'conflict' });
+            const { linkCode, settings } = parseAppLink(link, this.options.env);
+            const identity = await loadEngineIdentity(this.options.directory, { create: true });
+            if (!identity) throw new Error('The engine identity could not be created.');
+            const existing = await readRegistration(this.options.directory, identity, settings);
+            if (existing) {
+                result = { outcome: 'already-linked', app: this.view() };
+                return;
+            }
+            if (this.registering) throw new PtbkError('The engine is already pairing.', { kind: 'conflict' });
+            const outcome = await registerEngine({ identity, linkCode, settings, env: this.options.env, tls: this.options.tls });
+            if (outcome.kind === 'refused') {
+                result = { outcome: 'refused', code: outcome.code, message: outcome.message };
+                return;
+            }
+            await storeRegistration(this.options.directory, outcome.registration);
+            this.disconnect();
+            await this.load();
+            result = { outcome: 'linked', app: this.view() };
+        });
+        return result;
+    }
+
     /** Closes every tunnel and stops the heartbeat. */
     public async stop(): Promise<void> {
         await this.serialize(async () => {
             this.running = false;
+            const access = this.access;
             this.disconnect();
+            await access?.flush();
         });
     }
 
@@ -216,7 +253,9 @@ export class AppConnection {
                 if (linkCode) this.options.log?.('Already linked to the Promptbook App; the link code was not used.', 'info');
                 await this.connect(this.identity, this.registration, settings.relays);
             } else if (linkCode && this.identity) {
-                this.register(this.identity, linkCode, settings);
+                const link = parseAppLink(linkCode, this.options.env);
+                this.dashboardUrl = link.settings.dashboardUrl;
+                this.register(this.identity, link.linkCode, link.settings);
             }
         } catch (error) {
             this.problem = errorMessage(error);

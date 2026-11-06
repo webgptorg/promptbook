@@ -130,6 +130,8 @@ export type LoginLocation = 'local' | 'remote';
  * @private harness plugin contract
  */
 export type HarnessLoginMethod = {
+    /** Extracts only the native provider's public device challenge for graphical clients. */
+    readonly deviceChallenge?: (output: string) => { readonly url: string; readonly userCode: string } | undefined;
     /** Stable identifier (`device-code`, `url-code`, `browser`, `callback-forwarding`, `native`). */
     readonly id: string;
     /** Short choice label. */

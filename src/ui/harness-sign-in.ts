@@ -1,4 +1,5 @@
 import { harnessLoginMethods, loginHarness, serviceReadinessProblem, type LoginPlace, type ServiceReadinessProblem } from '../harness/maintenance.js';
+import { presentNativeLogin } from '../harness/presented-login.js';
 import type { HarnessContext, HarnessInspection, HarnessPlugin } from '../harness/types.js';
 import { CANCELLED, selectOne, type Choice, type WizardFrame } from './prompts.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -85,8 +86,25 @@ export async function attendHarnessSignIn(
         if (method) {
             say(method.instructions);
             say(style.muted(`Waiting for ${plugin.displayName} sign-in… Ctrl+C cancels it and returns here.`));
-            const result = await loginHarness(plugin, context, method, { location: place.location, service, write: (text) => terminal.write(text) });
-            say(`${result.outcome === 'authenticated' ? style.success(marks.ok) : style.warning(marks.warn)} ${result.diagnostic}`);
+            if (terminal.prompts && method.deviceChallenge) {
+                const abort = new AbortController();
+                let presentation: Promise<void> | undefined;
+                try {
+                    const result = await presentNativeLogin(plugin, { ...context, signal: abort.signal }, method, (challenge) => {
+                        presentation = terminal.prompts!({
+                            kind: 'harness-login', frame: options.frame(), login: challenge,
+                            question: 'Open the provider’s sign-in page and enter this one-time code.',
+                        }, abort.signal).then(() => { abort.abort(); }, () => { abort.abort(); });
+                    });
+                    if (result && !abort.signal.aborted) say(style.warning(result.diagnostic));
+                } finally {
+                    abort.abort();
+                    await presentation;
+                }
+            } else {
+                const result = await loginHarness(plugin, context, method, { location: place.location, service, write: (text) => terminal.write(text) });
+                say(result.outcome === 'authenticated' ? style.success(marks.ok) + ' ' + result.diagnostic : style.warning(marks.warn) + ' ' + result.diagnostic);
+            }
         } else if (choice !== 'recheck') return { inspection, serviceProblem, exit: choice };
         inspection = await plugin.inspect(context);
         serviceProblem = await serviceProblemOf(plugin, inspection, service);

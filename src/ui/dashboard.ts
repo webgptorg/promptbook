@@ -830,6 +830,24 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         }
     };
 
+    /** Takes the pairing URL from this host's authenticated dashboard. */
+    const linkApp = async (): Promise<void> => {
+        if (plain) return;
+        plain = true;
+        keyboard.stop();
+        screen.leave();
+        try {
+            const link = await inputLine(terminal, { frame: { title: 'Promptbook App' }, question: 'Paste the one-time pairing URL from Promptbook App.' });
+            if (link !== CANCELLED) await runAction('app-link', { link: link.trim() });
+        } finally {
+            plain = false;
+            screen.enter();
+            screen.invalidate();
+            keyboard.start();
+            draw();
+        }
+    };
+
     const runAction = async (name: string, params?: Readonly<Record<string, unknown>>): Promise<{ outcome: string; applied?: boolean; data?: unknown } | undefined> => {
         try {
             const result = (await source.action(name, params)) as { outcome: string; applied?: boolean; data?: unknown };
@@ -1442,6 +1460,9 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 Object.assign(page, { focus: 0, selected: undefined, scroll: 0 });
                 loadUsage(page);
                 draw();
+                return;
+            case 'app':
+                if (key === 'l' && snapshot.app && !snapshot.app.hostname) void linkApp();
                 return;
             case 'sync':
                 if (key === 'g') {

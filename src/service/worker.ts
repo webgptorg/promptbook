@@ -43,6 +43,10 @@ async function main(): Promise<number> {
     if (!launch) throw new Error(`No launch metadata in ${project.runtime.service}; start the service with \`ptbk start\`.`);
     const env = restoreDiscoveryEnvironment(launch.env, launch.nodePath);
     for (const [key, value] of Object.entries(env)) if (value !== undefined) process.env[key] = value;
+    if (launch.onboarding) {
+        const { runOnboardingWorker } = await import('../onboarding/worker.js');
+        return await runOnboardingWorker(project, launch);
+    }
     const eventLog = join(project.runtime.logs, 'service.log');
     mkdirSync(project.runtime.logs, { recursive: true });
     const host = new ServiceHost({
