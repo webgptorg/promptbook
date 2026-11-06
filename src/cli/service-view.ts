@@ -11,6 +11,7 @@ import type { PanelTone } from '../ui/panels.js';
 import { renderStatus } from '../ui/status-view.js';
 import { flag, type CommandContext } from './context.js';
 import { printJson } from './common.js';
+import { storedAppView } from '../app/connection.js';
 
 /**
  * Builds the snapshot of a project whose service is not running (chats and history are still readable).
@@ -55,7 +56,9 @@ export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot
         agents: [],
         harnesses: [],
         settings: [],
-        connection: { local: { state: 'disabled' } },
+        // The stored App link only (no network): a linked project is offline while its engine is stopped.
+        app: await storedAppView(project.runtime.app, process.env),
+        localApi: { state: 'disabled' },
     };
 }
 

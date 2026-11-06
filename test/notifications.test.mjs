@@ -231,7 +231,7 @@ test('service attention: displaying a pinged message marks it seen for every cli
 
     const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     const call = async (path, body) => {
-        const response = await fetch(`${before.connection.local.url}${path}`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const response = await fetch(`${before.localApi.url}${path}`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         return { status: response.status, data: await response.json() };
     };
     const seen = await call(`api/chats/${encodeURIComponent('Branch question')}/seen`, { messages: [1] });

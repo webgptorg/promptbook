@@ -59,7 +59,7 @@ import assert from "node:assert/strict";
 const snapshot = JSON.parse(readFileSync(0, "utf8"));
 assert.equal(snapshot.engine.version, process.argv[1]);
 assert.equal(snapshot.service.state, "pause");
-assert.equal(snapshot.connection.local.state, "ready");
+assert.equal(snapshot.localApi.state, "ready");
 assert.ok(snapshot.tools.items.some(tool => tool.name === "gemini"));
 ' "$version"
 request api/history | grep -F 'ptbk: Initialize project' >/dev/null

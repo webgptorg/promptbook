@@ -94,7 +94,7 @@ import type {
     BlockerView,
     BrowserDetailView,
     ChatAttentionView,
-    ConnectionView,
+    AppConnectionView,
     CurrentWorkView,
     ErrorView,
     ExecutionContextView,
@@ -107,6 +107,7 @@ import type {
     ToolsView,
     UsageOverview,
     WaitView,
+    LocalApiView,
 } from './snapshot.js';
 import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ChatReplyRecheck, type RecheckSchedule, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace, sourceRevision } from './task-trace.js';
@@ -495,7 +496,8 @@ export class Agenda {
     private readonly gitMutex = new Mutex();
     private readonly authoredPaths = new Set<string>();
     private repositoryRoot?: string;
-    private connection: ConnectionView = { local: { state: 'disabled' } };
+    private app: AppConnectionView = { state: 'disabled', dashboardUrl: '', relays: [], browserAccess: 'unavailable' };
+    private localApi: LocalApiView = { state: 'disabled' };
     private readonly startedAt = new Date().toISOString();
     private lastHarnessMaintenance = 0;
     /** Whether a price-list observation is running in the background. */
@@ -2289,9 +2291,15 @@ export class Agenda {
         return await stageableFiles(this.options.project.root, traceDirectoryOf(sourcePath));
     }
 
-    /** Updates connection information (owned by the service). */
-    public setConnection(connection: ConnectionView): void {
-        this.connection = connection;
+    /** Updates the App connection view (owned by the service). */
+    public setAppConnection(app: AppConnectionView): void {
+        this.app = app;
+        this.touch();
+    }
+
+    /** Updates the local API state of local clients (owned by the service). */
+    public setLocalApi(localApi: LocalApiView): void {
+        this.localApi = localApi;
         this.touch();
     }
 
@@ -2723,7 +2731,8 @@ export class Agenda {
                       description: spec.description,
                   }))
                 : [],
-            connection: this.connection,
+            app: this.app,
+            localApi: this.localApi,
             ...(this.usageOverview() ? { usage: this.usageOverview() } : {}),
         };
         return { ...snapshot, attention: domainAttention(snapshot) };

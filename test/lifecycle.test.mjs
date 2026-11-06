@@ -196,8 +196,8 @@ test('global dashboard: works outside any project, keeps stopped known projects,
     assert.equal(started.status, 'completed', started.message);
     const relaunched = await status(project, env);
     assert.equal(relaunched.service.state, 'running', 'an explicit Start uses the ordinary launcher');
-    assert.equal(relaunched.connection.local.state, 'ready', 'the local HTTP service is restored');
-    assert.deepEqual(Object.keys(relaunched.connection), ['local']);
+    assert.equal(relaunched.localApi.state, 'ready', 'the local HTTP service is restored');
+    assert.equal(relaunched.connection, undefined);
     assert.equal((await startKnownProject(target, env)).status, 'unchanged', 'Start leaves a live engine unchanged');
     // Work the force stop interrupted is recovered first (it keeps its files until its result is committed).
     await waitFor(async () => !(await git(project, ['status', '--porcelain'])).trim(), { timeoutMs: 90_000, message: 'the interrupted work to be recovered and committed' });

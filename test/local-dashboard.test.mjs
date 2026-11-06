@@ -64,7 +64,7 @@ test('older projects start locally with retired settings, one migration commit, 
     const started = await ptbk(['start', '--raw'], { cwd: project, env });
     assert.equal(started.code, 0, started.output);
     const snapshot = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
-    assert.deepEqual(snapshot.connection, { local: { state: 'disabled' } });
+    assert.deepEqual(snapshot.localApi, { state: 'disabled' });
     assert.equal(snapshot.service.persistent, false);
     const saved = JSON.parse(await readFile(path, 'utf8'));
     assert.equal(saved.promptbookVersion, ENGINE_VERSION);
@@ -84,7 +84,7 @@ test('older projects start locally with retired settings, one migration commit, 
     await writeFile(launchPath, JSON.stringify(launch));
     const restored = await ptbk(['start', '--saved-launch', '--raw'], { cwd: project, env });
     assert.equal(restored.code, 0, restored.output);
-    assert.deepEqual(JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection, { local: { state: 'disabled' } });
+    assert.deepEqual(JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).localApi, { state: 'disabled' });
     assert.equal((await ptbk(['stop', '-F', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await subjects(project)).filter((subject) => subject.startsWith('ptbk: Migrate configuration')).length, 1);
 });
@@ -109,7 +109,7 @@ test('current projects retire stale dashboard settings through the existing scop
 test('loopback HTTP boundary: local bootstrap and controls, rebinding/proxy rejection, and credentials expire on restart', async (t) => {
     const { request: httpRequest } = await import('node:http');
     const { startHttpServer } = await import('../dist/service/http.js');
-    const snapshot = { project: { name: 'transport fixture' }, connection: { local: { state: 'ready' } } };
+    const snapshot = { project: { name: 'transport fixture' }, localApi: { state: 'ready' } };
     const actions = [];
     const options = {
         agenda: { snapshot: () => snapshot },

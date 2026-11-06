@@ -25,6 +25,7 @@ import { groupSupportingWork, type TaskInventoryItem } from '../tasks/views.js';
 import { briefRecoveryParts, browserDetailLines, executionDetailLines, executionOneLine, sessionRowLine, healthDetailLines, healthOneLine, lifecycleActions, lifecycleExplanation, lifecycleSummary, pauseReasonLines, syncCompactLines, syncDetailLines, toolRow, toolsCompactLines } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import { appDetailLines, appPlainLines, appState } from './app-connection.js';
 
 /**
  * Widest one-shot snapshot.
@@ -37,9 +38,9 @@ const MAX_SNAPSHOT_WIDTH = 140;
 const WIDE_SNAPSHOT = 100;
 
 /**
- * Share of a wide snapshot taken by the connection column.
+ * Share of a wide snapshot taken by the Synchronization and App column.
  */
-const CONNECTION_SHARE = 0.38;
+const SIDE_COLUMN_SHARE = 0.38;
 
 /**
  * Items listed per inventory panel of a snapshot.
@@ -165,9 +166,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     lines.push('', 'EXECUTION DETAILS', ...execution.map((line) => `  ${line}`));
     const browsers = snapshot.browsers?.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : [];
     for (const browser of browsers) lines.push('', `BROWSER DETAILS${browsers.length > 1 ? ` · ${browser.name}` : ''}`, ...browserDetailLines(browser).map((line) => `  ${line}`));
-    lines.push('', 'CONNECTION');
-    const local = snapshot.connection.local;
-    lines.push(`Local: ${local.state}${local.url ? ` ${local.url} (same computer only)` : ''}${local.error ? ` (${local.error})` : ''}`);
+    lines.push('', `APP CONNECTION: ${appState(snapshot.app).label}`, ...appPlainLines(snapshot.app).slice(1).map((line) => `  ${line}`));
     if (options.next?.length) lines.push('', `Next: ${options.next.join(' · ')}`);
     return `${lines.join('\n')}\n`;
 }
@@ -324,38 +323,27 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         results.push(`${style.muted(formatShortTime(Date.parse(line.at)))} ${colored(line.text)}`);
     }
 
-    // Connection (built per column width so that links wrap instead of being clipped).
-    const connectionLines = (inner: number): string[] => {
-        const breakLink = (link: string, indent = ''): string[] => {
-            const chunks: string[] = [];
-            const room = Math.max(10, inner - indent.length);
-            for (let index = 0; index < link.length; index += room) chunks.push(`${indent}${link.slice(index, index + room)}`);
-            return chunks;
-        };
-        const lines: string[] = [];
-        const local = snapshot.connection.local;
-        if (local.url) lines.push(`${local.state === 'ready' ? style.success('Local') : style.muted('Local')} ${style.muted('(this computer only)')}`, ...breakLink(local.url, '  '));
-        else lines.push(`${style.muted('Local')} ${local.state}${local.error ? `: ${local.error}` : ''}`);
-        return lines;
-    };
+    // The App connection (built per column width so that long values wrap instead of being clipped).
+    const appLines = (inner: number): string[] => appDetailLines(snapshot.app, style, inner).slice(1);
+    const appTone = snapshot.attention?.app ? 'attention' : 'default';
 
     const toolsPanel = (width: number): string[] =>
         renderPanel({ title: 'Tools', titleRight: snapshot.tools ? `${snapshot.tools.items.filter((item) => item.state === 'usable').length} usable` : undefined, lines: toolsCompactLines(snapshot.tools, style), width, tone: snapshot.tools?.waiting ? 'attention' : 'default', unicode, style });
     const syncPanel = (width: number): string[] => (snapshot.sync ? renderPanel({ title: 'Synchronization', titleRight: 'Git', lines: syncCompactLines(snapshot.sync, style), width, tone: ['failed', 'conflict'].includes(snapshot.sync.state) ? 'attention' : 'default', unicode, style }) : []);
 
     if (total >= WIDE_SNAPSHOT) {
-        const rightWidth = Math.round(total * CONNECTION_SHARE);
+        const rightWidth = Math.round(total * SIDE_COLUMN_SHARE);
         const leftWidth = total - rightWidth - 1;
         const left = [...renderPanel({ title: 'Harnesses', lines: work, width: leftWidth, tone: current ? 'accent' : 'default', unicode, style }), ...toolsPanel(leftWidth)];
         const sync = syncPanel(rightWidth);
-        const right = [...sync, ...renderPanel({ title: 'Connection', lines: connectionLines(rightWidth - 4), width: rightWidth, unicode, style, minHeight: Math.max(0, left.length - 2 - sync.length) })];
+        const right = [...sync, ...renderPanel({ title: 'App', titleRight: appState(snapshot.app).label, lines: appLines(rightWidth - 4), width: rightWidth, tone: appTone, unicode, style, minHeight: Math.max(0, left.length - 2 - sync.length) })];
         output.push(...sideBySide([left, right], [leftWidth, rightWidth]));
     } else {
         output.push(...renderPanel({ title: 'Harnesses', lines: work, width: total, tone: current ? 'accent' : 'default', unicode, style }), ...toolsPanel(total), ...syncPanel(total));
     }
     output.push(...inventoryPanels(total));
     output.push(...renderPanel({ title: 'Results and activity', lines: results, width: total, unicode, style }));
-    if (total < WIDE_SNAPSHOT) output.push(...renderPanel({ title: 'Connection', lines: connectionLines(total - 4), width: total, unicode, style }));
+    if (total < WIDE_SNAPSHOT) output.push(...renderPanel({ title: 'App', titleRight: appState(snapshot.app).label, lines: appLines(total - 4), width: total, tone: appTone, unicode, style }));
     if (options.next?.length) output.push(style.muted(`  Next: ${options.next.join(' · ')}`));
     return output;
 }

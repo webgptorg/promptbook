@@ -7,7 +7,8 @@ import { ENGINE_VERSION } from '../common/version.js';
 import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
-import type { ConnectionView } from '../engine/snapshot.js';
+import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
+import { AppConnection, type AppEngineFigures } from '../app/connection.js';
 import { ProjectEffects, effectsRequest, snapshotEffects } from '../engine/effects.js';
 import { parseUsageRequest } from '../engine/usage.js';
 import type { VoiceMediaInput } from '../engine/voice-calls.js';
@@ -71,7 +72,11 @@ export class ServiceHost {
     private unregister?: () => Promise<void>;
     /** This instance is the known project's last run (its end is recorded on shutdown). */
     private knownRun = false;
-    private connection: ConnectionView = { local: { state: 'disabled' } };
+    private localApi: LocalApiView = { state: 'disabled' };
+    /** The project's Promptbook App connection (not in maintenance runs). */
+    private appConnection?: AppConnection;
+    /** A coalesced App view publication is queued. */
+    private appViewQueued = false;
     private readonly browsers: BrowserFleet;
     /** Tabs the user controls live (reserved for every engine of their profile until handed back). */
     private readonly tabs: TabControls;
@@ -250,10 +255,42 @@ export class ServiceHost {
         return this.http?.url;
     }
 
-    /** Publishes connection state to the agenda (and so to every view). */
-    private publishConnection(changes: Partial<ConnectionView>): void {
-        this.connection = { ...this.connection, ...changes };
-        this.agenda.setConnection(this.connection);
+    /** Publishes the local API state of local clients to the agenda (technical; never presented as a connection). */
+    private publishLocalApi(localApi: LocalApiView): void {
+        this.localApi = localApi;
+        this.agenda.setLocalApi(this.localApi);
+    }
+
+    /** Publishes the App connection view, coalescing bursts of relay and stream changes into one update. */
+    private publishAppView(): void {
+        if (this.appViewQueued) return;
+        this.appViewQueued = true;
+        setImmediate(() => {
+            this.appViewQueued = false;
+            if (this.appConnection) this.agenda.setAppConnection(this.appConnection.view());
+        });
+    }
+
+    /** What the App heartbeat reports from this engine: agents, App members and the self-update state. */
+    private appFigures(): AppEngineFigures {
+        const snapshot: ServiceSnapshot = this.agenda.snapshot();
+        const update = snapshot.update;
+        const state = !update ? 'none' : update.phase === 'installing' || update.phase === 'restarting' ? 'installing' : update.target ? 'pending' : update.latest && update.latest !== update.current ? 'available' : 'none';
+        return { agents: snapshot.agents.length, members: 0, update: state };
+    }
+
+    /** Starts the App connection; its failures stay on the App page and never stop the engine. */
+    private async startAppConnection(): Promise<void> {
+        this.appConnection = new AppConnection({
+            directory: this.options.project.runtime.app,
+            env: this.options.env,
+            onChange: () => this.publishAppView(),
+            figures: () => this.appFigures(),
+            log: (text, level) => this.agenda.log(text, level),
+        });
+        await this.appConnection.start().catch((error: unknown) => this.agenda.log(`The App connection did not start: ${errorMessage(error)}`, 'warning'));
+        // At once (not coalesced), so the first client that finds this engine already sees its App connection.
+        this.agenda.setAppConnection(this.appConnection.view());
     }
 
     /** Acquires ownership and starts the agenda's local supporting services. */
@@ -267,7 +304,7 @@ export class ServiceHost {
             const settings = this.agenda.effectiveSettings;
             const serverEnabled = setting<boolean>(settings, 'server.isEnabled');
             if (serverEnabled) {
-                this.publishConnection({ local: { state: 'starting' } });
+                this.publishLocalApi({ state: 'starting' });
                 try {
                     this.http = await startHttpServer({
                         agenda: this.agenda,
@@ -276,12 +313,15 @@ export class ServiceHost {
                         port: this.options.dashboardAccessKey ? 0 : setting<number | undefined>(settings, 'server.port'),
                         dashboardAccessKey: this.options.dashboardAccessKey,
                     });
-                    this.publishConnection({ local: { state: 'ready', url: this.http.url, port: this.http.port } });
+                    this.publishLocalApi({ state: 'ready', url: this.http.url, port: this.http.port });
                 } catch (error) {
-                    this.publishConnection({ local: { state: 'failed', error: errorMessage(error) } });
+                    this.publishLocalApi({ state: 'failed', error: errorMessage(error) });
                     throw error;
                 }
             }
+            // The App connection links this project engine to the Promptbook App; maintenance runs stay offline. It reads
+            // local files only (tunnels and heartbeats continue in the background), so it never delays the start.
+            if (this.options.mode !== 'maintenance') await this.startAppConnection();
             await this.writeRecord();
             // Enabled browsers start (or join their profile's shared process) with the engine, not at their first task,
             // and again when the enabled set changes; a failure is that browser's resource wait, never the engine's.
@@ -375,6 +415,7 @@ export class ServiceHost {
         // browser other engines still use stays, the last disconnection closes it).
         await bounded(() => this.browsers.close());
         if (forced) await bounded(() => this.owned.terminateRemaining(1000));
+        await bounded(() => this.appConnection?.stop());
         await bounded(() => this.http?.close());
         this.http = undefined;
         await bounded(() => this.controlServer?.close());
@@ -412,6 +453,15 @@ export class ServiceHost {
                 return { instanceId: this.instanceId, projectRoot: this.options.project.root, pid: process.pid, mode: this.options.mode, version: ENGINE_VERSION, contract: CONTROL_CONTRACT, state: agenda.serviceState };
             case 'snapshot':
                 return agenda.snapshot();
+            case 'app-status':
+                return this.appConnection?.view() ?? agenda.snapshot().app;
+            case 'app-reload': {
+                // `ptbk connect` and `ptbk disconnect` changed the stored link: reconnect from it.
+                if (!this.appConnection) throw new PtbkError('This engine run has no App connection (maintenance mode).', { kind: 'unsupported' });
+                const view = await this.appConnection.reload();
+                this.agenda.setAppConnection(view);
+                return view;
+            }
             case 'summary':
                 return summaryOfSnapshot(agenda.snapshot());
             case 'watch': {

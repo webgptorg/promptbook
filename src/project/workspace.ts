@@ -41,6 +41,8 @@ export type RuntimePaths = {
     readonly temporary: string;
     /** Project ownership lock. */
     readonly lock: string;
+    /** The App connection's engine identity and registration (private: 0700 directory, 0600 files). */
+    readonly app: string;
 };
 
 /**
@@ -91,6 +93,7 @@ export function runtimePaths(root: string): RuntimePaths {
         browserProfile: join(runtime, 'browser', 'profile'),
         temporary: join(runtime, 'tmp'),
         lock: join(runtime, 'lock.json'),
+        app: join(runtime, 'app'),
     };
 }
 

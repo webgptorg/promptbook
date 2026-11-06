@@ -3,6 +3,7 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
 import { ensureDirectory, isDirectory, pathExists, toProjectRelative, writeFileAtomic } from '../../common/fs.js';
 import { slugify } from '../../common/ids.js';
+import { appSummaryLine } from '../../ui/app-connection.js';
 import { ENGINE_VERSION } from '../../common/version.js';
 import { userChromeProfile } from '../../browser/browser.js';
 import { BookIndex } from '../../project/books.js';
@@ -1697,9 +1698,9 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
     const ready = result.outcome === 'ready';
     const running = service?.kind === 'started' || service?.kind === 'reused';
     const snapshot = running ? service.snapshot : undefined;
-    const local = snapshot?.connection.local.url;
+    const app = appSummaryLine(snapshot?.app);
     const serviceLine = running
-        ? `${service.kind === 'started' ? 'running in the background' : 'already running (reused)'} (PID ${snapshot!.service.pid})${local ? ` · local ${local}` : ''}${snapshot!.service.commitMode === 'no-commit' ? ' · no-commit mode' : ''}`
+        ? `${service.kind === 'started' ? 'running in the background' : 'already running (reused)'} (PID ${snapshot!.service.pid})${snapshot!.service.commitMode === 'no-commit' ? ' · no-commit mode' : ''}`
         : service?.kind === 'failed'
           ? `did not start: ${service.reason}`
           : service?.kind === 'skipped'
@@ -1723,6 +1724,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
         if (result.commit) lines.push(`Commit: ${result.commit}`);
         if (first) lines.push(`First task: ${first}`);
         lines.push(`Service: ${serviceLine}`);
+        if (app) lines.push(app);
         if (running && service.note) lines.push(service.note);
         lines.push(...notes);
         lines.push(`Next: ${next.map(([command, description]) => `${command} (${description})`).join('; ')}`);
@@ -1738,6 +1740,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
     row('Setup', `${result.changed.length ? `${result.changed.length} change${result.changed.length === 1 ? '' : 's'}` : 'nothing to change'}${result.commit ? ` committed ${result.commit.slice(0, 8)} (ptbk: setup)` : ''}${result.alreadyReady.length ? style.muted(` · ${result.alreadyReady.length} already ready`) : ''}`);
     if (first) row('First task', first);
     row('Service', running ? style.success(serviceLine) : style.warning(serviceLine));
+    if (app) row('App', app.replace(/^App: /, ''));
     if (running && service.note) row('', style.muted(service.note));
     if (unresolved.length) {
         lines.push('', style.bold('Unresolved'));

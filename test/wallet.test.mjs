@@ -1068,7 +1068,7 @@ test('Wallet acceptance: a task waits for a protected login (no chat), resumes o
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     const status = async () => JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
-    const base = (await status()).connection.local.url;
+    const base = (await status()).localApi.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
         return { status: response.status, data: await response.json() };
@@ -1457,7 +1457,7 @@ test('Wallet Test acceptance: the running engine reads the code from an inbox th
 
     assert.equal((await ptbk(['start', '--no-persist', '--raw', '--paused'], { cwd: project, env })).code, 0);
     const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
-    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).localApi.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
         return await response.json();

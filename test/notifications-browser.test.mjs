@@ -43,7 +43,7 @@ test('browser attention: lists and offscreen calls stay unseen, displaying a lon
     };
     const evaluate = async (script) => (await call('browser_evaluate', { script })).text;
     try {
-        await call('browser_open', { url: before.connection.local.url });
+        await call('browser_open', { url: before.localApi.url });
         await waitFor(async () => await evaluate('Boolean(document.querySelector("[data-tile=chats]"))') === 'true', { message: 'dashboard home' });
         await evaluate('document.querySelector("[data-tile=chats]").click(); true');
         await waitFor(async () => await evaluate('document.body.innerText.includes("Attention viewport")') === 'true', { message: 'chat list' });

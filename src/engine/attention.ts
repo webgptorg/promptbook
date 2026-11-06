@@ -5,7 +5,7 @@ import type { DashboardDomain, DomainAttention, QueueItemView, ServiceSnapshot }
 /**
  * Every dashboard domain that can need the operator's attention.
  */
-const DOMAINS: readonly DashboardDomain[] = ['harnesses', 'health', 'wallet', 'chats', 'tasks', 'tools', 'sync'];
+const DOMAINS: readonly DashboardDomain[] = ['harnesses', 'health', 'wallet', 'chats', 'tasks', 'tools', 'sync', 'app'];
 
 /**
  * Whether one domain needs a concrete human decision, input or action now, derived from its own state. Failures,
@@ -55,6 +55,17 @@ function attentionOf(snapshot: Omit<ServiceSnapshot, 'attention'>, domain: Dashb
         case 'sync':
             // A conflict goes to Fixer and failed attempts retry with backoff; a missing destination needs a person.
             return snapshot.sync?.state === 'unconfigured' ? { key: `${snapshot.sync.state}:${snapshot.sync.reason ?? ''}`, tone: 'warning' } : undefined;
+        case 'app': {
+            // Not being linked is neutral, and reconnecting relays retry by themselves. A person must act on an unsafe or
+            // unreadable identity, a tunnel replaced by another copy of the key, a refused engine or a wrong clock.
+            const app = snapshot.app;
+            if (!app) return undefined;
+            if (app.state === 'problem') return { key: `problem:${app.problem ?? ''}`, tone: 'error' };
+            const refusals = app.relays.filter((relay) => relay.refusal === 'replaced' || (app.state === 'refused' && relay.refusal)).map((relay) => `${relay.relay}:${relay.refusal ?? ''}`);
+            if (refusals.length) return { key: `refused:${refusals.join('|')}`, tone: 'error' };
+            if (app.heartbeat?.code === 'stale-timestamp' || app.heartbeat?.skewMs !== undefined) return { key: `clock:${app.heartbeat.code ?? ''}`, tone: 'warning' };
+            return undefined;
+        }
         default:
             return undefined;
     }

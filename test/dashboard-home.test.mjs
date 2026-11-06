@@ -40,7 +40,8 @@ function snapshot(change = {}) {
         agents: [{ name: 'Developer', key: 'developer', activity: 'working', face: '', gesture: '', hue: 0 }, { name: 'Expert', key: 'expert', activity: 'idle', face: '', gesture: '', hue: 0, role: 'engine' }],
         harnesses: [],
         settings: [],
-        connection: { local: { state: 'ready', url: 'http://127.0.0.1:3000/' } },
+        localApi: { state: 'ready', url: 'http://127.0.0.1:3000/', port: 3000 },
+        app: { state: 'unlinked', dashboardUrl: 'https://app.ptbk.io', engineId: 'abcdefghijklmnopqrstuvwxyz', fingerprint: 'ABCD-EFGH-JKMN-PQRS-TVWX', relays: [], browserAccess: 'unavailable' },
         ...change,
     };
 }
@@ -53,7 +54,7 @@ test('the home screen fits standard, narrowed and fullscreen terminals completel
         assert.equal(lines.length, rows, `${columns}x${rows}: exactly the surface height`);
         for (const line of lines) assert.ok(stringWidth(line) <= columns, `${columns}x${rows}: no line wider than the terminal`);
         const text = lines.map(stripAnsi).join('\n');
-        for (const title of ['Harnesses', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Wallet', 'Connection']) assert.match(text, new RegExp(title), `${columns}x${rows}: ${title} is visible`);
+        for (const title of ['Harnesses', 'System', 'Health', 'Chats', 'Tasks', 'Agents', 'Tools', 'Wallet', 'App']) assert.match(text, new RegExp(`\\b${title}\\b`), `${columns}x${rows}: ${title} is visible`);
         assert.doesNotMatch(text, /Results/, `${columns}x${rows}: no standalone Results/Activity tile`);
         const header = headerRows(rows);
         if (header === 2) {
@@ -168,14 +169,19 @@ test('pages replace the home grid, keep context and legend fixed and scroll thei
     assert.match(system, /Manual pause \(System\)/);
     assert.match(system, /Health soft — Low free disk/);
     assert.match(system, /ptbk 0\.119\.0-33/, 'technical metadata lives on System');
-    // The engine update policy switch lives on System (progress is a system task in Tasks), not on Connection.
+    // The engine update policy switch lives on System (progress is a system task in Tasks), not on App.
     const update = { policy: { isAutoUpdateEnabled: true, source: 'default' }, current: '0.119.0-33', installation: { scope: 'local', path: '/p/node_modules/ptbk' }, phase: 'idle', reason: 'ptbk 0.119.0-33 is the newest allowed release.', latest: '0.119.0-33', isSupported: true };
     const withUpdate = { ...context, snapshot: snapshot({ update }) };
     const systemPage = pageBody(pageForTile('system'), withUpdate);
     assert.match(systemPage.body.map(stripAnsi).join('\n'), /Engine updates[\s\S]*Automatic +on · updates\.isAutoUpdateEnabled \(default\)/);
     assert.match(systemPage.legend, /A turn automatic updates off · C check for a release now/);
-    const connectionPage = pageBody({ kind: 'connection', scroll: 0 }, withUpdate);
-    assert.doesNotMatch(`${connectionPage.body.map(stripAnsi).join('\n')}\n${connectionPage.legend}`, /Engine updates|automatic updates/);
+    const appPage = pageBody({ kind: 'app', scroll: 0 }, withUpdate);
+    const appText = appPage.body.map(stripAnsi).join('\n');
+    assert.doesNotMatch(`${appText}\n${appPage.legend}`, /Engine updates|automatic updates/);
+    assert.match(appText, /Not linked/);
+    assert.match(appText, /ptbk connect --link <code>/);
+    assert.match(appText, /ABCD-EFGH-JKMN-PQRS-TVWX/, 'the fingerprint to compare with the App');
+    assert.doesNotMatch(appText, /127\.0\.0\.1|Local dashboard|this computer only/, 'the local loopback address is not presented');
     const healthPage = pageBody(pageForTile('health'), context);
     assert.doesNotMatch(healthPage.legend, /\bP\b|Pause|Resume/, 'Health offers no generic manual Pause/Resume');
     assert.match(healthPage.legend, /K clean cache/);

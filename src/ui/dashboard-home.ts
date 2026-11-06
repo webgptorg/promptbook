@@ -8,6 +8,7 @@ import { activityLabel, inlineBadge } from './badges.js';
 import { briefRecoveryParts, hasManualPause, healthPauseReasons, lifecycleActions } from './details.js';
 import { renderPanel, sideBySide, type PanelTone } from './panels.js';
 import { symbols, type TerminalProfile } from './terminal.js';
+import { appTileLines } from './app-connection.js';
 
 /**
  * Tiles of the dashboard home screen; each opens the dashboard page of its domain.
@@ -34,7 +35,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
     actions: 'External activity log',
     history: 'History',
     files: 'Files',
-    connection: 'Connection',
+    app: 'App',
     sync: 'Synchronization',
 };
 
@@ -45,7 +46,7 @@ export const TILE_TITLES: Readonly<Record<HomeTile, string>> = {
  */
 export function homeTiles(snapshot: ServiceSnapshot): HomeTile[] {
     // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
-    return ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', ...(snapshot.sync ? (['sync'] as const) : [])];
+    return ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'app', ...(snapshot.sync ? (['sync'] as const) : [])];
 }
 
 /**
@@ -338,15 +339,8 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
         }
         case 'files':
             return [style.muted('Read-only project browser'), style.muted('Markdown, JSON, Books, images'), style.muted('D open')];
-        case 'connection': {
-            const { local } = snapshot.connection;
-            const host = local.url ? local.url.replace(/^https?:\/\//, '').replace(/\/$/, '') : undefined;
-            return [
-                local.state === 'ready' ? style.success('Local only') : style.muted(`HTTP ${local.state}`),
-                ...(host ? [style.muted(`local ${host}`)] : []),
-                style.muted('Enter: local connection details'),
-            ];
-        }
+        case 'app':
+            return appTileLines(snapshot.app, style);
         case 'sync': {
             const sync = snapshot.sync;
             if (!sync) return [];

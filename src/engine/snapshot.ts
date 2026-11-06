@@ -321,12 +321,76 @@ export type SettingView = {
 };
 
 /**
- * Local loopback HTTP state.
+ * The local loopback HTTP API: the private transport of local clients (terminal dashboard, desktop app, local browser
+ * dashboard, tests). It is technical data, never presented as a connection.
  *
  * @private shared status view model
  */
-export type ConnectionView = {
-    readonly local: { readonly state: 'disabled' | 'starting' | 'ready' | 'failed'; readonly url?: string; readonly port?: number; readonly error?: string };
+export type LocalApiView = { readonly state: 'disabled' | 'starting' | 'ready' | 'failed'; readonly url?: string; readonly port?: number; readonly error?: string };
+
+/**
+ * One relay tunnel of the App connection.
+ *
+ * @private shared status view model
+ */
+export type AppRelayView = {
+    readonly relay: string;
+    readonly state: 'connecting' | 'connected' | 'waiting' | 'stopped';
+    readonly since: string;
+    /** The last problem, without credentials. */
+    readonly problem?: string;
+    /** When the next attempt is due. */
+    readonly retryAt?: string;
+    /** The relay refused or replaced the engine. */
+    readonly refusal?: 'replaced' | 'suspended' | 'auth-failed' | 'protocol';
+    /** Hostnames the relay routes to this engine. */
+    readonly hostnames?: readonly string[];
+    /** Open browser streams. */
+    readonly streams: number;
+};
+
+/**
+ * The last heartbeat sent to the App.
+ *
+ * @private shared status view model
+ */
+export type AppHeartbeatView = {
+    readonly at: string;
+    readonly outcome: 'accepted' | 'refused' | 'failed';
+    readonly status?: number;
+    readonly code?: string;
+    /** Local clock minus the App's, when the App reported a stale timestamp. */
+    readonly skewMs?: number;
+    /** The exact body sent (numbers only): everything the App learns. */
+    readonly body: string;
+    readonly message?: string;
+    readonly nextAt?: string;
+};
+
+/**
+ * The project's link to the Promptbook App (it replaced the former local-address Connection view).
+ *
+ * @private shared status view model
+ */
+export type AppConnectionView = {
+    /**
+     * `offline` for a linked project whose engine is not running, `disabled` in runs without an App connection
+     * (maintenance), `problem` when it cannot run at all.
+     */
+    readonly state: 'unlinked' | 'connecting' | 'linked' | 'refused' | 'problem' | 'offline' | 'disabled';
+    readonly dashboardUrl: string;
+    readonly engineId?: string;
+    /** The fingerprint code to compare with the App dashboard (`XXXX-XXXX-XXXX-XXXX-XXXX`). */
+    readonly fingerprint?: string;
+    readonly hostname?: string;
+    /** The project's App address, `https://<hostname>/`. */
+    readonly url?: string;
+    readonly linkedAt?: string;
+    readonly relays: readonly AppRelayView[];
+    readonly heartbeat?: AppHeartbeatView;
+    /** Whether the project can be opened from the App yet (the engine does not end browser TLS yet). */
+    readonly browserAccess: 'unavailable' | 'available';
+    readonly problem?: string;
 };
 
 /**
@@ -604,7 +668,7 @@ export type SyncView = {
  *
  * @private shared status view model
  */
-export type DashboardDomain = 'harnesses' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'usage' | 'actions' | 'history' | 'files' | 'connection' | 'sync';
+export type DashboardDomain = 'harnesses' | 'system' | 'health' | 'wallet' | 'chats' | 'tasks' | 'agents' | 'tools' | 'usage' | 'actions' | 'history' | 'files' | 'app' | 'sync';
 
 /**
  * Why a domain needs the operator's attention: `key` identifies the current actionable items (a changed key is a new
@@ -707,7 +771,10 @@ export type ServiceSnapshot = {
     readonly agents: readonly AgentView[];
     readonly harnesses: readonly HarnessView[];
     readonly settings: readonly SettingView[];
-    readonly connection: ConnectionView;
+    /** The Promptbook App connection (absent from older engines). */
+    readonly app?: AppConnectionView;
+    /** The local loopback API of local clients (technical; absent from older engines, which reported `connection.local`). */
+    readonly localApi?: LocalApiView;
     /** Domains with an actionable event (absent from older engines; viewers then derive it the same way). */
     readonly attention?: Partial<Record<DashboardDomain, DomainAttention>>;
 };

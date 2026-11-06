@@ -1040,16 +1040,72 @@
         return card;
     }
 
-    /** Local HTTP connection details; opening this viewer never starts an engine. */
-    function renderConnection(snapshot) {
-        const { local } = snapshot.connection;
-        const card = h('section', { className: 'card connection', 'aria-label': 'Connection' },
-            h('h2', {}, 'Connection'),
-            h('dl', { className: 'kv' }, h('dt', {}, 'Local'), h('dd', {},
-                pill(local.state, local.state === 'ready' ? 'ok' : ''),
-                local.url ? h('div', {}, h('a', { href: local.url }, local.url)) : null,
-                local.error ? h('div', { className: 'muted' }, local.error) : null)),
-            h('p', { className: 'muted' }, 'Available on this computer only.'));
+    /** App connection states: label and tone, the same words as the terminal's App page. */
+    const APP_STATES = {
+        linked: ['Linked', 'ok'],
+        connecting: ['Connecting', 'warn'],
+        refused: ['Refused', 'bad'],
+        problem: ['Problem', 'bad'],
+        unlinked: ['Not linked', ''],
+        offline: ['Offline (engine stopped)', ''],
+    };
+
+    /** The App connection's state as a label and a tone. */
+    function appState(app) {
+        const known = app && APP_STATES[app.state];
+        return known ? { label: known[0], tone: known[1] } : { label: app ? 'Not connected in this run' : 'Not reported by this engine', tone: '' };
+    }
+
+    /** `n of m relays` of a linked project. */
+    function relaySummary(app) {
+        const connected = app.relays.filter((relay) => relay.state === 'connected').length;
+        return `${connected} of ${app.relays.length} relay${app.relays.length === 1 ? '' : 's'}`;
+    }
+
+    /** One heartbeat outcome. */
+    function heartbeatOutcome(beat) {
+        if (beat.outcome === 'accepted') return h('span', { className: 'ok' }, 'accepted');
+        if (beat.outcome === 'refused') return h('span', { className: 'bad' }, `refused${beat.status ? ` (HTTP ${beat.status}${beat.code ? `, ${beat.code}` : ''})` : ''}`);
+        return h('span', { className: 'warn' }, 'not delivered');
+    }
+
+    /** This project's link to the Promptbook App: identity, address, relays, heartbeat and browser access. */
+    function renderApp(snapshot) {
+        const app = snapshot.app;
+        const state = appState(app);
+        const card = h('section', { className: 'card app', 'aria-label': 'App' }, h('h2', {}, h('span', {}, 'App'), pill(state.label, state.tone)));
+        if (!app || app.state === 'disabled') {
+            card.append(h('p', { className: 'muted' }, app ? 'This engine run keeps no App connection (maintenance).' : 'This engine does not report an App connection.'));
+            return card;
+        }
+        if (app.problem) card.append(h('p', { className: 'bad' }, app.problem));
+        const rows = [];
+        if (app.engineId) rows.push(['Engine ID', h('code', {}, app.engineId)]);
+        if (app.fingerprint) rows.push(['Fingerprint', h('span', {}, h('code', {}, app.fingerprint), h('span', { className: 'muted' }, ' · compare with the App dashboard'))]);
+        const list = () => h('dl', { className: 'kv' }, rows.flatMap(([label, value]) => [h('dt', {}, label), h('dd', {}, value)]));
+        if (app.state === 'unlinked') {
+            if (rows.length) card.append(list());
+            card.append(h('p', { className: 'muted' }, 'Get a link code at ', h('a', { href: app.dashboardUrl, target: '_blank', rel: 'noopener noreferrer' }, app.dashboardUrl.replace(/^https:\/\//, '').replace(/\/$/, '')), ', then run ', h('code', {}, 'ptbk connect --link <code>'), ' in this project.'));
+            return card;
+        }
+        if (app.url) rows.push(['Address', app.browserAccess === 'available' ? h('a', { href: app.url, target: '_blank', rel: 'noopener noreferrer' }, app.url) : h('span', {}, app.url)]);
+        rows.push(['App', h('span', {}, h('a', { href: app.dashboardUrl, target: '_blank', rel: 'noopener noreferrer' }, app.dashboardUrl), app.linkedAt ? h('span', { className: 'muted' }, ` · linked ${time(app.linkedAt)}`) : null)]);
+        if (app.relays.length) {
+            rows.push(['Relays', h('div', {}, `Connected to ${relaySummary(app)}`, h('ul', { className: 'list' }, app.relays.map((relay) => h('li', {},
+                h('span', { className: 'title' }, relay.relay, ' ', pill(relay.state, relay.state === 'connected' ? 'ok' : relay.refusal ? 'bad' : relay.state === 'stopped' ? '' : 'warn'),
+                    h('span', { className: 'why' }, [relay.streams ? `${relay.streams} stream${relay.streams === 1 ? '' : 's'}` : '', relay.state === 'waiting' && relay.retryAt ? `retry ${time(relay.retryAt)}` : '', relay.state !== 'connected' && relay.problem ? relay.problem : ''].filter(Boolean).join(' · ')))))))]);
+        }
+        const beat = app.heartbeat;
+        if (beat) {
+            rows.push(['Heartbeat', h('div', {},
+                h('span', {}, `${time(beat.at)} `, heartbeatOutcome(beat), beat.nextAt ? h('span', { className: 'muted' }, ` · next ${time(beat.nextAt)}`) : null),
+                beat.message ? h('div', { className: 'muted' }, beat.message) : null,
+                beat.skewMs !== undefined ? h('div', { className: 'warn' }, `This computer's clock is ${Math.round(Math.abs(beat.skewMs) / 1000)} s ${beat.skewMs > 0 ? 'ahead of' : 'behind'} the App. Fix the clock (NTP); heartbeats more than 2 minutes off are refused.`) : null,
+                beat.body ? h('details', {}, h('summary', { className: 'muted' }, 'Everything the App learns'), h('pre', {}, beat.body)) : null)]);
+        }
+        card.append(list());
+        if (app.state === 'offline') card.append(h('p', { className: 'muted' }, 'The engine is stopped, so the App shows this project unavailable. Start it with ', h('code', {}, 'ptbk start'), '.'));
+        else card.append(h('p', { className: 'muted' }, app.browserAccess === 'available' ? 'Opening this project from the App works.' : 'Opening this project from the App is not available yet: the engine does not serve the App UI through its tunnels yet. Use this dashboard, the terminal or the desktop app.'));
         return card;
     }
 
@@ -1086,9 +1142,9 @@
 
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
     // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
-    const DOMAINS = ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'connection', 'sync'];
+    const DOMAINS = ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'app', 'sync'];
 
-    const TITLES = { harnesses: 'Harnesses', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', usage: 'Usage', actions: 'External activity log', history: 'History', files: 'Files', connection: 'Connection', sync: 'Synchronization' };
+    const TITLES = { harnesses: 'Harnesses', system: 'System', health: 'Health', chats: 'Chats', tasks: 'Tasks', agents: 'Agents', tools: 'Tools', wallet: 'Wallet', usage: 'Usage', actions: 'External activity log', history: 'History', files: 'Files', app: 'App', sync: 'Synchronization' };
 
     /** Loads the History window (read-only: the engine never fetches or changes Git for it). */
     async function loadHistory() {
@@ -1734,9 +1790,14 @@
                 const total = usage.total;
                 return [total.units ? h('strong', {}, `${compactCount(total.input + total.output)} tokens · ${total.units} runs`) : h('span', { className: 'muted' }, `No model usage in ${usage.days} days`), total.units ? h('span', { className: 'muted' }, billingMix(total)) : null];
             }
-            case 'connection': {
-                const { local } = snapshot.connection;
-                return [local.state === 'ready' ? h('strong', { className: 'ok' }, 'Local only') : `HTTP ${local.state}`, local.url ? h('span', { className: 'muted' }, local.url.replace(/^https?:\/\//, '').replace(/\/$/, '')) : null];
+            case 'app': {
+                const app = snapshot.app;
+                const state = appState(app);
+                if (!app || app.state === 'disabled' || app.state === 'offline') return [h('span', { className: 'muted' }, state.label)];
+                if (app.state === 'unlinked') return [h('span', { className: 'muted' }, 'Not linked to the Promptbook App'), h('code', { className: 'muted' }, 'ptbk connect --link <code>')];
+                if (app.state === 'problem') return [h('strong', { className: 'bad' }, 'Problem')];
+                const replaced = app.relays.some((relay) => relay.refusal === 'replaced');
+                return [h('span', {}, h('strong', { className: state.tone }, state.label), h('span', { className: 'muted' }, ` · ${relaySummary(app)}`)), replaced ? h('span', { className: 'bad' }, 'another copy holds the key') : app.heartbeat && app.heartbeat.skewMs !== undefined ? h('span', { className: 'warn' }, 'clock skew') : app.fingerprint ? h('span', { className: 'muted' }, app.fingerprint) : null];
             }
             case 'sync': {
                 const sync = snapshot.sync;
@@ -2836,8 +2897,8 @@
                 return renderHistoryPage(snapshot);
             case 'files':
                 return renderFilesPage();
-            case 'connection':
-                return pageFrame('connection', 'Local dashboard access on this computer', renderConnection(snapshot));
+            case 'app':
+                return pageFrame('app', 'This project’s link to the Promptbook App (app.ptbk.io)', renderApp(snapshot));
             case 'sync':
                 return pageFrame('sync', 'Git autosync through the engine’s one coordinator', renderSync(snapshot));
             default:

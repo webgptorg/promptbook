@@ -178,8 +178,10 @@ async function handle(method, params) {
         if (lookup.state !== 'running') throw new Error(lookup.state === 'unreachable' ? lookup.reason : 'The project is stopped. Start it explicitly to open its dashboard.');
         if (!lookup.engine.compatible) throw new Error('The running engine has another control contract. Open its CLI dashboard.');
         const snapshot = await lookup.client.request('snapshot');
-        if (!snapshot.connection.local.url) throw new Error('This engine has no HTTP dashboard. Open its CLI dashboard.');
-        return { url: snapshot.connection.local.url, instanceId: lookup.record.instanceId };
+        // The loopback API is the private transport of this desktop app (engines before the App connection reported it as `connection.local`).
+        const url = snapshot.localApi?.url ?? snapshot.connection?.local?.url;
+        if (!url) throw new Error('This engine has no HTTP dashboard. Open its CLI dashboard.');
+        return { url, instanceId: lookup.record.instanceId };
     }
     throw new Error('Unknown desktop controller operation.');
 }

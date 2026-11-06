@@ -32,6 +32,7 @@ import type { HistoryDetail, HistoryView } from '../project/history.js';
 import { ACTION_GROUPINGS, ACTION_SORTS, type ActionGrouping, type ActionRow, type ActionSort, type ActionView } from '../engine/action-impact.js';
 import type { ActionLinks, ActionSummary } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
+import { appDetailLines } from './app-connection.js';
 
 /**
  * A commit as the History detail page shows it: the original message and its verified provenance links.
@@ -170,7 +171,7 @@ export type DashboardPage =
     | { readonly kind: 'commit'; scroll: number; readonly sha: string; detail?: CommitDetailView; problem?: string }
     | { readonly kind: 'files'; scroll: number; focus: number; selected?: string; readonly path: string; view?: FolderView; problem?: string }
     | { readonly kind: 'file'; scroll: number; readonly path: string; view?: FileView; problem?: string }
-    | { readonly kind: 'connection'; scroll: number }
+    | { readonly kind: 'app'; scroll: number }
     | { readonly kind: 'sync'; scroll: number };
 
 /**
@@ -972,19 +973,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 legend: `↑↓ choose · ${rows[page.focus]?.filter ? 'Enter only this · ' : ''}G group by ${next}${scoped || page.filter.agent || page.filter.task || page.filter.chat ? ` · I ${page.inclusive ? 'own work only' : 'include initiated work'}` : ''}${filtered ? ' · X clear filter' : ''} · ${back}`,
             };
         }
-        case 'connection': {
-            const { local } = snapshot.connection;
-            const breakLink = (link: string, indent = '  '): string[] => {
-                const chunks: string[] = [];
-                const room = Math.max(10, width - indent.length);
-                for (let index = 0; index < link.length; index += room) chunks.push(`${indent}${link.slice(index, index + room)}`);
-                return chunks;
-            };
-            const body: string[] = [];
-            if (local.url) body.push(`${local.state === 'ready' ? style.success('Local') : style.muted('Local')} ${style.muted('(this computer only)')}`, ...breakLink(local.url));
-            else body.push(`${style.muted('Local')} ${local.state}${local.error ? `: ${local.error}` : ''}`);
-            return { title: 'Connection', context: 'Local dashboard access on this computer', body, legend: `↑↓ scroll · ${back}` };
-        }
+        case 'app':
+            return { title: 'App', context: 'This project’s link to the Promptbook App (app.ptbk.io)', body: appDetailLines(snapshot.app, style, width), legend: `↑↓ scroll · ${back}` };
         case 'sync': {
             if (!snapshot.sync) return { title: 'Synchronization', context: 'Automatic synchronization is off (isAutoSync false).', body: [style.muted('Nothing to show while autosync is disabled.')], legend: back };
             return { title: 'Synchronization', context: 'Git autosync with the tracked remote (shared coordinator; never a second scheduler)', body: syncDetailLines(snapshot.sync, style), legend: `G synchronize now · ↑↓ scroll · ${back}` };

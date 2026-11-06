@@ -124,7 +124,7 @@ test('service chats: API create/reply/stale revision, startup replies, and Fixer
     assert.match(offline.chat.messages[1].text, /Fixture reply to: Are you there\?/);
     const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
     const snapshot = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
-    const base = snapshot.connection.local.url;
+    const base = snapshot.localApi.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
         return { status: response.status, data: await response.json() };
@@ -170,7 +170,7 @@ test('service chats: a force stop before the batched commit loses nothing; the n
     const env = { ...baseEnv, PTBK_CHAT_BATCH_QUIET_MS: '600000' };
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
-    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).localApi.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
         return { status: response.status, data: await response.json() };
@@ -205,7 +205,7 @@ test('chat replies: a failed reply is rechecked automatically without a Retry qu
     await git(project, ['commit', '-qm', 'An interrupted reply']);
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
-    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).localApi.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
         return { status: response.status, data: await response.json() };
@@ -252,7 +252,7 @@ test('live replies: progress streams to every client, input is accepted meanwhil
     const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '6000' };
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const { token } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
-    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).connection.local.url;
+    const base = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout).localApi.url;
     const call = async (path, body) => {
         const response = await fetch(`${base}${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
         return { status: response.status, data: await response.json() };

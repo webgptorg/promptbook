@@ -11,6 +11,7 @@ import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ChatAgentChoice } from '../chats/service.js';
 import { runChatClient, type ChatSource } from './chat-client.js';
 import { singleLineVisual } from './badges.js';
+import { appSummaryLine } from './app-connection.js';
 import { KeyboardSession, type KeyEvent, type PointerInput } from './keys.js';
 import { FullScreen } from './screen.js';
 import { lifecycleActions } from './details.js';
@@ -111,8 +112,11 @@ export function plainDifference(previous: ServiceSnapshot | undefined, next: Ser
     const lines: string[] = [];
     if (!previous) {
         lines.push(`ptbk ${next.engine.version} ${next.service.mode} for ${next.project.path}: ${next.service.state}, phase ${next.phase}${next.service.commitMode === 'no-commit' ? ' (NO-COMMIT mode)' : ''}`);
-        if (next.connection.local.url) lines.push(`Local dashboard: ${next.connection.local.url} (same computer only)`);
+        const app = appSummaryLine(next.app);
+        if (app) lines.push(app);
     } else {
+        const app = appSummaryLine(next.app);
+        if (app && app !== appSummaryLine(previous.app)) lines.push(app);
         if (previous.service.state !== next.service.state || previous.service.lifecycle?.intent !== next.service.lifecycle?.intent) {
             lines.push(`Service ${next.service.state}${next.service.lifecycle?.intent ? ` (${next.service.lifecycle.intent}${next.service.lifecycle.settling ? ' while active work settles' : ''})` : ''}`);
         }

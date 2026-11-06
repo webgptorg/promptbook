@@ -30,8 +30,10 @@ test('daemon lifecycle: one service, repeated start reports it, add is executed 
         return snapshot.service.state === 'running' ? snapshot : undefined;
     }, { message: 'the daemon to report running' });
     assert.equal(first.service.mode, 'daemon');
-    assert.equal(first.connection.local.state, 'ready', JSON.stringify(first.connection));
-    assert.deepEqual(Object.keys(first.connection), ['local'], 'only the local connection is advertised');
+    assert.equal(first.localApi.state, 'ready', JSON.stringify(first.localApi));
+    assert.equal(first.connection, undefined, 'the local address is no longer presented as a Connection');
+    assert.equal(first.app.state, 'unlinked', JSON.stringify(first.app));
+    assert.match(first.app.dashboardUrl, /^https:\/\//);
     assert.doesNotMatch(started.stdout, /Remote:|Pairing:|#pair=/);
     const repeated = await ptbk(['start', '--raw'], { cwd: project, env });
     assert.match(repeated.stdout, /^Already running/, repeated.output);
@@ -90,7 +92,8 @@ test('local HTTP dashboard and API: bootstrap, authenticated controls and loopba
     assert.equal(typeof snapshot.attention, 'object');
     assert.equal(snapshot.health.status === 'unknown' || typeof snapshot.health.disk.freeMiB === 'number', true);
     assert.deepEqual(snapshot.service.pauseReasons, []);
-    assert.deepEqual(Object.keys(snapshot.connection), ['local']);
+    assert.equal(snapshot.connection, undefined);
+    assert.equal(snapshot.app.state, 'unlinked');
     const sorted = await (await fetch(`${base}api/tasks?sort=name&descending=1`, { headers: browserHeaders })).json();
     assert.ok(Array.isArray(sorted.tasks));
     assert.deepEqual(sorted.tasks.map((task) => task.title), [...sorted.tasks.map((task) => task.title)].sort((a, b) => b.localeCompare(a)));
