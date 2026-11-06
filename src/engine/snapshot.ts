@@ -388,9 +388,27 @@ export type AppConnectionView = {
     readonly linkedAt?: string;
     readonly relays: readonly AppRelayView[];
     readonly heartbeat?: AppHeartbeatView;
-    /** Whether the project can be opened from the App yet (the engine does not end browser TLS yet). */
+    /** Whether the project can be opened from the App now: the engine holds its certificate and a relay is connected. */
     readonly browserAccess: 'unavailable' | 'available';
+    /** The engine's own certificate for its hostname (ACME through the relay). */
+    readonly certificate?: AppCertificateView;
+    /** Whether an owner has set up App access with a passkey; `none` until the setup link is used. */
+    readonly owner?: 'set' | 'none';
     readonly problem?: string;
+};
+
+/**
+ * The engine's own TLS certificate for its App hostname.
+ *
+ * @private shared status view model
+ */
+export type AppCertificateView = {
+    readonly state: 'missing' | 'issuing' | 'valid' | 'failed';
+    /** `acme` in production; `dev-ca` only in the conformance build. */
+    readonly source: 'acme' | 'dev-ca';
+    readonly notAfter?: string;
+    readonly problem?: string;
+    readonly retryAt?: string;
 };
 
 /**

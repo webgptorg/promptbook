@@ -1,11 +1,16 @@
-import { errorMessage } from '../common/errors.js';
-import type { AppConnectionView, AppHeartbeatView } from '../engine/snapshot.js';
+import { PtbkError, errorMessage } from '../common/errors.js';
+import type { AppCertificateView, AppConnectionView, AppHeartbeatView, AppRelayView } from '../engine/snapshot.js';
 import { HEARTBEAT_INTERVAL_MS, buildHeartbeat, hostFigures, nextHeartbeatSeq, sendHeartbeat, type HeartbeatUpdateState } from './heartbeat.js';
 import { loadEngineIdentity, type EngineIdentity } from './identity.js';
 import type { TestTlsOptions } from './net.js';
-import { engineVersion, readRegistration, type StoredRegistration } from './registration.js';
-import { DEFAULT_DASHBOARD_URL, appSettings, type RelayEndpoint } from './settings.js';
-import { RelayLink, type TunnelStreamHandler } from './tunnel/relay-link.js';
+import { CONFORMANCE_BUILD } from './build.js';
+import { engineVersion, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
+import { DEFAULT_DASHBOARD_URL, appSettings, isTunnelMode, type AppSettings, type RelayEndpoint } from './settings.js';
+import { RelayLink } from './tunnel/relay-link.js';
+import { AccessStore, type Actor } from './web/access.js';
+import { SESSION_COOKIE_NAME } from './web/gateway.js';
+import type { CertificateSourceKind } from './web/certificates.js';
+import { EngineOrigin } from './web/origin.js';
 
 /**
  * The App view of a project whose engine is not running, from the stored identity and registration only (no network,
@@ -58,12 +63,66 @@ export type AppConnectionOptions = {
     readonly onChange: () => void;
     readonly figures: () => AppEngineFigures;
     readonly log?: (text: string, level: 'info' | 'warning' | 'error') => void;
-    /** Browser streams; refused until the engine ends browser TLS itself. */
-    readonly onStream?: TunnelStreamHandler;
+    /**
+     * The engine's own web origin behind the tunnels: the engine API and the documents (UI) its gateway serves to
+     * signed-in members. Without it, browser streams are refused.
+     */
+    readonly web?: AppWebHandlers;
     /** Heartbeat cadence (tests only shorten it). */
     readonly heartbeatIntervalMs?: number;
     readonly tls?: TestTlsOptions;
 };
+
+/**
+ * What the engine serves on its own origin through the App tunnels, behind the passkey gateway.
+ *
+ * @private App connection
+ */
+export type AppWebHandlers = {
+    /** The engine API (`/api/v1/...`) for a signed-in member. */
+    readonly api: (request: Request, actor: Actor, access: AccessStore) => Promise<Response>;
+    /** Every other document or file for a signed-in member (the UI bundle or the plain engine page). */
+    readonly documents: (request: Request, actor: Actor) => Promise<Response>;
+    /** Audit entries of gateway events. */
+    readonly audit?: (event: import('./web/gateway.js').GatewayAuditEvent) => void;
+    /** `dev-ca` only in the conformance build. */
+    readonly certificateSource?: CertificateSourceKind;
+    /** Called with the access store once it is open (the API's members, sessions and passkeys). */
+    readonly onAccess?: (access: AccessStore) => void;
+};
+
+/**
+ * What asking for the owner setup link gave: the link (shown only in the operator's terminal), what is still missing
+ * before the engine's address works, or an owner who already exists.
+ *
+ * @private App connection
+ */
+export type SetupLinkOutcome =
+    | { readonly kind: 'issued'; readonly url: string; readonly expiresAt: string; readonly engineId: string; readonly fingerprint: string }
+    | { readonly kind: 'not-ready'; readonly missing: string }
+    | { readonly kind: 'owner-exists'; readonly hostname: string };
+
+/**
+ * What the engine API's security overview (`GET /security`) shows of the App connection: no key, token or signature.
+ *
+ * @private App connection
+ */
+export type AppSecurityFacts = {
+    readonly hostname?: string;
+    readonly dashboardUrl: string;
+    readonly certificate?: { readonly sha256: string; readonly notAfter: string };
+    readonly certificateState?: AppCertificateView['state'];
+    readonly relays: readonly AppRelayView[];
+    readonly heartbeat?: AppHeartbeatView;
+    /** The engine clock minus the App's, from the last stale-timestamp answer. */
+    readonly clockSkew?: { readonly seconds: number; readonly measuredAt: string };
+    readonly acmeDirectoryUrl?: string;
+};
+
+/**
+ * Longest wait of the launch-contract registration: a link code is valid for 30 minutes.
+ */
+const REGISTRATION_ATTEMPTS = 9;
 
 /**
  * Keeps one project's App connection: the signed heartbeat and one tunnel per relay while the project is linked. It
@@ -76,6 +135,17 @@ export class AppConnection {
     private registration?: StoredRegistration;
     private problem?: string;
     private links: RelayLink[] = [];
+    private origin?: EngineOrigin;
+    private access?: AccessStore;
+    private wasConnected = false;
+    /** The launch-contract registration with `PTBK_LINK_CODE` while it runs. */
+    private registering?: AbortController;
+    /** Why the App refused the launch-contract registration (final codes stay until the next start). */
+    private registrationRefusal?: { readonly code: string; readonly message: string };
+    /** Whether "Ready" was reported for the current link. */
+    private announcedReady = false;
+    /** The engine clock minus the App's, measured from the last stale-timestamp answer. */
+    private clockSkew?: { readonly seconds: number; readonly measuredAt: string };
     private heartbeat?: AppHeartbeatView;
     private heartbeatTimer?: NodeJS.Timeout;
     private dashboardUrl = DEFAULT_DASHBOARD_URL;
@@ -85,12 +155,17 @@ export class AppConnection {
 
     public constructor(private readonly options: AppConnectionOptions) {}
 
-    /** Loads the link and connects when the project is linked. */
+    /**
+     * Loads the link and connects when the project is linked. An engine started as an App tunnel engine
+     * (`PTBK_MODE=tunnel`) refuses to start when its App state is unsafe or invalid (a loose data directory or key
+     * file, invalid configuration): this throws, naming the path or setting.
+     */
     public async start(): Promise<void> {
         await this.serialize(async () => {
             this.running = true;
             await this.load();
         });
+        if (this.problem && isTunnelMode(this.options.env)) throw new PtbkError(this.problem, { kind: 'configuration', phase: 'App connection' });
     }
 
     /** Re-reads the link after `ptbk connect` or `ptbk disconnect`. */
@@ -124,12 +199,25 @@ export class AppConnection {
         this.identity = undefined;
         this.registration = undefined;
         this.heartbeat = undefined;
+        this.registrationRefusal = undefined;
+        this.announcedReady = false;
         try {
             const settings = appSettings(this.options.env);
             this.dashboardUrl = settings.dashboardUrl;
-            this.identity = await loadEngineIdentity(this.options.directory, { create: false });
+            // The launch contract: an engine given a link code registers with it once, when it holds no registration.
+            const linkCode = this.options.env.PTBK_LINK_CODE?.trim();
+            this.identity = await loadEngineIdentity(this.options.directory, { create: Boolean(linkCode) });
             this.registration = await readRegistration(this.options.directory, this.identity, settings);
-            if (this.registration && this.identity) this.connect(this.identity, this.registration, settings.relays);
+            if (this.identity) {
+                const hostname = this.registration?.hostname ?? (settings.engineDomain ? `${this.identity.engineId}.${settings.engineDomain}` : undefined);
+                this.options.log?.(`App engine ${this.identity.engineId}${hostname ? ` (${hostname})` : ''}, fingerprint ${this.identity.fingerprint.formatted}.`, 'info');
+            }
+            if (this.registration && this.identity) {
+                if (linkCode) this.options.log?.('Already linked to the Promptbook App; the link code was not used.', 'info');
+                await this.connect(this.identity, this.registration, settings.relays);
+            } else if (linkCode && this.identity) {
+                this.register(this.identity, linkCode, settings);
+            }
         } catch (error) {
             this.problem = errorMessage(error);
             this.options.log?.(`The App connection is not available: ${this.problem}`, 'error');
@@ -137,8 +225,153 @@ export class AppConnection {
         this.options.onChange();
     }
 
+    /** Registers in the background with the launch contract's link code, then connects (never logs the code). */
+    private register(identity: EngineIdentity, linkCode: string, settings: AppSettings): void {
+        const abort = new AbortController();
+        this.registering = abort;
+        this.options.log?.(`Linking this engine with the Promptbook App at ${settings.dashboardUrl}.`, 'info');
+        void (async () => {
+            const outcome = await registerEngine({
+                identity,
+                linkCode,
+                settings,
+                env: this.options.env,
+                attempts: REGISTRATION_ATTEMPTS,
+                signal: abort.signal,
+                tls: this.options.tls,
+                onRetry: (refused, delayMs) => this.options.log?.(`The Promptbook App did not link the engine (${refused.code}): ${refused.message} Retrying in ${String(Math.round(delayMs / 1000))} s.`, 'warning'),
+            }).catch((error: unknown) => ({ kind: 'refused' as const, code: 'internal-error', final: true, message: errorMessage(error) }));
+            if (abort.signal.aborted || !this.running || this.registering !== abort) return;
+            this.registering = undefined;
+            if (outcome.kind === 'refused') {
+                this.registrationRefusal = { code: outcome.code, message: outcome.message };
+                this.options.log?.(`The Promptbook App refused to link this engine (${outcome.code}): ${outcome.message}`, 'error');
+                this.options.onChange();
+                return;
+            }
+            await this.serialize(async () => {
+                if (!this.running || this.identity !== identity) return;
+                try {
+                    await storeRegistration(this.options.directory, outcome.registration);
+                    this.registration = outcome.registration;
+                    this.options.log?.(`Linked to your Promptbook account as ${outcome.registration.hostname}.`, 'info');
+                    await this.connect(identity, outcome.registration, settings.relays);
+                } catch (error) {
+                    this.problem = errorMessage(error);
+                    this.options.log?.(`The App connection is not available: ${this.problem}`, 'error');
+                }
+                this.options.onChange();
+            });
+        })();
+    }
+
+    /** Something of the connection changed: report readiness once, then tell the engine. */
+    private changed(): void {
+        const hostname = this.registration?.hostname;
+        if (!this.announcedReady && hostname && this.origin?.servesBrowsers && this.links.some((link) => link.view().state === 'connected')) {
+            this.announcedReady = true;
+            if (this.access && !this.access.hasOwner) this.options.log?.('No owner yet. Run `ptbk connect --setup-link` in this project to get the setup link.', 'info');
+            this.options.log?.(`Ready: https://${hostname}/`, 'info');
+        }
+        this.options.onChange();
+    }
+
+    /** What still keeps browsers from opening the engine's address, if anything. */
+    private notReadyReason(): string | undefined {
+        if (!this.registration) return this.registering ? 'The engine is still linking with the Promptbook App.' : 'This project is not linked to the Promptbook App; run `ptbk connect --link <code>` first.';
+        if (!this.origin || !this.access) return 'The engine does not serve its own address in this run.';
+        if (!this.links.some((link) => link.view().state === 'connected')) return 'No relay routes the engine yet.';
+        if (!this.origin.servesBrowsers) {
+            const certificate = this.origin.certificateView();
+            return `The engine has no valid certificate for ${certificate.hostname} yet (${certificate.state}${certificate.problem ? `: ${certificate.problem}` : ''}).`;
+        }
+        return undefined;
+    }
+
+    /**
+     * A fresh owner setup link (`https://<hostname>/setup#<secret>`) replacing any earlier one, once the engine's address
+     * works and while it has no owner. The caller shows it only in the operator's terminal, never in a log.
+     */
+    public async setupLink(): Promise<SetupLinkOutcome> {
+        const missing = this.notReadyReason();
+        if (missing) return { kind: 'not-ready', missing };
+        const access = this.access!;
+        const registration = this.registration!;
+        if (access.hasOwner) return { kind: 'owner-exists', hostname: registration.hostname };
+        const { secret, expiresAt } = await access.createSetupSecret();
+        return { kind: 'issued', url: `https://${registration.hostname}/setup#${secret}`, expiresAt: expiresAt.toISOString(), engineId: this.identity?.engineId ?? registration.engineId, fingerprint: this.identity?.fingerprint.formatted ?? '' };
+    }
+
+    /**
+     * The owner reset run in the engine's terminal: every member, passkey and session ends (the agents and the project
+     * stay), then a fresh setup link once the address works.
+     */
+    public async resetOwner(): Promise<SetupLinkOutcome> {
+        if (!this.access) return { kind: 'not-ready', missing: this.notReadyReason() ?? 'The engine does not serve its own address in this run.' };
+        await this.access.resetOwner();
+        this.options.log?.('The owner access was reset: every passkey and session of this engine ended.', 'warning');
+        this.options.onChange();
+        return await this.setupLink();
+    }
+
+    /**
+     * A session for the conformance harness (`conformance-session`): the owner, or a new member holding exactly the
+     * given permissions. Only the conformance build has it; it is never an HTTP endpoint.
+     */
+    public async conformanceSession(subject: { readonly kind: 'owner' } | { readonly kind: 'member'; readonly permissions: readonly string[] }): Promise<{ readonly cookie: string } | null> {
+        if (!CONFORMANCE_BUILD) throw new PtbkError('Conformance sessions exist only in the conformance build.', { kind: 'unsupported' });
+        const access = this.access;
+        if (!access) return null;
+        const member =
+            subject.kind === 'owner'
+                ? (access.members().find((candidate) => candidate.role === 'owner') ?? (await access.addMember({ displayName: 'Conformance owner', role: 'owner' })))
+                : await access.addMember({ displayName: 'Conformance member', role: 'member', permissions: subject.permissions as never });
+        const { token } = await access.signIn(member.id, null, null);
+        return { cookie: `${SESSION_COOKIE_NAME}=${token}` };
+    }
+
+    /** The access store (members, passkeys, sessions) once the project is linked. */
+    public get accessStore(): AccessStore | undefined {
+        return this.access;
+    }
+
+    /** Opens the engine's own origin (access state and certificate) for the linked hostname. */
+    private async openOrigin(identity: EngineIdentity, registration: StoredRegistration): Promise<void> {
+        const web = this.options.web;
+        if (!web) return;
+        const access = await AccessStore.open(this.options.directory);
+        this.access = access;
+        web.onAccess?.(access);
+        this.origin = new EngineOrigin({
+            directory: this.options.directory,
+            hostname: registration.hostname,
+            certificateSource: web.certificateSource ?? 'acme',
+            env: this.options.env,
+            tunnelReady: () => this.links.some((link) => link.view().state === 'connected'),
+            onChange: () => this.changed(),
+            log: this.options.log,
+            tls: this.options.tls,
+            access,
+            engineId: identity.engineId,
+            fingerprint: identity.fingerprint,
+            api: (request, actor) => web.api(request, actor, access),
+            documents: web.documents,
+            audit: web.audit,
+        });
+        await this.origin.start();
+    }
+
+    /** Relay state changed: let the certificate manager order once a tunnel is ready, then tell the engine. */
+    private linkChanged(): void {
+        const connected = this.links.some((link) => link.view().state === 'connected');
+        if (connected && !this.wasConnected) this.origin?.tunnelBecameReady();
+        this.wasConnected = connected;
+        this.changed();
+    }
+
     /** Starts the relay links and the heartbeat loop. */
-    private connect(identity: EngineIdentity, registration: StoredRegistration, override: readonly RelayEndpoint[] | undefined): void {
+    private async connect(identity: EngineIdentity, registration: StoredRegistration, override: readonly RelayEndpoint[] | undefined): Promise<void> {
+        await this.openOrigin(identity, registration);
         const version = engineVersion();
         const relays = override ?? registration.relays.map((id) => ({ id, port: 443 }));
         this.links = relays.map(
@@ -148,8 +381,8 @@ export class AppConnection {
                     identity,
                     version,
                     env: this.options.env,
-                    onChange: this.options.onChange,
-                    onStream: this.options.onStream,
+                    onChange: () => this.linkChanged(),
+                    onStream: this.origin ? (stream) => this.origin?.handleStream(stream) : undefined,
                     log: this.options.log,
                     tls: this.options.tls,
                 }),
@@ -160,10 +393,14 @@ export class AppConnection {
                 const figures = this.options.figures();
                 const host = await hostFigures(this.options.directory);
                 const seq = await nextHeartbeatSeq(this.options.directory);
-                const body = buildHeartbeat({ engineId: identity.engineId, seq, ts: new Date().toISOString(), version, uptimeS: process.uptime(), ...host, ...figures });
+                const access = this.access;
+                // Members who can sign in: at least one registered passkey (0 until the owner's first passkey).
+                const members = access ? access.members().filter((member) => access.passkeys(member.id).length > 0).length : figures.members;
+                const body = buildHeartbeat({ engineId: identity.engineId, seq, ts: new Date().toISOString(), version, uptimeS: process.uptime(), ...host, ...figures, members });
                 const result = await sendHeartbeat({ identity, dashboardUrl: registration.dashboardUrl, body, env: this.options.env, tls: this.options.tls });
                 if (!this.running || this.registration !== registration) return;
-                this.heartbeat = { ...result, nextAt: new Date(Date.now() + (this.options.heartbeatIntervalMs ?? HEARTBEAT_INTERVAL_MS)).toISOString() };
+                this.heartbeat = { ...result, nextAt: new Date(Date.now() + this.heartbeatIntervalMs()).toISOString() };
+                if (result.skewMs !== undefined) this.clockSkew = { seconds: Math.round(result.skewMs / 1000), measuredAt: result.at };
                 if (result.outcome !== 'accepted') this.options.log?.(`The App heartbeat was ${result.outcome === 'refused' ? `refused (HTTP ${String(result.status)}${result.code ? `, ${result.code}` : ''})` : 'not delivered'}.`, 'warning');
             } catch (error) {
                 this.heartbeat = { at: new Date().toISOString(), outcome: 'failed', body: '', message: errorMessage(error) };
@@ -171,16 +408,44 @@ export class AppConnection {
             this.options.onChange();
         };
         void beat();
-        this.heartbeatTimer = setInterval(() => void beat(), this.options.heartbeatIntervalMs ?? HEARTBEAT_INTERVAL_MS);
+        this.heartbeatTimer = setInterval(() => void beat(), this.heartbeatIntervalMs());
         this.heartbeatTimer.unref();
+    }
+
+    /** The heartbeat cadence: 60 s; the conformance build also takes `PTBK_HEARTBEAT_INTERVAL_S` from its command. */
+    private heartbeatIntervalMs(): number {
+        if (this.options.heartbeatIntervalMs) return this.options.heartbeatIntervalMs;
+        const override = Number(this.options.env.PTBK_HEARTBEAT_INTERVAL_S);
+        return CONFORMANCE_BUILD && Number.isFinite(override) && override >= 1 ? override * 1000 : HEARTBEAT_INTERVAL_MS;
     }
 
     /** Stops every link and the heartbeat. */
     private disconnect(): void {
+        this.registering?.abort();
+        this.registering = undefined;
         clearInterval(this.heartbeatTimer);
         this.heartbeatTimer = undefined;
         for (const link of this.links) link.stop();
         this.links = [];
+        this.origin?.stop();
+        this.origin = undefined;
+        this.access = undefined;
+        this.wasConnected = false;
+    }
+
+    /** What the security overview shows of the connection. */
+    public securityFacts(): AppSecurityFacts {
+        const served = this.origin?.certificates.served();
+        return {
+            ...(this.registration ? { hostname: this.registration.hostname } : {}),
+            dashboardUrl: this.registration?.dashboardUrl ?? this.dashboardUrl,
+            ...(served ? { certificate: served } : {}),
+            ...(this.origin ? { certificateState: this.origin.certificateView().state } : {}),
+            relays: this.links.map((link) => link.view()),
+            ...(this.heartbeat ? { heartbeat: this.heartbeat } : {}),
+            ...(this.clockSkew ? { clockSkew: this.clockSkew } : {}),
+            ...(this.origin && this.options.web?.certificateSource !== 'dev-ca' ? { acmeDirectoryUrl: this.options.env.PTBK_ACME_DIRECTORY_URL || 'https://acme-v02.api.letsencrypt.org/directory' } : {}),
+        };
     }
 
     /** The App page's view of this connection (no secrets: no key, signature or link code). */
@@ -190,7 +455,7 @@ export class AppConnection {
         const relays = this.links.map((link) => link.view());
         const connected = relays.filter((relay) => relay.state === 'connected').length;
         const refusal = relays.find((relay) => relay.refusal)?.refusal;
-        const state: AppConnectionView['state'] = this.problem ? 'problem' : !registration ? 'unlinked' : connected ? 'linked' : refusal || this.heartbeat?.code === 'engine-suspended' ? 'refused' : 'connecting';
+        const state: AppConnectionView['state'] = this.problem ? 'problem' : this.registrationRefusal ? 'refused' : this.registering ? 'connecting' : !registration ? 'unlinked' : connected ? 'linked' : refusal || this.heartbeat?.code === 'engine-suspended' ? 'refused' : 'connecting';
         return {
             state,
             dashboardUrl: registration?.dashboardUrl ?? this.dashboardUrl,
@@ -198,8 +463,10 @@ export class AppConnection {
             ...(registration ? { hostname: registration.hostname, url: `https://${registration.hostname}/`, linkedAt: registration.registeredAt } : {}),
             relays,
             ...(this.heartbeat ? { heartbeat: this.heartbeat } : {}),
-            browserAccess: 'unavailable',
-            ...(this.problem ? { problem: this.problem } : {}),
+            browserAccess: connected && this.origin?.servesBrowsers ? 'available' : 'unavailable',
+            ...(this.origin ? { certificate: this.origin.certificateView() } : {}),
+            ...(this.access ? { owner: this.access.hasOwner ? 'set' : 'none' } : {}),
+            ...(this.problem ? { problem: this.problem } : this.registrationRefusal ? { problem: `${this.registrationRefusal.message} (${this.registrationRefusal.code})` } : {}),
         };
     }
 }

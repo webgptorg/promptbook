@@ -344,9 +344,20 @@ Shortcuts on the home screen open the same pages or call the same operations: A 
         summary: 'Link the project to the Promptbook App, or show its App connection.',
         description: `Links this project's engine to the Promptbook App (app.ptbk.io) as one App engine. Get a one-time link code in the App, then run \`ptbk connect --link <code>\` in the project (PTBK_LINK_CODE is accepted instead of the option for automation). The engine creates its own identity in the ignored .ptbk/app/ when missing, registers it with a signed request and stores the link; a running engine starts its heartbeat and relay tunnels at once, a stopped one when it starts. The link code is sent once and never stored or printed. Compare the printed fingerprint with the one the App shows.
 
-Without a link code it prints the App connection once: state, engine ID and fingerprint, address, relays and the last heartbeat, including exactly what the heartbeat tells the App. An already linked project makes no network call. PTBK_DASHBOARD_URL selects another App origin (development); HTTPS_PROXY/NO_PROXY and NODE_EXTRA_CA_CERTS apply.`,
+Without a link code it prints the App connection once: state, engine ID and fingerprint, address, relays and the last heartbeat, including exactly what the heartbeat tells the App. An already linked project makes no network call. PTBK_DASHBOARD_URL selects another App origin (development); HTTPS_PROXY/NO_PROXY and NODE_EXTRA_CA_CERTS apply.
+
+Browsers open the engine at its own address (https://<engine ID>.<engine domain>/), where TLS ends on this computer and members sign in with passkeys. The first owner registers a passkey through \`ptbk connect --setup-link\`: a one-time link valid for 30 minutes, printed only in this terminal once the address works; \`ptbk connect --reset-owner\` ends every passkey and session and prints a new one.`,
         optionGroups: [
             { title: 'Link', options: [{ name: 'link', type: 'string', valueName: '<code>', description: 'The one-time link code from the Promptbook App.' }, JSON_OPTION] },
+            {
+                title: 'Owner access',
+                options: [
+                    { name: 'setup-link', type: 'boolean', description: 'Print a fresh one-time owner setup link of the engine’s address (interactive terminal only, or with --json); it waits until the address works.' },
+                    { name: 'reset-owner', type: 'boolean', description: 'End every passkey and session of this engine, then print a new setup link (agents and data stay).' },
+                    { name: 'wait', type: 'boolean', negatable: true, description: 'With --setup-link: wait up to 10 minutes for the address to work (--no-wait says what is missing and exits 3).' },
+                    { name: 'yes', type: 'boolean', description: 'With --reset-owner: skip typing the start of the engine ID.' },
+                ],
+            },
             PROJECT_OPTIONS,
             PRESENTATION_OPTIONS,
         ],
@@ -354,8 +365,30 @@ Without a link code it prints the App connection once: state, engine ID and fing
             { command: 'ptbk connect --link <code>', description: 'Link this project with the code shown in the App.' },
             { command: 'ptbk connect', description: 'Show the App connection.' },
             { command: 'ptbk connect --json', description: 'The App connection as data.' },
+            { command: 'ptbk connect --setup-link', description: 'The one-time link that registers the owner’s passkey on the engine’s address.' },
+            { command: 'ptbk connect --reset-owner', description: 'Lost every passkey: end all access and print a new setup link.' },
         ],
         run: lazy(() => import('./commands/connect.js')),
+    },
+    {
+        name: 'conformance-session',
+        category: 'Maintain',
+        hidden: true,
+        summary: 'Conformance build only: a session of the running engine for the App conformance harness.',
+        description: 'Prints {"cookie":"__Host-ptbk_session=..."} for the owner or a new member holding exactly the listed permissions, or null when the engine is not running. A release build refuses it; it is never an HTTP endpoint.',
+        optionGroups: [
+            {
+                title: 'Subject',
+                options: [
+                    { name: 'subject', type: 'string', valueName: 'owner|member', description: 'The owner, or a new member.' },
+                    { name: 'permissions', type: 'string', valueName: '<a,b>', description: 'The member’s exact permissions (comma-separated, may be empty).' },
+                ],
+            },
+            PROJECT_OPTIONS,
+            PRESENTATION_OPTIONS,
+        ],
+        examples: [{ command: 'ptbk conformance-session --subject owner', description: 'An owner session cookie.' }],
+        run: lazy(() => import('./commands/connect.js').then((module) => ({ default: module.conformanceSession }))),
     },
     {
         name: 'disconnect',

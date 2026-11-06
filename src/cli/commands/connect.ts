@@ -1,13 +1,15 @@
-import { storedAppView } from '../../app/connection.js';
+import { CONFORMANCE_BUILD } from '../../app/build.js';
+import { storedAppView, type SetupLinkOutcome } from '../../app/connection.js';
 import { loadEngineIdentity } from '../../app/identity.js';
 import { forgetRegistration, readRegistration, registerEngine, storeRegistration, type RegistrationOutcome } from '../../app/registration.js';
-import { appSettings } from '../../app/settings.js';
-import { EXIT, errorMessage, usageError } from '../../common/errors.js';
+import { appDirectory, appSettings } from '../../app/settings.js';
+import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
 import type { AppConnectionView } from '../../engine/snapshot.js';
 import type { Project } from '../../project/workspace.js';
 import { lookupService } from '../../service/control.js';
 import { appDetailLines, appPlainLines, appState } from '../../ui/app-connection.js';
 import { renderPanel, type PanelTone } from '../../ui/panels.js';
+import { CANCELLED, inputLine } from '../../ui/prompts.js';
 import { printJson, selectedProject } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
 
@@ -28,7 +30,7 @@ async function currentView(project: Project, env: NodeJS.ProcessEnv): Promise<Ap
             // An engine without the App connection (older or maintenance): describe the stored link instead.
         }
     }
-    return await storedAppView(project.runtime.app, env);
+    return await storedAppView(appDirectory(project.runtime.app, env), env);
 }
 
 /**
@@ -81,6 +83,7 @@ function reloadNote(reload: EngineReload, linked: boolean): string {
 export default async function connect(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const json = flag(context, 'json') === true;
+    if (flag(context, 'setup-link') === true || flag(context, 'reset-owner') === true) return await ownerAccess(context, project, json);
     const given = option<string>(context, 'link');
     if (given !== undefined && !given.trim()) throw usageError('--link needs the link code from the Promptbook App.', 'connect', 'Run `ptbk connect --link <code>` with the code shown in the App.');
     const linkCode = (given ?? context.env.PTBK_LINK_CODE)?.trim();
@@ -91,7 +94,7 @@ export default async function connect(context: CommandContext): Promise<number> 
         return view.state === 'problem' ? EXIT.failure : EXIT.success;
     }
     const settings = appSettings(context.env);
-    const directory = project.runtime.app;
+    const directory = appDirectory(project.runtime.app, context.env);
     const identity = await loadEngineIdentity(directory, { create: true });
     if (!identity) throw new Error('The engine identity could not be created.');
     const existing = await readRegistration(directory, identity, settings);
@@ -136,7 +139,7 @@ export async function disconnect(context: CommandContext): Promise<number> {
     const project = await selectedProject(context);
     const json = flag(context, 'json') === true;
     const settings = appSettings(context.env);
-    const directory = project.runtime.app;
+    const directory = appDirectory(project.runtime.app, context.env);
     const identity = await loadEngineIdentity(directory, { create: false });
     const existing = identity ? await readRegistration(directory, identity, settings).catch(() => undefined) : undefined;
     // A damaged registration file is forgotten too: disconnecting is how the owner clears it.
@@ -154,5 +157,110 @@ export async function disconnect(context: CommandContext): Promise<number> {
             ? { title: 'Disconnected', message: `This project no longer connects to the Promptbook App as ${existing.hostname}. ${reloadNote(reload, false)} The App still lists the engine until you remove it there; \`ptbk connect --link <code>\` links the same engine again.`, tone: 'muted' }
             : { title: 'Not linked', message: 'This project was not linked to the Promptbook App; nothing changed.', tone: 'muted' },
     );
+    return EXIT.success;
+}
+
+/**
+ * Longest wait of `--setup-link` for the engine's address to work.
+ */
+const SETUP_LINK_WAIT_MS = 10 * 60_000;
+
+/**
+ * Asks the running engine for the owner setup link (or the owner reset), waiting until its address works.
+ */
+async function requestOwnerAccess(project: Project, method: 'app-setup-link' | 'app-reset-owner', wait: boolean, onWaiting: (missing: string) => void): Promise<SetupLinkOutcome> {
+    const lookup = await lookupService(project);
+    if (lookup.state !== 'running') throw new PtbkError('The engine of this project is not running; the setup link comes from the running engine.', { kind: 'incomplete', next: ['ptbk start'] });
+    if (!lookup.engine.compatible) throw new PtbkError(`The running engine is ptbk ${lookup.engine.version}; restart it with \`ptbk restart\` first.`, { kind: 'incomplete' });
+    let outcome = await lookup.client.request<SetupLinkOutcome>(method);
+    const deadline = Date.now() + SETUP_LINK_WAIT_MS;
+    let said = '';
+    while (wait && outcome.kind === 'not-ready' && Date.now() < deadline) {
+        if (outcome.missing !== said) onWaiting((said = outcome.missing));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        outcome = await lookup.client.request<SetupLinkOutcome>('app-setup-link');
+    }
+    return outcome;
+}
+
+/**
+ * `ptbk connect --setup-link` and `ptbk connect --reset-owner`: the owner setup link of the engine's own address,
+ * printed only to an interactive terminal (or as `--json` when asked) and never to a log; the reset first ends every
+ * passkey and session after the operator types the start of the engine ID (or `--yes`).
+ */
+async function ownerAccess(context: CommandContext, project: Project, json: boolean): Promise<number> {
+    const { terminal } = context;
+    const reset = flag(context, 'reset-owner') === true;
+    const wait = flag(context, 'wait') !== false;
+    if (!json && !terminal.interactive) throw usageError('The setup link is shown only in an interactive terminal, because whoever reads it first becomes the owner.', 'connect', 'Run it in a terminal, or add --json to print it as data.');
+    if (reset && flag(context, 'yes') !== true) {
+        if (!terminal.interactive) throw usageError('The owner reset needs confirmation: run it in a terminal, or add --yes.', 'connect');
+        const view = await currentView(project, context.env);
+        const prefix = (view.engineId ?? '').slice(0, 8);
+        const typed = await inputLine(terminal, {
+            frame: { title: 'ptbk connect', step: 'Reset the owner' },
+            question: `Every passkey and session of this engine ends (agents and data stay). Type ${prefix || 'the engine ID'} to confirm:`,
+            validate: (value) => (value.trim() === prefix ? undefined : `Type ${prefix} exactly.`),
+        });
+        if (typed === CANCELLED) return EXIT.incomplete;
+    }
+    const outcome = await requestOwnerAccess(project, reset ? 'app-reset-owner' : 'app-setup-link', wait, (missing) => {
+        if (!json) terminal.write(`${terminal.style.muted(`Waiting: ${missing}`)}\n`);
+    });
+    if (json) {
+        printJson(outcome.kind === 'issued' ? { outcome: 'issued', url: outcome.url, expiresAt: outcome.expiresAt, engineId: outcome.engineId } : outcome.kind === 'owner-exists' ? { outcome: 'owner-exists', hostname: outcome.hostname } : { outcome: 'not-ready', reason: outcome.missing });
+        return outcome.kind === 'issued' ? EXIT.success : EXIT.incomplete;
+    }
+    const { style } = terminal;
+    const width = Math.min(terminal.columns(), 100);
+    if (outcome.kind === 'owner-exists') {
+        terminal.write(`${renderPanel({ title: 'This engine already has an owner', lines: [`Sign in at https://${outcome.hostname}/ with the owner's passkey.`, 'Lost every passkey? `ptbk connect --reset-owner` ends all access and prints a new setup link.'], width, tone: 'muted', unicode: terminal.unicode, style }).join('\n')}\n`);
+        return EXIT.success;
+    }
+    if (outcome.kind === 'not-ready') {
+        terminal.write(`${renderPanel({ title: reset ? 'Owner reset; no setup link yet' : 'No setup link yet', lines: [outcome.missing, 'Run `ptbk connect --setup-link` again once the engine is reachable.'], width, tone: 'attention', unicode: terminal.unicode, style }).join('\n')}\n`);
+        return EXIT.incomplete;
+    }
+    terminal.write(
+        `${renderPanel({
+            title: reset ? 'Owner reset: set up access again' : 'Owner setup link',
+            lines: [
+                'Open this link on the device that should hold the owner passkey. It works once, until ' + new Date(outcome.expiresAt).toLocaleTimeString() + ', and whoever opens it first becomes the owner:',
+                '',
+                style.bold(outcome.url),
+                '',
+                `Before creating the passkey, check that the page shows engine ${outcome.engineId} and fingerprint ${outcome.fingerprint}.`,
+            ],
+            width,
+            tone: 'success',
+            unicode: terminal.unicode,
+            style,
+        }).join('\n')}\n`,
+    );
+    return EXIT.success;
+}
+
+/**
+ * `ptbk conformance-session --subject owner|member [--permissions a,b]`: a session of the running engine for the App's
+ * conformance harness, as `{"cookie":"__Host-ptbk_session=..."}` (or `null`). Only the conformance build has it; a
+ * release build refuses to run it.
+ *
+ * @private command
+ */
+export async function conformanceSession(context: CommandContext): Promise<number> {
+    if (!CONFORMANCE_BUILD) throw new PtbkError('conformance-session exists only in the conformance build of ptbk.', { kind: 'unsupported' });
+    const subject = option<string>(context, 'subject');
+    if (subject !== 'owner' && subject !== 'member') throw usageError('--subject must be owner or member.', 'conformance-session');
+    const listed = option<string>(context, 'permissions');
+    if (subject === 'owner' && listed !== undefined) throw usageError('--permissions applies to --subject member only.', 'conformance-session');
+    const project = await selectedProject(context);
+    const lookup = await lookupService(project);
+    if (lookup.state !== 'running') {
+        process.stdout.write('null\n');
+        return EXIT.success;
+    }
+    const permissions = listed ? listed.split(',').map((name) => name.trim()).filter(Boolean) : [];
+    const session = await lookup.client.request<{ cookie: string } | null>('app-conformance-session', { subject, permissions });
+    process.stdout.write(`${JSON.stringify(session)}\n`);
     return EXIT.success;
 }

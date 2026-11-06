@@ -1,5 +1,7 @@
+import { resolve } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { parseHostname } from './identity.js';
+import { TUNNEL_PATH } from './tunnel/handshake.js';
 
 /**
  * The App dashboard origin when `PTBK_DASHBOARD_URL` is not set.
@@ -68,10 +70,31 @@ function parseRelay(value: string): RelayEndpoint {
         throw new PtbkError('PTBK_RELAYS must list wss:// relay URLs separated by commas.', { kind: 'configuration' });
     }
     const id = parseHostname(url.hostname);
-    if (url.protocol !== 'wss:' || !id || url.username || url.password || (url.pathname !== '/' && url.pathname !== '') || url.search || url.hash) {
+    // The tunnel path may be spelled out (`wss://relay:443/v1/tunnel`); the engine always dials it.
+    if (url.protocol !== 'wss:' || !id || url.username || url.password || (url.pathname !== '/' && url.pathname !== '' && url.pathname !== TUNNEL_PATH) || url.search || url.hash) {
         throw new PtbkError('PTBK_RELAYS must list wss://<relay hostname>[:port] URLs separated by commas.', { kind: 'configuration' });
     }
     return { id, port: url.port ? Number(url.port) : 443 };
+}
+
+/**
+ * The project's App data directory: `PTBK_DATA_DIR` when an operator or harness sets it (the platform's launch
+ * contract), otherwise the ignored `.ptbk/app/` of the project.
+ *
+ * @private App connection
+ */
+export function appDirectory(projectAppDirectory: string, env: NodeJS.ProcessEnv = process.env): string {
+    return env.PTBK_DATA_DIR ? resolve(env.PTBK_DATA_DIR) : projectAppDirectory;
+}
+
+/**
+ * Whether the engine runs as an App tunnel engine (`PTBK_MODE=tunnel`): then an unsafe or invalid App connection is a
+ * start refusal (non-zero exit naming the problem) instead of a problem shown on the App page.
+ *
+ * @private App connection
+ */
+export function isTunnelMode(env: NodeJS.ProcessEnv = process.env): boolean {
+    return env.PTBK_MODE === 'tunnel';
 }
 
 /**

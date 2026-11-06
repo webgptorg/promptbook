@@ -1062,6 +1062,17 @@
         return `${connected} of ${app.relays.length} relay${app.relays.length === 1 ? '' : 's'}`;
     }
 
+    /**
+     * Whether the project opens from the App now, and what it still waits for (the terminal page says the same).
+     */
+    function browserAccessText(app) {
+        if (app.browserAccess === 'available') return app.owner === 'none' ? 'Opening this project from the App works, but nobody can sign in yet: run `ptbk connect --setup-link` in this project to set up your passkey.' : 'Opening this project from the App works: sign in there with your passkey.';
+        if (!app.relays.some((relay) => relay.state === 'connected')) return 'Opening this project from the App waits for a connected relay.';
+        const certificate = app.certificate;
+        if (certificate && certificate.state === 'failed') return `Opening this project from the App waits for the engine's own certificate: ${certificate.problem || 'issuing it failed'}${certificate.retryAt ? ` (retry ${time(certificate.retryAt)})` : ''}.`;
+        return "Opening this project from the App waits for the engine's own certificate, which it is getting through the relay.";
+    }
+
     /** One heartbeat outcome. */
     function heartbeatOutcome(beat) {
         if (beat.outcome === 'accepted') return h('span', { className: 'ok' }, 'accepted');
@@ -1105,7 +1116,7 @@
         }
         card.append(list());
         if (app.state === 'offline') card.append(h('p', { className: 'muted' }, 'The engine is stopped, so the App shows this project unavailable. Start it with ', h('code', {}, 'ptbk start'), '.'));
-        else card.append(h('p', { className: 'muted' }, app.browserAccess === 'available' ? 'Opening this project from the App works.' : 'Opening this project from the App is not available yet: the engine does not serve the App UI through its tunnels yet. Use this dashboard, the terminal or the desktop app.'));
+        else card.append(h('p', { className: app.browserAccess === 'available' && app.owner === 'none' ? 'warn' : 'muted' }, browserAccessText(app)));
         return card;
     }
 

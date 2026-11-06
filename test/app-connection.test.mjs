@@ -179,7 +179,11 @@ test('App presentation: state, identity, relays and heartbeat; the body on the A
     assert.match(page, /Heartbeat .* accepted/);
     assert.match(page, /Everything the App learns/);
     assert.match(page, /"agents":2/);
-    assert.match(page, /not available yet/);
+    assert.match(page, /waits for the engine's own certificate/);
+    assert.match(appPlainLines({ ...linked, relays: [linked.relays[1]] }).join('\n'), /waits for a connected relay/);
+    assert.match(appPlainLines({ ...linked, certificate: { state: 'failed', source: 'acme', problem: 'The ACME server refused the order.' } }).join('\n'), /certificate: The ACME server refused the order\./);
+    assert.match(appPlainLines({ ...linked, browserAccess: 'available', owner: 'none' }).join('\n'), /nobody can sign in yet: run `ptbk connect --setup-link`/);
+    assert.match(appPlainLines({ ...linked, browserAccess: 'available', owner: 'set' }).join('\n'), /works: sign in there with your passkey/);
     const status = appPlainLines(linked, { heartbeatBody: false }).join('\n');
     assert.match(status, /Heartbeat .* accepted/);
     assert.doesNotMatch(status, /Everything the App learns|"agents"/, 'the status region stays compact');

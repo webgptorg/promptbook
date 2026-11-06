@@ -192,8 +192,24 @@ export function appDetailLines(app: AppConnectionView | undefined, style: Style,
         out.text('The engine is stopped, so the App shows this project unavailable. Start it with `ptbk start`.', muted);
         return out.lines;
     }
-    out.text(app.browserAccess === 'available' ? 'Opening this project from the App works.' : 'Opening this project from the App is not available yet: the engine does not serve the App UI through its tunnels yet. Use the terminal or the desktop app.', muted);
+    out.text(appBrowserAccessText(app), app.browserAccess === 'available' && app.owner === 'none' ? (text) => style.warning(text) : muted);
     return out.lines;
+}
+
+/**
+ * Whether the project opens from the App now, and what it still waits for: a connected relay, the engine's own
+ * certificate, or an owner who set up a passkey with the setup link.
+ *
+ * @private App connection presentation
+ */
+export function appBrowserAccessText(app: AppConnectionView): string {
+    if (app.browserAccess === 'available') {
+        return app.owner === 'none' ? 'Opening this project from the App works, but nobody can sign in yet: run `ptbk connect --setup-link` here to set up your passkey.' : 'Opening this project from the App works: sign in there with your passkey.';
+    }
+    if (!app.relays.some((relay) => relay.state === 'connected')) return 'Opening this project from the App waits for a connected relay.';
+    const certificate = app.certificate;
+    if (certificate?.state === 'failed') return `Opening this project from the App waits for the engine's own certificate: ${certificate.problem ?? 'issuing it failed'}${certificate.retryAt ? ` (retry ${formatShortTime(Date.parse(certificate.retryAt))})` : ''}.`;
+    return "Opening this project from the App waits for the engine's own certificate, which it is getting through the relay.";
 }
 
 /**
