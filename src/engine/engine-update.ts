@@ -136,7 +136,7 @@ type EngineUpdateRecord = {
 };
 
 /**
- * The self-update state every client shows (Connection page, task inventory and API).
+ * The self-update state every client shows (System page, task inventory and API).
  *
  * @private engine self-update
  */

@@ -1,6 +1,6 @@
 'use strict';
 /** Shared, presentation-only validation; engine operations remain in the installed CLI. */
-const PAGES = new Set(['harnesses', 'system', 'health', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'usage', 'actions', 'history', 'files', 'connection', 'sync']);
+const PAGES = new Set(['harnesses', 'system', 'health', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'usage', 'actions', 'history', 'files', 'app', 'sync']);
 /** Actions deliberately exposed by the host overview. */
 const ACTIONS = new Set(['start', 'start-paused', 'pause', 'resume', 'stop', 'force-stop', 'remove']);
 
