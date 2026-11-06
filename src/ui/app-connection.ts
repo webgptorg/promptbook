@@ -1,3 +1,7 @@
+import { parseLinkInput } from '../app/registration.js';
+import { errorMessage } from '../common/errors.js';
+import { CANCELLED, inputLine } from './prompts.js';
+import type { TerminalProfile } from './terminal.js';
 import { formatShortTime } from '../common/time.js';
 import type { AppConnectionView } from '../engine/snapshot.js';
 import { createStyle, wrap, type Style } from './ansi.js';
@@ -14,7 +18,7 @@ export function appLinkHint(dashboardUrl: string): string {
     } catch {
         // Shown as given.
     }
-    return `Get a link code at ${host}, then run \`ptbk connect --link <code>\` in this project.`;
+    return `Get a pairing URL at ${host}, then run \`ptbk connect --link <url>\` in this project.`;
 }
 
 /**
@@ -232,4 +236,18 @@ export function appSummaryLine(app: AppConnectionView | undefined): string | und
     if (app.state === 'problem') return `App: problem · ${app.problem ?? 'see ptbk connect'}`;
     if (app.state === 'offline') return `App: linked, offline${app.url ? ` · ${app.url}` : ''}`;
     return `App: ${appState(app).label.toLowerCase()}${app.relays.length ? ` (${relaySummary(app)})` : ''}${app.url ? ` · ${app.url}` : ''}`;
+}
+
+/** Obtains the App URL through the same standard prompt UI used by the desktop and Dashboard. @private project onboarding */
+export async function askPairingUrl(terminal: TerminalProfile, optional = false): Promise<string | typeof CANCELLED> {
+    return await inputLine(terminal, {
+        frame: { title: 'Promptbook App' },
+        question: optional ? 'Paste the pairing URL from the App, or leave it empty to set up locally.' : 'Paste the pairing URL from the App.',
+        optional,
+        validate: (input) => {
+            if (!input && optional) return undefined;
+            try { parseLinkInput(input); return undefined; }
+            catch (error) { return errorMessage(error); }
+        },
+    });
 }

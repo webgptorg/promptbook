@@ -14,9 +14,9 @@ The identity and the registration live in ignored project runtime state, `.ptbk/
 
 Moving the project directory keeps its identity. A Git clone does not carry `.ptbk/`, so it becomes a new engine that needs its own link. Copying the directory together with `.ptbk/` duplicates the identity; the relays then replace one copy's tunnel with the other's. On `REPLACED` the engine stops dialling that relay and shows that another process holds the key, instead of reconnecting in a loop. A lost key is a new engine: link it again and revoke the old one in the App.
 
-## Linking with a link code
+## Linking with a pairing URL
 
-The App dashboard gives the owner a one-time link code and the command `ptbk connect --link <code>`, run in the project directory. The command creates the identity when missing, registers it with a request signed over `ptbk-register-v1` (proof of key possession, mode `tunnel`), and checks the answer: the engine ID must be the one its own key derives, and the hostname must be exactly `<engineId>.<engine domain>`. It stores the engine ID, hostname, relay list, dashboard origin, engine domain and the dashboard member key, then asks a running engine to connect. A refused answer stores nothing. A registration grants nothing inside the engine; it ties the engine to an account for routing and billing only.
+The App dashboard gives the owner a one-time pairing URL, `https://<dashboard>/link#<code>`. Use `ptbk connect --link '<url>'` in the project directory or **L** in its terminal Dashboard App page. A bare code still uses the configured dashboard origin. The command creates the identity when missing, registers it with a request signed over `ptbk-register-v1` (proof of key possession, mode `tunnel`), and checks the answer: the engine ID must be the one its own key derives, and the hostname must be exactly `<engineId>.<engine domain>`. It stores the engine ID, hostname, relay list, dashboard origin, engine domain and the dashboard member key, then asks a running engine to connect. A refused answer stores nothing. A registration grants nothing inside the engine; it ties the engine to an account for routing and billing only.
 
 The link code is a secret. It is sent once, dropped after the request and never written to disk, logs, traces, chats, briefs or snapshots. `PTBK_LINK_CODE` is accepted instead of the argument for automation. Each registration problem code becomes a sentence with a next step:
 
@@ -31,7 +31,15 @@ The link code is a secret. It is sent once, dropped after the request and never 
 
 An unknown code is treated like 5xx. An already linked project makes no network call: `connect --link` reports the existing link. `ptbk disconnect` stops the project's tunnels and heartbeat and forgets the registration while keeping the identity, so a new link code from the same account links the same engine ID again. It does not revoke the engine in the App; the owner does that in the dashboard.
 
-Configuration comes from the environment of the engine and the command. `PTBK_DASHBOARD_URL` is an `https://` origin, `https://app.ptbk.io` by default. `PTBK_ENGINE_DOMAIN` sets the engine domain. Until the platform publishes its production engine domain, an unset engine domain is pinned from the first verified registration: the hostname's first label must be the engine's own engine ID, and the domain is stored with the registration and checked on every start. A stored dashboard origin or engine domain that differs from the configuration refuses to connect instead of re-registering silently. `PTBK_RELAYS` (comma-separated `wss://` relay URLs) replaces the registration's relays for development and tests. `HTTPS_PROXY`, `NO_PROXY` and `NODE_EXTRA_CA_CERTS` apply to registration, heartbeats and tunnels; certificate verification is never switched off, and `NODE_TLS_REJECT_UNAUTHORIZED=0` refuses the App connection with a pointer to `NODE_EXTRA_CA_CERTS`.
+Configuration comes from the environment of the engine and the command. `PTBK_DASHBOARD_URL` is an `https://` origin, `https://app.ptbk.io` by default. `PTBK_ENGINE_DOMAIN` sets the engine domain. Until the platform publishes its production engine domain, an unset engine domain is pinned from the first verified registration: the hostname's first label must be the engine's own engine ID, and the domain is stored with the registration and checked on every start. The engine uses the origin from the URL and saves it with the verified registration. An explicit dashboard origin must agree with both the URL and the saved registration. An explicitly configured engine domain must also agree with the saved registration. `PTBK_RELAYS` (comma-separated `wss://` relay URLs) replaces the registration's relays for development and tests. `HTTPS_PROXY`, `NO_PROXY` and `NODE_EXTRA_CA_CERTS` apply to registration, heartbeats and tunnels; certificate verification is never switched off, and `NODE_TLS_REJECT_UNAUTHORIZED=0` refuses the App connection with a pointer to `NODE_EXTRA_CA_CERTS`.
+
+## Setting up a project from the App
+
+In the global terminal Dashboard, press **L** to start setup with a pairing URL. On Windows and macOS, choose **Set up with App**. From a script, use `ptbk init --prepare-only --link '<url>' --json`. `--link-stdin` takes the URL over stdin. The service can start before a URL is available. Pair it later with `ptbk connect --initialization <id> --link '<url>'` or from its row in the global Dashboard.
+
+The owner makes a passkey at the engine address with the one-time URL printed by `ptbk connect --initialization <id> --setup-link`. From then on the App renders the prompts at the engine origin. Use `ptbk onboarding <id>` to continue on the host or `--answer-stdin` with one JSON answer at a time. The service keeps accepted answers and uploads in private host storage. Closing a client or deferring keeps setup available. Each answer names the active prompt ID, so another client's answer to a previous prompt cannot apply.
+
+The setup uses the shared projects home. The adapter runs native Codex device login under the engine's account and the client shows the verification URL and code. When the adapter has no structured flow, use its native CLI under the same OS account and check again in setup. Wallet and Git publication are configured separately. After explicit confirmation, the engine prepares the project in a private directory and publishes it under the chosen name. The next agenda uses the same App identity and owner access.
 
 ## The running connection
 
@@ -81,7 +89,7 @@ The origin serves the platform's engine API v1 (`/api/v1`) over Reborn's own dom
 - **Chats** are `CHAT` threads with real authors. Every author joins before writing, a User message records which member sent it, `requestKey` makes a send idempotent (another content under the same key is `request-key-reused`), replies stream as SSE deltas that resume by `Last-Event-ID`, and a chat without an agent is Chatter's. Read and seen marks are shared with the other clients.
 - **Events** stream agent, status and chat changes.
 
-Optional capabilities (`runs@1`, `files@1`, `triggers@1`, `integrations@1`, `wallet@1`, `tasks@1`, `onboarding@1`, audit) are not advertised yet, so each of their routes answers `capability-not-supported`.
+`onboarding@1` returns the active setup prompt or reports completion. `files@1` is available during project setup for private uploads. Other optional capabilities answer `capability-not-supported`.
 
 ## Engine UI
 

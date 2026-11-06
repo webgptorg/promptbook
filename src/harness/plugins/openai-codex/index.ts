@@ -1,7 +1,7 @@
 import { runProcess } from '../../../common/process.js';
 import { stripAnsi } from '../../../ui/ansi.js';
 import { baseInspection, helpText, numericUsage, observedSessionSupport, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
-import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginFailure, LoginLocation, ParserState } from '../../types.js';
+import type { HarnessContext, HarnessDeviceCode, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginFailure, LoginLocation, ParserState } from '../../types.js';
 import { codexVoice } from './voice.js';
 
 /**
@@ -81,6 +81,31 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
  * Local port of the browser sign-in callback (`codex login`), forwarded over SSH when the browser is on another device.
  */
 const LOGIN_CALLBACK_PORT = 1455;
+
+/** Runs the native CLI's device flow and exposes only its first-party verification link and one-time code. */
+async function deviceLogin(context: HarnessContext, onCode: (challenge: HarnessDeviceCode) => void): Promise<'finished' | 'expired' | 'denied' | 'failed'> {
+    let url: string | undefined;
+    let announced = false;
+    const result = await runProcess('codex', ['login', '--device-auth'], {
+        cwd: context.projectRoot,
+        env: withoutApiKeys(context.env),
+        signal: context.signal,
+        timeoutMs: 16 * 60_000,
+        maxOutputBytes: 16 * 1024,
+        onStdoutLine: (line) => {
+            if (announced) return;
+            const text = stripAnsi(line).trim();
+            if (text === 'https://auth.openai.com/codex/device') url = text;
+            if (!url || !/^[A-Z0-9]{3,12}(?:-[A-Z0-9]{3,12}){0,2}$/.test(text)) return;
+            announced = true;
+            onCode({ url, userCode: text, expiresAt: new Date(Date.now() + 15 * 60_000).toISOString() });
+        },
+    });
+    if (result.exitCode === 0) return 'finished';
+    if (result.timedOut) return 'expired';
+    const failure = classifyLogin(`${result.stdout}\n${result.stderr}`)?.outcome;
+    return failure === 'expired' || failure === 'denied' ? failure : 'failed';
+}
 
 /**
  * Sign-in methods of the installed Codex: device-code login (`--device-auth`, when this version has it) first on a
@@ -258,6 +283,7 @@ export const plugin: HarnessPlugin = {
     loginArgs: ['login'],
     loginHint: 'Run `codex login` (on a server without a browser: `codex login --device-auth`) and sign in with your ChatGPT account.',
     loginMethods,
+    deviceLogin,
     classifyLogin,
     inspect,
     listModels: listCodexModels,

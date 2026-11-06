@@ -11,7 +11,7 @@ import { readProcessRecord, type ProcessRecord } from './records.js';
  *
  * @private service control
  */
-export const READ_ONLY_METHODS = new Set(['identify', 'snapshot', 'summary', 'watch', 'requests', 'chat-list', 'chat-agents', 'chat-get', 'session-entry', 'task-status']);
+export const READ_ONLY_METHODS = new Set(['identify', 'snapshot', 'summary', 'watch', 'requests', 'chat-list', 'chat-agents', 'chat-get', 'session-entry', 'task-status', 'onboarding-state']);
 
 /**
  * Version of the control contract: the shapes of snapshots and control replies that clients render.

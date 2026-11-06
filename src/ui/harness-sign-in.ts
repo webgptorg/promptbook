@@ -1,4 +1,4 @@
-import { harnessLoginMethods, loginHarness, serviceReadinessProblem, type LoginPlace, type ServiceReadinessProblem } from '../harness/maintenance.js';
+import { harnessLoginMethods, loginHarness, serviceReadinessProblem, type LoginPlace, type LoginResult, type ServiceReadinessProblem } from '../harness/maintenance.js';
 import type { HarnessContext, HarnessInspection, HarnessPlugin } from '../harness/types.js';
 import { CANCELLED, selectOne, type Choice, type WizardFrame } from './prompts.js';
 import { symbols, type TerminalProfile } from './terminal.js';
@@ -55,6 +55,8 @@ export async function attendHarnessSignIn(
         readonly say: (text: string) => void;
         /** Called before each choice is shown. */
         readonly onPrompt?: () => void;
+        /** A service-owned sign-in must use the adapter's structured flow and cannot inherit this client's TTY. */
+        readonly deviceSignIn?: (plugin: HarnessPlugin, context: HarnessContext, service: HarnessContext) => Promise<LoginResult>;
     },
 ): Promise<HarnessSignInOutcome> {
     const { plugin, context, service, place, say } = options;
@@ -62,10 +64,12 @@ export async function attendHarnessSignIn(
     const marks = symbols(terminal.unicode);
     let inspection = options.inspection;
     let serviceProblem = options.serviceProblem;
+    let lastAttempt: string | undefined;
     while (inspection.installed && (inspection.authenticated === false || serviceProblem)) {
         options.onPrompt?.();
         // Remote-compatible methods come first on an SSH/browserless host; the owner may still choose another.
-        const methods = await harnessLoginMethods(plugin, context, place.location);
+        const supported = await harnessLoginMethods(plugin, context, place.location);
+        const methods = options.deviceSignIn ? supported.filter((method) => method.id === 'device-code' && plugin.deviceLogin) : supported;
         const ordered = place.location === 'remote' ? [...methods.filter((method) => method.remote), ...methods.filter((method) => !method.remote)] : [...methods];
         const remoteReady = place.location === 'local' || ordered.some((method) => method.remote);
         const situation =
@@ -76,7 +80,7 @@ export async function attendHarnessSignIn(
                 : '';
         const choice = await selectOne(terminal, {
             frame: options.frame(),
-            question: `${plugin.displayName}: ${serviceProblem ? `signed in, but ${serviceProblem.summary}. ${serviceProblem.nextAction}` : inspection.summary}${situation}${ordered.length ? '' : ` ${plugin.loginHint}`}`,
+            question: `${plugin.displayName}: ${serviceProblem ? `signed in, but ${serviceProblem.summary}. ${serviceProblem.nextAction}` : inspection.summary}${situation}${ordered.length ? '' : ` ${plugin.loginHint}`}${lastAttempt ? ` Last attempt: ${lastAttempt}` : ''}`,
             choices: [...ordered.map((method, index) => ({ value: `method-${index}`, label: method.label })), { value: 'recheck', label: 'I logged in another way — check again' }, ...options.exits],
             defaultValue: ordered.length && remoteReady && !serviceProblem ? 'method-0' : 'recheck',
         });
@@ -85,7 +89,8 @@ export async function attendHarnessSignIn(
         if (method) {
             say(method.instructions);
             say(style.muted(`Waiting for ${plugin.displayName} sign-in… Ctrl+C cancels it and returns here.`));
-            const result = await loginHarness(plugin, context, method, { location: place.location, service, write: (text) => terminal.write(text) });
+            const result = options.deviceSignIn ? await options.deviceSignIn(plugin, context, service) : await loginHarness(plugin, context, method, { location: place.location, service, write: (text) => terminal.write(text) });
+            if (options.deviceSignIn) lastAttempt = result.outcome === 'authenticated' ? undefined : result.diagnostic;
             say(`${result.outcome === 'authenticated' ? style.success(marks.ok) : style.warning(marks.warn)} ${result.diagnostic}`);
         } else if (choice !== 'recheck') return { inspection, serviceProblem, exit: choice };
         inspection = await plugin.inspect(context);

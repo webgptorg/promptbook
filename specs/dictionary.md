@@ -8,6 +8,8 @@ An **interactive feature server** serves one temporary browser surface from the 
 
 [Main specification](_main.md)
 
+**Project setup** is the engine-owned initialization before a project has a name or final folder. It can be paired and resumed from another client. After confirmation it hands the same App identity to the new project. See [App setup](app/connection.md#setting-up-a-project-from-the-app).
+
 **Promptbook / ptbk:** One npm package and CLI for operating agents over a project. **Engine version:** The version actually loaded by the service, not latest or the viewer's installation. **promptbookVersion:** Saved initializing/last-migrating engine version in project configuration. **Project migration:** One deterministic mechanism for version-targeted configuration and Book transformations; one coordinator commits the complete applicable pass and version advance, including zero-step upgrades. See [migrations](cli/configuration-migrations.md).
 
 **APT:** Agent–Project–Task, a long-term context convention; the concrete project also includes Chat. **Agenda:** Its continuing responsibility, not the expansion of A. **Project:** Selected directory/workspace in a Git working tree, with managed files/context. See [workspace](cli/workspace.md).

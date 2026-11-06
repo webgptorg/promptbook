@@ -1,11 +1,12 @@
 import { CONFORMANCE_BUILD } from '../../app/build.js';
 import { storedAppView, type SetupLinkOutcome } from '../../app/connection.js';
 import { loadEngineIdentity } from '../../app/identity.js';
-import { forgetRegistration, readRegistration, registerEngine, storeRegistration, type RegistrationOutcome } from '../../app/registration.js';
+import { forgetRegistration, parseLinkInput, readRegistration, registerEngine, storeRegistration, type RegistrationOutcome } from '../../app/registration.js';
 import { appDirectory, appSettings } from '../../app/settings.js';
+import { selectPendingProject } from '../../app/pending-project.js';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
 import type { AppConnectionView } from '../../engine/snapshot.js';
-import type { Project } from '../../project/workspace.js';
+import { projectAt, type Project } from '../../project/workspace.js';
 import { lookupService } from '../../service/control.js';
 import { appDetailLines, appPlainLines, appState } from '../../ui/app-connection.js';
 import { renderPanel, type PanelTone } from '../../ui/panels.js';
@@ -75,25 +76,36 @@ function reloadNote(reload: EngineReload, linked: boolean): string {
 }
 
 /**
- * `ptbk connect`: links the project to the Promptbook App with a one-time link code (`--link <code>` or
- * `PTBK_LINK_CODE`), or prints its App connection. The link code is sent once and never stored or printed.
+ * `ptbk connect`: links the project to the Promptbook App with a link URL or bare code, or prints its connection.
  *
  * @private command
  */
 export default async function connect(context: CommandContext): Promise<number> {
-    const project = await selectedProject(context);
+    const id = option<string>(context, 'initialization');
+    if (id && context.explicit.has('path')) throw usageError('Choose either an initialization or a project path.', 'connect');
+    const pending = id ? await selectPendingProject(id, context.env) : undefined;
+    const project = pending ? pending.target ? projectAt(pending.target) : pending.workspace : await selectedProject(context);
     const json = flag(context, 'json') === true;
     if (flag(context, 'setup-link') === true || flag(context, 'reset-owner') === true) return await ownerAccess(context, project, json);
     const given = option<string>(context, 'link');
-    if (given !== undefined && !given.trim()) throw usageError('--link needs the link code from the Promptbook App.', 'connect', 'Run `ptbk connect --link <code>` with the code shown in the App.');
-    const linkCode = (given ?? context.env.PTBK_LINK_CODE)?.trim();
-    if (!linkCode) {
+    if (given !== undefined && !given.trim()) throw usageError('--link needs the link URL from the Promptbook App.', 'connect');
+    const input = (given ?? context.env.PTBK_LINK_CODE)?.trim();
+    if (!input) {
         const view = await currentView(project, context.env);
         if (json) printJson(view);
         else renderView(context, view);
         return view.state === 'problem' ? EXIT.failure : EXIT.success;
     }
-    const settings = appSettings(context.env);
+    if (pending && !pending.target) {
+        const lookup = await lookupService(project);
+        if (lookup.state !== 'running') throw new PtbkError('Start the initialization before pairing it.', { kind: 'incomplete' });
+        const result = await lookup.client.request<import('./onboarding.js').LocalPairing>('app-connect', { link: input }, 90_000);
+        if (json) printJson(result);
+        else renderView(context, result.app, { title: result.outcome, tone: result.applied ? 'success' : 'error' });
+        return result.applied ? EXIT.success : EXIT.incomplete;
+    }
+    const { code: linkCode, origin } = parseLinkInput(input);
+    const settings = appSettings(context.env, origin);
     const directory = appDirectory(project.runtime.app, context.env);
     const identity = await loadEngineIdentity(directory, { create: true });
     if (!identity) throw new Error('The engine identity could not be created.');

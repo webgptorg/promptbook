@@ -974,7 +974,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             };
         }
         case 'app':
-            return { title: 'App', context: 'This project’s link to the Promptbook App (app.ptbk.io)', body: appDetailLines(snapshot.app, style, width), legend: `↑↓ scroll · ${back}` };
+            return { title: 'App', context: 'This project’s link to the Promptbook App (app.ptbk.io)', body: appDetailLines(snapshot.app, style, width), legend: `${snapshot.app?.state === 'unlinked' ? 'L pair with App · ' : ''}↑↓ scroll · ${back}` };
         case 'sync': {
             if (!snapshot.sync) return { title: 'Synchronization', context: 'Automatic synchronization is off (isAutoSync false).', body: [style.muted('Nothing to show while autosync is disabled.')], legend: back };
             return { title: 'Synchronization', context: 'Git autosync with the tracked remote (shared coordinator; never a second scheduler)', body: syncDetailLines(snapshot.sync, style), legend: `G synchronize now · ↑↓ scroll · ${back}` };

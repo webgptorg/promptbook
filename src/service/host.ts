@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { parseActionViewQuery } from '../engine/action-impact.js';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import type { ComposedSegment } from '../ui/composer.js';
@@ -9,11 +8,10 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
-import { EngineApi } from '../app/api/engine-api.js';
-import { CONFORMANCE_BUILD } from '../app/build.js';
 import { AppConnection, type AppEngineFigures } from '../app/connection.js';
-import { appDirectory, isTunnelMode } from '../app/settings.js';
-import { engineHomePage } from '../app/web/documents.js';
+import { isTunnelMode } from '../app/settings.js';
+import { createAppRuntime } from '../app/runtime.js';
+import { CONFORMANCE_BUILD } from '../app/build.js';
 import { UiLoader } from '../app/web/ui-loader.js';
 import { ProjectEffects, effectsRequest, snapshotEffects } from '../engine/effects.js';
 import { parseUsageRequest } from '../engine/usage.js';
@@ -294,36 +292,16 @@ export class ServiceHost {
      */
     private async startAppConnection(): Promise<void> {
         const env = this.options.env;
-        const view = (): ReturnType<AppConnection['view']> | undefined => this.appConnection?.view();
-        const directory = appDirectory(this.options.project.runtime.app, env);
-        // Created before anything listens: a release build refuses a conformance trust file, and an invalid update
-        // policy or release URL stops the engine rather than serving an unchecked UI.
-        const loader = await UiLoader.create({ directory, env, log: (text, level) => this.agenda.log(text, level) });
-        this.uiLoader = loader;
-        const enginePageSha256 = createHash('sha256').update(engineHomePage.toString()).digest('hex');
-        const api = new EngineApi({
+        const { connection, loader } = await createAppRuntime({
+            project: this.options.project,
             agenda: this.agenda,
-            projectRoot: this.options.project.root,
-            stateDirectory: directory,
-            engineId: () => view()?.engineId,
-            hostname: () => view()?.hostname,
-            dashboardUrl: () => view()?.dashboardUrl,
-            security: () => this.appConnection?.securityFacts(),
-            ui: () => loader.status(enginePageSha256),
-            log: (text, level) => this.agenda.log(text, level),
-        });
-        this.appConnection = new AppConnection({
-            directory,
             env,
             onChange: () => this.publishAppView(),
             figures: () => this.appFigures(),
             log: (text, level) => this.agenda.log(text, level),
-            web: {
-                api: (request, actor, access) => api.handle(request, actor, access),
-                documents: async (request, actor) => (await loader.serve(request)) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId }),
-                ...(CONFORMANCE_BUILD ? { certificateSource: 'dev-ca' as const } : {}),
-            },
         });
+        this.appConnection = connection;
+        this.uiLoader = loader;
         try {
             await this.appConnection.start();
             await loader.start();
@@ -498,6 +476,10 @@ export class ServiceHost {
                 return agenda.snapshot();
             case 'app-status':
                 return this.appConnection?.view() ?? agenda.snapshot().app;
+            case 'app-connect':
+                if (!this.appConnection) throw new PtbkError('This engine run has no App connection.', { kind: 'unsupported' });
+                if (typeof params.link !== 'string') throw new PtbkError('A pairing URL is required.', { kind: 'usage' });
+                return await this.appConnection.link(params.link);
             case 'app-setup-link':
                 if (!this.appConnection) throw new PtbkError('This engine run has no App connection (maintenance mode).', { kind: 'unsupported' });
                 return await this.appConnection.setupLink();

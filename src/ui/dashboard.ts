@@ -1,3 +1,4 @@
+import { askPairingUrl } from './app-connection.js';
 import type { ActionView } from '../engine/action-impact.js';
 import type { ActionSummary } from '../engine/action-log.js';
 import { traceBasenameOf } from '../tasks/identity.js';
@@ -1392,6 +1393,12 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         const text = event.text;
         const key = text.toLowerCase();
         switch (page.kind) {
+            case 'app':
+                if (key === 'l' && snapshot.app?.state === 'unlinked') void outside(async () => {
+                    const link = await askPairingUrl(terminal);
+                    if (link !== CANCELLED) feedback = (await source.action('app-connect', { link })).outcome;
+                });
+                return;
             case 'system': {
                 if (lifecycleKey(key)) return;
                 // The engine's shared update policy operation (its own scoped commit), as the browser and the App use it.

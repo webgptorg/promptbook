@@ -12,6 +12,8 @@ import type { AgentView, ServiceSnapshot } from '../../engine/snapshot.js';
 import { api, createEngineApiHttpHandler, type ContractProblem, type ContractResponse, type ContractRoute, type ContractTransportRequest } from '../../vendor/app-platform.js';
 import type { AppSecurityFacts } from '../connection.js';
 import { decodeBase64Url, encodeBase64Url } from '../encoding.js';
+import { StaleOnboardingPrompt, type OnboardingAnswer, type ProjectOnboarding } from '../onboarding.js';
+import { ONBOARDING_FILE_BYTES } from '../onboarding-files.js';
 import type { AccessStore, Actor, StoredMember, StoredPasskey, StoredSession } from '../web/access.js';
 import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
 
@@ -20,7 +22,13 @@ import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
  *
  * @private App engine API
  */
-export const ADVERTISED_CAPABILITIES: readonly { readonly id: string; readonly version: number }[] = [];
+export const ADVERTISED_CAPABILITIES: readonly { readonly id: string; readonly version: number }[] = [{ id: 'onboarding', version: 1 }];
+
+/** App routes that need initialized project data. Before setup they cannot touch the eventual project. */
+const PROJECT_ROUTES = new Set(['createAgent', 'getAgent', 'deleteAgent', 'getAgentSource', 'getAgentStatus', 'startAgent', 'stopAgent', 'streamEvents', 'createFolder', 'renameFolder', 'deleteFolder', 'listAgentChats', 'getChat', 'listChatEntries', 'createChat', 'sendChatMessage', 'markChatRead', 'markChatSeen', 'streamChatReply', 'cancelChatReply', 'updateSettings', 'setUpdatePolicy']);
+
+/** The same endpoint lets an App client recognize completion after the engine transfers to the final directory. */
+const COMPLETED_ONBOARDING = { status: 'completed', deferred: false, progress: null, prompt: null } as const;
 
 /**
  * The member ID shown as the creator of what the project itself defines (Books written in the repository).
@@ -51,7 +59,8 @@ const MAX_CHOICE_LENGTH = 1000;
  * @private App engine API
  */
 export type EngineApiDeps = {
-    readonly agenda: Agenda;
+    readonly agenda?: Agenda;
+    readonly onboarding?: ProjectOnboarding;
     readonly projectRoot: string;
     /** The App data directory, where the API keeps its state beside the Books. */
     readonly stateDirectory: string;
@@ -225,9 +234,42 @@ export class EngineApi {
 
     public constructor(private readonly deps: EngineApiDeps) {}
 
+    /** The initialized agenda, used only after the route's lifecycle check. */
+    private get agenda(): Agenda {
+        if (!this.deps.agenda) throw new Error('Project initialization is pending.');
+        return this.deps.agenda;
+    }
+
+    /** Optional features available at this stage of the engine. */
+    private get capabilities(): readonly { readonly id: string; readonly version: number }[] {
+        return this.deps.onboarding ? [...ADVERTISED_CAPABILITIES, { id: 'files', version: 1 }] : ADVERTISED_CAPABILITIES;
+    }
+
     /** Serves one `/api/v1/...` request of a signed-in member. */
     public async handle(request: Request, actor: Actor, access: AccessStore): Promise<Response> {
         const handler = createEngineApiHttpHandler((route, parsed, signal) => this.dispatch(route, parsed, signal, actor, access));
+        const path = new URL(request.url).pathname;
+        if (request.method === 'POST' && request.body && [ `${api.ENGINE_API_PREFIX}/files`, `${api.ENGINE_API_PREFIX}/onboarding/answer` ].includes(path)) {
+            const max = path.endsWith('/files') ? ONBOARDING_FILE_BYTES + 64 * 1024 : 512 * 1024;
+            const chunks: Uint8Array[] = [];
+            let length = 0;
+            const reader = request.body.getReader();
+            try {
+                for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    length += value.byteLength;
+                    if (length > max) {
+                        void reader.cancel().catch(() => undefined);
+                        return Response.json(api.createProblem('payload-too-large'), { status: 413, headers: { 'content-type': 'application/problem+json', 'cache-control': 'no-store' } });
+                    }
+                    chunks.push(value);
+                }
+            } finally {
+                reader.releaseLock();
+            }
+            request = new Request(request, { body: new Uint8Array(Buffer.concat(chunks)) });
+        }
         return await handler(request);
     }
 
@@ -242,7 +284,7 @@ export class EngineApi {
 
     /** Validates, authorizes and runs one operation. */
     private async dispatch(route: ContractRoute, request: ContractTransportRequest, signal: AbortSignal, actor: Actor, access: AccessStore): Promise<Outcome> {
-        if (route.capability && !ADVERTISED_CAPABILITIES.some((capability) => capability.id === route.capability?.id && capability.version === route.capability.version)) return fail('capability-not-supported');
+        if (route.capability && !this.capabilities.some((capability) => capability.id === route.capability?.id && capability.version === route.capability.version)) return fail('capability-not-supported');
         const handler = this.handlers[route.id];
         if (!handler || route.draft) return fail('not-found');
         const errors: { path: string; message: string }[] = [];
@@ -259,6 +301,7 @@ export class EngineApi {
         if (errors.length) return fail('validation-failed', { errors: errors.slice(0, 50) });
         if (route.permission && !actor.permissions.includes(route.permission as never)) return fail('forbidden', { requiredPermission: route.permission });
         if (route.stepUp && !actor.stepUpFresh) return fail('step-up-required');
+        if (!this.deps.agenda && PROJECT_ROUTES.has(route.id)) return fail('unavailable');
         let outcome: Outcome;
         try {
             const state = await this.state();
@@ -281,6 +324,7 @@ export class EngineApi {
 
     /** A domain error as a contract problem (never with internal details). */
     private problemOf(error: unknown, route: ContractRoute): Outcome {
+        if (error instanceof StaleOnboardingPrompt) return fail('onboarding-prompt-stale');
         if (error instanceof PtbkError) {
             const kind = error.details.kind;
             if (kind === 'not-found') return fail('not-found');
@@ -293,7 +337,7 @@ export class EngineApi {
 
     /** The project's agents (content, core and the engine's own) as API agents. */
     private async agents(state: EngineApiState): Promise<ApiAgent[]> {
-        const snapshot: ServiceSnapshot = this.deps.agenda.snapshot();
+        const snapshot: ServiceSnapshot = this.agenda.snapshot();
         const items: ApiAgent[] = [];
         for (const view of snapshot.agents) items.push(await this.agentOf(view, state));
         return items;
@@ -309,7 +353,7 @@ export class EngineApi {
         let description = view.role === 'engine' ? 'The engine’s own expert on Promptbook.' : '';
         if (view.role !== 'engine') {
             try {
-                const source = await this.deps.agenda.bookSource({ reference: view.name });
+                const source = await this.agenda.bookSource({ reference: view.name });
                 revision = opaqueIdOf(source.revision);
                 const persona = commitmentsOf(parseBook(source.text), 'PERSONA')[0]?.value;
                 if (persona) description = persona.replace(/\s+/g, ' ').trim().slice(0, 4096);
@@ -344,7 +388,7 @@ export class EngineApi {
 
     /** An agent's activity as the contract's status. */
     private agentStatus(id: string): { state: 'idle' | 'running'; since: string } | undefined {
-        const view = this.deps.agenda.snapshot().agents.find((agent) => opaqueIdOf(agent.key || normalizeAgentName(agent.name)) === id);
+        const view = this.agenda.snapshot().agents.find((agent) => opaqueIdOf(agent.key || normalizeAgentName(agent.name)) === id);
         if (!view) return undefined;
         return { state: view.activity === 'working' ? 'running' : 'idle', since: this.startedAt };
     }
@@ -406,9 +450,9 @@ export class EngineApi {
 
     /** One chat by name with its detail. */
     private async chatByName(name: string): Promise<{ summary: ChatSummary; detail: ChatDetail } | undefined> {
-        const summary = (await this.deps.agenda.chatList()).find((chat) => chat.name === name);
+        const summary = (await this.agenda.chatList()).find((chat) => chat.name === name);
         if (!summary) return undefined;
-        return { summary, detail: await this.deps.agenda.chatGet(name) };
+        return { summary, detail: await this.agenda.chatGet(name) };
     }
 
     /** One stored message as the contract's `Message`. */
@@ -499,7 +543,7 @@ export class EngineApi {
 
     /** What the event stream compares between changes. */
     private async eventDigest(): Promise<{ agents: Map<string, string>; status: Map<string, string>; chats: Map<string, string> }> {
-        const snapshot = this.deps.agenda.snapshot();
+        const snapshot = this.agenda.snapshot();
         const agents = new Map<string, string>();
         const status = new Map<string, string>();
         for (const view of snapshot.agents) {
@@ -508,13 +552,13 @@ export class EngineApi {
             status.set(id, view.activity === 'working' ? 'running' : 'idle');
         }
         const chats = new Map<string, string>();
-        for (const summary of await this.deps.agenda.chatList()) chats.set(summary.name, `${String(summary.messages)}|${summary.status}|${String(summary.unread)}|${summary.title}|${String(summary.pings?.length ?? 0)}`);
+        for (const summary of await this.agenda.chatList()) chats.set(summary.name, `${String(summary.messages)}|${summary.status}|${String(summary.unread)}|${summary.title}|${String(summary.pings?.length ?? 0)}`);
         return { agents, status, chats };
     }
 
     /** Live changes as `agent.status`, `agent.changed` and `chat.changed` events until the client leaves. */
     private async *eventStream(signal: AbortSignal): AsyncGenerator<StreamItem> {
-        const agenda = this.deps.agenda;
+        const agenda = this.agenda;
         let since = agenda.currentRevision;
         let previous = await this.eventDigest();
         while (!signal.aborted) {
@@ -550,9 +594,9 @@ export class EngineApi {
 
     /** The engine settings the API exposes. */
     private settings(state: EngineApiState): Record<string, unknown> {
-        const update = this.deps.agenda.engineUpdate as { readonly isAutoUpdateEnabled?: boolean } | undefined;
+        const update = this.deps.agenda?.engineUpdate as { readonly isAutoUpdateEnabled?: boolean } | undefined;
         return {
-            name: (state.settings.name ?? this.deps.agenda.snapshot().project.name).slice(0, 128) || 'Promptbook project',
+            name: (state.settings.name ?? this.deps.agenda?.snapshot().project.name ?? 'Project setup').slice(0, 128) || 'Promptbook project',
             defaultAgentVisibility: state.settings.defaultAgentVisibility ?? 'private',
             updatePolicy: { policy: update?.isAutoUpdateEnabled === false ? 'manual' : 'auto', pinnedVersion: null },
             dashboardRemovals: null,
@@ -562,10 +606,9 @@ export class EngineApi {
     /** The security overview: versions, update state, certificate, relays, hostnames, the last heartbeat. */
     private security(): Record<string, unknown> {
         const facts = this.deps.security();
-        const snapshot = this.deps.agenda.snapshot();
-        const update = snapshot.update;
+        const update = this.deps.agenda?.snapshot().update;
         const updateStatus = !update ? 'none' : update.phase === 'installing' || update.phase === 'restarting' ? 'installing' : update.target ? 'pending' : update.latest && update.latest !== update.current ? 'available' : 'none';
-        const autoUpdate = (this.deps.agenda.engineUpdate as { readonly isAutoUpdateEnabled?: boolean } | undefined)?.isAutoUpdateEnabled !== false;
+        const autoUpdate = (this.deps.agenda?.engineUpdate as { readonly isAutoUpdateEnabled?: boolean } | undefined)?.isAutoUpdateEnabled !== false;
         const relayStatus = (state: string): 'connected' | 'connecting' | 'disconnected' => (state === 'connected' ? 'connected' : state === 'connecting' ? 'connecting' : 'disconnected');
         const certificateStatus = (): 'valid' | 'pending' | 'expiring' | 'expired' | 'error' | null => {
             if (!facts?.certificateState) return null;
@@ -593,6 +636,43 @@ export class EngineApi {
 
     /** The handlers by route ID. */
     private readonly handlers: Readonly<Record<string, (context: Context) => Promise<Outcome>>> = {
+        getOnboarding: async () => ok(this.deps.onboarding?.state() ?? COMPLETED_ONBOARDING),
+        answerOnboarding: async ({ body }) => this.deps.onboarding ? ok(await this.deps.onboarding.answer(body as OnboardingAnswer)) : fail('onboarding-prompt-stale'),
+        deferOnboarding: async () => ok(await this.deps.onboarding?.defer() ?? COMPLETED_ONBOARDING),
+        getFileUploadPolicy: async ({ query }) => ok({ purpose: query.purpose, maxBytes: ONBOARDING_FILE_BYTES, accept: [] }),
+        uploadFile: async ({ actor, body }) => {
+            const input = body as { name: string; file: Blob; purpose: string; agentId?: string };
+            if (input.purpose !== 'upload' || input.agentId) return fail('validation-failed', { errors: [{ path: 'body.purpose', message: 'Use an onboarding upload without an agent.' }] });
+            if (input.file.size > ONBOARDING_FILE_BYTES) return fail('payload-too-large');
+            return ok(await this.deps.onboarding!.files.upload(input.name, input.file, actor.memberId));
+        },
+        listFiles: async ({ query }) => {
+            let files = await this.deps.onboarding!.files.list();
+            if (query.agentId || query.scan || (Array.isArray(query.purpose) && !query.purpose.includes('upload'))) files = [];
+            if (typeof query.q === 'string') files = files.filter((file) => file.name.toLowerCase().includes(String(query.q).toLowerCase()));
+            const sort = String(query.sort);
+            files.sort((a, b) => {
+                const key = sort.replace(/^-/, '');
+                const order = key === 'name' ? a.name.localeCompare(b.name) : key === 'sizeBytes' ? a.sizeBytes - b.sizeBytes : a.createdAt.localeCompare(b.createdAt);
+                return sort.startsWith('-') ? -order : order;
+            });
+            return page(files, query);
+        },
+        getFileStats: async ({ query }) => ok({ byPurpose: { knowledge: 0, attachment: 0, output: 0, upload: query.agentId ? 0 : (await this.deps.onboarding!.files.list()).length }, byScan: { pending: 0, clean: 0, infected: 0, failed: 0 } }),
+        getFile: async ({ params }) => {
+            const file = await this.deps.onboarding!.files.get(String(params.fileId));
+            return file ? ok(file) : fail('not-found');
+        },
+        listFileVersions: async ({ params, query }) => {
+            const file = await this.deps.onboarding!.files.get(String(params.fileId));
+            return file ? page([{ id: file.id, name: file.name, createdAt: file.createdAt, sizeBytes: file.sizeBytes, sha256: file.sha256, commitHash: null, runId: null }], query) : fail('not-found');
+        },
+        downloadFile: async ({ params, query }) => {
+            if (query.version && query.version !== params.fileId) return fail('not-found');
+            const content = await this.deps.onboarding!.files.content(String(params.fileId));
+            return content ? ok(content) : fail('not-found');
+        },
+        deleteFile: async ({ params }) => await this.deps.onboarding!.deleteUpload(String(params.fileId)) ? ok(null) : fail('revision-conflict'),
         getMe: async ({ actor, access }) => ok({ memberId: actor.memberId, orgId: access.orgId, displayName: actor.displayName, role: actor.role, permissions: [...actor.permissions] }),
         listMyPasskeys: async ({ actor, access, query }) => page(access.passkeys(actor.memberId).map((passkey) => this.passkey(passkey)), query),
         revokeMyPasskey: async ({ actor, access, params }) => {
@@ -610,16 +690,16 @@ export class EngineApi {
         revokeMyOtherSessions: async ({ actor, access }) => ok({ revoked: await access.revokeSessions((session) => session.memberId === actor.memberId && session.id !== actor.sessionId) }),
         getEngine: async ({ state }) =>
             ok({
-                name: (state.settings.name ?? this.deps.agenda.snapshot().project.name).slice(0, 128) || 'Promptbook project',
+                name: (state.settings.name ?? this.deps.agenda?.snapshot().project.name ?? 'Project setup').slice(0, 128) || 'Promptbook project',
                 engineId: this.deps.engineId() ?? null,
                 hostname: this.deps.hostname() ?? 'engine.invalid',
                 dashboardUrl: this.deps.dashboardUrl() ?? null,
                 mode: 'tunnel',
-                capabilities: [...ADVERTISED_CAPABILITIES],
+                capabilities: [...this.capabilities],
             }),
         listAgents: async ({ query, state }) => {
             // Removed agents leave the project (their Books stay in Git history): nothing is listed as deleted.
-            let agents = query.deleted === 'only' ? [] : await this.agents(state);
+            let agents = !this.deps.agenda || query.deleted === 'only' ? [] : await this.agents(state);
             if (typeof query.q === 'string') {
                 const needle = query.q.toLowerCase();
                 agents = agents.filter((agent) => agent.name.toLowerCase().includes(needle) || agent.profile.fullname.toLowerCase().includes(needle) || agent.profile.description.toLowerCase().includes(needle));
@@ -638,7 +718,7 @@ export class EngineApi {
             if (input.folderId && !state.folder(input.folderId)) return fail('not-found');
             let created: { readonly name: string };
             try {
-                created = await this.deps.agenda.agentCreate(input.source);
+                created = await this.agenda.agentCreate(input.source);
             } catch (error) {
                 const data = error instanceof PtbkError ? (error.details.data as { invalidBook?: boolean; diagnostics?: readonly BookDiagnostic[] } | undefined) : undefined;
                 if (data?.invalidBook) return fail('invalid-book', { diagnostics: (data.diagnostics ?? []).slice(0, 50).map(contractDiagnostic) });
@@ -657,7 +737,7 @@ export class EngineApi {
             const agent = await this.agent(String(params.agentId), state);
             if (!agent) return fail('not-found');
             if (agent.origin !== 'content') return fail('agent-engine-owned');
-            await this.deps.agenda.agentRemove(this.agentNames.get(agent.id) ?? agent.name);
+            await this.agenda.agentRemove(this.agentNames.get(agent.id) ?? agent.name);
             await state.forgetAgent(agent.id);
             return ok({ ...agent, folderId: null, deletedAt: new Date().toISOString() });
         },
@@ -665,7 +745,7 @@ export class EngineApi {
             const agent = await this.agent(String(params.agentId), state);
             if (!agent) return fail('not-found');
             if (agent.origin === 'system') return ok({ agentId: agent.id, revisionId: agent.currentRevisionId, source: '', updatedAt: agent.updatedAt });
-            const source = await this.deps.agenda.bookSource({ reference: this.agentNames.get(agent.id) ?? agent.name });
+            const source = await this.agenda.bookSource({ reference: this.agentNames.get(agent.id) ?? agent.name });
             return ok({ agentId: agent.id, revisionId: agent.currentRevisionId, source: source.text, updatedAt: agent.updatedAt });
         },
         getAgentStatus: async ({ params }) => {
@@ -697,7 +777,8 @@ export class EngineApi {
             return outcome === 'missing' ? fail('not-found') : outcome === 'not-empty' ? fail('folder-not-empty') : ok(null);
         },
         listChats: async ({ query }) => {
-            let summaries = await this.deps.agenda.chatList();
+            if (!this.deps.agenda) return page([], query);
+            let summaries = await this.agenda.chatList();
             if (typeof query.agentId === 'string') summaries = summaries.filter((summary) => this.members(summary).some((member) => member.key === query.agentId));
             if (typeof query.q === 'string') {
                 const needle = query.q.toLowerCase();
@@ -709,7 +790,7 @@ export class EngineApi {
         },
         listAgentChats: async ({ params, query, state }) => {
             if (!(await this.agent(String(params.agentId), state))) return fail('not-found');
-            const summaries = (await this.deps.agenda.chatList()).filter((summary) => this.members(summary).some((member) => member.key === params.agentId));
+            const summaries = (await this.agenda.chatList()).filter((summary) => this.members(summary).some((member) => member.key === params.agentId));
             const chats = await Promise.all(summaries.map((summary) => this.chat(summary)));
             chats.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)) || String(a.id).localeCompare(String(b.id)));
             return page(chats, query);
@@ -732,11 +813,11 @@ export class EngineApi {
                 if (!agent) return fail('not-found');
                 reference = this.agentNames.get(agent.id) ?? agent.name;
             } else {
-                const chatter = this.deps.agenda.snapshot().agents.find((agent) => normalizeAgentName(agent.name) === 'chatter');
+                const chatter = this.agenda.snapshot().agents.find((agent) => normalizeAgentName(agent.name) === 'chatter');
                 if (!chatter) return fail('chatter-missing');
                 reference = chatter.name;
             }
-            const { name } = await this.deps.agenda.chatOpen(reference, { ...(input.title ? { title: input.title } : {}), ...(input.requestKey ? { requestKey: input.requestKey } : {}) });
+            const { name } = await this.agenda.chatOpen(reference, { ...(input.title ? { title: input.title } : {}), ...(input.requestKey ? { requestKey: input.requestKey } : {}) });
             const found = await this.chatByName(name);
             return found ? ok(await this.chat(found.summary, found.detail)) : fail('internal-error');
         },
@@ -755,7 +836,7 @@ export class EngineApi {
                     return ok({ message: this.message(name, position, stored, state, (await this.chatTimes(found.summary)).createdAt) });
                 }
             }
-            const written = await this.deps.agenda.chatSend(name, input.content, { via: 'the App' });
+            const written = await this.agenda.chatSend(name, input.content, { via: 'the App' });
             const position = written.chat.messages.length;
             const messageId = `${name}#${String(position)}`;
             await state.recordMessageAuthor(messageId, actor.memberId);
@@ -766,7 +847,7 @@ export class EngineApi {
         markChatRead: async ({ params }) => {
             const name = String(params.chatId);
             if (!(await this.chatByName(name))) return fail('not-found');
-            await this.deps.agenda.chatRead(name);
+            await this.agenda.chatRead(name);
             const found = await this.chatByName(name);
             return found ? ok(await this.chat(found.summary, found.detail)) : fail('not-found');
         },
@@ -774,7 +855,7 @@ export class EngineApi {
             const name = String(params.chatId);
             if (!(await this.chatByName(name))) return fail('not-found');
             const positions = (body as { messageIds: string[] }).messageIds.map((id) => this.position(name, id)).filter((position): position is number => position !== undefined);
-            if (positions.length) await this.deps.agenda.chatSeen(name, positions);
+            if (positions.length) await this.agenda.chatSeen(name, positions);
             const found = await this.chatByName(name);
             return found ? ok(await this.chat(found.summary, found.detail)) : fail('not-found');
         },
@@ -813,7 +894,7 @@ export class EngineApi {
         setUpdatePolicy: async ({ body, state }) => {
             const policy = (body as { policy: string }).policy;
             if (policy === 'pinned') return fail('validation-failed', { errors: [{ path: 'body.policy', message: 'This engine follows its update channel; pinning a version is not supported.' }] });
-            await this.deps.agenda.setAutoUpdate(policy === 'auto');
+            await this.agenda.setAutoUpdate(policy === 'auto');
             return ok(this.settings(state));
         },
         getSecurityOverview: async () => ok(this.security()),

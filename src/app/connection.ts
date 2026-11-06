@@ -4,7 +4,7 @@ import { HEARTBEAT_INTERVAL_MS, buildHeartbeat, hostFigures, nextHeartbeatSeq, s
 import { loadEngineIdentity, type EngineIdentity } from './identity.js';
 import type { TestTlsOptions } from './net.js';
 import { CONFORMANCE_BUILD } from './build.js';
-import { engineVersion, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
+import { engineVersion, linkAppDirectory, parseLinkInput, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
 import { DEFAULT_DASHBOARD_URL, appSettings, isTunnelMode, type AppSettings, type RelayEndpoint } from './settings.js';
 import { RelayLink } from './tunnel/relay-link.js';
 import { AccessStore, type Actor } from './web/access.js';
@@ -178,6 +178,19 @@ export class AppConnection {
         return this.view();
     }
 
+    /** Pairs on the authenticated local control channel, then starts this engine's own connection. */
+    public async link(input: string): Promise<{ readonly outcome: string; readonly applied: boolean; readonly app: AppConnectionView }> {
+        return await this.serialize(async () => {
+            const result = await linkAppDirectory(this.options.directory, input, this.options.env);
+            if (result.kind === 'refused') return { outcome: result.message, applied: false, app: this.view() };
+            if (result.kind === 'registered' || this.registration?.engineId !== result.registration.engineId) {
+                this.disconnect();
+                await this.load();
+            }
+            return { outcome: result.kind === 'registered' ? 'Linked to the Promptbook App.' : 'This engine is already linked.', applied: true, app: this.view() };
+        });
+    }
+
     /** Closes every tunnel and stops the heartbeat. */
     public async stop(): Promise<void> {
         await this.serialize(async () => {
@@ -187,10 +200,10 @@ export class AppConnection {
     }
 
     /** Runs one lifecycle step after the previous one. */
-    private async serialize(step: () => Promise<void>): Promise<void> {
+    private async serialize<T>(step: () => Promise<T>): Promise<T> {
         const next = this.queue.then(step, step);
-        this.queue = next.catch(() => undefined);
-        await next;
+        this.queue = next.then(() => undefined, () => undefined);
+        return await next;
     }
 
     /** Reads settings, identity and registration, then connects when linked. */
@@ -205,18 +218,22 @@ export class AppConnection {
             const settings = appSettings(this.options.env);
             this.dashboardUrl = settings.dashboardUrl;
             // The launch contract: an engine given a link code registers with it once, when it holds no registration.
-            const linkCode = this.options.env.PTBK_LINK_CODE?.trim();
-            this.identity = await loadEngineIdentity(this.options.directory, { create: Boolean(linkCode) });
+            const input = this.options.env.PTBK_LINK_CODE?.trim();
+            this.identity = await loadEngineIdentity(this.options.directory, { create: Boolean(input) });
             this.registration = await readRegistration(this.options.directory, this.identity, settings);
             if (this.identity) {
                 const hostname = this.registration?.hostname ?? (settings.engineDomain ? `${this.identity.engineId}.${settings.engineDomain}` : undefined);
                 this.options.log?.(`App engine ${this.identity.engineId}${hostname ? ` (${hostname})` : ''}, fingerprint ${this.identity.fingerprint.formatted}.`, 'info');
             }
             if (this.registration && this.identity) {
-                if (linkCode) this.options.log?.('Already linked to the Promptbook App; the link code was not used.', 'info');
+                this.dashboardUrl = this.registration.dashboardUrl;
+                if (input) this.options.log?.('Already linked to the Promptbook App; the link code was not used.', 'info');
                 await this.connect(this.identity, this.registration, settings.relays);
-            } else if (linkCode && this.identity) {
-                this.register(this.identity, linkCode, settings);
+            } else if (input && this.identity) {
+                const link = parseLinkInput(input);
+                const linkedSettings = appSettings(this.options.env, link.origin);
+                this.dashboardUrl = linkedSettings.dashboardUrl;
+                this.register(this.identity, link.code, linkedSettings);
             }
         } catch (error) {
             this.problem = errorMessage(error);

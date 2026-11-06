@@ -407,6 +407,12 @@ async function refresh() {
 /** Opens the shared graphical dashboard of a verified live engine. */
 async function openProject(root) {
     selected = root;
+    const row = host.rows.find((item) => item.projectRoot === root);
+    if (row?.initializationId) {
+        if (row.status === 'live') await openTerminal('onboarding', row.initializationId);
+        else notice('Start this initialization in the overview, then open it again.');
+        return;
+    }
     $('cli').disabled = true;
     notice('');
     if (featureContext?.root !== root) { featureContext = undefined; featureForm = undefined; }
@@ -572,6 +578,7 @@ for (const button of themeButtons) {
 void api.theme().then(showTheme).catch((error) => notice(error.message, true));
 $('overview').onclick = () => { show('overview'); renderOverview(); };
 $('new-project').onclick = () => void newProject();
+$('new-app-setup').onclick = () => void openTerminal('setup');
 $('new-window').onclick = () => void api.newWindow(selected);
 $('global-cli').onclick = () => void openTerminal('global');
 $('cli').onclick = () => {

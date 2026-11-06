@@ -37,6 +37,8 @@ export type RelayEndpoint = {
 export type AppSettings = {
     /** The dashboard API origin (`https://…`, no path). */
     readonly dashboardUrl: string;
+    /** Whether the operator supplied an origin, instead of using the default for bare codes. */
+    readonly dashboardUrlExplicit: boolean;
     /** The engine domain when configured; otherwise it is pinned from the first verified registration. */
     readonly engineDomain?: string;
     /** Operator override of the registration's relays (development and tests). */
@@ -103,11 +105,15 @@ export function isTunnelMode(env: NodeJS.ProcessEnv = process.env): boolean {
  *
  * @private App connection
  */
-export function appSettings(env: NodeJS.ProcessEnv = process.env): AppSettings {
+export function appSettings(env: NodeJS.ProcessEnv = process.env, linkOrigin?: string): AppSettings {
     if (env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
         throw new PtbkError('NODE_TLS_REJECT_UNAUTHORIZED=0 switches off certificate verification, which the App connection refuses. Trust an inspecting proxy with NODE_EXTRA_CA_CERTS instead.', { kind: 'configuration' });
     }
-    const dashboardUrl = env.PTBK_DASHBOARD_URL ? parseOrigin(env.PTBK_DASHBOARD_URL, 'PTBK_DASHBOARD_URL') : DEFAULT_DASHBOARD_URL;
+    const configuredOrigin = env.PTBK_DASHBOARD_URL ? parseOrigin(env.PTBK_DASHBOARD_URL, 'PTBK_DASHBOARD_URL') : undefined;
+    if (configuredOrigin && linkOrigin && configuredOrigin !== linkOrigin) {
+        throw new PtbkError(`The link URL is for ${linkOrigin}, but PTBK_DASHBOARD_URL is ${configuredOrigin}. Use a link from that App or remove the override.`, { kind: 'configuration' });
+    }
+    const dashboardUrl = linkOrigin ?? configuredOrigin ?? DEFAULT_DASHBOARD_URL;
     let engineDomain: string | undefined;
     if (env.PTBK_ENGINE_DOMAIN) {
         engineDomain = parseHostname(env.PTBK_ENGINE_DOMAIN);
@@ -120,5 +126,5 @@ export function appSettings(env: NodeJS.ProcessEnv = process.env): AppSettings {
             throw new PtbkError(`PTBK_RELAYS must name 1 to ${String(MAX_RELAYS)} different relays.`, { kind: 'configuration' });
         }
     }
-    return { dashboardUrl, ...(engineDomain ? { engineDomain } : {}), ...(relays ? { relays } : {}) };
+    return { dashboardUrl, dashboardUrlExplicit: Boolean(configuredOrigin || linkOrigin), ...(engineDomain ? { engineDomain } : {}), ...(relays ? { relays } : {}) };
 }
