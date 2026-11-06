@@ -220,6 +220,20 @@ export async function createUserChat(store: ChatStore, catalog: AgentCatalog, ag
 }
 
 /**
+ * Opens a new user-led chat with one agent and no message yet (a new thread of the App's engine UI): User and the agent
+ * are its members, in that order. Nobody replies until the user writes.
+ *
+ * @private chats
+ */
+export async function openUserChat(store: ChatStore, catalog: AgentCatalog, agent: string, title?: string): Promise<ChatWrite> {
+    const resolution = await catalog.resolve(toReference(agent));
+    if (resolution.kind === 'system-agent' && resolution.name !== 'Expert') throw new PtbkError(`You cannot chat with ${resolution.name}; choose a project agent or @Expert.`, { kind: 'usage' });
+    if (resolution.kind !== 'agent' && resolution.kind !== 'system-agent') throw new PtbkError(`Cannot chat with ${agent}: no such agent (${resolution.kind}).`, { kind: 'not-found' });
+    const name = resolution.kind === 'agent' ? resolution.definition.name : 'Expert';
+    return await store.create({ name: title?.trim() || `${name}: new chat`, members: ['@User', formatAgentReference(name)], status: 'open', taken: catalog.index.names() });
+}
+
+/**
  * Appends the user's message to a chat and routes it: a reply to a pending question goes to that question's author
  * (its waiting run resumes with exactly this message), an explicit address (`+@Name`, `+{Full Name}`) goes to that agent
  * (joining it first when it is not a member yet), and anything else to the main agent. A plain mention changes nothing.

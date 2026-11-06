@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { AttentionOwner, evidenceFingerprint, type RelevanceVerdict } from './attention-owner.js';
 import { nextProgressiveWait, outcomeFingerprint, restoreProgressiveWait, WAITING_POLICIES, withInitialDelay, type ProgressiveSchedule, type WaitingPolicy } from './progressive-waiting.js';
 import { watch, type FSWatcher } from 'node:fs';
-import { readFile, stat, writeFile } from 'node:fs/promises';
+import { readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
@@ -33,12 +33,13 @@ import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
 import { ACTIONS_DIRECTORY, distinctName, generatedName, traceDirectoryOf } from '../tasks/identity.js';
 import { BookIndex } from '../project/books.js';
-import { parseBook } from '../book/parse.js';
+import { convertLegacyBook } from '../book/convert.js';
+import { parseBook, type BookDiagnostic } from '../book/parse.js';
 import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite, type OutstandingRequest } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
-import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
+import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, openUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
 import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type ConversationContext, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
 import type { VoiceCallView } from '../chats/voice-call.js';
@@ -114,7 +115,7 @@ import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { finishWorktree, isIntegrated } from './isolation.js';
 import { FileOwnership, TurnWindows, type FileConflict } from './concurrency.js';
-import { shortHash, shortId } from '../common/ids.js';
+import { shortHash, shortId, slugify } from '../common/ids.js';
 
 /**
  * Process placement of the agenda: the ongoing engine as a daemon or in a foreground terminal, or an in-process
@@ -1829,6 +1830,24 @@ export class Agenda {
     }
 
     /**
+     * Opens a new user-led chat with one agent and no message yet (the App's new thread); a retried creation with the
+     * same client request key returns the chat already opened.
+     */
+    public async chatOpen(agent: string, options: { readonly title?: string; readonly requestKey?: string } = {}): Promise<{ readonly name: string }> {
+        const previous = options.requestKey ? this.createdChats.get(options.requestKey) : undefined;
+        if (previous && (await this.chats.find(previous))) return { name: previous };
+        const written = await this.chatCreation.run(async () => await openUserChat(this.chats, this.catalog, agent, options.title));
+        if (options.requestKey) {
+            this.createdChats.set(options.requestKey, written.chat.name);
+            if (this.createdChats.size > 500) this.createdChats.delete(this.createdChats.keys().next().value!);
+        }
+        this.log(`New chat {${written.chat.name}}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
+        await this.chats.markRead(written.chat.name);
+        await this.refreshChats();
+        return { name: written.chat.name };
+    }
+
+    /**
      * Invites an agent into a chat and asks it to reply: the same operation as a `+@Name` address, for an invitation
      * expressed in natural language. An existing member is addressed without another join.
      */
@@ -3522,6 +3541,69 @@ export class Agenda {
             : false;
         this.wake();
         return { ...outcome, repair };
+    }
+
+    /**
+     * Adds a new agent Book from its source (canonical, or the former plain-name-line syntax, converted), committed as
+     * its own scoped operation. A source that declares no agent, has errors, or names an agent that exists is refused
+     * with its diagnostics and nothing is written.
+     */
+    public async agentCreate(source: string): Promise<{ readonly name: string; readonly path: string; readonly commit?: string }> {
+        let text = source.replace(/\r\n/g, '\n');
+        let document = parseBook(text);
+        if (document.kind !== 'agent') {
+            const converted = convertLegacyBook(text, 'agents');
+            if (converted.kind === 'converted' && converted.entity === 'agent') {
+                text = converted.content;
+                document = parseBook(text);
+            }
+        }
+        const refuse = (diagnostics: readonly BookDiagnostic[]): never => {
+            throw new PtbkError('The agent source is not a valid agent Book.', { kind: 'usage', effect: 'No agent was created.', data: { invalidBook: true, diagnostics } });
+        };
+        if (document.kind !== 'agent' || !document.name.trim()) refuse([{ line: 1, message: 'The first line must name the agent (AGENT <name>).', severity: 'error' }, ...document.diagnostics]);
+        const errors = document.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
+        if (errors.length) refuse(errors);
+        return await this.publication.run(async () => {
+            const taken = await this.freshTakenNames();
+            if (taken.has(nameKey(document.name))) refuse([{ line: document.headerLine + 1, message: `A Book named ${document.name} already exists in this project.`, severity: 'error' }]);
+            const directory = resolve(this.options.project.root, setting<string>(this.settings, 'paths.agents') ?? 'agents');
+            let absolute = join(directory, `${slugify(document.name, 64) || 'agent'}.book`);
+            for (let attempt = 2; await pathExists(absolute); attempt++) absolute = join(directory, `${slugify(document.name, 60) || 'agent'}-${String(attempt)}.book`);
+            await ensureDirectory(directory);
+            await writeFile(absolute, text.endsWith('\n') ? text : `${text}\n`, { flag: 'wx' });
+            const path = toProjectRelative(this.options.project.root, absolute);
+            let commit: string | undefined;
+            if (this.commitMode) commit = await this.commitAuthoring([absolute], `Add agent - ${document.name}`);
+            else await this.state.addOwnedUncommitted({ [path]: null });
+            await this.refreshContext();
+            this.log(`Added the agent ${document.name} (${path})${commit ? ` (${commit.slice(0, 8)})` : ' (uncommitted)'}.`);
+            this.wake();
+            return { name: document.name, path, ...(commit ? { commit } : {}) };
+        });
+    }
+
+    /**
+     * Removes a project agent's Book (its history stays in Git), committed as its own scoped operation. Core and engine
+     * agents, and an agent whose Book belongs to active work, are refused.
+     */
+    public async agentRemove(reference: string): Promise<{ readonly name: string; readonly path: string; readonly commit?: string }> {
+        return await this.publication.run(async () => {
+            const current = await readBookSource(this.options.project.root, this.catalog, { reference });
+            if (current.kind !== 'agent') throw new PtbkError(`${reference} is not an agent of this project.`, { kind: 'not-found' });
+            if (!current.editable) throw new PtbkError(`${current.name} is not a project agent.`, { kind: 'unsupported', data: { engineOwned: true } });
+            const owner = this.ownership.ownerOf(current.path);
+            const active = (await this.state.readActiveRecords()).find((record) => record.sourcePath === current.path);
+            if (owner || active) throw new PtbkError(`${current.path} belongs to the active work "${owner?.label ?? active!.taskTitle}".`, { kind: 'conflict', effect: 'Nothing was removed.' });
+            const absolute = resolve(this.options.project.root, current.path);
+            await rm(absolute);
+            let commit: string | undefined;
+            if (this.commitMode) commit = await this.commitAuthoring([absolute], `Remove agent - ${current.name}`);
+            await this.refreshContext();
+            this.log(`Removed the agent ${current.name} (${current.path})${commit ? ` (${commit.slice(0, 8)})` : ' (uncommitted)'}.`);
+            this.wake();
+            return { name: current.name, path: current.path, ...(commit ? { commit } : {}) };
+        });
     }
 
     /** Normalized names of every Book plus queued tasks (new generated tasks and chats get distinct names). */
