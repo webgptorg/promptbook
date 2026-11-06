@@ -1,0 +1,28 @@
+{
+  "description": "Golden vectors for engine registration (ptbk-register-v1) and the heartbeat (ptbk-heartbeat-v1), spec Interfaces 1 and 4. Computed independently of this package: signing inputs, SHA-256, base32 and base64url with Python's standard library, Ed25519 signatures with OpenSSL 4.0 (`openssl pkeyutl -sign -rawin`). Hex is lowercase; the heartbeat body is the exact UTF-8 bytes sent.",
+  "key": {
+    "description": "RFC 8032 section 7.1 TEST 1, a published test key",
+    "seedHex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+    "publicKeyHex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+    "engineId": "eh7ddx5bksrgcytl7bkai36se4"
+  },
+  "registration": {
+    "description": "POST /v1/engines/register. sig = Ed25519 over signingInput('ptbk-register-v1', \"1\", linkCode, raw 32-byte public key, engineVersion, mode). The link code is 16 bytes 00..0f, a test value.",
+    "request": {
+      "v": 1,
+      "linkCode": "aaaqeayeaudaocajbifqydiob4",
+      "enginePublicKey": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+      "engineVersion": "1.8.2",
+      "mode": "tunnel",
+      "sig": "3ITQWXdqLLatEWp0BLvDZfrtpED65eWbv2m4GDsGRsyrMG9v2LZscMpYqloWIXbvvO6YWCaW7fAOPpHS6RPrBw"
+    },
+    "signingInputHex": "7074626b2d73696700107074626b2d72656769737465722d763100000001310000001a6161617165617965617564616f63616a626966717964696f623400000020d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a00000005312e382e320000000674756e6e656c"
+  },
+  "heartbeat": {
+    "description": "POST /v1/engines/{engineId}/heartbeat. Ptbk-Signature = ed25519=<base64url Ed25519 over signingInput('ptbk-heartbeat-v1', raw 32-byte SHA-256 of the body)>.",
+    "body": "{\"v\":1,\"engineId\":\"eh7ddx5bksrgcytl7bkai36se4\",\"seq\":1042,\"ts\":\"2026-10-16T12:00:00Z\",\"version\":\"1.8.2\",\"uptimeS\":86400,\"diskPct\":40,\"ramPct\":60,\"cpuLoad\":\"low\",\"update\":\"none\",\"agents\":7,\"members\":3}",
+    "bodySha256Hex": "9dec5992598df7746abb23dee636de74c084a155667d66324aff765e7a19839c",
+    "signingInputHex": "7074626b2d73696700117074626b2d6865617274626561742d7631000000209dec5992598df7746abb23dee636de74c084a155667d66324aff765e7a19839c",
+    "signatureHeader": "ed25519=sKS9aSyCncyzsTR4IKIzBGGTH66szW98L9cf3HQIRSulLCuODOs0BKcZNijBN1NB8WfnlQBPwvzah_kabVStBQ"
+  }
+}

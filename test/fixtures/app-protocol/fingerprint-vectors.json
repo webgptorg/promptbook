@@ -1,0 +1,69 @@
+{
+  "$comment": "Engine fingerprint derivation ptbk-fingerprint-v1 (U-02, decided 2026-10-20). digest = SHA-256 over the UTF-8 bytes of the ASCII prefix 'ptbk-fingerprint-v1' immediately followed by the engine ID, with no separator (the prefix has a fixed length, so the input stays unambiguous). Digest bits are read most significant bit first, byte 0 first. Code: bits 0-99, twenty 5-bit groups, each mapped to the Crockford base32 alphabet 0123456789ABCDEFGHJKMNPQRSTVWXYZ (uppercase, no check symbol); shown as five groups of four joined by '-' (XXXX-XXXX-XXXX-XXXX-XXXX). Pattern: bits 100-114 (patternBits, in this order) fill a 5x5 grid row-major over rows 0-4 and columns 0-2 (bit 100 + 3*row + column, 1 = filled); column 3 mirrors column 1 and column 4 mirrors column 0. Colours are positional and not part of the fingerprint: a filled cell takes --trust-mark-fp-N with N = ((row + min(column, 4 - column)) mod 6) + 1. Vectors were computed with Python's hashlib, independently of the TypeScript implementation.",
+  "derivation": "ptbk-fingerprint-v1",
+  "vectors": [
+    {
+      "engineId": "a",
+      "digestHex": "9e3f7b4922fa7495cc387f666183dea4911a3ca83aa7eec44b026c6577f81bb1",
+      "code": "KRZQPJ92Z9T9BK1RFXK6",
+      "formatted": "KRZQ-PJ92-Z9T9-BK1R-FXK6",
+      "patternBits": "000110000011110"
+    },
+    {
+      "engineId": "local-dev-engine-7",
+      "digestHex": "53a670ffa077d45cdc9eacd05582feb0433cdc038200e87dde76c7b0fcaea68e",
+      "code": "AEK71ZX0EZA5SQ4YNK85",
+      "formatted": "AEK7-1ZX0-EZA5-SQ4Y-NK85",
+      "patternBits": "010110000010111"
+    },
+    {
+      "engineId": "aaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "digestHex": "6f7d21f8cf7715f4de44ca71adda3262a45b7209e6f6816b19ad21c7c8237320",
+      "code": "DXYJ3Y6FEWAZ9QJ4S9RT",
+      "formatted": "DXYJ-3Y6F-EWAZ-9QJ4-S9RT",
+      "patternBits": "110111011010001"
+    },
+    {
+      "engineId": "77777777777777777777777777",
+      "digestHex": "a50f4d4c7cc751b3ac149099b2a45820657315e2c8f4749ffea9f84d10b8c1ea",
+      "code": "MM7MTK3WRX8V7B0MJ2CV",
+      "formatted": "MM7M-TK3W-RX8V-7B0M-J2CV",
+      "patternBits": "001010100100010"
+    },
+    {
+      "engineId": "k3v6xq2mfz4pd7h5wn2rbtcayu",
+      "digestHex": "0d5bd05c3ae853e851f45a4cddc09768dda5241847f760ff86e47c82edab4b39",
+      "code": "1NDX0Q1TX19YGMFMB96D",
+      "formatted": "1NDX-0Q1T-X19Y-GMFM-B96D",
+      "patternBits": "110111000000100"
+    },
+    {
+      "engineId": "q4ndy7ejw3zkp6ftr2hcm5sxlg",
+      "digestHex": "8b29c8767094ddf9c173ac61824297b0b6afa65e6acc1eca7b87cc847e3250b5",
+      "code": "HCMWGXKGJKEZKGBKNHGR",
+      "formatted": "HCMW-GXKG-JKEZ-KGBK-NHGR",
+      "patternBits": "001001000010100"
+    },
+    {
+      "engineId": "m2zrfh7v3pdqk5wtxe6ncb4jsy",
+      "digestHex": "1d7c72af7bd3ee5b9f2be1b6a6e91e35da96cc1dcd1104ca3287f2336fb2e328",
+      "code": "3NY75BVVTFQ5Q7SBW6VA",
+      "formatted": "3NY7-5BVV-TFQ5-Q7SB-W6VA",
+      "patternBits": "011011101001000"
+    },
+    {
+      "engineId": "t7wq2dxv5mkz3ehcfr6pn4bjyl",
+      "digestHex": "6c0165495edb412ebe8029448df8877511fdb14186a3979251370bff6ab5959b",
+      "code": "DG0PAJAYVD0JXFM05528",
+      "formatted": "DG0P-AJAY-VD0J-XFM0-5528",
+      "patternBits": "110111111000100"
+    },
+    {
+      "engineId": "memoryengine234567abcdefgh",
+      "digestHex": "3708c02547e71a070741c7400c991a3714ea3ebcaaa6337198de4fcb76f0cd0d",
+      "code": "6W4C09A7WWD0E1T1RX00",
+      "formatted": "6W4C-09A7-WWD0-E1T1-RX00",
+      "patternBits": "110010011001000"
+    }
+  ]
+}
