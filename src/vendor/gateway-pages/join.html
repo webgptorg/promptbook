@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="{{lang}}">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="referrer" content="no-referrer" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Promptbook · {{hostname}}</title>
+        <link rel="stylesheet" href="/auth/assets/gateway.css" />
+        <script
+            defer
+            src="/auth/assets/simplewebauthn-browser.umd.min.js"
+            integrity="sha256-KbsGmbRbw5o1DZkqE7/BpNQNiVMTkFgeH1fxFCxuIh0="
+        ></script>
+        <script type="module" src="/auth/assets/gateway.js"></script>
+    </head>
+    <body data-page="join" data-owner="{{owner}}">
+        <header class="masthead">
+            <span class="wordmark">Promptbook</span><span class="masthead-host">{{hostname}}</span>
+        </header>
+        <main class="card">
+            <section data-state="loading">
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1">
+                        <span data-lang="en">Checking your invitation</span
+                        ><span data-lang="cs">Kontrolujeme pozvánku</span>
+                    </h1>
+                </div>
+                <noscript>
+                    <p data-lang="en">
+                        This page needs JavaScript to create a passkey. Turn it on and reload the page.
+                    </p>
+                    <p data-lang="cs">
+                        Tato stránka potřebuje JavaScript, aby mohla vytvořit přístupový klíč. Zapněte ho a stránku
+                        načtěte znovu.
+                    </p>
+                </noscript>
+            </section>
+
+            <section data-state="valid" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Join {{hostname}}</span><span data-lang="cs">Připojte se k {{hostname}}</span>
+                </h1>
+                <p data-lang="en">
+                    Your organization invited you to this engine. Create a passkey for it; someone on the engine then
+                    approves your access.
+                </p>
+                <p data-lang="cs">
+                    Vaše organizace vás pozvala do tohoto enginu. Vytvořte si pro něj přístupový klíč; někdo z enginu
+                    pak váš přístup schválí.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="create">
+                        <span data-lang="en">Create passkey</span><span data-lang="cs">Vytvořit přístupový klíč</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="waiting" hidden>
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1">
+                        <span data-lang="en">Waiting for approval</span><span data-lang="cs">Čekáme na schválení</span>
+                    </h1>
+                </div>
+                <p data-lang="en">Tell this code to the person approving you:</p>
+                <p data-lang="cs">Řekněte tento kód tomu, kdo vás schvaluje:</p>
+                <p class="join-code" data-join-code></p>
+                <p data-lang="en" class="muted">Keep this page open; it signs you in once you are approved.</p>
+                <p data-lang="cs" class="muted">Nechte tuto stránku otevřenou; jakmile vás schválí, přihlásí vás.</p>
+            </section>
+
+            <section data-state="done" hidden>
+                <h1 tabindex="-1"><span data-lang="en">You are in</span><span data-lang="cs">Jste uvnitř</span></h1>
+                <p data-lang="en">Your access was approved. Opening the engine…</p>
+                <p data-lang="cs">Váš přístup byl schválen. Otevíráme engine…</p>
+                <div class="actions">
+                    <a class="button" href="/" data-next-link
+                        ><span data-lang="en">Open the engine</span><span data-lang="cs">Otevřít engine</span></a
+                    >
+                </div>
+            </section>
+
+            <section data-state="declined" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Your request was not approved</span
+                    ><span data-lang="cs">Vaše žádost nebyla schválena</span>
+                </h1>
+                <p data-lang="en">
+                    It was declined or it expired. Ask the person who invited you, then open the team again from the
+                    dashboard.
+                </p>
+                <p data-lang="cs">
+                    Byla zamítnuta nebo vypršela. Zeptejte se toho, kdo vás pozval, a pak tým znovu otevřete z nástěnky.
+                </p>
+            </section>
+
+            <section data-state="missing" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This page needs your invitation link</span
+                    ><span data-lang="cs">Tato stránka potřebuje odkaz z pozvánky</span>
+                </h1>
+                <p data-lang="en">
+                    Open the team from your organization’s dashboard; it brings you here with the link.
+                </p>
+                <p data-lang="cs">Otevřete tým z nástěnky vaší organizace; ta vás sem pošle i s odkazem.</p>
+            </section>
+
+            <section data-state="invalid" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This invitation link does not work</span
+                    ><span data-lang="cs">Tento odkaz z pozvánky nefunguje</span>
+                </h1>
+                <p data-lang="en">
+                    The engine could not check it. Open the team again from your organization’s dashboard for a new
+                    link.
+                </p>
+                <p data-lang="cs">
+                    Engine ho nedokázal ověřit. Pro nový odkaz otevřete tým znovu z nástěnky vaší organizace.
+                </p>
+            </section>
+
+            <section data-state="expired" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This invitation link has expired</span
+                    ><span data-lang="cs">Platnost odkazu z pozvánky vypršela</span>
+                </h1>
+                <p data-lang="en">
+                    Links work for 15 minutes. Open the team again from your organization’s dashboard for a new link.
+                </p>
+                <p data-lang="cs">
+                    Odkazy platí 15 minut. Pro nový odkaz otevřete tým znovu z nástěnky vaší organizace.
+                </p>
+            </section>
+
+            <section data-state="used" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This invitation link was already used</span
+                    ><span data-lang="cs">Tento odkaz z pozvánky už byl použit</span>
+                </h1>
+                <p data-lang="en">
+                    Each link works once. Open the team again from your organization’s dashboard for a new link.
+                </p>
+                <p data-lang="cs">
+                    Každý odkaz funguje jen jednou. Pro nový odkaz otevřete tým znovu z nástěnky vaší organizace.
+                </p>
+            </section>
+
+            <section data-state="already-member" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">You already have access</span><span data-lang="cs">Přístup už máte</span>
+                </h1>
+                <p data-lang="en">Sign in with the passkey you created for this engine.</p>
+                <p data-lang="cs">Přihlaste se přístupovým klíčem, který jste pro tento engine vytvořili.</p>
+                <div class="actions">
+                    <a class="button" href="/auth/sign-in"
+                        ><span data-lang="en">Sign in</span><span data-lang="cs">Přihlásit se</span></a
+                    >
+                </div>
+            </section>
+
+            <section data-state="full" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Too many people are waiting for approval</span
+                    ><span data-lang="cs">Na schválení čeká příliš mnoho lidí</span>
+                </h1>
+                <p data-lang="en">Ask someone on the engine to handle the pending requests, then try again.</p>
+                <p data-lang="cs">Požádejte někoho z enginu, ať vyřídí čekající žádosti, a pak to zkuste znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="not-verified" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The engine did not accept this passkey</span
+                    ><span data-lang="cs">Engine tento přístupový klíč nepřijal</span>
+                </h1>
+                <p data-lang="en">
+                    Try again; if it keeps failing, open the team again from your organization’s dashboard for a new
+                    link.
+                </p>
+                <p data-lang="cs">
+                    Zkuste to znovu. Pokud to stále nejde, pro nový odkaz otevřete tým znovu z nástěnky vaší organizace.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="prompt" hidden>
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1">
+                        <span data-lang="en">Waiting for your passkey</span
+                        ><span data-lang="cs">Čekáme na přístupový klíč</span>
+                    </h1>
+                </div>
+                <p data-lang="en">Confirm on your device: fingerprint, face, PIN or security key.</p>
+                <p data-lang="cs">
+                    Potvrďte to na svém zařízení: otiskem prstu, obličejem, PINem nebo bezpečnostním klíčem.
+                </p>
+            </section>
+
+            <section data-state="cancelled" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The passkey was not created</span
+                    ><span data-lang="cs">Přístupový klíč nebyl vytvořen</span>
+                </h1>
+                <p data-lang="en">The passkey prompt was closed or timed out. Try again when you are ready.</p>
+                <p data-lang="cs">
+                    Výzva k vytvoření klíče byla zavřena nebo vypršela. Zkuste to znovu, až budete připraveni.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="unsupported" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This browser cannot create passkeys</span
+                    ><span data-lang="cs">Tento prohlížeč neumí vytvořit přístupový klíč</span>
+                </h1>
+                <p data-lang="en">Any one of these works:</p>
+                <p data-lang="cs">Postačí kterákoli z těchto možností:</p>
+                <ul data-lang="en">
+                    <li>Windows Hello with a PIN, on most Windows 10 and 11 PCs</li>
+                    <li>
+                        A password manager that stores passkeys, such as 1Password, Bitwarden or Google Password Manager
+                        in Chrome
+                    </li>
+                    <li>A phone nearby: choose the phone option in the browser's prompt and confirm on the phone</li>
+                    <li>A security key over USB or NFC</li>
+                </ul>
+                <ul data-lang="cs">
+                    <li>Windows Hello s PINem, na většině počítačů s Windows 10 a 11</li>
+                    <li>
+                        Správce hesel, který ukládá přístupové klíče, například 1Password, Bitwarden nebo Správce hesel
+                        Google v Chromu
+                    </li>
+                    <li>Telefon poblíž: ve výzvě prohlížeče zvolte telefon a potvrďte to na něm</li>
+                    <li>Bezpečnostní klíč přes USB nebo NFC</li>
+                </ul>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="rate-limited" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Too many attempts</span><span data-lang="cs">Příliš mnoho pokusů</span>
+                </h1>
+                <p data-lang="en">Wait a minute and try again.</p>
+                <p data-lang="cs">Počkejte chvíli a zkuste to znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="failed" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The passkey did not work</span
+                    ><span data-lang="cs">Přístupový klíč nefungoval</span>
+                </h1>
+                <p data-lang="en">
+                    Your device could not finish the passkey step. Try again, or use another device or a security key.
+                </p>
+                <p data-lang="cs">
+                    Zařízení krok s přístupovým klíčem nedokončilo. Zkuste to znovu, nebo použijte jiné zařízení či
+                    bezpečnostní klíč.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="offline" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Cannot reach the engine</span><span data-lang="cs">Engine není dostupný</span>
+                </h1>
+                <p data-lang="en">Check your connection and try again.</p>
+                <p data-lang="cs">Zkontrolujte připojení a zkuste to znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="error" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The engine could not answer</span
+                    ><span data-lang="cs">Engine nemohl odpovědět</span>
+                </h1>
+                <p data-lang="en">It returned an error. Try again in a moment.</p>
+                <p data-lang="cs">Vrátil chybu. Zkuste to za chvíli znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+        <p class="visually-hidden" role="status" aria-live="polite" data-announcer></p>
+    </body>
+</html>

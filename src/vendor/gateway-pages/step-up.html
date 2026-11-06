@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="{{lang}}">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="referrer" content="no-referrer" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Promptbook · {{hostname}}</title>
+        <link rel="stylesheet" href="/auth/assets/gateway.css" />
+        <script
+            defer
+            src="/auth/assets/simplewebauthn-browser.umd.min.js"
+            integrity="sha256-KbsGmbRbw5o1DZkqE7/BpNQNiVMTkFgeH1fxFCxuIh0="
+        ></script>
+        <script type="module" src="/auth/assets/gateway.js"></script>
+    </head>
+    <body data-page="step-up" data-owner="{{owner}}">
+        <header class="masthead">
+            <span class="wordmark">Promptbook</span><span class="masthead-host">{{hostname}}</span>
+        </header>
+        <main class="card">
+            <section data-state="loading">
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1">
+                        <span data-lang="en">Preparing the check</span><span data-lang="cs">Připravujeme ověření</span>
+                    </h1>
+                </div>
+                <noscript>
+                    <p data-lang="en">
+                        This page needs JavaScript to confirm with a passkey. Turn it on and reload the page.
+                    </p>
+                    <p data-lang="cs">
+                        Tato stránka potřebuje JavaScript, aby mohla ověřit přístupový klíč. Zapněte ho a stránku
+                        načtěte znovu.
+                    </p>
+                </noscript>
+            </section>
+
+            <section data-state="ready" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Confirm it is you</span><span data-lang="cs">Potvrďte, že jste to vy</span>
+                </h1>
+                <p data-lang="en">This change needs a fresh confirmation with your passkey.</p>
+                <p data-lang="cs">Tato změna vyžaduje nové ověření přístupovým klíčem.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="confirm">
+                        <span data-lang="en">Confirm with passkey</span
+                        ><span data-lang="cs">Potvrdit přístupovým klíčem</span>
+                    </button>
+                </div>
+                <p class="muted">
+                    <a href="/" data-next-link
+                        ><span data-lang="en">Cancel and go back</span><span data-lang="cs">Zrušit a vrátit se</span></a
+                    >
+                </p>
+            </section>
+
+            <section data-state="prompt" hidden>
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1">
+                        <span data-lang="en">Waiting for your passkey</span
+                        ><span data-lang="cs">Čekáme na přístupový klíč</span>
+                    </h1>
+                </div>
+                <p data-lang="en">Confirm on your device: fingerprint, face, PIN or security key.</p>
+                <p data-lang="cs">
+                    Potvrďte to na svém zařízení: otiskem prstu, obličejem, PINem nebo bezpečnostním klíčem.
+                </p>
+            </section>
+
+            <section data-state="cancelled" hidden>
+                <h1 tabindex="-1"><span data-lang="en">Not confirmed</span><span data-lang="cs">Neověřeno</span></h1>
+                <p data-lang="en">The passkey prompt was closed or timed out. Try again when you are ready.</p>
+                <p data-lang="cs">Výzva byla zavřena nebo vypršela. Zkuste to znovu, až budete připraveni.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="unsupported" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This browser cannot use passkeys</span
+                    ><span data-lang="cs">Tento prohlížeč neumí používat přístupové klíče</span>
+                </h1>
+                <p data-lang="en">Any one of these works:</p>
+                <p data-lang="cs">Postačí kterákoli z těchto možností:</p>
+                <ul data-lang="en">
+                    <li>Windows Hello with a PIN, on most Windows 10 and 11 PCs</li>
+                    <li>
+                        A password manager that stores passkeys, such as 1Password, Bitwarden or Google Password Manager
+                        in Chrome
+                    </li>
+                    <li>A phone nearby: choose the phone option in the browser's prompt and confirm on the phone</li>
+                    <li>A security key over USB or NFC</li>
+                </ul>
+                <ul data-lang="cs">
+                    <li>Windows Hello s PINem, na většině počítačů s Windows 10 a 11</li>
+                    <li>
+                        Správce hesel, který ukládá přístupové klíče, například 1Password, Bitwarden nebo Správce hesel
+                        Google v Chromu
+                    </li>
+                    <li>Telefon poblíž: ve výzvě prohlížeče zvolte telefon a potvrďte to na něm</li>
+                    <li>Bezpečnostní klíč přes USB nebo NFC</li>
+                </ul>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="not-recognised" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This passkey is not on your account</span
+                    ><span data-lang="cs">Tento přístupový klíč nepatří k vašemu účtu</span>
+                </h1>
+                <p data-lang="en">
+                    Use a passkey you registered on this engine for the account you are signed in with.
+                </p>
+                <p data-lang="cs">
+                    Použijte přístupový klíč, který jste na tomto enginu zaregistrovali pro účet, se kterým jste
+                    přihlášeni.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try another passkey</span><span data-lang="cs">Zkusit jiný klíč</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="signed-out" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Your session has ended</span><span data-lang="cs">Vaše relace skončila</span>
+                </h1>
+                <p data-lang="en">Sign in again to continue.</p>
+                <p data-lang="cs">Pro pokračování se znovu přihlaste.</p>
+                <div class="actions">
+                    <a class="button" href="/auth/sign-in" data-sign-in-link
+                        ><span data-lang="en">Sign in</span><span data-lang="cs">Přihlásit se</span></a
+                    >
+                </div>
+            </section>
+
+            <section data-state="rate-limited" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Too many attempts</span><span data-lang="cs">Příliš mnoho pokusů</span>
+                </h1>
+                <p data-lang="en">Wait a minute and try again.</p>
+                <p data-lang="cs">Počkejte chvíli a zkuste to znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="failed" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The passkey did not work</span
+                    ><span data-lang="cs">Přístupový klíč nefungoval</span>
+                </h1>
+                <p data-lang="en">
+                    Your device could not finish the passkey step. Try again, or use another device or a security key.
+                </p>
+                <p data-lang="cs">
+                    Zařízení krok s přístupovým klíčem nedokončilo. Zkuste to znovu, nebo použijte jiné zařízení či
+                    bezpečnostní klíč.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="offline" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Cannot reach the engine</span><span data-lang="cs">Engine není dostupný</span>
+                </h1>
+                <p data-lang="en">Check your connection and try again.</p>
+                <p data-lang="cs">Zkontrolujte připojení a zkuste to znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="error" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The engine could not answer</span
+                    ><span data-lang="cs">Engine nemohl odpovědět</span>
+                </h1>
+                <p data-lang="en">
+                    It returned an error. Try again in a moment; if it keeps failing, run
+                    <code>{{command}} status</code> on the server.
+                </p>
+                <p data-lang="cs">
+                    Vrátil chybu. Zkuste to za chvíli znovu. Pokud to stále nejde, spusťte na serveru
+                    <code>{{command}} status</code>.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="done" hidden>
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1"><span data-lang="en">Confirmed</span><span data-lang="cs">Ověřeno</span></h1>
+                </div>
+                <p data-lang="en">Taking you back.</p>
+                <p data-lang="cs">Vracíme vás zpět.</p>
+                <div class="actions">
+                    <a class="link" href="/" data-next-link
+                        ><span data-lang="en">Continue</span><span data-lang="cs">Pokračovat</span></a
+                    >
+                </div>
+            </section>
+        </main>
+        <p class="visually-hidden" role="status" aria-live="polite" data-announcer></p>
+    </body>
+</html>

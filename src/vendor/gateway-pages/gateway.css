@@ -1,0 +1,599 @@
+/*
+ * Reference gateway pages (MIT, @ptbk/gateway-pages). The first part is the Promptbook design tokens, copied from
+ * packages/ui/src/theme/primitives.css and semantic.css; a test keeps the values identical. The gateway has no theme
+ * switch, so dark mode follows the operating system instead of ui's `.dark` class. No font files are loaded: the
+ * stacks fall back to system fonts.
+ */
+:root {
+    --ptbk-white: #ffffff;
+    --ptbk-black: #000000;
+
+    --ptbk-neutral-25: #fbfcfd;
+    --ptbk-neutral-50: #f4f6f8;
+    --ptbk-neutral-100: #eaeef2;
+    --ptbk-neutral-200: #d9dfe6;
+    --ptbk-neutral-300: #c1cad4;
+    --ptbk-neutral-400: #96a1ae;
+    --ptbk-neutral-500: #6c7785;
+    --ptbk-neutral-600: #525c69;
+    --ptbk-neutral-700: #3a434f;
+    --ptbk-neutral-800: #262d37;
+    --ptbk-neutral-900: #161b22;
+
+    --ptbk-ink-600: #2a3644;
+    --ptbk-ink-700: #1d2733;
+    --ptbk-ink-800: #141c26;
+    --ptbk-ink-900: #0d131b;
+    --ptbk-ink-950: #080c12;
+
+    --ptbk-cyan-50: #ecfdff;
+    --ptbk-cyan-100: #cff8fc;
+    --ptbk-cyan-200: #a3eef8;
+    --ptbk-cyan-300: #63ddf0;
+    --ptbk-cyan-400: #25c6e0;
+    --ptbk-cyan-500: #08a9c4;
+    --ptbk-cyan-600: #0788a2;
+    --ptbk-cyan-700: #0c6c82;
+    --ptbk-cyan-800: #11596b;
+    --ptbk-cyan-900: #134a59;
+    --ptbk-cyan-950: #072f3b;
+
+    --ptbk-mint-300: #74e6c6;
+    --ptbk-mint-400: #3ad2a7;
+    --ptbk-mint-500: #14b88c;
+    --ptbk-mint-600: #079572;
+    --ptbk-mint-700: #06765b;
+
+    --ptbk-green-50: #effcf3;
+    --ptbk-green-300: #86e8a8;
+    --ptbk-green-700: #17733c;
+    --ptbk-green-950: #06291a;
+
+    --ptbk-amber-50: #fff9eb;
+    --ptbk-amber-300: #fcd364;
+    --ptbk-amber-700: #a14b08;
+    --ptbk-amber-950: #3a1a04;
+
+    --ptbk-red-50: #fff2f2;
+    --ptbk-red-300: #fda4a4;
+    --ptbk-red-600: #d42a2a;
+    --ptbk-red-700: #b11f1f;
+    --ptbk-red-950: #3f0c0c;
+
+    --ptbk-blue-50: #eff5ff;
+    --ptbk-blue-300: #9cc3fd;
+    --ptbk-blue-700: #1f4fc8;
+    --ptbk-blue-950: #14204a;
+
+    --ptbk-font-display: 'Outfit Variable', 'Outfit Fallback', ui-sans-serif, system-ui, sans-serif;
+    --ptbk-font-text: 'Inter Variable', 'Inter Fallback', ui-sans-serif, system-ui, sans-serif;
+    --ptbk-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono Fallback', ui-monospace, monospace;
+
+    --ptbk-font-size-xs: 0.75rem;
+    --ptbk-font-size-sm: 0.875rem;
+    --ptbk-font-size-md: 1rem;
+    --ptbk-font-size-lg: 1.125rem;
+    --ptbk-font-size-xl: 1.25rem;
+    --ptbk-font-size-2xl: 1.5rem;
+    --ptbk-font-size-3xl: 1.875rem;
+    --ptbk-line-height-tight: 1.25;
+    --ptbk-line-height-normal: 1.5;
+
+    --ptbk-space-unit: 0.25rem;
+
+    --ptbk-radius-sm: 0.375rem;
+    --ptbk-radius-md: 0.5rem;
+    --ptbk-radius-lg: 0.875rem;
+    --ptbk-radius-full: 9999px;
+
+    --ptbk-shadow-1: 0 1px 2px rgb(13 19 27 / 0.06), 0 1px 1px rgb(13 19 27 / 0.04);
+    --ptbk-shadow-2: 0 2px 4px rgb(13 19 27 / 0.06), 0 8px 24px -6px rgb(13 19 27 / 0.12);
+    --ptbk-shadow-3: 0 4px 8px rgb(13 19 27 / 0.08), 0 24px 48px -12px rgb(13 19 27 / 0.24);
+    --ptbk-shadow-dark-1: 0 1px 2px rgb(0 0 0 / 0.4);
+    --ptbk-shadow-dark-2: 0 2px 4px rgb(0 0 0 / 0.4), 0 8px 24px -6px rgb(0 0 0 / 0.5);
+    --ptbk-shadow-dark-3: 0 4px 8px rgb(0 0 0 / 0.45), 0 24px 48px -12px rgb(0 0 0 / 0.6);
+    --ptbk-scrim: rgb(8 12 18 / 0.48);
+    --ptbk-scrim-dark: rgb(0 0 0 / 0.64);
+
+    --ptbk-duration-0: 0s;
+    --ptbk-duration-100: 100ms;
+    --ptbk-duration-150: 150ms;
+    --ptbk-duration-200: 200ms;
+    --ptbk-duration-300: 300ms;
+    --ptbk-duration-600: 600ms;
+    --ptbk-duration-900: 900ms;
+    --ptbk-duration-2400: 2400ms;
+    --ptbk-ease-linear: linear;
+    --ptbk-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ptbk-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+    --ptbk-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:root {
+    color-scheme: light;
+
+    --color-surface: var(--ptbk-neutral-50);
+    --color-raised: var(--ptbk-white);
+    --color-sunken: var(--ptbk-neutral-100);
+    --color-hover: var(--ptbk-neutral-100);
+    --color-selected: var(--ptbk-cyan-50);
+    --color-scrim: var(--ptbk-scrim);
+
+    --color-text: var(--ptbk-neutral-900);
+    --color-text-muted: var(--ptbk-neutral-600);
+    --color-border: var(--ptbk-neutral-500);
+    --color-divider: var(--ptbk-neutral-200);
+
+    --color-accent: var(--ptbk-cyan-700);
+    --color-accent-hover: var(--ptbk-cyan-800);
+    --color-on-accent: var(--ptbk-white);
+    --color-accent-text: var(--ptbk-cyan-700);
+    --color-accent-soft: var(--ptbk-cyan-50);
+    --color-focus: var(--ptbk-cyan-600);
+    --color-live: var(--ptbk-mint-600);
+
+    --color-success: var(--ptbk-green-700);
+    --color-success-soft: var(--ptbk-green-50);
+    --color-warning: var(--ptbk-amber-700);
+    --color-warning-soft: var(--ptbk-amber-50);
+    --color-danger: var(--ptbk-red-700);
+    --color-danger-hover: var(--ptbk-red-600);
+    --color-on-danger: var(--ptbk-white);
+    --color-danger-soft: var(--ptbk-red-50);
+    --color-info: var(--ptbk-blue-700);
+    --color-info-soft: var(--ptbk-blue-50);
+
+    /* Recognition colours for marks such as the engine fingerprint; each holds 3:1 against raised surfaces. */
+    --color-identity-1: var(--ptbk-cyan-700);
+    --color-identity-2: var(--ptbk-mint-700);
+    --color-identity-3: var(--ptbk-blue-700);
+    --color-identity-4: var(--ptbk-amber-700);
+    --color-identity-5: var(--ptbk-red-700);
+    --color-identity-6: var(--ptbk-ink-700);
+
+    --font-display: var(--ptbk-font-display);
+    --font-sans: var(--ptbk-font-text);
+    --font-mono: var(--ptbk-font-mono);
+
+    --text-xs: var(--ptbk-font-size-xs);
+    --text-xs--line-height: var(--ptbk-line-height-normal);
+    --text-sm: var(--ptbk-font-size-sm);
+    --text-sm--line-height: var(--ptbk-line-height-normal);
+    --text-base: var(--ptbk-font-size-md);
+    --text-base--line-height: var(--ptbk-line-height-normal);
+    --text-lg: var(--ptbk-font-size-lg);
+    --text-lg--line-height: var(--ptbk-line-height-normal);
+    --text-xl: var(--ptbk-font-size-xl);
+    --text-xl--line-height: var(--ptbk-line-height-tight);
+    --text-2xl: var(--ptbk-font-size-2xl);
+    --text-2xl--line-height: var(--ptbk-line-height-tight);
+    --text-3xl: var(--ptbk-font-size-3xl);
+    --text-3xl--line-height: var(--ptbk-line-height-tight);
+
+    --spacing: var(--ptbk-space-unit);
+
+    --radius-control: var(--ptbk-radius-md);
+    --radius-surface: var(--ptbk-radius-lg);
+    --radius-pill: var(--ptbk-radius-full);
+    --radius-small: var(--ptbk-radius-sm);
+
+    --shadow-subtle: var(--ptbk-shadow-1);
+    --shadow-raised: var(--ptbk-shadow-2);
+    --shadow-overlay: var(--ptbk-shadow-3);
+
+    --ease-enter: var(--ptbk-ease-out);
+    --ease-exit: var(--ptbk-ease-in);
+    --ease-standard: var(--ptbk-ease-in-out);
+
+    /* Durations; pair them with an `--ease-*` token. */
+    --motion-state: var(--ptbk-duration-150);
+    --motion-enter: var(--ptbk-duration-200);
+    --motion-exit: var(--ptbk-duration-150);
+    --motion-seal: var(--ptbk-duration-600);
+    --motion-live: var(--ptbk-duration-2400);
+    --motion-spin: var(--ptbk-duration-900);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+
+        --color-surface: var(--ptbk-ink-900);
+        --color-raised: var(--ptbk-ink-800);
+        --color-sunken: var(--ptbk-ink-950);
+        --color-hover: var(--ptbk-ink-700);
+        --color-selected: var(--ptbk-cyan-950);
+        --color-scrim: var(--ptbk-scrim-dark);
+
+        --color-text: var(--ptbk-neutral-50);
+        --color-text-muted: var(--ptbk-neutral-400);
+        --color-border: var(--ptbk-neutral-500);
+        --color-divider: var(--ptbk-ink-600);
+
+        --color-accent: var(--ptbk-cyan-300);
+        --color-accent-hover: var(--ptbk-cyan-200);
+        --color-on-accent: var(--ptbk-ink-950);
+        --color-accent-text: var(--ptbk-cyan-300);
+        --color-accent-soft: var(--ptbk-cyan-950);
+        --color-focus: var(--ptbk-cyan-300);
+        --color-live: var(--ptbk-mint-400);
+
+        --color-success: var(--ptbk-green-300);
+        --color-success-soft: var(--ptbk-green-950);
+        --color-warning: var(--ptbk-amber-300);
+        --color-warning-soft: var(--ptbk-amber-950);
+        --color-danger: var(--ptbk-red-300);
+        --color-danger-hover: var(--ptbk-red-50);
+        --color-on-danger: var(--ptbk-ink-950);
+        --color-danger-soft: var(--ptbk-red-950);
+        --color-info: var(--ptbk-blue-300);
+        --color-info-soft: var(--ptbk-blue-950);
+
+        --color-identity-1: var(--ptbk-cyan-300);
+        --color-identity-2: var(--ptbk-mint-400);
+        --color-identity-3: var(--ptbk-blue-300);
+        --color-identity-4: var(--ptbk-amber-300);
+        --color-identity-5: var(--ptbk-red-300);
+        --color-identity-6: var(--ptbk-neutral-300);
+
+        --shadow-subtle: var(--ptbk-shadow-dark-1);
+        --shadow-raised: var(--ptbk-shadow-dark-2);
+        --shadow-overlay: var(--ptbk-shadow-dark-3);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --motion-enter: var(--ptbk-duration-100);
+        --motion-exit: var(--ptbk-duration-100);
+        --motion-seal: var(--ptbk-duration-0);
+        --motion-live: var(--ptbk-duration-0);
+        --ease-enter: var(--ptbk-ease-linear);
+        --ease-exit: var(--ptbk-ease-linear);
+    }
+}
+
+/* Pages. Everything below uses semantic tokens only. */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* Both languages are in the page; `<html lang>` picks one, English unless it says cs. */
+:root:not([lang='cs']) [data-lang='cs'],
+:root[lang='cs'] [data-lang='en'] {
+    display: none !important;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: calc(var(--spacing) * 10) calc(var(--spacing) * 4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+.masthead {
+    width: 100%;
+    max-width: 30rem;
+    margin-bottom: calc(var(--spacing) * 4);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+}
+
+.wordmark {
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.masthead-host {
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    overflow-wrap: anywhere;
+}
+
+.card {
+    width: 100%;
+    max-width: 30rem;
+    padding: calc(var(--spacing) * 8);
+    background: var(--color-raised);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-surface);
+    box-shadow: var(--shadow-raised);
+}
+
+@media (max-width: 30rem) {
+    body {
+        padding-top: calc(var(--spacing) * 6);
+    }
+    .card {
+        padding: calc(var(--spacing) * 5);
+    }
+}
+
+section[data-state] {
+    animation: gateway-enter var(--motion-enter) var(--ease-enter) both;
+}
+
+h1 {
+    margin: 0 0 calc(var(--spacing) * 3);
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    line-height: var(--text-2xl--line-height);
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
+/* Headings take focus when the state changes; the ring is for controls, not for them. */
+h1:focus {
+    outline: none;
+}
+
+p,
+ul {
+    margin: 0 0 calc(var(--spacing) * 4);
+}
+
+ul {
+    padding-left: calc(var(--spacing) * 5);
+}
+
+li + li {
+    margin-top: calc(var(--spacing) * 1);
+}
+
+.muted {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+}
+
+code {
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-small);
+    background: var(--color-sunken);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+}
+
+a {
+    color: var(--color-accent-text);
+    text-underline-offset: 0.15em;
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+.actions {
+    margin-top: calc(var(--spacing) * 6);
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0 calc(var(--spacing) * 5);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--motion-state) var(--ease-standard);
+}
+
+.button:hover {
+    background: var(--color-accent-hover);
+}
+
+@media (max-width: 30rem) {
+    .button {
+        width: 100%;
+    }
+}
+
+.facts {
+    margin: calc(var(--spacing) * 6) 0 calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 4);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+    align-items: center;
+    border-radius: var(--radius-control);
+    background: var(--color-sunken);
+}
+
+.facts dt {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+}
+
+.facts dd {
+    margin: 0;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+}
+
+/* The join code is read aloud to whoever approves: large, spaced and in digits that cannot be mistaken. */
+.join-code {
+    margin-block: calc(var(--spacing) * 4);
+    font-family: var(--font-mono);
+    font-size: 2.25rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.fingerprint {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 3);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+}
+
+.seal {
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+.seal-large {
+    display: block;
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: calc(var(--spacing) * 5);
+}
+
+.seal-small {
+    width: 2rem;
+    height: 2rem;
+}
+
+.seal-outline {
+    fill: var(--color-raised);
+    stroke: var(--color-accent);
+}
+
+.fp-cell {
+    display: none;
+}
+
+.fp-cell.is-filled {
+    display: inline;
+}
+
+.fp-tone-1 {
+    fill: var(--color-identity-1);
+}
+.fp-tone-2 {
+    fill: var(--color-identity-2);
+}
+.fp-tone-3 {
+    fill: var(--color-identity-3);
+}
+.fp-tone-4 {
+    fill: var(--color-identity-4);
+}
+.fp-tone-5 {
+    fill: var(--color-identity-5);
+}
+.fp-tone-6 {
+    fill: var(--color-identity-6);
+}
+
+/* The seal draws its outline and settles once, when the done state appears; reduced motion keeps it still. */
+@media (prefers-reduced-motion: no-preference) {
+    .seal-sealing .seal-outline {
+        stroke-dasharray: 100;
+        animation: gateway-seal-draw var(--motion-seal) var(--ease-enter) both;
+    }
+    .seal-sealing {
+        transform-origin: center;
+        animation: gateway-seal-settle var(--motion-seal) var(--ease-enter) both;
+    }
+}
+
+.progress {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 3);
+}
+
+.progress h1 {
+    margin: 0;
+}
+
+.progress + p {
+    margin-top: calc(var(--spacing) * 3);
+}
+
+.spinner {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--color-divider);
+    border-top-color: var(--color-accent);
+    border-radius: var(--radius-pill);
+    animation: gateway-spin var(--motion-spin) linear infinite;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+@keyframes gateway-enter {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes gateway-seal-draw {
+    from {
+        stroke-dashoffset: 100;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes gateway-seal-settle {
+    from {
+        transform: scale(0.94);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes gateway-spin {
+    to {
+        transform: rotate(1turn);
+    }
+}

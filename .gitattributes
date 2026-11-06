@@ -1,1 +1,4 @@
 * text=auto eol=lf
+# Generated vendor bundle: not reviewed line by line in diffs.
+src/vendor/app-platform.js linguist-generated=true -diff
+src/vendor/gateway-pages/simplewebauthn-browser.umd.min.js linguist-generated=true -diff

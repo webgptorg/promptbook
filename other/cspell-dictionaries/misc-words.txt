@@ -530,3 +530,16 @@ bursty
 libexec
 statfs
 bavail
+ALPN
+DSSE
+RPID
+Sigstore
+ciphertext
+gpgsign
+hostnames
+navigations
+nosniff
+webauthn
+recognised
+usernameless
+rrggbb

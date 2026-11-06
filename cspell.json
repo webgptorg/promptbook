@@ -19,5 +19,5 @@
             "caseSensitive": false
         }
     ],
-    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git", "**/tmp/**"]
+    "ignorePaths": ["node_modules", ".next", "coverage", "dist", ".git", "**/tmp/**", "src/vendor/**"]
 }

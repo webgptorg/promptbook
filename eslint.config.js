@@ -16,7 +16,7 @@ const globals = require('globals');
  */
 module.exports = [
     // Preserve the legacy configuration's default exclusion of dotfiles.
-    { ignores: ['**/.*', '**/.*/**'] },
+    { ignores: ['**/.*', '**/.*/**', 'src/vendor/**'] },
     js.configs.recommended,
     ...tseslint.configs.recommended,
     {

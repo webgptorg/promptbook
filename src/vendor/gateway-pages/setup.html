@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="{{lang}}">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="referrer" content="no-referrer" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Promptbook · {{hostname}}</title>
+        <link rel="stylesheet" href="/auth/assets/gateway.css" />
+        <script
+            defer
+            src="/auth/assets/simplewebauthn-browser.umd.min.js"
+            integrity="sha256-KbsGmbRbw5o1DZkqE7/BpNQNiVMTkFgeH1fxFCxuIh0="
+        ></script>
+        <script type="module" src="/auth/assets/gateway.js"></script>
+    </head>
+    <body data-page="setup" data-owner="{{owner}}">
+        <header class="masthead">
+            <span class="wordmark">Promptbook</span><span class="masthead-host">{{hostname}}</span>
+        </header>
+        <main class="card">
+            <section data-state="loading">
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1">
+                        <span data-lang="en">Checking the setup link</span
+                        ><span data-lang="cs">Kontrolujeme odkaz pro nastavení</span>
+                    </h1>
+                </div>
+                <noscript>
+                    <p data-lang="en">
+                        This page needs JavaScript to create a passkey. Turn it on and reload the page.
+                    </p>
+                    <p data-lang="cs">
+                        Tato stránka potřebuje JavaScript, aby mohla vytvořit přístupový klíč. Zapněte ho a stránku
+                        načtěte znovu.
+                    </p>
+                </noscript>
+            </section>
+
+            <section data-state="valid" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Set up your engine</span><span data-lang="cs">Nastavte svůj engine</span>
+                </h1>
+                <p data-lang="en">
+                    You are about to become the owner of this engine. Your passkey stays with you; the engine keeps only
+                    its public half.
+                </p>
+                <p data-lang="cs">
+                    Stanete se majitelem tohoto enginu. Přístupový klíč zůstane u vás; engine si uloží jen jeho veřejnou
+                    část.
+                </p>
+                <dl class="facts">
+                    <dt><span data-lang="en">Address</span><span data-lang="cs">Adresa</span></dt>
+                    <dd>https://{{hostname}}</dd>
+                    <dt><span data-lang="en">Engine ID</span><span data-lang="cs">ID enginu</span></dt>
+                    <dd>{{engineId}}</dd>
+                    <dt><span data-lang="en">Engine fingerprint</span><span data-lang="cs">Otisk enginu</span></dt>
+                    <dd>
+                        <span class="fingerprint"
+                            ><svg class="seal" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                                <path
+                                    class="seal-outline"
+                                    d="M 32 5 Q 40.02 2.06 45.5 8.62 Q 53.92 10.08 55.38 18.5 Q 61.94 23.98 59 32 Q 61.94 40.02 55.38 45.5 Q 53.92 53.92 45.5 55.38 Q 40.02 61.94 32 59 Q 23.98 61.94 18.5 55.38 Q 10.08 53.92 8.62 45.5 Q 2.06 40.02 5 32 Q 2.06 23.98 8.62 18.5 Q 10.08 10.08 18.5 8.62 Q 23.98 2.06 32 5 Z"
+                                    pathLength="100"
+                                    stroke-width="2.5"
+                                    stroke-linejoin="round"
+                                />
+                                <g data-fingerprint-cells="{{fingerprintCells}}">
+                                    <rect class="fp-cell fp-tone-1" x="17.5" y="17.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-2" x="23.5" y="17.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-3" x="29.5" y="17.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-2" x="35.5" y="17.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-1" x="41.5" y="17.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-2" x="17.5" y="23.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-3" x="23.5" y="23.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-4" x="29.5" y="23.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-3" x="35.5" y="23.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-2" x="41.5" y="23.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-3" x="17.5" y="29.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-4" x="23.5" y="29.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-5" x="29.5" y="29.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-4" x="35.5" y="29.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-3" x="41.5" y="29.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-4" x="17.5" y="35.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-5" x="23.5" y="35.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-6" x="29.5" y="35.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-5" x="35.5" y="35.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-4" x="41.5" y="35.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-5" x="17.5" y="41.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-6" x="23.5" y="41.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-1" x="29.5" y="41.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-6" x="35.5" y="41.5" width="5" height="5" rx="1" />
+                                    <rect class="fp-cell fp-tone-5" x="41.5" y="41.5" width="5" height="5" rx="1" />
+                                </g></svg
+                            ><span>{{fingerprint}}</span></span
+                        >
+                    </dd>
+                </dl>
+                <p data-lang="en" class="muted">
+                    Compare the fingerprint with the one in your terminal. If they differ, this is not your engine:
+                    close this page.
+                </p>
+                <p data-lang="cs" class="muted">
+                    Porovnejte otisk s tím v terminálu. Pokud se liší, nejde o váš engine: stránku zavřete.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="create">
+                        <span data-lang="en">Create passkey</span><span data-lang="cs">Vytvořit přístupový klíč</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="prompt" hidden>
+                <div class="progress">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <h1 tabindex="-1">
+                        <span data-lang="en">Waiting for your passkey</span
+                        ><span data-lang="cs">Čekáme na přístupový klíč</span>
+                    </h1>
+                </div>
+                <p data-lang="en">Confirm on your device: fingerprint, face, PIN or security key.</p>
+                <p data-lang="cs">
+                    Potvrďte to na svém zařízení: otiskem prstu, obličejem, PINem nebo bezpečnostním klíčem.
+                </p>
+            </section>
+
+            <section data-state="cancelled" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The passkey was not created</span
+                    ><span data-lang="cs">Přístupový klíč nebyl vytvořen</span>
+                </h1>
+                <p data-lang="en">The passkey prompt was closed or timed out. Try again when you are ready.</p>
+                <p data-lang="cs">
+                    Výzva k vytvoření klíče byla zavřena nebo vypršela. Zkuste to znovu, až budete připraveni.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="unsupported" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This browser cannot create passkeys</span
+                    ><span data-lang="cs">Tento prohlížeč neumí vytvořit přístupový klíč</span>
+                </h1>
+                <p data-lang="en">Any one of these works:</p>
+                <p data-lang="cs">Postačí kterákoli z těchto možností:</p>
+                <ul data-lang="en">
+                    <li>Windows Hello with a PIN, on most Windows 10 and 11 PCs</li>
+                    <li>
+                        A password manager that stores passkeys, such as 1Password, Bitwarden or Google Password Manager
+                        in Chrome
+                    </li>
+                    <li>A phone nearby: choose the phone option in the browser's prompt and confirm on the phone</li>
+                    <li>A security key over USB or NFC</li>
+                </ul>
+                <ul data-lang="cs">
+                    <li>Windows Hello s PINem, na většině počítačů s Windows 10 a 11</li>
+                    <li>
+                        Správce hesel, který ukládá přístupové klíče, například 1Password, Bitwarden nebo Správce hesel
+                        Google v Chromu
+                    </li>
+                    <li>Telefon poblíž: ve výzvě prohlížeče zvolte telefon a potvrďte to na něm</li>
+                    <li>Bezpečnostní klíč přes USB nebo NFC</li>
+                </ul>
+                <p data-lang="en" class="muted">
+                    Or open the setup link in another browser, for example by scanning the QR code in your terminal with
+                    your phone.
+                </p>
+                <p data-lang="cs" class="muted">
+                    Nebo otevřete odkaz pro nastavení v jiném prohlížeči, třeba tak, že telefonem naskenujete QR kód z
+                    terminálu.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="done" hidden>
+                <svg class="seal seal-large seal-sealing" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                    <path
+                        class="seal-outline"
+                        d="M 32 5 Q 40.02 2.06 45.5 8.62 Q 53.92 10.08 55.38 18.5 Q 61.94 23.98 59 32 Q 61.94 40.02 55.38 45.5 Q 53.92 53.92 45.5 55.38 Q 40.02 61.94 32 59 Q 23.98 61.94 18.5 55.38 Q 10.08 53.92 8.62 45.5 Q 2.06 40.02 5 32 Q 2.06 23.98 8.62 18.5 Q 10.08 10.08 18.5 8.62 Q 23.98 2.06 32 5 Z"
+                        pathLength="100"
+                        stroke-width="2.5"
+                        stroke-linejoin="round"
+                    />
+                    <g data-fingerprint-cells="{{fingerprintCells}}">
+                        <rect class="fp-cell fp-tone-1" x="17.5" y="17.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-2" x="23.5" y="17.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-3" x="29.5" y="17.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-2" x="35.5" y="17.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-1" x="41.5" y="17.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-2" x="17.5" y="23.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-3" x="23.5" y="23.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-4" x="29.5" y="23.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-3" x="35.5" y="23.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-2" x="41.5" y="23.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-3" x="17.5" y="29.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-4" x="23.5" y="29.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-5" x="29.5" y="29.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-4" x="35.5" y="29.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-3" x="41.5" y="29.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-4" x="17.5" y="35.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-5" x="23.5" y="35.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-6" x="29.5" y="35.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-5" x="35.5" y="35.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-4" x="41.5" y="35.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-5" x="17.5" y="41.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-6" x="23.5" y="41.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-1" x="29.5" y="41.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-6" x="35.5" y="41.5" width="5" height="5" rx="1" />
+                        <rect class="fp-cell fp-tone-5" x="41.5" y="41.5" width="5" height="5" rx="1" />
+                    </g>
+                </svg>
+                <h1 tabindex="-1">
+                    <span data-lang="en">You are the owner</span><span data-lang="cs">Engine teď patří vám</span>
+                </h1>
+                <p data-lang="en">
+                    Sign in from any device with this passkey. To add a device without synced passkeys, use Security in
+                    the engine.
+                </p>
+                <p data-lang="cs">
+                    Tímto přístupovým klíčem se přihlásíte z jakéhokoli zařízení. Zařízení bez synchronizovaných klíčů
+                    přidáte v enginu v sekci Zabezpečení.
+                </p>
+                <div class="actions">
+                    <a class="button" href="/" data-next-link
+                        ><span data-lang="en">Open your engine</span><span data-lang="cs">Otevřít engine</span></a
+                    >
+                </div>
+            </section>
+
+            <section data-state="expired" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This setup link has expired</span
+                    ><span data-lang="cs">Platnost odkazu pro nastavení vypršela</span>
+                </h1>
+                <p data-lang="en">
+                    Setup links work for 30 minutes. On the engine's server, run <code>{{command}} setup-link</code> for
+                    a new one.
+                </p>
+                <p data-lang="cs">
+                    Odkaz pro nastavení platí 30 minut. Nový získáte příkazem <code>{{command}} setup-link</code> na
+                    serveru enginu.
+                </p>
+            </section>
+
+            <section data-state="owner-exists" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This engine already has an owner</span
+                    ><span data-lang="cs">Tento engine už má majitele</span>
+                </h1>
+                <p data-lang="en">
+                    Sign in with your passkey. If you are the owner and lost every passkey, run
+                    <code>{{command}} owner --reset</code> on the server.
+                </p>
+                <p data-lang="cs">
+                    Přihlaste se přístupovým klíčem. Pokud engine patří vám a přišli jste o všechny klíče, spusťte na
+                    serveru <code>{{command}} owner --reset</code>.
+                </p>
+                <div class="actions">
+                    <a class="button" href="/auth/sign-in"
+                        ><span data-lang="en">Sign in</span><span data-lang="cs">Přihlásit se</span></a
+                    >
+                </div>
+            </section>
+
+            <section data-state="missing" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">This page needs the setup link from the engine's terminal</span
+                    ><span data-lang="cs">Tato stránka potřebuje odkaz pro nastavení z terminálu enginu</span>
+                </h1>
+                <p data-lang="en">
+                    Open the link exactly as the terminal printed it. For a new one, run
+                    <code>{{command}} setup-link</code> on the engine's server.
+                </p>
+                <p data-lang="cs">
+                    Otevřete odkaz přesně tak, jak ho terminál vypsal. Nový získáte příkazem
+                    <code>{{command}} setup-link</code> na serveru enginu.
+                </p>
+            </section>
+
+            <section data-state="rate-limited" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Too many attempts</span><span data-lang="cs">Příliš mnoho pokusů</span>
+                </h1>
+                <p data-lang="en">Wait a minute and try again.</p>
+                <p data-lang="cs">Počkejte chvíli a zkuste to znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="not-verified" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The engine did not accept this passkey</span
+                    ><span data-lang="cs">Engine tento přístupový klíč nepřijal</span>
+                </h1>
+                <p data-lang="en">
+                    Try again; if it keeps failing, run <code>{{command}} setup-link</code> on the server for a new
+                    link.
+                </p>
+                <p data-lang="cs">
+                    Zkuste to znovu. Pokud to stále nejde, získejte nový odkaz příkazem
+                    <code>{{command}} setup-link</code> na serveru.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="failed" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The passkey did not work</span
+                    ><span data-lang="cs">Přístupový klíč nefungoval</span>
+                </h1>
+                <p data-lang="en">
+                    Your device could not finish the passkey step. Try again, or use another device or a security key.
+                </p>
+                <p data-lang="cs">
+                    Zařízení krok s přístupovým klíčem nedokončilo. Zkuste to znovu, nebo použijte jiné zařízení či
+                    bezpečnostní klíč.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="offline" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">Cannot reach the engine</span><span data-lang="cs">Engine není dostupný</span>
+                </h1>
+                <p data-lang="en">Check your connection and try again.</p>
+                <p data-lang="cs">Zkontrolujte připojení a zkuste to znovu.</p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+
+            <section data-state="error" hidden>
+                <h1 tabindex="-1">
+                    <span data-lang="en">The engine could not answer</span
+                    ><span data-lang="cs">Engine nemohl odpovědět</span>
+                </h1>
+                <p data-lang="en">
+                    It returned an error. Try again in a moment; if it keeps failing, run
+                    <code>{{command}} status</code> on the server.
+                </p>
+                <p data-lang="cs">
+                    Vrátil chybu. Zkuste to za chvíli znovu. Pokud to stále nejde, spusťte na serveru
+                    <code>{{command}} status</code>.
+                </p>
+                <div class="actions">
+                    <button type="button" class="button" data-action="retry">
+                        <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+        <p class="visually-hidden" role="status" aria-live="polite" data-announcer></p>
+    </body>
+</html>

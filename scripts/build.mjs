@@ -27,5 +27,7 @@ for (const file of await readdir(join(root, 'src', 'service', 'spa'))) {
     await copyFile(join(root, 'src', 'service', 'spa', file), join(dist, 'service', 'spa', file));
 }
 await cp(join(root, 'design', 'brand', 'fonts'), join(dist, 'service', 'spa', 'fonts'), { recursive: true });
+// The vendored App platform contract (bundled JavaScript, gateway pages, provenance and license notices).
+await cp(join(root, 'src', 'vendor'), join(dist, 'vendor'), { recursive: true, filter: (source) => !source.endsWith('.d.ts') && !source.endsWith('.DS_Store') });
 await cp(join(root, 'specs'), join(dist, 'expert'), { recursive: true, filter: (source) => !source.endsWith('.DS_Store') });
 process.stdout.write('Built dist/ (ESM runtime, dashboard assets, Expert documentation).\n');
