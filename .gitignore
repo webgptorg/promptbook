@@ -1,6 +1,7 @@
 
 node_modules
 dist
+dist-conformance
 *.tgz
 coverage
 .promptbook
