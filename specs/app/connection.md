@@ -41,7 +41,7 @@ A running, linked project engine keeps its App connection: one signed heartbeat 
 
 **Tunnels.** For each relay the engine dials `wss://<relay>/v1/tunnel` with the `ptbk-tunnel` subprotocol and verifies the relay's certificate for its hostname, also through a proxy. It signs the relay's challenge over `ptbk-tunnel-v1` only when the challenge names the relay it dialled, and checks that the relay's `ready` chose the highest common version and exactly the common features, so nothing can downgrade the session. Frames, stream IDs, flow-control windows, 25-second pings and close codes follow the contract. Tunnels are independent; one failing relay never delays another. Every close or reject other than `REPLACED` reconnects with exponential backoff and full jitter, and `SUSPENDED` or `AUTH_FAILED` are shown as the App refusing the engine.
 
-**Browser streams.** A relay passes each browser's encrypted TLS through a stream; the engine ends that TLS itself, so the platform never sees plaintext. Serving the App UI needs the remaining engine work below. Until it exists the engine refuses each stream with `CLOSE REFUSED`, and the App page says that opening the project from the App is not available yet. The local HTTP API is never reachable through a tunnel.
+**Browser streams.** A relay passes each browser's encrypted TLS through a stream; the engine ends that TLS itself, so the platform never sees plaintext. Each stream is routed by its ClientHello: TLS-ALPN-01 challenges go to the certificate manager, the engine's own hostname to the [engine origin](#the-engine-origin), and anything else (no SNI, another name, a malformed or oversized hello) is closed without an answer. Until the engine holds a certificate for its hostname it refuses streams with `CLOSE REFUSED`. The local HTTP API is never reachable through a tunnel.
 
 ## Presentation
 
@@ -51,7 +51,8 @@ The **App** tile and page replace Connection in the terminal dashboard, the brow
 - the engine ID, the fingerprint code to compare with the App dashboard, and the project's App address `https://<hostname>/`;
 - each relay with its state, its last problem and next retry, and "Connected to n of m relays";
 - the last heartbeat time and outcome, and a clock skew when the dashboard reported one;
-- whether opening the project from the App works yet.
+- whether opening the project from the App works, or what it still waits for: a connected relay, the engine's own certificate (with the issuing problem and next retry), or an owner passkey (with the `ptbk connect --setup-link` step);
+- the certificate state and whether an owner is set up.
 
 An unlinked project is neutral, not attention. Attention is raised only for something the owner can act on: an unreadable or unsafe identity, a tunnel replaced by another copy of the key, an engine the App suspended or refused, or a clock skew. `ptbk connect` without a link code prints the same status once, and `--json` prints it as data. `ptbk start` and init report one compact App line: the linked address, or that the project is not linked and how to link it.
 
@@ -61,14 +62,42 @@ The local dashboard address is no longer presented as a connection: no tile, pag
 
 The platform receives only the registration request, heartbeat numbers and tunnel handshakes; relays see only TLS bytes. Books, chats, tasks, files, Wallet records, traces and terminal content never go to the dashboard or a relay. Logs and errors never contain the engine key, signatures, the link code or proxy credentials; they name codes, statuses and IDs.
 
+## The engine origin
+
+The engine serves its App address itself, inside the tunnel. Nothing on this origin is reachable on the loopback API, and nothing on the loopback API is reachable here.
+
+**TLS and certificates.** TLS 1.3 only, by SNI, with HTTP/1.1. The certificate for `<hostname>` comes from ACME (Let's Encrypt by default, `PTBK_ACME_DIRECTORY_URL` for another directory) with the TLS-ALPN-01 challenge answered through the relay, so no port is opened. The ACME account key is its own P-256 key in the App data directory, never the engine key. The certificate is renewed a third of its lifetime before expiry, a failed order retries with backoff and the App page shows the state, the problem and the next retry. The browser-facing certificate's SHA-256 and expiry are what `GET /security` reports.
+
+**Owner access and the gateway.** Members sign in with passkeys only (WebAuthn on the engine's own hostname, user verification required). The first owner registers a passkey through the **setup link** `https://<hostname>/setup#<secret>`: a 128-bit secret that is single use, valid 30 minutes and stored only as its hash; each request replaces the previous secret. `ptbk connect --setup-link` prints it only to an interactive terminal (or as `--json`) and only once the address works; it waits up to 10 minutes for that, or with `--no-wait` says what is missing and exits 3. The link is never logged, traced or shown in the dashboards; the engine log says only "No owner yet. Run `ptbk connect --setup-link` …" and, once a relay and the certificate work, "Ready: https://<hostname>/". `ptbk connect --reset-owner` (confirmed by typing the start of the engine ID, or `--yes`) ends every passkey and session, then prints a new setup link; agents and project data stay. Sessions are server-side (an opaque `__Host-` cookie resolved on every request), step-up asks for a fresh assertion before sensitive routes, state-changing requests must be same-origin by `Origin` and Fetch Metadata, and every response carries the contract's exact security headers and `ENGINE_UI_CSP`. The heartbeat's `members` counts members with at least one passkey.
+
+**Launch settings.** For an operator or the platform's harness, `PTBK_DATA_DIR` replaces `.ptbk/app/` (created 0700; a loose mode or a symbolic link refuses to start and names the path), `PTBK_LINK_CODE` registers once when there is no registration, and `PTBK_MODE=tunnel` makes any App problem a refusal to start instead of a status. The engine exits within 10 seconds of `SIGTERM`.
+
+## Engine API
+
+The origin serves the platform's engine API v1 (`/api/v1`) over Reborn's own domain operations, every request validated strictly against the contract's schemas, with permission checks and contract problem codes:
+
+- **Engine, me, members, passkeys, sessions, settings and security.** `GET /security` reports the engine version, the update state of the shared [engine self-update](../cli/updates.md), the served UI, the certificate, relays, hostnames, the last heartbeat body and the clock skew.
+- **Agents** are the project's Books with their [origin](../agents/_index.md) (content, core or system). Creating an agent writes a validated Book to the agents folder (former syntax converted first; diagnostics on `invalid-book`) and commits "Add agent - <name>"; deleting removes an editable content agent and commits "Remove agent - <name>", while core and system agents are `agent-engine-owned`. Folders, visibility and who created an agent are App metadata in `engine-api.json` in the App data directory (0600), never in the Books.
+- **Chats** are `CHAT` threads with real authors. Every author joins before writing, a User message records which member sent it, `requestKey` makes a send idempotent (another content under the same key is `request-key-reused`), replies stream as SSE deltas that resume by `Last-Event-ID`, and a chat without an agent is Chatter's. Read and seen marks are shared with the other clients.
+- **Events** stream agent, status and chat changes.
+
+Optional capabilities (`runs@1`, `files@1`, `triggers@1`, `integrations@1`, `wallet@1`, `tasks@1`, `onboarding@1`, audit) are not advertised yet, so each of their routes answers `capability-not-supported`.
+
+## Engine UI
+
+The engine serves the App's signed UI bundle itself. Its **UI loader** fetches releases from the release store in mirror layout v1 (`ui/latest.json`, `release-log/ui-<version>.json`, `release-log/revocations.json`, `ui/<version>/<artifact>`, below `PTBK_UI_RELEASE_URL`) with size caps and timeouts. It installs a release only when the contract's `verifyRelease` accepts it: the release-key signature (and the maintainer threshold for security releases), Sigstore provenance from the release workflow with a transparency log entry, a valid and not rolled-back revocation list, no downgrade and the release delay from trusted time and the persisted first-seen time. It then checks the artifact's SHA-256, unpacks the archive safely, checks the manifest, every file and the engine API range, and switches atomically into a read-only directory, keeping the previous bundle. Any failure keeps what is served. A revocation that names the active bundle withdraws it at once; the previous bundle returns unless it is revoked too. At startup every installed file is checked against its manifest again.
+
+The bundle is served only for listed files, with the entry page for other document navigations, never on the engine's own paths, and with the engine's security headers whatever the manifest says. Content-hashed assets are cached as immutable, everything else revalidates. `PTBK_UPDATE_POLICY` is `auto` (the newest release once its delay passed, checked at start and hourly), `pinned` with `PTBK_PINNED_VERSION`, or `manual` (nothing installs by itself). `GET /security` → `ui` reports the active bundle with its release log index and the last check with its outcome and refusal reason.
+
+The platform has not published its production trust policy and release store yet, so a release build of ptbk has nothing to trust and serves the engine's own plain page (the signed-in member, the engine and links to the API, under the same CSP), reported in `GET /security` as this ptbk version with the SHA-256 of that page.
+
+## Conformance build
+
+The platform accepts an engine by its conformance suite. `npm run build:conformance` writes a separate `dist-conformance/` in which the compile-time switch `CONFORMANCE_BUILD` is on. Only that build reads `PTBK_CONFORMANCE_TRUST_FILE` (the suite's test trust policy and Sigstore root), takes `PTBK_HEARTBEAT_INTERVAL_S`, uses a development CA at `<PTBK_DATA_DIR>/dev-ca/ca-cert.pem` instead of ACME, and offers the hidden `ptbk conformance-session --subject owner|member [--permissions …]`, which prints a session cookie of a member with those permissions. A release build refuses to start when `PTBK_CONFORMANCE_TRUST_FILE` is set and names the variable, and the release tests assert that the switch is off. `scripts/conformance/engine.mjs` is the suite's `--engine-cmd`: it initializes a throwaway project for each data directory and starts the conformance build in the foreground.
+
 ## Remaining engine work
 
-The platform's implementation plan orders what makes a project usable from the App. Each part keeps the boundaries above:
-
-1. **TLS inside the tunnel and certificates:** a ClientHello router, TLS 1.3 by SNI and ACME TLS-ALPN-01 through the relay, with the ACME account key separate from the engine key.
-2. **Gateway:** passkey sign-in on the engine's own hostname, an owner setup link printed only in the project's terminal (`https://<hostname>/setup#<secret>`), server-side sessions, step-up, Fetch Metadata checks and the exact security headers.
-3. **Engine API v1:** the platform's routes over Reborn's domain operations. Agents carry their [origin](../agents/_index.md) (content, core or system), chats are `CHAT` threads with real authors, `wallet@1` maps onto the [Wallet](../cli/wallet.md) operations, `tasks@1` is the read-only task inventory, and `onboarding@1` is the pending App-started init. Unsupported capabilities are not advertised.
-4. **UI loader:** fetching, Sigstore verification, the release delay, revocation and serving the signed UI bundle.
-5. **Host control service** for stopped projects and the conformance build with `conformance-session`.
-
-Until then the App shows the project linked and online, and the project is used through the terminal and the desktop app.
+- **Host control service** for stopped projects (the [integration](integration.md#ownership-and-the-simple-host-service) target).
+- **Teams:** heartbeat v2 with access requests and acknowledgements, `/auth/join` tickets and member revocation from the dashboard (the platform's ADR 0018). Until then an engine has its owner and the members the owner adds, and the suite's `member-access` checks skip.
+- **Capabilities:** `wallet@1` onto the [Wallet](../cli/wallet.md) operations, `tasks@1` as the read-only task inventory, `onboarding@1` as the pending App-started init, runs, files, triggers, integrations and the audit chain.
+- **Production trust:** the pinned trust policy and release store, once the platform publishes them.
