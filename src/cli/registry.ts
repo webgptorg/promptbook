@@ -329,7 +329,7 @@ Shortcuts on the home screen open the same pages or call the same operations: A 
         name: 'status',
         aliases: ['show'],
         category: 'Observe and respond',
-        summary: 'Show one snapshot of the service status, chat attention and connection.',
+        summary: 'Show one snapshot of the service status, chat attention and App connection.',
         description: 'Renders the same grouped status as the dashboard once and returns. It never starts work or a service.',
         optionGroups: [{ title: 'View', options: [JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
@@ -337,6 +337,34 @@ Shortcuts on the home screen open the same pages or call the same operations: A 
             { command: 'ptbk show --json', description: 'Machine-readable snapshot.' },
         ],
         run: lazy(() => import('./commands/status.js')),
+    },
+    {
+        name: 'connect',
+        category: 'Maintain',
+        summary: 'Link the project to the Promptbook App, or show its App connection.',
+        description: `Links this project's engine to the Promptbook App (app.ptbk.io) as one App engine. Get a one-time link code in the App, then run \`ptbk connect --link <code>\` in the project (PTBK_LINK_CODE is accepted instead of the option for automation). The engine creates its own identity in the ignored .ptbk/app/ when missing, registers it with a signed request and stores the link; a running engine starts its heartbeat and relay tunnels at once, a stopped one when it starts. The link code is sent once and never stored or printed. Compare the printed fingerprint with the one the App shows.
+
+Without a link code it prints the App connection once: state, engine ID and fingerprint, address, relays and the last heartbeat, including exactly what the heartbeat tells the App. An already linked project makes no network call. PTBK_DASHBOARD_URL selects another App origin (development); HTTPS_PROXY/NO_PROXY and NODE_EXTRA_CA_CERTS apply.`,
+        optionGroups: [
+            { title: 'Link', options: [{ name: 'link', type: 'string', valueName: '<code>', description: 'The one-time link code from the Promptbook App.' }, JSON_OPTION] },
+            PROJECT_OPTIONS,
+            PRESENTATION_OPTIONS,
+        ],
+        examples: [
+            { command: 'ptbk connect --link <code>', description: 'Link this project with the code shown in the App.' },
+            { command: 'ptbk connect', description: 'Show the App connection.' },
+            { command: 'ptbk connect --json', description: 'The App connection as data.' },
+        ],
+        run: lazy(() => import('./commands/connect.js')),
+    },
+    {
+        name: 'disconnect',
+        category: 'Maintain',
+        summary: 'Stop the App connection on this computer and forget the link (the engine identity stays).',
+        description: 'Stops the running engine’s heartbeat and relay tunnels and forgets the stored link, keeping the engine identity, so a new link code from the same App account links the same engine again. It does not revoke the engine in the App; remove it there to stop listing it.',
+        optionGroups: [{ title: 'Output', options: [JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        examples: [{ command: 'ptbk disconnect', description: 'Unlink this project from the Promptbook App.' }],
+        run: lazy(() => import('./commands/connect.js').then((module) => ({ default: module.disconnect }))),
     },
     {
         name: 'tool',

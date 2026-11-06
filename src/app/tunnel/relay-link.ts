@@ -270,12 +270,17 @@ export class RelayLink {
         let closeNote: string | undefined;
         let socket: ClientWebSocket | undefined;
         let handshakeTimer: NodeJS.Timeout | undefined;
+        let failed = false;
+        // The close frame is sent and the socket ends after the relay's answer (or a short grace); nothing the relay
+        // sends meanwhile is handled.
         const protocolError = (note: string): void => {
+            if (failed) return;
+            failed = true;
             closeNote = note;
             socket?.close(TUNNEL_CLOSE_CODE.PROTOCOL_ERROR);
-            socket?.terminate();
         };
         const onText = (text: string): void => {
+            if (failed) return;
             const message = parseRelayMessage(text);
             if (ready || !message) return protocolError('The relay sent an invalid handshake message.');
             if (message.type === 'reject') {
@@ -289,6 +294,7 @@ export class RelayLink {
                 challenge = message;
                 void signTunnelAuth(this.options.identity, message, this.options.version, relay.id).then((signed) => {
                     if (signed.kind === 'wrong-relay') return protocolError('The relay presented another relay’s challenge; the engine did not answer it.');
+                    if (failed) return;
                     auth = signed.auth;
                     socket?.sendText(JSON.stringify(signed.auth));
                 }, () => protocolError('The engine could not sign the tunnel challenge.'));
@@ -317,6 +323,7 @@ export class RelayLink {
             pingTimer.unref();
         };
         const onBinary = (data: Uint8Array): void => {
+            if (failed) return;
             if (!ready) return protocolError('The relay sent a frame before the handshake completed.');
             const decoded = decodeFrame(data);
             if (decoded.kind === 'ignored') return;

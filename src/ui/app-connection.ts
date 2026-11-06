@@ -1,13 +1,21 @@
 import { formatShortTime } from '../common/time.js';
 import type { AppConnectionView, AppRelayView } from '../engine/snapshot.js';
-import { createStyle, type Style } from './ansi.js';
+import { createStyle, wrap, type Style } from './ansi.js';
 
 /**
- * How to link a project, shown wherever the project is not linked yet.
+ * How to link a project, shown wherever the project is not linked yet: where to get the link code and what to run.
  *
  * @private App connection presentation
  */
-export const APP_LINK_HINT = 'Get a link code at app.ptbk.io, then run `ptbk connect --link <code>` in this project.';
+export function appLinkHint(dashboardUrl: string): string {
+    let host = dashboardUrl;
+    try {
+        host = new URL(dashboardUrl).host;
+    } catch {
+        // Shown as given.
+    }
+    return `Get a link code at ${host}, then run \`ptbk connect --link <code>\` in this project.`;
+}
 
 /**
  * Plain styles for raw output.
@@ -106,14 +114,13 @@ export function appDetailLines(app: AppConnectionView | undefined, style: Style,
         lines.push(style.muted(app ? 'This engine run keeps no App connection (maintenance).' : 'This engine does not report an App connection.'));
         return lines;
     }
-    if (app.problem) lines.push(...wrapValue(app.problem, width, '  ').map((line) => style.error(line)));
+    if (app.problem) lines.push(...wrap(app.problem, Math.max(10, width - 2)).map((line) => style.error(`  ${line}`)));
     if (app.engineId) {
         lines.push(`${style.muted('Engine ID')}    ${app.engineId}`);
         if (app.fingerprint) lines.push(`${style.muted('Fingerprint')}  ${app.fingerprint} ${style.muted('(compare with the App dashboard)')}`);
     }
     if (app.state === 'unlinked') {
-        lines.push(...wrapValue(APP_LINK_HINT, width, '').map((line) => style.muted(line)));
-        lines.push(style.muted(`App: ${app.dashboardUrl}`));
+        lines.push(...wrap(appLinkHint(app.dashboardUrl), Math.max(10, width)).map((line) => style.muted(line)));
         return lines;
     }
     if (app.url) {
@@ -134,10 +141,10 @@ export function appDetailLines(app: AppConnectionView | undefined, style: Style,
         if (beat.body) lines.push(style.muted('  Everything the App learns:'), ...wrapValue(beat.body, width, '  ').map((line) => style.muted(line)));
     }
     if (app.state === 'offline') {
-        lines.push(style.muted('The engine is stopped, so the App shows this project unavailable. Start it with `ptbk start`.'));
+        lines.push(...wrap('The engine is stopped, so the App shows this project unavailable. Start it with `ptbk start`.', Math.max(10, width)).map((line) => style.muted(line)));
         return lines;
     }
-    lines.push(style.muted(app.browserAccess === 'available' ? 'Opening this project from the App works.' : 'Opening this project from the App is not available yet: the engine does not serve the App UI through its tunnels yet. Use the terminal or the desktop app.'));
+    lines.push(...wrap(app.browserAccess === 'available' ? 'Opening this project from the App works.' : 'Opening this project from the App is not available yet: the engine does not serve the App UI through its tunnels yet. Use the terminal or the desktop app.', Math.max(10, width)).map((line) => style.muted(line)));
     return lines;
 }
 
