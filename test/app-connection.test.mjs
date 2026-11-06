@@ -14,7 +14,8 @@ import { appSettings } from '../dist/app/settings.js';
 import { SIGNING_CONTEXT, createEngineSigner, signingInput } from '../dist/app/signing.js';
 import { CLOSE_CODE, FRAME_TYPE, decodeFrame, encodeFrame } from '../dist/app/tunnel/frames.js';
 import { checkTunnelReady, parseRelayMessage, tunnelAuthInput } from '../dist/app/tunnel/handshake.js';
-import { appSummaryLine } from '../dist/ui/app-connection.js';
+import { appDetailLines, appPlainLines, appSummaryLine, appTileLines } from '../dist/ui/app-connection.js';
+import { createStyle, stripAnsi } from '../dist/ui/ansi.js';
 import { initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /** Golden vectors of the App contract (copied from webgptorg/app, see the fixture README). */
@@ -150,6 +151,47 @@ test('engine identity: created once, private, stable, never replaced, refused wh
     await writeFile(join(directory, 'engine-key.pem'), 'damaged', POSIX ? { mode: 0o600 } : undefined);
     await assert.rejects(loadEngineIdentity(directory, { create: true }), 'an unreadable key is reported, never replaced');
     assert.equal(await readFile(join(directory, 'engine-key.pem'), 'utf8'), 'damaged');
+});
+
+test('App presentation: state, identity, relays and heartbeat; the body on the App page only; no secrets', () => {
+    const style = createStyle(false);
+    const body = '{"v":1,"engineId":"abcdefghijklmnopqrstuvwxyz","seq":1,"ts":"2026-11-06T00:00:00.000Z","version":"0.119.0","uptimeS":5,"diskPct":40,"ramPct":60,"cpuLoad":"low","update":"none","agents":2,"members":0}';
+    const linked = {
+        state: 'linked',
+        dashboardUrl: 'https://app.ptbk.io',
+        engineId: 'abcdefghijklmnopqrstuvwxyz',
+        fingerprint: 'ABCD-EFGH-JKMN-PQRS-TVWX',
+        hostname: 'abcdefghijklmnopqrstuvwxyz.engines.example',
+        url: 'https://abcdefghijklmnopqrstuvwxyz.engines.example/',
+        linkedAt: new Date().toISOString(),
+        relays: [
+            { relay: 'relay-1.example', state: 'connected', since: new Date().toISOString(), streams: 0 },
+            { relay: 'relay-2.example', state: 'waiting', since: new Date().toISOString(), problem: 'The relay is restarting.', retryAt: new Date().toISOString(), streams: 0 },
+        ],
+        heartbeat: { at: new Date().toISOString(), outcome: 'accepted', status: 204, body, nextAt: new Date().toISOString() },
+        browserAccess: 'unavailable',
+    };
+    const page = appPlainLines(linked).join('\n');
+    assert.match(page, /^App Linked/);
+    assert.match(page, /Connected to 1 of 2 relays/);
+    assert.match(page, /relay-2\.example waiting/);
+    assert.match(page, /The relay is restarting\./);
+    assert.match(page, /Heartbeat .* accepted/);
+    assert.match(page, /Everything the App learns/);
+    assert.match(page, /"agents":2/);
+    assert.match(page, /not available yet/);
+    const status = appPlainLines(linked, { heartbeatBody: false }).join('\n');
+    assert.match(status, /Heartbeat .* accepted/);
+    assert.doesNotMatch(status, /Everything the App learns|"agents"/, 'the status region stays compact');
+    assert.match(appTileLines(linked, style).map(stripAnsi).join('\n'), /Linked · 1 of 2 relays/);
+    assert.equal(appSummaryLine(linked), 'App: linked (1 of 2 relays) · https://abcdefghijklmnopqrstuvwxyz.engines.example/');
+    const replaced = { ...linked, state: 'refused', relays: [{ relay: 'relay-1.example', state: 'stopped', since: new Date().toISOString(), refusal: 'replaced', problem: 'Another process with this project’s engine key took over the tunnel.', streams: 0 }] };
+    assert.match(appTileLines(replaced, style).map(stripAnsi).join('\n'), /another copy holds the key/);
+    const skewed = { ...linked, heartbeat: { at: new Date().toISOString(), outcome: 'refused', status: 400, code: 'stale-timestamp', skewMs: -180_000, body } };
+    assert.match(appDetailLines(skewed, style, 80).join('\n'), /clock is 180 s behind the App/);
+    const unlinked = { state: 'unlinked', dashboardUrl: 'https://dashboard.localhost:8443', relays: [], browserAccess: 'unavailable' };
+    assert.match(appPlainLines(unlinked).join('\n'), /Get a link code at dashboard\.localhost:8443, then run `ptbk connect --link <code>`/);
+    for (const line of appDetailLines(linked, style, 40)) assert.ok(stripAnsi(line).length <= 40, `fits 40 columns: ${line}`);
 });
 
 test('App settings refuse insecure transport and parse relay overrides', () => {

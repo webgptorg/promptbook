@@ -166,7 +166,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     lines.push('', 'EXECUTION DETAILS', ...execution.map((line) => `  ${line}`));
     const browsers = snapshot.browsers?.length ? snapshot.browsers : snapshot.browser ? [snapshot.browser] : [];
     for (const browser of browsers) lines.push('', `BROWSER DETAILS${browsers.length > 1 ? ` · ${browser.name}` : ''}`, ...browserDetailLines(browser).map((line) => `  ${line}`));
-    lines.push('', `APP CONNECTION: ${appState(snapshot.app).label}`, ...appPlainLines(snapshot.app).slice(1).map((line) => `  ${line}`));
+    lines.push('', `APP CONNECTION: ${appState(snapshot.app).label}`, ...appPlainLines(snapshot.app, { heartbeatBody: false }).slice(1).map((line) => `  ${line}`));
     if (options.next?.length) lines.push('', `Next: ${options.next.join(' · ')}`);
     return `${lines.join('\n')}\n`;
 }
@@ -324,7 +324,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
     }
 
     // The App connection (built per column width so that long values wrap instead of being clipped).
-    const appLines = (inner: number): string[] => appDetailLines(snapshot.app, style, inner).slice(1);
+    const appLines = (inner: number): string[] => appDetailLines(snapshot.app, style, inner, { heartbeatBody: false }).slice(1);
     const appTone = snapshot.attention?.app ? 'attention' : 'default';
 
     const toolsPanel = (width: number): string[] =>

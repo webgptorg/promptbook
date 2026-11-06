@@ -1,5 +1,5 @@
 import { formatShortTime } from '../common/time.js';
-import type { AppConnectionView, AppRelayView } from '../engine/snapshot.js';
+import type { AppConnectionView } from '../engine/snapshot.js';
 import { createStyle, wrap, type Style } from './ansi.js';
 
 /**
@@ -83,69 +83,117 @@ export function appTileLines(app: AppConnectionView | undefined, style: Style): 
 }
 
 /**
- * One relay's detail line.
+ * One piece of a detail row: plain text and how to paint it (widths are measured on the plain text).
  */
-function relayLine(relay: AppRelayView, style: Style): string {
-    const tone = relay.state === 'connected' ? 'success' : relay.refusal ? 'error' : relay.state === 'stopped' ? 'muted' : 'warning';
-    const retry = relay.state === 'waiting' && relay.retryAt ? style.muted(` · retry ${formatShortTime(Date.parse(relay.retryAt))}`) : '';
-    const streams = relay.streams ? style.muted(` · ${relay.streams} stream${relay.streams === 1 ? '' : 's'}`) : '';
-    return `  ${relay.relay} ${toned(style, tone, relay.state)}${streams}${retry}${relay.problem && relay.state !== 'connected' ? `\n    ${style.muted(relay.problem)}` : ''}`;
+type Part = readonly [text: string, paint?: (text: string) => string];
+
+/**
+ * Width of the label column of detail rows.
+ */
+const LABEL_WIDTH = 13;
+
+/**
+ * Collects detail lines that never exceed one width: a row that does not fit flows onto further lines (long words
+ * such as addresses and IDs are broken), so nothing is clipped in a narrow column.
+ */
+class DetailLines {
+    public readonly lines: string[] = [];
+    private readonly room: number;
+
+    public constructor(width: number) {
+        this.room = Math.max(20, width);
+    }
+
+    /** Word-wrapped text, each line painted. */
+    public text(value: string, paint: (text: string) => string = (text) => text, indent = ''): void {
+        for (const line of wrap(value, this.room - indent.length)) this.lines.push(`${indent}${paint(line)}`);
+    }
+
+    /** Parts on one line when they fit, otherwise each part wrapped on its own lines below the first. */
+    public flow(indent: string, parts: readonly Part[]): void {
+        const plain = parts.map(([text]) => text).join('');
+        if (indent.length + plain.length <= this.room) {
+            this.lines.push(`${indent}${parts.map(([text, paint]) => (paint ? paint(text) : text)).join('')}`);
+            return;
+        }
+        parts.forEach(([text, paint], index) => {
+            const trimmed = text.trim();
+            if (trimmed) this.text(trimmed, paint, index === 0 ? indent : `${indent}  `);
+        });
+    }
+
+    /** A labelled row; the value moves below its label when the row does not fit. */
+    public row(label: string, parts: readonly Part[], style: Style): void {
+        const plain = parts.map(([text]) => text).join('');
+        if (LABEL_WIDTH + plain.length <= this.room) {
+            this.lines.push(`${style.muted(label.padEnd(LABEL_WIDTH))}${parts.map(([text, paint]) => (paint ? paint(text) : text)).join('')}`);
+            return;
+        }
+        this.lines.push(style.muted(label));
+        this.flow('  ', parts);
+    }
 }
 
 /**
- * Splits a long value into lines of at most `width` characters, indented.
- */
-function wrapValue(text: string, width: number, indent: string): string[] {
-    const room = Math.max(10, width - indent.length);
-    const lines: string[] = [];
-    for (let index = 0; index < text.length; index += room) lines.push(`${indent}${text.slice(index, index + room)}`);
-    return lines.length ? lines : [indent];
-}
-
-/**
- * The App page and status region: state and next step, identity, address, relays, heartbeat and browser access.
+ * The App page and status region: state and next step, identity, address, relays, heartbeat and browser access, all
+ * within `width` columns. `heartbeatBody: false` leaves out the exact heartbeat body (the compact status region; the
+ * App page and `ptbk connect` show it).
  *
  * @private App connection presentation
  */
-export function appDetailLines(app: AppConnectionView | undefined, style: Style, width = 100): string[] {
+export function appDetailLines(app: AppConnectionView | undefined, style: Style, width = 100, options: { readonly heartbeatBody?: boolean } = {}): string[] {
     const state = appState(app);
-    const lines: string[] = [`${style.bold('App')} ${toned(style, state.tone, state.label)}`];
+    const out = new DetailLines(width);
+    out.flow('', [['App ', style.bold], [state.label, (text) => toned(style, state.tone, text)]]);
+    const muted = (text: string): string => style.muted(text);
     if (!app || app.state === 'disabled') {
-        lines.push(style.muted(app ? 'This engine run keeps no App connection (maintenance).' : 'This engine does not report an App connection.'));
-        return lines;
+        out.text(app ? 'This engine run keeps no App connection (maintenance).' : 'This engine does not report an App connection.', muted);
+        return out.lines;
     }
-    if (app.problem) lines.push(...wrap(app.problem, Math.max(10, width - 2)).map((line) => style.error(`  ${line}`)));
-    if (app.engineId) {
-        lines.push(`${style.muted('Engine ID')}    ${app.engineId}`);
-        if (app.fingerprint) lines.push(`${style.muted('Fingerprint')}  ${app.fingerprint} ${style.muted('(compare with the App dashboard)')}`);
-    }
+    if (app.problem) out.text(app.problem, (text) => style.error(text), '  ');
+    if (app.engineId) out.row('Engine ID', [[app.engineId]], style);
+    if (app.fingerprint) out.row('Fingerprint', [[app.fingerprint], [' (compare with the App dashboard)', muted]], style);
     if (app.state === 'unlinked') {
-        lines.push(...wrap(appLinkHint(app.dashboardUrl), Math.max(10, width)).map((line) => style.muted(line)));
-        return lines;
+        out.text(appLinkHint(app.dashboardUrl), muted);
+        return out.lines;
     }
-    if (app.url) {
-        if (app.url.length + 13 <= width) lines.push(`${style.muted('Address')}      ${app.url}`);
-        else lines.push(style.muted('Address'), ...wrapValue(app.url, width, '  '));
-    }
-    lines.push(`${style.muted('App')}          ${app.dashboardUrl}${app.linkedAt ? style.muted(` · linked ${formatShortTime(Date.parse(app.linkedAt))}`) : ''}`);
+    if (app.url) out.row('Address', [[app.url]], style);
+    out.row('App', [[app.dashboardUrl], ...(app.linkedAt ? ([[` · linked ${formatShortTime(Date.parse(app.linkedAt))}`, muted]] as const) : [])], style);
     if (app.relays.length) {
-        lines.push(`${style.muted('Relays')}       Connected to ${relaySummary(app)}`);
-        for (const relay of app.relays) lines.push(...relayLine(relay, style).split('\n'));
+        out.row('Relays', [[`Connected to ${relaySummary(app)}`]], style);
+        for (const relay of app.relays) {
+            const tone = relay.state === 'connected' ? 'success' : relay.refusal ? 'error' : relay.state === 'stopped' ? 'muted' : 'warning';
+            out.flow('  ', [
+                [`${relay.relay} `],
+                [relay.state, (text) => toned(style, tone, text)],
+                ...(relay.streams ? ([[` · ${relay.streams} stream${relay.streams === 1 ? '' : 's'}`, muted]] as const) : []),
+                ...(relay.state === 'waiting' && relay.retryAt ? ([[` · retry ${formatShortTime(Date.parse(relay.retryAt))}`, muted]] as const) : []),
+            ]);
+            if (relay.problem && relay.state !== 'connected') out.text(relay.problem, muted, '    ');
+        }
     }
     const beat = app.heartbeat;
     if (beat) {
-        const outcome = beat.outcome === 'accepted' ? style.success('accepted') : beat.outcome === 'refused' ? style.error(`refused${beat.status ? ` (HTTP ${beat.status}${beat.code ? `, ${beat.code}` : ''})` : ''}`) : style.warning('not delivered');
-        lines.push(`${style.muted('Heartbeat')}    ${formatShortTime(Date.parse(beat.at))} ${outcome}${beat.nextAt ? style.muted(` · next ${formatShortTime(Date.parse(beat.nextAt))}`) : ''}`);
-        if (beat.message) lines.push(style.muted(`  ${beat.message}`));
-        if (beat.skewMs !== undefined) lines.push(style.warning(`  This computer's clock is ${Math.round(Math.abs(beat.skewMs) / 1000)} s ${beat.skewMs > 0 ? 'ahead of' : 'behind'} the App. Fix the clock (NTP); heartbeats more than 2 minutes off are refused.`));
-        if (beat.body) lines.push(style.muted('  Everything the App learns:'), ...wrapValue(beat.body, width, '  ').map((line) => style.muted(line)));
+        const outcome: Part =
+            beat.outcome === 'accepted'
+                ? ['accepted', (text) => style.success(text)]
+                : beat.outcome === 'refused'
+                  ? [`refused${beat.status ? ` (HTTP ${beat.status}${beat.code ? `, ${beat.code}` : ''})` : ''}`, (text) => style.error(text)]
+                  : ['not delivered', (text) => style.warning(text)];
+        out.row('Heartbeat', [[`${formatShortTime(Date.parse(beat.at))} `], outcome, ...(beat.nextAt ? ([[` · next ${formatShortTime(Date.parse(beat.nextAt))}`, muted]] as const) : [])], style);
+        if (beat.message) out.text(beat.message, muted, '  ');
+        if (beat.skewMs !== undefined) out.text(`This computer's clock is ${Math.round(Math.abs(beat.skewMs) / 1000)} s ${beat.skewMs > 0 ? 'ahead of' : 'behind'} the App. Fix the clock (NTP); heartbeats more than 2 minutes off are refused.`, (text) => style.warning(text), '  ');
+        if (beat.body && options.heartbeatBody !== false) {
+            out.text('Everything the App learns:', muted, '  ');
+            out.text(beat.body, muted, '  ');
+        }
     }
     if (app.state === 'offline') {
-        lines.push(...wrap('The engine is stopped, so the App shows this project unavailable. Start it with `ptbk start`.', Math.max(10, width)).map((line) => style.muted(line)));
-        return lines;
+        out.text('The engine is stopped, so the App shows this project unavailable. Start it with `ptbk start`.', muted);
+        return out.lines;
     }
-    lines.push(...wrap(app.browserAccess === 'available' ? 'Opening this project from the App works.' : 'Opening this project from the App is not available yet: the engine does not serve the App UI through its tunnels yet. Use the terminal or the desktop app.', Math.max(10, width)).map((line) => style.muted(line)));
-    return lines;
+    out.text(app.browserAccess === 'available' ? 'Opening this project from the App works.' : 'Opening this project from the App is not available yet: the engine does not serve the App UI through its tunnels yet. Use the terminal or the desktop app.', muted);
+    return out.lines;
 }
 
 /**
@@ -153,8 +201,8 @@ export function appDetailLines(app: AppConnectionView | undefined, style: Style,
  *
  * @private App connection presentation
  */
-export function appPlainLines(app: AppConnectionView | undefined): string[] {
-    return appDetailLines(app, PLAIN, Number.MAX_SAFE_INTEGER);
+export function appPlainLines(app: AppConnectionView | undefined, options: { readonly heartbeatBody?: boolean } = {}): string[] {
+    return appDetailLines(app, PLAIN, Number.MAX_SAFE_INTEGER, options);
 }
 
 /**
