@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { parseActionViewQuery } from '../engine/action-impact.js';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import type { ComposedSegment } from '../ui/composer.js';
@@ -8,7 +9,12 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
+import { EngineApi } from '../app/api/engine-api.js';
+import { CONFORMANCE_BUILD } from '../app/build.js';
 import { AppConnection, type AppEngineFigures } from '../app/connection.js';
+import { appDirectory, isTunnelMode } from '../app/settings.js';
+import { engineHomePage } from '../app/web/documents.js';
+import { UiLoader } from '../app/web/ui-loader.js';
 import { ProjectEffects, effectsRequest, snapshotEffects } from '../engine/effects.js';
 import { parseUsageRequest } from '../engine/usage.js';
 import type { VoiceMediaInput } from '../engine/voice-calls.js';
@@ -75,6 +81,8 @@ export class ServiceHost {
     private localApi: LocalApiView = { state: 'disabled' };
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
+    /** The engine UI loader of the App connection (verified UI bundles from the release store). */
+    private uiLoader?: UiLoader;
     /** A coalesced App view publication is queued. */
     private appViewQueued = false;
     private readonly browsers: BrowserFleet;
@@ -279,16 +287,50 @@ export class ServiceHost {
         return { agents: snapshot.agents.length, members: 0, update: state };
     }
 
-    /** Starts the App connection; its failures stay on the App page and never stop the engine. */
+    /**
+     * Starts the App connection with the engine's own origin (passkey gateway, engine API, engine page). Its failures
+     * stay on the App page and never stop the engine, except in an App tunnel engine (`PTBK_MODE=tunnel`), which refuses
+     * to start with an unsafe or invalid App state.
+     */
     private async startAppConnection(): Promise<void> {
+        const env = this.options.env;
+        const view = (): ReturnType<AppConnection['view']> | undefined => this.appConnection?.view();
+        const directory = appDirectory(this.options.project.runtime.app, env);
+        // Created before anything listens: a release build refuses a conformance trust file, and an invalid update
+        // policy or release URL stops the engine rather than serving an unchecked UI.
+        const loader = await UiLoader.create({ directory, env, log: (text, level) => this.agenda.log(text, level) });
+        this.uiLoader = loader;
+        const enginePageSha256 = createHash('sha256').update(engineHomePage.toString()).digest('hex');
+        const api = new EngineApi({
+            agenda: this.agenda,
+            projectRoot: this.options.project.root,
+            stateDirectory: directory,
+            engineId: () => view()?.engineId,
+            hostname: () => view()?.hostname,
+            dashboardUrl: () => view()?.dashboardUrl,
+            security: () => this.appConnection?.securityFacts(),
+            ui: () => loader.status(enginePageSha256),
+            log: (text, level) => this.agenda.log(text, level),
+        });
         this.appConnection = new AppConnection({
-            directory: this.options.project.runtime.app,
-            env: this.options.env,
+            directory,
+            env,
             onChange: () => this.publishAppView(),
             figures: () => this.appFigures(),
             log: (text, level) => this.agenda.log(text, level),
+            web: {
+                api: (request, actor, access) => api.handle(request, actor, access),
+                documents: async (request, actor) => (await loader.serve(request)) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId }),
+                ...(CONFORMANCE_BUILD ? { certificateSource: 'dev-ca' as const } : {}),
+            },
         });
-        await this.appConnection.start().catch((error: unknown) => this.agenda.log(`The App connection did not start: ${errorMessage(error)}`, 'warning'));
+        try {
+            await this.appConnection.start();
+            await loader.start();
+        } catch (error) {
+            if (isTunnelMode(env)) throw error;
+            this.agenda.log(`The App connection did not start: ${errorMessage(error)}`, 'warning');
+        }
         // At once (not coalesced), so the first client that finds this engine already sees its App connection.
         this.agenda.setAppConnection(this.appConnection.view());
     }
@@ -415,6 +457,7 @@ export class ServiceHost {
         // browser other engines still use stays, the last disconnection closes it).
         await bounded(() => this.browsers.close());
         if (forced) await bounded(() => this.owned.terminateRemaining(1000));
+        this.uiLoader?.stop();
         await bounded(() => this.appConnection?.stop());
         await bounded(() => this.http?.close());
         this.http = undefined;
@@ -455,6 +498,17 @@ export class ServiceHost {
                 return agenda.snapshot();
             case 'app-status':
                 return this.appConnection?.view() ?? agenda.snapshot().app;
+            case 'app-setup-link':
+                if (!this.appConnection) throw new PtbkError('This engine run has no App connection (maintenance mode).', { kind: 'unsupported' });
+                return await this.appConnection.setupLink();
+            case 'app-reset-owner':
+                if (!this.appConnection) throw new PtbkError('This engine run has no App connection (maintenance mode).', { kind: 'unsupported' });
+                return await this.appConnection.resetOwner();
+            case 'app-conformance-session': {
+                if (!CONFORMANCE_BUILD || !this.appConnection) throw new PtbkError('Conformance sessions exist only in the conformance build.', { kind: 'unsupported' });
+                const permissions = Array.isArray(params.permissions) ? params.permissions.map(String) : [];
+                return await this.appConnection.conformanceSession(params.subject === 'owner' ? { kind: 'owner' } : { kind: 'member', permissions });
+            }
             case 'app-reload': {
                 // `ptbk connect` and `ptbk disconnect` changed the stored link: reconnect from it.
                 if (!this.appConnection) throw new PtbkError('This engine run has no App connection (maintenance mode).', { kind: 'unsupported' });
