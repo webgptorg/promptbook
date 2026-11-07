@@ -20,7 +20,7 @@ ptbk init --prepare-only --link '<pairing-url>' --setup-link
 
 On a clean Ubuntu host, use the version-matched bootstrap with `--prepare-only --link-stdin`. Promptbook App's copyable command can fill in its `{linkUrl}` placeholder after a supported engine version is published. Download the pinned installer and verify its SHA-256 before running it. Send the pairing URL on stdin so it stays out of sudo's arguments. The installer prints the owner setup link to the invoking session, outside the install log.
 
-On the host, `ptbk dashboard --global` offers **I** to start, pair or continue a pending initialization. The App page of an existing project's Dashboard offers **L** to pair it. The desktop app's global CLI exposes the same workflow on Windows and macOS.
+On the host, use `ptbk init --with-app` to start, pair or continue a pending initialization. The global Dashboard offers the same workflow on **I**. The App page of an existing project's Dashboard offers **L** to pair it. On Windows and macOS, choose **Set up with App** to open the wizard in the desktop terminal.
 
 ## Finish setup
 

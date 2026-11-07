@@ -14,6 +14,7 @@ function localDashboardUrl(value) {
 /** Restricts PTYs to ordinary CLI entry points, with arguments instead of shell interpolation. */
 function terminalArguments(kind, projectRoot, page) {
     if (kind === 'global') return ['dashboard', '--global'];
+    if (kind === 'setup') return ['init', '--with-app'];
     if (kind === 'init' && projectRoot === undefined) return ['init', '--no-dashboard'];
     if (typeof projectRoot !== 'string' || !projectRoot || projectRoot.includes('\0')) throw new Error('Select a project first.');
     if (kind === 'init') return ['init', '--path', projectRoot, '--no-dashboard'];

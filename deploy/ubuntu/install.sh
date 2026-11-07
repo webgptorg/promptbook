@@ -3,6 +3,7 @@
 # dedicated non-sudo engine user. The website's one-command entry (https://www.ptbk.io/install.sh) and provider
 # startup scripts run it for preparation only; `--init` also hands this terminal to the ordinary `ptbk init` as that user.
 # A thin bootstrap: destination, tools, sign-in, Git setup and the start belong to init. No AI credentials are accepted.
+set +x
 set -Eeuo pipefail
 umask 022
 
@@ -69,7 +70,7 @@ while (( $# )); do
             shift
             ;;
         --) shift; init_args=("$@"); break ;;
-        -*) fail "Unknown option $1. Use latest or an exact published semantic version, --prepare-only, --init, --path or -- followed by ptbk init options." ;;
+        -*) fail 'Unknown installer option. Use latest or an exact published semantic version, or see --help.' ;;
         *)
             [[ -z "$requested_version" ]] || fail 'Expected at most one published ptbk version.'
             requested_version="$1"
@@ -203,12 +204,14 @@ if ! id "$engine_user" >/dev/null 2>&1; then
     useradd --create-home --home-dir "$engine_home" --shell /bin/bash "$engine_user"
 fi
 chmod 700 "$engine_home"
-# The first project folder the website entry opens init in (init's own shared projects folder stays available).
 install -d -m 700 -o "$engine_user" -g "$engine_user" \
-    "$engine_home/projects" "$engine_home/projects/my-agenda" \
     "$engine_home/.local" "$engine_home/.local/bin" "$engine_home/.local/share" \
     "$engine_home/.config" "$engine_home/.config/systemd" "$engine_home/.config/systemd/user" \
     "$engine_home/.cache"
+if [[ -z "$pairing_url" ]]; then
+    # The website entry opens the ordinary initializer in this folder.
+    install -d -m 700 -o "$engine_user" -g "$engine_user" "$engine_home/projects" "$engine_home/projects/my-agenda"
+fi
 if [[ ! -e "$engine_home/.npmrc" ]]; then
     printf 'prefix=%s/.local\n' "$engine_home" > "$engine_home/.npmrc"
     chown "$engine_user:$engine_user" "$engine_home/.npmrc"

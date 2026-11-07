@@ -14,6 +14,7 @@ test('embedded terminals invoke only the real CLI, with literal project paths an
         assert.equal(dashboardPage(`http://127.0.0.1:3012/#/${page}`), page);
     }
     assert.deepEqual(terminalArguments('init', undefined), ['init', '--no-dashboard']);
+    assert.deepEqual(terminalArguments('setup'), ['init', '--with-app']);
     assert.deepEqual(terminalArguments('global'), ['dashboard', '--global']);
     assert.throws(() => terminalArguments('shell', root));
     assert.throws(() => terminalArguments('dashboard', root, '--force'));

@@ -523,7 +523,7 @@ ipcMain.handle('desktop:terminal', async (event, options) => {
     }
     hideDashboard(entry);
     const id = `${entry.window.id}-${++requestId}`;
-    const prompts = options.kind === 'init' || options.kind === 'global' ? await createPromptServer((prompt) => emit(entry, prompt.kind === 'complete' ? { type: 'initialized', terminal: id, completion: prompt.completion } : { type: 'prompt', terminal: id, prompt }), (promptId) => emit(entry, { type: 'prompt-closed', terminal: id, promptId })) : undefined;
+    const prompts = ['init', 'setup', 'global'].includes(options.kind) ? await createPromptServer((prompt) => emit(entry, prompt.kind === 'complete' ? { type: 'initialized', terminal: id, completion: prompt.completion } : { type: 'prompt', terminal: id, prompt }), (promptId) => emit(entry, { type: 'prompt-closed', terminal: id, promptId })) : undefined;
     const pty = require('node-pty');
     const env = { ...process.env, ...runtime.env, ...prompts?.env, TERM: 'xterm-256color', TERM_PROGRAM: 'Promptbook', PTBK_REDUCED_MOTION: '1' };
     delete env.ELECTRON_RUN_AS_NODE;

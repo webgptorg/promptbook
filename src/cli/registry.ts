@@ -125,6 +125,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
             {
                 title: 'Engine before project',
                 options: [
+                    { name: 'with-app', type: 'boolean', description: 'Interactively start, pair or resume a pending initialization.' },
                     { name: 'prepare-only', type: 'boolean', description: 'Start a pending initialization service before choosing a project folder or supplying its brief.' },
                     { name: 'link', type: 'string', valueName: '<url>', description: 'With --prepare-only, pair with the App using its one-time pairing URL.' },
                     { name: 'link-stdin', type: 'boolean', description: 'With --prepare-only, read the pairing URL from standard input.' },

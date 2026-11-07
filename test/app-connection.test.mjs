@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { createHash, createPublicKey, randomBytes, verify } from 'node:crypto';
-import { chmod, mkdir, readdir, readFile, stat, symlink, writeFile } from 'node:fs/promises';
+import { createHash, createPublicKey, randomBytes, randomUUID, verify } from 'node:crypto';
+import { chmod, mkdir, readdir, readFile, rename, stat, symlink, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:https';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -14,9 +14,12 @@ import { appSettings } from '../dist/app/settings.js';
 import { SIGNING_CONTEXT, createEngineSigner, signingInput } from '../dist/app/signing.js';
 import { CLOSE_CODE, FRAME_TYPE, decodeFrame, encodeFrame } from '../dist/app/tunnel/frames.js';
 import { checkTunnelReady, parseRelayMessage, tunnelAuthInput } from '../dist/app/tunnel/handshake.js';
+import { saveOnboarding } from '../dist/onboarding/draft.js';
+import { projectAt } from '../dist/project/workspace.js';
+import { launchDaemon, stopService } from '../dist/service/launcher.js';
 import { appDetailLines, appPlainLines, appSummaryLine, appTileLines } from '../dist/ui/app-connection.js';
 import { createStyle, stripAnsi } from '../dist/ui/ansi.js';
-import { initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
+import { fakeHarness, initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /** Golden vectors of the App contract (copied from webgptorg/app, see the fixture README). */
 const VECTORS = new URL('./fixtures/app-protocol/', import.meta.url);
@@ -194,7 +197,7 @@ test('App presentation: state, identity, relays and heartbeat; the body on the A
     const skewed = { ...linked, heartbeat: { at: new Date().toISOString(), outcome: 'refused', status: 400, code: 'stale-timestamp', skewMs: -180_000, body } };
     assert.match(appDetailLines(skewed, style, 80).join('\n'), /clock is 180 s behind the App/);
     const unlinked = { state: 'unlinked', dashboardUrl: 'https://dashboard.localhost:8443', relays: [], browserAccess: 'unavailable' };
-    assert.match(appPlainLines(unlinked).join('\n'), /Get a link code at dashboard\.localhost:8443, then run `ptbk connect --link <code>`/);
+    assert.match(appPlainLines(unlinked).join('\n'), /Get a pairing URL at dashboard\.localhost:8443, then run `ptbk connect --link <url>`/);
     for (const line of appDetailLines(linked, style, 40)) assert.ok(stripAnsi(line).length <= 40, `fits 40 columns: ${line}`);
 });
 
@@ -525,7 +528,7 @@ test('ptbk connect and disconnect: status, linking a running engine, its tunnel,
     const unlinked = await ptbk(['connect', '--raw'], { cwd: project, env });
     assert.equal(unlinked.code, 0, unlinked.output);
     assert.match(unlinked.stdout, /App: Not linked/);
-    assert.match(unlinked.stdout, /ptbk connect --link <code>/);
+    assert.match(unlinked.stdout, /ptbk connect --link <url>/);
     await assert.rejects(stat(join(project, '.ptbk', 'app', 'engine-key.pem')), { code: 'ENOENT' }, 'showing the status creates no identity');
 
     const started = await ptbk(['start', '--raw', '--no-persist'], { cwd: project, env });
@@ -560,4 +563,36 @@ test('ptbk connect and disconnect: status, linking a running engine, its tunnel,
     assert.equal(JSON.parse((await ptbk(['connect', '--json'], { cwd: project, env })).stdout).state, 'unlinked');
     assert.equal((await stat(join(project, '.ptbk', 'app', 'engine-key.pem'))).isFile(), true, 'the identity stays');
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+});
+
+test('an unnamed initialization pairs through the relay before asking for project files', async (t) => {
+    const app = await fakeApp(t);
+    const cleanup = [];
+    const root = await temporaryDirectory(t, 'ptbk pair before init', cleanup);
+    const { env: harnessEnv } = await fakeHarness(t, root);
+    const { PTBK_DASHBOARD_URL: origin, ...appEnv } = app.env;
+    const env = { ...harnessEnv, ...appEnv, PTBK_ACME_DIRECTORY_URL: `${origin}/test-acme`, NODE_EXTRA_CA_CERTS: fileURLToPath(CA_PATH) };
+    delete env.PTBK_DASHBOARD_URL;
+
+    const projectsHome = join(root, 'projects');
+    const drafts = join(projectsHome, '.ptbk-onboarding');
+    const staging = projectAt(join(drafts, 'staging'));
+    await mkdir(staging.root, { recursive: true, mode: 0o700 });
+    const { engineId } = await loadEngineIdentity(staging.runtime.app, { create: true });
+    const project = projectAt(join(drafts, engineId));
+    await rename(staging.root, project.root);
+    await saveOnboarding(project, { version: 1, engineId, step: 'intent', promptId: randomUUID(), deferred: false });
+    cleanup.push(() => stopService(project, { force: true }));
+
+    const { lookup: { client } } = await launchDaemon(project, { env, cli: {}, persistent: false, onboarding: true });
+    const code = linkCode('g');
+    const linked = await client.request('app-link', { link: `${origin}/link#${code}` });
+    assert.equal(linked.outcome, 'linked');
+    assert.equal(linked.app.dashboardUrl, origin);
+    assert.doesNotMatch(JSON.stringify(linked), new RegExp(code));
+    await waitFor(() => app.connections.some((peer) => peer.ready && peer.authValid), { timeoutMs: 30_000, message: 'the unnamed engine to open its relay tunnel' });
+    assert.deepEqual(await readdir(projectsHome), ['.ptbk-onboarding']);
+    const state = await client.request('onboarding-state');
+    assert.equal(state.onboarding.prompt.kind, 'text');
+    assert.doesNotMatch(await filesText(project.root), new RegExp(code));
 });

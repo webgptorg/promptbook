@@ -1763,6 +1763,16 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
  * @private command
  */
 export default async function init(context: CommandContext): Promise<number> {
+    if (flag(context, 'with-app')) {
+        if (!context.terminal.interactive) throw usageError('Use --prepare-only to start the engine without a terminal.', 'init');
+        const allowed = new Set(['with-app', 'interactive', 'terminal-title']);
+        if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('With --with-app, choose the project settings during onboarding.', 'init');
+        const { onboardingFromDashboard } = await import('./onboarding.js');
+        const { message, projectRoot } = await onboardingFromDashboard(context);
+        context.terminal.write(`${message}\n`);
+        if (projectRoot && context.terminal.prompts) await context.terminal.prompts({ kind: 'complete', frame: { title: 'Pending initialization' }, question: 'Initialization result', completion: { root: projectRoot, ready: true, running: true } });
+        return EXIT.success;
+    }
     if (flag(context, 'prepare-only')) {
         const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'setup-link', 'json', 'persist', 'wait', 'non-interactive', 'interactive', 'raw', 'no-ui', 'terminal-title']);
         if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('With --prepare-only, project decisions come from onboarding after the engine starts.', 'init');

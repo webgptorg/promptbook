@@ -132,3 +132,15 @@ Before removing a server, stop work and verify a private backup. The Azure VM's 
 - [One-command VPS onboarding](../specs/cli/vps-onboarding.md) and [remote harness authentication](../specs/cli/harness-authentication.md)
 
 Repository checks cover template structure and installer input handling; the server-deployment workflow exercises unattended preparation, reuse on retry, the incomplete no-terminal outcome, the terminal handoff to init as the engine user and ordinary project lifecycle on an Ubuntu runner. A successful runner test does not establish subscription availability, a live Azure/DigitalOcean/AWS deployment, provider authentication, or a real reboot test. Validate those in your own deployment.
+
+## Start and pair an engine from the App on Ubuntu
+
+The App replaces `{linkUrl}` with the one-time pairing URL. Pin the installer to a release commit and supply the matching published `ptbk` version and script digest.
+
+```sh
+curl -fsSLo promptbook-install.sh '<installer URL pinned to the release commit>' \
+  && printf '%s  %s\n' '<SHA-256>' promptbook-install.sh | sha256sum -c - \
+  && printf '%s\n' '{linkUrl}' | sudo bash promptbook-install.sh --version '<engine version>' --prepare-only --link-stdin
+```
+
+The bootstrap starts setup as the dedicated `promptbook` user and prints the owner setup link outside the installation log. See [project initialization through Promptbook App](../specs/app/onboarding.md#start-and-pair).

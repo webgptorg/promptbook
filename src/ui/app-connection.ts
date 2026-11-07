@@ -3,7 +3,7 @@ import type { AppConnectionView } from '../engine/snapshot.js';
 import { createStyle, wrap, type Style } from './ansi.js';
 
 /**
- * How to link a project, shown wherever the project is not linked yet: where to get the link code and what to run.
+ * Tells the operator where to get a pairing URL and how to link the project.
  *
  * @private App connection presentation
  */
@@ -14,7 +14,7 @@ export function appLinkHint(dashboardUrl: string): string {
     } catch {
         // Shown as given.
     }
-    return `Get a link code at ${host}, then run \`ptbk connect --link <code>\` in this project.`;
+    return `Get a pairing URL at ${host}, then run \`ptbk connect --link <url>\` in this project.`;
 }
 
 /**

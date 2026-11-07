@@ -433,7 +433,8 @@ async function openTerminal(kind, root, page) {
         term.loadAddon(fit);
         term.open(container);
         term.onData((data) => api.input(result.id, data));
-        terminals.set(result.id, { term, fit, container, kind, root, title: kind === 'init' ? 'Project setup' : kind === 'global' ? 'All projects · CLI' : `${page || 'Dashboard'} · CLI`, prompt: null });
+        const titles = { init: 'Project setup', setup: 'Set up with App', global: 'All projects · CLI' };
+        terminals.set(result.id, { term, fit, container, kind, root, title: titles[kind] ?? `${page || 'Dashboard'} · CLI`, prompt: null });
         for (const event of earlyEvents.get(result.id) || []) terminalEvent(event);
         earlyEvents.delete(result.id);
         selectTerminal(result.id);
@@ -591,6 +592,7 @@ for (const button of themeButtons) {
 void api.theme().then(showTheme).catch((error) => notice(error.message, true));
 $('overview').onclick = () => { show('overview'); renderOverview(); };
 $('new-project').onclick = () => void newProject();
+$('new-app-setup').onclick = () => void openTerminal('setup');
 $('new-window').onclick = () => void api.newWindow(selected);
 $('global-cli').onclick = () => void openTerminal('global');
 $('cli').onclick = () => {

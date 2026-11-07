@@ -28,6 +28,8 @@ Provider references checked 2026-10-29: [Codex authentication](https://developer
 
 Show the selected harness/account and exact human step: open the provider URL, enter a displayed device code on its page, or paste its return code into the terminal. Preserve the native terminal interaction. Keep the URL manually readable/copyable without assuming a shared clipboard. Do not silently launch `xdg-open` on a browserless server and wait forever or require a server desktop merely to show a URL.
 
+For the fallback, present the native login terminal directly in the desktop client and over the encrypted connection to the engine through the relay. Forward input and output for that terminal session. The user enters a Claude Code return code at Claude Code's own prompt, and Promptbook checks readiness in the engine account afterwards. Keep terminal input and output out of stored onboarding answers and logs.
+
 Codes and credential-bearing URLs remain transient to attended authentication; redact persisted logs, traces and diagnostics. Tokens, refresh credentials, API keys and returned sign-in codes never enter Books, Git, ordinary task/chat messages or installer arguments. The owner supplies passwords/MFA on the provider's actual page, not to an agent.
 
 Distinguish waiting, actual native success, cancellation, expiry, denial, unsupported method, missing executable and service-context discovery failure. Retry returns to the same setup with intent/completed steps preserved; only explicit deselection removes an incomplete selected integration. No hidden human prompt may be left in a daemon or noninteractive invocation.
