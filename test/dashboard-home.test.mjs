@@ -179,7 +179,7 @@ test('pages replace the home grid, keep context and legend fixed and scroll thei
     const appText = appPage.body.map(stripAnsi).join('\n');
     assert.doesNotMatch(`${appText}\n${appPage.legend}`, /Engine updates|automatic updates/);
     assert.match(appText, /Not linked/);
-    assert.match(appText, /ptbk connect --link <code>/);
+    assert.match(appText, /ptbk connect --link <url>/);
     assert.match(appText, /ABCD-EFGH-JKMN-PQRS-TVWX/, 'the fingerprint to compare with the App');
     assert.doesNotMatch(appText, /127\.0\.0\.1|Local dashboard|this computer only/, 'the local loopback address is not presented');
     const healthPage = pageBody(pageForTile('health'), context);
