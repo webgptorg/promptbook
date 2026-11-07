@@ -1886,6 +1886,16 @@ test('Wallet Test in an initialization draft: a selected login is tested with th
 
 test('Wallet Test in an initialization draft in the real browser: a temporary browser outside the project checks staged logins and is discarded', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
     const root = await temporaryDirectory(t, 'ptbk wallet staged browser');
+    // This file runs in its own test process. Keep its temporary profiles separate from other concurrently running
+    // fixtures, so their live profiles are never mistaken for a leak from this test.
+    const temporaryEnvironment = Object.fromEntries(['TMPDIR', 'TMP', 'TEMP'].map((key) => [key, process.env[key]]));
+    for (const key of Object.keys(temporaryEnvironment)) process.env[key] = root;
+    t.after(() => {
+        for (const [key, value] of Object.entries(temporaryEnvironment)) {
+            if (value === undefined) delete process.env[key];
+            else process.env[key] = value;
+        }
+    });
     const proposed = join(root, 'proposed-name');
     const browser = await findBrowserExecutable({ variant: 'CHROME' });
     const env = { ...process.env, PTBK_HOME: join(root, 'computer'), PTBK_HOST_UNLOCK: 'insecure-test-file', CHROME_PATH: browser };
