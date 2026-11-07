@@ -16,7 +16,22 @@ const CHECK = 'process.exit(0);\n';
  */
 async function status(project, env) {
     const result = await ptbk(['status', '--json'], { cwd: project, env });
+    assert.equal(result.code, 0, result.output);
     return JSON.parse(result.stdout);
+}
+
+/**
+ * Waits for an externally terminated engine to disappear. It can exit between a status client's discovery and IPC
+ * request, so a failed read is retried within the same deadline; only a successful stopped snapshot confirms exit.
+ */
+async function waitForStopped(project, env, message) {
+    let last;
+    await waitFor(async () => {
+        last = await ptbk(['status', '--json'], { cwd: project, env });
+        return last.code === 0 && JSON.parse(last.stdout).service.state === 'stopped';
+    }, { message }).catch((error) => {
+        throw new Error(`${error.message}\n${last?.output ?? ''}`, { cause: error });
+    });
 }
 
 /**
@@ -243,7 +258,7 @@ test('lifecycle: an accepted manual pause survives an engine crash; a deliberate
     }, { timeoutMs: 90_000, intervalMs: 500, message: 'the paused engine and Git persistence to settle before the crash' });
     // An uncatchable kill is what a crash looks like: no cleanup and no chance to record anything.
     process.kill(before.service.pid, 'SIGKILL');
-    await waitFor(async () => (await status(project, env)).service.state === 'stopped', { message: 'the killed engine to be observed as stopped' });
+    await waitForStopped(project, env, 'the killed engine to be observed as stopped');
     const restarted = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(restarted.code, 0, restarted.output);
     const restored = await status(project, env);
@@ -325,7 +340,7 @@ test('lifecycle: start --paused, and OS startup restores stopped services paused
     const running = await status(project, env);
     assert.equal(running.service.state, 'running');
     process.kill(running.service.pid, 'SIGTERM');
-    await waitFor(async () => (await status(project, env)).service.state === 'stopped', { message: 'the terminated service to end' });
+    await waitForStopped(project, env, 'the terminated service to end');
     assert.ok(JSON.parse(await readFile(intentPath, 'utf8')).hostTermination, 'the termination request is recorded');
     await ptbk(['add', 'Work after shutdown', '--agent', 'Developer', '--raw'], { cwd: project, env });
     assert.doesNotMatch(await osStartup(), /paused/);

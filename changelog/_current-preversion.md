@@ -1,5 +1,7 @@
 # Unreleased
 
+- Retry transient status-client failures while lifecycle tests wait for an externally terminated engine to stop; report the last CLI error if the bounded poll expires.
+
 - Stabilize the manual-pause crash regression by waiting for active work and Git persistence to settle before the simulated crash. Keep the queued-work recovery assertions and include the CLI error if restart fails.
 - Report browser action failures directly in the Wallet sign-up regression, instead of continuing on a blank page and reporting a misleading missing-form error.
 - Isolate the draft Wallet browser regression's temporary profiles, so profiles belonging to other test processes are not reported as cleanup failures.
