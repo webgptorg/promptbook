@@ -99,16 +99,17 @@ const FROM = '0.500.0-1';
 const TARGET = '0.500.0';
 
 /**
- * Runs a CLI (the copied local installation) and returns its exit code and output.
+ * Runs a CLI (the copied local installation), keeping JSON stdout separate from stderr diagnostics.
  */
 function run(bin, args, options) {
     return new Promise((resolve, reject) => {
         const child = spawn(process.execPath, [bin, ...args], { cwd: options.cwd, env: options.env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
-        let output = '';
-        child.stdout.setEncoding('utf8').on('data', (chunk) => (output += chunk));
-        child.stderr.setEncoding('utf8').on('data', (chunk) => (output += chunk));
+        let stdout = '';
+        let stderr = '';
+        child.stdout.setEncoding('utf8').on('data', (chunk) => (stdout += chunk));
+        child.stderr.setEncoding('utf8').on('data', (chunk) => (stderr += chunk));
         child.on('error', reject);
-        child.on('close', (code) => resolve({ code, output }));
+        child.on('close', (code) => resolve({ code, stdout, stderr, output: `${stdout}\n${stderr}` }));
     });
 }
 
@@ -152,7 +153,7 @@ async function locallyInstalledProject(t, npm) {
     await writeFile(configPath, `${JSON.stringify(config, null, 4)}\n`);
     await git(project, ['commit', '-q', '-m', 'No goal discovery', '--', 'ptbk.json']);
     const npmLog = async () => (await readFile(join(tools, 'npm.log'), 'utf8').catch(() => '')).trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
-    const status = async () => JSON.parse((await run(bin, ['status', '--json'], { cwd: project, env })).output);
+    const status = async () => JSON.parse((await run(bin, ['status', '--json'], { cwd: project, env })).stdout);
     const control = async (method, params = {}) => {
         const record = await readProcessRecord(projectAt(project));
         return await new ControlClient(projectAt(project), record).request(method, params, 60_000);
@@ -163,6 +164,8 @@ async function locallyInstalledProject(t, npm) {
 test('engine self-update: a low-priority system task updates the local installation, keeps a pause accepted meanwhile and verifies the restart', { timeout: 240_000 }, async (t) => {
     if (process.platform === 'win32') return t.skip('the fake npm is a POSIX shell wrapper');
     const { project, env, bin, npmLog, status, control } = await locallyInstalledProject(t, { versions: ['0.499.0', FROM, '0.500.0-2', TARGET, '0.500.1-0', '1.0.0'], installDelayMs: 2500 });
+    // Runtime warnings on stderr must not corrupt JSON status/list responses, including after the update.
+    await writeFile(bin, `${await readFile(bin, 'utf8')}\nprocess.emitWarning('Self-update fixture diagnostic');\n`);
     assert.equal((await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     await waitFor(async () => (await status()).service?.state === 'running', { message: 'the engine to run' });
     assert.equal((await status()).update.installation.scope, 'local');
@@ -179,9 +182,9 @@ test('engine self-update: a low-priority system task updates the local installat
     const inventory = await control('task-inventory');
     assert.ok(inventory.some((item) => item.ref === 'system:engine-update' && item.kind === 'engine'), 'the same task inventory lists the system task');
     // The CLI lists and details the same system task: its definition, executor and no source.
-    const listed = JSON.parse((await run(bin, ['list', '--json'], { cwd: project, env })).output);
+    const listed = JSON.parse((await run(bin, ['list', '--json'], { cwd: project, env })).stdout);
     assert.ok(listed.systemTasks.some((item) => item.ref === 'system:engine-update'), 'ptbk list shows the pending update');
-    const detail = JSON.parse((await run(bin, ['list', 'system:engine-update', '--json'], { cwd: project, env })).output);
+    const detail = JSON.parse((await run(bin, ['list', 'system:engine-update', '--json'], { cwd: project, env })).stdout);
     assert.equal(detail.kind, 'engine');
     assert.equal(detail.definition, 'Engine self-update', 'the run names its durable engine definition');
     assert.equal(detail.retry, undefined, 'a first attempt is not a retry');
@@ -310,7 +313,7 @@ async function peerProject(host) {
     await git(peer, ['commit', '-q', '-m', 'Peer policy', '--', 'ptbk.json']);
     const stop = () => run(host.bin, ['stop', '--force', '--raw'], { cwd: peer, env: host.env });
     assert.equal((await run(host.bin, ['start', '--no-persist', '--raw'], { cwd: peer, env: host.env })).code, 0);
-    const status = async () => JSON.parse((await run(host.bin, ['status', '--json'], { cwd: peer, env: host.env })).output);
+    const status = async () => JSON.parse((await run(host.bin, ['status', '--json'], { cwd: peer, env: host.env })).stdout);
     await waitFor(async () => (await status().catch(() => undefined))?.service?.state === 'running', { message: 'the peer engine to run' });
     return { peer, status, stop, instance: async () => (await readProcessRecord(projectAt(peer)))?.instanceId };
 }
@@ -389,7 +392,7 @@ test('compatibility gate: an update the saved policy allows needs no confirmatio
     assert.deepEqual((await npmLog()).filter((entry) => entry.args[0] === 'install').map((entry) => entry.args.at(-1)), [`ptbk@${TARGET}`]);
     const rerun = await run(bin, ['start', '--no-persist', '--raw'], { cwd: project, env });
     assert.equal(rerun.code, 0, rerun.output);
-    const snapshot = JSON.parse((await run(bin, ['status', '--json'], { cwd: project, env })).output);
+    const snapshot = JSON.parse((await run(bin, ['status', '--json'], { cwd: project, env })).stdout);
     assert.equal(snapshot.engine.version, TARGET);
 });
 
