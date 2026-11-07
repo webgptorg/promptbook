@@ -24,3 +24,11 @@ The [robot](brand/promptbook-robot.svg) is shared with the homepage. Its head
 and body use the golden ratio, and the diagonal feet have half the body edge
 length. See the brand guide for usage, printable PDFs and raster exports.
 [English guide](https://www.ptbk.io/en/branding) · [Czech guide](https://www.ptbk.io/cs/branding)
+
+## macOS installer
+
+Export the [DMG background](brand/macos-dmg-background.svg) at 600 × 380 and
+1200 × 760 with Outfit and Inter installed. Save the exports next to the SVG as
+`macos-dmg-background.png` and `macos-dmg-background@2x.png`. Finder draws the app
+and Applications icons over the artwork at the positions in
+[`package-macos.mjs`](../apps/desktop/package-macos.mjs).

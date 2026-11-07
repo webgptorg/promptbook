@@ -1,5 +1,7 @@
 # Unreleased
 
+- Brand the macOS installer for Apple Silicon and Intel with the Promptbook wordmark, the homepage robot, and a clearer drag-to-Applications layout with a Retina background.
+
 - Retry transient status-client failures while lifecycle tests wait for an externally terminated engine to stop; report the last CLI error if the bounded poll expires.
 
 - Stabilize the manual-pause crash regression by waiting for active work and Git persistence to settle before the simulated crash. Keep the queued-work recovery assertions and include the CLI error if restart fails.
