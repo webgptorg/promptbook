@@ -18,9 +18,11 @@ import { instanceEnvironment } from '../../engine/harnesses.js';
 import { pluginDefaultRow } from '../../engine/routing.js';
 import { formatModelRow } from '../../book/model.js';
 import { redactUrl } from '../../engine/sync.js';
+import type { PreparedApiHarness } from '../../onboarding/credentials.js';
+import { editDotEnv } from '../../tools/environment.js';
 import { applyToolOperationsToConfig, type ToolDraft, type ToolOperation } from '../../tools/operations.js';
 import { inspectBrowserTool } from '../../tools/readiness.js';
-import { describeProfileSource, harnessPluginId, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord } from '../../tools/model.js';
+import { describeProfileSource, harnessPluginId, harnessVariantOf, toolRuntime, type BrowserToolRecord, type HarnessToolRecord } from '../../tools/model.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
 import { clearSetupDraft, readSetupDraft, saveSetupDraft } from '../../project/draft.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
@@ -306,9 +308,10 @@ async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Prom
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string } } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string; readonly apiHarnesses?: ReadonlyMap<string, PreparedApiHarness> } } = {}): Promise<InitResult> {
     const { terminal } = context;
     const { embeddedHarness } = options;
+    const apiHarnesses = options.prepared?.apiHarnesses;
     const interactive = terminal.interactive;
     const style = terminal.style;
     const marks = symbols(terminal.unicode);
@@ -1092,17 +1095,20 @@ export async function initializeProject(context: CommandContext, options: { proj
     };
 
     /**
-     * The preparatory call context of a selected harness: its native instance in the environment the background engine
-     * started by this init receives (the restored service environment is verified separately during setup), with the
-     * plugin's coded default model.
+     * Uses the same explicit account choice for readiness, the real check, and the initial Router model.
      */
+    const setupTool = (plugin: HarnessPlugin): HarnessToolRecord => apiHarnesses?.get(plugin.id)?.tool ??
+        { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+
+    /** The preparatory call context of the selected instance in the engine's effective environment. */
     const preparatoryCall = async (id: string): Promise<PreparatoryCall> => {
         const plugin = harnessPlugin(id)!;
-        const nativeTool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
-        const env = instanceEnvironment(plugin, nativeTool, undefined, context.env);
-        const catalog = plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: await nearestExisting(state.root), env, tool: nativeTool }).catch(() => []) : [];
+        const tool = setupTool(plugin);
+        const env = instanceEnvironment(plugin, tool, apiHarnesses?.get(id)?.credential, context.env);
+        const api = tool.authentication === 'API_KEY' ? plugin.setupApiKey : undefined;
+        const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: await nearestExisting(state.root), env, tool }).catch(() => []) : [];
         const row = pluginDefaultRow(plugin, catalog);
-        return { plugin, inspection: state.inspections.get(id)!, env, model: row.model, thinkingLevel: row.thinking };
+        return { plugin, inspection: state.inspections.get(id)!, env, model: api?.model ?? row.model, thinkingLevel: api?.thinkingLevel ?? row.thinking, baseUrl: tool.baseUrl };
     };
 
     /**
@@ -1198,11 +1204,11 @@ export async function initializeProject(context: CommandContext, options: { proj
         const place = loginLocation(context.env);
         for (const id of [...selected]) {
             const plugin = harnessPlugin(id)!;
-            // The simple init instance: the native account context of the global installation (never an ambient API key).
-            const nativeTool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
-            const context2 = { projectRoot, env: instanceEnvironment(plugin, nativeTool, undefined, context.env), tool: nativeTool };
+            const tool = setupTool(plugin);
+            const credential = apiHarnesses?.get(id)?.credential;
+            const context2 = { projectRoot, env: instanceEnvironment(plugin, tool, credential, context.env), tool };
             // The same instance as the background service will see it after detachment or reboot.
-            const service = { projectRoot, env: instanceEnvironment(plugin, nativeTool, undefined, persistentServiceEnvironment(context.env)), tool: nativeTool };
+            const service = { projectRoot, env: instanceEnvironment(plugin, tool, credential, persistentServiceEnvironment(context.env)), tool };
             let inspection = await plugin.inspect(context2);
             if (!inspection.installed) {
                 let install = flag(context, 'install-harnesses') === true;
@@ -1220,7 +1226,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             }
             // A sign-in only this terminal can see (or an executable the service cannot find) is not readiness.
             let serviceProblem = await serviceProblemOf(plugin, inspection, service);
-            if (interactive) {
+            if (interactive && tool.authentication === 'NATIVE') {
                 const signIn = await attendHarnessSignIn(terminal, {
                     plugin,
                     context: context2,
@@ -1375,6 +1381,13 @@ export async function initializeProject(context: CommandContext, options: { proj
     const createdManifest = installation === 'local' && !(await pathExists(join(root, 'package.json')));
     // Runtime state and local secrets stay ignored independently of every trace choice.
     const ignore = await ensureRuntimeIgnore(root, [...(createdManifest || (await pathExists(join(root, 'node_modules'))) ? ['node_modules/'] : []), '.env']);
+    if (apiHarnesses?.size) {
+        const credentials = selected.flatMap((id) => {
+            const credential = apiHarnesses.get(id)?.credential;
+            return credential ? [{ kind: 'set' as const, name: credential.name, value: credential.value }] : [];
+        });
+        await editDotEnv(root, credentials, { reason: 'Approved provider keys from engine setup', operation: 'init' });
+    }
     if (ignore) createdPaths.push(ignore);
     const savedPolicy = configBefore ? { commit: setting<boolean>(configBefore, 'traces.isCommitted'), ignoreVideos: setting<boolean>(configBefore, 'traces.isVideoIgnored') } : undefined;
     const traceIgnore = await ensureTraceIgnoreRules(root, savedPolicy && configBefore?.interpreted.traces ? savedPolicy : tracePolicy);
@@ -1393,8 +1406,11 @@ export async function initializeProject(context: CommandContext, options: { proj
             ?? (embeddedHarness ? harnessPluginId(embeddedHarness.variant) : undefined);
         const plugin = id ? harnessPlugin(id) : undefined;
         if (!plugin) return undefined;
-        const catalog = plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
-        return formatModelRow(pluginDefaultRow(plugin, catalog));
+        const prepared = apiHarnesses?.get(plugin.id);
+        const api = prepared ? plugin.setupApiKey : undefined;
+        const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
+        const row = pluginDefaultRow(plugin, catalog, prepared ? toolRuntime(prepared.tool) : 'official');
+        return formatModelRow({ ...row, model: api?.model ?? row.model, thinking: api?.thinkingLevel ?? row.thinking });
     };
     // The same core preparation as start: missing roles are created, clean template updates applied; conflicts stay
     // for the engine's ordinary Fixer work (init makes no project model calls).
@@ -1511,12 +1527,15 @@ export async function initializeProject(context: CommandContext, options: { proj
     if (embeddedHarness && !typedTools.some((tool) => tool.name === embeddedHarness.name)) {
         operations.push({ kind: 'add', tool: embeddedHarness });
     }
-    // Each selected integration gets one native instance named after it (existing instances are kept as they are).
+    // Keep existing instances and the authentication explicitly chosen in engine setup.
     for (const id of selected) {
         const variant = harnessVariantOf(id)!;
         const instances = typedTools.filter((tool): tool is HarnessToolRecord => tool.type === 'HARNESS' && tool.variant === variant);
-        if (!instances.length) operations.push({ kind: 'add', tool: { type: 'HARNESS', variant, name: typedTools.some((tool) => tool.name === id) ? `${id}-native` : id, authentication: 'NATIVE' } });
-        else if (!instances.some((tool) => tool.isEnabled)) operations.push({ kind: 'enable', name: instances[0]!.name });
+        if (!instances.length) {
+            const prepared = apiHarnesses?.get(id);
+            const name = typedTools.some((tool) => tool.name === id) ? id + (prepared ? '-api' : '-native') : id;
+            operations.push({ kind: 'add', tool: prepared ? { ...prepared.tool, name, apiKeyEnv: prepared.credential.name } : { type: 'HARNESS', variant, name, authentication: 'NATIVE' } });
+        } else if (!instances.some((tool) => tool.isEnabled)) operations.push({ kind: 'enable', name: instances[0]!.name });
     }
     const configured = operations.length ? applyToolOperationsToConfig({ ...raw, tools: existingTools }, operations) : canonicalizeConfig(raw).raw;
     const effectiveInstallation = installation === 'existing' ? (marker.installation ?? 'local') : installation;

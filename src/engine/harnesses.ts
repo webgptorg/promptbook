@@ -38,6 +38,7 @@ export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolReco
     } else {
         for (const name of plugin.ambientApiKeyVariables ?? []) delete env[name];
         if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
+        if (plugin.apiKeyHomeVariable && credential?.value) env[plugin.apiKeyHomeVariable] = accountHome(plugin, 'api-key', base);
     }
     return env;
 }

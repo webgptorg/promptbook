@@ -6,6 +6,7 @@ import { initializeProject } from '../cli/commands/init.js';
 import { COMMANDS } from '../cli/registry.js';
 import { PtbkError } from '../common/errors.js';
 import { readTextIfExists, writeFileAtomic } from '../common/fs.js';
+import { harnessPlugin } from '../harness/registry.js';
 import { gitOrThrow } from '../project/git.js';
 import { projectAt, type Project } from '../project/workspace.js';
 import { ensureKnownProject } from '../service/known-projects.js';
@@ -13,6 +14,7 @@ import { launchDaemon } from '../service/launcher.js';
 import { unregisterPersistence } from '../service/persistence.js';
 import { acquireProjectLock } from '../service/records.js';
 import { createTerminalProfile } from '../ui/terminal.js';
+import { discardPreparedApiKeys, readPreparedApiHarness, type PreparedApiHarness } from './credentials.js';
 import { onboardingTarget, onboardingTargetExists, type OnboardingDraft } from './draft.js';
 import type { OnboardingUploads } from './uploads.js';
 
@@ -34,6 +36,12 @@ async function initializeStaged(
     // A projects home may itself be inside a Git checkout. Setup must always use its own repository.
     await gitOrThrow(built.root, ['init', '--quiet', '--initial-branch=main'], { env });
     const terminal = createTerminalProfile({ raw: true, nonInteractive: true });
+    const apiHarnesses = new Map<string, PreparedApiHarness>();
+    for (const id of draft.harnesses ?? []) {
+        const plugin = harnessPlugin(id);
+        const prepared = plugin && await readPreparedApiHarness(staging.root, plugin);
+        if (prepared) apiHarnesses.set(id, prepared);
+    }
     const result = await initializeProject({
         path: ['init'],
         spec: COMMANDS.find((command) => command.name === 'init')!,
@@ -46,7 +54,7 @@ async function initializeStaged(
         argv: [],
     }, {
         projectRoot: built.root,
-        prepared: { title: draft.title!, segments: await uploads.segments(draft.intent ?? '', draft.fileIds ?? []) },
+        prepared: { title: draft.title!, segments: await uploads.segments(draft.intent ?? '', draft.fileIds ?? []), apiHarnesses },
     });
     if (result.outcome !== 'ready' || !result.firstTask) {
         throw new PtbkError(result.unresolved[0] ?? 'The project did not pass its setup checks.', { kind: 'setup' });
@@ -122,6 +130,7 @@ export async function finishOnboarding(input: {
     }
     await ensureKnownProject(target, env);
     await launchDaemon(target, { cli: {}, persistent: input.persistent, env });
+    await discardPreparedApiKeys(staging.root);
     await save({ step: 'done', intent: undefined, fileIds: undefined, harnesses: undefined, error: undefined });
     await unregisterPersistence(staging).catch(() => undefined);
     await rm(input.uploads.directory, { force: true, recursive: true }).catch(() => undefined);

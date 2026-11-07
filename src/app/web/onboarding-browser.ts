@@ -32,6 +32,7 @@ async function upload(files: FileList | null): Promise<string[]> {
 
 /** Onboarding remains usable through a service restart or the transition to the real project. */
 const main = document.querySelector('main')!;
+const signInPath = '/_ptbk/harness-terminal';
 const error = element('p');
 error.setAttribute('role', 'alert');
 let resumeDeferred = false;
@@ -104,10 +105,9 @@ function controls(prompt: OnboardingPrompt): HTMLElement[] {
             return [...choices.map(({ row }) => row), button('Continue', async () => answer({ kind: 'choice', choiceIds: choices.filter(({ option }) => option.checked).map(({ option }) => option.value) }))];
         }
         case 'confirm': {
-            const terminalPath = '/_ptbk/harness-terminal';
-            if (prompt.hint?.endsWith(terminalPath)) {
-                const link = element('a', 'Open native sign-in terminal');
-                link.href = terminalPath;
+            if (prompt.hint?.endsWith(signInPath)) {
+                const link = element('a', 'Open sign-in');
+                link.href = signInPath;
                 return [link, button(prompt.confirmLabel, async () => answer({ kind: 'confirm', confirmed: true }))];
             }
             return [button(prompt.confirmLabel, async () => answer({ kind: 'confirm', confirmed: true })), button(prompt.declineLabel, async () => answer({ kind: 'confirm', confirmed: false }))];
@@ -117,7 +117,15 @@ function controls(prompt: OnboardingPrompt): HTMLElement[] {
             link.href = prompt.url;
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
-            return [link, element('p', prompt.userCode ? 'One-time code ' + prompt.userCode : ''), element('p', 'Waiting for sign-in…')];
+            return [link, element('p', prompt.userCode ? 'One-time code ' + prompt.userCode : ''), element('p', 'Waiting for sign-in…'),
+                button('Use native terminal', async () => {
+                    const response = await fetch(signInPath, {
+                        method: 'POST', headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ action: 'fallback', promptId: prompt.id }),
+                    });
+                    if (!response.ok && response.status !== 409) throw new Error('Could not switch to the terminal.');
+                    await refresh();
+                })];
         }
     }
 }

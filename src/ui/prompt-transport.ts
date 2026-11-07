@@ -4,7 +4,7 @@ import { stripAnsi } from './ansi.js';
 
 /** A presentation-only prompt; choice values stay in the initializer process. @private prompt presentation */
 export type PresentationPrompt = {
-    readonly kind: 'one' | 'many' | 'text' | 'toggles' | 'harness-login' | 'complete';
+    readonly kind: 'one' | 'many' | 'text' | 'secret' | 'toggles' | 'harness-login' | 'complete';
     readonly frame: { readonly title: string; readonly step?: string; readonly summary?: readonly string[]; readonly guide?: { readonly name: string; readonly note?: string } };
     readonly question: string;
     readonly choices?: readonly { readonly label: string; readonly description?: string; readonly disabled?: boolean; readonly value: number | string }[];
@@ -15,7 +15,7 @@ export type PresentationPrompt = {
     readonly singleLine?: boolean;
     readonly attachments?: boolean;
     readonly error?: string;
-    readonly login?: { readonly url: string; readonly userCode: string };
+    readonly login?: { readonly url: string; readonly userCode: string; readonly terminalFallback?: boolean };
     readonly completion?: { readonly root?: string; readonly ready: boolean; readonly running: boolean };
 };
 

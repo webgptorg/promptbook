@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { IPty } from '@lydell/node-pty';
 import { PtbkError } from '../common/errors.js';
 import { resolveInvocation } from '../common/process.js';
@@ -16,15 +19,25 @@ type Attachment = {
     readonly expires: number;
     lastContact: number;
     pty?: IPty;
+    directory?: string;
     output: string;
     offset: number;
     done: boolean;
 };
 
 /** Bounds an abandoned terminal and prevents a client from retaining an unbounded transcript. */
-const IDLE_MS = 20_000;
+const IDLE_MS = 3 * 60_000; // The owner may switch apps to complete the provider sign-in.
 const LIFETIME_MS = 8 * 60_000;
 const OUTPUT_LIMIT = 32 * 1024;
+
+/** The bounded wire shape of each terminal operation. */
+const COMMAND_FIELDS = {
+    start: ['cols', 'rows'],
+    read: ['offset'],
+    write: ['data'],
+    resize: ['cols', 'rows'],
+    close: [],
+} as const;
 
 /** Keeps an xterm or CLI viewport within the limits of the native PTY. */
 function dimension(value: unknown, fallback: number): number {
@@ -45,6 +58,10 @@ export class HarnessLoginTerminal {
     /** Exchanges terminal input and output with one authenticated attachment. */
     public async command(owner: string, command: Readonly<Record<string, unknown>>): Promise<TerminalFrame | null> {
         const { id, action } = command;
+        const fields: readonly string[] | undefined = typeof action === 'string' && Object.hasOwn(COMMAND_FIELDS, action) ? COMMAND_FIELDS[action as keyof typeof COMMAND_FIELDS] : undefined;
+        if (!fields || Object.keys(command).some((key) => !['id', 'promptId', 'action'].includes(key) && !fields.includes(key))) {
+            throw new PtbkError('Invalid terminal operation.', { kind: 'usage' });
+        }
         if (typeof id !== 'string' || !/^[a-f0-9-]{36}$/.test(id)) throw new PtbkError('Invalid terminal attachment.', { kind: 'usage' });
         if (action === 'start') {
             if (this.active) throw new PtbkError('A sign-in terminal is already open.', { kind: 'conflict' });
@@ -80,8 +97,11 @@ export class HarnessLoginTerminal {
         this.active = undefined;
         clearInterval(this.timer);
         this.timer = undefined;
-        if (terminal && !terminal.done) terminal.pty?.kill();
-        if (terminal) terminal.output = '';
+        if (!terminal) return;
+        terminal.output = '';
+        try { if (!terminal.done) terminal.pty?.kill(); }
+        catch { /* The CLI can exit between the close request and kill. */ }
+        if (terminal.directory) void rm(terminal.directory, { recursive: true, force: true }).catch(() => undefined);
     }
 
     /** Resolves the executable and opens a genuine OS pseudoterminal. */
@@ -90,15 +110,17 @@ export class HarnessLoginTerminal {
         const terminal: Attachment = { owner, id, expires: now + LIFETIME_MS, lastContact: now, output: '', offset: 0, done: false };
         this.active = terminal;
         try {
-            const env: NodeJS.ProcessEnv = { ...this.context.env, TERM: 'xterm-256color' };
+            const env: NodeJS.ProcessEnv = { ...this.context.env, ...this.method.env, TERM: 'xterm-256color' };
             if (process.platform !== 'win32' && (owner.startsWith('web:') || (!env.BROWSER && !env.DISPLAY && !env.WAYLAND_DISPLAY))) env.BROWSER = 'false';
             const invocation = await resolveInvocation(this.plugin.executable, this.method.args, env);
-            const pty = await import('@lydell/node-pty');
-            if (this.active !== terminal || this.context.signal?.aborted) throw new Error('Terminal cancelled');
             if (!invocation) throw new Error('Executable missing');
+            const pty = await import('@lydell/node-pty');
+            // Some providers open their full CLI for sign-in. Keep the working directory away from the draft and files.
+            terminal.directory = await mkdtemp(join(tmpdir(), 'ptbk-sign-in-'));
+            if (this.active !== terminal || this.context.signal?.aborted) throw new Error('Terminal cancelled');
             // On Windows a cmd shim needs the pre-escaped command line as one string, not another round of quoting.
             const args = invocation.windowsVerbatimArguments ? invocation.args.join(' ') : invocation.args;
-            const child = pty.spawn(invocation.file, args, { name: 'xterm-256color', cwd: this.context.projectRoot, cols, rows, env });
+            const child = pty.spawn(invocation.file, args, { name: 'xterm-256color', cwd: terminal.directory, cols, rows, env });
             terminal.pty = child;
             child.onData((data) => {
                 if (this.active !== terminal) return;
@@ -112,6 +134,7 @@ export class HarnessLoginTerminal {
             }, 1000).unref();
         } catch {
             if (this.active === terminal) this.close();
+            else if (terminal.directory) await rm(terminal.directory, { recursive: true, force: true }).catch(() => undefined);
             throw new PtbkError('The native sign-in terminal could not start. Sign in on the engine host and check again.', { kind: 'setup' });
         }
     }

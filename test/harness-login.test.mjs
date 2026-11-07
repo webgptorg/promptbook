@@ -11,7 +11,7 @@ async function fixture(t, extra = {}) {
     const root = await temporaryDirectory(t);
     const { env } = await fakeHarness(t, root);
     const loginLog = join(root, 'login.log');
-    return { root, loginLog, context: { projectRoot: root, env: { ...env, FAKE_CODEX_AUTH_FILE: join(root, 'auth'), FAKE_CODEX_LOGIN_LOG: loginLog, ...extra } } };
+    return { root, loginLog, context: { projectRoot: root, env: { ...env, CODEX_HOME: join(root, 'codex-home'), BROWSER: '', FAKE_CODEX_AUTH_FILE: join(root, 'auth'), FAKE_CODEX_LOGIN_LOG: loginLog, ...extra } } };
 }
 
 /** Collects relayed native output, which only the attended terminal may see. */
@@ -127,9 +127,15 @@ test('Claude Code uses its native subscription login with a pasted return code, 
     assert.doesNotMatch([...remote.args, ...local.args].join(' '), /--console|device/);
 });
 
-test('harnesses without a declared remote method are explained instead of pretending', async () => {
+test('native terminal methods keep each harness’s documented environment and invocation', async () => {
     const opencode = harnessPlugin('opencode');
     const [method] = await harnessLoginMethods(opencode, { projectRoot: process.cwd(), env: process.env }, 'remote');
     assert.equal(method.remote, false);
-    assert.deepEqual(await harnessLoginMethods(harnessPlugin('gemini'), { projectRoot: process.cwd(), env: process.env }, 'remote'), []);
+    assert.deepEqual(method.args, ['auth', 'login']);
+    const context = { projectRoot: process.cwd(), env: process.env };
+    const [gemini] = await harnessLoginMethods(harnessPlugin('gemini'), context, 'remote');
+    assert.deepEqual(gemini.env, { NO_BROWSER: 'true' });
+    assert.deepEqual(gemini.args, []);
+    const [qwen] = await harnessLoginMethods(harnessPlugin('qwen-code'), context, 'remote');
+    assert.deepEqual(qwen.args, ['--approval-mode', 'plan']);
 });

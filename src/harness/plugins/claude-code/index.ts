@@ -101,6 +101,9 @@ export const plugin: HarnessPlugin = {
     priceList: { providers: [{ catalog: 'anthropic' }] },
     loginArgs: ['auth', 'login'],
     loginHint: 'Run `claude auth login` (or start `claude` once and use /login); on a server, open its link on another device and paste the code it shows.',
+    // Anthropic's terms reserve Claude.ai account sign-in for its own flow. A separate Promptbook sign-in UI is
+    // technically possible, but would intermediate that flow. Forward the unmodified CLI's terminal instead.
+    // https://code.claude.com/docs/en/legal-and-compliance#authentication-and-credential-use
     loginMethods,
     selfUpdateArgs: ['update'],
     inspect,

@@ -15,6 +15,7 @@ import { harnessLoginMethods } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { readOnboarding, saveOnboarding } from '../dist/onboarding/draft.js';
 import { OnboardingSession } from '../dist/onboarding/session.js';
+import { readPreparedApiHarness } from '../dist/onboarding/credentials.js';
 import { OnboardingUploads } from '../dist/onboarding/uploads.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { lookupService } from '../dist/service/control.js';
@@ -153,7 +154,7 @@ test('the Codex adapter presents the native device challenge without exposing ot
     assert.equal(method.deviceChallenge(native.replace(url, 'https://example.test/')), undefined);
 });
 
-test('the engine ships a same-origin onboarding script for hosts without a verified App UI', async () => {
+test('the pending engine ships a same-origin onboarding script', async () => {
     const page = await onboardingPage(new Request('https://engine.example.test/'));
     assert.match(await page.text(), /<script type="module" src="\/_ptbk\/onboarding\.js"><\/script>/);
     const script = await onboardingPage(new Request('https://engine.example.test/_ptbk/onboarding.js'));
@@ -184,7 +185,7 @@ case "$*" in
 esac
 `);
     await chmod(executable, 0o755);
-    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, TEST_CLAUDE_STATE: marker, PTBK_EXPERIMENTAL_REMOTE_HARNESS_TERMINAL: '1' };
+    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, TEST_CLAUDE_STATE: marker };
     const uploads = new OnboardingUploads(join(project.root, 'uploads'));
     const session = new OnboardingSession(project, draft, uploads, env, async () => assert.fail('not confirmed'));
     t.after(() => session.stop());
@@ -194,8 +195,9 @@ esac
     const waiting = session.state();
     const hostname = 'engine.example.test';
     const path = '/_ptbk/harness-terminal';
-    const disabled = await harnessTerminalPage(new Request(`https://${hostname}${path}`), { role: 'owner' }, { remoteTerminalEnabled: false });
-    assert.equal(disabled.status, 404);
+    assert.equal(session.signInOptions().apiKey, undefined);
+    const inactive = await harnessTerminalPage(new Request(`https://${hostname}${path}`), { role: 'owner' }, { signInOptions: () => undefined });
+    assert.equal(inactive.status, 404);
     const cookies = { owner: 'a'.repeat(22), outsider: 'b'.repeat(22), second: 'c'.repeat(22) };
     const actors = {
         [cookies.owner]: { role: 'owner', sessionId: 'first' },
@@ -209,20 +211,22 @@ esac
     const id = randomUUID();
     const send = (command, cookie = cookies.owner, origin = `https://${hostname}`) => gateway.handle(new Request(`https://${hostname}${path}`, {
         method: 'POST', headers: { host: hostname, origin, 'sec-fetch-site': 'same-origin', 'content-type': 'application/json', ...(cookie ? { cookie: `${SESSION_COOKIE_NAME}=${cookie}` } : {}) },
-        body: JSON.stringify({ id, ...command }),
+        body: JSON.stringify({ id, promptId: waiting.prompt.id, ...command }),
     }), { hostname, clientIp: '127.0.0.1' });
     const page = await gateway.handle(new Request(`https://${hostname}${path}`, { headers: { host: hostname, cookie: `${SESSION_COOKIE_NAME}=${cookies.owner}` } }), { hostname });
     const html = await page.text();
     const nonce = /nonce="([^"]+)"/.exec(html)?.[1];
     assert(nonce);
+    assert.doesNotMatch(html, /type="password"/);
     assert(page.headers.get('content-security-policy').includes(`style-src 'self' 'nonce-${nonce}'`));
     assert(page.headers.get('content-security-policy').includes("script-src 'self'"));
     assert.equal((await send({ action: 'start' }, null)).status, 401);
     assert.equal((await send({ action: 'start' }, cookies.outsider)).status, 403);
     assert.equal((await send({ action: 'start' }, cookies.owner, 'https://another.test')).status, 403);
+    assert.equal((await send({ action: 'start', promptId: randomUUID() })).status, 409);
     assert.equal((await send({ action: 'start' })).status, 200);
     assert.equal((await send({ action: 'read', offset: 0 }, cookies.second)).status, 409);
-    await assert.rejects(session.terminal('local', { id: randomUUID(), action: 'start' }), /already open/);
+    await assert.rejects(session.terminal('local', { id: randomUUID(), promptId: waiting.prompt.id, action: 'start' }), /already open/);
     await waitFor(async () => (await (await send({ action: 'read', offset: 0 })).json()).output.includes('Paste code at the native prompt'), { timeoutMs: 5000, intervalMs: 40 });
     assert.equal((await send({ action: 'write', data: code + '\r' })).status, 200);
     const frame = await waitFor(async () => {
@@ -234,4 +238,164 @@ esac
     await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 6000, intervalMs: 40 });
     assert.doesNotMatch(JSON.stringify(await readOnboarding(project)), new RegExp(code));
     assert.equal((await send({ action: 'read', offset: 0 })).status, 409);
+});
+
+/** Produces the native adapter outputs and refuses any credential, endpoint or model other than the test choice. */
+async function fakeApiHarness(t, home, id) {
+    const bin = join(home, 'provider-bin');
+    await mkdir(bin);
+    const variant = harnessPlugin(id);
+    const setup = variant.setupApiKey;
+    const key = 'fixture-key-' + id;
+    const executable = join(bin, variant.executable);
+    const scope = id === 'gemini'
+        ? 'test -n "$GEMINI_CLI_HOME" && test -z "$GOOGLE_GENAI_USE_VERTEXAI"'
+        : id === 'qwen-code'
+          ? `test "$OPENAI_BASE_URL" = '${setup.baseUrl}' && case "$*" in *'--auth-type openai'*) true;; *) exit 1;; esac`
+          : 'test -n "$XDG_DATA_HOME" && case "$*" in *\'--variant high\'*) true;; *) exit 1;; esac';
+    await writeFile(executable, `#!/bin/sh
+case "$*" in
+    --version) echo 3.0.0; exit ;;
+    --help) echo --standalone; exit ;;
+    'run --help') echo --variant; exit ;;
+    'auth list') echo '0 credentials'; exit ;;
+esac
+test "$${variant.apiKeyVariable}" = '${key}' || exit 1
+${scope} || exit 1
+case "$*" in *'--model ${setup.model}'*) ;; *) exit 1 ;; esac
+if test '${id}' = 'opencode'; then
+    echo '{"type":"text","part":{"text":"PONG"}}'
+else
+    echo '{"type":"message","role":"assistant","content":"PONG"}'
+fi
+`);
+    await chmod(executable, 0o755);
+    const { env } = await fakeHarness(t, home);
+    const clean = { ...env, PATH: bin + delimiter + env.PATH, GEMINI_CLI_HOME: join(home, 'gemini-home') };
+    delete clean.GOOGLE_GENAI_USE_VERTEXAI;
+    delete clean.GEMINI_API_KEY;
+    delete clean.GOOGLE_API_KEY;
+    delete clean.DASHSCOPE_API_KEY;
+    delete clean.QWEN_API_KEY;
+    return { env: clean, key, variant };
+}
+
+test('the three API-key forms reject stale and invalid keys and keep accepted keys outside the draft', { skip: process.platform === 'win32' }, async (t) => {
+    for (const id of ['gemini', 'qwen-code', 'opencode']) {
+        await t.test(id, async (st) => {
+            const { home, project, draft } = await pending(st);
+            const { env, key, variant } = await fakeApiHarness(st, home, id);
+            const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), env, async () => assert.fail('not confirmed'));
+            st.after(() => session.stop());
+            await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+            await session.answer(answer(session.state(), { kind: 'choice', choiceIds: [id] }));
+            const options = await waitFor(() => session.signInOptions(), { timeoutMs: 6000, intervalMs: 40 });
+            assert.equal(options.apiKey.label, variant.setupApiKey.label);
+            const hostname = 'engine.example.test';
+            const path = '/_ptbk/harness-terminal';
+            const owner = { role: 'owner', sessionId: 'first' };
+            const page = await harnessTerminalPage(new Request('https://' + hostname + path), owner, session);
+            assert.match(await page.text(), /type="password"/);
+            const send = async (promptId, value, actor = owner) => await harnessTerminalPage(new Request('https://' + hostname + path, {
+                method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'api-key', promptId, value }),
+            }), actor, session);
+            assert.equal((await send(options.promptId, key, { role: 'member' })).status, 403);
+            assert.equal((await send(randomUUID(), key)).status, 409);
+            assert.equal((await send(options.promptId, 'fixture-invalid-key')).status, 422);
+            assert.equal(await readPreparedApiHarness(project.root, variant), undefined);
+            assert.equal((await send(options.promptId, key)).status, 200);
+            await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 6000, intervalMs: 40 });
+            assert(!JSON.stringify(await readOnboarding(project)).includes(key));
+            assert(!JSON.stringify(session.view()).includes(key));
+            assert.equal((await readPreparedApiHarness(project.root, variant)).credential.value, key);
+            assert.equal((await send(options.promptId, key)).status, 409);
+        });
+    }
+});
+
+test('a selected API key survives engine restart and reaches the ignored .env and the matching Router endpoint', { skip: process.platform === 'win32', timeout: 90_000 }, async (t) => {
+    const cleanup = [];
+    const { home, project } = await pending(t, cleanup);
+    const { env, key, variant } = await fakeApiHarness(t, home, 'qwen-code');
+    const root = join(home, 'api-project');
+    const finalProject = projectAt(root);
+    cleanup.push(() => stopService(project, { force: true }), () => stopService(finalProject, { force: true }));
+    const run = () => launchDaemon(project, { env, cli: {}, persistent: false, onboarding: true });
+    let client = (await run()).lookup.client;
+    const view = () => client.request('onboarding-state');
+    const send = async (value) => await client.request('onboarding-answer', answer((await view()).onboarding, value));
+    await send({ kind: 'text', text: '', fileIds: [] });
+    await send({ kind: 'choice', choiceIds: ['qwen-code'] });
+    const options = await waitFor(async () => (await view()).nativeLogin, { timeoutMs: 12_000, intervalMs: 40 });
+    await client.request('onboarding-api-key', { promptId: options.promptId, value: key });
+    await waitFor(async () => (await view()).onboarding.prompt?.title === 'Project name', { timeoutMs: 8000, intervalMs: 40 });
+    await client.request('stop');
+    await waitFor(async () => (await lookupService(project)).state === 'stopped', { timeoutMs: 12_000 });
+    client = (await run()).lookup.client;
+    await send({ kind: 'text', text: 'API project', fileIds: [] });
+    await send({ kind: 'text', text: 'api-project', fileIds: [] });
+    await send({ kind: 'confirm', confirmed: true });
+    await waitFor(async () => {
+        const saved = await readOnboarding(project);
+        if (saved.error) throw new Error(saved.error);
+        return saved.step === 'done';
+    }, { timeoutMs: 25_000 });
+    const config = JSON.parse(await readFile(finalProject.configPath, 'utf8'));
+    assert.deepEqual(config.tools.find(({ variant: tool }) => tool === variant.variant), {
+        type: 'HARNESS', variant: 'QWEN_CODE', name: 'qwen-code', isEnabled: true, authentication: 'API_KEY',
+        apiKey: '${{ env.PTBK_QWEN_CODE_API_KEY }}', baseUrl: variant.setupApiKey.baseUrl,
+    });
+    const router = await readFile(join(root, 'agents', '.core', 'router.book'), 'utf8');
+    assert(router.includes('model=' + variant.setupApiKey.model));
+    assert(router.includes('runtime=' + variant.setupApiKey.baseUrl));
+    assert.equal((await git(root, ['check-ignore', '.env'])).trim(), '.env');
+    assert(!(await git(root, ['ls-files'])).split('\n').includes('.env'));
+    assert((await readFile(join(root, '.env'), 'utf8')).includes('PTBK_QWEN_CODE_API_KEY=' + key));
+    assert.equal(await readPreparedApiHarness(project.root, variant), undefined);
+});
+
+test('Copilot presents its device code first and opens a private PTY fallback on demand', { skip: process.platform === 'win32' }, async (t) => {
+    const { home, project, draft } = await pending(t);
+    const bin = join(home, 'copilot-bin');
+    const config = join(home, 'copilot-home');
+    await mkdir(bin);
+    await mkdir(config);
+    const executable = join(bin, 'copilot');
+    await writeFile(executable, `#!/bin/sh
+case "$*" in
+  --version) echo '1.0.0';;
+  'login --help') echo '--device-code --web-flow';;
+  'login --device-code')
+    if ! test -t 0; then
+        printf 'To authenticate, visit https://github.com/login/device and enter code ABCD-1234\n'
+        sleep 30
+    else
+        printf 'Complete the CLI sign-in\n'
+        IFS= read -r answer
+        test "$answer" = 'yes' && printf '{"last_logged_in_user":"test"}\n' > "$COPILOT_HOME/config.json"
+    fi;;
+  -p*) test -f "$COPILOT_HOME/config.json" && echo PONG;;
+esac
+`);
+    await chmod(executable, 0o755);
+    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, COPILOT_HOME: config, COPILOT_GITHUB_TOKEN: '', GITHUB_TOKEN: '', GH_TOKEN: '' };
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), env, async () => assert.fail('not confirmed'));
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['github-copilot'] }));
+    const prompt = await waitFor(() => session.state().prompt?.kind === 'harness-login' && session.state().prompt, { timeoutMs: 6000, intervalMs: 40 });
+    assert.equal(prompt.userCode, 'ABCD-1234');
+    assert.equal(prompt.url, 'https://github.com/login/device');
+    assert.throws(() => session.useTerminal(randomUUID()), /changed/);
+    session.useTerminal(prompt.id);
+    const { promptId } = await waitFor(() => session.signInOptions(), { timeoutMs: 6000, intervalMs: 40 });
+    const id = randomUUID();
+    const send = (action, params = {}) => session.terminal('local', { id, promptId, action, ...params });
+    await send('start');
+    await waitFor(async () => (await send('read', { offset: 0 })).output.includes('Complete the CLI sign-in'), { timeoutMs: 5000, intervalMs: 40 });
+    await send('write', { data: 'yes\r' });
+    await waitFor(async () => (await send('read', { offset: 0 })).done, { timeoutMs: 5000, intervalMs: 40 });
+    await session.answer(answer(session.state(), { kind: 'confirm', confirmed: true }));
+    await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 8000, intervalMs: 40 });
+    assert.doesNotMatch(JSON.stringify(await readOnboarding(project)), /ABCD-1234/);
 });

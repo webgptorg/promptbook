@@ -37,12 +37,12 @@ async function commandBody(request: Request): Promise<Record<string, unknown> | 
     }
 }
 
-/** A terminal on the passkey-protected engine origin, behind the existing end-to-end relay. @private App web origin */
+/** A sign-in page and terminal on the passkey-protected engine origin, behind the existing end-to-end relay. @private App web origin */
 export async function harnessTerminalPage(request: Request, actor: Actor, session: OnboardingSession): Promise<Response | undefined> {
     const url = new URL(request.url);
     const path = HARNESS_TERMINAL_PATH;
     if (url.pathname !== path && !url.pathname.startsWith(path + '/')) return undefined;
-    if (!session.remoteTerminalEnabled || url.search) return contractProblem('not-found');
+    if (url.search) return contractProblem('not-found');
     if (actor.role !== 'owner') return contractProblem('forbidden');
     const headers = { 'cache-control': 'no-store' };
     if (url.pathname === path && request.method === 'POST') {
@@ -50,21 +50,38 @@ export async function harnessTerminalPage(request: Request, actor: Actor, sessio
         const command = await commandBody(request);
         if (!command) return new Response(null, { status: 400, headers });
         try {
+            if (command.action === 'api-key' && Object.keys(command).length === 3) {
+                await session.useApiKey(command.promptId, command.value);
+                return Response.json(null, { headers });
+            }
+            if (command.action === 'fallback' && Object.keys(command).length === 2) {
+                session.useTerminal(command.promptId);
+                return Response.json(null, { headers });
+            }
             return Response.json(await session.terminal('web:' + actor.sessionId, command), { headers });
         } catch (error) {
-            const status = error instanceof PtbkError && error.details.kind === 'conflict' ? 409 : 400;
-            return new Response(null, { status, headers });
+            const kind = error instanceof PtbkError ? error.details.kind : undefined;
+            return new Response(null, { status: kind === 'conflict' ? 409 : kind === 'setup' ? 422 : 400, headers });
         }
     }
     if (request.method !== 'GET' && request.method !== 'HEAD') return contractProblem('not-found');
+    if (url.pathname === path + '/options') {
+        const options = session.signInOptions();
+        return options ? (request.method === 'HEAD' ? new Response(null, { headers }) : Response.json(options, { headers })) : contractProblem('not-found');
+    }
     if (url.pathname === path) {
+        const options = session.signInOptions();
+        if (!options) return contractProblem('not-found');
         const nonce = randomBytes(18).toString('base64');
         const html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
             `<title>Native sign-in · Promptbook</title><link rel="stylesheet" href="${path}/xterm.css"><script defer src="${path}/xterm.js"></script>` +
             `<script type="module" data-terminal nonce="${nonce}" src="${path}/harness-terminal-browser.js"></script></head>` +
-            '<body><main><h1>Native sign-in</h1><p>Open the provider’s link from the terminal. Paste any return code at its native prompt.</p>' +
-            '<button type="button">Open sign-in terminal</button> <a href="/">Return to setup</a>' +
-            '<p role="status"></p><div id="terminal"></div></main></body></html>';
+            '<body><main><h1>Harness sign-in</h1>' +
+            (options.apiKey ? '<form id="key" hidden><p><a id="provider" target="_blank" rel="noopener noreferrer">Get an API key</a></p>' +
+                '<label><span id="key-label">API key</span> <input type="password" autocomplete="off" maxlength="512" required></label> ' +
+                '<button type="submit">Check API key</button><p>Promptbook verifies the key with one request on your provider account.</p></form>' : '') +
+            '<p id="instructions"></p><button id="open" type="button" disabled>Open sign-in terminal</button> ' +
+            '<a href="/">Return to setup</a><p role="status"></p><div id="terminal"></div></main></body></html>';
         return withTerminalStyleNonce(new Response(request.method === 'HEAD' ? null : html, { headers: { ...headers, 'content-type': 'text/html; charset=utf-8' } }), nonce);
     }
     const name = url.pathname.slice(path.length + 1);

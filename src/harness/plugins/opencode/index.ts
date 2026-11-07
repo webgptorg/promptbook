@@ -12,6 +12,7 @@ const PROVIDER_VARIABLES = ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_K
 async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     const { inspection, executablePath } = await baseInspection(plugin, context);
     if (!executablePath) return inspection;
+    if (context.tool?.authentication === 'API_KEY' && context.env.OPENCODE_API_KEY) return withAuthentication(inspection, true, 'api', plugin.loginHint);
     const listing = await probe(context, executablePath, ['auth', 'list']);
     const plain = listing.output.replace(/\x1b\[[0-9;]*m/g, '');
     const count = Number(/(\d+)\s+credentials?/i.exec(plain)?.[1] ?? 'NaN');
@@ -21,11 +22,15 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     return withAuthentication(inspection, 'unknown', 'unknown', plugin.loginHint);
 }
 
-/**
- * Model catalog from `opencode models`.
- */
+/** OpenCode's managed service may already have a different credential environment. */
+async function standaloneArgs(context: HarnessContext, explicitKey: boolean): Promise<string[]> {
+    return explicitKey && context.env.OPENCODE_API_KEY && (await helpText(context, 'opencode', ['--help'])).includes('--standalone') ? ['--standalone'] : [];
+}
+
+/** Model catalog from the same OpenCode account context as inference. */
 async function listModels(context: HarnessContext): Promise<string[]> {
-    const result = await probe(context, 'opencode', ['models']);
+    const standalone = await standaloneArgs(context, context.tool?.authentication === 'API_KEY');
+    const result = await probe(context, 'opencode', [...standalone, 'models']);
     if (!result.ok) return [];
     return result.output
         .split('\n')
@@ -37,8 +42,10 @@ async function listModels(context: HarnessContext): Promise<string[]> {
  * Builds `opencode run --format json` with automatic permission approval.
  */
 async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvocation> {
-    const help = await helpText({ projectRoot: request.projectRoot, env: request.env }, 'opencode', ['run', '--help']);
-    const args = ['run', '--format', 'json', ...(request.resumeSessionId ? ['--session', request.resumeSessionId] : [])];
+    const context = { projectRoot: request.projectRoot, env: request.env, signal: request.signal };
+    const help = await helpText(context, 'opencode', ['run', '--help']);
+    const standalone = await standaloneArgs(context, request.authentication === 'api');
+    const args = [...standalone, 'run', '--format', 'json', ...(request.resumeSessionId ? ['--session', request.resumeSessionId] : [])];
     if (help.includes('--auto') && !request.readOnly) args.push('--auto');
     if (request.model) args.push('--model', request.model);
     if (request.thinkingLevel && help.includes('--variant')) args.push('--variant', request.thinkingLevel);
@@ -93,6 +100,9 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
 export const plugin: HarnessPlugin = {
     id: 'opencode',
     variant: 'OPENCODE',
+    apiKeyVariable: 'OPENCODE_API_KEY',
+    apiKeyHomeVariable: 'XDG_DATA_HOME',
+    setupApiKey: { label: 'OpenCode Console API key', url: 'https://opencode.ai/auth', model: 'opencode/claude-sonnet-4-5', thinkingLevel: 'high' },
     displayName: 'OpenCode',
     featured: false,
     executable: 'opencode',
