@@ -1,6 +1,7 @@
 # Unreleased
 
 - Stabilize the manual-pause crash regression by waiting for active work and Git persistence to settle before the simulated crash. Keep the queued-work recovery assertions and include the CLI error if restart fails.
+- Report browser action failures directly in the Wallet sign-up regression, instead of continuing on a blank page and reporting a misleading missing-form error.
 
 - Restore `npm run prerelease` as an entry point for the checked, tagged release pipeline, and document the GitHub Actions organization policy required for publishing all release artifacts.
 - Check the real headless browser's configured window and actual screenshot viewport separately, so native window borders do not incorrectly block prereleases on Windows.

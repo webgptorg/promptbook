@@ -574,7 +574,11 @@ test('Wallet generated logins in the real browser: the agent signs up, changes t
     await wallet.beginSetup();
     await wallet.confirmSetup();
     const tools = Object.fromEntries(browserTools(fleet.scope('signup task'), undefined, 'Tester', () => undefined, () => [], { login: (target, request) => wallet.login(target, request), accounts: (site) => wallet.accounts(site), createLogin: (target, request) => wallet.createLogin(target, request), correctLogin: (input) => wallet.correctLogin(input), onWait: () => undefined }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => await tools[name].handler(input);
+    const call = async (name, input = {}) => {
+        const result = await tools[name].handler(input);
+        if (name.startsWith('browser_')) assert.ok(!result.isError, `${name}: ${result.text}`);
+        return result;
+    };
     const readable = async () => (await call('browser_evaluate', { script: "[...document.querySelectorAll('input[type=password]')].map((input) => input.value).join('')" })).text;
 
     await call('browser_open', { url: `${origin}/signup` });
