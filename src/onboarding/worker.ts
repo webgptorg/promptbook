@@ -4,6 +4,7 @@ import { EngineApi } from '../app/api/engine-api.js';
 import { CONFORMANCE_BUILD } from '../app/build.js';
 import { AppConnection, type AppPairingOutcome } from '../app/connection.js';
 import { onboardingPage } from '../app/web/onboarding-page.js';
+import { harnessTerminalPage } from '../app/web/harness-terminal.js';
 import { engineHomePage } from '../app/web/documents.js';
 import { UiLoader } from '../app/web/ui-loader.js';
 import { PtbkError } from '../common/errors.js';
@@ -80,7 +81,7 @@ export async function runOnboardingWorker(staging: Project, launch: LaunchMetada
             directory, env, onChange: () => undefined, figures: () => ({ agents: 0, members: 0, update: 'none' }), log,
             web: {
                 api: (request, actor, access) => api.handle(request, actor, access),
-                documents: async (request, actor) => (await ui.serve(request)) ?? (await onboardingPage(request)) ?? engineHomePage(request, actor, { name: 'Pending initialization', engineId }),
+                documents: async (request, actor) => (await harnessTerminalPage(request, actor, session)) ?? (await onboardingPage(request)) ?? (await ui.serve(request)) ?? engineHomePage(request, actor, { name: 'Pending initialization', engineId }),
                 ...(CONFORMANCE_BUILD ? { certificateSource: 'dev-ca' as const } : {}),
             },
         });
@@ -117,6 +118,9 @@ export async function runOnboardingWorker(staging: Project, launch: LaunchMetada
                 case 'onboarding-state': return session.view();
                 case 'onboarding-answer': return await session.answer(params);
                 case 'onboarding-defer': return await session.defer();
+                case 'onboarding-terminal': return await session.terminal('local', params);
+                case 'onboarding-use-terminal': session.useTerminal(params.promptId); return null;
+                case 'onboarding-api-key': await session.useApiKey(params.promptId, params.value); return null;
                 case 'onboarding-upload': {
                     if (typeof params.path !== 'string') throw new PtbkError('Select a file on the engine host.', { kind: 'usage' });
                     return await session.uploadLocal(params.path) ?? null;

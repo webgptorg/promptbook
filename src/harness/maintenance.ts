@@ -206,7 +206,8 @@ export async function loginHarness(
     options: { readonly location: LoginLocation; readonly service?: HarnessContext; readonly write?: (text: string) => void },
 ): Promise<LoginResult> {
     if (!(await which(plugin.executable, context.env))) return { id: plugin.id, outcome: 'missing', diagnostic: `\`${plugin.executable}\` was not found on PATH; install ${plugin.displayName} first.` };
-    const env = options.location === 'remote' && !context.env.BROWSER && process.platform !== 'win32' ? { ...context.env, BROWSER: NO_LOCAL_BROWSER } : context.env;
+    const env: NodeJS.ProcessEnv = { ...context.env, ...method.env };
+    if (options.location === 'remote' && !env.BROWSER && process.platform !== 'win32') env.BROWSER = NO_LOCAL_BROWSER;
     const ignore = (): void => undefined;
     process.on('SIGINT', ignore);
     let result: ProcessResult;

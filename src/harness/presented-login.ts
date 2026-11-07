@@ -28,6 +28,10 @@ export async function presentNativeLogin(
     challenge: (data: DeviceLoginChallenge) => void,
 ): Promise<LoginFailure | { readonly outcome: 'failed'; readonly diagnostic: string } | undefined> {
     if (!method.deviceChallenge) return { outcome: 'unsupported', diagnostic: 'This login must be completed in the provider’s native terminal.' };
+    const controller = new AbortController();
+    const signal = context.signal ? AbortSignal.any([controller.signal, context.signal]) : controller.signal;
+    const timeout = setTimeout(() => controller.abort(), 25_000).unref();
+    const expiresAt = new Date(Date.now() + LOGIN_TIMEOUT_MS).toISOString();
     let output = '';
     let shown = false;
     const inspectLine = (line: string): void => {
@@ -36,17 +40,19 @@ export async function presentNativeLogin(
         const data = method.deviceChallenge?.(output);
         if (!data) return;
         shown = true;
-        challenge({ ...data, expiresAt: new Date(Date.now() + LOGIN_TIMEOUT_MS).toISOString() });
+        clearTimeout(timeout);
+        challenge({ ...data, expiresAt });
     };
     const result = await runProcess(plugin.executable, method.args, {
         cwd: context.projectRoot,
-        env: context.env,
+        env: { ...context.env, ...method.env },
         timeoutMs: LOGIN_TIMEOUT_MS,
-        signal: context.signal,
+        signal,
         onStdoutLine: inspectLine,
         onStderrLine: inspectLine,
         maxOutputBytes: 16_384,
-    });
+    }).finally(() => clearTimeout(timeout));
+    if (controller.signal.aborted) return { outcome: 'unsupported', diagnostic: 'The CLI did not provide a device code. Continue in its sign-in terminal.' };
     if (result.timedOut) return { outcome: 'expired', diagnostic: 'The device sign-in timed out. Start it again for a fresh code.' };
     if (result.exitCode === 0 && !result.cancelled) {
         const inspection = await plugin.inspect(context);

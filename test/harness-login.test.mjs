@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { delimiter, join } from 'node:path';
 import { test } from 'node:test';
+import { instanceEnvironment } from '../dist/engine/harnesses.js';
 import { harnessLoginMethods, loginHarness, loginLocation, serviceReadinessProblem } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { fakeHarness, temporaryDirectory } from './helpers.mjs';
@@ -11,7 +12,7 @@ async function fixture(t, extra = {}) {
     const root = await temporaryDirectory(t);
     const { env } = await fakeHarness(t, root);
     const loginLog = join(root, 'login.log');
-    return { root, loginLog, context: { projectRoot: root, env: { ...env, FAKE_CODEX_AUTH_FILE: join(root, 'auth'), FAKE_CODEX_LOGIN_LOG: loginLog, ...extra } } };
+    return { root, loginLog, context: { projectRoot: root, env: { ...env, CODEX_HOME: join(root, 'codex-home'), BROWSER: '', FAKE_CODEX_AUTH_FILE: join(root, 'auth'), FAKE_CODEX_LOGIN_LOG: loginLog, ...extra } } };
 }
 
 /** Collects relayed native output, which only the attended terminal may see. */
@@ -127,9 +128,29 @@ test('Claude Code uses its native subscription login with a pasted return code, 
     assert.doesNotMatch([...remote.args, ...local.args].join(' '), /--console|device/);
 });
 
-test('harnesses without a declared remote method are explained instead of pretending', async () => {
+test('native terminal methods keep each harness’s documented environment and invocation', async () => {
     const opencode = harnessPlugin('opencode');
     const [method] = await harnessLoginMethods(opencode, { projectRoot: process.cwd(), env: process.env }, 'remote');
     assert.equal(method.remote, false);
-    assert.deepEqual(await harnessLoginMethods(harnessPlugin('gemini'), { projectRoot: process.cwd(), env: process.env }, 'remote'), []);
+    assert.deepEqual(method.args, ['auth', 'login']);
+    const context = { projectRoot: process.cwd(), env: process.env };
+    const [gemini] = await harnessLoginMethods(harnessPlugin('gemini'), context, 'remote');
+    assert.deepEqual(gemini.env, { NO_BROWSER: 'true' });
+    assert.deepEqual(gemini.args, []);
+    const [qwen] = await harnessLoginMethods(harnessPlugin('qwen-code'), context, 'remote');
+    assert.deepEqual(qwen.args, ['--approval-mode', 'plan']);
+});
+
+test('Gemini isolates the wizard-created API connection while existing explicit instances keep their profile', () => {
+    const plugin = harnessPlugin('gemini');
+    const tool = { type: 'HARNESS', variant: 'GEMINI', name: 'gemini', isEnabled: true, authentication: 'API_KEY' };
+    const base = { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true' };
+    const credential = { name: 'LEGACY_GEMINI_KEY', source: '.env', value: 'fixture-key' };
+    const legacy = instanceEnvironment(plugin, tool, credential, base);
+    assert.equal(legacy.GEMINI_CLI_HOME, base.GEMINI_CLI_HOME);
+    assert.equal(legacy.GOOGLE_GENAI_USE_VERTEXAI, 'true');
+    const prepared = instanceEnvironment(plugin, tool, { ...credential, name: plugin.setupApiKey.reference }, base);
+    assert.equal(prepared.GEMINI_CLI_HOME, join('/engine', 'harness-accounts', 'gemini', 'api-key'));
+    assert.equal(prepared.GOOGLE_GENAI_USE_VERTEXAI, undefined);
+    assert.equal(prepared.GEMINI_API_KEY, credential.value);
 });

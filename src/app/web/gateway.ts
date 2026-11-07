@@ -59,6 +59,15 @@ export const ENGINE_SECURITY_HEADERS: Readonly<Record<string, string>> = Object.
     'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
 });
 
+/** The engine-owned login terminal needs xterm's generated style elements. Scripts keep the shared policy. */
+const terminalStyleNonces = new WeakMap<Response, string>();
+
+/** Associates the authenticated terminal document with its one-use style nonce. @private App gateway */
+export function withTerminalStyleNonce(response: Response, nonce: string): Response {
+    terminalStyleNonces.set(response, nonce);
+    return response;
+}
+
 /**
  * The gateway pages and assets, read once from the vendored `@ptbk/gateway-pages`.
  */
@@ -467,6 +476,8 @@ export class Gateway {
 export function withSecurityHeaders(response: Response): Response {
     const headers = new Headers(response.headers);
     for (const [name, value] of Object.entries(ENGINE_SECURITY_HEADERS)) headers.set(name, value);
+    const nonce = terminalStyleNonces.get(response);
+    if (nonce) headers.set('content-security-policy', String(api.ENGINE_UI_CSP).replace("style-src 'self'", `style-src 'self' 'nonce-${nonce}'`));
     if (!headers.has('cache-control')) headers.set('cache-control', 'no-store');
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

@@ -2,15 +2,18 @@ import { randomUUID } from 'node:crypto';
 import { errorMessage, PtbkError } from '../common/errors.js';
 import { kebabIdentifier } from '../common/naming.js';
 import { instanceEnvironment } from '../engine/harnesses.js';
+import { pluginDefaultRow } from '../engine/routing.js';
 import { harnessLoginMethods, installHarness } from '../harness/maintenance.js';
-import { functionalCheck, proposeProjectName } from '../harness/preparation.js';
+import { functionalCheck, proposeProjectName, type PreparatoryCall } from '../harness/preparation.js';
 import { presentNativeLogin } from '../harness/presented-login.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../harness/registry.js';
-import type { HarnessContext, HarnessPlugin } from '../harness/types.js';
+import type { HarnessContext, HarnessInspection, HarnessLoginMethod, HarnessPlugin } from '../harness/types.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessToolRecord } from '../tools/model.js';
 import { completedOnboarding, onboardingReply, type OnboardingPrompt, type OnboardingState } from './contract.js';
+import { discardPreparedApiKey, prepareApiHarness, readPreparedApiHarness, savePreparedApiKey, type PreparedApiHarness } from './credentials.js';
 import { onboardingTarget, onboardingTargetExists, saveOnboarding, validOnboardingFolder, type OnboardingDraft } from './draft.js';
+import { HARNESS_TERMINAL_PATH, HarnessLoginTerminal, type TerminalFrame } from './terminal.js';
 import { MAX_ONBOARDING_FILES, type OnboardingFile, type OnboardingUploads } from './uploads.js';
 
 /** The lifetime of one preparation or publication job. */
@@ -23,6 +26,25 @@ export type OnboardingView = {
     readonly onboarding: OnboardingState;
     readonly folder?: string;
     readonly error?: string;
+    readonly nativeLogin?: HarnessSignInOptions;
+};
+
+/** Public presentation of a sign-in step, without any input or terminal transcript. @private onboarding */
+export type HarnessSignInOptions = {
+    readonly promptId: string;
+    readonly harness: string;
+    readonly instructions: string;
+    readonly apiKey?: { readonly label: string; readonly url: string };
+};
+
+/** Live sign-in state. The draft holds only the surrounding setup step. */
+type NativeLogin = {
+    readonly options: HarnessSignInOptions;
+    readonly plugin: HarnessPlugin;
+    readonly context: HarnessContext;
+    readonly terminal: HarnessLoginTerminal;
+    readonly finish: (call?: PreparatoryCall) => void;
+    checking: boolean;
 };
 
 /** Plain text safe to offer to any of the wizard clients. */
@@ -30,10 +52,20 @@ function label(text: string): string {
     return text.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 2000);
 }
 
-/** A native harness running with the same user and environment as the service. */
-function nativeContext(plugin: HarnessPlugin, root: string, env: NodeJS.ProcessEnv, signal: AbortSignal): HarnessContext {
-    const tool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
-    return { projectRoot: root, env: instanceEnvironment(plugin, tool, undefined, env), tool, signal };
+/** The selected account running with the same user and environment as the service. */
+function harnessContext(plugin: HarnessPlugin, root: string, env: NodeJS.ProcessEnv, signal: AbortSignal, api?: PreparedApiHarness): HarnessContext {
+    const tool: HarnessToolRecord = api?.tool ?? { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+    return { projectRoot: root, env: instanceEnvironment(plugin, tool, api?.credential, env), tool, signal };
+}
+
+/** Tests the selected provider through the real CLI without retaining its output or credentials. */
+async function verifyHarness(plugin: HarnessPlugin, context: HarnessContext, inspection: HarnessInspection, timeoutMs?: number): Promise<PreparatoryCall | undefined> {
+    if (!inspection.usable) return undefined;
+    const api = context.tool?.authentication === 'API_KEY' ? plugin.setupApiKey : undefined;
+    const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels(context).catch(() => []) : [];
+    const row = pluginDefaultRow(plugin, catalog);
+    const call = { plugin, inspection, env: context.env, signal: context.signal, baseUrl: context.tool?.baseUrl, model: api?.model ?? row.model, thinkingLevel: api?.thinkingLevel ?? row.thinking };
+    return (await functionalCheck({ ...call, timeoutMs })).ok ? call : undefined;
 }
 
 /**
@@ -47,6 +79,8 @@ export class OnboardingSession {
     private tail: Promise<unknown> = Promise.resolve();
     private job?: Job;
     private login?: OnboardingPrompt;
+    private nativeLogin?: NativeLogin;
+    private deviceLogin?: AbortController;
     private stopped = false;
     private defaults: readonly string[] = ['openai-codex'];
 
@@ -70,7 +104,52 @@ export class OnboardingSession {
     /** The non-secret local summary of this service. */
     public view(): OnboardingView {
         const { engineId, step, folder, error } = this.draft;
-        return { engineId, step, folder, error, onboarding: this.state() };
+        return { engineId, step, folder, error, onboarding: this.state(), nativeLogin: this.signInOptions() };
+    }
+
+    /** Reads only the current presentation, so an old terminal tab cannot act on a different harness. */
+    public signInOptions(): HarnessSignInOptions | undefined {
+        return this.nativeLogin?.options;
+    }
+
+    /** Switches a running device-code sign-in to the same adapter's native terminal. */
+    public useTerminal(promptId: unknown): void {
+        if (!this.deviceLogin || this.login?.id !== promptId) throw new PtbkError('The sign-in step has changed.', { kind: 'conflict' });
+        this.deviceLogin.abort();
+    }
+
+    /** Forwards only the current wizard's native login terminal. */
+    public async terminal(owner: string, command: Readonly<Record<string, unknown>>): Promise<TerminalFrame | null> {
+        const login = this.nativeLogin;
+        if (!login || login.options.promptId !== command.promptId || login.context.signal?.aborted) throw new PtbkError('The sign-in step has changed.', { kind: 'conflict' });
+        if (command.action === 'start' && login.checking) throw new PtbkError('A sign-in check is already running.', { kind: 'conflict' });
+        return await login.terminal.command(owner, command);
+    }
+
+    /** Validates and retains an explicitly entered provider key only after it answers a real request. */
+    public async useApiKey(promptId: unknown, value: unknown): Promise<void> {
+        const login = this.nativeLogin;
+        if (!login || login.options.promptId !== promptId || login.context.signal?.aborted || login.checking) {
+            throw new PtbkError('The sign-in step has changed or is being checked.', { kind: 'conflict' });
+        }
+        if (!login.options.apiKey || typeof value !== 'string' || !/^[!-~]{1,512}$/.test(value)) {
+            throw new PtbkError('Enter a valid provider API key.', { kind: 'usage' });
+        }
+        login.checking = true;
+        login.terminal.close();
+        try {
+            const { plugin } = login;
+            const context = harnessContext(plugin, this.staging.root, this.env, login.context.signal!, prepareApiHarness(plugin, value));
+            const call = await verifyHarness(plugin, context, await plugin.inspect(context), 30_000);
+            await this.exclusive(async () => {
+                if (this.nativeLogin !== login || login.context.signal?.aborted) throw new PtbkError('The sign-in step has changed.', { kind: 'conflict' });
+                if (!call) throw new PtbkError('The provider did not accept the key or could not answer the setup check.', { kind: 'setup' });
+                await savePreparedApiKey(this.staging.root, plugin, value);
+                login.finish(call);
+            });
+        } finally {
+            login.checking = false;
+        }
     }
 
     /** IDs attached by an accepted answer. */
@@ -102,7 +181,7 @@ export class OnboardingSession {
     public async discoverDefaults(): Promise<void> {
         const signal = AbortSignal.timeout(15_000);
         const ready = await Promise.all(HARNESS_PLUGINS.map(async (plugin) => {
-            const result = await plugin.inspect(nativeContext(plugin, this.staging.root, this.env, signal)).catch(() => undefined);
+            const result = await plugin.inspect(harnessContext(plugin, this.staging.root, this.env, signal)).catch(() => undefined);
             return result?.installed && result.usable && result.authenticated === true ? [plugin.id] : [];
         }));
         if (ready.flat().length) this.defaults = ready.flat();
@@ -121,6 +200,7 @@ export class OnboardingSession {
     /** Defers presentation without discarding the draft or starting an agenda. */
     public async defer(): Promise<OnboardingState> {
         return await this.exclusive(async () => {
+            this.nativeLogin?.terminal.close();
             if (this.draft.step !== 'done' && !this.draft.deferred) await this.save({ deferred: true });
             return this.state();
         });
@@ -177,7 +257,24 @@ export class OnboardingSession {
                     break;
                 }
                 case 'confirm':
-                    if (this.draft.step === 'publish' || this.draft.step === 'published') {
+                    if (this.nativeLogin) {
+                        const login = this.nativeLogin;
+                        if (!reply.answer.confirmed) {
+                            login.terminal.close();
+                            await this.save({ deferred: true });
+                        } else if (!login.checking) {
+                            login.checking = true;
+                            try {
+                                const call = await verifyHarness(login.plugin, login.context, await login.plugin.inspect(login.context), 30_000);
+                                if (call) {
+                                    await discardPreparedApiKey(this.staging.root, login.plugin);
+                                    login.finish(call);
+                                } else this.login = { ...prompt, error: 'The engine could not verify ' + login.plugin.displayName + ' sign-in.' };
+                            } finally {
+                                login.checking = false;
+                            }
+                        }
+                    } else if (this.draft.step === 'publish' || this.draft.step === 'published') {
                         if (reply.answer.confirmed) await this.next(this.draft.step);
                         else await this.save({ deferred: true, promptId: randomUUID() });
                     } else {
@@ -204,6 +301,53 @@ export class OnboardingSession {
         if (this.draft.step === 'prepare') this.job?.abort.abort();
         await this.job?.done;
         await this.tail;
+    }
+
+    /** Gives the owner the native terminal and any supported explicit key, then checks the chosen account. */
+    private async waitForNativeLogin(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal, diagnostic?: string): Promise<PreparatoryCall | undefined> {
+        signal.throwIfAborted();
+        const promptId = randomUUID();
+        const terminal = new HarnessLoginTerminal(plugin, context, method);
+        let finish!: NativeLogin['finish'];
+        const completed = new Promise<PreparatoryCall | undefined>((resolve) => { finish = resolve; });
+        const { label: keyLabel, url } = plugin.setupApiKey ?? {};
+        const options = { promptId, harness: plugin.displayName, instructions: method.instructions,
+            ...(keyLabel && url ? { apiKey: { label: keyLabel, url } } : {}) };
+        this.nativeLogin = { terminal, finish, options, context, plugin, checking: false };
+        this.login = { id: promptId, title: plugin.displayName + ' sign-in', kind: 'confirm', canGoBack: true, error: diagnostic ?? null,
+            question: options.apiKey ? 'Connect a provider API key or sign in in the native terminal.' : 'Sign in in the native terminal.',
+            confirmLabel: 'Check sign-in', declineLabel: 'Continue later',
+            hint: 'Open the sign-in page on this engine at ' + HARNESS_TERMINAL_PATH };
+        const cancel = (): void => finish();
+        signal.addEventListener('abort', cancel, { once: true });
+        try {
+            const call = await completed;
+            signal.throwIfAborted();
+            return call;
+        } finally {
+            signal.removeEventListener('abort', cancel);
+            terminal.close();
+            this.nativeLogin = undefined;
+            this.login = undefined;
+        }
+    }
+
+    /** Prefers a provider device challenge, with a separate cancellation scope for switching to the terminal. */
+    private async deviceSignIn(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal): Promise<string | undefined> {
+        const abort = new AbortController();
+        this.deviceLogin = abort;
+        try {
+            const failure = await presentNativeLogin(plugin, { ...context, signal: AbortSignal.any([signal, abort.signal]) }, method, (challenge) => {
+                if (signal.aborted || abort.signal.aborted) return;
+                this.login = { id: randomUUID(), title: plugin.displayName + ' sign-in', kind: 'harness-login', canGoBack: true,
+                    harness: plugin.displayName, method: 'device-code', status: 'waiting', diagnostic: null, hint: null, error: null,
+                    question: 'Open the provider’s sign-in page and enter the one-time code there.', ...challenge };
+            });
+            return abort.signal.aborted ? undefined : failure?.diagnostic;
+        } finally {
+            this.deviceLogin = undefined;
+            this.login = undefined;
+        }
     }
 
     /** Keeps answers, defaults and busy phases in the same order for every client. */
@@ -289,35 +433,33 @@ export class OnboardingSession {
         for (const id of this.draft.harnesses ?? []) {
             signal.throwIfAborted();
             const plugin = harnessPlugin(id)!;
-            const context = nativeContext(plugin, this.staging.root, this.env, signal);
+            const native = harnessContext(plugin, this.staging.root, this.env, signal);
+            const api = await readPreparedApiHarness(this.staging.root, plugin);
+            const context = api ? harnessContext(plugin, this.staging.root, this.env, signal, api) : native;
             let inspection = await plugin.inspect(context);
             if (!inspection.installed && plugin.npmPackage) {
-                await installHarness(plugin, context);
+                await installHarness(plugin, native);
                 inspection = await plugin.inspect(context);
             }
-            if (inspection.installed && inspection.authenticated === false) {
-                const method = (await harnessLoginMethods(plugin, context, 'remote')).find((candidate) => candidate.deviceChallenge);
-                if (method) {
-                    const failure = await presentNativeLogin(plugin, context, method, (challenge) => {
-                        if (signal.aborted) return;
-                        this.login = { id: randomUUID(), title: 'Harness sign-in', kind: 'harness-login', canGoBack: true,
-                            harness: plugin.displayName, method: 'device-code', status: 'waiting', diagnostic: null, hint: null, error: null,
-                            question: 'Open the provider’s sign-in page and enter the one-time code there.', ...challenge };
-                    });
-                    this.login = undefined;
-                    if (failure) problems.push(plugin.displayName + ': ' + failure.diagnostic);
-                    inspection = await plugin.inspect(context);
-                } else {
-                    problems.push(plugin.displayName + ': ' + plugin.loginHint + ' Sign in on the engine host as its service user, then select the harness again.');
+            let call = await verifyHarness(plugin, context, inspection);
+            if (!call && inspection.installed && (inspection.authenticated !== true || api)) {
+                const methods = await harnessLoginMethods(plugin, native, 'remote');
+                const device = methods.find((method) => method.deviceChallenge);
+                let diagnostic: string | undefined;
+                if (device && !api) {
+                    diagnostic = await this.deviceSignIn(plugin, native, device, signal);
+                    signal.throwIfAborted();
+                    call = await verifyHarness(plugin, native, await plugin.inspect(native));
+                }
+                if (!call) {
+                    const terminal = methods.find((method) => method.remote && !method.deviceChallenge) ?? methods[0] ?? {
+                        id: 'native', label: 'Native sign-in', args: [], remote: false, terminal: 'inherit' as const,
+                        instructions: plugin.loginHint,
+                    };
+                    call = await this.waitForNativeLogin(plugin, native, terminal, signal, diagnostic);
                 }
             }
-            if (!inspection.usable) {
-                problems.push(plugin.displayName + ' is not ready on the engine host.');
-                continue;
-            }
-            const call = { plugin, inspection, env: context.env, signal };
-            const check = await functionalCheck(call);
-            if (!check.ok) {
+            if (!call) {
                 problems.push(plugin.displayName + ': the engine could not verify a real response.');
                 continue;
             }

@@ -1,5 +1,6 @@
 import type { AppPairingOutcome } from '../../app/connection.js';
 import { readFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { basename, resolve } from 'node:path';
 import { EXIT, errorMessage, PtbkError, usageError } from '../../common/errors.js';
 import { createOnboarding, listOnboardings, onboardingTarget, readOnboarding } from '../../onboarding/draft.js';
@@ -7,8 +8,11 @@ import { launchOnboarding, onboardingClient, pendingOnboarding } from '../../onb
 import type { OnboardingPrompt, OnboardingReply } from '../../onboarding/contract.js';
 import type { OnboardingView } from '../../onboarding/session.js';
 import type { OnboardingFile } from '../../onboarding/uploads.js';
+import type { TerminalFrame } from '../../onboarding/terminal.js';
 import type { Project } from '../../project/workspace.js';
 import { lookupService, type ControlClient } from '../../service/control.js';
+import { KeyboardSession } from '../../ui/keys.js';
+import { readConcealed } from '../../ui/secret.js';
 import { CANCELLED, composeRich, confirm, inputLine, selectMany, selectOne, wasInterrupted } from '../../ui/prompts.js';
 import { printJson, readStdin } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
@@ -16,7 +20,7 @@ import { ownerAccess } from './connect.js';
 
 /** The write endpoint is private IPC and accepts exactly the same validated response as the App API. */
 async function submit(client: ControlClient, reply: OnboardingReply): Promise<void> {
-    await client.request('onboarding-answer', reply);
+    await client.request('onboarding-answer', reply, 65_000);
 }
 
 /** A local client of the same durable wizard, with the normal graphical presentation when embedded in desktop. */
@@ -40,12 +44,51 @@ async function interact(context: CommandContext, project: Project, client: Contr
         }
         waiting = false;
         const frame = { title: 'Pending initialization', step: prompt.title, ...(prompt.error || prompt.hint ? { summary: [prompt.error ?? prompt.hint!] } : {}) };
+        const signIn = view.nativeLogin;
+        if (signIn?.promptId === prompt.id) {
+            const choice = await selectOne(terminal, { frame, question: prompt.question, choices: [
+                ...(signIn.apiKey ? [{ value: 'key', label: 'Use a ' + signIn.apiKey.label }] : []),
+                { value: 'terminal', label: 'Open native sign-in terminal' }, { value: 'check', label: 'Check sign-in' },
+                { value: 'back', label: 'Choose harnesses' }, { value: 'later', label: 'Continue later' },
+            ] });
+            if (choice === CANCELLED || choice === 'later') { await client.request('onboarding-defer'); return undefined; }
+            try {
+                if (choice === 'key' && signIn.apiKey) {
+                    const key = signIn.apiKey;
+                    let value: string;
+                    if (terminal.prompts) {
+                        const answer = await terminal.prompts({ kind: 'secret', frame, question: key.label, hint: key.url });
+                        if (answer.action !== 'answer' || typeof answer.value !== 'string') continue;
+                        value = answer.value;
+                    } else {
+                        terminal.write(key.url + '\n');
+                        value = await readConcealed(terminal, key.label);
+                    }
+                    await client.request('onboarding-api-key', { promptId: prompt.id, value: value.trim() }, 65_000);
+                    continue;
+                }
+                if (choice === 'terminal') {
+                    terminal.write(signIn.instructions + '\n');
+                    await nativeLoginTerminal(context, client, prompt.id);
+                }
+                await submit(client, choice === 'back' ? { promptId: prompt.id, action: 'back' } :
+                    { promptId: prompt.id, action: 'answer', answer: { kind: 'confirm', confirmed: true } });
+            } catch (error) {
+                if (error instanceof PtbkError && error.details.kind === 'cancelled') continue;
+                terminal.write(errorMessage(error) + '\n');
+                if (!(error instanceof PtbkError) || !['conflict', 'setup', 'usage'].includes(error.details.kind)) return undefined;
+            }
+            continue;
+        }
         if (prompt.kind === 'harness-login') {
             const result = await watchLogin(context, client, prompt);
-            if (result === 'leave') return undefined;
-            if (result === 'back') await submit(client, { promptId: prompt.id, action: 'back' }).catch((error: unknown) => {
+            if (result === 'leave') { await client.request('onboarding-defer'); return undefined; }
+            try {
+                if (result === 'back') await submit(client, { promptId: prompt.id, action: 'back' });
+                if (result === 'terminal') await client.request('onboarding-use-terminal', { promptId: prompt.id });
+            } catch (error) {
                 if (!(error instanceof PtbkError && error.details.kind === 'conflict')) throw error;
-            });
+            }
             continue;
         }
         let answer: Extract<OnboardingReply, { action: 'answer' }>['answer'] | typeof CANCELLED;
@@ -87,8 +130,49 @@ async function interact(context: CommandContext, project: Project, client: Contr
     }
 }
 
+/** The desktop xterm and the CLI both forward their keys to the same engine-owned native terminal. */
+async function nativeLoginTerminal(context: CommandContext, client: ControlClient, promptId: string): Promise<void> {
+    const id = randomUUID();
+    const size = () => ({ cols: context.terminal.columns(), rows: context.terminal.rows() });
+    const call = <T>(action: string, params = {}) => client.request<T>('onboarding-terminal', { id, promptId, action, ...params });
+    const input = process.stdin;
+    const raw = input.isRaw;
+    const paused = input.isPaused();
+    await call('start', size());
+    let writes = Promise.resolve<unknown>(undefined);
+    let failure: unknown;
+    const send = (action: string, params: object): void => {
+        writes = writes.then(() => failure ? undefined : call(action, params)).catch((error: unknown) => { failure = error; });
+    };
+    const onInput = (data: Buffer | string): void => {
+        for (const part of String(data).match(/[\s\S]{1,4096}/g) ?? []) send('write', { data: part });
+    };
+    const resize = (): void => send('resize', size());
+    try {
+        input.setRawMode(true);
+        input.on('data', onInput);
+        process.stdout.on('resize', resize);
+        let offset = 0;
+        for (;;) {
+            if (failure) throw failure;
+            const frame = await call<TerminalFrame>('read', { offset });
+            context.terminal.write(frame.output);
+            offset = frame.offset;
+            if (frame.done) break;
+            await new Promise((done) => setTimeout(done, 120));
+        }
+    } finally {
+        input.off('data', onInput);
+        process.stdout.off('resize', resize);
+        input.setRawMode(raw);
+        if (paused) input.pause();
+        await writes;
+        await call('close').catch(() => undefined);
+    }
+}
+
 /** Waits for native device authentication in the terminal or graphical desktop with a cancellable prompt. */
-async function watchLogin(context: CommandContext, client: ControlClient, prompt: Extract<OnboardingPrompt, { kind: 'harness-login' }>): Promise<'leave' | 'back' | 'advanced'> {
+async function watchLogin(context: CommandContext, client: ControlClient, prompt: Extract<OnboardingPrompt, { kind: 'harness-login' }>): Promise<'leave' | 'back' | 'advanced' | 'terminal'> {
     const abort = new AbortController();
     const terminal = context.terminal;
     const afterLogin = async (): Promise<'advanced'> => {
@@ -105,18 +189,23 @@ async function watchLogin(context: CommandContext, client: ControlClient, prompt
         if (terminal.prompts) {
             const choice = terminal.prompts({
                 kind: 'harness-login', frame, question: prompt.question,
-                login: { url: prompt.url, userCode: prompt.userCode ?? '' },
-            }, abort.signal).then((answer) => answer.action === 'back' ? 'back' as const : 'leave' as const);
+                login: { url: prompt.url, userCode: prompt.userCode ?? '', terminalFallback: true },
+            }, abort.signal).then((answer) => answer.action === 'back' ? 'back' as const : answer.action === 'terminal' ? 'terminal' as const : 'leave' as const);
             return await Promise.race([choice, afterLogin()]);
         }
-        terminal.write(prompt.question + '\n' + prompt.url + '\nCode: ' + prompt.userCode + '\nWaiting for the provider. Ctrl+C returns to the dashboard.\n');
-        let stop!: () => void;
-        const left = new Promise<'leave'>((done) => { stop = () => done('leave'); });
-        process.once('SIGINT', stop);
+        terminal.write(prompt.question + '\n' + prompt.url + '\nCode: ' + prompt.userCode + '\nT opens the native terminal. Esc goes back. Ctrl+C saves setup.\n');
+        let choose!: (choice: 'leave' | 'back' | 'terminal') => void;
+        const choice = new Promise<'leave' | 'back' | 'terminal'>((resolveChoice) => { choose = resolveChoice; });
+        const keyboard = new KeyboardSession((event) => {
+            if (event.type === 'key' && event.ctrl && event.name === 'c') choose('leave');
+            if (event.type === 'key' && event.name === 'escape') choose('back');
+            if (event.type === 'text' && event.text.toLowerCase() === 't') choose('terminal');
+        });
+        keyboard.start();
         try {
-            return await Promise.race([left, afterLogin()]);
+            return await Promise.race([choice, afterLogin()]);
         } finally {
-            process.off('SIGINT', stop);
+            keyboard.stop();
         }
     } finally {
         abort.abort();

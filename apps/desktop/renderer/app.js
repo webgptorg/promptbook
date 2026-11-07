@@ -491,12 +491,14 @@ function renderPrompt() {
         pane.replaceChildren(
             element('div', { className: 'step' }, prompt.frame?.step || 'Harness sign-in'),
             element('h2', {}, prompt.question),
-            ...(login?.url === 'https://auth.openai.com/codex/device' ? [
-                element('p', {}, element('a', { href: login.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open OpenAI sign-in')),
+            ...(['https://auth.openai.com/codex/device', 'https://github.com/login/device'].includes(login?.url) ? [
+                element('p', {}, element('a', { href: login.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open provider sign-in')),
                 element('p', {}, 'One-time code ', element('code', {}, login.userCode)),
             ] : []),
             element('p', { className: 'hint' }, 'Waiting for the provider to confirm sign-in.'),
-            element('div', { className: 'toolbar' }, element('button', { onclick: () => void cancel('back') }, 'Back')),
+            element('div', { className: 'toolbar' },
+                ...(login?.terminalFallback ? [element('button', { onclick: () => void cancel('terminal') }, 'Use native terminal')] : []),
+                element('button', { onclick: () => void cancel('back') }, 'Back')),
         );
         requestAnimationFrame(layout);
         return;
@@ -504,7 +506,12 @@ function renderPrompt() {
     const form = element('form');
     const controls = [];
     let rich;
-    if (prompt.kind === 'text') {
+    let secret;
+    if (prompt.kind === 'secret') {
+        secret = element('input', { type: 'password', autocomplete: 'off', maxlength: '512', 'aria-label': prompt.question });
+        controls.push(secret);
+        form.append(secret);
+    } else if (prompt.kind === 'text') {
         rich = createRichInput({ initial: Array.isArray(prompt.initial) ? prompt.initial : [], singleLine: prompt.singleLine, placeholder: prompt.placeholder || '', question: prompt.question, clipboardImage: () => api.clipboardImage().catch((error) => { notice(error.message, true); return []; }) });
         controls.push(rich.field);
         form.append(rich.field);
@@ -530,13 +537,19 @@ function renderPrompt() {
         } catch (error) { notice(error.message, true); for (const button of form.querySelectorAll('button')) button.disabled = false; }
     };
     const value = () => {
+        if (secret) return secret.value;
         if (prompt.kind === 'text') return rich.segments();
         if (prompt.kind === 'one') return controls.find((control) => control.input.checked)?.value;
         if (prompt.kind === 'many') return controls.filter((control) => control.input.checked).map((control) => control.value);
         return Object.fromEntries(controls.map((control) => [control.value, control.input.checked]));
     };
-    form.append(element('div', { className: 'toolbar' }, element('button', { type: 'button', onclick: () => void send({ action: 'back' }) }, 'Back'), element('button', { type: 'submit', className: 'primary' }, 'Continue'), element('button', { type: 'button', onclick: () => void send({ action: 'terminal', value: value() }) }, 'Use terminal for this step'), element('button', { type: 'button', onclick: () => void send({ action: 'cancel' }) }, 'Cancel setup')));
-    form.addEventListener('submit', (event) => { event.preventDefault(); void send({ action: 'answer', value: value() }); });
+    form.append(element('div', { className: 'toolbar' }, element('button', { type: 'button', onclick: () => void send({ action: 'back' }) }, 'Back'), element('button', { type: 'submit', className: 'primary' }, 'Continue'), secret ? null : element('button', { type: 'button', onclick: () => void send({ action: 'terminal', value: value() }) }, 'Use terminal for this step'), element('button', { type: 'button', onclick: () => void send({ action: 'cancel' }) }, 'Cancel setup')));
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const answer = value();
+        if (secret) secret.value = '';
+        void send({ action: 'answer', value: answer });
+    });
     pane.replaceChildren(element('div', { className: 'step' }, prompt.frame?.step || prompt.frame?.title || 'Project setup'), element('div', { className: 'summary' }, (prompt.frame?.summary || []).join('\n')), element('h2', {}, prompt.question), element('p', { className: 'hint' }, prompt.hint || ''), ...(prompt.error ? [element('p', { className: 'error-text' }, prompt.error)] : []), form, element('p', { className: 'terminal-caption' }, 'Native sign-in and setup diagnostics continue in the terminal below.'));
     controls[0]?.focus?.();
     requestAnimationFrame(layout);

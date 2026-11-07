@@ -3,6 +3,7 @@ import { chmod, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promi
 import { basename, dirname, join } from 'node:path';
 import { PtbkError, errorMessage } from '../../common/errors.js';
 import { ENGINE_VERSION } from '../../common/version.js';
+import { HARNESS_TERMINAL_PATH } from '../../onboarding/terminal.js';
 import { api, protocol, releaseTools } from '../../vendor/app-platform.js';
 import { CONFORMANCE_BUILD } from '../build.js';
 import { createPrivateFile, ensurePrivateDirectory, readPrivateFile, writePrivateFile } from '../files.js';
@@ -150,7 +151,7 @@ const HASHED_ASSET = /^assets\/(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._-]+-[A-Za-z0-9_
  * @private App UI loader
  */
 export function isEngineOwnedPath(path: string): boolean {
-    const prefixes = [...(api.ENGINE_RESERVED_PATHS as readonly string[]), `${api.ENGINE_API_PREFIX as string}/`];
+    const prefixes = [...(api.ENGINE_RESERVED_PATHS as readonly string[]), `${api.ENGINE_API_PREFIX as string}/`, HARNESS_TERMINAL_PATH];
     return prefixes.some((prefix) => {
         const bare = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
         return path === bare || path.startsWith(`${bare}/`);

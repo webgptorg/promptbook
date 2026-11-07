@@ -140,6 +140,8 @@ export type HarnessLoginMethod = {
     readonly args: readonly string[];
     /** Completable without a browser on this machine (the owner signs in on another device). */
     readonly remote: boolean;
+    /** Environment overrides documented by the native login command. */
+    readonly env?: Readonly<Record<string, string>>;
     /** The exact human step, shown before the native flow starts. */
     readonly instructions: string;
     /**
@@ -316,6 +318,17 @@ export type HarnessPlugin = {
     readonly variant: HarnessVariant;
     /** Variable through which the CLI accepts an API key for an explicit `API_KEY` instance (absent: unsupported). */
     readonly apiKeyVariable?: string;
+    /** A documented provider key that the pre-project wizard can configure explicitly. */
+    readonly setupApiKey?: {
+        readonly reference: string;
+        readonly label: string;
+        readonly url: string;
+        readonly baseUrl?: string;
+        readonly model?: string;
+        readonly thinkingLevel?: ThinkingLevel;
+        /** Isolates a wizard-created connection from the CLI's existing subscription settings. */
+        readonly profile?: { readonly home: string; readonly omit?: readonly string[] };
+    };
     /** Ambient variables that would silently switch a native instance to API billing (removed for `NATIVE`). */
     readonly ambientApiKeyVariables?: readonly string[];
     /** Variable selecting a separate native account/configuration home (`accountProfile`; absent: unsupported). */

@@ -24,9 +24,11 @@ On the host, use `ptbk init --with-app` to start, pair or continue a pending ini
 
 ## Finish setup
 
-Open the owner setup link from the host and register a passkey on the engine's own origin. App presents the brief, files, harness selection, name, folder and confirmation from `onboarding@1` and `files@1`. The engine ships a small same-origin page for setup while a verified App UI bundle is unavailable. Both use the passkey gateway and the same permissions.
+Open the owner setup link from the host and register a passkey on the engine's own origin. The pending engine serves the wizard at that origin through the relay. It uses `onboarding@1` and `files@1` for the brief, files, harness selection, name, folder and confirmation. After handoff, the usual App UI loads at the same origin.
 
-The engine checks native accounts under its service user. A Codex device code is presented to the owner and entered on OpenAI's site. Claude Code sign-in is completed in the native CLI on the host. Selecting a harness allows the engine to install it for its OS account and verify a real response. A verified harness can propose the name during setup.
+Selecting a harness allows the engine to install it and verify a real response under the service user. Codex and GitHub Copilot show the CLI's device code to enter on the provider's site. Gemini CLI, Qwen Code and OpenCode offer a form for an explicit provider API key. A successful key setup saves an `API_KEY` tool whose secret lives in the new project's ignored `.env`.
+
+The wizard offers the native sign-in terminal when the user requests it or when the preferred device flow cannot complete. Claude Code uses its terminal directly for subscription sign-in under Anthropic's terms. Only the engine owner can open the terminal or submit a key at `/_ptbk/harness-terminal`. The host CLI and desktop use private IPC for the same step. Each terminal runs as the engine user. On return, the wizard checks the chosen account before proceeding. A verified harness can propose the project name.
 
 The final confirmation builds the project in private staging with the ordinary initializer. The engine publishes the chosen child folder under the projects home, preserves its existing App identity and passkeys, and starts its agenda. The connection can briefly reconnect during handoff. Browser and trace settings start with the defaults. Wallet and optional Git synchronization can be set up after creation.
 

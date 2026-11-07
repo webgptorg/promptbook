@@ -153,8 +153,8 @@ export async function executionOffers(pool: HarnessPool): Promise<ExecutionOffer
     for (const offer of offers.values()) {
         const id = harnessPluginId(offer.variant);
         const plugin = harnessPlugin(id)!;
-        const defaults = await pool.defaults(id);
-        const catalog = await pool.models(id);
+        const defaults = await pool.defaults(offer.tools[0]!);
+        const catalog = await pool.models(offer.tools[0]!);
         result.push({ ...offer, models: [...new Set([...(defaults.model ? [defaults.model] : []), ...catalog])], catalog: plugin.modelCatalog, thinkingLevels: plugin.thinkingLevels, defaults });
     }
     return result;
