@@ -38,6 +38,7 @@
         "release:patch": "npm version patch",
         "release:minor": "npm version minor",
         "release:major": "npm version major",
+        "prerelease": "npm run release:prerelease",
         "release:prerelease": "npm version prerelease",
         "release:preminor": "npm version preminor",
         "build:vscode": "node scripts/build-vscode.mjs",

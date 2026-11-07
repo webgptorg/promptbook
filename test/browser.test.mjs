@@ -151,7 +151,12 @@ test('full browser access: an agent posts through a shadow-DOM rich-text compose
 
     const shot = await call('browser_screenshot');
     assert.equal(shot.images[0].mimeType, 'image/png', 'the model sees the screenshot');
-    assert.match(shot.text, /Screenshot of the viewport, 1280×\d+ CSS pixels/, 'a headless browser has a desktop-sized window');
+    /** Window decorations vary by platform; screenshots describe the page's inner viewport. */
+    const viewport = JSON.parse((await call('browser_evaluate', { script: '({ width: innerWidth, height: innerHeight, windowWidth: outerWidth, windowHeight: outerHeight })' })).text);
+    assert.equal(viewport.windowWidth, 1280, 'a headless browser has the configured desktop window width');
+    assert.equal(viewport.windowHeight, 900, 'a headless browser has the configured desktop window height');
+    assert.ok(viewport.width >= 1024 && viewport.height >= 720, 'the page has a desktop-sized viewport');
+    assert.ok(shot.text.startsWith(`Screenshot of the viewport, ${viewport.width}×${viewport.height} CSS pixels`), 'screenshot coordinates match the actual page viewport');
     assert.match((await call('browser_evaluate', { script: 'await Promise.resolve(document.querySelector("h1").textContent)' })).text, /^Posted:/);
     assert.match((await call('browser_cdp', { method: 'Browser.getVersion', scope: 'browser' })).text, /"product"/);
     const endpoint = (await call('browser_devtools_endpoint')).text.match(/HTTP endpoint: (\S+)/)[1];

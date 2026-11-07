@@ -14,6 +14,10 @@ Reviewed planning saves produce their scoped `ptbk: ` commit on every supported 
 
 ## Publish workflow
 
+Run `npm ci` after pulling dependency changes, commit the release changes, then run `npm run prerelease` (an alias for `npm run release:prerelease`). The version hooks run the complete local checks, create the version commit and immutable `v` tag, and push both together to trigger publication.
+
+GitHub Actions must be enabled for this repository by the organization as well as the repository. Its allowed-actions policy must permit the GitHub-owned `actions/checkout`, `actions/setup-node`, `actions/upload-artifact` and `actions/setup-java`, plus the pinned `android-actions/setup-android` used by the Android jobs. A policy rejection during job setup is an infrastructure failure, even when earlier validation jobs passed; restore the policy and retry the failed jobs against the same tag. Repository settings cannot override an organization-level disablement.
+
 For an authorized release tag or manual dispatch in the official repository, validate the exact immutable tag across the complete check matrix before uploading the single `ptbk` package. The publication job remains blocked when validation fails. A skipped publication following failed validation is an unsuccessful release outcome.
 
 Successful publication means the tagged version, matching manifest/lockfile and distributable are validated, npm accepts the package with provenance, and bounded public-registry verification confirms the expected version, tarball integrity and default installation channel. Disposable unversioned local/global installations must report that released engine version. The same version's Windows installer, both macOS DMGs and the Android APK must also be built, verified and downloadable from its GitHub Release. Required check and publication jobs finish successfully and retain actionable diagnostics for failures.
