@@ -1,6 +1,5 @@
 import { userInfo } from 'node:os';
 import { basename } from 'node:path';
-import { listPendingProjects, pendingProjectName } from '../app/pending-project.js';
 import { errorMessage } from '../common/errors.js';
 import { isDirectory } from '../common/fs.js';
 import { clockTime, formatShortTime } from '../common/time.js';
@@ -55,7 +54,6 @@ export type GlobalRow = {
     readonly key: string;
     readonly projectRoot: string;
     readonly projectName: string;
-    readonly initializationId?: string;
     /** `live`: verified owner; `unreachable`: an owner is recorded but cannot be verified; `stopped`: verified absence; `missing`: the directory is gone. */
     readonly status: 'live' | 'unreachable' | 'stopped' | 'missing';
     readonly engine?: EngineIdentity;
@@ -94,7 +92,7 @@ function identityOf(owner: EngineIdentity): EngineIdentity {
  * @private global dashboard
  */
 export async function observeHost(env: NodeJS.ProcessEnv = process.env): Promise<HostObservation> {
-    const [registry, known, initializations] = await Promise.all([readRegistry(env), readKnownProjects(env), listPendingProjects(env)]);
+    const [registry, known] = await Promise.all([readRegistry(env), readKnownProjects(env)]);
     const observedAt = new Date().toISOString();
     const verified = await Promise.all(registry.entries.map((entry) => verifyEngine(entry, env).catch((error: unknown): DiscoveredEngine => ({ status: 'unreachable', entry, reason: errorMessage(error) }))));
     // One row per canonical project: a verified live owner wins over an unverifiable registration.
@@ -105,21 +103,19 @@ export async function observeHost(env: NodeJS.ProcessEnv = process.env): Promise
         if (!current || (current.status !== 'live' && engine.status === 'live')) owners.set(engine.entry.projectRoot, engine);
     }
     const knownByRoot = new Map(known.entries.map((entry) => [entry.projectRoot, entry]));
-    const pendingByRoot = new Map(initializations.map((record) => [record.workspace.root, record]));
     for (const [root, engine] of owners) {
-        if (engine.status !== 'live' || knownByRoot.has(root) || pendingByRoot.has(root)) continue;
+        if (engine.status !== 'live' || knownByRoot.has(root)) continue;
         // An engine started by another client or installation is a known project of this host from now on.
         const { entry } = engine;
         const adopted = await registerKnownProject(projectAt(root), { lastRun: { instanceId: entry.instanceId, pid: entry.pid, mode: entry.mode, engineVersion: entry.engineVersion, installation: entry.installation, startedAt: entry.startedAt } }, env).catch(() => undefined);
         if (adopted) knownByRoot.set(root, adopted);
     }
-    const roots = [...new Set([...knownByRoot.keys(), ...owners.keys(), ...initializations.filter((item) => !item.target).map((item) => item.workspace.root)])];
+    const roots = [...new Set([...knownByRoot.keys(), ...owners.keys()])];
     const rows = await Promise.all(
         roots.map(async (root): Promise<GlobalRow> => {
             const knownEntry = knownByRoot.get(root);
             const engine = owners.get(root);
-            const initialization = pendingByRoot.get(root);
-            const base = { key: root, projectRoot: root, projectName: initialization ? pendingProjectName(initialization.id) : engine?.entry.projectName ?? knownEntry?.projectName ?? basename(root), initializationId: initialization?.id, known: knownEntry, observedAt };
+            const base = { key: root, projectRoot: root, projectName: engine?.entry.projectName ?? knownEntry?.projectName ?? basename(root), known: knownEntry, observedAt };
             const live = (owner: EngineIdentity, client: ControlClient, summary: EngineSummary): GlobalRow => ({ ...base, status: 'live', engine: identityOf(owner), client, state: summary.state, work: summary.work, intent: summary.intent, waitingChats: summary.waitingChats, needsAttention: summary.needsAttention, observedAt: summary.observedAt });
             if (engine?.status === 'live') return live(engine.entry, engine.client, engine.summary);
             if (engine?.status === 'unreachable') return { ...base, status: 'unreachable', engine: identityOf(engine.entry), reason: engine.reason };
@@ -212,7 +208,6 @@ export function plainHostDifference(previous: HostObservation | undefined, next:
  * @private global dashboard
  */
 export function actionApplies(action: GlobalAction, row: GlobalRow): boolean {
-    if (row.initializationId && (action === 'pause' || action === 'resume' || action === 'start-paused' || action === 'remove')) return false;
     switch (action) {
         case 'start':
         case 'start-paused':
@@ -310,7 +305,10 @@ export async function runGlobalDashboard(
     terminal: TerminalProfile,
     attach: (row: GlobalRow) => Promise<string | undefined>,
     env: NodeJS.ProcessEnv = process.env,
-    options: { readonly create?: () => Promise<{ readonly message: string; readonly projectRoot?: string }>; readonly createPaired?: () => Promise<{ readonly message: string; readonly projectRoot?: string }> } = {},
+    options: {
+        readonly create?: () => Promise<{ readonly message: string; readonly projectRoot?: string }>;
+        readonly onboarding?: () => Promise<{ readonly message: string; readonly projectRoot?: string }>;
+    } = {},
 ): Promise<void> {
     if (!terminal.pretty || !terminal.interactive) {
         await runPlainGlobalDashboard(terminal, env);
@@ -410,7 +408,7 @@ export async function runGlobalDashboard(
                 ? style.accent(fitLegend(['All projects:', 'S start stopped', 'Shift+S start stopped paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove stopped', 'Esc cancel'], width, '  '))
                 : modal?.kind === 'confirm'
                   ? style.warning(` ${truncate(modal.prompt, width - 2)}`)
-                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', ...(options.create ? ['N new project'] : []), ...(options.createPaired ? ['L new App setup'] : []), 'S start', 'Shift+S start paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
+                  : style.muted(fitLegend(['↑↓ select', 'Enter attach', ...(options.create ? ['N new project'] : []), ...(options.onboarding ? ['I pair or resume setup'] : []), 'S start', 'Shift+S start paused', 'X stop', 'F force stop', 'P pause', 'R resume', 'D remove', 'A all projects…', 'Q close (engines keep running)'], width));
         lines.push(legend);
         if (feedback && !modal) lines.push(` ${style.accent(marks.arrow)} ${truncate(feedback, width - 4)}`);
         screen.draw(lines);
@@ -612,7 +610,7 @@ export async function runGlobalDashboard(
         const action = actionOfKey(event.text);
         if (key === 'q') close();
         else if (key === 'n' && options.create) void create(options.create);
-        else if (key === 'l' && options.createPaired) void create(options.createPaired);
+        else if (key === 'i' && options.onboarding) void create(options.onboarding);
         else if (key === 'a') {
             modal = { kind: 'bulk' };
             draw();

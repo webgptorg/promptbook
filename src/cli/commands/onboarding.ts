@@ -1,204 +1,262 @@
-import { setTimeout as delay } from 'node:timers/promises';
-import type { AppConnectionView } from '../../engine/snapshot.js';
-import { createPendingProject, selectPendingProject, type PendingProject } from '../../app/pending-project.js';
-import type { OnboardingAnswer, OnboardingPrompt, OnboardingState } from '../../app/onboarding.js';
-import { parseLinkInput } from '../../app/registration.js';
-import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
-import { projectAt } from '../../project/workspace.js';
+import type { AppPairingOutcome } from '../../app/connection.js';
+import { readFile } from 'node:fs/promises';
+import { basename, resolve } from 'node:path';
+import { EXIT, errorMessage, PtbkError, usageError } from '../../common/errors.js';
+import { createOnboarding, listOnboardings, onboardingTarget, readOnboarding } from '../../onboarding/draft.js';
+import { launchOnboarding, onboardingClient, pendingOnboarding } from '../../onboarding/local.js';
+import type { OnboardingPrompt, OnboardingReply } from '../../onboarding/contract.js';
+import type { OnboardingView } from '../../onboarding/session.js';
+import type { OnboardingFile } from '../../onboarding/uploads.js';
+import type { Project } from '../../project/workspace.js';
 import { lookupService, type ControlClient } from '../../service/control.js';
-import { launchDaemon } from '../../service/launcher.js';
-import { basename } from 'node:path';
-import { askPairingUrl } from '../../ui/app-connection.js';
-import { CANCELLED, composeRich, selectMany, selectOne, wasInterrupted } from '../../ui/prompts.js';
-import type { TerminalProfile } from '../../ui/terminal.js';
-import { api } from '../../vendor/app-platform.js';
+import { CANCELLED, composeRich, confirm, inputLine, selectMany, selectOne, wasInterrupted } from '../../ui/prompts.js';
 import { printJson, readStdin } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
+import { ownerAccess } from './connect.js';
 
-/** A local IPC result from the engine's single pairing operation. @private project onboarding */
-export type LocalPairing = { readonly outcome: string; readonly applied: boolean; readonly app: AppConnectionView };
-
-/** Starts or reattaches the detached setup service. @private project onboarding */
-export async function launchOnboarding(context: CommandContext, input?: string, id?: string): Promise<{ readonly record: PendingProject; readonly client?: ControlClient; readonly pairing?: LocalPairing }> {
-    if (input !== undefined) parseLinkInput(input);
-    const env = { ...context.env };
-    delete env.PTBK_LINK_CODE;
-    delete env.PTBK_PROMPT_PORT;
-    delete env.PTBK_PROMPT_TOKEN;
-    const record = await createPendingProject(env, id);
-    const existing = record.target && await lookupService(projectAt(record.target));
-    if (existing && existing.state === 'running') return { record };
-    const launched = await launchDaemon(record.workspace, { cli: {}, persistent: flag(context, 'persist') !== false, env });
-    const client = launched.lookup.client;
-    const pairing = input && !record.target ? await client.request<LocalPairing>('app-connect', { link: input }, 90_000) : undefined;
-    return { record, client, ...(pairing ? { pairing } : {}) };
+/** The write endpoint is private IPC and accepts exactly the same validated response as the App API. */
+async function submit(client: ControlClient, reply: OnboardingReply): Promise<void> {
+    await client.request('onboarding-answer', reply);
 }
 
-/** Parses a local automation answer with the same schema as the App, without echoing malformed input. */
-async function readAnswer(): Promise<Record<string, unknown>> {
-    let value: unknown;
-    try { value = JSON.parse(await readStdin()); }
-    catch { throw usageError('Supply a JSON onboarding answer on stdin.', 'onboarding'); }
-    const parsed = api.ENGINE_API_ROUTES.answerOnboarding?.body?.schema.safeParse(value);
-    if (!parsed?.success) throw usageError('Supply a prompt ID and an answer matching the displayed prompt.', 'onboarding');
-    return parsed.data as Record<string, unknown>;
-}
-
-/** CLI entry for starting setup separately from collecting its answers. @private project onboarding */
-export async function prepareOnboarding(context: CommandContext): Promise<number> {
-    const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'initialization', 'persist', 'json', 'raw', 'interactive', 'non-interactive', 'terminal-title']);
-    if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('--prepare-only starts an unnamed initialization in the projects home. Supply project choices during onboarding.', 'init');
-    const fromStdin = flag(context, 'link-stdin');
-    const given = option<string>(context, 'link');
-    if (fromStdin && given !== undefined) throw usageError('Use either --link or --link-stdin.', 'init');
-    const input = fromStdin ? (await readStdin()).trim() : given;
-    const { record, pairing } = await launchOnboarding(context, input, option<string>(context, 'initialization'));
-    if (flag(context, 'json')) printJson({ id: record.id, status: record.target ? 'completed' : 'pending', project: record.target ?? null, app: pairing?.app ?? null, pairing: pairing?.outcome ?? null });
-    else if (record.target) context.terminal.write(`Initialization ${record.id}: ${record.target}\n`);
-    else {
-        context.terminal.write(`Project setup is running (initialization ${record.id}).\n`);
-        if (pairing) context.terminal.write(`${pairing.outcome}\n`);
-        if (pairing?.applied) context.terminal.write(`Open owner access with: ptbk connect --initialization ${record.id} --setup-link\n`);
-        context.terminal.write(`Continue locally with: ptbk onboarding ${record.id}\n`);
-    }
-    return pairing?.applied === false ? EXIT.incomplete : EXIT.success;
-}
-
-/** Local UI for the same engine-owned prompts as the App, without keeping a separate wizard draft. @private project onboarding */
-export async function attendOnboarding(terminal: TerminalProfile, client: ControlClient): Promise<void> {
-    let lastLogin: string | undefined;
-    let announcedWork = false;
+/** A local client of the same durable wizard, with the normal graphical presentation when embedded in desktop. */
+async function interact(context: CommandContext, project: Project, client: ControlClient): Promise<string | undefined> {
+    const terminal = context.terminal;
+    let waiting = false;
     for (;;) {
-        let state: OnboardingState;
-        try {
-            state = await client.request<OnboardingState>('onboarding-state');
-        } catch (error) {
-            terminal.write(`Setup service disconnected. Reopen the initialization to check progress. ${errorMessage(error)}\n`);
-            return;
-        }
-        if (state.status === 'completed') {
-            terminal.write('Project setup is complete. Its agenda is starting.\n');
-            return;
-        }
-        const prompt = state.prompt;
-        if (!prompt || prompt.kind === 'harness-login') {
-            if (prompt && prompt.id !== lastLogin) {
-                lastLogin = prompt.id;
-                const instructions = `${prompt.url}\nOne-time code: ${prompt.userCode ?? 'unavailable'}\n${prompt.hint ?? ''}`;
-                if (terminal.prompts) {
-                    const answer = await terminal.prompts({ kind: 'one', frame: { title: 'Harness sign-in' }, question: prompt.question, hint: instructions, choices: [{ value: 0, label: 'Check sign-in' }], initial: 0 });
-                    if (answer.action === 'back' || answer.action === 'cancel') return;
-                } else terminal.write(`\n${prompt.question}\n${instructions}\n`);
-            } else if (!prompt && !announcedWork) terminal.write('The engine is working. It will show the next step here.\n');
-            announcedWork = true;
-            await delay(650);
+        const receipt = await readOnboarding(project);
+        if (receipt?.step === 'done' && receipt.folder) return onboardingTarget(project, receipt.folder).root;
+        const view = await client.request<OnboardingView>('onboarding-state').catch(async (error: unknown) => {
+            if ((await readOnboarding(project))?.step === 'done') return undefined;
+            throw error;
+        });
+        if (!view) continue;
+        const prompt = view.onboarding.prompt;
+        if (!prompt) {
+            if (!waiting) terminal.write('The engine is working. You can close this client and continue later.\n');
+            waiting = true;
+            await new Promise((done) => setTimeout(done, 500));
             continue;
         }
-        announcedWork = false;
-        const answer = await presentPrompt(terminal, client, prompt);
-        if (!answer) return;
-        try {
-            await client.request('onboarding-answer', answer);
-        } catch (error) {
-            terminal.write(`${errorMessage(error)}\n`);
+        waiting = false;
+        const frame = { title: 'Pending initialization', step: prompt.title, ...(prompt.error || prompt.hint ? { summary: [prompt.error ?? prompt.hint!] } : {}) };
+        if (prompt.kind === 'harness-login') {
+            const result = await watchLogin(context, client, prompt);
+            if (result === 'leave') return undefined;
+            if (result === 'back') await submit(client, { promptId: prompt.id, action: 'back' }).catch((error: unknown) => {
+                if (!(error instanceof PtbkError && error.details.kind === 'conflict')) throw error;
+            });
+            continue;
         }
-    }
-}
-
-/** Translates one ordinary local control into the App contract's answer. */
-async function presentPrompt(terminal: TerminalProfile, client: ControlClient, prompt: Exclude<OnboardingPrompt, { kind: 'harness-login' }>): Promise<OnboardingAnswer | undefined> {
-    const frame = { title: 'Project setup', step: prompt.title, summary: prompt.error ? [prompt.error] : undefined };
-    if (prompt.kind === 'text') {
-        const input = await composeRich(terminal, { frame, question: prompt.question, initial: prompt.initial, hint: prompt.hint ?? undefined, attachments: prompt.attachments, required: prompt.required, singleLine: !prompt.multiline });
-        if (input !== CANCELLED) {
-            const fileIds: string[] = [];
-            for (const segment of input.segments) {
-                if (segment.type !== 'attachment') continue;
-                const file = await client.request<{ id: string }>('onboarding-upload-local', { path: segment.path, name: segment.name || basename(segment.path) });
-                fileIds.push(file.id);
+        let answer: Extract<OnboardingReply, { action: 'answer' }>['answer'] | typeof CANCELLED;
+        if (prompt.kind === 'text' && prompt.multiline) {
+            const input = await composeRich(terminal, { frame, question: prompt.question, initial: [{ type: 'text', text: prompt.initial }], attachments: prompt.attachments });
+            if (input === CANCELLED) answer = CANCELLED;
+            else {
+                const fileIds: string[] = [];
+                for (const segment of input.segments) {
+                    if (segment.type !== 'attachment') continue;
+                    const file = await client.request<OnboardingFile | null>('onboarding-upload', { path: resolve(context.cwd, segment.path) });
+                    if (!file) throw new PtbkError('The attachment exceeds the onboarding upload limit.', { kind: 'setup' });
+                    fileIds.push(file.id);
+                }
+                answer = { kind: 'text', text: input.segments.filter((segment) => segment.type === 'text').map((segment) => segment.text).join(''), fileIds };
             }
-            return { promptId: prompt.id, action: 'answer', answer: { kind: 'text', text: input.segments.filter((segment) => segment.type === 'text').map((segment) => segment.text).join(''), fileIds } };
+        } else if (prompt.kind === 'text') {
+            const text = await inputLine(terminal, { frame, question: prompt.question, initial: prompt.initial });
+            answer = text === CANCELLED ? CANCELLED : { kind: 'text', text, fileIds: [] };
+        } else if (prompt.kind === 'choice') {
+            const choices = prompt.choices.map((choice) => ({ value: choice.id, label: choice.label, description: choice.description ?? undefined, disabled: choice.disabled }));
+            const values = await selectMany(terminal, { frame, question: prompt.question, choices, initial: prompt.initial, minimum: 1 });
+            answer = values === CANCELLED ? CANCELLED : { kind: 'choice', choiceIds: [...values] };
+        } else {
+            const value = await confirm(terminal, { frame, question: prompt.question, defaultYes: false, yesLabel: prompt.confirmLabel, noLabel: prompt.declineLabel });
+            answer = value === CANCELLED ? CANCELLED : { kind: 'confirm', confirmed: value };
         }
-    } else {
-        const choices = prompt.choices.map((choice) => ({ value: choice.id, label: choice.label, description: choice.description ?? undefined, disabled: choice.disabled }));
-        const question = prompt.hint ? `${prompt.question}\n${prompt.hint}` : prompt.question;
-        const value = prompt.multiple
-            ? await selectMany(terminal, { frame, question, choices, initial: prompt.initial })
-            : await selectOne(terminal, { frame, question, choices, defaultValue: prompt.initial[0] });
-        if (value !== CANCELLED) return { promptId: prompt.id, action: 'answer', answer: { kind: 'choice', choiceIds: typeof value === 'string' ? [value] : value } };
+        try {
+            if (answer !== CANCELLED) await submit(client, { promptId: prompt.id, action: 'answer', answer });
+            else if (prompt.canGoBack && !wasInterrupted()) await submit(client, { promptId: prompt.id, action: 'back' });
+            else {
+                await client.request('onboarding-defer');
+                return undefined;
+            }
+        } catch (error) {
+            if (!(error instanceof PtbkError && error.details.kind === 'conflict')) throw error;
+            terminal.write('Another client already answered that prompt. Refreshing.\n');
+        }
     }
-    if (!wasInterrupted() && prompt.canGoBack) return { promptId: prompt.id, action: 'back' };
-    await client.request('onboarding-defer');
-    return undefined;
 }
 
-/** Resumes setup interactively, or operates on exactly one prompt through the noninteractive CLI. @private project onboarding */
-export default async function onboarding(context: CommandContext): Promise<number> {
-    const id = context.positionals[0];
-    if (!id) throw usageError('Choose an initialization ID from the global Dashboard.', 'onboarding');
-    const record = await selectPendingProject(id, context.env);
-    if (record.target) {
-        const result = await lookupService(projectAt(record.target));
-        if (result.state === 'running') {
-            if (flag(context, 'json')) printJson({ status: 'completed', project: record.target });
-            else context.terminal.write(`Project setup complete: ${record.target}\n`);
-            return EXIT.success;
+/** Waits for native device authentication in the terminal or graphical desktop with a cancellable prompt. */
+async function watchLogin(context: CommandContext, client: ControlClient, prompt: Extract<OnboardingPrompt, { kind: 'harness-login' }>): Promise<'leave' | 'back' | 'advanced'> {
+    const abort = new AbortController();
+    const terminal = context.terminal;
+    const afterLogin = async (): Promise<'advanced'> => {
+        while (!abort.signal.aborted) {
+            await new Promise((resolvePromise) => setTimeout(resolvePromise, 600));
+            if (abort.signal.aborted) break;
+            const view = await client.request<OnboardingView>('onboarding-state');
+            if (view.onboarding.prompt?.id !== prompt.id) break;
+        }
+        return 'advanced';
+    };
+    const frame = { title: 'Pending initialization', step: prompt.harness };
+    try {
+        if (terminal.prompts) {
+            const choice = terminal.prompts({
+                kind: 'harness-login', frame, question: prompt.question,
+                login: { url: prompt.url, userCode: prompt.userCode ?? '' },
+            }, abort.signal).then((answer) => answer.action === 'back' ? 'back' as const : 'leave' as const);
+            return await Promise.race([choice, afterLogin()]);
+        }
+        terminal.write(prompt.question + '\n' + prompt.url + '\nCode: ' + prompt.userCode + '\nWaiting for the provider. Ctrl+C returns to the dashboard.\n');
+        let stop!: () => void;
+        const left = new Promise<'leave'>((done) => { stop = () => done('leave'); });
+        process.once('SIGINT', stop);
+        try {
+            return await Promise.race([left, afterLogin()]);
+        } finally {
+            process.off('SIGINT', stop);
+        }
+    } finally {
+        abort.abort();
+    }
+}
+
+/** Starts an engine before project setup and optionally links it through its private local control. @private onboarding */
+export async function prepareOnboarding(context: CommandContext): Promise<number> {
+    const value = option<string>(context, 'link');
+    const fromStdin = flag(context, 'link-stdin') === true;
+    const wantOwner = flag(context, 'setup-link') === true;
+    if (value !== undefined && fromStdin) throw usageError('Use either --link or --link-stdin.', 'init');
+    const link = fromStdin ? (await readStdin()).trim() : value?.trim();
+    if ((fromStdin || value !== undefined || wantOwner) && !link) throw usageError('Provide the complete pairing URL from the App.', 'init');
+    const draft = await createOnboarding(context.env, link);
+    const project = await pendingOnboarding(draft.engineId, context.env);
+    const json = flag(context, 'json') === true;
+    if (draft.step === 'done' && draft.folder) {
+        const target = onboardingTarget(project, draft.folder);
+        if (wantOwner) return await ownerAccess(context, target, json || !context.terminal.interactive);
+        const root = target.root;
+        if (json) printJson({ engineId: draft.engineId, outcome: 'already-initialized', root });
+        else context.terminal.write('Project already initialized at ' + root + '\n');
+        return EXIT.success;
+    }
+    const { lookup, persistence } = await launchOnboarding(project, context.env, flag(context, 'persist'));
+    let result: AppPairingOutcome | undefined;
+    if (link) {
+        result = await lookup.client.request<AppPairingOutcome>('app-link', { link }, 90_000);
+        if (result.outcome === 'refused') {
+            if (json) printJson({ engineId: draft.engineId, ...result });
+            else context.terminal.write(result.message + '\nEngine ' + draft.engineId + ' is still waiting. Use ptbk connect --onboarding ' + draft.engineId + ' --link <url>.\n');
+            return EXIT.incomplete;
         }
     }
-    const lookup = await lookupService(record.workspace);
-    if (lookup.state !== 'running') throw new PtbkError('This project setup is stopped. Start it from the global Dashboard or use ptbk init --prepare-only --initialization <id>.', { kind: 'incomplete' });
-    const answer = flag(context, 'answer-stdin');
-    const defer = flag(context, 'defer');
-    if (answer && defer) throw usageError('Answer a prompt or defer the setup in one invocation.', 'onboarding');
-    if (answer) printJson(await lookup.client.request<OnboardingState>('onboarding-answer', await readAnswer()));
-    else if (defer) printJson(await lookup.client.request<OnboardingState>('onboarding-defer'));
-    else if (context.terminal.interactive && !flag(context, 'json')) await attendOnboarding(context.terminal, lookup.client);
-    else printJson(await lookup.client.request<OnboardingState>('onboarding-state'));
+    if (wantOwner) return await ownerAccess(context, project, json || !context.terminal.interactive);
+    if (json) printJson({ engineId: draft.engineId, outcome: result?.outcome ?? 'pending', app: result && 'app' in result ? result.app : undefined, persistence });
+    else context.terminal.write('Pending initialization ' + draft.engineId + ' is running.\n' +
+        (result ? 'Owner access: ptbk connect --onboarding ' + draft.engineId + ' --setup-link\n' : '') +
+        'Continue locally: ptbk onboarding --id ' + draft.engineId + '\n');
     return EXIT.success;
 }
 
-/** The global Dashboard and desktop action for starting setup with a pairing URL. @private project onboarding */
-export async function newPairedProject(context: CommandContext): Promise<{ readonly message: string }> {
-    const url = await askPairingUrl(context.terminal, true);
-    if (url === CANCELLED) return { message: 'Project setup cancelled.' };
-    const { record, client, pairing } = await launchOnboarding(context, url || undefined);
-    const message = `Project setup ${record.id} is running.${pairing ? ` ${pairing.outcome}` : ''}`;
-    context.terminal.write(`${message}\n`);
-    if (pairing?.applied) {
-        context.terminal.write(`For owner access in the App, run: ptbk connect --initialization ${record.id} --setup-link\n`);
+/** Finds, observes and controls a pending initialization from the host CLI. @private command */
+export default async function onboarding(context: CommandContext): Promise<number> {
+    const id = option<string>(context, 'id');
+    const json = flag(context, 'json') === true;
+    if (!id) {
+        if (context.explicit.size && ['answer', 'answer-file', 'attach', 'defer', 'stop', 'resume-service'].some((key) => context.explicit.has(key))) throw usageError('Select an initialization with --id.', 'onboarding');
+        const items = (await listOnboardings(context.env)).filter((draft) => draft.step !== 'done').map(({ engineId, step }) => ({ engineId, step }));
+        if (json) printJson(items);
+        else context.terminal.write(items.length ? items.map(({ engineId, step }) => engineId + '  ' + step).join('\n') + '\n' : 'No pending initializations.\n');
+        return EXIT.success;
     }
-    if (client && !pairing?.applied) await attendOnboarding(context.terminal, client);
-    return { message };
+    const project = await pendingOnboarding(id, context.env);
+    const saved = await readOnboarding(project);
+    if (saved?.step === 'done' && saved.folder) {
+        const root = onboardingTarget(project, saved.folder).root;
+        if (json) printJson({ engineId: id, step: 'done', root });
+        else context.terminal.write('Initialized at ' + root + '\n');
+        return EXIT.success;
+    }
+    if (flag(context, 'stop')) {
+        const running = await lookupService(project);
+        if (running.state === 'running') await running.client.request('stop');
+        return EXIT.success;
+    }
+    const client = await onboardingClient(project, context.env);
+    if (flag(context, 'resume-service')) return EXIT.success;
+    const direct = option<string>(context, 'answer');
+    const fromFile = option<string>(context, 'answer-file');
+    if (direct !== undefined && fromFile !== undefined) throw usageError('Use either --answer or --answer-file.', 'onboarding');
+    if (direct !== undefined || fromFile !== undefined) {
+        const raw = direct ?? (fromFile === '-' ? await readStdin() : await readFile(resolve(context.cwd, fromFile!), 'utf8'));
+        let body: OnboardingReply;
+        try {
+            body = JSON.parse(raw) as OnboardingReply;
+        } catch {
+            throw usageError('The onboarding answer is not valid JSON.', 'onboarding');
+        }
+        await submit(client, body);
+    }
+    const file = option<string>(context, 'attach');
+    if (file) {
+        const uploaded = await client.request<OnboardingFile | null>('onboarding-upload', { path: resolve(context.cwd, file) });
+        if (!uploaded) throw new PtbkError('The attachment exceeds the onboarding upload limit.', { kind: 'setup' });
+        if (json) printJson(uploaded);
+        else context.terminal.write(uploaded.id + '  ' + uploaded.name + '\n');
+        return EXIT.success;
+    }
+    if (flag(context, 'defer')) await client.request('onboarding-defer');
+    if (context.terminal.interactive && !json && !direct && !fromFile && !flag(context, 'defer')) {
+        const root = await interact(context, project, client);
+        context.terminal.write(root ? 'Project initialized at ' + root + '\n' : 'Initialization saved. Resume with ptbk onboarding --id ' + id + '.\n');
+        if (root && context.terminal.prompts) await context.terminal.prompts({ kind: 'complete', frame: { title: 'Pending initialization' }, question: 'Initialization result', completion: { root, ready: true, running: true } });
+    } else {
+        const view = await client.request<OnboardingView>('onboarding-state');
+        if (json) printJson(view);
+        else context.terminal.write(view.onboarding.prompt ? view.onboarding.prompt.question + '\n' : 'The engine is ' + view.onboarding.status + '.\n');
+    }
+    return EXIT.success;
 }
 
-/** Reopens the same draft from the global Dashboard, including pairing after creation. @private project onboarding */
-export async function openPendingOnboarding(terminal: TerminalProfile, client: ControlClient): Promise<void> {
-    const app = await client.request<AppConnectionView | undefined>('app-status');
-    const choice = await selectOne(terminal, {
-        frame: { title: 'Project setup' },
-        question: 'What would you like to do with this initialization?',
-        choices: [
-            { value: 'continue', label: 'Continue setup here' },
-            ...(app?.state === 'unlinked' || app?.state === 'refused' ? [{ value: 'pair', label: 'Pair with the Promptbook App' }] : []),
-            ...(app?.hostname && app.owner !== 'set' ? [{ value: 'owner', label: 'Show the one-time owner setup link' }] : []),
-        ],
-        defaultValue: 'continue',
+/** Interactive local dashboard controls for creating, pairing and resuming a pending initialization. @private dashboard */
+export async function onboardingFromDashboard(context: CommandContext): Promise<{ message: string; projectRoot?: string }> {
+    const drafts = (await listOnboardings(context.env)).filter((draft) => draft.step !== 'done');
+    const frame = { title: 'Project initialization' };
+    const id = await selectOne(context.terminal, {
+        frame, question: 'Start a new initialization or continue a saved one?',
+        choices: [{ value: 'new', label: 'Start a new initialization' }, ...drafts.map((draft) => ({ value: draft.engineId, label: draft.title ?? 'Pending initialization', description: draft.engineId + ' · ' + draft.step }))],
+        defaultValue: 'new',
     });
-    if (choice === 'pair') {
-        const url = await askPairingUrl(terminal);
-        if (url !== CANCELLED) {
-            const result = await client.request<LocalPairing>('app-connect', { link: url }, 90_000);
-            terminal.write(`${result.outcome}\n`);
+    if (id === CANCELLED) return { message: 'Back to the global dashboard.' };
+    const draft = id === 'new' ? await createOnboarding(context.env) : drafts.find((item) => item.engineId === id)!;
+    const project = await pendingOnboarding(draft.engineId, context.env);
+    const client = await onboardingClient(project, context.env);
+    const app = await client.request<{ hostname?: string; owner?: string } | undefined>('app-status');
+    if (app && !app.hostname) {
+        const url = await inputLine(context.terminal, { frame, question: 'Paste the App pairing URL, or leave it empty to continue locally.', optional: true });
+        if (url === CANCELLED) return { message: 'Initialization saved (' + draft.engineId + ').' };
+        if (url.trim()) {
+            const outcome = await client.request<AppPairingOutcome>('app-link', { link: url.trim() }, 90_000);
+            if (outcome.outcome === 'refused') return { message: outcome.message + ' Initialization saved (' + draft.engineId + ').' };
         }
-    } else if (choice === 'owner') {
-        const result = await client.request<import('../../app/connection.js').SetupLinkOutcome>('app-setup-link');
-        if (result.kind === 'issued') {
-            await selectOne(terminal, {
-                frame: { title: 'One-time owner setup link' },
-                question: `Open this URL on the device that should hold the owner passkey:\n${result.url}`,
-                choices: [{ value: 'done', label: 'Close' }],
-                defaultValue: 'done',
-            });
-        } else terminal.write(`${result.kind === 'not-ready' ? result.missing : 'This engine already has an owner.'}\n`);
-    } else if (choice === 'continue') await attendOnboarding(terminal, client);
+    }
+    const choice = await selectOne(context.terminal, {
+        frame, question: 'How do you want to continue?',
+        choices: [{ value: 'local', label: 'Continue in this dashboard' }, { value: 'app', label: 'Get the owner setup link for App' }, { value: 'later', label: 'Continue later' }],
+        defaultValue: 'local',
+    });
+    if (choice === 'app') {
+        try {
+            await ownerAccess({ ...context, options: { ...context.options, wait: false } }, project, false);
+        } catch (error) {
+            context.terminal.write(errorMessage(error) + '\n');
+        }
+        await inputLine(context.terminal, { frame, question: 'Press Enter to return to the global dashboard.', optional: true });
+    } else if (choice === 'local') {
+        const root = await interact(context, project, client);
+        if (root) return { message: basename(root) + ' was created and its agenda is running.', projectRoot: root };
+    }
+    return { message: 'Initialization saved (' + draft.engineId + ').' };
 }

@@ -97,13 +97,6 @@ export type InitResult = {
     readonly synchronization?: boolean;
 };
 
-/** Engine-owned mode of the same setup wizard, with an explicit publication boundary. @private project onboarding */
-export type PendingInit = {
-    readonly projectsHome: string;
-    readonly prepareDestination: (target: string) => Promise<string>;
-    readonly signIn: NonNullable<Parameters<typeof attendHarnessSignIn>[1]['deviceSignIn']>;
-};
-
 /**
  * Raised when the user abandons the wizard (Ctrl+C) before the final confirmation: the in-memory draft is discarded
  * and nothing is applied to the destination.
@@ -313,7 +306,7 @@ async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Prom
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; pending?: PendingInit; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'> } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string } } = {}): Promise<InitResult> {
     const { terminal } = context;
     const { embeddedHarness } = options;
     const interactive = terminal.interactive;
@@ -342,7 +335,7 @@ export async function initializeProject(context: CommandContext, options: { proj
 
     const base = resolve(context.cwd, options.projectRoot ?? option<string>(context, 'path') ?? '.');
     const explicitDestination = !options.homeOnly && Boolean(options.projectRoot || option<string>(context, 'subfolder') || context.explicit.has('path'));
-    const flaggedIntent = await intentFromFlags(context);
+    const flaggedIntent: IntentInput | undefined = options.prepared ? { segments: options.prepared.segments, source: 'draft' } : await intentFromFlags(context);
     const selfUpdate = option<string>(context, 'self-update');
     // Checked in the background while the user describes the project (bounded, best-effort).
     const updateCheck: Promise<UpdateCheck | undefined> =
@@ -482,12 +475,12 @@ export async function initializeProject(context: CommandContext, options: { proj
             for (;;) {
                 if ((!explicitDestination && interactive) || options.homeOnly) {
                     const user = intendedUser(context.env);
-                    const sharedRoot = options.pending?.projectsHome ?? sharedProjectsRoot(context.env);
+                    const sharedRoot = sharedProjectsRoot(context.env);
                     if (options.homeOnly && user.problem) throw new PtbkError('The shared projects folder cannot be determined.', { kind: 'setup', reason: user.problem, effect: 'Nothing was created.', next: ['Run `ptbk init` in the intended folder instead.'] });
                     if (user.problem) notes.push(`${user.problem} The shared projects folder is not offered; choose the destination explicitly.`);
                     const initializedHere = await pathExists(projectAt(base).configPath);
                     // The global dashboard's New project keeps this step visible but limited to the shared projects home.
-                    const destination = !interactive || options.pending
+                    const destination = !interactive
                         ? ('shared' as const)
                         : answered(
                               await selectOne(terminal, {
@@ -506,8 +499,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                                   escapeLabel: 'Esc back',
                               }),
                           );
-                    if (interactive && !options.pending) shown.add('destination');
-                    if (options.pending) steps.set('destination', false);
+                    if (interactive) shown.add('destination');
                     state.destinationKind = destination;
                     if (destination === 'shared') {
                         // A provisional free child: the folder name is proposed from the brief's meaning after the harness
@@ -794,7 +786,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         // 8. Optional Wallet setup, default No; an existing vault is never recreated. Its words and an optional import
         // selection stay in this draft's memory; the Wallet is created only after the final confirmation.
         wallet: async () => {
-            if (!interactive || options.pending || (await pathExists(join(projectAt(state.root).runtime.root, 'encryption', 'project.json')))) {
+            if (!interactive || (await pathExists(join(projectAt(state.root).runtime.root, 'encryption', 'project.json')))) {
                 discardWalletDraft();
                 state.wallet = false;
                 steps.set('wallet', false);
@@ -973,7 +965,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                 if (choice === 'title') state.title = edited.replace(/\s+/g, ' ').trim();
                 else {
                     const target = join(dirname(state.root), edited.trim());
-                    if ((await pathExists(target)) && (options.pending || !((await isDirectory(target)) && (await isFreshDirectory(target))))) {
+                    if ((await pathExists(target)) && !((await isDirectory(target)) && (await isFreshDirectory(target)))) {
                         say(style.warning(`${target} already exists and is not empty; choose another name.`));
                         continue;
                     }
@@ -1120,6 +1112,10 @@ export async function initializeProject(context: CommandContext, options: { proj
      */
     const nameProject = async (): Promise<void> => {
         if (!state.newProject) return;
+        if (options.prepared) {
+            state.title = options.prepared.title;
+            return;
+        }
         const brief = (state.intent?.segments ?? []).map((segment) => (segment.type === 'text' ? segment.text : `[${segment.kind}: ${segment.name}]`)).join('');
         const namer = (state.selected ?? []).find((id) => state.checks.get(id)?.ok);
         const key = `${namer ?? ''}\u0000${brief}`;
@@ -1169,7 +1165,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         const tracesSaved = ['traces.isCommitted', 'traces.isVideoIgnored', 'traces.isVideoRecordingEnabled'].every((key) => typeof getPath(raw, key) === 'boolean');
         const tracesFlagged = flag(context, 'commit-traces') !== undefined && flag(context, 'ignore-trace-videos') !== undefined && flag(context, 'record-video') !== undefined;
         steps.set('traces', !(tracesSaved || tracesFlagged));
-        steps.set('wallet', !options.pending && !(await pathExists(join(destination.runtime.root, 'encryption', 'project.json'))));
+        steps.set('wallet', !(await pathExists(join(destination.runtime.root, 'encryption', 'project.json'))));
         steps.set('sync', !(typeof raw.isAutoSync === 'boolean' || flag(context, 'auto-sync') !== undefined || flag(context, 'auto-pull') || flag(context, 'auto-push')));
     };
 
@@ -1239,7 +1235,6 @@ export async function initializeProject(context: CommandContext, options: { proj
                     ],
                     say,
                     onPrompt: () => shown.add('harnesses'),
-                    deviceSignIn: options.pending?.signIn,
                 });
                 if (signIn.exit === CANCELLED) answered(CANCELLED);
                 if (signIn.exit === 'remove') {
@@ -1254,8 +1249,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         }
         const context2 = { projectRoot, env: context.env };
         const outdated: Array<{ plugin: HarnessPlugin; inspection: HarnessInspection; current?: string; latest?: string }> = [];
-        const updateDecision = option<string>(context, 'update-harnesses');
-        const canDecideUpdates = updateDecision === 'update' || (interactive && updateDecision === undefined);
+        const canDecideUpdates = interactive || option<string>(context, 'update-harnesses') === 'update';
         for (const id of canDecideUpdates ? selected : []) {
             const inspection = state.inspections.get(id);
             if (!inspection?.installed) continue;
@@ -1331,7 +1325,7 @@ export async function initializeProject(context: CommandContext, options: { proj
 
     // ── Apply technical setup (no more questions) ────────────────────────────
     if (interactive && terminal.pretty) terminal.write(`\n${style.muted(state.newProject ? 'Creating the project…' : 'Applying the setup…')}\n`);
-    let root = options.pending ? await options.pending.prepareDestination(state.root) : state.root;
+    let root = state.root;
     const fresh = !(await isDirectory(root)) || (await isFreshDirectory(root));
     // Directories this init creates (e.g. the shared projects folder and the new project in it): under sudo they are
     // handed over to the original user afterwards.
@@ -1769,14 +1763,23 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
  * @private command
  */
 export default async function init(context: CommandContext): Promise<number> {
-    if (flag(context, 'prepare-only')) return await (await import('./onboarding.js')).prepareOnboarding(context);
     if (flag(context, 'with-app')) {
-        if (!context.terminal.interactive) throw usageError('Use --prepare-only for noninteractive initialization.', 'init');
-        if ([...context.explicit].some((name) => !['with-app', 'persist', 'terminal-title', 'interactive'].includes(name))) throw usageError('Supply project choices after the initialization starts.', 'init');
-        await (await import('./onboarding.js')).newPairedProject(context);
+        if (!context.terminal.interactive) throw usageError('Use --prepare-only to start the engine without a terminal.', 'init');
+        const allowed = new Set(['with-app', 'interactive', 'terminal-title']);
+        if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('With --with-app, choose the project settings during onboarding.', 'init');
+        const { onboardingFromDashboard } = await import('./onboarding.js');
+        const { message, projectRoot } = await onboardingFromDashboard(context);
+        context.terminal.write(`${message}\n`);
+        if (projectRoot && context.terminal.prompts) await context.terminal.prompts({ kind: 'complete', frame: { title: 'Pending initialization' }, question: 'Initialization result', completion: { root: projectRoot, ready: true, running: true } });
         return EXIT.success;
     }
-    if (['link', 'link-stdin', 'initialization'].some((name) => context.explicit.has(name))) throw usageError('Use --prepare-only to pair an unnamed initialization.', 'init');
+    if (flag(context, 'prepare-only')) {
+        const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'setup-link', 'json', 'persist', 'wait', 'non-interactive', 'interactive', 'raw', 'no-ui', 'terminal-title']);
+        if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('With --prepare-only, project decisions come from onboarding after the engine starts.', 'init');
+        const { prepareOnboarding } = await import('./onboarding.js');
+        return await prepareOnboarding(context);
+    }
+    if (['link', 'link-stdin', 'setup-link', 'json'].some((name) => context.explicit.has(name))) throw usageError('Use these engine setup options with --prepare-only.', 'init');
     validateCombinations(context);
     if (flag(context, 'start') === false && (context.explicit.has('port') || context.explicit.has('server'))) {
         throw usageError('--no-start conflicts with service options (--port, --no-server).', 'init');

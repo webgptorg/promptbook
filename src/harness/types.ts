@@ -130,6 +130,8 @@ export type LoginLocation = 'local' | 'remote';
  * @private harness plugin contract
  */
 export type HarnessLoginMethod = {
+    /** Extracts only the native provider's public device challenge for graphical clients. */
+    readonly deviceChallenge?: (output: string) => { readonly url: string; readonly userCode: string } | undefined;
     /** Stable identifier (`device-code`, `url-code`, `browser`, `callback-forwarding`, `native`). */
     readonly id: string;
     /** Short choice label. */
@@ -146,9 +148,6 @@ export type HarnessLoginMethod = {
      */
     readonly terminal: 'inherit' | 'relay';
 };
-
-/** One transient challenge emitted by a native device login. @private harness adapter */
-export type HarnessDeviceCode = { readonly url: string; readonly userCode: string; readonly expiresAt: string };
 
 /**
  * A classified unsuccessful sign-in, read from the transient output of a relayed native flow.
@@ -359,8 +358,6 @@ export type HarnessPlugin = {
      * method from `loginArgs`, not known to work without a browser on this machine).
      */
     readonly loginMethods?: (context: HarnessContext, location: LoginLocation) => Promise<readonly HarnessLoginMethod[]>;
-    /** Runs the adapter's supported native device login without a TTY. The provider keeps its own credentials. */
-    readonly deviceLogin?: (context: HarnessContext, onCode: (challenge: HarnessDeviceCode) => void) => Promise<'finished' | 'expired' | 'denied' | 'failed'>;
     /** Classifies the transient output of an unsuccessful relayed sign-in (expiry, denial, a disabled method). */
     readonly classifyLogin?: (output: string) => LoginFailure | undefined;
     /** Native self-update arguments when not installed through npm. */

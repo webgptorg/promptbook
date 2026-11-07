@@ -1,120 +1,160 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, readdir } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { EngineApi } from '../dist/app/api/engine-api.js';
 import { loadEngineIdentity } from '../dist/app/identity.js';
-import { ProjectOnboarding } from '../dist/app/onboarding.js';
-import { parseLinkInput } from '../dist/app/registration.js';
+import { parseAppLink, readRegistration, storeRegistration } from '../dist/app/registration.js';
 import { appSettings } from '../dist/app/settings.js';
-import { ensurePrivateDirectory, writePrivateFile } from '../dist/app/files.js';
-import { fakeHarness, git, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
+import { onboardingPage } from '../dist/app/web/onboarding-page.js';
+import { AccessStore } from '../dist/app/web/access.js';
+import { harnessLoginMethods } from '../dist/harness/maintenance.js';
+import { harnessPlugin } from '../dist/harness/registry.js';
+import { readOnboarding, saveOnboarding } from '../dist/onboarding/draft.js';
+import { OnboardingSession } from '../dist/onboarding/session.js';
+import { OnboardingUploads } from '../dist/onboarding/uploads.js';
+import { projectAt } from '../dist/project/workspace.js';
+import { lookupService } from '../dist/service/control.js';
+import { launchDaemon, stopService } from '../dist/service/launcher.js';
+import { fakeHarness, git, temporaryDirectory, waitFor } from './helpers.mjs';
 
-test('a link URL pins the intended App without exposing the code on rejection', () => {
+/** A temporary pending service, outside any project's worktree. */
+async function pending(t, cleanup = []) {
+    const home = await temporaryDirectory(t, 'ptbk onboarding', cleanup);
+    const parent = join(home, '.ptbk-onboarding');
+    const initial = projectAt(join(parent, 'temporary'));
+    await mkdir(initial.root, { recursive: true, mode: 0o700 });
+    const identity = await loadEngineIdentity(initial.runtime.app, { create: true });
+    const project = projectAt(join(parent, identity.engineId));
+    await rename(initial.root, project.root);
+    const draft = { version: 1, engineId: identity.engineId, step: 'intent', promptId: randomUUID(), deferred: false };
+    await saveOnboarding(project, draft);
+    return { home, project, draft, identity };
+}
+
+/** Constructs an answer to the exact currently displayed prompt. */
+function answer(state, value) {
+    return { promptId: state.prompt.id, action: 'answer', answer: value };
+}
+
+test('an HTTPS pairing URL supplies the dashboard and its origin survives a fresh process', async (t) => {
+    const { project, identity } = await pending(t);
     const code = 'a'.repeat(26);
-    assert.deepEqual(parseLinkInput(`https://staging.example:8443/link#${code}`), { code, origin: 'https://staging.example:8443' });
-    assert.throws(() => appSettings({ PTBK_DASHBOARD_URL: 'https://app.example' }, 'https://staging.example:8443'), /staging\.example.*app\.example/);
-    for (const url of [`http://staging.example/link#${code}`, `https://user@staging.example/link#${code}`, `https://staging.example/link?x=#${code}`]) {
-        assert.throws(() => parseLinkInput(url), (error) => !error.message.includes(code));
+    const origin = 'https://dashboard.example.test:444';
+    const link = origin + '/link#' + code;
+    assert.deepEqual(parseAppLink(link, {}).linkCode, code);
+    assert.equal(parseAppLink(link, {}).settings.dashboardUrl, origin);
+    assert.throws(() => parseAppLink(link, { PTBK_DASHBOARD_URL: 'https://another.example.test' }), /different origin/);
+    for (const invalid of [link.replace('https:', 'http:'), link.replace('/link', '/wrong'), link.replace('/link#', '/link?token=abc#'), link.replace('dashboard.', 'user@dashboard.')]) {
+        assert.throws(() => parseAppLink(invalid, {}), /complete HTTPS pairing URL/);
     }
+    const engineDomain = 'engines.example.test';
+    await storeRegistration(project.runtime.app, { v: 1, engineId: identity.engineId, engineDomain, hostname: identity.engineId + '.' + engineDomain,
+        dashboardUrl: origin, relays: ['relay.example.test'], registeredAt: new Date().toISOString() });
+    assert.equal((await readRegistration(project.runtime.app, identity, appSettings({}))).dashboardUrl, origin);
 });
 
-test('App answers are authorized, exclusive and durably replayed with uploaded bytes', async (t) => {
-    const directory = await temporaryDirectory(t, 'ptbk onboarding API');
-    const onboarding = await ProjectOnboarding.open(directory);
-    const prompt = { kind: 'text', frame: { title: 'Setup' }, question: 'What are you working on?', attachments: true };
-    const displayed = onboarding.present(prompt);
-    const engine = new EngineApi({
-        onboarding, projectRoot: directory, stateDirectory: directory, engineId: () => undefined,
-        hostname: () => undefined, dashboardUrl: () => undefined, security: () => undefined, ui: () => ({}),
-    });
-    const owner = { memberId: 'owner', permissions: ['files.read', 'files.write', 'settings.manage'] };
-    const call = (route, options, actor = owner) => engine.handle(new Request(`https://engine.example/api/v1${route}`, options), actor, {});
-    const forbidden = await call('/onboarding', {}, { ...owner, permissions: [] });
-    assert.equal(forbidden.status, 403);
-    const state = await (await call('/onboarding')).json();
-    assert.equal(state.prompt.kind, 'text');
-    const form = new FormData();
-    form.set('file', new File(['file payload'], 'note.txt'));
-    form.set('name', 'note.txt');
-    form.set('purpose', 'upload');
-    const upload = await call('/files', { method: 'POST', body: form });
-    assert.equal(upload.status, 201, await upload.clone().text());
-    const { id } = await upload.json();
-    const body = JSON.stringify({ promptId: state.prompt.id, action: 'answer', answer: { kind: 'text', text: 'A private brief', fileIds: [id] } });
-    const post = () => call('/onboarding/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
-    const results = await Promise.all([post(), post()]);
-    assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
-    const answer = await displayed;
-    assert.equal(await readFile(answer.value[1].path, 'utf8'), 'file payload');
-    await onboarding.defer();
-    const restored = await ProjectOnboarding.open(directory);
-    assert.equal(restored.state().deferred, true);
-    assert.deepEqual(await restored.present(prompt), answer);
+test('onboarding API keeps uploads and answers private, rejects stale clients, and resumes the next step from disk', async (t) => {
+    const { project, draft } = await pending(t);
+    const uploads = new OnboardingUploads(join(project.root, 'uploads'));
+    const session = new OnboardingSession(project, draft, uploads, {}, async () => assert.fail('not confirmed'));
+    const access = await AccessStore.open(project.runtime.app);
+    const engine = new EngineApi({ onboarding: session, projectRoot: project.root, stateDirectory: project.runtime.app, engineId: () => draft.engineId,
+        hostname: () => draft.engineId + '.engines.example.test', dashboardUrl: () => null, security: () => undefined, ui: () => ({}) });
+    const owner = { memberId: 'owner', role: 'owner', permissions: ['settings.manage', 'files.read', 'files.write'] };
+    const outsider = { memberId: 'guest', role: 'member', permissions: ['files.read', 'files.write'] };
+    const call = (route, init, actor = owner) => engine.handle(new Request('https://engine.example.test/api/v1' + route, init), actor, access);
+    const before = await (await call('/onboarding')).json();
+    assert.equal(before.prompt.kind, 'text');
+    const body = new FormData();
+    body.append('file', new Blob(['example attachment'], { type: 'text/plain' }), 'brief.txt');
+    body.append('name', 'brief.txt');
+    body.append('purpose', 'upload');
+    const upload = { method: 'POST', body };
+    assert.equal((await call('/files', upload, outsider)).status, 403);
+    const uploaded = await call('/files', upload);
+    assert.equal(uploaded.status, 201, await uploaded.clone().text());
+    const file = await uploaded.json();
+    const downloaded = await call('/files/' + file.id + '/content');
+    assert.equal(await downloaded.text(), 'example attachment');
+    assert.equal(downloaded.headers.get('content-disposition'), 'attachment');
+    const response = answer(before, { kind: 'text', text: 'Keep this verbatim.', fileIds: [file.id] });
+    const post = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(response) };
+    const competing = await Promise.all([call('/onboarding/answer', post), call('/onboarding/answer', post)]);
+    assert.deepEqual(competing.map((result) => result.status).sort(), [200, 409]);
+    assert.equal((await call('/files/' + file.id, { method: 'DELETE' })).status, 403);
+    await call('/onboarding/defer', { method: 'POST' });
+    const saved = await readOnboarding(project);
+    const reattached = new OnboardingSession(project, saved, uploads, {}, async () => assert.fail('not confirmed'));
+    assert.equal(reattached.state().deferred, true);
+    assert.equal(reattached.state().prompt.kind, 'choice');
+    assert.deepEqual(saved.fileIds, [file.id]);
+    assert.equal(saved.intent, 'Keep this verbatim.');
+    await reattached.answer({ promptId: reattached.state().prompt.id, action: 'back' });
+    assert.equal(reattached.state().prompt.initial, saved.intent);
+    assert.equal(reattached.state().deferred, false);
 });
 
-test('the detached CLI continues after restart and starts exactly one project with the original App identity', async (t) => {
-    const beforeRemoval = [];
-    const root = await temporaryDirectory(t, 'ptbk pending launch', beforeRemoval);
+test('the daemon waits without a project, restores a draft, then publishes one agenda under the same engine identity', { timeout: 90_000 }, async (t) => {
+    const cleanup = [];
+    const { home, project, identity } = await pending(t, cleanup);
+    const { env } = await fakeHarness(t, home);
+    const root = join(home, 'project-result');
+    const finalProject = projectAt(root);
+    cleanup.push(() => stopService(project, { force: true }), () => stopService(finalProject, { force: true }));
+    const run = () => launchDaemon(project, { env, cli: {}, persistent: false, onboarding: true });
+    const first = await run();
+    const client = first.lookup.client;
+    const state = async (target = client) => (await target.request('onboarding-state')).onboarding;
+    await assert.rejects(stat(root), { code: 'ENOENT' });
+    assert.equal((await client.request('app-status')).engineId, identity.engineId);
+    const filePath = join(home, 'brief.txt');
+    await writeFile(filePath, 'A private attachment.');
+    const uploaded = await client.request('onboarding-upload', { path: filePath });
+    await client.request('onboarding-answer', answer(await state(), { kind: 'text', text: 'Create a newsletter.', fileIds: [uploaded.id] }));
+    await client.request('onboarding-defer');
+    await client.request('stop');
+    await waitFor(async () => (await lookupService(project)).state === 'stopped', { timeoutMs: 10_000 });
+    const second = (await run()).lookup.client;
+    assert.equal((await state(second)).deferred, true);
+    await second.request('onboarding-answer', answer(await state(second), { kind: 'choice', choiceIds: ['openai-codex'] }));
+    await waitFor(async () => (await state(second)).prompt?.title === 'Project name', { timeoutMs: 15_000 });
+    const name = await state(second);
+    await second.request('onboarding-answer', answer(name, { kind: 'text', text: 'Project result', fileIds: [] }));
+    await second.request('onboarding-answer', answer(await state(second), { kind: 'text', text: 'project-result', fileIds: [] }));
+    await assert.rejects(stat(root), { code: 'ENOENT' });
+    await second.request('onboarding-answer', answer(await state(second), { kind: 'confirm', confirmed: true }));
+    await waitFor(async () => {
+        const saved = await readOnboarding(project);
+        if (saved.error) throw new Error(saved.error);
+        return saved.step === 'done';
+    }, { timeoutMs: 25_000 });
+    const linked = await loadEngineIdentity(finalProject.runtime.app, { create: false });
+    assert.equal(linked.engineId, identity.engineId);
+    assert.equal((await lookupService(finalProject)).state, 'running');
+    assert.equal((await readFile(join(root, 'specs', '_initial.md'), 'utf8')).trim(), 'Create a newsletter.\n\n[brief.txt](_initial/brief.txt)');
+    assert.equal(await readFile(join(root, 'specs', '_initial', 'brief.txt'), 'utf8'), 'A private attachment.');
+    const firstCommit = (await git(root, ['rev-list', '--max-parents=0', 'HEAD'])).trim();
+    const initialTree = await git(root, ['ls-tree', '-r', '--name-only', firstCommit]);
+    assert.equal(initialTree.split('\n').filter((path) => /^tasks\/[^/]+\.book$/.test(path)).length, 1);
+    assert.equal((await readdir(home)).filter((name) => name.startsWith('project-result')).length, 1);
+});
+
+test('the Codex adapter presents the native device challenge without exposing other CLI output', async (t) => {
+    const root = await temporaryDirectory(t);
     const { env } = await fakeHarness(t, root);
-    const id = 'test-setup';
-    const workspace = join(env.PTBK_HOME, 'initializations', id);
-    const projectsHome = join(root, 'projects');
-    await ensurePrivateDirectory(workspace);
-    await mkdir(projectsHome);
-    await writePrivateFile(workspace, 'pending-project.json', JSON.stringify({ id, projectsHome }));
-    const run = (args, input) => ptbk(args, { cwd: root, env, input, timeoutMs: 35_000 });
-    const prepare = () => run(['init', '--prepare-only', '--initialization', id, '--no-persist', '--json']);
-    const stop = (path) => run(['stop', '--force', '--path', path, '--raw']);
-    beforeRemoval.push(() => stop(workspace));
-    const show = async () => {
-        const result = await run(['onboarding', id, '--json']);
-        if (result.code !== 0) return undefined;
-        return JSON.parse(result.stdout);
-    };
-    const next = (id) => waitFor(async () => {
-        const state = await show();
-        return state && (state.status === 'completed' || state.prompt?.id && state.prompt.id !== id) ? state : undefined;
-    }, { timeoutMs: 25_000, message: 'the next onboarding prompt' });
-    const answer = async (prompt, payload) => {
-        const result = await run(['onboarding', id, '--answer-stdin'], JSON.stringify({ promptId: prompt.id, action: 'answer', answer: payload }));
-        assert.equal(result.code, 0, result.output);
-    };
+    const [method] = await harnessLoginMethods(harnessPlugin('openai-codex'), { env, projectRoot: root }, 'remote');
+    const url = 'https://auth.openai.com/codex/device';
+    const native = 'Open this link in your browser\n' + url + '\n2. Enter this one-time code (expires in 15 minutes)\n  \u001b[94mFAKE-C0DE\u001b[0m\nOther untrusted CLI output';
+    assert.deepEqual(method.deviceChallenge(native), { url, userCode: 'FAKE-C0DE' });
+    assert.equal(method.deviceChallenge(native.replace(url, 'https://example.test/')), undefined);
+});
 
-    const started = await prepare();
-    assert.equal(started.code, 0, started.output);
-    assert.deepEqual(await readdir(projectsHome), []);
-    const identity = await loadEngineIdentity(join(workspace, '.ptbk', 'app'), { create: false });
-    assert.ok(identity);
-    let state = await next();
-    assert.equal(state.prompt.kind, 'text');
-    await answer(state.prompt, { kind: 'text', text: 'Prepare a project for restoring onboarding.' });
-    state = await next(state.prompt.id);
-    assert.equal(state.prompt.kind, 'choice');
-    const selected = state.prompt.question;
-    const stopped = await stop(workspace);
-    assert.equal(stopped.code, 0, stopped.output);
-    assert.equal((await prepare()).code, 0);
-    state = await next();
-    assert.equal(state.prompt.question, selected);
-    for (let i = 0; i < 20 && state.status !== 'completed'; i++) {
-        const prompt = state.prompt;
-        assert.ok(prompt, JSON.stringify(state));
-        assert.notEqual(prompt.title, 'Project setup needs attention', prompt.hint);
-        assert.equal(prompt.kind, 'choice', JSON.stringify(prompt));
-        await answer(prompt, { kind: 'choice', choiceIds: prompt.initial });
-        state = await next(prompt.id);
-    }
-    assert.equal(state.status, 'completed');
-    const { target } = JSON.parse(await readFile(join(workspace, 'pending-project.json'), 'utf8'));
-    assert.ok(target);
-    beforeRemoval.push(() => stop(target));
-    const targetIdentity = await waitFor(async () => await loadEngineIdentity(join(target, '.ptbk', 'app'), { create: false }), { message: 'original App identity at final project' });
-    assert.equal(targetIdentity.engineId, identity.engineId);
-    assert.match(await readFile(join(target, 'specs', '_initial.md'), 'utf8'), /restoring onboarding/);
-    assert.equal((await readdir(projectsHome)).filter((name) => !name.startsWith('.')).length, 1);
-    const files = await git(target, ['diff-tree', '--root', '--no-commit-id', '--name-only', '-r', 'HEAD']);
-    const commits = await git(target, ['log', '--format=%s']);
-    assert.equal(commits.split('\n').filter((line) => line === 'ptbk: Initialize project').length, 1);
-    assert.ok(files.length > 0);
+test('the engine ships a same-origin onboarding script for hosts without a verified App UI', async () => {
+    const page = await onboardingPage(new Request('https://engine.example.test/'));
+    assert.match(await page.text(), /<script type="module" src="\/_ptbk\/onboarding\.js"><\/script>/);
+    const script = await onboardingPage(new Request('https://engine.example.test/_ptbk/onboarding.js'));
+    assert.match(script.headers.get('content-type'), /javascript/);
+    assert.doesNotMatch(await script.text(), /innerHTML|eval\(/);
 });

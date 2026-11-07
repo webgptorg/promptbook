@@ -133,10 +133,9 @@ Before removing a server, stop work and verify a private backup. The Azure VM's 
 
 Repository checks cover template structure and installer input handling; the server-deployment workflow exercises unattended preparation, reuse on retry, the incomplete no-terminal outcome, the terminal handoff to init as the engine user and ordinary project lifecycle on an Ubuntu runner. A successful runner test does not establish subscription availability, a live Azure/DigitalOcean/AWS deployment, provider authentication, or a real reboot test. Validate those in your own deployment.
 
+## Start and pair an engine from the App on Ubuntu
 
-### Start an Ubuntu project setup from the App
-
-The App already substitutes `{linkUrl}` in its install command templates. For an engine release that supports detached initialization, configure the Ubuntu install entry with a pinned script URL, script digest and published engine version.
+The App replaces `{linkUrl}` with the one-time pairing URL. Pin the installer to a release commit and supply the matching published `ptbk` version and script digest.
 
 ```sh
 curl -fsSLo promptbook-install.sh '<installer URL pinned to the release commit>' \
@@ -144,4 +143,4 @@ curl -fsSLo promptbook-install.sh '<installer URL pinned to the release commit>'
   && printf '%s\n' '{linkUrl}' | sudo bash promptbook-install.sh --version '<engine version>' --prepare-only --link-stdin
 ```
 
-The command starts initialization as the dedicated `promptbook` user. It shows the separate owner setup link on an attended SSH terminal when the engine address is ready. For an unattended run, obtain it afterwards with `sudo -iu promptbook ptbk connect --initialization server --setup-link`.
+The bootstrap starts setup as the dedicated `promptbook` user and prints the owner setup link outside the installation log. See [project initialization through Promptbook App](../specs/app/onboarding.md#start-and-pair).

@@ -1,4 +1,3 @@
-import { readPendingProject } from '../../app/pending-project.js';
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { requireEngineUpdate } from '../compatibility.js';
 import { clockTime } from '../../common/time.js';
@@ -149,15 +148,6 @@ export default async function start(context: CommandContext): Promise<number> {
     validateCombinations(context);
     const project = await selectedProject(context);
     if (flag(context, 'resume-service')) return await resumeService(context, project);
-    const pending = await readPendingProject(project, context.env);
-    if (pending) {
-        const { launchOnboarding, openPendingOnboarding } = await import('./onboarding.js');
-        const { client } = await launchOnboarding(context, undefined, pending.id);
-        if (client && wantsDashboardHandoff(context)) await openPendingOnboarding(context.terminal, client);
-        else context.terminal.write(`Project setup ${pending.id} is available.
-`);
-        return EXIT.success;
-    }
     // An explicit start from the global dashboard keeps the project's recorded launch overrides (e.g. --no-server).
     const saved = flag(context, 'saved-launch') ? await readLaunchMetadata(project) : undefined;
     const overrides = saved ? { ...saved.cli } : settingOverrides(context);

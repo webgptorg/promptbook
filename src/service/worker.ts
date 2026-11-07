@@ -1,7 +1,6 @@
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { errorMessage } from '../common/errors.js';
-import { readPendingProject } from '../app/pending-project.js';
 import { projectAt } from '../project/workspace.js';
 import { recordDiagnostic } from '../engine/traces.js';
 import { recordHostTermination } from '../engine/operator-intent.js';
@@ -44,13 +43,12 @@ async function main(): Promise<number> {
     if (!launch) throw new Error(`No launch metadata in ${project.runtime.service}; start the service with \`ptbk start\`.`);
     const env = restoreDiscoveryEnvironment(launch.env, launch.nodePath);
     for (const [key, value] of Object.entries(env)) if (value !== undefined) process.env[key] = value;
+    if (launch.onboarding) {
+        const { runOnboardingWorker } = await import('../onboarding/worker.js');
+        return await runOnboardingWorker(project, launch);
+    }
     const eventLog = join(project.runtime.logs, 'service.log');
     mkdirSync(project.runtime.logs, { recursive: true });
-    const pending = await readPendingProject(project, process.env);
-    if (pending) {
-        const { runOnboardingWorker } = await import('./onboarding-worker.js');
-        return await runOnboardingWorker(pending, launch, process.env, (text, level) => appendServiceLog(eventLog, `${new Date().toISOString()} ${level.toUpperCase()} ${text}\n`));
-    }
     const host = new ServiceHost({
         project,
         mode: 'daemon',

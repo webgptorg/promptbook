@@ -7,7 +7,7 @@ import { selectedProject } from '../common.js';
 import { flag, type CommandContext } from '../context.js';
 import { attachDashboard } from '../dashboard-handoff.js';
 import { newProjectFromGlobalDashboard } from './init.js';
-import { newPairedProject, openPendingOnboarding } from './onboarding.js';
+import { onboardingFromDashboard } from './onboarding.js';
 import { delegateToEngine } from '../engine-delegation.js';
 import { controlSource } from '../sources.js';
 
@@ -29,10 +29,6 @@ async function globalDashboard(context: CommandContext): Promise<number> {
             const lookup = await lookupService(project);
             if (lookup.state !== 'running') return `${row.projectName} is no longer running${lookup.state === 'unreachable' ? ` (${lookup.reason})` : ''}; nothing was started.`;
             if (lookup.record.instanceId !== row.engine?.instanceId) return `${row.projectName} is now owned by another engine instance; press Enter again to attach to it.`;
-            if (row.initializationId && lookup.engine.compatible) {
-                await openPendingOnboarding(context.terminal, lookup.client);
-                return undefined;
-            }
             if (!lookup.engine.compatible) {
                 // Another engine version renders its own dashboard, so the view keeps that engine's version and shape.
                 await delegateToEngine(project, lookup, ['dashboard', '--path', project.root], context.cwd, context.env);
@@ -43,7 +39,7 @@ async function globalDashboard(context: CommandContext): Promise<number> {
         },
         context.env,
         // New project: the same initializer as `ptbk init`, limited to a new child of the shared projects home.
-        { create: async () => await newProjectFromGlobalDashboard(context), createPaired: async () => await newPairedProject(context) },
+        { create: async () => await newProjectFromGlobalDashboard(context), onboarding: async () => await onboardingFromDashboard(context) },
     );
     return EXIT.success;
 }

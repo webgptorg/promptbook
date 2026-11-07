@@ -15,7 +15,6 @@ function localDashboardUrl(value) {
 function terminalArguments(kind, projectRoot, page) {
     if (kind === 'global') return ['dashboard', '--global'];
     if (kind === 'setup') return ['init', '--with-app'];
-    if (kind === 'onboarding' && typeof projectRoot === 'string' && /^[a-z0-9][a-z0-9-]{0,63}$/.test(projectRoot)) return ['onboarding', projectRoot];
     if (kind === 'init' && projectRoot === undefined) return ['init', '--no-dashboard'];
     if (typeof projectRoot !== 'string' || !projectRoot || projectRoot.includes('\0')) throw new Error('Select a project first.');
     if (kind === 'init') return ['init', '--path', projectRoot, '--no-dashboard'];

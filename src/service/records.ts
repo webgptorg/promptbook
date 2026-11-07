@@ -70,6 +70,8 @@ export type LaunchMetadata = {
     readonly env: Readonly<Record<string, string>>;
     /** Automatic restart after crashes/reboots. */
     readonly persistent: boolean;
+    /** Pending initialization service without an Agenda. */
+    readonly onboarding?: true;
     /** Set by an intentional stop: suppresses the supervisor's respawn, and the next OS startup restores it paused. */
     readonly intentionallyStopped: boolean;
     /** Correlates the launched worker. */
@@ -191,10 +193,6 @@ const PRESERVED_VARIABLES = [
     'CODING_AGENT_GIT_NAME',
     'CODING_AGENT_GIT_EMAIL',
     'PTBK_HOME',
-    'PTBK_DATA_DIR',
-    'PTBK_ENGINE_DOMAIN',
-    'PTBK_MODE',
-    'PTBK_LOGIN_LOCATION',
     'CHROME_PATH',
 ];
 

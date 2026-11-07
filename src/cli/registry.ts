@@ -123,13 +123,14 @@ After successful setup the agenda starts automatically as a background service (
 Without a terminal (or with --non-interactive), supply decisions with flags: missing decisions fail before any change, and blank intent creates a skeleton whose first task is a readiness review.`,
         optionGroups: [
             {
-                title: 'Start setup before a project exists',
+                title: 'Engine before project',
                 options: [
-                    { name: 'prepare-only', type: 'boolean', description: 'Start a detached initialization in the shared projects home, without choosing the project name yet.' },
-                    { name: 'with-app', type: 'boolean', description: 'Interactively start a detached initialization and optionally pair it with the App.' },
-                    { name: 'initialization', type: 'string', valueName: '<id>', description: 'Reuse a named initialization on a retry of --prepare-only.' },
-                    { name: 'link', type: 'string', valueName: '<url>', description: 'Pair the initialization with the App using this one-time URL.' },
-                    { name: 'link-stdin', type: 'boolean', description: 'Read the pairing URL from stdin instead of process arguments.' },
+                    { name: 'with-app', type: 'boolean', description: 'Interactively start, pair or resume a pending initialization.' },
+                    { name: 'prepare-only', type: 'boolean', description: 'Start a pending initialization service before choosing a project folder or supplying its brief.' },
+                    { name: 'link', type: 'string', valueName: '<url>', description: 'With --prepare-only, pair with the App using its one-time pairing URL.' },
+                    { name: 'link-stdin', type: 'boolean', description: 'With --prepare-only, read the pairing URL from standard input.' },
+                    { name: 'setup-link', type: 'boolean', description: 'With pairing, wait for the engine address and print the owner setup link.' },
+                    { name: 'wait', type: 'boolean', negatable: true, negatedOnly: true, description: 'With --setup-link, report readiness without waiting.' },
                     JSON_OPTION,
                 ],
             },
@@ -201,20 +202,6 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
             { command: 'ptbk dashboard', description: 'Afterwards (or after skipping the countdown): watch and control the running agenda.' },
         ],
         run: lazy(() => import('./commands/init.js')),
-    },
-    {
-        name: 'onboarding',
-        category: 'Start here',
-        summary: 'Continue a running project initialization.',
-        description: 'Attach to the initialization service and answer the same prompts as the App. Closing the client keeps the draft and the engine running.',
-        arguments: [{ name: 'id', description: 'ID from ptbk init --prepare-only or the global Dashboard.', required: true }],
-        optionGroups: [{ title: 'Automation', options: [
-            { name: 'answer-stdin', type: 'boolean', description: 'Submit one App-format answer from stdin and print the next state as JSON.' },
-            { name: 'defer', type: 'boolean', description: 'Dismiss setup and keep acknowledged answers.' },
-            JSON_OPTION,
-        ] }, PRESENTATION_OPTIONS],
-        examples: [{ command: 'ptbk onboarding <id>', description: 'Continue this initialization in the terminal.' }],
-        run: lazy(() => import('./commands/onboarding.js')),
     },
     {
         name: 'start',
@@ -364,20 +351,40 @@ Shortcuts on the home screen open the same pages or call the same operations: A 
         run: lazy(() => import('./commands/status.js')),
     },
     {
+        name: 'onboarding',
+        category: 'Start here',
+        summary: 'Continue or control a pending initialization.',
+        description: 'The engine keeps the setup across client disconnects. Select its ID to continue in this terminal, or read and submit the same prompts as App in noninteractive mode.',
+        optionGroups: [
+            { title: 'Pending initialization', options: [
+                { name: 'id', type: 'string', valueName: '<engine-id>', description: 'Select the pending engine. Without it, list pending initializations.' },
+                { name: 'answer', type: 'string', valueName: '<json>', description: 'Submit a reply carrying the current prompt ID.' },
+                { name: 'answer-file', type: 'string', valueName: '<path|->', description: 'Read the JSON reply from a file or stdin.' },
+                { name: 'attach', type: 'string', valueName: '<path>', description: 'Upload a local file and print its ID for the brief reply.' },
+                { name: 'defer', type: 'boolean', description: 'Defer the wizard and preserve all accepted answers.' },
+                { name: 'stop', type: 'boolean', description: 'Stop the pending engine and keep its setup.' },
+                { name: 'resume-service', type: 'boolean', description: 'Restore the pending service at host login.', hidden: true },
+                JSON_OPTION,
+            ] },
+            PRESENTATION_OPTIONS,
+        ],
+        examples: [
+            { command: 'ptbk onboarding --id <engine-id>', description: 'Continue in the terminal.' },
+            { command: 'ptbk onboarding --id <engine-id> --json', description: 'Read the current prompt as JSON.' },
+        ],
+        run: lazy(() => import('./commands/onboarding.js')),
+    },
+    {
         name: 'connect',
         category: 'Maintain',
         summary: 'Link the project to the Promptbook App, or show its App connection.',
-        description: `Links this project's engine to the Promptbook App (app.ptbk.io) as one App engine. Get a one-time link code in the App, then run \`ptbk connect --link <code>\` in the project (PTBK_LINK_CODE is accepted instead of the option for automation). The engine creates its own identity in the ignored .ptbk/app/ when missing, registers it with a signed request and stores the link; a running engine starts its heartbeat and relay tunnels at once, a stopped one when it starts. The link code is sent once and never stored or printed. Compare the printed fingerprint with the one the App shows.
+        description: `Links this project's engine to the Promptbook App (app.ptbk.io) as one App engine. Get a one-time link code in the App, then run \`ptbk connect --link <url>\` in the project (PTBK_LINK_CODE is accepted instead of the option for automation). The engine creates its own identity in the ignored .ptbk/app/ when missing, registers it with a signed request and stores the link; a running engine starts its heartbeat and relay tunnels at once, a stopped one when it starts. The link code is sent once and never stored or printed. Compare the printed fingerprint with the one the App shows.
 
 Without a link code it prints the App connection once: state, engine ID and fingerprint, address, relays and the last heartbeat, including exactly what the heartbeat tells the App. An already linked project makes no network call. PTBK_DASHBOARD_URL selects another App origin (development); HTTPS_PROXY/NO_PROXY and NODE_EXTRA_CA_CERTS apply.
 
 Browsers open the engine at its own address (https://<engine ID>.<engine domain>/), where TLS ends on this computer and members sign in with passkeys. The first owner registers a passkey through \`ptbk connect --setup-link\`: a one-time link valid for 30 minutes, printed only in this terminal once the address works; \`ptbk connect --reset-owner\` ends every passkey and session and prints a new one.`,
         optionGroups: [
-            { title: 'Link', options: [
-                { name: 'link', type: 'string', valueName: '<url>', description: 'The one-time link URL from the Promptbook App (a bare code also works).' },
-                { name: 'initialization', type: 'string', valueName: '<id>', description: 'Select a running initialization before its project exists.' },
-                JSON_OPTION,
-            ] },
+            { title: 'Link', options: [{ name: 'link', type: 'string', valueName: '<url>', description: 'The one-time pairing URL from the Promptbook App.' }, { name: 'onboarding', type: 'string', valueName: '<engine-id>', description: 'Select a pending initialization instead of a project.' }, JSON_OPTION] },
             {
                 title: 'Owner access',
                 options: [
@@ -391,7 +398,7 @@ Browsers open the engine at its own address (https://<engine ID>.<engine domain>
             PRESENTATION_OPTIONS,
         ],
         examples: [
-            { command: "ptbk connect --link '<url>'", description: 'Link this project to the App that issued the URL.' },
+            { command: 'ptbk connect --link <url>', description: 'Link this project with the code shown in the App.' },
             { command: 'ptbk connect', description: 'Show the App connection.' },
             { command: 'ptbk connect --json', description: 'The App connection as data.' },
             { command: 'ptbk connect --setup-link', description: 'The one-time link that registers the owner’s passkey on the engine’s address.' },

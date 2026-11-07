@@ -73,10 +73,11 @@ test('bootstrap keeps an explicit project folder inside the engine home, before 
     assert.match(spawnSync('bash', [installer, '--path', 'ptbk/project/a'], { encoding: 'utf8' }).stderr, /need --init/, 'preparation alone never takes a destination');
     assert.match(spawnSync('bash', [installer, '--', '--non-interactive'], { encoding: 'utf8' }).stderr, /need --init/);
     assert.match(spawnSync('bash', [installer, '--init', '--prepare-only'], { encoding: 'utf8' }).stderr, /not both/);
-    // Valid input reaches the privilege check, the first point that could change the machine.
+    // Valid input stops at the privilege check only when the test itself is unprivileged.
+    if (process.getuid?.() === 0) return;
     for (const args of [[], ['--prepare-only'], ['0.119.0-38'], ['--init', '--path', 'ptbk/project/my agenda'], ['--version', '1.2.3', '--init', '--path', '/var/lib/promptbook//ptbk/project/a/'], ['--init', '--', '--non-interactive', '--no-harness']]) {
         const result = spawnSync('bash', [installer, ...args], { encoding: 'utf8' });
-        if (process.getuid?.() !== 0) assert.match(result.stderr, /Run this installer with sudo/, args.join(' '));
+        assert.match(result.stderr, /Run this installer with sudo/, args.join(' '));
     }
 });
 

@@ -19,7 +19,7 @@ Projects are the user's primary units. The App need not expose the host service 
 3. Once the service is connected, the App continues the first project's onboarding through the same domain operations as `ptbk init`.
 4. Initialize the project, complete selected essential access/tool setup, start its engine and make the project available in the App. Distinguish connection, initialization, authentication and verified launch; none proves the other stages succeeded.
 
-The [attended VPS bootstrap](../cli/vps-onboarding.md) and [remote harness authentication](../cli/harness-authentication.md) remain the shared foundations. The existing standalone shell entry continues its terminal-init handoff. The App-started flow instead has a pending project-init handoff to the App; do not force the owner through a second independent initializer or duplicate intent, Wallet setup, core Books, initial tasks or workers. The concrete installation command and pairing sequence must be agreed with the platform; the existing standalone command is not evidence that App pairing already works.
+The [attended VPS bootstrap](../cli/vps-onboarding.md) and [remote harness authentication](../cli/harness-authentication.md) remain the shared foundations. The existing standalone shell entry continues its terminal-init handoff. The App-started flow instead has a pending project-init handoff to the App; do not force the owner through a second independent initializer or duplicate intent, Wallet setup, core Books, initial tasks or workers. The [engine-first initialization](onboarding.md) describes the installer command, owner access and durable draft.
 
 Keep initial tool setup simple. It must cover the selected harness's real native authentication, including supported ChatGPT/Codex or Claude Code account flows, rather than merely save an API key or mark an executable ready. When an attended step is straightforward to expose in protected App UI, do so; otherwise reuse the CLI/dashboard interaction through the agreed service fallback. Preserve provider consent/URL/code handling, service-user credential storage and actual readiness checks. Never send passwords, returned login codes or tokens as ordinary chat messages or switch native subscription authentication to API billing silently.
 
@@ -89,14 +89,4 @@ Extensibility is required now; the complete future feature set is not.
 
 ## Technical handoff and joint acceptance
 
-The engine owner defines Reborn behavior. The App/integration team proposes architecture, UX, contracts and ownership with the engine team. Before implementation, resolve:
-
-- Host/project identity, clone/move/restore distinction and preventing simultaneous use of one registration identity; connection and authority while a project is stopped.
-- Book names, transport identity and renames; task definitions/runs, recurrence/conditions and system work; multi-party chat, joins/authors/titles and streaming.
-- Installation/pairing and init/authentication handoff, protected Wallet/file operations and the selected service fallback.
-- Command acknowledgement/idempotency, reconnect/cursor replay, capabilities/version compatibility and future duplex media/tab transport.
-- UI serving/provenance, minimal metadata/billing, release verification/signing/delays/revocation and engine/UI distribution. The existing numeric release-delay proposal is not implicitly approved; see [updates](../cli/updates.md).
-- Engine-owned replacement/recovery and shared-install coordination, including the simple host service's own updates; no singleton update decision maker.
-- The minimum passive overview/notification UX, implementation owners, shared contract revisions and end-to-end acceptance.
-
-The common proof is one flow from App account/installation through pairing, first init, real harness authentication, Wallet, onboarding upload, project start, attributed streaming chat and work, then pause/resume/stop/start/restart and reconnect without duplicate effects. Include a background automatic update with migration/recovery and the correct policy/manual intent. Verify engine work continues without a connected client/relay. Future extensions and unselected fallback alternatives are not additional first-release acceptance requirements.
+The engine owner defines Reborn behavior. The App/integration team proposes a

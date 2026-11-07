@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { createHash, createPublicKey, randomBytes, verify } from 'node:crypto';
-import { chmod, mkdir, readdir, readFile, stat, symlink, writeFile } from 'node:fs/promises';
+import { createHash, createPublicKey, randomBytes, randomUUID, verify } from 'node:crypto';
+import { chmod, mkdir, readdir, readFile, rename, stat, symlink, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:https';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -14,6 +14,9 @@ import { appSettings } from '../dist/app/settings.js';
 import { SIGNING_CONTEXT, createEngineSigner, signingInput } from '../dist/app/signing.js';
 import { CLOSE_CODE, FRAME_TYPE, decodeFrame, encodeFrame } from '../dist/app/tunnel/frames.js';
 import { checkTunnelReady, parseRelayMessage, tunnelAuthInput } from '../dist/app/tunnel/handshake.js';
+import { saveOnboarding } from '../dist/onboarding/draft.js';
+import { projectAt } from '../dist/project/workspace.js';
+import { launchDaemon, stopService } from '../dist/service/launcher.js';
 import { appDetailLines, appPlainLines, appSummaryLine, appTileLines } from '../dist/ui/app-connection.js';
 import { createStyle, stripAnsi } from '../dist/ui/ansi.js';
 import { fakeHarness, initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
@@ -416,7 +419,6 @@ test('registration: signed, verified against the own key, stored privately witho
     assert.deepEqual(outcome.registration.relays, ['relay-1.localhost']);
     await storeRegistration(directory, outcome.registration);
     assert.deepEqual(await readRegistration(directory, identity, settings), outcome.registration);
-    assert.deepEqual(await readRegistration(directory, identity, appSettings({})), outcome.registration, 'the saved origin survives an unset environment');
     assert.doesNotMatch(await filesText(directory), new RegExp(linkCode('b')), 'the link code is never written');
     if (POSIX) assert.equal((await stat(join(directory, 'registration.json'))).mode & 0o777, 0o600);
     await assert.rejects(readRegistration(directory, identity, appSettings({ PTBK_DASHBOARD_URL: 'https://other.localhost' })), 'a link to another App is never reused silently');
@@ -536,7 +538,7 @@ test('ptbk connect and disconnect: status, linking a running engine, its tunnel,
     assert.equal(running.app.state, 'unlinked');
 
     const code = linkCode('e');
-    const linked = await ptbk(['connect', '--link', `${app.env.PTBK_DASHBOARD_URL}/link#${code}`, '--raw'], { cwd: project, env });
+    const linked = await ptbk(['connect', '--link', code, '--raw'], { cwd: project, env });
     assert.equal(linked.code, 0, linked.output);
     assert.match(linked.stdout, /Linked to the Promptbook App/);
     assert.doesNotMatch(linked.output, new RegExp(code), 'the link code is never printed');
@@ -563,28 +565,34 @@ test('ptbk connect and disconnect: status, linking a running engine, its tunnel,
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });
 
-test('an unnamed initialization pairs through the relay before asking for any project files', async (t) => {
+test('an unnamed initialization pairs through the relay before asking for project files', async (t) => {
     const app = await fakeApp(t);
     const cleanup = [];
     const root = await temporaryDirectory(t, 'ptbk pair before init', cleanup);
     const { env: harnessEnv } = await fakeHarness(t, root);
     const { PTBK_DASHBOARD_URL: origin, ...appEnv } = app.env;
     const env = { ...harnessEnv, ...appEnv, PTBK_ACME_DIRECTORY_URL: `${origin}/test-acme`, NODE_EXTRA_CA_CERTS: fileURLToPath(CA_PATH) };
+    delete env.PTBK_DASHBOARD_URL;
+
     const projectsHome = join(root, 'projects');
-    const id = 'relay-onboarding';
-    const workspace = join(env.PTBK_HOME, 'initializations', id);
-    await mkdir(workspace, { recursive: true, mode: 0o700 });
-    await mkdir(projectsHome);
-    await writeFile(join(workspace, 'pending-project.json'), JSON.stringify({ id, projectsHome }), { mode: 0o600 });
-    cleanup.push(() => ptbk(['stop', '--force', '--path', workspace, '--raw'], { cwd: root, env }));
+    const drafts = join(projectsHome, '.ptbk-onboarding');
+    const staging = projectAt(join(drafts, 'staging'));
+    await mkdir(staging.root, { recursive: true, mode: 0o700 });
+    const { engineId } = await loadEngineIdentity(staging.runtime.app, { create: true });
+    const project = projectAt(join(drafts, engineId));
+    await rename(staging.root, project.root);
+    await saveOnboarding(project, { version: 1, engineId, step: 'intent', promptId: randomUUID(), deferred: false });
+    cleanup.push(() => stopService(project, { force: true }));
+
+    const { lookup: { client } } = await launchDaemon(project, { env, cli: {}, persistent: false, onboarding: true });
     const code = linkCode('g');
-    const result = await ptbk(['init', '--prepare-only', '--initialization', id, '--link-stdin', '--no-persist', '--json'], { cwd: root, env, input: `${origin}/link#${code}\n` });
-    assert.equal(result.code, 0, result.output);
-    assert.equal(JSON.parse(result.stdout).app.dashboardUrl, origin);
-    assert.doesNotMatch(result.output, new RegExp(code));
-    await waitFor(() => app.connections.some((peer) => peer.ready && peer.authValid), { message: 'the unnamed engine to open its relay tunnel' });
-    assert.deepEqual(await readdir(projectsHome), []);
-    const state = await ptbk(['onboarding', id, '--json'], { cwd: root, env });
-    assert.equal(JSON.parse(state.stdout).prompt.kind, 'text');
-    assert.doesNotMatch(await filesText(workspace), new RegExp(code));
+    const linked = await client.request('app-link', { link: `${origin}/link#${code}` });
+    assert.equal(linked.outcome, 'linked');
+    assert.equal(linked.app.dashboardUrl, origin);
+    assert.doesNotMatch(JSON.stringify(linked), new RegExp(code));
+    await waitFor(() => app.connections.some((peer) => peer.ready && peer.authValid), { timeoutMs: 30_000, message: 'the unnamed engine to open its relay tunnel' });
+    assert.deepEqual(await readdir(projectsHome), ['.ptbk-onboarding']);
+    const state = await client.request('onboarding-state');
+    assert.equal(state.onboarding.prompt.kind, 'text');
+    assert.doesNotMatch(await filesText(project.root), new RegExp(code));
 });

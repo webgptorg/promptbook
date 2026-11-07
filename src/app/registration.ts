@@ -2,7 +2,7 @@ import { PtbkError } from '../common/errors.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { encodeBase64Url, isBase64UrlOfLength } from './encoding.js';
 import { readPrivateFile, removePrivateFile, writePrivateFile } from './files.js';
-import { deriveEngineId, isEngineId, loadEngineIdentity, parseHostname, type EngineIdentity } from './identity.js';
+import { deriveEngineId, isEngineId, parseHostname, type EngineIdentity } from './identity.js';
 import { ConnectFailure, httpsRequest, type TestTlsOptions } from './net.js';
 import { appSettings, MAX_RELAYS, type AppSettings } from './settings.js';
 import { SIGNING_CONTEXT, signingInput } from './signing.js';
@@ -46,15 +46,30 @@ export function isLinkCode(text: string): boolean {
     return LINK_CODE_PATTERN.test(text);
 }
 
-/** Parses an App link URL or a legacy bare code without putting either in an error. @private App registration */
-export function parseLinkInput(input: string): { readonly code: string; readonly origin?: string } {
-    const text = input.trim();
-    if (isLinkCode(text)) return { code: text };
-    const url = URL.parse(text);
-    if (url?.protocol === 'https:' && !url.username && !url.password && url.pathname === '/link' && !text.includes('?') && isLinkCode(url.hash.slice(1))) {
-        return { code: url.hash.slice(1), origin: url.origin };
+/**
+ * Resolves a one-time App pairing URL. The fragment goes in the signed registration body.
+ * A bare code remains valid for existing launchers.
+ *
+ * @private App connection
+ */
+export function parseAppLink(value: string, env: NodeJS.ProcessEnv): { linkCode: string; settings: AppSettings } {
+    const settings = appSettings(env);
+    const text = value.trim();
+    if (isLinkCode(text)) return { linkCode: text, settings };
+    let url: URL | undefined;
+    try {
+        url = new URL(text);
+    } catch {
+        // Report an input error without including the code.
     }
-    throw new PtbkError('Copy the full https://<dashboard>/link#<code> URL or the 26-character code from the Promptbook App.', { kind: 'configuration' });
+    const code = url?.hash.slice(1);
+    if (!url || url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/link' || url.search || !code || !isLinkCode(code)) {
+        throw new PtbkError('Copy the complete HTTPS pairing URL from Promptbook App.', { kind: 'usage' });
+    }
+    if (!settings.dashboardUrlIsDefault && url.origin !== settings.dashboardUrl) {
+        throw new PtbkError('The pairing URL points to a different origin than PTBK_DASHBOARD_URL.', { kind: 'configuration' });
+    }
+    return { linkCode: code, settings: { ...settings, dashboardUrl: url.origin, dashboardUrlIsDefault: undefined } };
 }
 
 /**
@@ -113,20 +128,6 @@ export type RegistrationOutcome =
           readonly final: boolean;
           readonly message: string;
       };
-
-/** Links an engine's private directory. Callers serialize changes for a running engine. @private App connection */
-export async function linkAppDirectory(directory: string, input: string, env: NodeJS.ProcessEnv, onOrigin?: (origin: string) => void): Promise<RegistrationOutcome | { readonly kind: 'already-linked'; readonly registration: StoredRegistration }> {
-    const { code, origin } = parseLinkInput(input);
-    const settings = appSettings(env, origin);
-    const identity = await loadEngineIdentity(directory, { create: true });
-    if (!identity) throw new Error('The engine identity could not be created.');
-    const existing = await readRegistration(directory, identity, settings);
-    if (existing) return { kind: 'already-linked', registration: existing };
-    onOrigin?.(settings.dashboardUrl);
-    const outcome = await registerEngine({ identity, linkCode: code, settings, env });
-    if (outcome.kind === 'registered') await storeRegistration(directory, outcome.registration);
-    return outcome;
-}
 
 /**
  * Owner-facing sentence and next step per registration problem code.
@@ -289,17 +290,26 @@ export async function readRegistration(directory: string, identity: EngineIdenti
     } catch {
         throw new PtbkError(`The stored App registration in ${directory} is unreadable. Run \`ptbk disconnect\` and link the project again.`, { kind: 'configuration' });
     }
-    const relays = Array.isArray(stored?.relays) ? stored.relays.map(parseHostname) : [];
-    const origin = typeof stored?.dashboardUrl === 'string' ? URL.parse(stored.dashboardUrl) : null;
-    if (stored?.v !== 1 || !isEngineId(stored.engineId) || !parseHostname(stored.hostname) || !relays.length || relays.some((relay) => !relay) || !parseHostname(stored.engineDomain) || origin?.protocol !== 'https:' || origin.origin !== stored.dashboardUrl) {
+    const relays = Array.isArray(stored.relays) ? stored.relays.map(parseHostname) : [];
+    if (stored.v !== 1 || !isEngineId(stored.engineId) || !parseHostname(stored.hostname) || !relays.length || relays.some((relay) => !relay) || !parseHostname(stored.engineDomain) || typeof stored.dashboardUrl !== 'string' || !isDashboardOrigin(stored.dashboardUrl)) {
         throw new PtbkError(`The stored App registration in ${directory} is invalid. Run \`ptbk disconnect\` and link the project again.`, { kind: 'configuration' });
     }
     if (!identity) throw new PtbkError(`The App registration in ${directory} has no engine key next to it. Restore the key, or run \`ptbk disconnect\` and link the project as a new engine.`, { kind: 'configuration' });
     const check = checkRegistrationIdentity(stored, identity.signer.publicKey, stored.engineDomain);
     if (check.kind !== 'ok') throw new PtbkError(`The stored App registration does not belong to this engine key. Run \`ptbk disconnect\` and link the project again.`, { kind: 'configuration' });
-    if (settings.dashboardUrlExplicit && stored.dashboardUrl !== settings.dashboardUrl) throw new PtbkError(`This project is linked through ${stored.dashboardUrl}, but the requested App is ${settings.dashboardUrl}. Restore the setting, or run \`ptbk disconnect\` and link again.`, { kind: 'configuration' });
+    if (!settings.dashboardUrlIsDefault && stored.dashboardUrl !== settings.dashboardUrl) throw new PtbkError(`This project is linked through ${stored.dashboardUrl}, but PTBK_DASHBOARD_URL is now ${settings.dashboardUrl}. Restore the setting, or run \`ptbk disconnect\` and link again.`, { kind: 'configuration' });
     if (settings.engineDomain && stored.engineDomain !== settings.engineDomain) throw new PtbkError(`This project is linked in the engine domain ${stored.engineDomain}, but PTBK_ENGINE_DOMAIN is now ${settings.engineDomain}. Restore the setting, or run \`ptbk disconnect\` and link again.`, { kind: 'configuration' });
     return stored;
+}
+
+/** Validates a stored origin before it is used for subsequent signed requests. */
+function isDashboardOrigin(text: string): boolean {
+    try {
+        const url = new URL(text);
+        return url.protocol === 'https:' && url.origin === text;
+    } catch {
+        return false;
+    }
 }
 
 /**

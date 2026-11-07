@@ -407,12 +407,6 @@ async function refresh() {
 /** Opens the shared graphical dashboard of a verified live engine. */
 async function openProject(root) {
     selected = root;
-    const row = host.rows.find((item) => item.projectRoot === root);
-    if (row?.initializationId) {
-        if (row.status === 'live') await openTerminal('onboarding', row.initializationId);
-        else notice('Start this initialization in the overview, then open it again.');
-        return;
-    }
     $('cli').disabled = true;
     notice('');
     if (featureContext?.root !== root) { featureContext = undefined; featureForm = undefined; }
@@ -439,7 +433,8 @@ async function openTerminal(kind, root, page) {
         term.loadAddon(fit);
         term.open(container);
         term.onData((data) => api.input(result.id, data));
-        terminals.set(result.id, { term, fit, container, kind, root, title: kind === 'init' ? 'Project setup' : kind === 'global' ? 'All projects · CLI' : `${page || 'Dashboard'} · CLI`, prompt: null });
+        const titles = { init: 'Project setup', setup: 'Set up with App', global: 'All projects · CLI' };
+        terminals.set(result.id, { term, fit, container, kind, root, title: titles[kind] ?? `${page || 'Dashboard'} · CLI`, prompt: null });
         for (const event of earlyEvents.get(result.id) || []) terminalEvent(event);
         earlyEvents.delete(result.id);
         selectTerminal(result.id);
@@ -487,6 +482,25 @@ function renderPrompt() {
     pane.hidden = !prompt;
     $('prompt-divider').hidden = !prompt;
     if (!prompt) { pane.replaceChildren(); requestAnimationFrame(() => { layout(); if (mode === 'terminal') item?.term.focus(); }); return; }
+    if (prompt.kind === 'harness-login') {
+        const cancel = async (action) => {
+            try { await api.answer(activeTerminal, prompt.id, { action }); }
+            catch (error) { notice(error.message, true); }
+        };
+        const login = prompt.login;
+        pane.replaceChildren(
+            element('div', { className: 'step' }, prompt.frame?.step || 'Harness sign-in'),
+            element('h2', {}, prompt.question),
+            ...(login?.url === 'https://auth.openai.com/codex/device' ? [
+                element('p', {}, element('a', { href: login.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open OpenAI sign-in')),
+                element('p', {}, 'One-time code ', element('code', {}, login.userCode)),
+            ] : []),
+            element('p', { className: 'hint' }, 'Waiting for the provider to confirm sign-in.'),
+            element('div', { className: 'toolbar' }, element('button', { onclick: () => void cancel('back') }, 'Back')),
+        );
+        requestAnimationFrame(layout);
+        return;
+    }
     const form = element('form');
     const controls = [];
     let rich;

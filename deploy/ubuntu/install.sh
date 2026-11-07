@@ -22,8 +22,8 @@ usage() {
         '' \
         '  --version <v>    exact published version (default: npm latest, resolved once; an installed engine is reused)' \
         '  --prepare-only   prerequisites only (the default; stated explicitly by unattended provider scripts)' \
-        '  --link <url>     with --prepare-only: pair and start the engine before creating a project' \
-        '  --link-stdin     with --prepare-only: read the pairing URL from stdin, outside the sudo arguments' \
+        '  --link <url>     with --prepare-only: pair and start an engine before project setup' \
+        '  --link-stdin     read that one-time pairing URL from stdin (keeps it out of sudo arguments)' \
         '  --init           then start the setup assistant (ptbk init) as promptbook in this terminal' \
         '  --path <folder>  with --init: project folder inside /var/lib/promptbook, confirmed by init (default: init offers' \
         '                   /var/lib/promptbook/ptbk/project/<name>)' \
@@ -39,25 +39,25 @@ fail() {
 
 requested_version=''
 project_path=''
+pairing_url=''
+link_stdin=false
+link_argument=false
 prepare_only=false
 hand_off=false
-pairing_url=''
-link_given=false
-link_stdin=false
 init_args=()
 while (( $# )); do
     case "$1" in
         --help | -h) usage; exit 0 ;;
         --prepare-only) prepare_only=true ;;
         --init) hand_off=true ;;
-        --link-stdin) link_stdin=true ;;
         --link)
-            (( $# >= 2 )) || fail '--link needs the pairing URL.'
-            [[ "$link_given" == false ]] || fail 'Supply one pairing URL.'
-            link_given=true
+            (( $# >= 2 )) || fail '--link needs the App pairing URL.'
+            [[ "$link_argument" == false ]] || fail 'Give only one App pairing URL.'
+            link_argument=true
             pairing_url="$2"
             shift
             ;;
+        --link-stdin) link_stdin=true ;;
         --version | --path)
             (( $# >= 2 )) || fail "$1 needs a value."
             if [[ "$1" == --path ]]; then
@@ -70,7 +70,7 @@ while (( $# )); do
             shift
             ;;
         --) shift; init_args=("$@"); break ;;
-        -*) fail 'Unknown installer option. Run with --help for the available options.' ;;
+        -*) fail 'Unknown installer option. Use latest or an exact published semantic version, or see --help.' ;;
         *)
             [[ -z "$requested_version" ]] || fail 'Expected at most one published ptbk version.'
             requested_version="$1"
@@ -80,15 +80,16 @@ while (( $# )); do
 done
 requested_version="${requested_version:-latest}"
 if [[ "$prepare_only" == true && "$hand_off" == true ]]; then fail 'Use either --prepare-only or --init, not both.'; fi
-if [[ "$link_given" == true || "$link_stdin" == true ]]; then
-    [[ "$prepare_only" == true ]] || fail 'Pairing in the installer needs --prepare-only.'
-    if [[ "$link_stdin" == true ]]; then
-        [[ "$link_given" == false ]] || fail 'Use either --link or --link-stdin.'
-        IFS= read -r pairing_url || [[ -n "$pairing_url" ]] || fail 'Provide the pairing URL on stdin.'
-    fi
-    [[ "$pairing_url" =~ ^https://[^/#[:space:]]+/link#[a-z2-7]{26}$ ]] || fail 'Use the full https://<dashboard>/link#<code> pairing URL.'
-fi
 if [[ "$hand_off" == false && ( -n "$project_path" || ${#init_args[@]} -gt 0 ) ]]; then fail '--path and ptbk init options need --init.'; fi
+if [[ "$link_argument" == true || "$link_stdin" == true ]]; then
+    [[ "$hand_off" == false ]] || fail 'Pair before setup with --prepare-only.'
+    [[ "$link_argument" == false || "$link_stdin" == false ]] || fail 'Use either --link or --link-stdin.'
+    if [[ "$link_stdin" == true ]]; then
+        IFS= read -r pairing_url || [[ -n "$pairing_url" ]] || fail 'No App pairing URL was received.'
+    fi
+    pairing_pattern='^https://[^[:space:]#@?]+/link#[a-z2-7]{25}[aeimquy4]$'
+    [[ "$pairing_url" =~ $pairing_pattern ]] || fail 'Copy the complete HTTPS pairing URL from Promptbook App.'
+fi
 if [[ ! "$requested_version" =~ ^(latest|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
     fail 'Use latest or an exact published semantic version.'
 fi
@@ -134,6 +135,7 @@ fi
 attended_terminal=false
 if { : </dev/tty >/dev/tty; } 2>/dev/null; then attended_terminal=true; fi
 
+exec 3>&1 4>&2
 exec > >(tee -a "$log") 2>&1
 logger="${!:-}"
 trap 'printf "Promptbook installation failed at line %s. See %s; project files were not initialized.\n" "$LINENO" "$log" >&2' ERR
@@ -202,12 +204,12 @@ if ! id "$engine_user" >/dev/null 2>&1; then
     useradd --create-home --home-dir "$engine_home" --shell /bin/bash "$engine_user"
 fi
 chmod 700 "$engine_home"
-# The first project folder the website entry opens init in (init's own shared projects folder stays available).
 install -d -m 700 -o "$engine_user" -g "$engine_user" \
     "$engine_home/.local" "$engine_home/.local/bin" "$engine_home/.local/share" \
     "$engine_home/.config" "$engine_home/.config/systemd" "$engine_home/.config/systemd/user" \
     "$engine_home/.cache"
 if [[ -z "$pairing_url" ]]; then
+    # The website entry opens the ordinary initializer in this folder.
     install -d -m 700 -o "$engine_user" -g "$engine_user" "$engine_home/projects" "$engine_home/projects/my-agenda"
 fi
 if [[ ! -e "$engine_home/.npmrc" ]]; then
@@ -254,18 +256,15 @@ printf '\nPrerequisites ready: ptbk %s, Node.js %s, %s, %s.\n' "$resolved_versio
 printf 'The engine runs as the non-sudo user %s (home %s). Lingering is enabled, so its project service can start at boot once init registers it.\n' "$engine_user" "$engine_home"
 
 if [[ -n "$pairing_url" ]]; then
-    pairing_status=0
-    printf '%s\n' "$pairing_url" | runuser --login "$engine_user" --command 'PTBK_LOGIN_LOCATION=remote exec ptbk init --prepare-only --initialization server --link-stdin --non-interactive' || pairing_status=$?
+    if ! runuser --login "$engine_user" --command 'ptbk init --help' | grep -- '--prepare-only' >/dev/null; then
+        fail 'This installed ptbk version lacks engine-first setup. Update it to a release with --prepare-only and retry.'
+    fi
+    printf '\nStarting a pending initialization as %s. The owner setup link is printed to this session.\n' "$engine_user"
+    status=0
+    printf '%s\n' "$pairing_url" | runuser --login "$engine_user" --command \
+        'cd ~ && PTBK_LOGIN_LOCATION=remote exec ptbk init --prepare-only --link-stdin --setup-link --non-interactive --json' >&3 2>&4 || status=$?
     unset pairing_url
-    if (( pairing_status != 0 )); then
-        printf 'Server prepared. To retry the pairing, paste a new install command or pair initialization server as the %s user.\n' "$engine_user"
-        exit "$pairing_status"
-    fi
-    if [[ "$attended_terminal" == true ]]; then
-        # The owner setup URL is a separate credential. Only this terminal sees it.
-        runuser --pty --login "$engine_user" --command 'exec ptbk connect --initialization server --setup-link' </dev/tty >/dev/tty 2>&1 || exit $?
-    fi
-    exit 0
+    exit "$status"
 fi
 
 if [[ "$hand_off" == false ]]; then

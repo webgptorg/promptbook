@@ -4,7 +4,7 @@ import { HEARTBEAT_INTERVAL_MS, buildHeartbeat, hostFigures, nextHeartbeatSeq, s
 import { loadEngineIdentity, type EngineIdentity } from './identity.js';
 import type { TestTlsOptions } from './net.js';
 import { CONFORMANCE_BUILD } from './build.js';
-import { engineVersion, linkAppDirectory, parseLinkInput, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
+import { engineVersion, parseAppLink, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
 import { DEFAULT_DASHBOARD_URL, appSettings, isTunnelMode, type AppSettings, type RelayEndpoint } from './settings.js';
 import { RelayLink } from './tunnel/relay-link.js';
 import { AccessStore, type Actor } from './web/access.js';
@@ -92,8 +92,16 @@ export type AppWebHandlers = {
 };
 
 /**
- * What asking for the owner setup link gave: the link (shown only in the operator's terminal), what is still missing
- * before the engine's address works, or an owner who already exists.
+ * The result of exchanging an operator's pairing URL with the App registry.
+ *
+ * @private App connection
+ */
+export type AppPairingOutcome =
+    | { readonly outcome: 'linked' | 'already-linked'; readonly app: AppConnectionView }
+    | { readonly outcome: 'refused'; readonly code: string; readonly message: string };
+
+/**
+ * The one-time owner setup URL or the reason it is not available.
  *
  * @private App connection
  */
@@ -178,32 +186,48 @@ export class AppConnection {
         return this.view();
     }
 
-    /** Pairs on the authenticated local control channel, then starts this engine's own connection. */
-    public async link(input: string): Promise<{ readonly outcome: string; readonly applied: boolean; readonly app: AppConnectionView }> {
-        return await this.serialize(async () => {
-            const result = await linkAppDirectory(this.options.directory, input, this.options.env);
-            if (result.kind === 'refused') return { outcome: result.message, applied: false, app: this.view() };
-            if (result.kind === 'registered' || this.registration?.engineId !== result.registration.engineId) {
-                this.disconnect();
-                await this.load();
+    /** Exchanges an operator-supplied pairing URL once, without passing it in the service's saved launch. */
+    public async pair(link: string): Promise<AppPairingOutcome> {
+        let result!: AppPairingOutcome;
+        await this.serialize(async () => {
+            if (!this.running) throw new PtbkError('The App connection is not running.', { kind: 'conflict' });
+            const { linkCode, settings } = parseAppLink(link, this.options.env);
+            const identity = await loadEngineIdentity(this.options.directory, { create: true });
+            if (!identity) throw new Error('The engine identity could not be created.');
+            const existing = await readRegistration(this.options.directory, identity, settings);
+            if (existing) {
+                result = { outcome: 'already-linked', app: this.view() };
+                return;
             }
-            return { outcome: result.kind === 'registered' ? 'Linked to the Promptbook App.' : 'This engine is already linked.', applied: true, app: this.view() };
+            if (this.registering) throw new PtbkError('The engine is already pairing.', { kind: 'conflict' });
+            const outcome = await registerEngine({ identity, linkCode, settings, env: this.options.env, tls: this.options.tls });
+            if (outcome.kind === 'refused') {
+                result = { outcome: 'refused', code: outcome.code, message: outcome.message };
+                return;
+            }
+            await storeRegistration(this.options.directory, outcome.registration);
+            this.disconnect();
+            await this.load();
+            result = { outcome: 'linked', app: this.view() };
         });
+        return result;
     }
 
     /** Closes every tunnel and stops the heartbeat. */
     public async stop(): Promise<void> {
         await this.serialize(async () => {
             this.running = false;
+            const access = this.access;
             this.disconnect();
+            await access?.flush();
         });
     }
 
     /** Runs one lifecycle step after the previous one. */
-    private async serialize<T>(step: () => Promise<T>): Promise<T> {
+    private async serialize(step: () => Promise<void>): Promise<void> {
         const next = this.queue.then(step, step);
-        this.queue = next.then(() => undefined, () => undefined);
-        return await next;
+        this.queue = next.catch(() => undefined);
+        await next;
     }
 
     /** Reads settings, identity and registration, then connects when linked. */
@@ -218,22 +242,20 @@ export class AppConnection {
             const settings = appSettings(this.options.env);
             this.dashboardUrl = settings.dashboardUrl;
             // The launch contract: an engine given a link code registers with it once, when it holds no registration.
-            const input = this.options.env.PTBK_LINK_CODE?.trim();
-            this.identity = await loadEngineIdentity(this.options.directory, { create: Boolean(input) });
+            const linkCode = this.options.env.PTBK_LINK_CODE?.trim();
+            this.identity = await loadEngineIdentity(this.options.directory, { create: Boolean(linkCode) });
             this.registration = await readRegistration(this.options.directory, this.identity, settings);
             if (this.identity) {
                 const hostname = this.registration?.hostname ?? (settings.engineDomain ? `${this.identity.engineId}.${settings.engineDomain}` : undefined);
                 this.options.log?.(`App engine ${this.identity.engineId}${hostname ? ` (${hostname})` : ''}, fingerprint ${this.identity.fingerprint.formatted}.`, 'info');
             }
             if (this.registration && this.identity) {
-                this.dashboardUrl = this.registration.dashboardUrl;
-                if (input) this.options.log?.('Already linked to the Promptbook App; the link code was not used.', 'info');
+                if (linkCode) this.options.log?.('Already linked to the Promptbook App; the link code was not used.', 'info');
                 await this.connect(this.identity, this.registration, settings.relays);
-            } else if (input && this.identity) {
-                const link = parseLinkInput(input);
-                const linkedSettings = appSettings(this.options.env, link.origin);
-                this.dashboardUrl = linkedSettings.dashboardUrl;
-                this.register(this.identity, link.code, linkedSettings);
+            } else if (linkCode && this.identity) {
+                const link = parseAppLink(linkCode, this.options.env);
+                this.dashboardUrl = link.settings.dashboardUrl;
+                this.register(this.identity, link.linkCode, link.settings);
             }
         } catch (error) {
             this.problem = errorMessage(error);

@@ -255,6 +255,11 @@ export class AccessStore {
         return this.writes;
     }
 
+    /** Waits for any enqueued writes before the engine moves the access store. */
+    public async flush(): Promise<void> {
+        await this.writes;
+    }
+
     /** Drops expired sessions and an expired setup secret. */
     private prune(now = Date.now()): void {
         this.state.sessions = this.state.sessions.filter((session) => this.sessionAlive(session, now));
