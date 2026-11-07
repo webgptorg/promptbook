@@ -3,6 +3,7 @@
 - Restore `npm run prerelease` as an entry point for the checked, tagged release pipeline, and document the GitHub Actions organization policy required for publishing all release artifacts.
 - Check the real headless browser's configured window and actual screenshot viewport separately, so native window borders do not incorrectly block prereleases on Windows.
 - Update the dashboard regression check for the current App pairing URL instructions.
+- Allow bounded native browser startup under full-suite load in the tab-control integration check, while retaining its four-minute scenario limit.
 
 - Start and pair a Promptbook engine before creating its project. Continue setup through App, the global Dashboard or CLI, with durable drafts, file uploads and native Codex sign-in. The Ubuntu bootstrap accepts the pairing URL and the normal agenda inherits the same engine identity and passkeys.
   On Windows and macOS, **Set up with App** opens the same setup and resume wizard in the desktop terminal.

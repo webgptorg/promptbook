@@ -256,7 +256,8 @@ test('engine: tab control over the local control channel, presented by the termi
     });
     assert.equal((await ptbk(['start', '--no-persist', '--raw', '--no-server'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['pause', '--raw'], { cwd: project, env })).code, 0);
-    const control = async (method, params = {}, signal) => await new ControlClient(projectAt(project), await readProcessRecord(projectAt(project))).request(method, params, 60_000, signal);
+    // Opening the first tab includes native browser startup, which can exceed a minute under full-suite load.
+    const control = async (method, params = {}, signal) => await new ControlClient(projectAt(project), await readProcessRecord(projectAt(project))).request(method, params, method === 'tab-control-open' ? 180_000 : 60_000, signal);
 
     const opened = await control('tab-control-open', { url: url('/input') });
     assert.equal(opened.control.state, 'controlled');
