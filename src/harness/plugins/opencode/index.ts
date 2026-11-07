@@ -101,8 +101,10 @@ export const plugin: HarnessPlugin = {
     id: 'opencode',
     variant: 'OPENCODE',
     apiKeyVariable: 'OPENCODE_API_KEY',
-    apiKeyHomeVariable: 'XDG_DATA_HOME',
-    setupApiKey: { label: 'OpenCode Console API key', url: 'https://opencode.ai/auth', model: 'opencode/claude-sonnet-4-5', thinkingLevel: 'high' },
+    setupApiKey: {
+        reference: 'PTBK_OPENCODE_API_KEY', label: 'OpenCode Console API key', url: 'https://opencode.ai/auth',
+        model: 'opencode/claude-sonnet-4-5', thinkingLevel: 'high', profile: { home: 'XDG_DATA_HOME' },
+    },
     displayName: 'OpenCode',
     featured: false,
     executable: 'opencode',

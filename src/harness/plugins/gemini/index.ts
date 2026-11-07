@@ -35,15 +35,7 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
     if (request.model) args.push('--model', request.model);
     for (const directory of request.readableDirectories) args.push('--include-directories', directory);
     args.push('-p', `Read the complete task instructions in the file ${request.promptFile} and follow them exactly.`);
-    const env = { ...request.env };
-    if (request.authentication === 'api' && env.GEMINI_API_KEY && env.GEMINI_CLI_HOME) {
-        // Let the documented API-key mode win over ambient Google Cloud authentication and endpoint settings.
-        delete env.GOOGLE_GENAI_USE_GCA;
-        delete env.GOOGLE_GENAI_USE_VERTEXAI;
-        delete env.GOOGLE_API_KEY;
-        delete env.GOOGLE_GEMINI_BASE_URL;
-    }
-    return { args, env };
+    return { args, env: request.env };
 }
 
 /**
@@ -55,8 +47,13 @@ export const plugin: HarnessPlugin = {
     id: 'gemini',
     variant: 'GEMINI',
     apiKeyVariable: 'GEMINI_API_KEY',
-    apiKeyHomeVariable: 'GEMINI_CLI_HOME',
-    setupApiKey: { label: 'Google AI Studio API key', url: 'https://aistudio.google.com/apikey', model: 'gemini-3.8-flash' },
+    setupApiKey: {
+        reference: 'PTBK_GEMINI_API_KEY', label: 'Google AI Studio API key', url: 'https://aistudio.google.com/apikey', model: 'gemini-3.8-flash',
+        profile: {
+            home: 'GEMINI_CLI_HOME',
+            omit: ['GOOGLE_GENAI_USE_GCA', 'GOOGLE_GENAI_USE_VERTEXAI', 'GOOGLE_API_KEY', 'GOOGLE_GEMINI_BASE_URL'],
+        },
+    },
     displayName: 'Gemini CLI',
     featured: false,
     executable: 'gemini',

@@ -11,6 +11,8 @@ import { onboardingPage } from '../dist/app/web/onboarding-page.js';
 import { AccessStore } from '../dist/app/web/access.js';
 import { Gateway, SESSION_COOKIE_NAME } from '../dist/app/web/gateway.js';
 import { harnessTerminalPage } from '../dist/app/web/harness-terminal.js';
+import { HarnessPool } from '../dist/engine/harnesses.js';
+import { loadSettings } from '../dist/project/config.js';
 import { harnessLoginMethods } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { readOnboarding, saveOnboarding } from '../dist/onboarding/draft.js';
@@ -348,6 +350,9 @@ test('a selected API key survives engine restart and reaches the ignored .env an
     const router = await readFile(join(root, 'agents', '.core', 'router.book'), 'utf8');
     assert(router.includes('model=' + variant.setupApiKey.model));
     assert(router.includes('runtime=' + variant.setupApiKey.baseUrl));
+    const pool = new HarnessPool(root, await loadSettings(finalProject, { env }), env);
+    await pool.refresh();
+    assert.equal((await pool.defaults('qwen-code')).model, variant.setupApiKey.model);
     assert.equal((await git(root, ['check-ignore', '.env'])).trim(), '.env');
     assert(!(await git(root, ['ls-files'])).split('\n').includes('.env'));
     assert((await readFile(join(root, '.env'), 'utf8')).includes('PTBK_QWEN_CODE_API_KEY=' + key));

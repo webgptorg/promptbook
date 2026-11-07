@@ -1,6 +1,7 @@
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ensurePrivateDirectory, readPrivateFile, removePrivateFile, writePrivateFile } from '../app/files.js';
+import { PtbkError } from '../common/errors.js';
 import type { HarnessPlugin } from '../harness/types.js';
 import { environmentReference, type ResolvedReference } from '../tools/environment.js';
 import type { HarnessToolRecord } from '../tools/model.js';
@@ -13,12 +14,14 @@ const CREDENTIALS = 'harness-credentials';
 
 /** Maps a key to an explicit API instance using only adapter-owned provider settings. @private onboarding */
 export function prepareApiHarness(plugin: HarnessPlugin, value: string): PreparedApiHarness {
-    const name = 'PTBK_' + plugin.variant + '_API_KEY';
+    const setup = plugin.setupApiKey;
+    if (!setup || !plugin.apiKeyVariable) throw new PtbkError('This harness does not offer API-key setup.', { kind: 'usage' });
+    const name = setup.reference;
     return {
         credential: { name, value, source: '.env' },
         tool: {
             type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'API_KEY',
-            apiKey: environmentReference(name), baseUrl: plugin.setupApiKey?.baseUrl,
+            apiKey: environmentReference(name), baseUrl: setup.baseUrl,
         },
     };
 }

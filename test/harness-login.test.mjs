@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { delimiter, join } from 'node:path';
 import { test } from 'node:test';
+import { instanceEnvironment } from '../dist/engine/harnesses.js';
 import { harnessLoginMethods, loginHarness, loginLocation, serviceReadinessProblem } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { fakeHarness, temporaryDirectory } from './helpers.mjs';
@@ -138,4 +139,18 @@ test('native terminal methods keep each harness’s documented environment and i
     assert.deepEqual(gemini.args, []);
     const [qwen] = await harnessLoginMethods(harnessPlugin('qwen-code'), context, 'remote');
     assert.deepEqual(qwen.args, ['--approval-mode', 'plan']);
+});
+
+test('Gemini isolates the wizard-created API connection while existing explicit instances keep their profile', () => {
+    const plugin = harnessPlugin('gemini');
+    const tool = { type: 'HARNESS', variant: 'GEMINI', name: 'gemini', isEnabled: true, authentication: 'API_KEY' };
+    const base = { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true' };
+    const credential = { name: 'LEGACY_GEMINI_KEY', source: '.env', value: 'fixture-key' };
+    const legacy = instanceEnvironment(plugin, tool, credential, base);
+    assert.equal(legacy.GEMINI_CLI_HOME, base.GEMINI_CLI_HOME);
+    assert.equal(legacy.GOOGLE_GENAI_USE_VERTEXAI, 'true');
+    const prepared = instanceEnvironment(plugin, tool, { ...credential, name: plugin.setupApiKey.reference }, base);
+    assert.equal(prepared.GEMINI_CLI_HOME, join('/engine', 'harness-accounts', 'gemini', 'api-key'));
+    assert.equal(prepared.GOOGLE_GENAI_USE_VERTEXAI, undefined);
+    assert.equal(prepared.GEMINI_API_KEY, credential.value);
 });

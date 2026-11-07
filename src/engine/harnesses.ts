@@ -38,7 +38,11 @@ export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolReco
     } else {
         for (const name of plugin.ambientApiKeyVariables ?? []) delete env[name];
         if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
-        if (plugin.apiKeyHomeVariable && credential?.value) env[plugin.apiKeyHomeVariable] = accountHome(plugin, 'api-key', base);
+        const setup = plugin.setupApiKey;
+        if (setup?.profile && credential?.value && credential.name === setup.reference) {
+            env[setup.profile.home] = accountHome(plugin, 'api-key', base);
+            for (const name of setup.profile.omit ?? []) delete env[name];
+        }
     }
     return env;
 }
@@ -307,18 +311,21 @@ export class HarnessPool {
     }
 
     /**
-     * The plugin's coded defaults for a variant: its default model (or, when a complete catalog lacks it, the
-     * catalog's first model) and default thinking level. Tool settings never supply defaults.
+     * The plugin's coded defaults for the selected tool and its provider (or the first model when a complete catalog
+     * lacks the default). Tools identify connections, while adapters own the model and thinking defaults.
      */
     public async defaults(variant: string): Promise<{ readonly model?: string; readonly thinkingLevel?: ThinkingLevel }> {
         const plugin = this.plugin(variant);
         if (!plugin) return {};
-        let model: string | undefined = plugin.defaultModel;
+        const tool = this.instance(variant) ?? this.select(variant);
+        const setup = plugin.setupApiKey;
+        const provider = setup && tool?.authentication === 'API_KEY' && parseEnvironmentReference(tool.apiKey) === setup.reference ? setup : undefined;
+        let model: string | undefined = provider?.model ?? plugin.defaultModel;
         if (plugin.modelCatalog === 'complete') {
             const known = await this.models(variant);
             if (known.length && !known.includes(model)) model = known[0];
         }
-        return { model, thinkingLevel: plugin.thinkingLevels.length ? (plugin.defaultThinkingLevel ?? plugin.thinkingLevels[0]) : undefined };
+        return { model, thinkingLevel: provider?.thinkingLevel ?? (plugin.thinkingLevels.length ? (plugin.defaultThinkingLevel ?? plugin.thinkingLevels[0]) : undefined) };
     }
 
     /**

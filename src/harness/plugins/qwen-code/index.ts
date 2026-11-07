@@ -38,6 +38,7 @@ export const plugin: HarnessPlugin = {
     variant: 'QWEN_CODE',
     apiKeyVariable: 'OPENAI_API_KEY',
     setupApiKey: {
+        reference: 'PTBK_QWEN_CODE_API_KEY',
         label: 'QwenCloud Singapore pay-as-you-go API key', url: 'https://docs.qwencloud.com/api-reference/preparation/api-key',
         baseUrl: 'https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1', model: 'qwen3.8-max',
     },

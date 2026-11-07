@@ -210,8 +210,8 @@ export async function completeWithDefaults(
                 reasons.push(`${plugin.displayName} is not usable now`);
                 continue;
             }
-            const defaults = await context.pool.defaults(id);
-            const candidates = row.model ? [row.model] : [...new Set([defaults.model, ...(await context.pool.models(id))].filter((model): model is string => Boolean(model)))];
+            const defaults = await context.pool.defaults(tool.name);
+            const candidates = row.model ? [row.model] : [...new Set([defaults.model, ...(await context.pool.models(tool.name))].filter((model): model is string => Boolean(model)))];
             const model = candidates.find((candidate) => {
                 const metadata = modelMetadata(candidate);
                 return rowAllows({ provider: row.provider, origin: row.origin }, { harness: plugin.variant, model: candidate, runtime: toolRuntime(tool), ...metadata }) && selectorsMatch(options.selectors ?? [], options.agentName ?? '', id, candidate);

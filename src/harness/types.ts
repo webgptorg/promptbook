@@ -318,15 +318,16 @@ export type HarnessPlugin = {
     readonly variant: HarnessVariant;
     /** Variable through which the CLI accepts an API key for an explicit `API_KEY` instance (absent: unsupported). */
     readonly apiKeyVariable?: string;
-    /** Gives explicit key instances a CLI profile separate from stored subscription credentials. */
-    readonly apiKeyHomeVariable?: string;
     /** A documented provider key that the pre-project wizard can configure explicitly. */
     readonly setupApiKey?: {
+        readonly reference: string;
         readonly label: string;
         readonly url: string;
         readonly baseUrl?: string;
         readonly model?: string;
         readonly thinkingLevel?: ThinkingLevel;
+        /** Isolates a wizard-created connection from the CLI's existing subscription settings. */
+        readonly profile?: { readonly home: string; readonly omit?: readonly string[] };
     };
     /** Ambient variables that would silently switch a native instance to API billing (removed for `NATIVE`). */
     readonly ambientApiKeyVariables?: readonly string[];
