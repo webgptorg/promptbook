@@ -24,6 +24,8 @@ trap cleanup EXIT
 mkdir -p "$work/dmg" "$work/Applications"
 hdiutil attach "$dmg" -readonly -nobrowse -mountpoint "$work/dmg"
 mounted=true
+# The default electron-builder artwork is 540 px wide. Check the branded TIFF in the mounted image.
+sips -g pixelWidth "$work/dmg/.background.tiff" | grep -Eq '^[[:space:]]+pixelWidth: 600$'
 test "$(readlink "$work/dmg/Applications")" = /Applications
 app="$work/Applications/Promptbook.app"
 ditto "$work/dmg/Promptbook.app" "$app"

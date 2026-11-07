@@ -1,6 +1,7 @@
 # Unreleased
 
 - Keep JSON stdout separate from stderr diagnostics in engine self-update tests, so Node.js warnings cannot break `npm version prerelease`. Cover status and task-list reads with a runtime warning across an update and restart.
+- Brand the macOS installer for Apple Silicon and Intel with the Promptbook wordmark, the homepage robot, and a clearer drag-to-Applications layout with a Retina background.
 
 - Retry transient status-client failures while lifecycle tests wait for an externally terminated engine to stop; report the last CLI error if the bounded poll expires.
 

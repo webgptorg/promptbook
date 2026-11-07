@@ -61,7 +61,16 @@ try {
                 ],
                 ...(!signed && { identity: '-', hardenedRuntime: false, notarize: false }),
             },
-            dmg: { sign: signed },
+            dmg: {
+                sign: signed,
+                title: '${productName} ${version}${arch}',
+                background: join(root, 'design', 'brand', 'macos-dmg-background.png'),
+                iconSize: 84,
+                contents: [
+                    { x: 148, y: 272, type: 'file' },
+                    { x: 452, y: 272, type: 'link', path: '/Applications' },
+                ],
+            },
         },
     });
     if (signed) {
