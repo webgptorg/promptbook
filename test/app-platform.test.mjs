@@ -65,7 +65,7 @@ test('UI loader settings: update policy and release store URL', async (t) => {
 });
 
 test('UI loader paths: a bundle never occupies the engine’s own paths', () => {
-    for (const path of ['/api', '/api/v1', '/api/v1/engine', '/auth', '/auth/sign-in', '/setup', '/setup/options', '/.well-known', '/.well-known/acme-challenge/x']) assert.equal(isEngineOwnedPath(path), true, path);
+    for (const path of ['/api', '/api/v1', '/api/v1/engine', '/auth', '/auth/sign-in', '/setup', '/setup/options', '/.well-known', '/.well-known/acme-challenge/x', '/_ptbk/harness-terminal', '/_ptbk/harness-terminal/xterm.js']) assert.equal(isEngineOwnedPath(path), true, path);
     for (const path of ['/', '/index.html', '/agents/1', '/assets/index-abcdefgh.js', '/apis', '/setups', '/authors']) assert.equal(isEngineOwnedPath(path), false, path);
 });
 

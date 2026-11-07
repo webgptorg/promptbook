@@ -56,6 +56,7 @@
         "@types/node": "22.20.5",
         "@types/vscode": "1.85.0",
         "@vscode/vsce": "4.1.0",
+        "@xterm/xterm": "6.0.0",
         "cspell": "9.0.2",
         "esbuild": "0.28.2",
         "eslint": "10.12.0",
@@ -87,5 +88,8 @@
     },
     "dependencies": {
         "@scure/bip39": "2.4.0"
+    },
+    "optionalDependencies": {
+        "@lydell/node-pty": "1.2.0-beta.18"
     }
 }

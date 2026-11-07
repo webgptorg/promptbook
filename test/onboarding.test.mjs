@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { chmod, mkdir, readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
+import { delimiter, join } from 'node:path';
 import { test } from 'node:test';
 import { EngineApi } from '../dist/app/api/engine-api.js';
 import { loadEngineIdentity } from '../dist/app/identity.js';
@@ -9,6 +9,8 @@ import { parseAppLink, readRegistration, storeRegistration } from '../dist/app/r
 import { appSettings } from '../dist/app/settings.js';
 import { onboardingPage } from '../dist/app/web/onboarding-page.js';
 import { AccessStore } from '../dist/app/web/access.js';
+import { Gateway, SESSION_COOKIE_NAME } from '../dist/app/web/gateway.js';
+import { harnessTerminalPage } from '../dist/app/web/harness-terminal.js';
 import { harnessLoginMethods } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { readOnboarding, saveOnboarding } from '../dist/onboarding/draft.js';
@@ -157,4 +159,79 @@ test('the engine ships a same-origin onboarding script for hosts without a verif
     const script = await onboardingPage(new Request('https://engine.example.test/_ptbk/onboarding.js'));
     assert.match(script.headers.get('content-type'), /javascript/);
     assert.doesNotMatch(await script.text(), /innerHTML|eval\(/);
+});
+
+test('the owner can complete Claude Code sign-in in a real, private native terminal', { skip: process.platform === 'win32' }, async (t) => {
+    const { home, project, draft } = await pending(t);
+    const bin = join(home, 'fake bin');
+    await mkdir(bin);
+    const code = 'fixture-one-time-code';
+    const marker = join(home, 'claude-ready');
+    const executable = join(bin, 'claude');
+    await writeFile(executable, `#!/bin/sh
+case "$*" in
+  --version) echo '2.0.0 (Claude Code)' ;;
+  'auth status --json')
+    if test -f "$TEST_CLAUDE_STATE"; then echo '{"loggedIn":true,"authMethod":"oauth"}'; else echo '{"loggedIn":false}'; fi ;;
+  'auth login --help') echo 'Usage: claude auth login --claudeai' ;;
+  'auth login --claudeai')
+    test -t 0 && test -t 1 || exit 1
+    stty -echo
+    printf 'Paste code at the native prompt: '
+    IFS= read -r code
+    test "$code" = '${code}' && touch "$TEST_CLAUDE_STATE" ;;
+  -p*) echo '{"type":"result","subtype":"success","result":"PONG"}' ;;
+esac
+`);
+    await chmod(executable, 0o755);
+    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, TEST_CLAUDE_STATE: marker, PTBK_EXPERIMENTAL_REMOTE_HARNESS_TERMINAL: '1' };
+    const uploads = new OnboardingUploads(join(project.root, 'uploads'));
+    const session = new OnboardingSession(project, draft, uploads, env, async () => assert.fail('not confirmed'));
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['claude-code'] }));
+    await waitFor(() => session.view().nativeLogin, { timeoutMs: 6000, intervalMs: 40 });
+    const waiting = session.state();
+    const hostname = 'engine.example.test';
+    const path = '/_ptbk/harness-terminal';
+    const disabled = await harnessTerminalPage(new Request(`https://${hostname}${path}`), { role: 'owner' }, { remoteTerminalEnabled: false });
+    assert.equal(disabled.status, 404);
+    const cookies = { owner: 'a'.repeat(22), outsider: 'b'.repeat(22), second: 'c'.repeat(22) };
+    const actors = {
+        [cookies.owner]: { role: 'owner', sessionId: 'first' },
+        [cookies.outsider]: { role: 'member', sessionId: 'member' },
+        [cookies.second]: { role: 'owner', sessionId: 'second' },
+    };
+    const gateway = new Gateway({
+        access: { authenticate: (token) => actors[token] },
+        documents: (request, actor) => harnessTerminalPage(request, actor, session),
+    });
+    const id = randomUUID();
+    const send = (command, cookie = cookies.owner, origin = `https://${hostname}`) => gateway.handle(new Request(`https://${hostname}${path}`, {
+        method: 'POST', headers: { host: hostname, origin, 'sec-fetch-site': 'same-origin', 'content-type': 'application/json', ...(cookie ? { cookie: `${SESSION_COOKIE_NAME}=${cookie}` } : {}) },
+        body: JSON.stringify({ id, ...command }),
+    }), { hostname, clientIp: '127.0.0.1' });
+    const page = await gateway.handle(new Request(`https://${hostname}${path}`, { headers: { host: hostname, cookie: `${SESSION_COOKIE_NAME}=${cookies.owner}` } }), { hostname });
+    const html = await page.text();
+    const nonce = /nonce="([^"]+)"/.exec(html)?.[1];
+    assert(nonce);
+    assert(page.headers.get('content-security-policy').includes(`style-src 'self' 'nonce-${nonce}'`));
+    assert(page.headers.get('content-security-policy').includes("script-src 'self'"));
+    assert.equal((await send({ action: 'start' }, null)).status, 401);
+    assert.equal((await send({ action: 'start' }, cookies.outsider)).status, 403);
+    assert.equal((await send({ action: 'start' }, cookies.owner, 'https://another.test')).status, 403);
+    assert.equal((await send({ action: 'start' })).status, 200);
+    assert.equal((await send({ action: 'read', offset: 0 }, cookies.second)).status, 409);
+    await assert.rejects(session.terminal('local', { id: randomUUID(), action: 'start' }), /already open/);
+    await waitFor(async () => (await (await send({ action: 'read', offset: 0 })).json()).output.includes('Paste code at the native prompt'), { timeoutMs: 5000, intervalMs: 40 });
+    assert.equal((await send({ action: 'write', data: code + '\r' })).status, 200);
+    const frame = await waitFor(async () => {
+        const current = await (await send({ action: 'read', offset: 0 })).json();
+        return current.done && current;
+    }, { timeoutMs: 5000, intervalMs: 40 });
+    assert(!frame.output.includes(code), 'the provider prompt controls echo');
+    await session.answer(answer(waiting, { kind: 'confirm', confirmed: true }));
+    await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 6000, intervalMs: 40 });
+    assert.doesNotMatch(JSON.stringify(await readOnboarding(project)), new RegExp(code));
+    assert.equal((await send({ action: 'read', offset: 0 })).status, 409);
 });

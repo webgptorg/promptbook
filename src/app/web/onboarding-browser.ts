@@ -103,8 +103,15 @@ function controls(prompt: OnboardingPrompt): HTMLElement[] {
             });
             return [...choices.map(({ row }) => row), button('Continue', async () => answer({ kind: 'choice', choiceIds: choices.filter(({ option }) => option.checked).map(({ option }) => option.value) }))];
         }
-        case 'confirm':
+        case 'confirm': {
+            const terminalPath = '/_ptbk/harness-terminal';
+            if (prompt.hint?.endsWith(terminalPath)) {
+                const link = element('a', 'Open native sign-in terminal');
+                link.href = terminalPath;
+                return [link, button(prompt.confirmLabel, async () => answer({ kind: 'confirm', confirmed: true }))];
+            }
             return [button(prompt.confirmLabel, async () => answer({ kind: 'confirm', confirmed: true })), button(prompt.declineLabel, async () => answer({ kind: 'confirm', confirmed: false }))];
+        }
         case 'harness-login': {
             const link = element('a', 'Open provider sign-in');
             link.href = prompt.url;

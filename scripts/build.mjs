@@ -22,6 +22,11 @@ try {
     process.exit(1);
 }
 await copyFile(join(root, 'src', 'package.json'), join(dist, 'package.json'));
+// The authenticated first-run terminal uses the same xterm build as the desktop client.
+for (const file of ['lib/xterm.js', 'css/xterm.css', 'LICENSE']) {
+    const name = file === 'LICENSE' ? 'xterm-LICENSE' : file.split('/').at(-1);
+    await copyFile(join(root, 'node_modules', '@xterm', 'xterm', file), join(dist, 'app', 'web', name));
+}
 await mkdir(join(dist, 'service', 'spa'), { recursive: true });
 for (const file of await readdir(join(root, 'src', 'service', 'spa'))) {
     await copyFile(join(root, 'src', 'service', 'spa', file), join(dist, 'service', 'spa', file));

@@ -1,5 +1,6 @@
 import type { AppPairingOutcome } from '../../app/connection.js';
 import { readFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { basename, resolve } from 'node:path';
 import { EXIT, errorMessage, PtbkError, usageError } from '../../common/errors.js';
 import { createOnboarding, listOnboardings, onboardingTarget, readOnboarding } from '../../onboarding/draft.js';
@@ -7,6 +8,7 @@ import { launchOnboarding, onboardingClient, pendingOnboarding } from '../../onb
 import type { OnboardingPrompt, OnboardingReply } from '../../onboarding/contract.js';
 import type { OnboardingView } from '../../onboarding/session.js';
 import type { OnboardingFile } from '../../onboarding/uploads.js';
+import type { TerminalFrame } from '../../onboarding/terminal.js';
 import type { Project } from '../../project/workspace.js';
 import { lookupService, type ControlClient } from '../../service/control.js';
 import { CANCELLED, composeRich, confirm, inputLine, selectMany, selectOne, wasInterrupted } from '../../ui/prompts.js';
@@ -40,6 +42,22 @@ async function interact(context: CommandContext, project: Project, client: Contr
         }
         waiting = false;
         const frame = { title: 'Pending initialization', step: prompt.title, ...(prompt.error || prompt.hint ? { summary: [prompt.error ?? prompt.hint!] } : {}) };
+        if (view.nativeLogin === prompt.id) {
+            const choice = await selectOne(terminal, { frame, question: prompt.question, choices: [
+                { value: 'terminal', label: 'Open native sign-in terminal' }, { value: 'check', label: 'Check sign-in' },
+                { value: 'back', label: 'Choose harnesses' }, { value: 'later', label: 'Continue later' },
+            ] });
+            if (choice === CANCELLED || choice === 'later') { await client.request('onboarding-defer'); return undefined; }
+            try {
+                if (choice === 'terminal') await nativeLoginTerminal(context, client);
+                await submit(client, choice === 'back' ? { promptId: prompt.id, action: 'back' } :
+                    { promptId: prompt.id, action: 'answer', answer: { kind: 'confirm', confirmed: true } });
+            } catch (error) {
+                terminal.write(errorMessage(error) + '\n');
+                if (!(error instanceof PtbkError) || !['conflict', 'setup'].includes(error.details.kind)) return undefined;
+            }
+            continue;
+        }
         if (prompt.kind === 'harness-login') {
             const result = await watchLogin(context, client, prompt);
             if (result === 'leave') return undefined;
@@ -84,6 +102,47 @@ async function interact(context: CommandContext, project: Project, client: Contr
             if (!(error instanceof PtbkError && error.details.kind === 'conflict')) throw error;
             terminal.write('Another client already answered that prompt. Refreshing.\n');
         }
+    }
+}
+
+/** The desktop xterm and the CLI both forward their keys to the same engine-owned native terminal. */
+async function nativeLoginTerminal(context: CommandContext, client: ControlClient): Promise<void> {
+    const id = randomUUID();
+    const size = () => ({ cols: context.terminal.columns(), rows: context.terminal.rows() });
+    const call = <T>(action: string, params = {}) => client.request<T>('onboarding-terminal', { id, action, ...params });
+    const input = process.stdin;
+    const raw = input.isRaw;
+    const paused = input.isPaused();
+    await call('start', size());
+    let writes = Promise.resolve<unknown>(undefined);
+    let failure: unknown;
+    const send = (action: string, params: object): void => {
+        writes = writes.then(() => failure ? undefined : call(action, params)).catch((error: unknown) => { failure = error; });
+    };
+    const onInput = (data: Buffer | string): void => {
+        for (const part of String(data).match(/[\s\S]{1,4096}/g) ?? []) send('write', { data: part });
+    };
+    const resize = (): void => send('resize', size());
+    try {
+        input.setRawMode(true);
+        input.on('data', onInput);
+        process.stdout.on('resize', resize);
+        let offset = 0;
+        for (;;) {
+            if (failure) throw failure;
+            const frame = await call<TerminalFrame>('read', { offset });
+            context.terminal.write(frame.output);
+            offset = frame.offset;
+            if (frame.done) break;
+            await new Promise((done) => setTimeout(done, 120));
+        }
+    } finally {
+        input.off('data', onInput);
+        process.stdout.off('resize', resize);
+        input.setRawMode(raw);
+        if (paused) input.pause();
+        await writes;
+        await call('close').catch(() => undefined);
     }
 }
 

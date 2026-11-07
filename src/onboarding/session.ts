@@ -6,11 +6,12 @@ import { harnessLoginMethods, installHarness } from '../harness/maintenance.js';
 import { functionalCheck, proposeProjectName } from '../harness/preparation.js';
 import { presentNativeLogin } from '../harness/presented-login.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../harness/registry.js';
-import type { HarnessContext, HarnessPlugin } from '../harness/types.js';
+import type { HarnessContext, HarnessLoginMethod, HarnessPlugin } from '../harness/types.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessToolRecord } from '../tools/model.js';
 import { completedOnboarding, onboardingReply, type OnboardingPrompt, type OnboardingState } from './contract.js';
 import { onboardingTarget, onboardingTargetExists, saveOnboarding, validOnboardingFolder, type OnboardingDraft } from './draft.js';
+import { HARNESS_TERMINAL_PATH, HarnessLoginTerminal, type TerminalFrame } from './terminal.js';
 import { MAX_ONBOARDING_FILES, type OnboardingFile, type OnboardingUploads } from './uploads.js';
 
 /** The lifetime of one preparation or publication job. */
@@ -23,7 +24,11 @@ export type OnboardingView = {
     readonly onboarding: OnboardingState;
     readonly folder?: string;
     readonly error?: string;
+    readonly nativeLogin?: string;
 };
+
+/** Live native login state. The draft holds only the surrounding setup step. */
+type NativeLogin = { readonly terminal: HarnessLoginTerminal; readonly verify: () => Promise<boolean>; readonly finish: () => void };
 
 /** Plain text safe to offer to any of the wizard clients. */
 function label(text: string): string {
@@ -47,6 +52,7 @@ export class OnboardingSession {
     private tail: Promise<unknown> = Promise.resolve();
     private job?: Job;
     private login?: OnboardingPrompt;
+    private nativeLogin?: NativeLogin;
     private stopped = false;
     private defaults: readonly string[] = ['openai-codex'];
 
@@ -70,7 +76,18 @@ export class OnboardingSession {
     /** The non-secret local summary of this service. */
     public view(): OnboardingView {
         const { engineId, step, folder, error } = this.draft;
-        return { engineId, step, folder, error, onboarding: this.state() };
+        return { engineId, step, folder, error, onboarding: this.state(), ...(this.nativeLogin ? { nativeLogin: this.login?.id } : {}) };
+    }
+
+    /** The browser transport is opt-in on the engine host. Local terminal access uses private IPC. */
+    public get remoteTerminalEnabled(): boolean {
+        return this.env.PTBK_EXPERIMENTAL_REMOTE_HARNESS_TERMINAL === '1';
+    }
+
+    /** Forwards only the current wizard's native login terminal. */
+    public async terminal(owner: string, command: Readonly<Record<string, unknown>>): Promise<TerminalFrame | null> {
+        if (!this.nativeLogin) throw new PtbkError('There is no active native sign-in step.', { kind: 'conflict' });
+        return await this.nativeLogin.terminal.command(owner, command);
     }
 
     /** IDs attached by an accepted answer. */
@@ -121,6 +138,7 @@ export class OnboardingSession {
     /** Defers presentation without discarding the draft or starting an agenda. */
     public async defer(): Promise<OnboardingState> {
         return await this.exclusive(async () => {
+            this.nativeLogin?.terminal.close();
             if (this.draft.step !== 'done' && !this.draft.deferred) await this.save({ deferred: true });
             return this.state();
         });
@@ -177,7 +195,13 @@ export class OnboardingSession {
                     break;
                 }
                 case 'confirm':
-                    if (this.draft.step === 'publish' || this.draft.step === 'published') {
+                    if (this.nativeLogin) {
+                        if (!reply.answer.confirmed) {
+                            this.nativeLogin.terminal.close();
+                            await this.save({ deferred: true });
+                        } else if (await this.nativeLogin.verify()) this.nativeLogin.finish();
+                        else this.login = { ...prompt, error: 'Claude Code is still signed out in the engine account.' };
+                    } else if (this.draft.step === 'publish' || this.draft.step === 'published') {
                         if (reply.answer.confirmed) await this.next(this.draft.step);
                         else await this.save({ deferred: true, promptId: randomUUID() });
                     } else {
@@ -204,6 +228,28 @@ export class OnboardingSession {
         if (this.draft.step === 'prepare') this.job?.abort.abort();
         await this.job?.done;
         await this.tail;
+    }
+
+    /** Waits for the owner to use the terminal and verify the account, or to leave the step. */
+    private async waitForNativeLogin(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal): Promise<void> {
+        signal.throwIfAborted();
+        const terminal = new HarnessLoginTerminal(plugin, context, method);
+        let finish!: () => void;
+        const completed = new Promise<void>((resolve) => { finish = resolve; });
+        this.nativeLogin = { terminal, finish, verify: async () => (await plugin.inspect(context)).authenticated === true };
+        this.login = { id: randomUUID(), title: 'Claude Code sign-in', kind: 'confirm', canGoBack: true, error: null,
+            question: 'Complete native sign-in as the engine user, then check sign-in.', confirmLabel: 'Check sign-in', declineLabel: 'Continue later',
+            hint: this.remoteTerminalEnabled ? 'Open the sign-in terminal on this engine at ' + HARNESS_TERMINAL_PATH : 'Use the Promptbook terminal on the engine host or run `claude auth login` there.' };
+        signal.addEventListener('abort', finish, { once: true });
+        try {
+            await completed;
+            signal.throwIfAborted();
+        } finally {
+            signal.removeEventListener('abort', finish);
+            terminal.close();
+            this.nativeLogin = undefined;
+            this.login = undefined;
+        }
     }
 
     /** Keeps answers, defaults and busy phases in the same order for every client. */
@@ -296,7 +342,9 @@ export class OnboardingSession {
                 inspection = await plugin.inspect(context);
             }
             if (inspection.installed && inspection.authenticated === false) {
-                const method = (await harnessLoginMethods(plugin, context, 'remote')).find((candidate) => candidate.deviceChallenge);
+                const methods = await harnessLoginMethods(plugin, context, 'remote');
+                const method = methods.find((candidate) => candidate.deviceChallenge);
+                const native = plugin.id === 'claude-code' ? methods.find((candidate) => candidate.remote && candidate.args[0] === 'auth' && candidate.args[1] === 'login') : undefined;
                 if (method) {
                     const failure = await presentNativeLogin(plugin, context, method, (challenge) => {
                         if (signal.aborted) return;
@@ -306,6 +354,9 @@ export class OnboardingSession {
                     });
                     this.login = undefined;
                     if (failure) problems.push(plugin.displayName + ': ' + failure.diagnostic);
+                    inspection = await plugin.inspect(context);
+                } else if (native) {
+                    await this.waitForNativeLogin(plugin, context, native, signal);
                     inspection = await plugin.inspect(context);
                 } else {
                     problems.push(plugin.displayName + ': ' + plugin.loginHint + ' Sign in on the engine host as its service user, then select the harness again.');

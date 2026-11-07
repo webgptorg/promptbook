@@ -26,7 +26,9 @@ On the host, use `ptbk init --with-app` to start, pair or continue a pending ini
 
 Open the owner setup link from the host and register a passkey on the engine's own origin. App presents the brief, files, harness selection, name, folder and confirmation from `onboarding@1` and `files@1`. The engine ships a small same-origin page for setup while a verified App UI bundle is unavailable. Both use the passkey gateway and the same permissions.
 
-The engine checks native accounts under its service user. A Codex device code is presented to the owner and entered on OpenAI's site. Claude Code sign-in is completed in the native CLI on the host. Selecting a harness allows the engine to install it for its OS account and verify a real response. A verified harness can propose the name during setup.
+The engine checks native accounts under its service user. A Codex device code is presented to the owner and entered on OpenAI's site. For supported Claude Code versions the CLI and desktop wizard offer the engine's native sign-in terminal. Selecting a harness allows the engine to install it for its OS account and verify a real response. A verified harness can propose the name during setup.
+
+For integration testing, set `PTBK_EXPERIMENTAL_REMOTE_HARNESS_TERMINAL=1` in the onboarding service's environment. The owner can open `/_ptbk/harness-terminal` on the linked engine origin. The page ships with the engine and runs through the existing TLS tunnel. The fallback onboarding page links to it. The current signed App UI displays the path in the sign-in prompt's hint. On return, the wizard checks the service user's real native account. The feature is off by default pending confirmation of the customer-facing authentication flow with Anthropic.
 
 The final confirmation builds the project in private staging with the ordinary initializer. The engine publishes the chosen child folder under the projects home, preserves its existing App identity and passkeys, and starts its agenda. The connection can briefly reconnect during handoff. Browser and trace settings start with the defaults. Wallet and optional Git synchronization can be set up after creation.
 
