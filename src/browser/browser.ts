@@ -1164,17 +1164,40 @@ export class TaskBrowser {
         return `${this.takeNotice()}${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} of your tabs are open; browser_tabs lists and switches them)` : ''}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${note ? `\n\nNote: ${note}` : ''}`;
     }
 
+    /**
+     * Waits for the document requested by this navigation. A new tab's initial about:blank load, a subframe, or
+     * another tab must not satisfy it. Events can precede the navigation reply, so retain them until its frame and
+     * loader identifiers are known. Same-document navigations, failed requests and downloads have no load to await.
+     */
+    private async navigateTo(connection: CdpConnection, sessionId: string, address: string): Promise<Record<string, unknown>> {
+        await connection.send('Page.setLifecycleEventsEnabled', { enabled: true }, sessionId);
+        const loads: Record<string, unknown>[] = [];
+        const unsubscribe = connection.on((message) => {
+            if (message.method !== 'Page.lifecycleEvent' || message.sessionId !== sessionId) return;
+            const event = message.params as Record<string, unknown>;
+            if (event.name === 'load') loads.push(event);
+        });
+        try {
+            const result = await connection.send('Page.navigate', { url: address }, sessionId);
+            if (typeof result.loaderId === 'string' && !result.errorText && !result.isDownload) {
+                const deadline = Date.now() + 30_000;
+                while (!loads.some((event) => event.frameId === result.frameId && event.loaderId === result.loaderId) && Date.now() < deadline) await delay(50);
+            }
+            return result;
+        } finally {
+            unsubscribe();
+        }
+    }
+
     /** Navigates the current tab (or a new one) to any URL and waits for it to load (bounded). */
     public async open(url: string, newTab = false): Promise<string> {
         const address = browserAddress(url);
         const { connection } = await this.active();
         if (newTab) await this.attachPage(connection, await this.newTab(connection));
         const sessionId = this.sessionId!;
-        const loaded = connection.waitFor('Page.loadEventFired', 30_000, sessionId);
-        const result = await connection.send('Page.navigate', { url: address }, sessionId);
+        const result = await this.navigateTo(connection, sessionId, address);
         const failed = typeof result.errorText === 'string' && result.errorText ? `Navigation failed: ${result.errorText}.\n\n` : '';
         const download = result.isDownload === true ? 'The URL started a download.\n\n' : '';
-        if (result.loaderId && !failed && !download) await loaded;
         const page = await this.read();
         this.recorder.visited(page.split('\n')[1] ?? address);
         return `${failed}${download}${page}`;

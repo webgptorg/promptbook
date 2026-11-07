@@ -4,7 +4,7 @@ import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { findBrowserExecutable } from '../dist/browser/browser.js';
+import { findBrowserExecutable, TaskBrowser } from '../dist/browser/browser.js';
 import { browserTools } from '../dist/browser/agent-tools.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
 import { BrowserPools } from '../dist/browser/pool.js';
@@ -14,6 +14,63 @@ import { parseKeyPress, parseModifiers } from '../dist/browser/input.js';
 import { ToolBridge } from '../dist/engine/bridge.js';
 import { readableHarnessLine } from '../dist/engine/task-trace.js';
 import { temporaryDirectory, waitFor } from './helpers.mjs';
+
+test('browser navigation waits for the requested frame and loader, not the initial blank page', async () => {
+    const listeners = new Set();
+    let current = 'about:blank';
+    const requested = 'https://fixture.example/signup';
+    const emit = (params, sessionId = 'tab') => {
+        for (const listener of listeners) listener({ method: 'Page.lifecycleEvent', sessionId, params });
+    };
+    const connection = {
+        on(listener) { listeners.add(listener); return () => listeners.delete(listener); },
+        waitFor: async () => ({}), // The initial about:blank load used to satisfy this unqualified wait.
+        async send(method) {
+            if (method !== 'Page.navigate') return {};
+            emit({ name: 'load', frameId: 'main', loaderId: 'blank' });
+            emit({ name: 'load', frameId: 'child', loaderId: 'requested' });
+            emit({ name: 'load', frameId: 'main', loaderId: 'requested' }, 'another-tab');
+            setTimeout(() => {
+                current = requested;
+                emit({ name: 'load', frameId: 'main', loaderId: 'requested' });
+            }, 25);
+            return { frameId: 'main', loaderId: 'requested' };
+        },
+    };
+    const browser = new TaskBrowser({}, 'navigation fixture', {}, () => false, {});
+    browser.active = async () => ({ connection, sessionId: 'tab' });
+    browser.sessionId = 'tab';
+    browser.read = async () => current;
+    assert.equal(await browser.open(requested), requested);
+    assert.equal(listeners.size, 0, 'navigation listeners are removed after the page is read');
+});
+
+test('browser navigation handles loads before its reply and skips loads for same-document changes, failures and downloads', { timeout: 1000 }, async () => {
+    for (const outcome of [
+        { frameId: 'main', loaderId: 'requested' },
+        { frameId: 'main' },
+        { frameId: 'main', loaderId: 'requested', errorText: 'net::ERR_FAILED' },
+        { frameId: 'main', loaderId: 'requested', isDownload: true },
+    ]) {
+        const listeners = new Set();
+        const connection = {
+            on(listener) { listeners.add(listener); return () => listeners.delete(listener); },
+            async send(method) {
+                if (method !== 'Page.navigate') return {};
+                if (outcome.loaderId && !outcome.errorText && !outcome.isDownload) {
+                    for (const listener of listeners) listener({ method: 'Page.lifecycleEvent', sessionId: 'tab', params: { name: 'load', frameId: 'main', loaderId: 'requested' } });
+                }
+                return outcome;
+            },
+        };
+        const browser = new TaskBrowser({}, 'navigation fixture', {}, () => false, {});
+        browser.active = async () => ({ connection, sessionId: 'tab' });
+        browser.sessionId = 'tab';
+        browser.read = async () => 'Current page';
+        assert.match(await browser.open('https://fixture.example/'), /Current page/);
+        assert.equal(listeners.size, 0);
+    }
+});
 
 test('browser pool filesystem failures propagate instead of entering an unbounded lock-contention retry', async (t) => {
     const root = await temporaryDirectory(t, 'ptbk pool failure');
