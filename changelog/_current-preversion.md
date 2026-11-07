@@ -1,5 +1,7 @@
 # Unreleased
 
+- Stabilize the manual-pause crash regression by waiting for active work and Git persistence to settle before the simulated crash. Keep the queued-work recovery assertions and include the CLI error if restart fails.
+
 - Restore `npm run prerelease` as an entry point for the checked, tagged release pipeline, and document the GitHub Actions organization policy required for publishing all release artifacts.
 - Check the real headless browser's configured window and actual screenshot viewport separately, so native window borders do not incorrectly block prereleases on Windows.
 - Update the dashboard regression check for the current App pairing URL instructions.

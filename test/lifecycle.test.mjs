@@ -224,12 +224,28 @@ test('lifecycle: an accepted manual pause survives an engine crash; a deliberate
     const paused = await ptbk(['pause', '--raw'], { cwd: project, env });
     assert.equal(paused.code, 0, paused.output);
     await waitFor(async () => (await status(project, env)).service.state === 'pause', { message: 'the pause to settle' });
-    await ptbk(['add', 'Queued work', '--agent', 'Developer', '--raw'], { cwd: project, env });
-    const before = await status(project, env);
+    const queued = await ptbk(['add', 'Queued work', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    assert.equal(queued.code, 0, queued.output);
+    // Pause settles task work; chat replies and pending Git persistence may still finish. This test exercises saved
+    // operator intent, so crash only after those writers settle rather than cutting off an unrelated Git operation.
+    let idlePolls = 0;
+    const before = await waitFor(async () => {
+        const snapshot = await status(project, env);
+        const changes = await git(project, ['status', '--porcelain']);
+        const idle =
+            snapshot.service.state === 'pause' &&
+            !snapshot.active?.length &&
+            !snapshot.report?.generating &&
+            !snapshot.report?.isCommitPending &&
+            !changes.trim();
+        idlePolls = idle ? idlePolls + 1 : 0;
+        return idlePolls >= 4 ? snapshot : undefined;
+    }, { timeoutMs: 90_000, intervalMs: 500, message: 'the paused engine and Git persistence to settle before the crash' });
     // An uncatchable kill is what a crash looks like: no cleanup and no chance to record anything.
     process.kill(before.service.pid, 'SIGKILL');
     await waitFor(async () => (await status(project, env)).service.state === 'stopped', { message: 'the killed engine to be observed as stopped' });
-    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const restarted = await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env });
+    assert.equal(restarted.code, 0, restarted.output);
     const restored = await status(project, env);
     assert.notEqual(restored.service.instanceId, before.service.instanceId);
     assert.equal(restored.service.state, 'pause', 'the operator’s manual pause is restored before any background claim');
