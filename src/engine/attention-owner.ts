@@ -291,7 +291,8 @@ export class AttentionOwner {
             state,
             lastCheckAt: at,
             lastOutcome: outcome,
-            schedule: nextProgressiveWait(check.schedule, { cause: outcome, conditions: id }, this.policy),
+            // Measured from the check itself, so a slow assessment does not stretch this round's interval.
+            schedule: nextProgressiveWait(check.schedule, { cause: outcome, conditions: id }, this.policy, Date.parse(at)),
             ...(assessedEvidence !== undefined ? { assessedEvidence } : {}),
         });
     }
