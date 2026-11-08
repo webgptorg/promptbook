@@ -24,6 +24,13 @@ async function realBrowserSkip() {
     return (await findBrowserExecutable({ variant: 'CHROME' })) ? false : 'no Chrome-compatible browser is installed';
 }
 
+/** Stop native Wallet fixtures at the actual browser failure, retaining its redacted startup cause. */
+async function checkedBrowserTool(tools, fleet, name, input = {}) {
+    const result = await tools[name].handler(input);
+    if (name.startsWith('browser_')) assert.ok(!result.isError, `${name}: ${result.text}${result.isError ? `\nBrowser diagnostics: ${JSON.stringify(fleet.inspectAll().map((view) => ({ name: view.name, failure: view.lastFailure })))}` : ''}`);
+    return result;
+}
+
 /**
  * A Wallet over a temporary project with the explicit fixture unlock store under `home` (one "computer").
  */
@@ -386,7 +393,7 @@ test('Wallet in the real browser: the agent requests a login, never sees the pas
     await wallet.confirmSetup();
     const waits = [];
     const tools = Object.fromEntries(browserTools(fleet.scope('wallet task'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, { ...request, task: 'Wallet task' }), onWait: (action) => waits.push(action) }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => await tools[name].handler(input);
+    const call = (name, input = {}) => checkedBrowserTool(tools, fleet, name, input);
 
     await call('browser_open', { url: origin });
     let result = await call('wallet_login', { reason: 'read the dashboard' });
@@ -584,11 +591,7 @@ test('Wallet generated logins in the real browser: the agent signs up, changes t
     await wallet.beginSetup();
     await wallet.confirmSetup();
     const tools = Object.fromEntries(browserTools(fleet.scope('signup task'), undefined, 'Tester', () => undefined, () => [], { login: (target, request) => wallet.login(target, request), accounts: (site) => wallet.accounts(site), createLogin: (target, request) => wallet.createLogin(target, request), correctLogin: (input) => wallet.correctLogin(input), onWait: () => undefined }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => {
-        const result = await tools[name].handler(input);
-        if (name.startsWith('browser_')) assert.ok(!result.isError, `${name}: ${result.text}`);
-        return result;
-    };
+    const call = (name, input = {}) => checkedBrowserTool(tools, fleet, name, input);
     const readable = async () => (await call('browser_evaluate', { script: "[...document.querySelectorAll('input[type=password]')].map((input) => input.value).join('')" })).text;
 
     await call('browser_open', { url: `${origin}/signup` });
@@ -675,7 +678,7 @@ test('Wallet Test in the real browser: a separate login context follows the sign
     await wallet.beginSetup();
     await wallet.confirmSetup();
     const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: () => undefined }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => await tools[name].handler(input);
+    const call = (name, input = {}) => checkedBrowserTool(tools, fleet, name, input);
 
     // The ordinary browser is signed in already.
     const { id } = await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
@@ -895,12 +898,12 @@ test('Wallet approval in the real browser: a page waiting for an approval on ano
     await wallet.beginSetup();
     await wallet.confirmSetup();
     const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: () => undefined }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => await tools[name].handler(input);
+    const call = (name, input = {}) => checkedBrowserTool(tools, fleet, name, input);
     const { id } = await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
     const record = () => wallet.view().records.find((candidate) => candidate.id === id);
 
     // Ordinary login: the approval page is a further step for the account owner, not a signed-in session.
-    await call('browser_open', { url: origin });
+    assert.match((await call('browser_open', { url: origin })).text, /Sign in/, 'the login page loaded before asking for device approval');
     assert.match((await call('wallet_login', {})).text, /asks for another step \(the site asks to approve this sign-in in its app or on another device\)/);
     assert.match((await call('wallet_login', {})).text, /waits for this sign-in to be approved .*nothing to enter/);
 
@@ -970,7 +973,7 @@ test('Wallet CAPTCHA in the real browser: nothing is submitted into an unsolved 
     await wallet.beginSetup();
     await wallet.confirmSetup();
     const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: () => undefined }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => await tools[name].handler(input);
+    const call = (name, input = {}) => checkedBrowserTool(tools, fleet, name, input);
     const { id } = await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
 
     // The agent is told to solve it first; nothing was submitted, so the saved login is not taken as rejected.
@@ -1029,7 +1032,7 @@ test('Wallet additional login fields in the real browser: a required unknown fie
     await wallet.confirmSetup();
     const waits = [];
     const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: (action) => waits.push(action) }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => await tools[name].handler(input);
+    const call = (name, input = {}) => checkedBrowserTool(tools, fleet, name, input);
     await wallet.save({ origin, username: 'fixture-user', password: 'right password 2' });
 
     // The required date of birth is unknown: one protected request, and the form is not submitted (no false rejection).
