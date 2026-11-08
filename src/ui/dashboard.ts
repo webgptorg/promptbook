@@ -6,6 +6,7 @@ import type { SessionClientLaunch, SessionEntryView } from '../harness/sessions.
 import { errorMessage } from '../common/errors.js';
 import { terminalSafe } from './ansi.js';
 import { clockTime, formatShortTime } from '../common/time.js';
+import { keepAwakeModeLabel } from './keep-awake.js';
 import { formatBytes, formatMiB, type CachePreview, type SwapPlan } from '../engine/health.js';
 import type { ServiceSnapshot } from '../engine/snapshot.js';
 import type { ChatAgentChoice } from '../chats/service.js';
@@ -1248,6 +1249,39 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     /** Lifecycle keys available on the home screen and the System page. */
+    /**
+     * The shared keep-awake operation of the System page: K cycles Off → two hours → always on external power → Off
+     * (always asks first, it is the unattended opt-in); L toggles closed-lid operation. Viewing never acquires anything.
+     */
+    const keepAwakeKey = (what: 'mode' | 'lid'): void => {
+        const view = snapshot.keepAwake;
+        if (!view) return;
+        const apply = async (params: Record<string, unknown>, label: string): Promise<void> => {
+            notify(`${label}…`);
+            await source
+                .action('keep-awake-set', params)
+                .then((value) => {
+                    const next = value as unknown as NonNullable<ServiceSnapshot['keepAwake']>;
+                    const lid = next.closedLid && next.lid.capability === 'approval' ? ' Closed-lid operation needs the helper: run `ptbk keep-awake --install-helper` in a local terminal.' : '';
+                    notify(`Keep awake: ${keepAwakeModeLabel(next, (iso) => formatShortTime(Date.parse(iso)))}${next.closedLid ? ', closed lid on' : ''}. ${next.holding ? 'Protection is active.' : next.mode === 'off' ? 'The OS power policy applies.' : next.idle.reason.text}${lid}`);
+                })
+                .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
+        };
+        if (what === 'lid') {
+            void apply({ closedLid: !view.closedLid }, view.closedLid ? 'Turning closed-lid operation off' : 'Choosing closed-lid operation');
+            return;
+        }
+        const next = view.mode === 'off' ? 'limited' : view.mode === 'limited' ? 'always' : 'off';
+        if (next === 'always') {
+            confirmThen('Keep this computer awake whenever this engine runs on external power, until you turn it off?', async () => await apply({ mode: 'always' }, 'Keeping the computer awake on external power'), [
+                'It stays on across restarts, updates and sign-in; an empty queue never ends it.',
+                'The engine releases it while paused, stopped or on battery. The display may still sleep and the session may lock.',
+            ]);
+            return;
+        }
+        void apply({ mode: next }, next === 'limited' ? 'Keeping the computer awake for two hours' : 'Turning keep awake off');
+    };
+
     const lifecycleKey = (key: string): boolean => {
         switch (key) {
             case 'p':
@@ -1412,6 +1446,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         switch (page.kind) {
             case 'system': {
                 if (lifecycleKey(key)) return;
+                if (!snapshot.update && (key === 'k' || key === 'l') && snapshot.keepAwake) {
+                    keepAwakeKey(key === 'k' ? 'mode' : 'lid');
+                    return;
+                }
                 // The engine's shared update policy operation (its own scoped commit), as the browser and the App use it.
                 const update = snapshot.update;
                 if (!update) return;
@@ -1422,6 +1460,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                         .action('update-policy', { isAutoUpdateEnabled: enabled })
                         .then(() => notify(`Automatic engine updates are ${enabled ? 'on' : 'off'} (saved in ptbk.json and committed).`))
                         .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
+                } else if (key === 'k' && snapshot.keepAwake) {
+                    keepAwakeKey('mode');
+                } else if (key === 'l' && snapshot.keepAwake && snapshot.keepAwake.lid.capability !== 'unavailable') {
+                    keepAwakeKey('lid');
                 } else if (key === 'c' && update.isSupported) {
                     notify('Looking up engine releases…');
                     void source

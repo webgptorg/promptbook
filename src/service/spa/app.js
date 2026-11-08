@@ -1175,6 +1175,57 @@
             update.target ? h('p', { className: 'muted' }, 'A pending update is a low-priority engine-owned task in Tasks; ordinary work goes first and a manual pause or stop holds it.') : null);
     }
 
+    /** The saved keep-awake choice in words. */
+    function keepAwakeMode(view) {
+        if (view.mode === 'limited') return `For two hours${view.expiresAt ? ` (until ${time(view.expiresAt)})` : ''}`;
+        return view.mode === 'always' ? 'Always on external power' : 'Off';
+    }
+
+    /** Calls the engine's shared keep-awake operation (the same as the terminal System page and `ptbk keep-awake`). */
+    async function keepAwakeAction(body, pending) {
+        toast(pending);
+        try {
+            const view = await api('/api/keep-awake', { method: 'POST', body });
+            const lid = view.closedLid && view.lid.capability === 'approval' ? ' Closed-lid operation needs the helper: run ptbk keep-awake --install-helper in a local terminal.' : '';
+            toast(`Keep awake: ${keepAwakeMode(view)}${view.closedLid ? ', closed lid on' : ''}. ${view.holding ? 'Protection is active.' : view.mode === 'off' ? 'The OS power policy applies.' : view.idle.reason.text}${lid}`);
+        } catch (error) {
+            toast(`Failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Power on the engine host (System → Power): the saved choice separately from the observed protection, idle sleep
+     * and the lid separately, the power source, why protection is inactive and the last work time. Viewing it never
+     * acquires anything.
+     */
+    function renderKeepAwake(view, working) {
+        const label = (protection) => ({ active: 'active', degraded: 'degraded', unavailable: 'unavailable', 'os-policy': 'OS policy' })[protection.state] || (protection.reason.code === 'approval' ? 'needs local approval' : 'inactive');
+        const tone = (protection) => (protection.state === 'active' ? 'ok' : protection.state === 'degraded' || ['approval', 'failed'].includes(protection.reason.code) ? 'warn' : '');
+        const state = (protection, extra) => h('span', {}, pill(label(protection), tone(protection)), h('span', { className: 'muted' }, ` ${protection.reason.text}`), extra ? h('div', { className: 'muted' }, extra) : null);
+        const source = view.power.source === 'external' ? 'External power' : view.power.source === 'battery' ? 'Battery' : 'Unknown';
+        const rows = [
+            ['Saved', `${keepAwakeMode(view)}${view.closedLid ? ' · closed-lid operation chosen' : ''}`],
+            ['Power', h('span', { className: view.power.source === 'external' ? '' : 'warn' }, `${source}${view.power.detail ? ` (${view.power.detail})` : ''}`, view.power.observedAt ? h('span', { className: 'muted' }, ` · read ${time(view.power.observedAt)}`) : null)],
+            ['Idle sleep', state(view.idle)],
+            ['Lid', state(view.lid, view.lid.validation && view.lid.capability !== 'unavailable' ? view.lid.validation.text : '')],
+            ['Last work', working ? 'working now' : view.lastWorkAt ? time(view.lastWorkAt) : 'no task or chat activity known on this host'],
+        ];
+        if (view.handoff) rows.push(['Handoff', `carrying ${view.handoff.kinds.join(' and ')} protection from the previous engine until ${time(view.handoff.until)}`]);
+        const choose = (mode) => {
+            if (mode === view.mode) return;
+            if (mode === 'always' && !window.confirm('Keep this computer awake whenever this engine runs on external power, until you turn it off? It stays on across restarts, updates and sign-in. The engine releases it while paused, stopped or on battery; the display may still sleep and the session may lock.')) return;
+            void keepAwakeAction({ mode }, mode === 'off' ? 'Turning keep awake off…' : mode === 'limited' ? 'Keeping the computer awake for two hours…' : 'Keeping the computer awake on external power…');
+        };
+        const buttons = [['off', 'Off'], ['limited', 'Two hours'], ['always', 'Always on external power']].map(([mode, text]) => h('button', { className: view.mode === mode ? 'primary' : '', 'aria-pressed': String(view.mode === mode), onclick: () => choose(mode) }, text));
+        if (view.lid.capability !== 'unavailable') buttons.push(h('button', { 'aria-pressed': String(view.closedLid), onclick: () => void keepAwakeAction({ closedLid: !view.closedLid }, view.closedLid ? 'Turning closed-lid operation off…' : 'Choosing closed-lid operation…') }, view.closedLid ? 'Closed lid: on' : 'Closed lid: off'));
+        return h('section', { className: 'card', 'aria-label': 'Power' },
+            h('h2', {}, h('span', {}, 'Power · Keep awake'), view.holding ? pill('keeping this computer awake', 'ok') : null),
+            h('dl', { className: 'kv' }, rows.flatMap(([name, value]) => [h('dt', {}, name), h('dd', {}, value)])),
+            h('div', { className: 'row', role: 'group', 'aria-label': 'Keep awake' }, buttons),
+            view.closedLid && view.lid.capability === 'approval' ? h('p', { className: 'warn' }, 'Closed-lid operation needs local administrator approval: run ', h('code', {}, 'ptbk keep-awake --install-helper'), ' in a local terminal on this computer.') : null,
+            h('p', { className: 'muted' }, 'Power on the engine host. The engine holds protection only while it runs on external power and releases it while paused, stopped or on battery. Opening this page never activates it.'));
+    }
+
     /** Operational domains: home tiles and their pages (Synchronization only while autosync is enabled). */
     // No standalone Results/Activity tile: System keeps the operational log, each task its own outcomes.
     const DOMAINS = ['harnesses', 'system', 'health', 'chats', 'tasks', 'agents', 'tools', 'wallet', 'usage', 'actions', 'history', 'files', 'app', 'sync'];
@@ -2036,7 +2087,7 @@
             ),
             renderSettings(snapshot),
         );
-        return pageFrame('system', 'Engine identity, lifecycle, every active pause reason, manual controls, automatic updates and the operational log', controls, pause, engine, snapshot.update ? renderEngineUpdate(snapshot.update) : null, renderOperationalLog(snapshot));
+        return pageFrame('system', 'Engine identity, lifecycle, every active pause reason, manual controls, automatic updates, keep awake and the operational log', controls, pause, engine, snapshot.update ? renderEngineUpdate(snapshot.update) : null, snapshot.keepAwake ? renderKeepAwake(snapshot.keepAwake, Boolean(snapshot.active && snapshot.active.length)) : null, renderOperationalLog(snapshot));
     }
 
     /** The Health page: UI over the per-engine Health sub-engine (no generic manual Pause/Resume here). */

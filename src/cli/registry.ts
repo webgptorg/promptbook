@@ -436,6 +436,38 @@ Browsers open the engine at its own address (https://<engine ID>.<engine domain>
         run: lazy(() => import('./commands/connect.js').then((module) => ({ default: module.disconnect }))),
     },
     {
+        name: 'keep-awake',
+        category: 'Maintain',
+        summary: 'Show or change whether this project’s engine keeps the computer awake (Off, two hours, always on external power).',
+        description: `Keep awake lets a running engine keep this physical computer awake for unattended work, without a separate keep-awake app. The choice is saved on this host only (next to the known-project registry, outside the project and Git), so a clone elsewhere, another computer or another OS user starts Off. The engine owns the OS request: it holds it only while it runs on external power, keeps it through waits and an empty queue, releases it when a Pause or Stop completes, on battery, at expiry and on force stop, and acquires it again when it runs. Opening or closing a dashboard, window or tray client has no effect. The display may still sleep and the session may lock.
+
+Modes: off (the default), limited (a two-hour session whose end is saved as an absolute time; a pause, battery interval or restart never extends it) and always (until you turn it off, also across restarts, updates and sign-in). A stopped project's choice is saved directly and applies when its engine runs.
+
+On a MacBook, --closed-lid also keeps it awake with the lid closed and no external display. macOS needs a small root helper for that: --install-helper explains what it installs and why, then asks for administrator approval in this terminal; --remove-helper restores and removes it. Without the helper, idle-sleep protection still works and closing the lid follows the OS policy. On Windows and Linux closing the lid always follows the OS lid policy.`,
+        arguments: [{ name: 'mode', description: 'off, limited (two hours) or always (always on external power).' }],
+        optionGroups: [
+            {
+                title: 'Keep awake',
+                options: [
+                    { name: 'closed-lid', type: 'boolean', negatable: true, description: 'Also keep a MacBook awake with its lid closed (--no-closed-lid: the lid follows the OS policy).' },
+                    { name: 'install-helper', type: 'boolean', description: 'macOS: install the closed-lid helper after explaining it (asks for administrator approval in this terminal).' },
+                    { name: 'remove-helper', type: 'boolean', description: 'macOS: end its holds, restore the setting it changed and remove it (asks for administrator approval).' },
+                    JSON_OPTION,
+                ],
+            },
+            PROJECT_OPTIONS,
+            PRESENTATION_OPTIONS,
+        ],
+        examples: [
+            { command: 'ptbk keep-awake', description: 'The saved choice, the power source and the observed protection.' },
+            { command: 'ptbk keep-awake always', description: 'Keep the computer awake whenever this engine runs on external power.' },
+            { command: 'ptbk keep-awake limited', description: 'Only for the next two hours.' },
+            { command: 'ptbk keep-awake always --closed-lid', description: 'Also with the MacBook lid closed (see --install-helper).' },
+            { command: 'ptbk keep-awake off', description: 'Turn it off; the OS power policy applies again.' },
+        ],
+        run: lazy(() => import('./commands/keep-awake.js')),
+    },
+    {
         name: 'tool',
         category: 'Maintain',
         summary: 'Manage the named browser and harness tools of the project (saved and committed immediately).',

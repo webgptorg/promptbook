@@ -92,6 +92,26 @@ export const CLOSED_LID_VALIDATED: ReadonlyArray<{ readonly model: string; reado
 const HOLD_TIMEOUT_MS = 20_000;
 
 /**
+ * Interval between verification attempts of a new request, and how many are made.
+ */
+const VERIFY_INTERVAL_MS = 250;
+
+/**
+ * Interval at which a starting carrier's confirmation is looked for.
+ */
+const CARRIER_POLL_MS = 150;
+
+/**
+ * Owner-only permissions of a carrier's log.
+ */
+const LOG_MODE = 0o600;
+
+/**
+ * Longest PowerShell query (its startup alone can take seconds on a busy host).
+ */
+const POWERSHELL_QUERY_MS = 20_000;
+
+/**
  * Bounded text kept from a helper's diagnostics.
  */
 const MAX_DIAGNOSTICS = 2000;
@@ -177,7 +197,7 @@ async function holdProcess(kind: HoldKind, command: string, args: readonly strin
                 void (async () => {
                     let last: string | undefined = 'not verified yet';
                     for (let attempt = 0; attempt < 16 && last; attempt++) {
-                        await new Promise((wait) => setTimeout(wait, 250));
+                        await new Promise((wait) => setTimeout(wait, VERIFY_INTERVAL_MS));
                         if (child.exitCode !== null || child.signalCode !== null) return;
                         last = await options.verify!(child).catch((error: unknown) => errorMessage(error));
                     }
@@ -204,7 +224,7 @@ async function holdProcess(kind: HoldKind, command: string, args: readonly strin
  * `verify` confirms it.
  */
 async function startCarrier(kind: HoldKind, command: string, args: readonly string[], log: string, env: NodeJS.ProcessEnv, verify?: (pid: number) => Promise<string | undefined>): Promise<CarrierRecord> {
-    const fd = openSync(log, 'w', 0o600);
+    const fd = openSync(log, 'w', LOG_MODE);
     let child: ChildProcess;
     try {
         child = spawn(command, args, { detached: true, stdio: ['ignore', fd, fd], env, windowsHide: true });
@@ -220,7 +240,7 @@ async function startCarrier(kind: HoldKind, command: string, args: readonly stri
     const deadline = Date.now() + HOLD_TIMEOUT_MS;
     let problem: string | undefined = 'not confirmed';
     while (Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, CARRIER_POLL_MS));
         if (gone) {
             problem = `${gone}${(await readFile(log, 'utf8').catch(() => '')).trim() ? `: ${(await readFile(log, 'utf8')).trim().split('\n').at(-1)}` : ''}`;
             break;
@@ -464,7 +484,7 @@ function windowsAdapter(env: NodeJS.ProcessEnv): PowerAdapter {
             const shell = await powershell();
             if (!shell) return { source: 'unknown', detail: 'PowerShell is not available, so the power source is unknown.' };
             const script = `Add-Type -AssemblyName System.Windows.Forms; $s = [System.Windows.Forms.SystemInformation]::PowerStatus; [Console]::Out.WriteLine("$($s.PowerLineStatus)|$($s.BatteryChargeStatus)|$([int]($s.BatteryLifePercent * 100))")`;
-            return parseWindowsPowerStatus(await query(shell, powershellArguments(script), env, 20_000));
+            return parseWindowsPowerStatus(await query(shell, powershellArguments(script), env, POWERSHELL_QUERY_MS));
         },
         idleCapability: async () => ((await powershell()) ? { state: 'available' } : { state: 'unavailable', reason: 'PowerShell is not available to hold a Windows power request.' }),
         lidCapability: async () => ({ state: 'unavailable', reason: 'Closing the lid follows the Windows lid setting (Power Options); Promptbook does not change it.' }),

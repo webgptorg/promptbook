@@ -16,6 +16,8 @@ test('embedded terminals invoke only the real CLI, with literal project paths an
     assert.deepEqual(terminalArguments('init', undefined), ['init', '--no-dashboard']);
     assert.deepEqual(terminalArguments('setup'), ['init', '--with-app']);
     assert.deepEqual(terminalArguments('global'), ['dashboard', '--global']);
+    assert.deepEqual(terminalArguments('keep-awake-helper', root), ['keep-awake', '--install-helper', '--path', root]);
+    assert.throws(() => terminalArguments('keep-awake-helper', undefined));
     assert.throws(() => terminalArguments('shell', root));
     assert.throws(() => terminalArguments('dashboard', root, '--force'));
     assert.throws(() => terminalArguments('dashboard', 'bad\0path'));

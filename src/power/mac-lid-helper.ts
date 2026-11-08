@@ -37,6 +37,11 @@ export const LID_DAEMON_PATH = '/Library/LaunchDaemons/io.ptbk.keep-awake.plist'
 export const LID_STATE_DIRECTORY = '/Library/Application Support/Promptbook/keep-awake';
 
 /**
+ * Permission bits that would let a group or others change the helper.
+ */
+const SHARED_WRITE_BITS = 0o022;
+
+/**
  * launchd label of the restore job.
  */
 const DAEMON_LABEL = 'io.ptbk.keep-awake';
@@ -293,7 +298,7 @@ export async function verifyLidHelper(env: NodeJS.ProcessEnv = process.env): Pro
     const install = 'Run `ptbk keep-awake --install-helper` in a local terminal (it asks for administrator approval).';
     const info = await lstat(LID_HELPER_PATH).catch(() => undefined);
     if (!info) return { state: 'missing', reason: `Local approval required: the closed-lid helper is not installed. ${install}` };
-    if (!info.isFile() || info.uid !== 0 || (info.mode & 0o022) !== 0) return { state: 'unsafe', reason: `The closed-lid helper at ${LID_HELPER_PATH} is not owned by root or is writable by others, so it is not used. ${install}` };
+    if (!info.isFile() || info.uid !== 0 || (info.mode & SHARED_WRITE_BITS) !== 0) return { state: 'unsafe', reason: `The closed-lid helper at ${LID_HELPER_PATH} is not owned by root or is writable by others, so it is not used. ${install}` };
     const content = await readFile(LID_HELPER_PATH, 'utf8').catch(() => '');
     if (content !== lidHelperScript()) return { state: 'outdated', reason: `The installed closed-lid helper is from another Promptbook version. ${install}` };
     const rule = await runProcess('/usr/bin/sudo', ['-n', '-l', LID_HELPER_PATH, 'hold'], { cwd: '/', env, timeoutMs: 10_000 });

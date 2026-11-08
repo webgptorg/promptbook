@@ -18,6 +18,8 @@ function terminalArguments(kind, projectRoot, page) {
     if (kind === 'init' && projectRoot === undefined) return ['init', '--no-dashboard'];
     if (typeof projectRoot !== 'string' || !projectRoot || projectRoot.includes('\0')) throw new Error('Select a project first.');
     if (kind === 'init') return ['init', '--path', projectRoot, '--no-dashboard'];
+    // The same local administrator approval as the CLI-only installation (it explains the helper, then asks sudo).
+    if (kind === 'keep-awake-helper') return ['keep-awake', '--install-helper', '--path', projectRoot];
     if (kind !== 'dashboard') throw new Error('Unknown terminal operation.');
     if (page && !PAGES.has(page)) throw new Error('Unknown dashboard page.');
     return ['dashboard', '--path', projectRoot, ...(page ? ['--view', page] : [])];

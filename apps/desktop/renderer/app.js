@@ -343,7 +343,7 @@ function renderProjects() {
     $('projects').replaceChildren(...host.rows.map((row) => {
         const { dot, label } = projectStatus(row);
         return element('button', { className: selected === row.projectRoot ? 'selected' : '', onclick: () => void openProject(row.projectRoot) },
-            element('span', { className: 'project-name' }, dot, row.projectName), element('small', {}, label));
+            element('span', { className: 'project-name' }, dot, row.projectName), element('small', {}, row.status === 'live' && row.keepAwake ? `${label} · keeps this computer awake` : label));
     }));
     $('version').textContent = `ptbk ${host.version || ''}`;
 }
@@ -373,7 +373,7 @@ function renderOverview() {
         return element('tr', {},
             element('td', {}, element('input', { type: 'checkbox', 'data-project': row.projectRoot, 'aria-label': `Select ${row.projectName}` })),
             element('td', {}, element('strong', {}, row.projectName), element('small', {}, row.projectRoot), row.reason ? element('small', {}, row.reason) : ''),
-            element('td', {}, element('span', { className: 'state' }, dot, label)),
+            element('td', {}, element('span', { className: 'state' }, dot, label), row.status === 'live' && row.keepAwake ? element('small', {}, 'Keeps this computer awake') : ''),
             element('td', {}, row.work || '—'),
             element('td', {}, element('button', { onclick: () => void openProject(row.projectRoot) }, 'Open'), ' ', element('button', { onclick: () => void applyAction(row.status === 'live' ? 'stop' : 'start', [row.projectRoot]), disabled: row.status === 'unreachable' || row.status === 'missing' }, row.status === 'live' ? 'Stop' : 'Start')),
         );
@@ -433,7 +433,7 @@ async function openTerminal(kind, root, page) {
         term.loadAddon(fit);
         term.open(container);
         term.onData((data) => api.input(result.id, data));
-        const titles = { init: 'Project setup', setup: 'Set up with App', global: 'All projects · CLI' };
+        const titles = { init: 'Project setup', setup: 'Set up with App', global: 'All projects · CLI', 'keep-awake-helper': 'Keep awake · closed lid' };
         terminals.set(result.id, { term, fit, container, kind, root, title: titles[kind] ?? `${page || 'Dashboard'} · CLI`, prompt: null });
         for (const event of earlyEvents.get(result.id) || []) terminalEvent(event);
         earlyEvents.delete(result.id);
@@ -593,6 +593,10 @@ api.onEvent((event) => {
     else if (event.type === 'theme') showTheme(event.source);
     else if (event.type === 'error') { api.hideDashboard(); notice(event.message, true); }
     else if (event.type === 'feature') featureEvent(event);
+    else if (event.type === 'menu' && event.action === 'keep-awake-helper') {
+        if (selected) void openTerminal('keep-awake-helper', selected);
+        else notice('Select the project that should keep this Mac awake with the lid closed, then choose the menu item again.');
+    }
     else if (event.terminal) terminalEvent(event);
 });
 for (const button of themeButtons) {

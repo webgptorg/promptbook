@@ -592,6 +592,14 @@ void app.whenReady().then(async () => {
                     app.setLoginItemSettings({ openAtLogin: item.checked });
                     item.checked = app.getLoginItemSettings().openAtLogin;
                 } },
+            { type: 'separator' },
+            // Closed-lid keep-awake needs the same local administrator approval as the CLI: it runs in a terminal tab.
+            { label: 'Keep Awake with the Lid Closed…', click: () => {
+                const focused = BrowserWindow.getFocusedWindow();
+                const entry = [...windows.values()].find((item) => item.window === focused) || [...windows.values()][0];
+                if (entry) emit(entry, { type: 'menu', action: 'keep-awake-helper' });
+                else createWindow();
+            } },
             { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' },
             { type: 'separator' }, { role: 'quit' },
         ] }] : []),

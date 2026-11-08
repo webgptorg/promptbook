@@ -33,6 +33,7 @@ import { ACTION_GROUPINGS, ACTION_SORTS, type ActionGrouping, type ActionRow, ty
 import type { ActionLinks, ActionSummary } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { appDetailLines } from './app-connection.js';
+import { keepAwakeLines } from './keep-awake.js';
 
 /**
  * A commit as the History detail page shows it: the original message and its verified provenance links.
@@ -555,6 +556,8 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 `${style.muted('Persistent')} ${service.persistent === null ? 'n/a' : service.persistent ? 'yes (restored at OS startup)' : style.warning('no')}${service.persistenceNote ? style.muted(` · ${service.persistenceNote}`) : ''}`,
                 `${style.muted('Config    ')} promptbookVersion ${snapshot.configuration?.promptbookVersion ?? style.muted('unknown')}${snapshot.configuration?.pending ? style.warning(` · pending: ${snapshot.configuration.pending}`) : ''}`,
                 ...(snapshot.update ? ['', ...engineUpdateLines(snapshot.update, style, time)] : []),
+                // Power on the engine host: the shared Keep awake operation (viewing it never acquires anything).
+                ...(snapshot.keepAwake ? ['', style.bold('Power · Keep awake'), ...keepAwakeLines(snapshot.keepAwake, style, time, { working: Boolean(snapshot.active?.length) })] : []),
                 '',
                 style.bold(`Effective settings (${snapshot.settings.length})`),
                 ...snapshot.settings.map((setting) => `  ${setting.key.padEnd(SETTING_KEY_WIDTH)} ${setting.value}${style.muted(` · ${setting.source}${setting.application !== 'live' ? ` · applies ${setting.application}` : ''}`)}`),
@@ -567,7 +570,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             ];
             const update = snapshot.update;
             const updateKeys = update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}${update.isSupported ? ' · C check for a release now' : ''} · ` : '';
-            return { title: 'System', context: 'Engine identity, lifecycle, every active pause reason, manual controls and automatic updates', body, legend: `${actions.map((action) => `${action.key} ${action.label}`).join(' · ')}${actions.length ? ' · ' : ''}${updateKeys}↑↓ scroll · ${back}` };
+            const awake = snapshot.keepAwake;
+            const powerKeys = awake ? `K keep awake: ${awake.mode === 'off' ? 'two hours' : awake.mode === 'limited' ? 'always' : 'off'}${awake.lid.capability !== 'unavailable' ? ` · L closed lid ${awake.closedLid ? 'off' : 'on'}` : ''} · ` : '';
+            return { title: 'System', context: 'Engine identity, lifecycle, every active pause reason, manual controls, automatic updates and keep awake', body, legend: `${actions.map((action) => `${action.key} ${action.label}`).join(' · ')}${actions.length ? ' · ' : ''}${updateKeys}${powerKeys}↑↓ scroll · ${back}` };
         }
         case 'health': {
             const health = snapshot.health;
