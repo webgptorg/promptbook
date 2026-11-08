@@ -1,6 +1,6 @@
 # Shared project status view
 
-[Main specification](../_main.md) · [Terminal dashboard](terminal.md) · [Browser dashboard](dashboard.md)
+[Main specification](../_main.md) · [Terminal dashboard](terminal.md) · [Shared graphical dashboard](dashboard.md)
 
 One coherent engine-owned status model is presented live or as a snapshot. Interactive dashboards render it as the [bounded home screen and full pages](dashboard-layout.md), while snapshots/raw output use the same facts without pretending to have tile navigation. Host-wide global overview is a separate table, not a project view backed by a global engine.
 

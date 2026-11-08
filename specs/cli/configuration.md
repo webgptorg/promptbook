@@ -49,7 +49,7 @@ Save `traces.isCommitted`, `traces.isVideoIgnored` and `traces.isVideoRecordingE
 
 `isAutoSync` is the single saved opt-in for ongoing pull/push through the repository's existing origin and current branch; remote/branch definitions stay in Git, not duplicate JSON fields. New initialization asks, while migrated projects default off. See [Git synchronization](git-synchronization.md).
 
-HTTP serves only the local dashboard/API under [local authentication](api.md#independence-and-security). Use `server.isEnabled` and optional `server.port`, with CLI `--no-server`/`--port` invocation overrides. Runtime URLs/processes and local credentials are not versioned defaults. This policy is independent of Git autosync.
+Loopback HTTP serves the local API and graphical renderer under [local authentication](api.md#independence-and-security). The direct [standalone browser entry](dashboard.md#standalone-entry-deprecation) is deprecated. Use `server.isEnabled` and optional `server.port`, with CLI `--no-server`/`--port` invocation overrides. Runtime URLs/processes and local credentials are not versioned defaults. This policy is independent of Git autosync.
 
 The deterministic configuration migration retires `server.tunnel` and `service.qr`/`service.isQrShown` without inspecting their values, contacting providers or installing software. Current-version configurations containing these obsolete fields receive the same deterministic normalization; read-only inspection previews it without writes. Preserve local server enablement/port, persistence and unrelated settings. Saved launch overrides for removed settings are ignored. Existing ignored authentication files are inert and need not be deleted.
 

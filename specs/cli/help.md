@@ -42,6 +42,6 @@ Clearly distinguish presentation/input policy, daemon versus foreground operatio
 
 ## Version and side effects
 
-Show the actual running Promptbook engine version in bare/help/about output, at the beginning of every wizard and persistently in runtime dashboards. Obtain it from the invoked installation, never a hard-coded label, registry latest version or another local/global installation. `--version` provides the same version directly. An attached terminal or browser dashboard shows the inspected service's version, not a client's assumed version.
+Show the actual running Promptbook engine version in bare/help/about output, at the beginning of every wizard and persistently in runtime dashboards. Obtain it from the invoked installation, never a hard-coded label, registry latest version or another local/global installation. `--version` provides the same version directly. An attached terminal or graphical dashboard shows the inspected service's version, not a client's assumed version. CLI help labels the standalone browser dashboard deprecated and describes the loopback API separately.
 
 Help/about/version and displaying the bare action menu work offline and without an initialized project or running daemon. They never initialize projects, check for updates, install tools, authenticate, call models, modify Git or change service state.

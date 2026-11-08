@@ -206,9 +206,9 @@ export const EXECUTION_POLICY_OPTIONS: OptionGroup = {
  * @private CLI specification
  */
 export const SERVER_OPTIONS: OptionGroup = {
-    title: 'Local dashboard server (startup-only)',
+    title: 'Local HTTP service (startup-only)',
     options: [
-        { name: 'server', type: 'boolean', negatable: true, description: 'Serve the local HTTP API and browser dashboard (--no-server disables HTTP).', defaultText: 'on' },
+        { name: 'server', type: 'boolean', negatable: true, description: 'Serve the local HTTP API and graphical view. The standalone browser dashboard is deprecated (--no-server disables HTTP).', defaultText: 'on' },
         { name: 'port', type: 'integer', valueName: '<port>', description: 'Local port (loopback only).', defaultText: 'first free from 3000' },
     ],
 };

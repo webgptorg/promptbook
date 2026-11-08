@@ -71,7 +71,7 @@ The **App** tile and page replace Connection in the terminal dashboard, the brow
 
 An unlinked project is neutral, not attention. Attention is raised only for something the owner can act on: an unreadable or unsafe identity, a tunnel replaced by another copy of the key, an engine the App suspended or refused, or a clock skew. `ptbk connect` without a link code prints the same status once, and `--json` prints it as data. `ptbk start` and init report one compact App line: the linked address, or that the project is not linked and how to link it.
 
-The local dashboard address is no longer presented as a connection: no tile, page, status panel or start line shows it. The loopback API remains the private transport of local clients (the terminal dashboard, the desktop app, the local browser dashboard and tests), which read its address from the process record and the snapshot's technical `localApi` field, with the unchanged [local protections](../cli/api.md).
+The local dashboard address is no longer presented as a connection: no tile, page, status panel or start line shows it. The loopback API remains the private transport of local clients (the terminal dashboard, packaged clients and tests), which read its address from the process record and the snapshot's technical `localApi` field, with the existing [local protections](../cli/api.md). The App connector replaces the [deprecated standalone browser dashboard](../cli/dashboard.md#standalone-entry-deprecation) as the browser entry for full project control.
 
 ## Privacy boundary
 

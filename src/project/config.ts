@@ -104,7 +104,7 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
     { key: 'traces.isCommitted', type: 'boolean', default: false, description: 'Include task traces (traces/<task-file-basename>/) in result commits; false ignores the whole traces/ tree.', application: 'next-task' },
     { key: 'traces.isVideoIgnored', type: 'boolean', default: true, description: 'Keep trace videos out of Git even when traces are committed.', application: 'next-task' },
     { key: 'traces.isVideoRecordingEnabled', type: 'boolean', default: true, description: 'Record attributable activity of browser tools used by tasks.', application: 'next-task' },
-    { key: 'server.isEnabled', type: 'boolean', default: true, description: 'Serve the local HTTP API and browser dashboard.', application: 'restart' },
+    { key: 'server.isEnabled', type: 'boolean', default: true, description: 'Serve the local HTTP API and graphical view. The standalone browser dashboard is deprecated.', application: 'restart' },
     { key: 'server.port', type: 'port', default: undefined, description: 'Local HTTP port (automatic from 3000 when omitted).', application: 'restart' },
     { key: 'service.isPersistent', type: 'boolean', default: true, description: 'Restart automatically after crashes and reboots.', application: 'restart' },
     { key: 'service.harnessUpdates', type: 'enum', values: ['auto', 'off'], default: 'auto', description: 'Automatic harness updates.', application: 'live' },

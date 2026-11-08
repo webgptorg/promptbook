@@ -121,6 +121,12 @@ body {
     }
 }
 
+.deprecation-notice {
+    padding: 8px 18px;
+    background: var(--attention-bg);
+    border-bottom: 1px solid var(--attention-border);
+}
+
 .app {
     max-width: 1280px;
     margin: 0 auto;
