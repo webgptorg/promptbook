@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
+import type { KeepAwakeView } from '../power/view.js';
 import { secretToken } from '../common/ids.js';
 import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
 import { assertLocalRequest, authenticateLocalRequest, matchesCredential } from './auth.js';
@@ -89,6 +90,8 @@ export type HttpServerOptions = {
     readonly control: (action: string, params: Readonly<Record<string, unknown>>) => Promise<ControlOutcome>;
     /** Pairing operations available only through the local dashboard. */
     readonly appPairing?: (action: 'app-link' | 'app-unpair', params: Readonly<Record<string, unknown>>) => Promise<unknown>;
+    /** The engine's keep-awake operations (the same as the terminal dashboard and `ptbk keep-awake`). */
+    readonly keepAwake?: { readonly view: () => KeepAwakeView | undefined; readonly set: (params: Readonly<Record<string, unknown>>) => Promise<KeepAwakeView> };
     /** Owner-readable local control credential; never returned by HTTP. */
     readonly token: string;
     /** Requested port (exact) or undefined for automatic search from 3000. */
@@ -271,6 +274,18 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             } catch (error) {
                 sendJson(response, error instanceof PtbkError && error.details.kind === 'not-found' ? 404 : 400, { error: errorMessage(error) });
             }
+            return;
+        }
+        if (url.pathname === '/api/keep-awake' && method === 'GET') {
+            // Reading never acquires anything: opening the System page cannot activate protection.
+            const view = options.keepAwake?.view();
+            if (view) sendJson(response, 200, view);
+            else sendJson(response, 404, { error: 'This engine run has no keep-awake control.' });
+            return;
+        }
+        if (url.pathname === '/api/keep-awake' && method === 'POST' && options.keepAwake) {
+            const body = (await readJsonBody(request)) as Record<string, unknown>;
+            sendJson(response, 200, await options.keepAwake.set({ mode: body.mode, closedLid: body.closedLid }));
             return;
         }
         if (url.pathname === '/api/update' && method === 'GET') {

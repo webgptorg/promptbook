@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { KeepAwakeView } from '../power/view.js';
 import { AttentionOwner, evidenceFingerprint, type RelevanceVerdict } from './attention-owner.js';
 import { nextProgressiveWait, outcomeFingerprint, restoreProgressiveWait, WAITING_POLICIES, withInitialDelay, type ProgressiveSchedule, type WaitingPolicy } from './progressive-waiting.js';
 import { watch, type FSWatcher } from 'node:fs';
@@ -167,6 +168,11 @@ export type AgendaOptions = {
     readonly walletCodeTools?: () => { readonly tools: readonly BridgeTool[]; readonly dispose: () => Promise<void> };
     /** Longest wait before records of one bulk external operation are committed together. */
     readonly actionGroupCommitMs?: number;
+    /**
+     * Why held keep-awake protection could not be carried through an update restart now (an automatic update then
+     * waits and shows the reason); undefined when the replacement can take over without a gap.
+     */
+    readonly keepAwakeHandoff?: () => Promise<string | undefined>;
 };
 
 /**
@@ -498,6 +504,8 @@ export class Agenda {
     private readonly authoredPaths = new Set<string>();
     private repositoryRoot?: string;
     private app: AppConnectionView = { state: 'disabled', dashboardUrl: '', relays: [], browserAccess: 'unavailable' };
+    /** The engine host's keep-awake preference and protection (owned by the service; absent in maintenance runs). */
+    private keepAwake?: KeepAwakeView;
     private localApi: LocalApiView = { state: 'disabled' };
     private readonly startedAt = new Date().toISOString();
     private lastHarnessMaintenance = 0;
@@ -1429,6 +1437,7 @@ export class Agenda {
         try {
             await this.updater.run({
                 stillFree: () => this.serviceState === 'running' && !this.units.size,
+                handoff: this.options.keepAwakeHandoff,
                 restart: () => void this.requestStop({ restart: true, update: true }),
             });
         } finally {
@@ -2316,6 +2325,27 @@ export class Agenda {
         this.touch();
     }
 
+    /** Updates the keep-awake view (owned by the service, which holds the OS requests). */
+    public setKeepAwake(view: KeepAwakeView): void {
+        this.keepAwake = view;
+        this.touch();
+    }
+
+    /** Whether task or chat work is active now (keep-awake reports the last work time from it). */
+    public get workActive(): boolean {
+        return this.units.size > 0;
+    }
+
+    /** End of the newest durable task result (ISO), when any. */
+    public get lastResultAt(): string | undefined {
+        return this.recentResults[0]?.endedAt;
+    }
+
+    /** Whether a restart (manual or update) is pending or under way. */
+    public get restarting(): boolean {
+        return this.shutdown === 'restart' || this.intent === 'restart';
+    }
+
     /** Updates the local API state of local clients (owned by the service). */
     public setLocalApi(localApi: LocalApiView): void {
         this.localApi = localApi;
@@ -2752,6 +2782,7 @@ export class Agenda {
                 : [],
             app: this.app,
             localApi: this.localApi,
+            ...(this.keepAwake ? { keepAwake: this.keepAwake } : {}),
             ...(this.usageOverview() ? { usage: this.usageOverview() } : {}),
         };
         return { ...snapshot, attention: domainAttention(snapshot) };

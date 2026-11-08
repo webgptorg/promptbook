@@ -63,6 +63,8 @@ export type GlobalRow = {
     readonly waitingChats?: number;
     /** Existing engine attention signal for graphical status indicators. */
     readonly needsAttention?: boolean;
+    /** The verified live engine currently holds keep-awake protection (reported by the engine; never acquired here). */
+    readonly keepAwake?: boolean;
     readonly reason?: string;
     readonly observedAt: string;
     readonly client?: ControlClient;
@@ -116,7 +118,7 @@ export async function observeHost(env: NodeJS.ProcessEnv = process.env): Promise
             const knownEntry = knownByRoot.get(root);
             const engine = owners.get(root);
             const base = { key: root, projectRoot: root, projectName: engine?.entry.projectName ?? knownEntry?.projectName ?? basename(root), known: knownEntry, observedAt };
-            const live = (owner: EngineIdentity, client: ControlClient, summary: EngineSummary): GlobalRow => ({ ...base, status: 'live', engine: identityOf(owner), client, state: summary.state, work: summary.work, intent: summary.intent, waitingChats: summary.waitingChats, needsAttention: summary.needsAttention, observedAt: summary.observedAt });
+            const live = (owner: EngineIdentity, client: ControlClient, summary: EngineSummary): GlobalRow => ({ ...base, status: 'live', engine: identityOf(owner), client, state: summary.state, work: summary.work, intent: summary.intent, waitingChats: summary.waitingChats, needsAttention: summary.needsAttention, ...(summary.keepAwake ? { keepAwake: true } : {}), observedAt: summary.observedAt });
             if (engine?.status === 'live') return live(engine.entry, engine.client, engine.summary);
             if (engine?.status === 'unreachable') return { ...base, status: 'unreachable', engine: identityOf(engine.entry), reason: engine.reason };
             if (!(await isDirectory(root))) return { ...base, status: 'missing', reason: 'The project directory no longer exists.' };
@@ -154,7 +156,7 @@ export function lastRunText(known: KnownProject | undefined): string | undefined
  */
 export function plainRow(row: GlobalRow): string {
     if (row.status === 'live' && row.engine) {
-        return `${row.projectName} [${row.state}${row.intent ? ` (${row.intent})` : ''}] ptbk ${row.engine.engineVersion} · ${row.engine.mode} · PID ${row.engine.pid} · ${row.projectRoot}${row.work ? ` · ${row.work}` : ''}`;
+        return `${row.projectName} [${row.state}${row.intent ? ` (${row.intent})` : ''}] ptbk ${row.engine.engineVersion} · ${row.engine.mode} · PID ${row.engine.pid} · ${row.projectRoot}${row.keepAwake ? ' · keeps this computer awake' : ''}${row.work ? ` · ${row.work}` : ''}`;
     }
     if (row.status === 'unreachable') return `${row.projectName} [unknown] PID ${row.engine?.pid ?? '?'} · ${row.projectRoot}${row.reason ? ` · ${row.reason}` : ''}`;
     const history = lastRunText(row.known);
@@ -172,7 +174,7 @@ function activeCount(observation: HostObservation): number {
  * The comparable state of a row (changes are reported as events).
  */
 function rowState(row: GlobalRow): string {
-    return `${row.status}|${row.state ?? ''}|${row.intent ?? ''}|${row.engine?.instanceId ?? ''}`;
+    return `${row.status}|${row.state ?? ''}|${row.intent ?? ''}|${row.engine?.instanceId ?? ''}|${row.keepAwake ? 'awake' : ''}`;
 }
 
 /**
@@ -352,7 +354,7 @@ export async function runGlobalDashboard(
         const stateText = busy.has(row.key) ? `${live ? row.state : row.status} ${marks.ellipsis}` : live ? `${row.state ?? '?'}${row.intent ? ` → ${row.intent}` : ''}` : row.status === 'unreachable' ? 'unknown' : row.status;
         const tone = !live ? (row.status === 'stopped' ? style.muted : style.error) : row.state === 'running' ? style.success : row.state === 'stopping' ? style.error : style.warning;
         const details = live && row.engine ? style.muted(`${row.engine.mode} · PID ${row.engine.pid} · ptbk ${row.engine.engineVersion}`) : row.status === 'unreachable' && row.engine ? style.muted(`PID ${row.engine.pid} · ptbk ${row.engine.engineVersion}`) : style.muted(lastRunText(row.known) ?? 'never started on this host');
-        const lines = [`${focused ? style.accent(marks.pointer) : ' '} ${style.bold(truncate(row.projectName, MAX_NAME_WIDTH))}  ${tone(stateText)}  ${details}${row.waitingChats ? style.warning(`  ${marks.warn} ${row.waitingChats} waiting for you`) : ''}`, style.muted(`    ${shortenPath(row.projectRoot, width - 8)}`)];
+        const lines = [`${focused ? style.accent(marks.pointer) : ' '} ${style.bold(truncate(row.projectName, MAX_NAME_WIDTH))}  ${tone(stateText)}  ${details}${row.waitingChats ? style.warning(`  ${marks.warn} ${row.waitingChats} waiting for you`) : ''}${live && row.keepAwake ? style.accent('  keeps this computer awake') : ''}`, style.muted(`    ${shortenPath(row.projectRoot, width - 8)}`)];
         const detail = live ? row.work : row.reason;
         if (detail) lines.push(`    ${truncate(detail, width - 8)}`);
         const result = outcomes.get(row.key);
@@ -367,7 +369,8 @@ export async function runGlobalDashboard(
         const rows = visible();
         const active = activeCount(observation);
         const lines: string[] = [];
-        const known = `${style.bold(String(rows.length))} known project${rows.length === 1 ? '' : 's'} · ${style.bold(String(active))} active engine${active === 1 ? '' : 's'}`;
+        const awake = rows.filter((row) => row.status === 'live' && row.keepAwake).length;
+        const known = `${style.bold(String(rows.length))} known project${rows.length === 1 ? '' : 's'} · ${style.bold(String(active))} active engine${active === 1 ? '' : 's'}${awake ? ` · ${style.bold(String(awake))} keep${awake === 1 ? 's' : ''} this computer awake` : ''}`;
         lines.push(
             ...renderPanel({
                 title: `${marks.bullet} Promptbook ${marks.dot} ptbk ${marks.dot} all projects on this computer`,

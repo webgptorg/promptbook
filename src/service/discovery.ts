@@ -128,6 +128,8 @@ export type EngineSummary = {
     readonly waitingChats: number;
     /** Shared dashboard attention, when exposed by this engine version. */
     readonly needsAttention?: boolean;
+    /** This live engine currently holds a verified keep-awake request on the host (absent from older engines). */
+    readonly keepAwake?: boolean;
     readonly observedAt: string;
 };
 
@@ -188,6 +190,7 @@ type SnapshotLike = {
     readonly wait?: { readonly reason: string };
     readonly chats?: { readonly waiting: readonly unknown[] };
     readonly attention?: object;
+    readonly keepAwake?: { readonly holding: boolean };
 };
 
 /**
@@ -203,6 +206,7 @@ export function summaryOfSnapshot(snapshot: SnapshotLike): EngineSummary {
         work: snapshot.current ? `${snapshot.current.agent.name}: ${snapshot.current.taskTitle}` : snapshot.wait?.reason,
         waitingChats: snapshot.chats?.waiting.length ?? 0,
         ...(snapshot.attention && { needsAttention: Object.keys(snapshot.attention).length > 0 }),
+        ...(snapshot.keepAwake && { keepAwake: snapshot.keepAwake.holding }),
         observedAt: snapshot.observedAt,
     };
 }

@@ -619,9 +619,10 @@ export class EngineUpdater {
      * Runs the claimed update: revalidates the policy and the release, coordinates with the installation's other users,
      * installs the exact target, verifies it on disk, commits changed project package files as a system operation and
      * requests the restart that loads it. Anything short of a verified installation restores the previous version and
-     * schedules a recheck. `stillFree` is asked again right before the installation; `restart` must keep manual intent.
+     * schedules a recheck. `stillFree` is asked again right before the installation; `restart` must keep manual intent;
+     * `handoff` says why keep-awake protection could not be carried through the restart now.
      */
-    public async run(hooks: { readonly stillFree: () => boolean; readonly restart: () => void }): Promise<void> {
+    public async run(hooks: { readonly stillFree: () => boolean; readonly restart: () => void; readonly handoff?: () => Promise<string | undefined> }): Promise<void> {
         if (this.running) return;
         this.running = true;
         this.phase = 'checking';
@@ -662,6 +663,14 @@ export class EngineUpdater {
             }
             if (!hooks.stillFree()) {
                 this.phase = 'waiting';
+                return;
+            }
+            // Keep-awake continuity is part of the safe replacement boundary: a closed-lid Mac must not sleep before
+            // the replacement takes over, so the update waits (and says why) instead of installing.
+            const handoffProblem = await hooks.handoff?.().catch((error: unknown) => errorMessage(error));
+            if (handoffProblem) {
+                this.phase = 'waiting';
+                await this.defer(`keep awake: ${handoffProblem.replace(/\.$/, '')}.`);
                 return;
             }
             const from = this.current;

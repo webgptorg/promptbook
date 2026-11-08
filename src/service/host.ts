@@ -28,6 +28,9 @@ import { registerEngine, summaryOfSnapshot } from './discovery.js';
 import { recordRunEnded, registerKnownProject } from './known-projects.js';
 import { startHttpServer, type RunningHttpServer } from './http.js';
 import { OwnedProcessRecorder } from './owned-processes.js';
+import { powerAdapter } from '../power/adapters.js';
+import { KeepAwake } from '../power/keep-awake.js';
+import { keepAwakeChange } from '../power/preference.js';
 import { acquireProjectLock, engineIdentity, removeProcessRecord, writeProcessRecord } from './records.js';
 
 /**
@@ -90,6 +93,10 @@ export class ServiceHost {
     private readonly tabs: TabControls;
     /** Every execution process this engine starts, so a force stop (also from outside) ends all of them. */
     private readonly owned: OwnedProcessRecorder;
+    /** The engine's keep-awake controller and its OS power requests (not in maintenance runs). */
+    private keepAwake?: KeepAwake;
+    /** A coalesced keep-awake view publication is queued. */
+    private keepAwakeQueued = false;
 
     public constructor(private readonly options: HostOptions) {
         this.owned = new OwnedProcessRecorder(options.project, this.instanceId);
@@ -149,6 +156,7 @@ export class ServiceHost {
                 inUse: () => this.browsers.inUse(),
             },
             tabControls: () => this.tabs?.views() ?? [],
+            keepAwakeHandoff: async () => await this.keepAwake?.handoffProblem(),
         });
         this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange(), this.instanceId);
         this.tabs = new TabControls({ onChange: () => this.agenda.notifyChange(), log: (text) => this.agenda.log(text) });
@@ -335,6 +343,43 @@ export class ServiceHost {
         this.agenda.setAppConnection(this.appConnection.view());
     }
 
+    /** Publishes the keep-awake view, coalescing bursts of power and lifecycle changes into one update. */
+    private publishKeepAwake(): void {
+        if (this.keepAwakeQueued) return;
+        this.keepAwakeQueued = true;
+        setImmediate(() => {
+            this.keepAwakeQueued = false;
+            if (this.keepAwake) this.agenda.setKeepAwake(this.keepAwake.view());
+        });
+    }
+
+    /**
+     * Restores the host-local keep-awake preference and starts evaluating it against the restored lifecycle (an engine
+     * that starts paused acquires nothing). It follows every agenda change; no client opening or closing affects it.
+     */
+    private async startKeepAwake(): Promise<void> {
+        const agenda = this.agenda;
+        const keepAwake = new KeepAwake({
+            project: this.options.project,
+            instanceId: this.instanceId,
+            env: this.options.env,
+            adapter: powerAdapter(this.options.env),
+            facts: () => ({ state: agenda.serviceState, forced: agenda.forceStopped, restarting: agenda.restarting, working: agenda.workActive, lastResultAt: agenda.lastResultAt }),
+            onChange: () => this.publishKeepAwake(),
+            log: (text, level) => agenda.log(text, level),
+        });
+        this.keepAwake = keepAwake;
+        await keepAwake.start();
+        agenda.onChange(() => keepAwake.observe());
+        agenda.setKeepAwake(keepAwake.view());
+    }
+
+    /** The keep-awake controller, or why this run has none. */
+    private keepAwakeControl(): KeepAwake {
+        if (!this.keepAwake) throw new PtbkError('This engine run has no keep-awake control (maintenance mode).', { kind: 'unsupported' });
+        return this.keepAwake;
+    }
+
     /** Acquires ownership and starts the agenda's local supporting services. */
     public async start(): Promise<void> {
         const { project } = this.options;
@@ -352,6 +397,7 @@ export class ServiceHost {
                         agenda: this.agenda,
                         control: (action, params) => applyControlAction(this.agenda, action, params, this.browserControls),
                         appPairing: (action, params) => this.handleControl(action, params),
+                        keepAwake: { view: () => this.keepAwake?.view(), set: async (params) => await this.keepAwakeControl().set(keepAwakeChange(params)) },
                         token: this.token,
                         port: this.options.dashboardAccessKey ? 0 : setting<number | undefined>(settings, 'server.port'),
                         dashboardAccessKey: this.options.dashboardAccessKey,
@@ -366,6 +412,7 @@ export class ServiceHost {
             // local files only (tunnels and heartbeats continue in the background), so it never delays the start.
             if (this.options.mode !== 'maintenance') await this.startAppConnection();
             await this.writeRecord();
+            if (this.options.mode !== 'maintenance') await this.startKeepAwake();
             // Enabled browsers start (or join their profile's shared process) with the engine, not at their first task,
             // and again when the enabled set changes; a failure is that browser's resource wait, never the engine's.
             if (this.options.env.PTBK_BROWSER_START !== 'lazy') {
@@ -452,6 +499,9 @@ export class ServiceHost {
             await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
         };
         const forced = this.agenda.forceStopped;
+        // Keep awake ends first: a restart carries held protection to its replacement, every other end releases it.
+        const keepAwake = this.keepAwake;
+        if (keepAwake) await bounded(async () => (this.agenda.shutdownReason === 'restart' && !forced ? await keepAwake.handOff() : await keepAwake.stop()));
         // A tab the user controls is closed rather than left to another engine's automation.
         await bounded(() => this.tabs.closeAll('The engine stopped, so the tab you controlled was closed (nothing was handed back to the agent).'));
         // Recording evidence is finalized even on force stop (bounded); this engine leaves its shared browsers (a
@@ -647,6 +697,10 @@ export class ServiceHost {
                 return await agenda.actions.activity(parseActionViewQuery((name) => params[name]));
             case 'settings':
                 return await applySettings(agenda, params);
+            case 'keep-awake':
+                return this.keepAwakeControl().view();
+            case 'keep-awake-set':
+                return await this.keepAwakeControl().set(keepAwakeChange(params));
             case 'update-view':
                 return agenda.engineUpdate;
             case 'update-check':

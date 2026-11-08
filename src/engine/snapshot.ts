@@ -8,6 +8,7 @@ import type { TabControlView } from '../browser/tab-control.js';
 import type { WalletView } from '../wallet/wallet.js';
 import type { ActionLogView } from './action-log.js';
 import type { EngineUpdateView } from './engine-update.js';
+import type { KeepAwakeView } from '../power/view.js';
 import type { ReportView } from './report.js';
 import type { UsageRow, UsageTotals } from './usage.js';
 
@@ -793,6 +794,8 @@ export type ServiceSnapshot = {
     readonly app?: AppConnectionView;
     /** The local loopback API of local clients (technical; absent from older engines, which reported `connection.local`). */
     readonly localApi?: LocalApiView;
+    /** Keep-awake preference and observed protection on the engine host (absent from maintenance runs and older engines). */
+    readonly keepAwake?: KeepAwakeView;
     /** Domains with an actionable event (absent from older engines; viewers then derive it the same way). */
     readonly attention?: Partial<Record<DashboardDomain, DomainAttention>>;
 };
