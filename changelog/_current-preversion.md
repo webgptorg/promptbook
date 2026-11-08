@@ -2,7 +2,7 @@
 
 - Specify the read-only desktop History graph and current changes, including current branch plus upstream, optional local branches and verified working-tree provenance.
 
-- Specify engine-owned desktop Files imports, bulk operations and scoped Git batches, including the 15-second quiet period and 60-second cap. Manual saves and local commits continue during task Pause. The remote synchronization policy during Pause remains open.
+- Specify engine-owned desktop Files imports, bulk operations and scoped Git batches, including the 15-second quiet period and 60-second cap. Manual saves and local commits continue during task Pause. Specify that Pause suspends periodic Git synchronization and retries, while allowing manual synchronization and synchronization around actual commits with autosync enabled.
 
 - Specify the shared Windows and macOS desktop workspace, including preview/regular/pinned tabs, document window moves and restoration, the Wallet recovery modal, and Monaco backed by the shared Book language logic.
 
