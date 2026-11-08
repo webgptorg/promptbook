@@ -1080,7 +1080,21 @@
         return h('span', { className: 'warn' }, 'not delivered');
     }
 
-    /** This project's link to the Promptbook App: identity, address, relays, heartbeat and browser access. */
+    /** Applies a pairing change through the authenticated local API. */
+    async function appPairing(action, link) {
+        if (state.busy.has('app-pairing')) return;
+        state.busy.add('app-pairing');
+        try {
+            const result = await api('/api/app-pairing', { method: 'POST', body: { action, link } });
+            toast(result.outcome);
+        } catch (error) {
+            toast(`Pairing change failed: ${error.message}`);
+        } finally {
+            state.busy.delete('app-pairing');
+        }
+    }
+
+    /** Shows the App connection and its local operator actions. */
     function renderApp(snapshot) {
         const app = snapshot.app;
         const state = appState(app);
@@ -1094,11 +1108,21 @@
         if (app.engineId) rows.push(['Engine ID', h('code', {}, app.engineId)]);
         if (app.fingerprint) rows.push(['Fingerprint', h('span', {}, h('code', {}, app.fingerprint), h('span', { className: 'muted' }, ' · compare with the App dashboard'))]);
         const list = () => h('dl', { className: 'kv' }, rows.flatMap(([label, value]) => [h('dt', {}, label), h('dd', {}, value)]));
-        if (app.state === 'unlinked') {
+        if (!app.hostname && app.state !== 'connecting' && app.state !== 'offline') {
             if (rows.length) card.append(list());
-            card.append(h('p', { className: 'muted' }, 'Get a link code at ', h('a', { href: app.dashboardUrl, target: '_blank', rel: 'noopener noreferrer' }, app.dashboardUrl.replace(/^https:\/\//, '').replace(/\/$/, '')), ', then run ', h('code', {}, 'ptbk connect --link <code>'), ' in this project.'));
+            card.append(h('p', { className: 'muted' }, 'Get a link code at ', h('a', { href: app.dashboardUrl, target: '_blank', rel: 'noopener noreferrer' }, app.dashboardUrl.replace(/^https:\/\//, '').replace(/\/$/, '')), ', then paste the full pairing URL here.'));
+            const input = h('input', { type: 'password', required: true, autocomplete: 'off', 'data-draft': 'app:pairing-url', 'aria-label': 'Pairing URL', placeholder: 'Paste pairing URL' });
+            card.append(h('form', { onsubmit: (event) => {
+                event.preventDefault();
+                const link = input.value.trim();
+                input.value = '';
+                if (link) void appPairing('app-link', link);
+            } }, input, h('button', { type: 'submit' }, 'Pair with App')));
             return card;
         }
+        if (app.hostname && app.state !== 'offline') card.append(h('button', { className: 'secondary danger', onclick: () => {
+            if (window.confirm('Remove this engine’s pairing and close remote access through the relay? The account can still list this engine.')) void appPairing('app-unpair');
+        } }, 'Unpair from App'));
         if (app.url) rows.push(['Address', app.browserAccess === 'available' ? h('a', { href: app.url, target: '_blank', rel: 'noopener noreferrer' }, app.url) : h('span', {}, app.url)]);
         rows.push(['App', h('span', {}, h('a', { href: app.dashboardUrl, target: '_blank', rel: 'noopener noreferrer' }, app.dashboardUrl), app.linkedAt ? h('span', { className: 'muted' }, ` · linked ${time(app.linkedAt)}`) : null)]);
         if (app.relays.length) {
@@ -1805,7 +1829,7 @@
                 const app = snapshot.app;
                 const state = appState(app);
                 if (!app || app.state === 'disabled' || app.state === 'offline') return [h('span', { className: 'muted' }, state.label)];
-                if (app.state === 'unlinked') return [h('span', { className: 'muted' }, 'Not linked to the Promptbook App'), h('code', { className: 'muted' }, 'ptbk connect --link <code>')];
+                if (app.state === 'unlinked') return [h('span', { className: 'muted' }, 'Not linked to the Promptbook App'), h('span', { className: 'muted' }, 'Open App to pair')];
                 if (app.state === 'problem') return [h('strong', { className: 'bad' }, 'Problem')];
                 const replaced = app.relays.some((relay) => relay.refusal === 'replaced');
                 return [h('span', {}, h('strong', { className: state.tone }, state.label), h('span', { className: 'muted' }, ` · ${relaySummary(app)}`)), replaced ? h('span', { className: 'bad' }, 'another copy holds the key') : app.heartbeat && app.heartbeat.skewMs !== undefined ? h('span', { className: 'warn' }, 'clock skew') : app.fingerprint ? h('span', { className: 'muted' }, app.fingerprint) : null];
@@ -2932,7 +2956,11 @@
         const selection = focusDraft ? [active.selectionStart, active.selectionEnd] : null;
         const scroll = window.scrollY;
         document.body.classList.toggle('home-view', !state.page);
+        const pairingField = app.querySelector('[data-draft="app:pairing-url"]');
+        const pairingUrl = state.page === 'app' ? pairingField?.value : undefined;
         app.replaceChildren(state.page ? renderPage(snapshot, state.page) : renderHome(snapshot));
+        const nextPairingField = app.querySelector('[data-draft="app:pairing-url"]');
+        if (pairingUrl && nextPairingField) nextPairingField.value = pairingUrl;
         const thread = app.querySelector('.messages[data-chat]');
         if (thread) {
             const position = state.chatScroll.get(thread.dataset.chat);

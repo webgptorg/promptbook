@@ -87,6 +87,8 @@ export type HttpServerOptions = {
     readonly agenda: Agenda;
     /** The engine's shared control operations (lifecycle, waits, browser recovery). */
     readonly control: (action: string, params: Readonly<Record<string, unknown>>) => Promise<ControlOutcome>;
+    /** Pairing operations available only through the local dashboard. */
+    readonly appPairing?: (action: 'app-link' | 'app-unpair', params: Readonly<Record<string, unknown>>) => Promise<unknown>;
     /** Owner-readable local control credential; never returned by HTTP. */
     readonly token: string;
     /** Requested port (exact) or undefined for automatic search from 3000. */
@@ -374,6 +376,12 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             return;
         }
         const body = await readJsonBody(request, url.pathname === '/api/wallet' ? MAX_WALLET_BODY_BYTES : MAX_BODY_BYTES);
+        if (url.pathname === '/api/app-pairing' && options.appPairing) {
+            const action = body.action;
+            if (action !== 'app-link' && action !== 'app-unpair') throw new PtbkError('Unknown App pairing action.', { kind: 'usage' });
+            sendJson(response, 200, await options.appPairing(action, { link: body.link }));
+            return;
+        }
         if (url.pathname === '/api/control') {
             const action = String(body.action ?? '');
             if (!CONTROL_ACTIONS.has(action)) throw new PtbkError(`Unknown control action "${action}".`, { kind: 'usage' });

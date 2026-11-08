@@ -973,8 +973,14 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 legend: `↑↓ choose · ${rows[page.focus]?.filter ? 'Enter only this · ' : ''}G group by ${next}${scoped || page.filter.agent || page.filter.task || page.filter.chat ? ` · I ${page.inclusive ? 'own work only' : 'include initiated work'}` : ''}${filtered ? ' · X clear filter' : ''} · ${back}`,
             };
         }
-        case 'app':
-            return { title: 'App', context: 'This project’s link to the Promptbook App (app.ptbk.io)', body: appDetailLines(snapshot.app, style, width), legend: (snapshot.app && !snapshot.app.hostname ? 'L pair · ' : '') + '↑↓ scroll · ' + back };
+        case 'app': {
+            const app = snapshot.app;
+            const canPair = app && !app.hostname && !['disabled', 'connecting', 'offline'].includes(app.state);
+            const canUnpair = app?.hostname && app.state !== 'offline';
+            const body = appDetailLines(app, style, width, { interactivePairing: true });
+            const pairing = canUnpair ? 'U unpair · ' : canPair ? 'L pair · ' : '';
+            return { title: 'App', context: 'This project’s link to the Promptbook App (app.ptbk.io)', body, legend: pairing + '↑↓ scroll · ' + back };
+        }
         case 'sync': {
             if (!snapshot.sync) return { title: 'Synchronization', context: 'Automatic synchronization is off (isAutoSync false).', body: [style.muted('Nothing to show while autosync is disabled.')], legend: back };
             return { title: 'Synchronization', context: 'Git autosync with the tracked remote (shared coordinator; never a second scheduler)', body: syncDetailLines(snapshot.sync, style), legend: `G synchronize now · ↑↓ scroll · ${back}` };

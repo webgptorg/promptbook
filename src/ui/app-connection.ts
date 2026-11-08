@@ -71,7 +71,7 @@ function toned(style: Style, tone: 'success' | 'muted' | 'warning' | 'error', te
 export function appTileLines(app: AppConnectionView | undefined, style: Style): string[] {
     const state = appState(app);
     if (!app || app.state === 'disabled') return [style.muted(state.label), style.muted('Enter: App details')];
-    if (app.state === 'unlinked') return [style.muted('Not linked to the Promptbook App'), style.muted('ptbk connect --link <code>')];
+    if (app.state === 'unlinked') return [style.muted('Not linked to the Promptbook App'), style.muted('Enter: App details')];
     if (app.state === 'problem') return [style.error('Problem'), style.muted('Enter: App details')];
     if (app.state === 'offline') return [style.muted(state.label), style.muted('Enter: App details')];
     const replaced = app.relays.some((relay) => relay.refusal === 'replaced');
@@ -141,7 +141,7 @@ class DetailLines {
  *
  * @private App connection presentation
  */
-export function appDetailLines(app: AppConnectionView | undefined, style: Style, width = 100, options: { readonly heartbeatBody?: boolean } = {}): string[] {
+export function appDetailLines(app: AppConnectionView | undefined, style: Style, width = 100, options: { readonly heartbeatBody?: boolean; readonly interactivePairing?: boolean } = {}): string[] {
     const state = appState(app);
     const out = new DetailLines(width);
     out.flow('', [['App ', style.bold], [state.label, (text) => toned(style, state.tone, text)]]);
@@ -154,7 +154,7 @@ export function appDetailLines(app: AppConnectionView | undefined, style: Style,
     if (app.engineId) out.row('Engine ID', [[app.engineId]], style);
     if (app.fingerprint) out.row('Fingerprint', [[app.fingerprint], [' (compare with the App dashboard)', muted]], style);
     if (app.state === 'unlinked') {
-        out.text(appLinkHint(app.dashboardUrl), muted);
+        out.text(options.interactivePairing ? `Get a pairing URL at ${app.dashboardUrl}, then press L to paste it here.` : appLinkHint(app.dashboardUrl), muted);
         return out.lines;
     }
     if (app.url) out.row('Address', [[app.url]], style);

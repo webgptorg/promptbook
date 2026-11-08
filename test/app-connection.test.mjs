@@ -500,6 +500,15 @@ test('App connection: heartbeat and tunnel, refused streams, protocol errors rec
     await new Promise((resolve) => setTimeout(resolve, 1500));
     assert.equal(app.connections.length, 2, 'a replaced tunnel is not dialled again');
     assert.ok(logs.some((entry) => entry.level === 'error' && /another copy/i.test(entry.text)));
+    const cleared = await connection.unpair();
+    assert.equal(cleared.state, 'unlinked');
+    assert.equal(cleared.engineId, identity.engineId);
+    assert.equal(await readRegistration(directory, identity, appSettings(app.env)), undefined);
+    assert.equal((await connection.pair(linkCode('d'))).outcome, 'linked');
+    await waitFor(() => connection.view().state === 'linked', { timeoutMs: 20_000, message: 'the new pairing to connect' });
+    await connection.unpair();
+    await waitFor(() => app.connections.every((peer) => peer.ended), { timeoutMs: 5000, message: 'unpairing to close the live tunnel' });
+    assert.equal((await connection.unpair()).state, 'unlinked');
 });
 
 test('tunnel handshake: no answer to another relay’s challenge, and a downgraded ready closes the tunnel', async (t) => {

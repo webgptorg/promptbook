@@ -1462,7 +1462,12 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 draw();
                 return;
             case 'app':
-                if (key === 'l' && snapshot.app && !snapshot.app.hostname) void linkApp();
+                if (key === 'l' && snapshot.app && !snapshot.app.hostname && !['disabled', 'connecting', 'offline'].includes(snapshot.app.state)) void linkApp();
+                if (key === 'u' && snapshot.app?.hostname && snapshot.app.state !== 'offline') confirmThen(
+                    'Remove this engine’s pairing and close remote access through the relay?',
+                    async () => void (await runAction('app-unpair')),
+                    ['The account can still list this engine.'],
+                );
                 return;
             case 'sync':
                 if (key === 'g') {

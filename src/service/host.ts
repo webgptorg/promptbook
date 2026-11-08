@@ -351,6 +351,7 @@ export class ServiceHost {
                     this.http = await startHttpServer({
                         agenda: this.agenda,
                         control: (action, params) => applyControlAction(this.agenda, action, params, this.browserControls),
+                        appPairing: (action, params) => this.handleControl(action, params),
                         token: this.token,
                         port: this.options.dashboardAccessKey ? 0 : setting<number | undefined>(settings, 'server.port'),
                         dashboardAccessKey: this.options.dashboardAccessKey,
@@ -498,12 +499,20 @@ export class ServiceHost {
                 return agenda.snapshot();
             case 'app-status':
                 return this.appConnection?.view() ?? agenda.snapshot().app;
-            case 'app-link': {
+            case 'app-unpair': {
+                if (!this.appConnection) throw new PtbkError('This engine run has no App connection.', { kind: 'unsupported' });
+                const app = await this.appConnection.unpair();
+                this.agenda.setAppConnection(app);
+                return { applied: true, outcome: 'Pairing removed from this engine.', app };
+            }
+            case 'app-link':
+            case 'app-pair': {
                 if (!this.appConnection) throw new PtbkError('This engine run has no App connection.', { kind: 'unsupported' });
                 if (typeof params.link !== 'string') throw new PtbkError('Provide a pairing URL.', { kind: 'usage' });
                 const result = await this.appConnection.pair(params.link);
+                if (method === 'app-pair') return result;
                 if (result.outcome === 'refused') return { applied: false, outcome: result.message };
-                return { applied: result.outcome === 'linked', outcome: 'Paired with Promptbook App.' };
+                return { applied: result.outcome === 'linked', outcome: result.outcome === 'linked' ? 'Paired with Promptbook App.' : 'Already paired. Unpair before using another link.' };
             }
             case 'app-setup-link':
                 if (!this.appConnection) throw new PtbkError('This engine run has no App connection (maintenance mode).', { kind: 'unsupported' });

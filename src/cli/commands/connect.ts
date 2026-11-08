@@ -4,6 +4,7 @@ import { loadEngineIdentity } from '../../app/identity.js';
 import { forgetRegistration, parseAppLink, readRegistration, registerEngine, storeRegistration, type RegistrationOutcome } from '../../app/registration.js';
 import { appDirectory, appSettings } from '../../app/settings.js';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
+import { IpcError } from '../../common/ipc.js';
 import type { AppConnectionView } from '../../engine/snapshot.js';
 import { onboardingTarget, readOnboarding } from '../../onboarding/draft.js';
 import { onboardingClient, pendingOnboarding } from '../../onboarding/local.js';
@@ -48,6 +49,13 @@ async function reloadEngine(project: Project): Promise<EngineReload> {
     } catch (error) {
         return { kind: 'not-applied', reason: `The running engine did not apply the change (${errorMessage(error)}); restart it with \`ptbk restart\`.` };
     }
+}
+
+/**
+ * Older engines can share the control contract while lacking the new pairing operations.
+ */
+function missingPairingMethod(error: unknown, method: string): boolean {
+    return error instanceof IpcError && error.stage === 'remote' && error.message === `Unknown control method ${method}.`;
 }
 
 /**
@@ -116,6 +124,25 @@ export default async function connect(context: CommandContext): Promise<number> 
         else renderView(context, result.app, { title: 'Paired with Promptbook App', tone: 'success' });
         return result.outcome === 'refused' ? EXIT.incomplete : EXIT.success;
     }
+    const service = await lookupService(project);
+    if (service.state === 'running' && service.engine.compatible) {
+        announce();
+        const result = await service.client.request<AppPairingOutcome>('app-pair', { link }, 35 * 60_000).catch((error: unknown) => {
+            if (!missingPairingMethod(error, 'app-pair')) throw error;
+        });
+        if (result) {
+            if (result.outcome === 'refused') {
+                const app = await currentView(project, context.env);
+                if (json) printJson({ ...result, app });
+                else renderView(context, app, { title: 'Not linked', message: result.message, tone: 'error' });
+                return EXIT.failure;
+            }
+            if (json) printJson(result);
+            else if (result.outcome === 'already-linked') renderView(context, result.app, { title: 'Already linked', message: 'Run `ptbk disconnect` before using a different pairing URL.', tone: 'muted' });
+            else renderView(context, result.app, { title: 'Linked to the Promptbook App', message: `Compare fingerprint ${result.app.fingerprint} with the App. The running engine is connecting now.`, tone: 'success' });
+            return EXIT.success;
+        }
+    }
     const directory = appDirectory(project.runtime.app, context.env);
     const identity = await loadEngineIdentity(directory, { create: true });
     if (!identity) throw new Error('The engine identity could not be created.');
@@ -165,6 +192,17 @@ export async function disconnect(context: CommandContext): Promise<number> {
     const directory = appDirectory(project.runtime.app, context.env);
     const identity = await loadEngineIdentity(directory, { create: false });
     const existing = identity ? await readRegistration(directory, identity, settings).catch(() => undefined) : undefined;
+    const service = await lookupService(project);
+    if (service.state === 'running' && service.engine.compatible) {
+        const result = await service.client.request<{ app: AppConnectionView }>('app-unpair').catch((error: unknown) => {
+            if (!missingPairingMethod(error, 'app-unpair')) throw error;
+        });
+        if (result) {
+            if (json) printJson({ outcome: existing ? 'disconnected' : 'not-linked', app: result.app });
+            else renderView(context, result.app, { title: 'Disconnected', message: 'Pairing removed and relay access closed. The App account may still list the engine.', tone: 'muted' });
+            return EXIT.success;
+        }
+    }
     // A damaged registration file is forgotten too: disconnecting is how the owner clears it.
     await forgetRegistration(directory);
     const reload = await reloadEngine(project);

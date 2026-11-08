@@ -4,7 +4,7 @@ import { HEARTBEAT_INTERVAL_MS, buildHeartbeat, hostFigures, nextHeartbeatSeq, s
 import { loadEngineIdentity, type EngineIdentity } from './identity.js';
 import type { TestTlsOptions } from './net.js';
 import { CONFORMANCE_BUILD } from './build.js';
-import { engineVersion, parseAppLink, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
+import { engineVersion, forgetRegistration, parseAppLink, readRegistration, registerEngine, storeRegistration, type StoredRegistration } from './registration.js';
 import { DEFAULT_DASHBOARD_URL, appSettings, isTunnelMode, type AppSettings, type RelayEndpoint } from './settings.js';
 import { RelayLink } from './tunnel/relay-link.js';
 import { AccessStore, type Actor } from './web/access.js';
@@ -214,6 +214,16 @@ export class AppConnection {
         return result;
     }
 
+    /** Forgets the pairing and closes remote access through the relay. */
+    public async unpair(): Promise<AppConnectionView> {
+        await this.serialize(async () => {
+            await forgetRegistration(this.options.directory);
+            this.disconnect();
+            await this.load(false);
+        });
+        return this.view();
+    }
+
     /** Closes every tunnel and stops the heartbeat. */
     public async stop(): Promise<void> {
         await this.serialize(async () => {
@@ -232,7 +242,7 @@ export class AppConnection {
     }
 
     /** Reads settings, identity and registration, then connects when linked. */
-    private async load(): Promise<void> {
+    private async load(useLaunchLink = true): Promise<void> {
         this.problem = undefined;
         this.identity = undefined;
         this.registration = undefined;
@@ -243,7 +253,7 @@ export class AppConnection {
             const settings = appSettings(this.options.env);
             this.dashboardUrl = settings.dashboardUrl;
             // The launch contract: an engine given a link code registers with it once, when it holds no registration.
-            const linkCode = this.options.env.PTBK_LINK_CODE?.trim();
+            const linkCode = useLaunchLink ? this.options.env.PTBK_LINK_CODE?.trim() : undefined;
             this.identity = await loadEngineIdentity(this.options.directory, { create: Boolean(linkCode) });
             this.registration = await readRegistration(this.options.directory, this.identity, settings);
             if (this.identity) {
