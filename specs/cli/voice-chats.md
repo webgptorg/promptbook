@@ -4,7 +4,9 @@
 
 ## Scope and entry
 
-Explicitly start realtime voice in the **existing Chat Book** from the terminal project dashboard, standalone `ptbk chat` or the local Windows/macOS app. New chats use the ordinary entry/agent selection first. Switching between typing and speech retains the same name, participants, instructions, messages, linked work and question state. No voice-only conversation store, replacement chat or implicit task is created.
+Realtime voice is an input and output mode of an ordinary chat. In the terminal project dashboard, standalone `ptbk chat` and the local Windows/macOS app, [start voice from the open chat](voice-chat-ui.md#the-chat-is-the-controller). That chat's stable Book identity determines the target for the whole call. Opening, ending or restarting voice preserves the chat's name, participants, instructions, messages, linked work and pending questions.
+
+Both a reopened chat and a new chat with its ordinary agent selection complete offer the same start action. In a new chat, the first input may be speech. If its Book has yet to be saved, create it through ordinary chat creation and [naming](generated-names.md) before attaching media. Voice start and first text send share a single creation for that new chat view, including concurrent actions and retries. Only an actual submitted message or accepted utterance enters history and triggers ordinary [first-message routing and MODEL resolution](chats.md#entry-and-model-chronology).
 
 The client, audio devices and project engine are on the same computer. A plain SSH session to a VPS does not carry the local microphone. Explain the limitation and keep text chat available. Remote App/relay media is a future integration.
 
@@ -22,6 +24,8 @@ Observe liveness of the controlling client and media surface. Restore focus to t
 
 Support listening and speaking concurrently, natural pauses and the user speaking over an answer, while backend work continues. The initial requirement is a live conversation comparable in interaction to ChatGPT Voice, not alternating record/upload/play turns. Latency and Czech speech quality must be checked with a real microphone/provider rather than inferred from a text fixture.
 
+Accept typed messages through the ordinary composer while voice is live. A submitted text message participates in the same routing, questions and work as any other user message and reaches the live session once as part of the shared history. Subsequent turns use accepted text and speech transcripts as context in either mode. Restarting voice uses the current chat history, including messages sent while voice was off. Typing, changing focus or toggling voice preserves the unsent draft.
+
 Barge-in promptly stops spoken playback; the adapter reconciles the actually heard boundary. It does **not** itself cancel a task, revert files or undo a remote action. Interpret the added speech in context through the responsible agent and ordinary [task control](task-control.md): a correction may steer work, a cancellation may stop it, and a request to listen may only stop speaking. Keep Saved/Delivered/Applied and confirmed/pending cancellation truthful. Do not ask for repeated task authorization solely because the channel changed to voice.
 
 Use normal agent/persona instructions, participants, delegation and substantive-work boundaries. A task's progress/result can reach the conversation without blocking further speech; the spoken agent must not report completion that the backend has not established. Preserve actual authors when another agent joins or asks a question. Voice is an explicit chat interaction during engine Pause, like text chat; task work and task-advancing continuations remain paused. Stop/force stop/panic remain authoritative.
@@ -38,6 +42,6 @@ Ending the call or closing or losing its media surface or controlling client sto
 
 ## Acceptance outcomes
 
-Start from an existing terminal dashboard chat, standalone chat and the Windows/macOS app. Type, speak, interrupt and return to typing in the same Book. Verify one shared history, live two-way Czech speech, relevant task management, actual authors and continued independent work. In Pause, voice discussion works while task execution stays paused. Stop/panic ends capture and provider voice resources. Reject unsupported/SSH cases actionably without exposing remote audio or starting hidden work.
+Run the [chat UI scenarios](voice-chat-ui.md#acceptance-outcomes) through the normal entry points. Verify voice-first creation, text sent during a live call and later calls all use one ordered Book and one dispatch per accepted input. Verify live two-way Czech speech, relevant task management, actual authors and continued independent work. In Pause, voice discussion works while task execution stays paused. Stop/panic ends capture and provider voice resources. Reject unsupported/SSH cases actionably without exposing remote audio or starting hidden work.
 
 Run the terminal flow with the project HTTP dashboard/server absent and the desktop flow without a temporary feature server. Exercise microphone permission/autoplay/device denial, duplicate viewers, reload/closure, client failure, network/provider loss and explicit end with no orphan microphone, call or listener. Recover partial recordings, late finalization, disk/Git failure and a long call with bounded commits. Check default Git contains the actual user/agent audio and Book bindings, overlap/interruption is honest, and reconnect/transcript/media replay never duplicates messages, tasks or external effects.

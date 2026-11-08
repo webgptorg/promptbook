@@ -6,7 +6,7 @@ The terminal dashboard and the local Windows/macOS dashboard expose the same pro
 
 ## Shared feature operations and client presentation
 
-- The owning domain defines the target, authorization, start/attach/end operations, observed state and outcome. Browser control uses the selected browser tab and its ownership rules. Voice uses the selected chat and harness voice session.
+- The owning domain defines the target, authorization, start/attach/end operations, observed state and outcome. Browser control uses the selected browser tab and its ownership rules. Voice uses the open chat view's bound Book identity and its harness voice session. The [chat view](voice-chat-ui.md#the-chat-is-the-controller) supplies this target to the media presenter.
 - The terminal presenter uses one reusable helper for creating a temporary server, authorizing one surface, observing attachment/loss and closing the server. The CLI process rendering the dashboard or standalone interactive view starts and owns that server in process. Each operation gets a separate listener and scoped access. Feature-specific media, inputs and controls plug into the helper.
 - The desktop presenter embeds media and controls in the graphical client using the same domain operations over a trusted local client connection. It needs no terminal feature server, external browser window or duplicate feature state machine. An actual CLI view opened in the embedded terminal follows the terminal rules.
 
