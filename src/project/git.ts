@@ -75,6 +75,7 @@ export async function gitOrThrow(cwd: string, args: readonly string[], options: 
             phase: options.phase ?? `git ${args[0]}`,
             project: cwd,
             reason: (result.spawnError ?? result.stderr.trim()) || result.stdout.trim() || `exit code ${String(result.exitCode)}`,
+            data: { exitCode: result.exitCode, signal: result.signal, timedOut: result.timedOut, cancelled: result.cancelled },
         });
     }
     return result.stdout;
@@ -172,7 +173,18 @@ export type StatusEntry = {
  * @private Git persistence
  */
 export async function gitStatus(projectRoot: string, repositoryRoot: string): Promise<StatusEntry[]> {
-    const output = await gitOrThrow(projectRoot, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--no-renames', '--', '.'], { phase: 'git status' });
+    let output: string;
+    for (let attempt = 0; ; attempt++) {
+        try {
+            output = await gitOrThrow(projectRoot, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--no-renames', '--', '.'], { phase: 'git status' });
+            break;
+        } catch (error) {
+            // A transient read failure must not park otherwise successful work for a long task recheck.
+            // Only this read-only snapshot is retried: commits, staging, commit hooks and signing are never repeated here.
+            if (!(error instanceof PtbkError) || error.details.kind !== 'persistence' || error.details.data?.timedOut || error.details.data?.cancelled || error.details.data?.signal || attempt >= 2) throw error;
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+    }
     const entries: StatusEntry[] = [];
     const fields = output.split('\0');
     for (let index = 0; index < fields.length; index++) {

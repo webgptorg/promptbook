@@ -1,5 +1,7 @@
 # Unreleased
 
+- Retry a transient native `git status` read up to three times before failing task persistence. Keep the original cause for a persistent failure, preserve staged and untracked work, and never retry mutations, commit hooks or signing through this read-recovery path.
+
 - Include the engine's redacted diagnostic cause in failed integration-test output before removing its temporary project, so a transient Git or OS error is reported instead of only the later polling timeout.
 
 - Give browser startup one bounded recovery budget so a slow first launch can finish instead of being killed every 30 seconds. Accept the browser's local DevTools announcement when its port file is delayed, wait for discovery to be ready, and stop the owned child on failed startup. Record its identity after process creation so a slow spawn does not prevent cleanup. Retain redacted failure diagnostics. Report browser-open failures directly in the Wallet one-time-code regression and reject blank-page origins instead of inventing `https://null`. Run the real browser and Wallet regressions on Windows and macOS with Node 22 and 24 in CI.
