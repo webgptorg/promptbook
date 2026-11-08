@@ -26,6 +26,8 @@ Project [sounds/desktop notifications](notifications.md) do not extend to this h
 
 Show a bounded keyboard-navigable table of known projects, including stopped ones: name/unambiguous path, verified current state, actual live version/process/mode, freshness and concise work/wait summary when available. Stopped entries explicitly say `stopped`, without a live PID or ready endpoint; last-run information remains inspectable. Stopped is observed absence, not a fifth live state. Pending restart is labelled intent.
 
+Identify projects whose live engines currently hold [keep-awake protection](power-management.md#system-controls-and-status). The global view reports verified requests from accessible engines. It does not acquire or release requests itself.
+
 New registrations appear, state changes propagate and ended engines become stopped rows rather than disappearing. Preserve project selection/focus across exits, starts and resize. Narrow terminals/long paths remain usable. `--raw` continuously emits plain state/events with no hidden prompts or cursor art.
 
 With no known projects, show an empty state and keep monitoring. With known projects but zero active engines, keep stopped rows and truthful counts. Distinguish both from failed or permission-limited discovery.

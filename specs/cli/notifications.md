@@ -12,7 +12,7 @@ Every source that requests human attention has a **responsible agent**, independ
 
 The normal visual indicators and [terminal status/title](terminal-title.md) work regardless of the effects switch. Only the added sounds and desktop notifications are **experimental**. Initial scope is interactive project terminal dashboards, their pages/chat views and standalone `ptbk chat`. Browser surfaces share the underlying request/seen state; this does not introduce a remote App push service. Raw, JSON, redirected and noninteractive output remain plain and never play sounds or issue desktop notifications.
 
-**Initialization and the global dashboard are excluded.** Do not add effects to the initializer or have the host-wide dashboard monitor all projects for notifications. Global-view ownership, nested project attachment/return and cross-project preferences are explicitly deferred, not an implicit extension of the project rule. A sleeping/off computer is outside the delivery guarantee; [macOS sleep prevention](power-management.md) is separate deferred research.
+**Initialization and the global dashboard are excluded.** Do not add effects to the initializer or have the host-wide dashboard monitor all projects for notifications. Global-view ownership, nested project attachment/return and cross-project preferences are explicitly deferred, not an implicit extension of the project rule. A sleeping/off computer is outside the delivery guarantee. The engine's [keep-awake policy](power-management.md) operates independently of notification effects.
 
 ## Explicitly summon User
 

@@ -31,6 +31,8 @@ At accepted **Stop**, block new independent assignments and allow only existing 
 
 These lifecycle actions apply to the whole selected engine; no separate agent/task/session Pause/Stop buttons are introduced. Session-scoped exclusive takeover only gates its automatic inputs under [harness sessions](harness-sessions.md). Global Pause/Stop remains authoritative during takeover, and detach cannot remove a pause reason.
 
+Completing Pause releases the selected engine's [keep-awake request](power-management.md#local-preference-and-live-request), even when explicit chat and controls are still available. A successful Resume can reacquire it when all eligibility conditions hold. Stop and force stop end the engine's ownership of that request.
+
 ## Pause reasons and composition
 
 The engine maintains an ordered/set-like collection of active **pause reasons**. Background scheduling is permitted only when there is no active pause reason and lifecycle intent otherwise allows it. Adding the first reason to a running engine requests ordinary graceful pause: stop new task claims/continuations, request supported task interruption/checkpoint, then remain in `pause`. Additional reasons compose without repeating interruption or work.

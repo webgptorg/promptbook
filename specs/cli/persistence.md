@@ -24,6 +24,8 @@ Deliberate stop/force stop/panic ends the actual process now and cancels immedia
 
 These are OS/crash-recovery rules; explicit `ptbk restart` retains its separately defined [lifecycle semantics](service-lifecycle.md).
 
+[Keep-awake preference recovery](power-management.md#restarts-and-updates) follows the actual restored lifecycle. The engine evaluates it on startup, including startup after sign-in on macOS and Windows. A service that starts paused acquires no request.
+
 ## Installation, environment and registration
 
 Recovery preserves the existing process's invocation overrides without writing them into `ptbk.json`; a new independent invocation follows [configuration precedence](configuration.md). Report the version actually loaded after a restart. Recovery must not implicitly switch from a project-local installation to a global copy or bypass the saved update policy. An engine-owned [automatic update](updates.md) is already authorized within that policy and uses its own controlled replacement/recovery path; it must preserve the latest manual pause/stop intent, not masquerade as an ambiguous crash or require routine reapproval. Ordinary restart/reboot does not independently select a new release.

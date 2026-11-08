@@ -252,7 +252,7 @@ The [dedicated acceptance scenarios](../concepts/minimal-interruption/acceptance
 
 ## Project attention and experimental delivery
 
-The detailed [notification acceptance outcomes](notifications.md#acceptance-outcomes) are part of this contract; the separate [macOS power note](power-management.md) is deferred research, not a required implementation.
+The detailed [notification acceptance outcomes](notifications.md#acceptance-outcomes) are part of this contract.
 
 - **NT01:** Passive User references and quoted/code/escaped/example active syntax never ping. Actual `+@User`/`+{User}` invites an absent human once, or pings an existing member anew without a model User. Repeated references in one accepted message and send/history recovery create no duplicate occurrence.
 - **NT02:** Task/TEAM/structured-helper questions use that same attributed active User-ping operation and instruction convention. Tasks and Chats project one logical question/attention occurrence; ordinary unread/completed results are not attention.
@@ -262,7 +262,11 @@ The detailed [notification acceptance outcomes](notifications.md#acceptance-outc
 - **NT06:** Only the last-used live project client emits enabled sounds/notifications. Meaningful input transfers ownership; owner exit/loss falls back without duplicates/backlog. Background frames/messages/heartbeats never claim ownership, and no client means no terminal effects daemon.
 - **NT07:** Real input within 10 seconds suppresses both strong sound and desktop alert for that new event without retroactive delivery. Visual unseen state remains when its source was not actually seen; enabled subtle navigation/send/reply-start cues continue without token/frame sounds. Enabling/reconnecting/ownership change never announces existing backlog.
 - **NT08:** Both embedded and standalone chat share one core, title scheduler, effects control and project-wide Wallet/Health event observation. Test local macOS/Windows and graceful optional Linux/SSH capability fallback, safe notification content and exact-source activation where supported. Raw/JSON/redirected, initialization and host-wide global dashboard receive no new effects.
-- **NT09:** Lifecycle/status and attention title markers work with effects Off. One animation scheduler/frame budget drives title, agent and dashboard/chat, with reduced-motion/Unicode fallbacks and slow-terminal coalescing. A disconnected owner is Unknown, not Stopped. Sleep prevention is not silently implemented.
+- **NT09:** Lifecycle/status and attention title markers work with effects Off. One animation scheduler/frame budget drives title, agent and dashboard/chat, with reduced-motion/Unicode fallbacks and slow-terminal coalescing. A disconnected owner is Unknown, not Stopped. Toggling notification effects never changes the engine's keep-awake preference or live request.
+
+## Keep awake
+
+Apply the separate [power-management acceptance outcomes](power-management.md#acceptance-outcomes), including the physical closed-lid MacBook test on external power without a monitor, power and lifecycle transitions across multiple engines, and protection through a managed update.
 
 ## External activity impact and common knowledge
 

@@ -138,7 +138,7 @@ The Windows installer is an additional release artifact, not a second engine or 
 - [Interactive feature servers](cli/interactive-feature-bridges.md) define the temporary CLI browser surface and its direct desktop presentation.
 - [Terminal titles](cli/terminal-title.md): Self-naming tab/window titles, TTY gating, sanitization and opt-out.
 - [Attention, sounds and desktop notifications](cli/notifications.md): Agent-owned relevance checks and automatic withdrawal, immutable chat history with resolution messages, preserved user input, durable seen state and optional client effects; global/init delivery behavior is excluded.
-- [Deferred macOS sleep prevention](cli/power-management.md): Research on engine-owned idle-sleep assertions and the separate closed-lid problem, without enabling a power feature now.
+- [Keeping the engine host awake](cli/power-management.md): Local opt-in on external power, engine-owned protection, Pause/Stop release and closed-lid MacBook operation without an external monitor.
 - [Global dashboard](cli/global-dashboard.md): Durable known-project registry, stopped entries, individual/bulk lifecycle controls and registry-only removal.
 - [Emergency stop](cli/panic.md): Confirmed host-wide force stop, owned-process termination and durable suppression of automatic work resumption.
 - [Service API](cli/api.md): Independent authenticated state/control and shared management operations.

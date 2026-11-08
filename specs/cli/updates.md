@@ -29,6 +29,8 @@ An available or queued update does not stop ordinary task intake or reserve an i
 
 An update is not a new fifth live lifecycle state. Show its system-task progress alongside the existing lifecycle and restart intent. Manual pause/stop still blocks automatic background tasks. A maintenance helper or update-induced restart must preserve the latest manual intent; a pause/stop accepted during maintenance cannot be erased by a stale successful-update callback. An ordinary user Restart does not install a new version implicitly.
 
+Include the [keep-awake handoff](power-management.md#restarts-and-updates) in the safe replacement boundary for a protected engine. If replacing it would allow a closed-lid MacBook to sleep before the replacement can take over, defer automatic replacement and show the reason.
+
 ## Local and shared global installations
 
 Target the installation actually running, not another project copy or every package installation on the host. Preserve dependency versus devDependency placement for a project-local package. Unrelated global/local installations coexist and projects may run different loaded versions; restarts retain the chosen installation.

@@ -15,6 +15,7 @@ This is the entry point for deciding where project information belongs and what 
 | Rebuildable totals, indexes and UI preferences | Ignored internal cache/presentation state under `.ptbk/`. | Do not commit derived caches or navigation. |
 | Locks, live ownership, pending recovery and sessions | Local runtime storage; some of it is persistent and must survive cleanup. | Ignored; never assume all of `.ptbk/` is disposable. |
 | Known-project registry and host discovery | OS-user-scoped private host metadata under the [home/identity policy](workspace.md#home-directory-and-shared-projects-root). | Outside project history; not another engine or work queue. |
+| Keep-awake mode, timed expiry and closed-lid choice | [Host-local power preference](power-management.md#local-preference-and-live-request) keyed by the OS user and canonical project directory. | Outside the project checkout and Git. |
 
 Private/personal agendas normally use a private remote or a local-only repository. Git backing does not imply public publication or a requirement to configure a remote. Preserve explicit repository choices and existing history.
 
