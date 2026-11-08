@@ -13,7 +13,7 @@ import type { ControlOutcome } from '../service/actions.js';
 import { createRedactor } from '../common/redact.js';
 import { promptbookAppData } from '../common/app-data.js';
 import { BrowserRecorder, type ScreencastPort } from './recording.js';
-import { BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
+import { BROWSER_STARTUP_TIMEOUT_MS, BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
 import { TabReservations } from './tab-reservations.js';
 import { parseKeyPress, type KeyPress } from './input.js';
 import { progressiveDelay, WAITING_POLICIES } from '../engine/progressive-waiting.js';
@@ -285,11 +285,15 @@ class CdpConnection {
     }
 
     /** Opens a connection. */
-    public static async open(url: string): Promise<CdpConnection> {
+    public static async open(url: string, timeoutMs = 30_000): Promise<CdpConnection> {
         const socket = new WebSocket(url);
         await new Promise<void>((resolve, reject) => {
-            socket.addEventListener('open', () => resolve(), { once: true });
-            socket.addEventListener('error', () => reject(new Error(`Cannot connect to the browser at ${url}.`)), { once: true });
+            const timer = setTimeout(() => {
+                reject(new Error('The browser did not accept its DevTools WebSocket connection in time.'));
+                socket.close();
+            }, timeoutMs);
+            socket.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
+            socket.addEventListener('error', () => { clearTimeout(timer); reject(new Error(`Cannot connect to the browser at ${url}.`)); }, { once: true });
         });
         return new CdpConnection(socket);
     }
@@ -756,21 +760,22 @@ export class ProjectBrowser {
 
     /** Bounded automatic connection recovery with recorded attempts, causes and next retry. */
     private async connectWithRecovery(): Promise<CdpConnection> {
+        const deadline = Date.now() + BROWSER_STARTUP_TIMEOUT_MS;
         for (let attempt = 1; ; attempt++) {
             this.setHealth({ state: this.health.lastFailure ? 'recovering' : 'starting', recovery: { ...this.health.recovery, attempts: attempt - 1 } });
             try {
-                const connection = await this.connectOnce();
+                const connection = await this.connectOnce(deadline);
                 this.setHealth({ state: 'running', ownership: { state: 'owned' }, recovery: { attempts: 0, state: 'idle' } });
                 return connection;
             } catch (error) {
                 this.recordFailure(error);
                 const kind = error instanceof PtbkError ? error.details.kind : 'technical';
-                if (kind !== 'technical' || attempt >= LAUNCH_ATTEMPTS) {
+                const wait = progressiveDelay(WAITING_POLICIES.browserLaunch, attempt);
+                if (kind !== 'technical' || attempt >= LAUNCH_ATTEMPTS || Date.now() + wait >= deadline) {
                     this.setHealth({ state: 'failed', recovery: { attempts: attempt, state: 'blocked', blocker: kind === 'conflict' ? 'The profile is held by a browser Promptbook did not start; ptbk retries when a task needs the browser.' : kind === 'technical' ? `Startup failed ${attempt} times; the next task use retries.` : 'Needs setup: see the last failure.' } });
                     throw error;
                 }
                 // The bounded immediate burst uses the shared progressive-waiting policy; later uses recheck on demand.
-                const wait = progressiveDelay(WAITING_POLICIES.browserLaunch, attempt);
                 this.setHealth({ state: 'recovering', recovery: { attempts: attempt, state: 'retrying', nextRetryAt: new Date(Date.now() + wait).toISOString() } });
                 await delay(wait);
             }
@@ -778,7 +783,7 @@ export class ProjectBrowser {
     }
 
     /** One connection attempt to the configured profile's shared browser. */
-    private async connectOnce(): Promise<CdpConnection> {
+    private async connectOnce(startupDeadline: number): Promise<CdpConnection> {
         const tool = this.target()?.tool;
         if (!tool) throw new PtbkError(`The browser tool "${this.name}" is not configured.`, { kind: 'configuration', next: ['Add a browser with `ptbk tool add BROWSER …`.'] });
         if (!tool.isEnabled) throw new PtbkError(`The browser tool "${this.name}" is disabled.`, { kind: 'configuration', next: [`Enable it: ptbk tool enable ${this.name}`] });
@@ -799,11 +804,11 @@ export class ProjectBrowser {
         }
         // A headless browser gets a desktop-sized window, so websites show the layout a person at a desktop sees.
         const args = ['--no-first-run', '--no-default-browser-check', '--disable-background-networking', ...(headless ? ['--headless=new', `--window-size=${HEADLESS_WINDOW_SIZE}`] : []), 'about:blank'];
-        const { record, launched } = await this.pools.connect({ profile, executable, headless, args, project: this.project.root, instanceId: this.instanceId });
+        const { record, launched } = await this.pools.connect({ profile, executable, headless, args, project: this.project.root, instanceId: this.instanceId, startupDeadline });
         if (record.headless !== headless) this.note = `The shared browser already runs ${record.headless ? 'headless' : 'with a visible window'} for other projects; it keeps that mode until it restarts.`;
         let connection: CdpConnection;
         try {
-            connection = await CdpConnection.open(record.webSocket);
+            connection = await CdpConnection.open(record.webSocket, Math.max(1, startupDeadline - Date.now()));
         } catch (error) {
             await this.pools.disconnect(profile, this.instanceId).catch(() => undefined);
             throw new PtbkError('The shared browser did not accept the connection.', { kind: 'technical', reason: errorMessage(error) });

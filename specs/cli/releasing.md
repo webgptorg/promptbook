@@ -12,6 +12,8 @@ Fixtures preserve the runner's tools and environment, handle canonical paths and
 
 Reviewed planning saves produce their scoped `ptbk: ` commit on every supported platform, including nested task paths and paths with spaces. Check fixtures inspect the committed contents and preserve unrelated work. A written file without the required commit is pending persistence and fails acceptance. Real browser checks allow bounded startup under runner load and retain actionable, redacted startup failure evidence.
 
+Run the focused real-browser checks (`npm run test:browser`) on Windows and macOS with Node 22 and 24. They explicitly enable the native browser cases that the broad CI suite otherwise skips; a missing browser fails this check. Cover full browser interaction, shared process lifetime and Wallet one-time-code entry. Deterministic startup fixtures also cover delayed discovery, transient readiness failures, exhausted recovery, child cleanup and redacted diagnostics.
+
 ## Publish workflow
 
 Run `npm ci` after pulling dependency changes, commit the release changes, then run `npm run prerelease` (an alias for `npm run release:prerelease`). The version hooks run the complete local checks, create the version commit and immutable `v` tag, and push both together to trigger publication.

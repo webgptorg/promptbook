@@ -34,6 +34,16 @@ function walletAt(root, home) {
     return { wallet, logs };
 }
 
+test('Wallet login: a blank or non-web tab has no website origin, never https://null', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet page origin');
+    const { wallet } = walletAt(root, join(root, 'home'));
+    for (const origin of ['null', 'about:blank', 'file:///tmp/login.html', 'data:text/html,login']) {
+        const result = await wallet.login({ inspect: async () => ({ origin, form: 'none' }) }, {});
+        assert.deepEqual(result, { status: 'failed', reason: 'The current tab shows no website; open the login page of the site first.' }, origin);
+    }
+    assert.deepEqual(await wallet.login({ inspect: async () => ({ origin: 'https://example.test', form: 'none' }) }, {}), { status: 'no-login-form', origin: 'https://example.test' });
+});
+
 /**
  * A login page double: the actual origin and a scripted verified result; it records what the Wallet entered.
  */
@@ -811,9 +821,13 @@ test('Wallet one-time code in the real browser: the owner\'s code is typed into 
     await wallet.confirmSetup();
     const waits = [];
     const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: (action) => waits.push(action) }).map((tool) => [tool.name, tool]));
-    const call = async (name, input = {}) => await tools[name].handler(input);
+    const call = async (name, input = {}) => {
+        const result = await tools[name].handler(input);
+        assert.ok(!result.isError, `${name}: ${result.text}${result.isError ? `\nBrowser diagnostics: ${JSON.stringify(fleet.inspectAll().map((view) => ({ name: view.name, failure: view.lastFailure })))}` : ''}`);
+        return result;
+    };
     await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
-    await call('browser_open', { url: origin });
+    assert.match((await call('browser_open', { url: origin })).text, /Sign in/, 'the login page loaded before asking the Wallet to sign in');
     let result = await call('wallet_login', {});
     assert.match(result.text, /asks for another step \(the site asks for a one-time code\)/);
     assert.match(result.text, /requestCode/);

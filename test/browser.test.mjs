@@ -8,6 +8,7 @@ import { findBrowserExecutable, TaskBrowser } from '../dist/browser/browser.js';
 import { browserTools } from '../dist/browser/agent-tools.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
 import { BrowserPools } from '../dist/browser/pool.js';
+import { killVerifiedProcess } from '../dist/common/process.js';
 import fsPromises from 'node:fs/promises';
 import { syncBuiltinESMExports } from 'node:module';
 import { parseKeyPress, parseModifiers } from '../dist/browser/input.js';
@@ -185,7 +186,7 @@ test('full browser access: an agent posts through a shadow-DOM rich-text compose
     const tools = Object.fromEntries(browserTools(fleet.scope('test task'), undefined, 'Tester', () => undefined, () => []).map((tool) => [tool.name, tool]));
     const call = async (name, input = {}) => {
         const result = await tools[name].handler(input);
-        assert.ok(!result.isError, `${name}: ${result.text}`);
+        assert.ok(!result.isError, `${name}: ${result.text}${result.isError ? `\nBrowser diagnostics: ${JSON.stringify(fleet.inspectAll().map((view) => ({ name: view.name, failure: view.lastFailure })))}` : ''}`);
         return result;
     };
     const ref = (text, needle) => Number(text.split('\n').find((line) => /^\[\d+\]/.test(line) && line.includes(needle))?.match(/^\[(\d+)\]/)?.[1]);
@@ -305,4 +306,35 @@ test('shared browser pools: engines share one process per profile, tasks get the
     await waitFor(() => !alive(pid), { timeoutMs: 20_000, message: 'the browser to close after the last disconnection' });
     assert.ok((await readdir(profile)).length > 0, 'the profile data is kept');
     assert.deepEqual((await readdir(join(root, 'ptbk home', 'browser-pools')).catch(() => [])).filter((name) => name.endsWith('.json')), []);
+});
+
+test('shared browser pools: a detached browser and its diagnostic pipe do not keep the launching engine alive', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk detached browser', teardown);
+    const profile = join(root, 'shared profile');
+    await mkdir(profile);
+    const env = { ...process.env, PTBK_HOME: join(root, 'pool home') };
+    const pools = new BrowserPools(env);
+    const input = { profile, executable: await findBrowserExecutable({ variant: 'CHROME' }), headless: true, args: ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', 'about:blank'], project: root, instanceId: 'launcher' };
+    // Let an actual engine process exit naturally after launching; a referenced stderr pipe would prevent this.
+    const code = 'await new (await import(process.argv[1])).BrowserPools(process.env).connect(JSON.parse(process.argv[2]));';
+    const child = spawn(process.execPath, ['--input-type=module', '-e', code, new URL('../dist/browser/pool.js', import.meta.url).href, JSON.stringify(input)], { env, stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true });
+    let stderr = '';
+    let spawnError;
+    child.stderr.setEncoding('utf8').on('data', (chunk) => { stderr += chunk; });
+    child.once('error', (error) => { spawnError = error; });
+    teardown.push(async () => {
+        if (child.pid && child.exitCode === null && child.signalCode === null) await killVerifiedProcess(child.pid, { group: false });
+        await pools.disconnect(profile, 'remaining-engine');
+    });
+    await waitFor(() => spawnError || child.exitCode !== null || child.signalCode !== null, { timeoutMs: 110_000, message: 'the launching engine to exit naturally' });
+    if (spawnError) throw spawnError;
+    assert.equal(child.exitCode, 0, stderr);
+    const first = await pools.read(profile);
+    assert.ok(first && alive(first.pid), 'the detached browser survives its launching engine');
+    const joined = await pools.connect({ ...input, instanceId: 'remaining-engine' });
+    assert.equal(joined.launched, false, 'another engine can still use that same browser');
+    assert.equal(joined.record.pid, first.pid);
+    await pools.disconnect(profile, 'remaining-engine');
+    await waitFor(() => !alive(first.pid), { timeoutMs: 20_000, message: 'the detached browser to close after its last owner' });
 });

@@ -2002,7 +2002,8 @@ export class WalletSubEngine {
         const inspected = await page.inspect();
         let origin: string;
         try {
-            origin = normalizeOrigin(inspected.origin);
+            // This is an observed browser origin, not user input where an omitted https:// may be supplied.
+            origin = normalizeOrigin(new URL(inspected.origin).href);
         } catch {
             return { status: 'failed', reason: 'The current tab shows no website; open the login page of the site first.' };
         }

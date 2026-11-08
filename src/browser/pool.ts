@@ -6,6 +6,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { ensureDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import { shortHash } from '../common/ids.js';
 import { isProcessAlive, killVerifiedProcess, verifyRecordedProcess } from '../common/process.js';
+import { redact } from '../common/redact.js';
 
 /**
  * One engine connected to a shared browser process.
@@ -49,14 +50,16 @@ export type PoolRecord = {
 };
 
 /**
- * Longest wait for the browser's DevTools endpoint after a launch.
+ * Total startup/recovery budget, including a slow native browser's first launch.
+ *
+ * @private browser startup
  */
-const STARTUP_TIMEOUT_MS = 30_000;
+export const BROWSER_STARTUP_TIMEOUT_MS = 90_000;
 
 /**
  * Longest wait for the pool's lock (another engine launching or closing the same profile).
  */
-const LOCK_TIMEOUT_MS = 60_000;
+const LOCK_TIMEOUT_MS = BROWSER_STARTUP_TIMEOUT_MS + 15_000;
 
 /**
  * A lock older than this is stale (its holder died while holding it).
@@ -142,7 +145,17 @@ export class BrowserPools {
      * engine, so it outlives it while others use it). A profile held by a browser Promptbook did not launch is a
      * conflict, never seized.
      */
-    public async connect(input: { readonly profile: string; readonly executable: string; readonly headless: boolean; readonly args: readonly string[]; readonly project: string; readonly instanceId: string }): Promise<{ readonly record: PoolRecord; readonly launched: boolean }> {
+    public async connect(input: {
+        readonly profile: string;
+        readonly executable: string;
+        readonly headless: boolean;
+        readonly args: readonly string[];
+        readonly project: string;
+        readonly instanceId: string;
+        /** Absolute end of the caller's shared startup/recovery budget. */
+        readonly startupDeadline?: number;
+    }): Promise<{ readonly record: PoolRecord; readonly launched: boolean }> {
+        const deadline = input.startupDeadline ?? Date.now() + BROWSER_STARTUP_TIMEOUT_MS;
         return await this.locked(input.profile, async () => {
             const connection: PoolConnection = { instanceId: input.instanceId, project: input.project, pid: process.pid, since: new Date().toISOString() };
             const existing = await this.read(input.profile);
@@ -159,7 +172,7 @@ export class BrowserPools {
                     next: ['Close that browser to let Promptbook start the profile, or choose another profile (ptbk tool modify <name> --profile-source …).'],
                 });
             }
-            const launched = await launchBrowser(input.executable, input.profile, input.headless, input.args);
+            const launched = await launchBrowser(input.executable, input.profile, input.headless, input.args, deadline);
             const record: PoolRecord = { version: 1, profile: input.profile, executable: input.executable, ...launched, headless: input.headless, args: input.args, connections: { [input.instanceId]: connection } };
             await writeJsonAtomic(this.file(input.profile), record);
             return { record, launched: true };
@@ -270,30 +283,80 @@ export async function profileOwnerPid(profile: string): Promise<number | undefin
  * Launches a browser process for a profile, detached from the engine (its own process group), and waits for its
  * DevTools endpoint.
  */
-async function launchBrowser(executable: string, profile: string, headless: boolean, args: readonly string[]): Promise<{ readonly pid: number; readonly launchedAt: string; readonly port: number; readonly webSocket: string }> {
+async function launchBrowser(executable: string, profile: string, headless: boolean, args: readonly string[], deadline = Date.now() + BROWSER_STARTUP_TIMEOUT_MS): Promise<{ readonly pid: number; readonly launchedAt: string; readonly port: number; readonly webSocket: string }> {
+    if (Date.now() >= deadline) throw new PtbkError('The browser startup budget expired before another launch could start.', { kind: 'technical', phase: 'browser startup' });
     const activePortFile = join(profile, 'DevToolsActivePort');
-    await writeFile(activePortFile, '').catch(() => undefined);
+    // Remove stale discovery data; the browser publishes its own file after choosing a port.
+    await rm(activePortFile, { force: true });
+    const started = Date.now();
+    const child = spawn(executable, [`--user-data-dir=${profile}`, '--remote-debugging-port=0', ...args], { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: headless, detached: true });
+    // Process creation can itself be slow. Record after spawn so the owned PID is not mistaken for a reused one.
     const launchedAt = new Date().toISOString();
-    const child = spawn(executable, [`--user-data-dir=${profile}`, '--remote-debugging-port=0', ...args], { stdio: 'ignore', windowsHide: headless, detached: true });
     child.unref();
-    const failed = new Promise<string>((resolve) => {
-        child.once('error', (error) => resolve(errorMessage(error)));
-        child.once('exit', (code, signal) => resolve(`The browser exited during startup (${signal ?? `exit code ${String(code)}`}).`));
-    });
-    const deadline = Date.now() + STARTUP_TIMEOUT_MS;
-    let port: number | undefined;
-    while (Date.now() < deadline && !port) {
-        const early = await Promise.race([failed, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 200))]);
-        if (early) throw new PtbkError('The browser could not be started.', { kind: 'setup', reason: early });
-        const value = Number((await readFile(activePortFile, 'utf8').catch(() => '')).split('\n')[0]);
-        if (value > 0) port = value;
+    // A shared browser can outlive this engine; its diagnostic pipe must not keep the engine alive.
+    (child.stderr as { unref?: () => void } | null)?.unref?.();
+    let diagnostics = '';
+    let announcedPort: number | undefined;
+    let failed: string | undefined;
+    let connected = false;
+    let lastProblem = 'No DevTools endpoint was announced.';
+    const observe = (chunk: Buffer): void => {
+        diagnostics = (diagnostics + chunk.toString('utf8')).slice(-8192);
+        const address = /DevTools listening on (ws:\/\/\S+)/.exec(diagnostics)?.[1];
+        if (address) announcedPort = localDebuggerPort(address);
+    };
+    child.stderr?.on('data', observe);
+    child.once('error', (error) => { failed = errorMessage(error); });
+    child.once('close', (code, signal) => { failed ??= `The browser exited during startup (${signal ?? `exit code ${String(code)}`}).`; });
+    try {
+        while (Date.now() < deadline) {
+            if (failed) throw new PtbkError(`The browser could not be started: ${failed}`, { kind: 'setup', phase: 'browser startup', reason: redact(diagnostics.trim()) || failed });
+            let port = announcedPort;
+            if (!port) {
+                try {
+                    const value = Number((await readFile(activePortFile, 'utf8')).split('\n')[0]);
+                    if (Number.isInteger(value) && value > 0 && value <= 65535) port = value;
+                } catch (error) {
+                    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') lastProblem = errorMessage(error);
+                }
+            }
+            if (port && child.pid && Date.now() < deadline) {
+                try {
+                    const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(Math.max(1, Math.min(3000, deadline - Date.now()))) });
+                    if (!response.ok) throw new Error(`DevTools returned HTTP ${response.status}.`);
+                    const version = await response.json() as { webSocketDebuggerUrl?: unknown };
+                    if (typeof version.webSocketDebuggerUrl !== 'string' || localDebuggerPort(version.webSocketDebuggerUrl) !== port) throw new Error('DevTools returned no matching local browser WebSocket endpoint.');
+                    if (failed) throw new Error(failed);
+                    connected = true;
+                    return { pid: child.pid, launchedAt, port, webSocket: version.webSocketDebuggerUrl };
+                } catch (error) {
+                    // A written port or an announcement is not proof that the HTTP endpoint is ready yet.
+                    lastProblem = errorMessage(error);
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, Math.max(1, Math.min(200, deadline - Date.now()))));
+        }
+        throw new PtbkError(`The browser did not start in time (${Math.round((Date.now() - started) / 1000)}s waiting for DevTools).`, {
+            kind: 'technical', phase: 'browser startup',
+            reason: redact(`${lastProblem} Endpoint file: ${activePortFile}.${diagnostics.trim() ? ` Browser diagnostics: ${diagnostics.trim()}` : ''}`),
+        });
+    } finally {
+        // Every failed attempt owns this exact child, including failures after its port file appeared.
+        if (!connected && child.pid && child.exitCode === null && child.signalCode === null) await killVerifiedProcess(child.pid, { group: process.platform !== 'win32' });
+        child.stderr?.removeListener('data', observe);
+        if (connected) child.stderr?.resume();
+        else child.stderr?.destroy();
     }
-    if (!port || !child.pid) {
-        if (child.pid) await killVerifiedProcess(child.pid, { group: process.platform !== 'win32' });
-        throw new PtbkError('The browser did not start in time.', { kind: 'technical', reason: `No DevTools port appeared in ${activePortFile} within ${STARTUP_TIMEOUT_MS / 1000}s.` });
-    }
-    const version = (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()) as { webSocketDebuggerUrl: string };
-    return { pid: child.pid, launchedAt, port, webSocket: version.webSocketDebuggerUrl };
+}
+
+/** Only a loopback browser endpoint announced by this launch can become a pool connection. */
+function localDebuggerPort(address: string): number | undefined {
+    try {
+        const url = new URL(address);
+        const port = Number(url.port);
+        if (url.protocol === 'ws:' && ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) && !url.username && !url.password && url.pathname.startsWith('/devtools/browser/') && Number.isInteger(port) && port > 0 && port <= 65535) return port;
+    } catch { /* An incomplete diagnostic line is not an endpoint. */ }
+    return undefined;
 }
 
 /**
