@@ -11,7 +11,8 @@
  *   NO_REPORT       → omits the completion line
  *   CREATE_FOLLOW_UP → also writes two follow-up task Books; on the first attempt the second copies this task's
  *                      name (Promptbook must reject it), on a repair attempt it gets its own dated name
- *   SLOW_WORK       → works for $FAKE_CODEX_SLOW_MS (default 6 s) before finishing (lifecycle draining)
+ *   SLOW_WORK       → waits for $FAKE_CODEX_WORK_BARRIER to be removed, when set, then works for
+ *                     $FAKE_CODEX_SLOW_MS (default 6 s) before finishing (lifecycle draining)
  *   QUOTA_NATIVE    → a native (ChatGPT) run fails with a usage limit; an API-key run (CODEX_API_KEY) succeeds
  *   QUOTA_RESET     → a native run fails with a usage limit that states its reset ("try again in 2 days 3 hours")
  *   LIST_BROWSERS   → after the work (and any SLOW_WORK wait) lists the browser tools through the bridge into
@@ -408,6 +409,14 @@ async function main() {
         }
     } else {
         if (prompt.includes('SLOW_WORK')) {
+            // Live tool changes must settle before this turn uses them, even on a slow native runner.
+            if (process.env.FAKE_CODEX_WORK_BARRIER) {
+                const deadline = Date.now() + 90_000;
+                while (existsSync(process.env.FAKE_CODEX_WORK_BARRIER)) {
+                    if (Date.now() > deadline) throw new Error('The live-tool fixture did not release the work barrier.');
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+            }
             // A concurrency fixture gates completion on actual peer acquisition instead of assuming a host can
             // launch every CLI within a short sleep. A serialized engine cannot pass this barrier.
             if (process.env.FAKE_CODEX_BARRIER_DIR) {

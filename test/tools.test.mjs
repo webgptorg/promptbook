@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { parseQuotaReset } from '../dist/harness/quota-reset.js';
@@ -177,8 +177,11 @@ test('live tools: a running engine waits for tools without stopping, and resumes
 });
 
 test('live tools: a browser added during a task serves that task; an in-use tool needs --force or a whole-engine stop', async (t) => {
-    const { project, env: base } = await initializedProject(t, { check: CHECK });
-    const env = { ...base, FAKE_CODEX_SLOW_MS: '9000' };
+    const { directory, project, env: base } = await initializedProject(t, { check: CHECK });
+    // Hold the turn until both tool changes finish; their CLI processes can outlast a fixed sleep on Windows.
+    const barrier = join(directory, 'live tool changes');
+    await writeFile(barrier, 'wait for the browser addition and in-use harness disable\n');
+    const env = { ...base, FAKE_CODEX_SLOW_MS: '0', FAKE_CODEX_WORK_BARRIER: barrier };
     assert.equal((await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'codex-second', '--raw'], { cwd: project, env })).code, 0);
     await ptbk(['add', 'Publish the post SLOW_WORK LIST_BROWSERS', '--agent', 'Developer', '--raw'], { cwd: project, env });
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
@@ -202,6 +205,8 @@ test('live tools: a browser added during a task serves that task; an in-use tool
     assert.equal(browser.code, 0, browser.output);
     const forced = await ptbk(['tool', 'disable', tool, '--force', '--raw'], { cwd: project, env });
     assert.equal(forced.code, 0, forced.output);
+    assert.equal((await status(project, env)).current?.taskTitle, running.current.taskTitle, 'the same task is still executing after both tool changes');
+    await rm(barrier);
 
     await waitFor(async () => (await subjects(project)).some((subject) => /^ptbk: Publish the post/.test(subject)), { message: 'the task result', timeoutMs: 90_000 });
     const listed = await readFile(join(project, 'output', 'browsers.txt'), 'utf8');
