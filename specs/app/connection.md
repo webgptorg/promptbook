@@ -6,6 +6,19 @@ A project engine connects to the **Promptbook App**: the account dashboard at `a
 
 The wire contract is the platform's engine-integration guide and its contract packages (`@ptbk/protocol`, `@ptbk/engine-api`, `@ptbk/conformance`) in `webgptorg/app`. On wire details the contract code wins over this page. This page defines how Reborn maps that contract onto projects, what is implemented and how it is presented. The engine implements the contract natively, because the published `ptbk` package has no runtime dependencies and the contract packages are not published. The platform's golden vectors pin every signed and framed byte.
 
+## Four interfaces, one engine
+
+| Interface | Role | Authority |
+| --- | --- | --- |
+| Interactive terminal dashboard | Primary operator interface | Full local engine control |
+| Non-interactive `ptbk` commands | Scriptable equivalent of the dashboard | Full local engine control |
+| Native local console on macOS, Windows and Android | Graphical equivalent of the dashboard, for an engine on the same device | Full local engine control |
+| Remote Promptbook App | Control an already paired engine through the relay | Engine operations permitted by the signed-in member's role |
+
+The first three interfaces are peers in capability. They expose the same engine operations and observe the same state, with presentation and input adapted to each interface. An operation added to one local interface must have equivalents in the other two. The interactive terminal dashboard defines the primary operator workflow.
+
+The machine running the engine is the final authority over its pairing. An operator on that machine can paste a one-time App URL, remove the pairing, or pair again with a different App or account. These operations apply to a running engine without restarting it. The remote App can issue a pairing URL and manage its own account records. Only local interfaces can apply that URL or remove or replace the engine's pairing. The engine must enforce this boundary at its local control entry points. Losing access to the remote App must still leave the local operator able to cut off its relay access.
+
 ## One project, one App engine
 
 Each project engine is one App engine with its own **engine identity**: an Ed25519 key, the **engine ID** derived from it (26 lowercase base32 characters of the SHA-256 of the raw public key), the default hostname `<engineId>.<engine domain>` and the 20-character **fingerprint** code (`XXXX-XXXX-XXXX-XXXX-XXXX`) that the App dashboard shows for comparison. There is no host-wide or global App engine. A computer with five projects can link five App engines, and an unreachable server with twenty projects shows twenty unavailable projects.
