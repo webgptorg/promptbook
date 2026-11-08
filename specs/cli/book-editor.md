@@ -16,7 +16,7 @@ The resilient Book format is not a conventional strict programming language. Use
 
 Coordinate saves with current source revisions, active task ownership and scoped Git persistence; never overwrite another client's accepted edit or stage an active task's unfinished work. Detect stale conflicting edits and preserve the draft for reconciliation. Report saved/committed only after actual write and required commit; disk, permission or persistence failure is different from a content warning. Saving an unchanged source creates no empty commit.
 
-The read-only [Book viewer](book-viewer.md), including Files/report history, and this editor use one parser/document/render/navigation core with read-only/editable modes under [DRY](../coding-standards/shared-logic.md#one-book-viewing-and-editing-core). Share interpretation/highlighting/diagnostics/attachments and handle very long Books responsively without losing offscreen source/edits or requiring cleanup.
+The read-only [Book viewer](book-viewer.md), including Files/report history, and this editor use one parser/document/render/navigation core with read-only/editable modes under [DRY](../coding-standards/shared-logic.md#one-book-viewing-and-editing-core). Share interpretation/highlighting/diagnostics/attachments and handle very long Books responsively without losing offscreen source/edits or requiring cleanup. The [desktop Book editor](desktop.md#text-and-book-editing) uses Monaco and reuses the Book language logic with the VS Code extension.
 
 ## Acceptance outcomes
 

@@ -26,7 +26,7 @@ The tray lists the same known projects as the global dashboard, including stoppe
 
 Reuse global observation and individual/bulk Start, Start paused, Pause, Resume, Stop, Force stop and stopped-entry removal. Preserve their applicability, confirmations, conflict handling and per-project outcomes. Forgetting a stopped project never deletes its files. Use verified engine identity and current control endpoints, not window-local cached state.
 
-Reuse the existing graphical dashboard presentation and shared controls. Every project page has Open in terminal, opening the corresponding page of the actual CLI dashboard in xterm.js; keep the selected project and supported entity context. A general CLI/global-dashboard fallback remains available, including when the engine's HTTP server is disabled or its graphical view is unavailable. New CLI functionality must always be reachable through this fallback before bespoke graphical presentation exists.
+Use the shared graphical renderer and engine controls as the base for the desktop workspace. Every project page has Open in terminal, opening the corresponding page of the actual CLI dashboard in xterm.js; keep the selected project and supported entity context. A general CLI/global-dashboard fallback remains available, including when the engine's HTTP server is disabled or its graphical view is unavailable. New CLI functionality must always be reachable through this fallback before bespoke graphical presentation exists.
 
 Embed [live browser tab control](browser-tab-control.md) in its graphical dashboard views. Place [realtime voice](voice-chat-ui.md) controls, media and captions inside the open graphical chat, with its start button beside the composer. That chat supplies the call target and handles both typing and voice. Use the same authorization, lifecycle and outcomes as the terminal, with local media and input in the desktop client. The [temporary browser surface](interactive-feature-bridges.md) is used when the user is in the actual CLI dashboard, including its embedded terminal presentation. Closing a graphical window ends its owned media surfaces under their individual rules.
 
@@ -38,7 +38,25 @@ Use the public [Promptbook brand guide](https://www.ptbk.io/en/branding) for the
 
 Allow dragging the divider next to the projects sidebar and between the setup form and its embedded terminal. Provide keyboard resizing and preserve usable space for both panels. Show the project’s observed lifecycle in the sidebar and overview with a dot and a text label. Shared dashboard attention takes precedence over a live status color, with distinct indicators for a verified stop and unknown connectivity. Respect reduced motion.
 
-Present desktop conversations with a separate header, a scrollable transcript with distinct user and agent bubbles, and a dedicated reply area below. Keep draft, sending, task, attention and read behavior shared with the existing graphical dashboard.
+Present desktop conversations with a separate header, a scrollable transcript with distinct user and agent bubbles, and a dedicated reply area below. Use the shared engine operations for sending, task control, attention and read state. Keep unsent drafts in the client.
+
+### Workspace tabs and windows
+
+Use the same graphical workspace and components in the Windows and macOS Electron builds. The project overview is the empty workspace. Open project pages and documents in tabs in the current window by default. An explicit **Edit Book** action opens the source in a regular tab, with project and source identity preserved. Reopening the same document focuses its existing editor, including in another window.
+
+- **Preview** is a reusable file tab, with one per workspace window. Single-click a file to preview it. Opening another preview replaces the first. Switching to an already open tab leaves the preview available. Starting an edit, double-clicking or choosing **Keep Open** promotes the preview to a regular tab. Shift and Ctrl/Cmd selection gestures select files for bulk operations without replacing the preview.
+- **Regular** tabs stay open until closed. Closing the last tab returns the window to its project overview.
+- **Pinned** tabs stay at the left and survive **Close Others** and bulk closing regular tabs. Unpinning returns it to regular.
+
+Drag a Book, text editor or file preview out of its tab strip to open it in a new window. Drag it onto another window's tab strip to dock it there. Provide keyboard-accessible **Move to New Window** and **Move to Main Window** commands. Move the same document and editor state, including dirty draft, selection, cursor, scroll and undo history. Keep the source tab until the target confirms ownership. If the move fails, the source remains usable. Live terminal and browser-control sessions remain window-bound in the first release, as does live voice media.
+
+Restore regular and pinned documents, their window placement and editor positions after desktop restart. Offer recovered unsaved drafts and check the underlying source revision before any save. Temporary previews are disposable. Restore available context for prior live sessions and require an explicit action to reconnect. Do not persist recovery words or recreate a one-time presentation. Wallet may open as an ordinary page, but its one-time recovery-word presentation is a dedicated modal with its own print/confirmation flow and no tab docking. On macOS it may be a parent-window sheet.
+
+### Text and Book editing
+
+Use Monaco for editable project text files, including `.book`, and for read-only source previews. Reuse Promptbook's Book language logic across Monaco and the VS Code extension, with a thin adapter for each editor. Share syntax tokenization, diagnostics, commitment completions and reference ranges/resolution. Support Ctrl/Cmd+click to the referenced Book and highlight occurrences of the same reference. Desktop navigation opens the resolved source through its workspace. Test long Books, Unicode and CRLF, with matching reference ranges in both editors.
+
+The editor buffers drafts locally and saves through engine operations with revision and ownership checks. Keep a draft on failed save or disconnect. On conflicting revisions, show the current source alongside the draft and let the user reconcile explicitly. A Book keeps its existing explicit Ctrl/Cmd+S and scoped commit behavior. Terminal Book editing remains available through the shared engine operations and language rules.
 
 ## One initializer, two presentations
 
@@ -66,6 +84,7 @@ Deny renderer permission requests by default. After explicit call start, permit 
 - Reboot/sign in: the tray appears without opening a window, while existing engine persistence rules remain unchanged. CLI-only/headless use never loads Electron.
 - Complete, go back, cancel and resume the same initializer from graphical presentation, with native login in its terminal and complete attachment payloads.
 - Open each page in the CLI terminal. Attach to a real session using normal observation/takeover rules; detach without ending work.
+- On Windows and macOS, exercise preview reuse/promotion, pinning, bulk selection, cross-window move and rollback, draft/undo preservation, restart restoration and the Wallet modal exception. Compare Book tokens, diagnostics and references against the VS Code extension.
 - On Windows and macOS, run the [voice chat UI scenarios](voice-chat-ui.md#acceptance-outcomes) and control a headless browser tab inside the app. Verify neither starts a temporary CLI server. Check microphone/clipboard permission scope, Wallet save choices and explicit browser handoff. Close the window and verify voice ends while the tab remains protected against automatic takeover.
 - Quit with live, paused, unreachable and concurrently started engines; distinguish graceful acceptance from verified completion, retain the tray on failures, and never force without explicit confirmation.
 - Reject untrusted IPC senders, arbitrary remote URLs, cross-window terminal control and invalid/stale prompt answers. Build/package checks include the native Windows PTY.
