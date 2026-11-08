@@ -4,6 +4,7 @@ dist
 dist-conformance
 *.tgz
 coverage
+__pycache__/
 .promptbook
 .ptbk
 

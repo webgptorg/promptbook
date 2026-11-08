@@ -1,5 +1,7 @@
 # Unreleased
 
+- Select the newest Debian package revision from the signed Termux index when building Android, regardless of index order. Retained older Node builds can otherwise require an ICU version no longer supplied by the index. Verify both index orders and native Debian version comparisons before release.
+
 - Retry a transient native `git status` read up to three times before failing task persistence. Keep the original cause for a persistent failure, preserve staged and untracked work, and never retry mutations, commit hooks or signing through this read-recovery path.
 
 - Include the engine's redacted diagnostic cause in failed integration-test output before removing its temporary project, so a transient Git or OS error is reported instead of only the later polling timeout.

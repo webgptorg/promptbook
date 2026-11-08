@@ -51,9 +51,20 @@ def repository_index(work, arch):
     checksums = release.read_text().split('\nSHA256:\n', 1)[1].split('\nSHA512:\n', 1)[0]
     digest = next(line.split()[0] for line in checksums.splitlines() if line.endswith(f' {path}'))
     index = download(f'{TERMUX}/dists/stable/{path}', work / 'Packages.gz', digest)
+    return package_index(decompress(index.read_bytes()).decode())
+
+
+def package_index(text):
+    """Choose the newest Debian version of each package, independent of signed index order."""
     packages = {}
-    for record in decompress(index.read_bytes()).decode().strip().split('\n\n'):
+    for record in text.strip().split('\n\n'):
         fields = dict(line.split(': ', 1) for line in record.splitlines() if re.match(r'^[\w-]+: ', line))
+        previous = packages.get(fields['Package'])
+        if previous:
+            comparison = subprocess.run(['dpkg', '--compare-versions', fields['Version'], 'gt', previous['Version']], check=False)
+            if comparison.returncode == 1:
+                continue
+            comparison.check_returncode()
         packages[fields['Package']] = fields
     return packages
 
