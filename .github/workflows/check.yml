@@ -53,7 +53,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
-      - name: Real browser startup, full interaction, shared pools and Wallet one-time code
+      - name: Real browser startup, full interaction, shared pools, Wallet codes and device approval
         run: npm run test:browser
   macos-desktop:
     strategy:
