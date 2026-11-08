@@ -3,6 +3,7 @@ import { openSync } from 'node:fs';
 import { engineModule } from '../common/version.js';
 import { restoreFailedUpdateLaunch } from '../engine/engine-update.js';
 import { installPausedStart } from '../engine/operator-intent.js';
+import { endKeepAwakeHandoff } from '../power/keep-awake.js';
 import { projectAt } from '../project/workspace.js';
 import { readLaunchMetadata, restoreDiscoveryEnvironment, RESTART_EXIT_CODE, rotateServiceLog, servicePaths } from './records.js';
 
@@ -104,7 +105,11 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
 process.on('SIGHUP', () => undefined);
 
 supervise().then(
-    () => process.exit(0),
+    // No replacement starts any more: a keep-awake handoff that waited for one ends now (it is bounded anyway).
+    async () => {
+        await endKeepAwakeHandoff(project).catch(() => undefined);
+        process.exit(0);
+    },
     (error: unknown) => {
         process.stderr.write(`${new Date().toISOString()} supervisor failed: ${String((error as Error)?.stack ?? error)}\n`);
         process.exit(1);

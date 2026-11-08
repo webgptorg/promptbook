@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { openSync } from 'node:fs';
 import { open, readFile, rm, stat } from 'node:fs/promises';
 import { errorMessage, PtbkError } from '../common/errors.js';
+import { endKeepAwakeHandoff } from '../power/keep-awake.js';
 import { ensureDirectory } from '../common/fs.js';
 import { shortId } from '../common/ids.js';
 import { ipcRequest } from '../common/ipc.js';
@@ -367,6 +368,8 @@ export async function forceStopEngine(project: Project, options: { readonly expe
         await markIntentionalStop(project).catch((error: unknown) => warnings.push(`Automatic startup could not be disabled: ${errorMessage(error)}. Run \`ptbk stop --force\` again, or remove the startup registration manually.`));
     };
     const endOwned = async (instanceId: string): Promise<void> => {
+        // Force stop revokes keep-awake protection even during a restart handoff: its carriers end too.
+        await endKeepAwakeHandoff(project).catch((error: unknown) => warnings.push(`A keep-awake restart handoff could not be ended: ${errorMessage(error)}.`));
         const owned = await terminateOwnedProcesses(project, instanceId);
         if (owned.unverified.length) warnings.push(`${owned.unverified.length} owned process(es) could not be verified and were not terminated: ${owned.unverified.map((item) => `${item.label} (PID ${item.pid})`).join(', ')}.`);
         if (owned.remaining.length) warnings.push(`${owned.remaining.length} owned process(es) did not end: ${owned.remaining.map((item) => `${item.label} (PID ${item.pid})`).join(', ')}.`);
