@@ -1,5 +1,7 @@
 # Unreleased
 
+- Include the engine's redacted diagnostic cause in failed integration-test output before removing its temporary project, so a transient Git or OS error is reported instead of only the later polling timeout.
+
 - Give browser startup one bounded recovery budget so a slow first launch can finish instead of being killed every 30 seconds. Accept the browser's local DevTools announcement when its port file is delayed, wait for discovery to be ready, and stop the owned child on failed startup. Record its identity after process creation so a slow spawn does not prevent cleanup. Retain redacted failure diagnostics. Report browser-open failures directly in the Wallet one-time-code regression and reject blank-page origins instead of inventing `https://null`. Run the real browser and Wallet regressions on Windows and macOS with Node 22 and 24 in CI.
 
 - Keep the live-tool release regression's task running until its browser addition and in-use harness change finish. Replace the fixed nine-second race with a bounded fixture barrier on Windows and macOS, while retaining the checks that the same task sees the new browser and the tool changes stay in separate commits.

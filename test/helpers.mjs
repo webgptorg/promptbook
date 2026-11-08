@@ -254,7 +254,12 @@ export async function drive(project, env, until, { args = [], timeoutMs = 90_000
     let timer;
     const code = await Promise.race([exited, new Promise((resolve) => (timer = setTimeout(() => (child.kill(), resolve(null)), 120_000)))]);
     clearTimeout(timer);
-    if (failure) throw new Error(`${failure.message}\n--- engine output ---\n${stdout}\n${stderr}`);
+    if (failure) {
+        // These engine records are already redacted. Preserve their actual Git/OS cause before fixture cleanup.
+        const diagnostics = await readFile(join(project, '.ptbk', 'logs', 'diagnostics.jsonl'), 'utf8').catch(() => '');
+        const recent = diagnostics.trim().split('\n').slice(-5).join('\n').slice(-16_000);
+        throw new Error(`${failure.message}\n--- engine output ---\n${stdout}\n${stderr}${recent ? `\n--- engine diagnostics ---\n${recent}` : ''}`);
+    }
     return { code, stdout, stderr, output: `${stdout}\n${stderr}` };
 }
 
