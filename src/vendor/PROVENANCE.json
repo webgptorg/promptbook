@@ -1,8 +1,8 @@
 {
     "source": "https://github.com/webgptorg/app",
-    "commit": "606b7440f33d8d0356b7fe8938ffd9d6ea9a0840",
+    "commit": "309a41252d370572f6e68b0d41f0c971f6ecc14a",
     "generatedBy": "scripts/vendor-app-platform.mjs",
-    "bundler": "bun 1.4.3",
+    "bundler": "bun 1.4.4",
     "workspaces": [
         {
             "name": "@ptbk/engine-api",

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable */
-// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 606b7440f33d8d0356b7fe8938ffd9d6ea9a0840. Do not edit; regenerate.
+// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 309a41252d370572f6e68b0d41f0c971f6ecc14a. Do not edit; regenerate.
 // Licenses: see THIRD_PARTY_LICENSES.md next to this file.
 import { createRequire } from "node:module";
 var __create = Object.create;
@@ -21418,6 +21418,7 @@ __export(exports_src2, {
   INITIAL_WINDOW_BYTES: () => INITIAL_WINDOW_BYTES,
   KeyRef: () => KeyRef,
   LINK_CODE_BYTES: () => LINK_CODE_BYTES,
+  LINK_PATH: () => LINK_PATH,
   LinkCode: () => LinkCode,
   MAINTAINER_KEY_COUNT: () => MAINTAINER_KEY_COUNT,
   MAX_FRAME_PAYLOAD_BYTES: () => MAX_FRAME_PAYLOAD_BYTES,
@@ -21530,6 +21531,7 @@ __export(exports_src2, {
   engineIdFromDefaultHostname: () => engineIdFromDefaultHostname,
   expectedCnameTarget: () => expectedCnameTarget,
   expectedWorkflowClaims: () => expectedWorkflowClaims,
+  formatLinkUrl: () => formatLinkUrl,
   generateEd25519KeyPair: () => generateEd25519KeyPair,
   generateLinkCode: () => generateLinkCode,
   heartbeatPath: () => heartbeatPath,
@@ -21538,6 +21540,8 @@ __export(exports_src2, {
   pae: () => pae,
   parseClientHello: () => parseClientHello,
   parseEngineMessage: () => parseEngineMessage,
+  parseLinkArgument: () => parseLinkArgument,
+  parseLinkUrl: () => parseLinkUrl,
   parseRelayMessage: () => parseRelayMessage,
   parseReleaseEntry: () => parseReleaseEntry,
   parseRevocationList: () => parseRevocationList,
@@ -21545,6 +21549,7 @@ __export(exports_src2, {
   registryPath: () => registryPath,
   resolveRoutableHostnames: () => resolveRoutableHostnames,
   revocationPredates: () => revocationPredates,
+  revocationSigners: () => revocationSigners,
   satisfiesEngineApiRange: () => satisfiesEngineApiRange,
   signAccessTicket: () => signAccessTicket,
   signDsse: () => signDsse,
@@ -35528,6 +35533,48 @@ var LINK_CODE_BYTES = 16;
 var LinkCode = string2().regex(/^[a-z2-7]{25}[aeimquy4]$/).brand();
 function generateLinkCode(random) {
   return LinkCode.parse(encodeBase32Lower(random.bytes(LINK_CODE_BYTES)));
+}
+// ../../../packages/protocol/src/link-url.ts
+var LINK_PATH = "/link";
+var MAX_LINK_URL_LENGTH = 2048;
+function urlOf(text) {
+  if (text.length > MAX_LINK_URL_LENGTH)
+    return null;
+  try {
+    return new URL(text);
+  } catch {
+    return null;
+  }
+}
+function parseLinkUrl(text) {
+  const url = urlOf(text);
+  if (url === null)
+    return { kind: "invalid", problem: "not-a-url" };
+  if (url.protocol !== "https:")
+    return { kind: "invalid", problem: "not-https" };
+  if (url.username !== "" || url.password !== "")
+    return { kind: "invalid", problem: "credentials" };
+  if (url.pathname !== LINK_PATH)
+    return { kind: "invalid", problem: "not-link-path" };
+  if (url.search !== "" || text.includes("?"))
+    return { kind: "invalid", problem: "query" };
+  const linkCode = LinkCode.safeParse(url.hash.slice(1));
+  if (!linkCode.success)
+    return { kind: "invalid", problem: "invalid-code" };
+  return { kind: "ok", dashboardOrigin: url.origin, linkCode: linkCode.data };
+}
+function parseLinkArgument(text) {
+  const bare = LinkCode.safeParse(text);
+  if (bare.success)
+    return { kind: "ok", dashboardOrigin: null, linkCode: bare.data };
+  return parseLinkUrl(text);
+}
+function formatLinkUrl(dashboardOrigin, linkCode) {
+  const url = urlOf(dashboardOrigin);
+  if (url?.protocol !== "https:" || url.origin !== dashboardOrigin) {
+    throw new TypeError("formatLinkUrl needs an https:// origin");
+  }
+  return `${dashboardOrigin}${LINK_PATH}#${linkCode}`;
 }
 // ../../../packages/protocol/src/problem.ts
 var PROBLEM_DETAILS_MAX_BYTES = 8192;

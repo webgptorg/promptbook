@@ -101,14 +101,21 @@ export default async function connect(context: CommandContext): Promise<number> 
         else renderView(context, view);
         return view.state === 'problem' ? EXIT.failure : EXIT.success;
     }
+    const { linkCode, settings } = parseAppLink(link, context.env);
+    // The origin is not a secret: show where a pasted link goes before anything is sent there.
+    const announce = (): void => {
+        const line = `Linking with the Promptbook App at ${settings.dashboardUrl}…`;
+        if (json) process.stderr.write(`${line}\n`);
+        else context.terminal.write(`${context.terminal.pretty ? context.terminal.style.muted(line) : line}\n`);
+    };
     if (pending) {
+        announce();
         const result = await pending.request<AppPairingOutcome>('app-link', { link }, 90_000);
         if (json) printJson(result);
         else if (result.outcome === 'refused') context.terminal.write(result.message + '\n');
         else renderView(context, result.app, { title: 'Paired with Promptbook App', tone: 'success' });
         return result.outcome === 'refused' ? EXIT.incomplete : EXIT.success;
     }
-    const { linkCode, settings } = parseAppLink(link, context.env);
     const directory = appDirectory(project.runtime.app, context.env);
     const identity = await loadEngineIdentity(directory, { create: true });
     if (!identity) throw new Error('The engine identity could not be created.');
@@ -120,7 +127,8 @@ export default async function connect(context: CommandContext): Promise<number> 
         else renderView(context, view, { title: 'Already linked', message: `This project is already linked as ${existing.hostname}. To link it to another account, run \`ptbk disconnect\` first.`, tone: 'muted' });
         return EXIT.success;
     }
-    if (!json && context.terminal.pretty) context.terminal.write(`${context.terminal.style.muted(`Linking engine ${identity.engineId} (fingerprint ${identity.fingerprint.formatted}) with ${settings.dashboardUrl}…`)}\n`);
+    announce();
+    if (!json && context.terminal.pretty) context.terminal.write(`${context.terminal.style.muted(`Engine ${identity.engineId}, fingerprint ${identity.fingerprint.formatted}.`)}\n`);
     const outcome: RegistrationOutcome = await registerEngine({
         identity,
         linkCode,

@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -37,7 +37,7 @@ if (dirty) throw new Error(`The platform checkout has local changes; vendor a cl
 const store = join(platform, 'node_modules', '.bun');
 const x509Dir = (await readdir(store)).filter((name) => name.startsWith('@peculiar+x509@2.')).sort().at(-1);
 if (!x509Dir) throw new Error('@peculiar/x509 2.x is not installed in the platform checkout (run bun install there).');
-const entry = (await readFile(join(root, 'scripts', 'app-platform', 'entry.ts'), 'utf8')).replace('@@X509@@', relative(work, join(store, x509Dir, 'node_modules', '@peculiar', 'x509')));
+const entry = (await readFile(join(root, 'scripts', 'app-platform', 'entry.ts'), 'utf8')).replace('@@X509@@', relative(work, join(store, x509Dir, 'node_modules', '@peculiar', 'x509')).split(sep).join('/'));
 
 await rm(work, { recursive: true, force: true });
 await mkdir(work, { recursive: true });
@@ -73,8 +73,11 @@ for (const name of ['engine-api', 'protocol', 'release-tools', 'gateway-pages'])
     notices.unshift(`## ${manifest.name} (webgptorg/app ${commit.slice(0, 12)}, ${String(manifest.license)})\n\n\`\`\`text\n${text}\n\`\`\``);
 }
 
+// The declarations are written by hand for the surface the engine uses, so they survive regeneration.
+const declarations = await readFile(join(vendor, 'app-platform.d.ts'), 'utf8');
 await rm(vendor, { recursive: true, force: true });
 await mkdir(vendor, { recursive: true });
+await writeFile(join(vendor, 'app-platform.d.ts'), declarations);
 const bundle = await readFile(join(work, 'out', 'app-platform.js'), 'utf8');
 await writeFile(
     join(vendor, 'app-platform.js'),

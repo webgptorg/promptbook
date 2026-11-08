@@ -6,6 +6,7 @@ import { deriveEngineId, isEngineId, parseHostname, type EngineIdentity } from '
 import { ConnectFailure, httpsRequest, type TestTlsOptions } from './net.js';
 import { appSettings, MAX_RELAYS, type AppSettings } from './settings.js';
 import { SIGNING_CONTEXT, signingInput } from './signing.js';
+import { protocol, type LinkUrlProblem } from '../vendor/app-platform.js';
 
 /**
  * The registration endpoint on the dashboard API.
@@ -47,29 +48,35 @@ export function isLinkCode(text: string): boolean {
 }
 
 /**
- * Resolves a one-time App pairing URL. The fragment goes in the signed registration body.
- * A bare code remains valid for existing launchers.
+ * The rule a refused link URL broke, as a sentence that never repeats the value (it holds the link code).
+ */
+const LINK_URL_RULES: Readonly<Record<LinkUrlProblem, string>> = {
+    'not-a-url': 'is neither a link URL nor a link code',
+    'not-https': 'must start with https://',
+    credentials: 'must not contain a user name or password',
+    'not-link-path': 'must have the path /link',
+    query: 'must not contain a query (?…)',
+    'invalid-code': 'must end with #<link code> (26 lowercase letters and digits)',
+};
+
+/**
+ * Resolves what `connect --link` accepts (the contract's `parseLinkArgument`): a link URL
+ * `https://<dashboard host>/link#<code>`, whose origin becomes the dashboard origin, or a bare code, which goes to
+ * `PTBK_DASHBOARD_URL` or the default. The code goes only into the signed registration body.
  *
  * @private App connection
  */
 export function parseAppLink(value: string, env: NodeJS.ProcessEnv): { linkCode: string; settings: AppSettings } {
     const settings = appSettings(env);
-    const text = value.trim();
-    if (isLinkCode(text)) return { linkCode: text, settings };
-    let url: URL | undefined;
-    try {
-        url = new URL(text);
-    } catch {
-        // Report an input error without including the code.
+    const parsed = protocol.parseLinkArgument(value.trim());
+    if (parsed.kind === 'invalid') {
+        throw new PtbkError(`The link from the Promptbook App ${LINK_URL_RULES[parsed.problem]}. Copy the whole link URL from the App, for example https://app.ptbk.io/link#<code>.`, { kind: 'usage' });
     }
-    const code = url?.hash.slice(1);
-    if (!url || url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/link' || url.search || !code || !isLinkCode(code)) {
-        throw new PtbkError('Copy the complete HTTPS pairing URL from Promptbook App.', { kind: 'usage' });
+    if (parsed.dashboardOrigin === null) return { linkCode: parsed.linkCode, settings };
+    if (!settings.dashboardUrlIsDefault && parsed.dashboardOrigin !== settings.dashboardUrl) {
+        throw new PtbkError(`The link URL names the Promptbook App at ${parsed.dashboardOrigin}, but PTBK_DASHBOARD_URL is ${settings.dashboardUrl}. Unset PTBK_DASHBOARD_URL, or use a link from that App.`, { kind: 'configuration' });
     }
-    if (!settings.dashboardUrlIsDefault && url.origin !== settings.dashboardUrl) {
-        throw new PtbkError('The pairing URL points to a different origin than PTBK_DASHBOARD_URL.', { kind: 'configuration' });
-    }
-    return { linkCode: code, settings: { ...settings, dashboardUrl: url.origin, dashboardUrlIsDefault: undefined } };
+    return { linkCode: parsed.linkCode, settings: { ...settings, dashboardUrl: parsed.dashboardOrigin, dashboardUrlIsDefault: undefined } };
 }
 
 /**

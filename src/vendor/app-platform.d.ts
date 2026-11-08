@@ -87,9 +87,14 @@ export type ClientHelloParse =
     | { readonly kind: 'malformed'; readonly reason: string }
     | { readonly kind: 'too-large' };
 
+/** Why a link URL was refused (`LinkUrlProblem`); never the URL or the code, which is a secret. */
+export type LinkUrlProblem = 'not-a-url' | 'not-https' | 'credentials' | 'not-link-path' | 'query' | 'invalid-code';
+
 /** `@ptbk/protocol` as the engine uses it. */
 export declare const protocol: {
     readonly createClientHelloBuffer: (limits: { readonly maxBytes: number; readonly maxChunks?: number }) => { push(chunk: Uint8Array): ClientHelloParse; bytes(): Uint8Array };
+    /** What `connect --link` accepts: a link URL `https://<dashboard host>/link#<code>`, or a bare code (`dashboardOrigin: null`). */
+    readonly parseLinkArgument: (text: string) => { readonly kind: 'ok'; readonly dashboardOrigin: string | null; readonly linkCode: string } | { readonly kind: 'invalid'; readonly problem: LinkUrlProblem };
     readonly [name: string]: unknown;
 };
 

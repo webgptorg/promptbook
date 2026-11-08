@@ -128,7 +128,8 @@ export type AppSecurityFacts = {
 };
 
 /**
- * Longest wait of the launch-contract registration: a link code is valid for 30 minutes.
+ * Longest wait of the launch-contract registration (about 30 minutes): a link code lives 30 days, which is no reason
+ * to retry for weeks.
  */
 const REGISTRATION_ATTEMPTS = 9;
 

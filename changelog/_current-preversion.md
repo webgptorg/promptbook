@@ -1,5 +1,7 @@
 # Unreleased
 
+- Follow the App's link URL contract (webgptorg/app 2026-11-06). `ptbk connect --link` takes the whole link URL from the App, `https://app.ptbk.io/link#<code>`, through the contract's own `parseLinkArgument`, and a bare code still works. It prints the App's address before anything is sent, also with `--json` (on stderr), and when a pending initialization pairs. A refused link names the rule it broke (for example "must have the path /link"), never the link itself. A `PTBK_DASHBOARD_URL` that names another App is refused, naming both addresses. Link codes now live 30 days in the App; registration retries still stop after about 30 minutes. The vendored App contract is regenerated from webgptorg/app 309a412, and `scripts/vendor-app-platform.mjs` works on Windows and keeps the hand-written `app-platform.d.ts`.
+
 - Keep JSON stdout separate from stderr diagnostics in engine self-update tests, so Node.js warnings cannot break `npm version prerelease`. Cover status and task-list reads with a runtime warning across an update and restart.
 - Brand the macOS installer for Apple Silicon and Intel with the Promptbook wordmark, the homepage robot, and a clearer drag-to-Applications layout with a Retina background.
 

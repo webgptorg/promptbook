@@ -50,9 +50,20 @@ test('an HTTPS pairing URL supplies the dashboard and its origin survives a fres
     const link = origin + '/link#' + code;
     assert.deepEqual(parseAppLink(link, {}).linkCode, code);
     assert.equal(parseAppLink(link, {}).settings.dashboardUrl, origin);
-    assert.throws(() => parseAppLink(link, { PTBK_DASHBOARD_URL: 'https://another.example.test' }), /different origin/);
-    for (const invalid of [link.replace('https:', 'http:'), link.replace('/link', '/wrong'), link.replace('/link#', '/link?token=abc#'), link.replace('dashboard.', 'user@dashboard.')]) {
-        assert.throws(() => parseAppLink(invalid, {}), /complete HTTPS pairing URL/);
+    assert.equal(parseAppLink(code, {}).settings.dashboardUrl, 'https://app.ptbk.io', 'a bare code goes to the default dashboard');
+    // A conflicting PTBK_DASHBOARD_URL is refused, naming both origins.
+    assert.throws(() => parseAppLink(link, { PTBK_DASHBOARD_URL: 'https://another.example.test' }), /at https:\/\/dashboard\.example\.test:444, but PTBK_DASHBOARD_URL is https:\/\/another\.example\.test/);
+    const refusals = [
+        [link.replace('https:', 'http:'), /must start with https:\/\//],
+        [link.replace('/link', '/wrong'), /must have the path \/link/],
+        [link.replace('/link#', '/link?token=abc#'), /must not contain a query/],
+        [link.replace('dashboard.', 'user@dashboard.'), /must not contain a user name or password/],
+        [`${origin}/link#${'a'.repeat(25)}`, /must end with #<link code>/],
+        ['not a link', /neither a link URL nor a link code/],
+    ];
+    for (const [invalid, rule] of refusals) {
+        // Each refusal names the rule, never the value (it carries the link code).
+        assert.throws(() => parseAppLink(invalid, {}), (error) => rule.test(error.message) && !error.message.includes(code.slice(0, 25)));
     }
     const engineDomain = 'engines.example.test';
     await storeRegistration(project.runtime.app, { v: 1, engineId: identity.engineId, engineDomain, hostname: identity.engineId + '.' + engineDomain,
