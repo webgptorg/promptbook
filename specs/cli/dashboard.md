@@ -44,7 +44,7 @@ Show loading, disconnection, observed service exit and failed/unconfirmed/pendin
 
 No secret is echoed in ordinary state or diagnostic errors. App connection details live on the App page rather than forcing the home page taller, and the local address is not presented. The deprecated standalone browser entry uses the same local bootstrap and same-origin safeguards while it exists. The global dashboard remains a separate host-wide terminal feature. See [controls](controls.md), [channels](channels.md) and [start](start.md).
 
-Opening the view only reads the shared saved report; no generation occurs. Discuss creates a new ordinary Chatter chat seeded with the exact displayed brief, while explicit Refresh coalesces engine work. External activity log, History and read-only Files use shared readers even with autosync off; Book viewing/editing shares a core and supports long sources.
+Opening the view only reads the shared saved report; no generation occurs. Discuss creates a new ordinary Chatter chat seeded with the exact displayed brief, while explicit Refresh coalesces engine work. External activity log, History and Files browsing use shared readers even with autosync off; Book viewing/editing shares a core and supports long sources.
 
 ## Session inspection and native entry
 

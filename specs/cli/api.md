@@ -28,7 +28,7 @@ Credential references are readable, actual credentials are not. Where adding a s
 
 Expose the shared saved [brief](project-report.md), original time and actual availability/persistence/generation state, without calling Chatter on read. Explicit Refresh coalesces scheduled work subject to task pause and actual resource availability. Discuss creates a new normal chat seeded with the displayed snapshot/provenance and ordinary first-User-message MODEL routing.
 
-Expose bounded read-only External activity log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport.
+Expose bounded read-only External activity log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport. Desktop file writes use authenticated engine operations with preflight, revision/ownership checks, per-operation results and explicit local persistence state under the [desktop Files contract](files.md#desktop-text-editing-and-bulk-operations).
 
 ## Wallet and encryption boundary
 

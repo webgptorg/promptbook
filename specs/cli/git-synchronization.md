@@ -30,6 +30,10 @@ For a difficult merge, retain both histories and enough recoverable conflict con
 
 Two different clones may accidentally execute the same task differently. Git synchronization is not a distributed execution lock and does not promise exactly-once external actions across machines. Preserve both results/provenance, surface task/occurrence conflicts to Fixer, and never replay payments/posts or erase one result merely to obtain a clean merge. Git history cannot undo external effects.
 
+## Pause policy
+
+The policy for remote fetch, integration and push during task Pause is open. Today an enabled coordinator can still attempt timer, operation-boundary and manual synchronization during Pause. Decide separately whether those remote operations should continue, be limited, or wait for Resume. Task execution, including any Fixer task needed for a sync conflict, remains subject to Pause. Manual file changes and their normal local commits remain available independently of remote synchronization.
+
 ## Cockpit controls and acceptance
 
 Only while synchronization is enabled, show a compact status panel with drill-down through the existing dashboard pattern. Details include redacted origin/branch, current phase, last attempt/success, known pending incoming/outgoing work, error/conflict/deferred-integration reason and next retry. Unknown data is labelled. Provide **Synchronize now** through the same coordinator, with truthful queued/running/success/deferred/failure outcomes. It requests one immediate cycle, not a second scheduler, configuration change or unconditional model call. See [dashboard details](dashboard-details.md).
