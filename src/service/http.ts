@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
 import type { Agenda } from '../engine/agenda.js';
+import type { CollisionChoice, FileOperationEntry, FileOperationKind } from '../engine/desktop-files.js';
 import type { KeepAwakeView } from '../power/view.js';
 import { secretToken } from '../common/ids.js';
 import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
@@ -34,6 +35,26 @@ const LONG_POLL_MS = 25_000;
  * Maximal JSON request body.
  */
 const MAX_BODY_BYTES = 64 * 1024;
+
+/**
+ * Largest JSON body of a desktop Files request (an edited text file or the entry list of a large import).
+ */
+const MAX_FILES_BODY_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Whether a value is a collision resolution of desktop Files.
+ */
+function isCollisionChoice(value: unknown): value is CollisionChoice {
+    return value === 'keep-both' || value === 'skip' || value === 'replace';
+}
+
+/**
+ * One requested entry of a desktop Files operation from untrusted JSON.
+ */
+function fileEntry(value: unknown): FileOperationEntry {
+    const entry = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+    return { path: String(entry.path ?? ''), ...(entry.type === 'directory' || entry.type === 'file' ? { type: entry.type } : {}), ...(typeof entry.size === 'number' && Number.isFinite(entry.size) ? { size: entry.size } : {}) };
+}
 
 /**
  * Largest authenticated Wallet request body (a password-manager export supplied by the local owner for import).
@@ -309,7 +330,17 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         }
         // Read-only project inspection: Git history (never fetched or changed) and confined nonhidden project files.
         const inspection: Record<string, () => Promise<unknown>> = {
-            '/api/history': async () => await agenda.history({ limit: Number(url.searchParams.get('limit') ?? 200) || 200, skip: Number(url.searchParams.get('skip') ?? 0) || 0 }),
+            // `upstream=1` and repeated `branch=` select the desktop branch scope (locally known refs only).
+            '/api/history': async () =>
+                await agenda.history({
+                    limit: Number(url.searchParams.get('limit') ?? 200) || 200,
+                    skip: Number(url.searchParams.get('skip') ?? 0) || 0,
+                    ...(url.searchParams.get('upstream') === '1' ? { upstream: true } : {}),
+                    ...(url.searchParams.getAll('branch').length ? { branches: url.searchParams.getAll('branch').slice(0, 50) } : {}),
+                }),
+            '/api/history/changes': async () => await agenda.currentChanges(),
+            // An ordinary text file with its revision for the desktop editor (reading never writes).
+            '/api/files/text': async () => await agenda.desktopFileText(url.searchParams.get('path') ?? ''),
             '/api/history/commit': async () => await agenda.historyCommit(url.searchParams.get('sha') ?? ''),
             '/api/files': async () => await agenda.files(url.searchParams.get('path') ?? ''),
             // A Book carries the shared highlight ranges of the one parser (clients never re-parse Book syntax).
@@ -390,11 +421,42 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             sendJson(response, 200, chatName ? await applyChatAction(agenda, 'chat-get', { name: chatName }, 'api') : { chats: await applyChatAction(agenda, 'chat-list', {}, 'api') });
             return;
         }
+        if (url.pathname === '/api/files/upload' && method === 'PUT') {
+            // One file of an applied desktop import, streamed by the local client (its source is only read there).
+            sendJson(response, 200, await agenda.desktopFilesUpload(url.searchParams.get('operation') ?? '', Number(url.searchParams.get('index') ?? NaN), request));
+            return;
+        }
         if (method !== 'POST') {
             sendJson(response, 405, { error: 'Method not allowed.' });
             return;
         }
-        const body = await readJsonBody(request, url.pathname === '/api/wallet' ? MAX_WALLET_BODY_BYTES : MAX_BODY_BYTES);
+        const body = await readJsonBody(request, url.pathname === '/api/wallet' ? MAX_WALLET_BODY_BYTES : url.pathname.startsWith('/api/files/') ? MAX_FILES_BODY_BYTES : MAX_BODY_BYTES);
+        if (url.pathname.startsWith('/api/files/')) {
+            // Desktop Files operations: engine-owned writes with preflight, revision/ownership checks and scoped commits.
+            const id = typeof body.id === 'string' ? body.id : '';
+            switch (url.pathname) {
+                case '/api/files/text': {
+                    const outcome = await agenda.desktopFileSave({ path: String(body.path ?? ''), text: String(body.text ?? ''), revision: String(body.revision ?? '') });
+                    sendJson(response, outcome.status === 'conflict' ? 409 : 200, outcome);
+                    return;
+                }
+                case '/api/files/preflight':
+                    sendJson(response, 200, await agenda.desktopFilesPreflight({ kind: body.kind as FileOperationKind, destination: typeof body.destination === 'string' ? body.destination : '', entries: Array.isArray(body.entries) ? (body.entries as unknown[]).map(fileEntry) : [], view: typeof body.view === 'string' ? body.view : '' }));
+                    return;
+                case '/api/files/apply':
+                    sendJson(response, 200, await agenda.desktopFilesApply({ id, ...(isCollisionChoice(body.choice) ? { choice: body.choice } : {}), ...(body.choices && typeof body.choices === 'object' ? { choices: Object.fromEntries(Object.entries(body.choices as Record<string, unknown>).filter((entry): entry is [string, CollisionChoice] => isCollisionChoice(entry[1]))) } : {}), confirm: body.confirm === true }));
+                    return;
+                case '/api/files/complete':
+                    sendJson(response, 200, await agenda.desktopFilesComplete(id));
+                    return;
+                case '/api/files/commit':
+                    sendJson(response, 200, await agenda.desktopFilesCommitNow(id || undefined));
+                    return;
+                case '/api/files/dismiss':
+                    sendJson(response, 200, await agenda.desktopFilesDismiss(id));
+                    return;
+            }
+        }
         if (url.pathname === '/api/app-pairing' && options.appPairing) {
             const action = body.action;
             if (action !== 'app-link' && action !== 'app-unpair') throw new PtbkError('Unknown App pairing action.', { kind: 'usage' });

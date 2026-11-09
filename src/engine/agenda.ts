@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { Readable } from 'node:stream';
 import type { KeepAwakeView } from '../power/view.js';
 import { AttentionOwner, evidenceFingerprint, type RelevanceVerdict } from './attention-owner.js';
 import { nextProgressiveWait, outcomeFingerprint, restoreProgressiveWait, WAITING_POLICIES, withInitialDelay, type ProgressiveSchedule, type WaitingPolicy } from './progressive-waiting.js';
@@ -23,7 +24,8 @@ import { agentSubject, anyPathChanged, commitPaths, git, inspectGit, stageableFi
 import { ActionLog } from './action-log.js';
 import type { MethodologyEvidence } from './knowledge.js';
 import { appendBrief, findBrief, readLatestBrief, REPORT_AUTHOR, REPORT_FILE, REPORT_NAME, type ReportView } from './report.js';
-import { classifySubject, readCommit, readHistory, type HistoryDetail, type HistoryView } from '../project/history.js';
+import { DesktopFiles, type DesktopFilesView, type FileOperationResult, type FileOperationReview, type TextSaveOutcome, type TextSource } from './desktop-files.js';
+import { classifySubject, readCommit, readCurrentChanges, readHistory, type CurrentChangesView, type HistoryDetail, type HistoryOptions, type HistoryView } from '../project/history.js';
 import { listFolder, readProjectFile, type FileView, type FolderView } from '../project/files.js';
 import { coreReconciliationDescription, prepareCoreAgents, type CorePreparation } from '../project/core-templates.js';
 import { isCoreAgent } from '../project/defaults.js';
@@ -33,7 +35,7 @@ import { ensureTraceIgnoreRules, traceIgnoreRulesMatch } from '../project/setup.
 import { runCheck } from '../project/checks.js';
 import { newTaskPath, renderTaskBook } from '../tasks/authoring.js';
 import { ACTIONS_DIRECTORY, distinctName, generatedName, traceDirectoryOf } from '../tasks/identity.js';
-import { BookIndex } from '../project/books.js';
+import { BookIndex, CHATS_DIRECTORY } from '../project/books.js';
 import { convertLegacyBook } from '../book/convert.js';
 import { parseBook, type BookDiagnostic } from '../book/parse.js';
 import { renderDeclaration } from '../book/write.js';
@@ -605,6 +607,27 @@ export class Agenda {
             log: (text, level) => this.log(text, level),
             backoff: { load: async () => await this.state.readSyncBackoff(), save: async (schedule) => await this.state.writeSyncBackoff(schedule) },
         });
+        this.desktopFiles = new DesktopFiles({
+            projectRoot: options.project.root,
+            stateFile: join(options.project.runtime.state, 'desktop-files.json'),
+            temporaryDirectory: options.project.runtime.temporary,
+            entityRoots: () => (this.settings ? [setting<string>(this.settings, 'paths.agents'), setting<string>(this.settings, 'paths.tasks'), CHATS_DIRECTORY] : ['agents', 'tasks', CHATS_DIRECTORY]).map((path) => path.replace(/\\/g, '/').replace(/^\.\/|\/+$/g, '')),
+            protectedFiles: () => [toProjectRelative(options.project.root, options.project.configPath), REPORT_FILE],
+            ownerOf: (absolute) => this.ownership.ownerOf(absolute)?.label,
+            commitMode: () => Boolean(this.commitMode && this.repositoryRoot),
+            commit: async (paths, subject, trailers) => await this.commitAuthoring(paths, subject, trailers),
+            reserve: (paths, pending) => {
+                for (const path of paths) {
+                    if (pending) this.authoredPaths.add(path);
+                    else this.authoredPaths.delete(path);
+                }
+            },
+            onChange: () => this.touch(),
+            log: (text, level) => this.log(text, level),
+            // Fixtures shorten the quiet period and cap (`PTBK_DESKTOP_FILES_QUIET_MS`, `PTBK_DESKTOP_FILES_MAX_AGE_MS`).
+            ...(Number(options.env.PTBK_DESKTOP_FILES_QUIET_MS) > 0 ? { quietMs: Number(options.env.PTBK_DESKTOP_FILES_QUIET_MS) } : {}),
+            ...(Number(options.env.PTBK_DESKTOP_FILES_MAX_AGE_MS) > 0 ? { maxAgeMs: Number(options.env.PTBK_DESKTOP_FILES_MAX_AGE_MS) } : {}),
+        });
         this.actions = new ActionLog({
             project: options.project,
             env: options.env,
@@ -662,6 +685,8 @@ export class Agenda {
      * of one chat share a bounded, debounced `ptbk: Chat - <name>` commit (never one per message).
      */
     private readonly chatBatches: ChatCommitBatcher;
+    /** Engine-owned desktop Files edits, imports and bulk operations with their scoped commit batches. */
+    private readonly desktopFiles: DesktopFiles;
 
     /** The project's chats (messages are saved at once; their commits are batched unless explicitly uncommitted). */
     public get chats(): ChatStore {
@@ -821,6 +846,8 @@ export class Agenda {
             const actions = await this.actions.recover(await stageableFiles(project.root, ACTIONS_DIRECTORY)).catch(() => 0);
             if (actions) this.log(`Committed ${actions} external-action record(s) saved before the last stop.`);
         }
+        // Desktop Files batches resume their persistence (never the user operation); an interrupted one waits for review.
+        await this.desktopFiles.recover().catch((error: unknown) => this.log(`The desktop Files journal could not be read: ${errorMessage(error)}`, 'warning'));
         await this.actions.refresh().catch(() => undefined);
         await this.actions.prune().catch(() => undefined);
         const report = await this.state.readReport().catch(() => undefined);
@@ -1035,6 +1062,9 @@ export class Agenda {
             if (this.shutdown !== 'force') await this.chatBatches.flush().catch(() => undefined);
             // The same for saved records of a bulk external operation.
             if (this.shutdown !== 'force') await this.actions.flush().catch(() => 0);
+            // And for accepted desktop Files changes (a force stop leaves them to the journal's recovery).
+            if (this.shutdown !== 'force') await this.desktopFiles.flush().catch(() => undefined);
+            this.desktopFiles.dispose();
             this.chatBatches.dispose();
         }
         this.exitState = 'stopped';
@@ -2759,6 +2789,7 @@ export class Agenda {
             ...(this.options.tabControls?.().length ? { tabControls: this.options.tabControls() } : {}),
             tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
             sync: this.sync.view(),
+            files: this.desktopFiles.view(),
             health: this.health?.view(),
             wallet: this.wallet.view(),
             ...(this.actions.view ? { actions: this.actions.view } : {}),
@@ -4493,9 +4524,25 @@ export class Agenda {
     }
 
     /** A bounded window of the current branch's Git history with its topology (read-only). */
-    public async history(options: { readonly limit?: number; readonly skip?: number } = {}): Promise<HistoryView> {
+    public async history(options: HistoryOptions = {}): Promise<HistoryView> {
         if (!this.repositoryRoot) return { rows: [], more: false, shallow: false, problem: 'The project is not in a Git working tree.' };
         return await readHistory(this.repositoryRoot, options);
+    }
+
+    /**
+     * The live working tree/index changes of desktop History (read-only), annotated only with origins the engine can
+     * verify: a desktop file operation or engine save waiting for its commit, or a path an active task owns.
+     */
+    public async currentChanges(): Promise<CurrentChangesView> {
+        if (!this.repositoryRoot) return { changes: [], protected: 0, truncated: false, problem: 'The project is not in a Git working tree.' };
+        return await readCurrentChanges(this.options.project.root, (absolute) => {
+            const desktop = this.desktopFiles?.pendingOrigin(absolute);
+            if (desktop) return desktop;
+            const owner = this.ownership.ownerOf(absolute);
+            if (owner) return { kind: 'task', label: owner.label };
+            if (this.authoredPaths.has(absolute)) return { kind: 'pending-engine', label: 'Saved by the engine · pending commit' };
+            return undefined;
+        });
     }
 
     /**
@@ -4522,6 +4569,49 @@ export class Agenda {
     /** One project file for Files (bounded, confined, read-only; formatting is presentation only). */
     public async file(path: string): Promise<FileView> {
         return await readProjectFile(this.options.project.root, path, { agentsDirectory: this.agentsDirectory() });
+    }
+
+    // ── Desktop Files operations (the Electron workspace; the terminal Files page stays read-only) ──
+
+    /** An ordinary text file with its revision for the desktop editor. */
+    public async desktopFileText(path: string): Promise<TextSource> {
+        return await this.desktopFiles.readText(path);
+    }
+
+    /** Saves an edited ordinary text file (revision and ownership checked; committed in its pending batch). */
+    public async desktopFileSave(input: { readonly path: string; readonly text: string; readonly revision: string }): Promise<TextSaveOutcome> {
+        return await this.desktopFiles.saveText(input);
+    }
+
+    /** Preflights a whole import, copy or deletion; nothing is written. */
+    public async desktopFilesPreflight(input: Parameters<DesktopFiles['preflight']>[0]): Promise<FileOperationReview> {
+        return await this.desktopFiles.preflight(input);
+    }
+
+    /** Applies a reviewed operation with the chosen collision resolution (deletion needs its confirmation). */
+    public async desktopFilesApply(input: Parameters<DesktopFiles['apply']>[0]): Promise<FileOperationResult> {
+        return await this.desktopFiles.apply(input);
+    }
+
+    /** Writes one uploaded file of an applied import. */
+    public async desktopFilesUpload(id: string, index: number, body: Readable): Promise<{ readonly target: string; readonly revision: string }> {
+        return await this.desktopFiles.upload(id, index, body);
+    }
+
+    /** Completes an import (missing items put it in review). */
+    public async desktopFilesComplete(id: string): Promise<FileOperationResult> {
+        return await this.desktopFiles.complete(id);
+    }
+
+    /** **Commit now**: flushes one batch (or every safe one) early. */
+    public async desktopFilesCommitNow(id?: string): Promise<DesktopFilesView & { readonly commits: readonly string[] }> {
+        const commits = await this.desktopFiles.flush(id);
+        return { ...this.desktopFiles.view(), commits };
+    }
+
+    /** Stops tracking a blocked, failed or interrupted batch (its files stay uncommitted in the working tree). */
+    public async desktopFilesDismiss(id: string): Promise<DesktopFilesView> {
+        return await this.desktopFiles.dismiss(id);
     }
 
     /** The configured agents directory (project-relative). */
@@ -5026,9 +5116,11 @@ export class Agenda {
         const validating = [...this.units.values()].find((unit) => unit.current && ['checking', 'finalizing', 'committing'].includes(unit.current.phase));
         if (validating) return `"${validating.label}" is validating or committing its result; integration happens after it`;
         if (!this.repositoryRoot) return 'the project is not in a Git working tree';
-        const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot });
         const base = toProjectRelative(this.repositoryRoot, this.options.project.root);
         const incoming = incomingFiles.map((file) => (base && base !== '.' && file.startsWith(`${base}/`) ? file.slice(base.length + 1) : file));
+        // Accepted desktop changes of incoming files are committed first, so integration never overwrites them.
+        await this.desktopFiles.flushPaths(incoming.map((file) => join(this.options.project.root, file))).catch(() => undefined);
+        const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot });
         const owned = incoming.filter((file) => this.ownership.ownerOf(file));
         if (owned.length) return `active work owns incoming files (${owned.slice(0, 5).join(', ')}); integration happens once it releases them`;
         const overlap = incoming.filter((file) => dirty[file] !== undefined);

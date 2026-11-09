@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { git } from './git.js';
 
@@ -45,6 +46,17 @@ export type HistoryRow = { readonly graph: string; readonly commit?: HistoryComm
  */
 export type HistoryView = {
     readonly branch?: string;
+    /** HEAD is detached (no current branch; `branch` is absent). */
+    readonly detached?: boolean;
+    /**
+     * The current branch's configured upstream when the branch scope was requested: shown in the graph, configured
+     * but absent from local refs (`missing`), not configured (`none`) or not applicable to a detached HEAD.
+     */
+    readonly upstream?: { readonly name?: string; readonly state: 'shown' | 'missing' | 'none' | 'detached' };
+    /** Other locally known branches added to the graph (only names that exist locally). */
+    readonly included?: readonly string[];
+    /** Locally known branches that can be added to the graph (local heads and remote-tracking refs). */
+    readonly available?: readonly string[];
     readonly rows: readonly HistoryRow[];
     /** More commits exist beyond this window. */
     readonly more: boolean;
@@ -111,14 +123,20 @@ function commitOf(fields: readonly string[]): HistoryCommit {
  *
  * @private Git history
  */
-export async function readHistory(repositoryRoot: string, options: { readonly limit?: number; readonly skip?: number } = {}): Promise<HistoryView> {
+export async function readHistory(repositoryRoot: string, options: HistoryOptions = {}): Promise<HistoryView> {
     const limit = Math.min(Math.max(1, options.limit ?? 200), 2000);
     const head = await git(repositoryRoot, ['rev-parse', '--abbrev-ref', 'HEAD']);
     if (head.exitCode !== 0) return { rows: [], more: false, shallow: false, problem: /unknown revision|ambiguous argument 'HEAD'/.test(head.stderr) ? 'No commit exists yet.' : 'This project has no readable Git history.' };
+    const detached = head.stdout.trim() === 'HEAD';
+    const branch = detached ? undefined : head.stdout.trim();
     const shallow = (await git(repositoryRoot, ['rev-parse', '--is-shallow-repository'])).stdout.trim() === 'true';
+    const scope = options.upstream || options.branches?.length ? await branchScope(repositoryRoot, branch, options) : undefined;
     const format = `${FIELD}%H${FIELD}%P${FIELD}%D${FIELD}%an${FIELD}%aI${FIELD}%s`;
-    const log = await git(repositoryRoot, ['log', '--graph', '--topo-order', '--decorate=short', `--format=${format}`, `--skip=${Math.max(0, options.skip ?? 0)}`, `--max-count=${limit + 1}`, 'HEAD']);
-    if (log.exitCode !== 0) return { branch: head.stdout.trim(), rows: [], more: false, shallow, problem: log.stderr.trim() || 'The history could not be read.' };
+    // Only locally known full ref names reach `git log` (never a client-supplied revision or option).
+    const revisions = ['HEAD', ...(scope?.revisions ?? [])];
+    const log = await git(repositoryRoot, ['log', '--graph', '--topo-order', '--decorate=short', `--format=${format}`, `--skip=${Math.max(0, options.skip ?? 0)}`, `--max-count=${limit + 1}`, ...revisions, '--']);
+    const base = { ...(branch ? { branch } : {}), ...(detached ? { detached } : {}), ...(scope ? { upstream: scope.upstream, included: scope.included, available: scope.available } : {}) };
+    if (log.exitCode !== 0) return { ...base, rows: [], more: false, shallow, problem: log.stderr.trim() || 'The history could not be read.' };
     const rows: HistoryRow[] = [];
     let commits = 0;
     let more = false;
@@ -137,7 +155,149 @@ export async function readHistory(repositoryRoot: string, options: { readonly li
     }
     // Connector lines after the last shown commit belong to commits outside the window.
     while (rows.length && !rows[rows.length - 1]!.commit) rows.pop();
-    return { branch: head.stdout.trim(), rows, more, shallow };
+    return { ...base, rows, more, shallow };
+}
+
+/**
+ * What a History window shows: the current branch alone (terminal default), or with the desktop branch scope.
+ *
+ * @private Git history
+ */
+export type HistoryOptions = {
+    readonly limit?: number;
+    readonly skip?: number;
+    /** Adds the current branch's configured upstream (from locally available refs; never fetched). */
+    readonly upstream?: boolean;
+    /** Other locally known branches to add to the graph (short names as listed in `available`). */
+    readonly branches?: readonly string[];
+};
+
+/**
+ * Resolves the desktop branch scope against locally known refs: the configured upstream (or why it is not shown),
+ * requested branches that exist locally, and the other branches available to add. Read-only.
+ */
+async function branchScope(repositoryRoot: string, branch: string | undefined, options: HistoryOptions): Promise<{ readonly revisions: readonly string[]; readonly upstream: NonNullable<HistoryView['upstream']>; readonly included: readonly string[]; readonly available: readonly string[] }> {
+    const refs = await git(repositoryRoot, ['for-each-ref', `--format=%(refname)${FIELD}%(refname:short)${FIELD}%(upstream:short)${FIELD}%(upstream:track)`, 'refs/heads', 'refs/remotes']);
+    const known = new Map<string, string>();
+    let upstream: NonNullable<HistoryView['upstream']> = branch ? { state: 'none' } : { state: 'detached' };
+    for (const line of refs.stdout.split('\n')) {
+        const [full = '', short = '', upstreamName = '', track = ''] = line.split(FIELD);
+        // A remote's symbolic default (`origin/HEAD`) is not a branch of its own.
+        if (!full || full.endsWith('/HEAD')) continue;
+        known.set(short, full);
+        if (branch && full === `refs/heads/${branch}` && upstreamName) upstream = { name: upstreamName, state: track.includes('gone') ? 'missing' : 'shown' };
+    }
+    if (upstream.state === 'shown' && !known.has(upstream.name!)) upstream = { ...upstream, state: 'missing' };
+    const revisions: string[] = [];
+    if (options.upstream && upstream.state === 'shown') revisions.push(known.get(upstream.name!)!);
+    const included = [...new Set(options.branches ?? [])].filter((name) => known.has(name) && name !== branch && name !== upstream.name);
+    for (const name of included) revisions.push(known.get(name)!);
+    const available = [...known.keys()].filter((name) => name !== branch && name !== upstream.name).sort((a, b) => a.localeCompare(b));
+    return { revisions, upstream: options.upstream ? upstream : { ...upstream, state: upstream.state === 'shown' ? 'none' : upstream.state }, included, available };
+}
+
+/**
+ * How one side of a current change alters its path.
+ *
+ * @private Git history
+ */
+export type ChangeKind = 'added' | 'modified' | 'deleted' | 'renamed' | 'copied' | 'type-changed';
+
+/**
+ * One path of the live working tree/index that differs from HEAD: its staged (index) and unstaged (working tree)
+ * change, untracked or conflicted state, and an origin only where the engine verified it. It has no commit SHA.
+ *
+ * @private Git history
+ */
+export type CurrentChange = {
+    /** Project-relative POSIX path. */
+    readonly path: string;
+    /** The previous path of a staged rename or copy. */
+    readonly from?: string;
+    readonly staged?: ChangeKind;
+    readonly unstaged?: ChangeKind;
+    readonly untracked?: boolean;
+    readonly conflicted?: boolean;
+    /** Verified origin of the change (pending desktop or engine commit, task-owned); absent when unknown. */
+    readonly origin?: { readonly kind: 'pending-desktop' | 'pending-engine' | 'task'; readonly label: string };
+};
+
+/**
+ * The current changes section of desktop History (read-only; no staging, discarding or checkout).
+ *
+ * @private Git history
+ */
+export type CurrentChangesView = {
+    readonly changes: readonly CurrentChange[];
+    /** Changed protected paths (repository, runtime state, secrets) are only counted, never named. */
+    readonly protected: number;
+    /** More changes exist beyond this bound. */
+    readonly truncated: boolean;
+    readonly problem?: string;
+};
+
+/**
+ * Most current changes listed.
+ */
+const MAX_CHANGES = 2000;
+
+/**
+ * Path segments whose changes are only counted (repository metadata, runtime state, secrets).
+ */
+const PROTECTED_SEGMENT = /^\.(git|ptbk|env)(\b|$)|^\.(ssh|gnupg|npmrc|netrc)$/i;
+
+/**
+ * Change kind of one porcelain status letter.
+ */
+function changeKind(letter: string): ChangeKind | undefined {
+    return ({ A: 'added', M: 'modified', D: 'deleted', R: 'renamed', C: 'copied', T: 'type-changed' } as Record<string, ChangeKind>)[letter];
+}
+
+/**
+ * Reads the current changes of the project's part of the working tree and index (`git status`, read-only: Git's own
+ * index refresh aside, nothing is written). `origin` annotates paths whose source the caller can verify.
+ *
+ * @private Git history
+ */
+export async function readCurrentChanges(projectRoot: string, origin: (absolutePath: string) => CurrentChange['origin'] = () => undefined): Promise<CurrentChangesView> {
+    // Git's own view of where the project sits in the repository (robust to symlinked paths such as /tmp).
+    const prefix = await git(projectRoot, ['rev-parse', '--show-prefix']);
+    if (prefix.exitCode !== 0) return { changes: [], protected: 0, truncated: false, problem: 'This project is not in a Git working tree.' };
+    const projectPrefix = prefix.stdout.trim();
+    // `--no-optional-locks`: browsing never takes the index lock away from a concurrent commit.
+    const status = await git(projectRoot, ['--no-optional-locks', 'status', '--porcelain=v2', '-z', '--untracked-files=all', '--', '.']);
+    if (status.exitCode !== 0) return { changes: [], protected: 0, truncated: false, problem: status.stderr.trim() || 'The working tree status could not be read.' };
+    const changes: CurrentChange[] = [];
+    let protectedCount = 0;
+    const fields = status.stdout.split('\0');
+    const add = (repositoryPath: string, change: Omit<CurrentChange, 'path'>): void => {
+        if (!repositoryPath.startsWith(projectPrefix)) return;
+        const path = repositoryPath.slice(projectPrefix.length);
+        if (!path || path.split('/').some((segment) => PROTECTED_SEGMENT.test(segment))) {
+            protectedCount++;
+            return;
+        }
+        const verified = origin(resolve(projectRoot, ...path.split('/')));
+        const from = change.from?.startsWith(projectPrefix) ? change.from.slice(projectPrefix.length) : change.from;
+        changes.push({ path, ...change, ...(from ? { from } : {}), ...(verified ? { origin: verified } : {}) });
+    };
+    for (let index = 0; index < fields.length; index++) {
+        const field = fields[index]!;
+        if (!field) continue;
+        if (field.startsWith('? ')) add(field.slice(2), { untracked: true });
+        else if (field.startsWith('u ')) add(field.split(' ').slice(10).join(' '), { conflicted: true });
+        else if (field.startsWith('1 ') || field.startsWith('2 ')) {
+            const parts = field.split(' ');
+            const xy = parts[1] ?? '..';
+            const path = parts.slice(field.startsWith('2 ') ? 9 : 8).join(' ');
+            const from = field.startsWith('2 ') ? fields[++index] : undefined;
+            const staged = changeKind(xy[0]!);
+            const unstaged = changeKind(xy[1]!);
+            add(path, { ...(staged ? { staged } : {}), ...(unstaged ? { unstaged } : {}), ...(from ? { from } : {}) });
+        }
+    }
+    changes.sort((a, b) => Number(Boolean(b.conflicted)) - Number(Boolean(a.conflicted)) || a.path.localeCompare(b.path));
+    return { changes: changes.slice(0, MAX_CHANGES), protected: protectedCount, truncated: changes.length > MAX_CHANGES };
 }
 
 /**

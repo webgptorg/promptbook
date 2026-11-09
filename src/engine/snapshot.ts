@@ -1,3 +1,4 @@
+import type { DesktopFilesView } from './desktop-files.js';
 import type { ChatRecheckView } from '../chats/service.js';
 import type { ChatPingView, ChatSummary } from '../chats/store.js';
 import type { HarnessSessionsView } from '../harness/sessions.js';
@@ -764,6 +765,8 @@ export type ServiceSnapshot = {
     readonly tools?: ToolsView;
     /** Git synchronization, present only while autosync is enabled. */
     readonly sync?: SyncView;
+    /** Desktop Files persistence: accepted edits/imports pending their commit, blocked items and recent outcomes. */
+    readonly files?: DesktopFilesView;
     /** Host health of the engine's Health sub-engine (absent for stopped services and older engines). */
     readonly health?: HealthView;
     /** The project's Wallet: readiness, login labels and pending login requests (never a secret). */
