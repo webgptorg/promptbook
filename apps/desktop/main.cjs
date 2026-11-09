@@ -1,12 +1,12 @@
 'use strict';
-const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, nativeTheme, protocol, session, shell } = require('electron');
+const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, nativeTheme, protocol, screen, session, shell } = require('electron');
 const { fork } = require('node:child_process');
-const { readFileSync, renameSync, writeFileSync } = require('node:fs');
+const { readFileSync, readdirSync, renameSync, writeFileSync } = require('node:fs');
 const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
 const { randomBytes, randomUUID } = require('node:crypto');
 const { join, resolve, basename, delimiter } = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { ACTIONS, VOICE_INTENT_PATH, localDashboardUrl, terminalArguments, dashboardPage, terminalSize, voiceIntent } = require('./model.cjs');
+const { ACTIONS, VOICE_INTENT_PATH, localDashboardUrl, terminalArguments, dashboardPage, terminalSize, voiceIntent, editorAsset, desktopPolicy, workspaceState, movedDocument } = require('./model.cjs');
 const { createPromptServer } = require('./prompt-server.cjs');
 
 /** macOS packages carry their own CLI runtime and use native application menus. */
@@ -20,7 +20,12 @@ const themeSources = new Set(['system', 'light', 'dark']);
  * scheme of their own in-memory session; nothing else is served there.
  */
 const FEATURE_URL = 'ptbk-feature://surface/';
-protocol.registerSchemesAsPrivileged([{ scheme: 'ptbk-feature', privileges: { standard: true, secure: true } }]);
+/** The workspace editor (Monaco with the Book adapter) reaches a window's project dashboard from its own private scheme. */
+protocol.registerSchemesAsPrivileged([{ scheme: 'ptbk-feature', privileges: { standard: true, secure: true } }, { scheme: 'ptbk-editor', privileges: { standard: true, secure: true } }]);
+
+/** The built workspace editor's directory and files (an unbuilt checkout has none, and dashboards keep a plain editor). */
+const editorDirectory = join(__dirname, 'renderer', 'vendor', 'editor');
+const editorFiles = (() => { try { return new Set(readdirSync(editorDirectory)); } catch { return new Set(); } })();
 
 /** Live feature views by id: the owning window, the kind and their embedded view. */
 const features = new Map();
@@ -43,6 +48,62 @@ let quitting = false;
 let refreshingTray = false;
 let quitInProgress = false;
 let clipboardDirectory;
+
+/**
+ * Desktop workspaces kept for a restart, in the app profile outside all projects: each window's placement, project,
+ * dashboard workspaces (tabs, unsaved drafts with their base revision, editor positions) and the context of its live
+ * sessions; plus drafts of closed windows, offered again when their project opens.
+ */
+let workspaces = { windows: {}, recovered: {} };
+let workspacesTimer;
+
+/** Location of the persisted workspaces. */
+function workspacesFile() {
+    return join(app.getPath('userData'), 'workspaces.json');
+}
+
+/** Reads the persisted workspaces (a missing or damaged file starts empty). */
+function loadWorkspaces() {
+    try {
+        const value = JSON.parse(readFileSync(workspacesFile(), 'utf8'));
+        if (value && typeof value.windows === 'object' && typeof value.recovered === 'object') workspaces = value;
+    } catch {
+        // Restoration is a convenience; it never blocks the desktop app.
+    }
+}
+
+/** Writes the workspaces atomically, shortly after the last change (and at once when quitting). */
+function saveWorkspaces(now = false) {
+    clearTimeout(workspacesTimer);
+    const write = () => {
+        try {
+            const file = workspacesFile();
+            writeFileSync(`${file}.tmp`, JSON.stringify(workspaces), { mode: 0o600 });
+            renameSync(`${file}.tmp`, file);
+        } catch {}
+    };
+    if (now) write();
+    else workspacesTimer = setTimeout(write, 500);
+}
+
+/** The persisted record of a window, created on first use. */
+function windowRecord(entry) {
+    return (workspaces.windows[entry.slot] ||= { projects: {}, sessions: [] });
+}
+
+/** Moves the unsaved drafts of a closing window to the recovery pool of their project. */
+function recoverDrafts(entry) {
+    for (const [root, state] of Object.entries(windowRecord(entry).projects || {})) {
+        for (const [key, document] of Object.entries(state.documents || {})) {
+            if (!document.draft) continue;
+            const tab = state.tabs.find((item) => item.key === key);
+            (workspaces.recovered[root] ||= {})[key] = { tab, draft: document.draft };
+        }
+    }
+}
+
+/** Documents handed between windows, by id: the source view, the document, and the target once known. */
+const moves = new Map();
 
 /** Stores the client preference in the app profile, outside all projects. */
 function themeFile() {
@@ -283,6 +344,28 @@ function hideDashboard(entry) {
     entry.view = undefined;
 }
 
+/**
+ * Makes the workspace editor available to a window's project dashboard: its files from the private `ptbk-editor:`
+ * scheme, and the dashboard document's own policy extended only by the editor's needs (no other origin, no inline
+ * script). Engine API responses and every other request are left as they are.
+ */
+function prepareEditor(projectSession, origin) {
+    if (!projectSession.protocol.isProtocolHandled('ptbk-editor')) {
+        projectSession.protocol.handle('ptbk-editor', async (request) => {
+            const asset = editorAsset(request.url, editorFiles);
+            if (!asset) return new Response('', { status: 404 });
+            return new Response(await readFile(join(editorDirectory, asset.name)), { headers: { 'content-type': asset.type, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' } });
+        });
+    }
+    projectSession.webRequest.onHeadersReceived({ urls: [`${origin}/*`] }, (details, callback) => {
+        if (details.resourceType !== 'mainFrame' || !editorFiles.has('editor.js')) return callback({});
+        const headers = { ...details.responseHeaders };
+        const name = Object.keys(headers).find((key) => key.toLowerCase() === 'content-security-policy');
+        if (name) headers[name] = headers[name].map(desktopPolicy);
+        callback({ responseHeaders: headers });
+    });
+}
+
 /** Clamps a native embedded view to the owning window. */
 function setBounds(entry, bounds) {
     if (!entry.view || !bounds) return;
@@ -301,24 +384,61 @@ function closeTerminal(entry, id) {
     entry.terminals.delete(id);
 }
 
+/** Restored bounds when they are still on a connected display (a removed monitor falls back to the default place). */
+function visibleBounds(bounds) {
+    if (!bounds || ![bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite)) return undefined;
+    const area = screen.getDisplayMatching(bounds).workArea;
+    const overlap = Math.min(bounds.x + bounds.width, area.x + area.width) - Math.max(bounds.x, area.x) >= 100 && Math.min(bounds.y + bounds.height, area.y + area.height) - Math.max(bounds.y, area.y) >= 100;
+    return overlap ? { x: Math.round(bounds.x), y: Math.round(bounds.y), width: Math.max(800, Math.round(bounds.width)), height: Math.max(600, Math.round(bounds.height)) } : undefined;
+}
+
 /** Opens an independent local view; the process/tray survives the last closed window. */
 function createWindow(options = {}) {
-    const window = new BrowserWindow({ width: 1280, height: 850, minWidth: 800, minHeight: 600, title: 'Promptbook', ...(!isMac && { icon: iconPath() }), show: false,
+    const { slot = randomUUID(), bounds, maximized, previous, ...launch } = options;
+    const window = new BrowserWindow({ width: 1280, height: 850, ...visibleBounds(bounds), minWidth: 800, minHeight: 600, title: 'Promptbook', ...(!isMac && { icon: iconPath() }), show: false,
         webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false } });
-    const entry = { window, terminals: new Map(), view: undefined, root: options.root, page: undefined };
+    const entry = { window, slot, terminals: new Map(), view: undefined, root: launch.root, page: undefined, moves: [] };
     windows.set(window.id, entry);
+    windowRecord(entry);
+    // The window's placement and project are kept for a restart.
+    let placement;
+    const place = () => {
+        clearTimeout(placement);
+        placement = setTimeout(() => {
+            if (window.isDestroyed()) return;
+            Object.assign(windowRecord(entry), { bounds: window.getNormalBounds(), maximized: window.isMaximized(), root: entry.root });
+            saveWorkspaces();
+        }, 300);
+    };
+    for (const event of ['move', 'resize', 'maximize', 'unmaximize']) window.on(event, place);
+    place();
     protect(window.webContents, window, (url) => url.split('#')[0] === shellUrl);
-    window.once('ready-to-show', () => window.show());
-    window.webContents.once('did-finish-load', () => emit(entry, { type: 'launch', ...options }));
+    window.once('ready-to-show', () => { if (maximized) window.maximize(); window.show(); });
+    window.webContents.once('did-finish-load', () => emit(entry, { type: 'launch', ...launch, ...(previous?.length ? { previous } : {}) }));
     window.on('close', () => {
         hideDashboard(entry);
         for (const id of entry.terminals.keys()) closeTerminal(entry, id);
         // Its voice calls end; its tab viewers detach and their tabs stay protected for the user.
         for (const feature of [...features.values()]) if (feature.entry === entry) closeFeature(feature, 'The window was closed.');
+        // Moves into or out of this window fail; a document still owned by another window stays there.
+        for (const [id, move] of [...moves]) if (move.target === entry || move.source === entry) failMove(id, 'The window was closed.');
+        // A window closed on its own is not restored; its unsaved drafts are offered again with their project.
+        if (!quitting) {
+            recoverDrafts(entry);
+            delete workspaces.windows[entry.slot];
+            saveWorkspaces();
+        }
     });
-    window.on('closed', () => windows.delete(window.id));
+    window.on('closed', () => { clearTimeout(placement); windows.delete(window.id); });
     void window.loadURL(shellUrl);
     return entry;
+}
+
+/** Opens the windows open at the last quit, with their placement, project and workspaces (or one new window). */
+function restoreWindows(options) {
+    const saved = Object.entries(workspaces.windows).filter(([, record]) => record && typeof record === 'object');
+    if (!saved.length || options.init || options.root) return void createWindow(options);
+    for (const [slot, record] of saved) createWindow({ slot, bounds: record.bounds, maximized: record.maximized, root: typeof record.root === 'string' ? record.root : undefined, skipInit: true, previous: Array.isArray(record.sessions) ? record.sessions : [] });
 }
 
 /** Location of the same product icon used by the installer. */
@@ -379,7 +499,7 @@ async function refreshTray() {
     let problem;
     try { host = await controller('observe'); } catch (error) { problem = error.message; }
     const items = [
-        { label: 'Open Promptbook', click: () => createWindow() },
+        { label: 'Open Promptbook', click: () => (windows.size ? createWindow() : restoreWindows({})) },
         { label: 'New window', click: () => createWindow() },
         { label: 'New project…', click: () => createWindow({ init: true }) },
         { type: 'separator' },
@@ -431,9 +551,13 @@ ipcMain.handle('desktop:dashboard', async (event, { root, bounds }) => {
     const intent = randomBytes(16).toString('hex');
     url.searchParams.set('intent', intent);
     hideDashboard(entry);
-    const view = new WebContentsView({ webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, partition: `desktop-project-${entry.window.id}` } });
+    const view = new WebContentsView({ webPreferences: { preload: join(__dirname, 'workspace-preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, partition: `desktop-project-${entry.window.id}` } });
+    prepareEditor(view.webContents.session, url.origin);
     entry.view = view;
     entry.root = root;
+    entry.origin = url.origin;
+    windowRecord(entry).root = root;
+    saveWorkspaces();
     entry.page = undefined;
     entry.window.contentView.addChildView(view);
     setBounds(entry, bounds);
@@ -509,6 +633,135 @@ ipcMain.on('feature:out', (event, payload) => {
     if (payload?.kind === 'hello') bridgeSend({ featureIn: feature.id, in: { kind: 'hello' } });
     else if (payload?.kind === 'message' && typeof payload.data === 'string' && payload.data.length <= 1024 * 1024) bridgeSend({ featureIn: feature.id, in: { kind: 'message', data: payload.data } });
     else if (payload?.kind === 'binary' && payload.data instanceof Uint8Array && payload.data.length <= 1024 * 1024) bridgeSend({ featureIn: feature.id, in: { kind: 'binary', data: Buffer.from(payload.data).toString('base64') } });
+});
+/** The window whose current project dashboard sent a workspace call: only that view's main frame at its own origin. */
+function workspaceOwner(event) {
+    const entry = [...windows.values()].find((item) => item.view && item.view.webContents === event.sender);
+    let origin;
+    try { origin = new URL(event.senderFrame?.url).origin; } catch {}
+    if (!entry || event.senderFrame !== event.sender.mainFrame || origin !== entry.origin) throw new Error('Untrusted workspace sender.');
+    return entry;
+}
+
+/** Sends a workspace event to a window's current project dashboard. */
+function workspaceEvent(entry, value) {
+    if (entry?.view && !entry.view.webContents.isDestroyed()) entry.view.webContents.send('workspace:event', value);
+}
+
+/** Ends a move without a transfer: the source keeps (and may again use) its document. */
+function failMove(id, reason) {
+    const move = moves.get(id);
+    if (!move) return;
+    moves.delete(id);
+    clearTimeout(move.timer);
+    if (move.target) move.target.moves = move.target.moves.filter((item) => item !== id);
+    if (!move.source.window.isDestroyed() && move.source.view?.webContents === move.sourceContents) workspaceEvent(move.source, { type: 'move-failed', id, reason });
+}
+
+/** Registers a document leaving its window; it fails unless a target confirms ownership in time. */
+function startMove(source, document, target) {
+    const id = randomUUID();
+    const move = { id, source, sourceContents: source.view.webContents, root: source.root, document, target: undefined, timer: undefined };
+    moves.set(id, move);
+    move.timer = setTimeout(() => failMove(id, 'The other window did not take the document.'), target ? 30000 : 60000);
+    if (target) deliverMove(move, target);
+    return move;
+}
+
+/** Hands a move to its target window: its dashboard of the same project receives it (opening that project first). */
+function deliverMove(move, target) {
+    move.target = target;
+    target.moves.push(move.id);
+    target.window.show();
+    target.window.focus();
+    if (target.view && target.root === move.root) workspaceEvent(target, { type: 'incoming', id: move.id, document: move.document });
+    else emit(target, { type: 'open-project', root: move.root });
+}
+
+ipcMain.handle('workspace:restore', (event) => {
+    const entry = workspaceOwner(event);
+    const state = windowRecord(entry).projects?.[entry.root] || null;
+    // Drafts of closed windows are offered once, in the next dashboard of their project.
+    const recovered = workspaces.recovered[entry.root] || {};
+    delete workspaces.recovered[entry.root];
+    saveWorkspaces();
+    const incoming = entry.moves.map((id) => moves.get(id)).filter((move) => move && move.root === entry.root).map((move) => ({ id: move.id, document: move.document }));
+    return { state, recovered, incoming, editor: editorFiles.has('editor.js') };
+});
+ipcMain.on('workspace:save', (event, value) => {
+    try {
+        const entry = workspaceOwner(event);
+        (windowRecord(entry).projects ||= {})[entry.root] = workspaceState(value);
+        saveWorkspaces();
+    } catch {}
+});
+ipcMain.handle('workspace:locate', (event, key) => {
+    const entry = workspaceOwner(event);
+    // Reopening a document focuses its existing editor, also in another window of the same project.
+    for (const other of windows.values()) {
+        if (other === entry || other.root !== entry.root || !other.view) continue;
+        const state = windowRecord(other).projects?.[entry.root];
+        if (!state?.tabs.some((tab) => tab.key === key)) continue;
+        other.window.show();
+        other.window.focus();
+        workspaceEvent(other, { type: 'activate', key });
+        return true;
+    }
+    return false;
+});
+ipcMain.handle('workspace:move', (event, { document, target } = {}) => {
+    const source = workspaceOwner(event);
+    const moved = movedDocument(document);
+    if (!moved) throw new Error('This document cannot be moved.');
+    let destination;
+    if (target === 'new') destination = createWindow({ root: source.root, skipInit: true });
+    else if (target === 'main') {
+        destination = [...windows.values()][0];
+        if (destination === source) throw new Error('This is already the main window.');
+    } else throw new Error('Choose where to move the document.');
+    return { id: startMove(source, moved, destination).id };
+});
+ipcMain.handle('workspace:offer', (event, document) => {
+    const source = workspaceOwner(event);
+    const moved = movedDocument(document);
+    if (!moved) throw new Error('This document cannot be moved.');
+    // A dragged tab: another window of the same project claims it by this id when it is dropped on its tab strip.
+    return { id: startMove(source, moved).id };
+});
+ipcMain.handle('workspace:claim', (event, id) => {
+    const target = workspaceOwner(event);
+    const move = moves.get(id);
+    if (!move || move.target || move.source === target || move.root !== target.root) throw new Error('This document cannot be docked here.');
+    move.target = target;
+    target.moves.push(move.id);
+    return { id: move.id, document: move.document };
+});
+ipcMain.handle('workspace:accept', (event, id) => {
+    const target = workspaceOwner(event);
+    const move = moves.get(id);
+    if (!move || move.target !== target) throw new Error('This move is no longer pending.');
+    moves.delete(id);
+    clearTimeout(move.timer);
+    target.moves = target.moves.filter((item) => item !== id);
+    // The target owns the document now: the source closes its tab.
+    if (move.source.view?.webContents === move.sourceContents) workspaceEvent(move.source, { type: 'moved', id });
+});
+ipcMain.on('workspace:reject', (event, { id, reason } = {}) => {
+    try {
+        const target = workspaceOwner(event);
+        const move = moves.get(id);
+        if (move && (move.target === target || move.source === target)) failMove(id, typeof reason === 'string' && reason ? reason.slice(0, 300) : 'The document was not moved.');
+    } catch {}
+});
+ipcMain.on('desktop:sessions', (event, sessions) => {
+    try {
+        const entry = owner(event);
+        // Only the context of live sessions is kept: reconnecting them is always an explicit action after a restart.
+        windowRecord(entry).sessions = (Array.isArray(sessions) ? sessions.slice(0, 8) : []).filter((item) => item && ['dashboard', 'global'].includes(item.kind)).map((item) => ({
+            kind: item.kind, ...(typeof item.root === 'string' ? { root: item.root } : {}), ...(typeof item.page === 'string' && item.page.length < 40 ? { page: item.page } : {}), title: String(item.title || '').slice(0, 120),
+        }));
+        saveWorkspaces();
+    } catch {}
 });
 ipcMain.on('desktop:hide-dashboard', (event) => { try { hideDashboard(owner(event)); } catch {} });
 ipcMain.handle('desktop:new-window', (event, root) => { owner(event); createWindow({ root: typeof root === 'string' ? root : undefined }); });
@@ -590,7 +843,7 @@ if (!app.requestSingleInstanceLock()) app.exit(0);
 if (process.argv.includes('--quit-client')) app.exit(0);
 app.on('second-instance', (_event, argv) => { if (argv.includes('--quit-client')) { quitting = true; app.quit(); } else if (!argv.includes('--tray')) createWindow(launchOptions(argv)); });
 app.on('window-all-closed', () => {});
-app.on('before-quit', () => { quitting = true; for (const entry of windows.values()) for (const id of entry.terminals.keys()) closeTerminal(entry, id); if (bridge?.connected) bridge.disconnect(); if (clipboardDirectory) void clipboardDirectory.then((directory) => rm(directory, { recursive: true, force: true })).catch(() => {}); });
+app.on('before-quit', () => { quitting = true; saveWorkspaces(true); for (const entry of windows.values()) for (const id of entry.terminals.keys()) closeTerminal(entry, id); if (bridge?.connected) bridge.disconnect(); if (clipboardDirectory) void clipboardDirectory.then((directory) => rm(directory, { recursive: true, force: true })).catch(() => {}); });
 
 /** Startup initializes only the client adapter and tray; it never calls project Start/Resume. */
 const ready = app.whenReady().then(async () => {
@@ -598,9 +851,10 @@ const ready = app.whenReady().then(async () => {
 });
 void app.whenReady().then(async () => {
     loadTheme();
+    loadWorkspaces();
     app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/', copyright: 'Promptbook — your AI, on your machine' });
     tray = new Tray(trayIcon());
-    tray.on('double-click', () => createWindow());
+    tray.on('double-click', () => (windows.size ? createWindow() : restoreWindows({})));
     const menu = Menu.buildFromTemplate([
         ...(isMac ? [{ label: 'Promptbook', submenu: [
             { label: 'About Promptbook', click: () => app.showAboutPanel() },
@@ -629,8 +883,8 @@ void app.whenReady().then(async () => {
     setInterval(() => void refreshTray(), 3000).unref();
     if (process.argv.includes('--quit-client')) { app.quit(); return; }
     if (!process.argv.includes('--tray') && !(isMac && app.isPackaged && app.getLoginItemSettings().wasOpenedAtLogin) && !windows.size) {
-        createWindow(launchOptions(process.argv));
+        restoreWindows(launchOptions(process.argv));
     }
-    app.on('activate', () => { if (!windows.size) createWindow(); });
+    app.on('activate', () => { if (!windows.size) restoreWindows({}); });
 }).catch((error) => dialog.showErrorBox('Promptbook could not open', error.message));
 void ready.catch(() => {});

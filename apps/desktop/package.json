@@ -38,6 +38,7 @@
       "main.cjs",
       "preload.cjs",
       "feature-preload.cjs",
+      "workspace-preload.cjs",
       "model.cjs",
       "prompt-server.cjs",
       "bridge.mjs",

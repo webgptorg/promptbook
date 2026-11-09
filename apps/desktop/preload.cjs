@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('desktop', {
     tabTabs: (root, browser) => ipcRenderer.invoke('desktop:tab-tabs', { root, browser }),
     tabAction: (request) => ipcRenderer.invoke('desktop:tab-action', request),
     voiceControl: (root, chat, action) => ipcRenderer.invoke('desktop:voice-control', { root, chat, action }),
+    sessions: (list) => ipcRenderer.send('desktop:sessions', list),
     onEvent: (callback) => {
         const listener = (_event, value) => callback(value);
         ipcRenderer.on('desktop:event', listener);

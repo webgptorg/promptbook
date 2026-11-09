@@ -433,7 +433,8 @@ async function openTerminal(kind, root, page) {
         term.open(container);
         term.onData((data) => api.input(result.id, data));
         const titles = { init: 'Project setup', setup: 'Set up with App', global: 'All projects · CLI', 'keep-awake-helper': 'Keep awake · closed lid' };
-        terminals.set(result.id, { term, fit, container, kind, root, title: titles[kind] ?? `${page || 'Dashboard'} · CLI`, prompt: null });
+        terminals.set(result.id, { term, fit, container, kind, root, page, title: titles[kind] ?? `${page || 'Dashboard'} · CLI`, prompt: null });
+        syncSessions();
         for (const event of earlyEvents.get(result.id) || []) terminalEvent(event);
         earlyEvents.delete(result.id);
         selectTerminal(result.id);
@@ -466,6 +467,7 @@ async function removeTerminal(id) {
     if (item.kind === 'init' && !item.ended && !window.confirm('Close this setup assistant? Applied setup steps stay; no project engine is stopped.')) return;
     await api.closeTerminal(id);
     item.term.dispose(); item.container.remove(); terminals.delete(id);
+    syncSessions();
     if (activeTerminal === id) {
         const next = [...terminals.keys()].pop();
         if (next) selectTerminal(next);
@@ -560,6 +562,25 @@ async function newProject(root) {
     await openTerminal('init', root);
 }
 
+/** Keeps the context of this window's live CLI sessions for a restart (reconnecting is always explicit). */
+function syncSessions() {
+    api.sessions([...terminals.values()].filter((item) => !item.ended && ['dashboard', 'global'].includes(item.kind)).map(({ kind, root, page, title }) => ({ kind, root, page, title })));
+}
+
+/**
+ * After a restart, the CLI sessions this window had open are listed with an explicit Reopen; nothing reconnects on its
+ * own. Live tab control and voice are not resumed: their tabs stay protected and calls start again from their chat.
+ */
+function showPrevious(previous) {
+    const panel = element('div', { className: 'previous', role: 'region', 'aria-label': 'Sessions before the restart' },
+        element('strong', {}, 'Before the restart'),
+        ...previous.map((item) => element('span', { className: 'previous-item' }, item.title || 'CLI dashboard', ' ',
+            element('button', { onclick: (event) => { event.currentTarget.parentElement.remove(); if (!panel.querySelector('.previous-item')) panel.remove(); void openTerminal(item.kind, item.root, item.page); } }, 'Reopen'))),
+        element('button', { 'aria-label': 'Dismiss', onclick: () => panel.remove() }, '×'));
+    $('notice').after(panel);
+    requestAnimationFrame(layout);
+}
+
 /** Launch arguments are applied once after host discovery. */
 async function applyLaunch() {
     if (!launch || launch.applied) return;
@@ -579,6 +600,7 @@ function terminalEvent(event) {
     else if (event.type === 'prompt-closed') { if (item.prompt?.id === event.promptId) { item.prompt = null; if (event.terminal === activeTerminal) renderPrompt(); } }
     else if (event.type === 'exit') {
         item.ended = true; item.prompt = null;
+        syncSessions();
         renderTabs();
         item.term.writeln(`\r\n[CLI exited with ${event.exitCode}. The terminal client is closed; engines have their own lifetime.]`);
         if (event.terminal === activeTerminal) renderPrompt();
@@ -588,7 +610,8 @@ function terminalEvent(event) {
 }
 
 api.onEvent((event) => {
-    if (event.type === 'launch') { launch = event; if (observed) void applyLaunch(); }
+    if (event.type === 'launch') { launch = event; if (event.previous?.length) showPrevious(event.previous); if (observed) void applyLaunch(); }
+    else if (event.type === 'open-project') void openProject(event.root);
     else if (event.type === 'theme') showTheme(event.source);
     else if (event.type === 'error') { api.hideDashboard(); notice(event.message, true); }
     else if (event.type === 'feature') featureEvent(event);

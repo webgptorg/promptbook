@@ -692,3 +692,8 @@ form .toolbar {
         padding-inline: 8px;
     }
 }
+
+/* Sessions open before a restart, each reopened only on request. */
+.previous { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 16px; border-bottom: 1px solid var(--line, #d0d7de); }
+.previous .previous-item { display: inline-flex; align-items: center; gap: 6px; }
+.previous > button:last-child { margin-left: auto; }
