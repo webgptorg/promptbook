@@ -1,5 +1,7 @@
 # Unreleased
 
+- Suspend periodic Git synchronization and its timer-driven retries while the engine is `pausing` or paused. **Synchronize now** still runs, and an operation that actually commits (a due chat batch, a manual Book save, a tool change) still fetches before and publishes after its commit, under the usual backoff. Read-only actions and no-op saves start no remote work. The panel shows the suspension instead of a next attempt, and the periodic cycle that came due during Pause runs once when the engine is running again.
+
 - Specify the read-only desktop History graph and current changes, including current branch plus upstream, optional local branches and verified working-tree provenance.
 
 - Specify engine-owned desktop Files imports, bulk operations and scoped Git batches, including the 15-second quiet period and 60-second cap. Manual saves and local commits continue during task Pause. Specify that Pause suspends periodic Git synchronization and retries, while allowing manual synchronization and synchronization around actual commits with autosync enabled.

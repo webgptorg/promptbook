@@ -11,6 +11,11 @@ import { nextProgressiveWait, restoreProgressiveWait, WAITING_POLICIES, type Pro
 export const SYNC_INTERVAL_MS = 60_000;
 
 /**
+ * Why no periodic attempt runs while task Pause is in effect.
+ */
+const PAUSE_SUSPENSION = 'Paused: periodic synchronization and its retries wait for Resume; Synchronize now and local commits still synchronize.';
+
+/**
  * Last lines of a Git error kept in a (redacted) diagnostic.
  */
 const DIAGNOSTIC_LINES = 2;
@@ -56,6 +61,13 @@ export type SyncHost = {
     readonly gitLock: <T>(action: () => Promise<T>) => Promise<T>;
     /** Effective `isAutoSync` (with invocation overrides). */
     readonly enabled: () => boolean;
+    /**
+     * Whether task Pause is in effect (`pausing` or `pause`). Periodic cycles, their coalesced follow-ups and
+     * timer-driven retries wait for `running`; manual cycles and commit boundaries stay permitted.
+     */
+    readonly paused?: () => boolean;
+    /** Healthy timer cadence (tests shorten it; the product default is {@link SYNC_INTERVAL_MS}). */
+    readonly intervalMs?: number;
     /** Whether integrating remote files now is safe; `undefined` when it is, otherwise the reason to defer. */
     readonly integrationBlocker: (incomingFiles: readonly string[]) => Promise<string | undefined>;
     /** A genuine conflict for Fixer. */
@@ -79,7 +91,10 @@ export type SyncHost = {
 export class SyncCoordinator {
     private state: Omit<SyncView, 'phase'> & { phase: SyncView['phase'] } = { phase: 'idle', state: 'never' };
     private running?: Promise<SyncOutcome>;
-    private again = false;
+    /** Strongest trigger coalesced into one cycle after the running one (a timer follow-up waits during Pause). */
+    private again?: SyncTrigger;
+    /** A periodic cycle came due during Pause; it runs once the engine is running again. */
+    private suspendedTimer = false;
     private failures = 0;
     /** Shared progressive-waiting schedule of the current failure (absent while healthy). */
     private backoff?: ProgressiveSchedule;
@@ -103,8 +118,28 @@ export class SyncCoordinator {
         clearInterval(this.timer);
         this.timer = setInterval(() => {
             if (this.host.enabled()) void this.request('timer');
-        }, SYNC_INTERVAL_MS);
+        }, this.interval);
         this.timer.unref();
+    }
+
+    /** Healthy timer cadence. */
+    private get interval(): number {
+        return this.host.intervalMs ?? SYNC_INTERVAL_MS;
+    }
+
+    /** Whether Pause suspends periodic work right now. */
+    private get paused(): boolean {
+        return Boolean(this.host.paused?.());
+    }
+
+    /**
+     * The engine returned to `running`: a periodic cycle (or retry) that came due during Pause runs now, once. Later
+     * cycles follow the ordinary cadence.
+     */
+    public resumed(): void {
+        if (!this.suspendedTimer || this.paused) return;
+        this.suspendedTimer = false;
+        if (this.host.enabled()) void this.request('timer');
     }
 
     /** Stops the background timer. */
@@ -116,6 +151,8 @@ export class SyncCoordinator {
     /** The cockpit view, only while synchronization is enabled. */
     public view(): SyncView | undefined {
         if (!this.host.enabled()) return undefined;
+        // During Pause no periodic attempt is scheduled: the next one is unknown until Resume (or a commit boundary).
+        if (this.paused) return { ...this.state, nextAttemptAt: undefined, suspended: PAUSE_SUSPENSION };
         return { ...this.state };
     }
 
@@ -131,13 +168,19 @@ export class SyncCoordinator {
      */
     public async request(trigger: SyncTrigger): Promise<SyncOutcome> {
         if (!this.host.enabled()) return { outcome: 'disabled', message: 'Automatic synchronization is off (isAutoSync false).' };
+        // Pause permits only a manual cycle and the commit boundaries of an operation that actually commits.
+        if ((trigger === 'timer' || trigger === 'boundary') && this.paused) {
+            if (trigger === 'timer') this.suspendedTimer = true;
+            return { outcome: 'skipped', message: PAUSE_SUSPENSION };
+        }
         if (trigger !== 'manual' && this.failures && this.state.nextAttemptAt && Date.parse(this.state.nextAttemptAt) > Date.now()) {
             return { outcome: 'skipped', message: `Backing off after failures; next attempt at ${this.state.nextAttemptAt}.` };
         }
         if (this.running) {
             // Commit-boundary attempts never wait for (or re-enter) a running cycle, e.g. Fixer's conflict task commit.
             if (trigger === 'pre-commit') return { outcome: 'skipped', message: 'A synchronization cycle is already running.' };
-            this.again = true;
+            // A coalesced publication must still follow during Pause; other requests only need some later cycle.
+            this.again = trigger === 'post-commit' || this.again === 'post-commit' ? 'post-commit' : 'timer';
             if (trigger === 'post-commit') return { outcome: 'skipped', message: 'Publication follows the running cycle.' };
             return await this.running;
         }
@@ -146,8 +189,9 @@ export class SyncCoordinator {
         });
         const outcome = await this.running;
         if (this.again) {
-            this.again = false;
-            void this.request('timer');
+            const follow = this.again;
+            this.again = undefined;
+            void this.request(follow);
         }
         if (trigger === 'manual') this.set({ manual: { at: new Date().toISOString(), outcome: outcome.message } });
         return outcome;
@@ -241,7 +285,7 @@ export class SyncCoordinator {
             void this.host.backoff?.save(undefined).catch(() => undefined);
         }
         const pending = outgoing > 0;
-        this.set({ phase: 'idle', state: pending ? 'pending' : 'synchronized', reason: pending ? `${outgoing} local commit(s) wait for publication.` : undefined, outgoing, nextAttemptAt: new Date(Date.now() + SYNC_INTERVAL_MS).toISOString() });
+        this.set({ phase: 'idle', state: pending ? 'pending' : 'synchronized', reason: pending ? `${outgoing} local commit(s) wait for publication.` : undefined, outgoing, nextAttemptAt: new Date(Date.now() + this.interval).toISOString() });
         return { outcome: pending ? 'pending' : 'synchronized', message: pending ? `${outgoing} local commit(s) wait for publication.` : `Synchronized with ${upstream}.` };
     }
 }

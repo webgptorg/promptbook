@@ -467,6 +467,26 @@ function repositoryRelative(repositoryRoot: string, absolutePath: string): strin
 }
 
 /**
+ * Whether any of the given files inside the project differs from HEAD in the working tree or index (untracked counts
+ * as changed). An operation with nothing to commit is a no-op that triggers no remote synchronization.
+ *
+ * @private Git persistence
+ */
+export async function anyPathChanged(projectRoot: string, repositoryRoot: string, absolutePaths: readonly string[]): Promise<boolean> {
+    const paths = [...new Set(absolutePaths.map((path) => resolve(path)))].filter((path) => isPathInside(projectRoot, path)).map((path) => repositoryRelative(repositoryRoot, path));
+    for (let index = 0; index < paths.length; index += PATH_CHUNK) {
+        const result = await git(repositoryRoot, ['status', '--porcelain=v1', '--untracked-files=all', '--', ...paths.slice(index, index + PATH_CHUNK)], { literal: true });
+        if (result.exitCode !== 0 || result.stdout.trim() !== '') return true;
+    }
+    return false;
+}
+
+/**
+ * Paths passed per Git invocation on the command line (bounded argument length).
+ */
+const PATH_CHUNK = 200;
+
+/**
  * Whether a file differs from HEAD in the working tree or index (untracked counts as dirty).
  *
  * @private Git persistence

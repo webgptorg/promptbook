@@ -370,6 +370,7 @@ export function syncCompactLines(sync: SyncView, style?: Style): string[] {
     const tone = sync.state === 'synchronized' ? ok : sync.state === 'never' ? muted : warn;
     const lines = [`${tone(sync.phase === 'idle' ? sync.state : sync.phase)}${sync.upstream ? muted(` · ${sync.branch} ↔ ${sync.upstream}`) : ''}${sync.incoming || sync.outgoing ? muted(` · ${sync.incoming ?? '?'} in / ${sync.outgoing ?? '?'} out`) : ''}`];
     if (sync.reason) lines.push(warn(sync.reason));
+    if (sync.suspended) lines.push(muted(sync.suspended));
     if (sync.lastAttemptAt) lines.push(muted(`last attempt ${formatShortTime(Date.parse(sync.lastAttemptAt))}${sync.nextAttemptAt ? ` · next ${formatShortTime(Date.parse(sync.nextAttemptAt))}` : ''}`));
     return lines;
 }
@@ -389,7 +390,7 @@ export function syncDetailLines(sync: SyncView, style?: Style): string[] {
         `Incoming     ${sync.incoming ?? muted('unknown')} commit(s) · outgoing ${sync.outgoing ?? muted('unknown')} commit(s)`,
         `Last attempt ${time(sync.lastAttemptAt)} · integrated ${time(sync.lastIntegrationAt)} · published ${time(sync.lastPublicationAt)}`,
         ...(sync.reason ? [`Reason       ${sync.reason}`] : []),
-        ...(sync.nextAttemptAt ? [`Next attempt ${time(sync.nextAttemptAt)}`] : []),
+        ...(sync.suspended ? [`Periodic     ${sync.suspended}`] : sync.nextAttemptAt ? [`Next attempt ${time(sync.nextAttemptAt)}`] : []),
         ...(sync.manual ? [`Manual       ${time(sync.manual.at)}: ${sync.manual.outcome}`] : []),
         muted('G synchronize now (one cycle of the shared coordinator; merges are visible, history is never rewritten)'),
     ];

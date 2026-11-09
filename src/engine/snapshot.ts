@@ -678,6 +678,8 @@ export type SyncView = {
     /** Human explanation of a pending/deferred/failed/conflict state. */
     readonly reason?: string;
     readonly nextAttemptAt?: string;
+    /** Why periodic cycles and retries are suspended now (task Pause); manual and commit-boundary attempts still run. */
+    readonly suspended?: string;
     /** Last manual cycle request and its observed outcome. */
     readonly manual?: { readonly at: string; readonly outcome: string };
 };

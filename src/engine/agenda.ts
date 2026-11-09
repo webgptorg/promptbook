@@ -19,7 +19,7 @@ import { readBookSource, type BookSource } from '../project/book-sources.js';
 import { validateAttachments } from '../chats/store.js';
 import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
-import { agentSubject, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
+import { agentSubject, anyPathChanged, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
 import { ActionLog } from './action-log.js';
 import type { MethodologyEvidence } from './knowledge.js';
 import { appendBrief, findBrief, readLatestBrief, REPORT_AUTHOR, REPORT_FILE, REPORT_NAME, type ReportView } from './report.js';
@@ -590,6 +590,9 @@ export class Agenda {
             env: options.env,
             gitLock: (action) => this.gitMutex.run(action),
             enabled: () => Boolean(this.settings && setting<boolean>(this.settings, 'isAutoSync') && this.commitMode),
+            // Task Pause suspends periodic cycles and retries (`pausing` and `pause`); manual and commit boundaries stay.
+            paused: () => this.serviceState === 'pausing' || this.serviceState === 'pause',
+            ...(Number(options.env.PTBK_SYNC_INTERVAL_MS) > 0 ? { intervalMs: Number(options.env.PTBK_SYNC_INTERVAL_MS) } : {}),
             integrationBlocker: async (files) => await this.integrationBlocker(files),
             onConflict: async (conflict) => await this.scheduleSyncConflict(conflict),
             onIntegrated: async () => {
@@ -2277,6 +2280,8 @@ export class Agenda {
     /** Commits authored paths under the Git lock (with name trailers such as `Task-Name`/`Chat-Name`). */
     private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}): Promise<string | undefined> {
         if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
+        // A no-op has nothing to commit and triggers no remote work (also during Pause, where commits are the boundary).
+        if (this.sync.view() && !(await anyPathChanged(this.options.project.root, this.repositoryRoot, paths))) return undefined;
         // Opt-in synchronization attempts around the operation's own commit (fetch before, publish after).
         await this.sync.request('pre-commit');
         const outcome = await this.gitMutex.run(() =>
@@ -3103,6 +3108,8 @@ export class Agenda {
             await this.wait(Infinity, { kind: 'paused', reason: this.pauseExplanation(), skippable: false });
             return;
         }
+        // A periodic synchronization cycle that came due during Pause runs once the engine is running again.
+        this.sync.resumed();
         this.phase = 'evaluating';
         await this.refreshContext();
         await this.refreshChats();

@@ -992,7 +992,7 @@
                     ['Last attempt', time(sync.lastAttemptAt) || 'never'],
                     ['Integrated', time(sync.lastIntegrationAt) || 'unknown'],
                     ['Published', time(sync.lastPublicationAt) || 'unknown'],
-                    ['Next attempt', time(sync.nextAttemptAt) || 'unknown'],
+                    ['Next attempt', sync.suspended || time(sync.nextAttemptAt) || 'unknown'],
                     ...(sync.manual ? [['Manual', `${time(sync.manual.at)}: ${sync.manual.outcome}`]] : []),
                 ].map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
             ),

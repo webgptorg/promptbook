@@ -121,6 +121,64 @@ test('synchronization coordinator: visible merges, publication, no empty merges,
     assert.equal(sync.view(), undefined, 'no synchronization view while autosync is off');
 });
 
+test('synchronization during Pause: no periodic cycles or retries, manual and commit boundaries still synchronize, periodic resumes after Resume', async (t) => {
+    const { local, other, origin } = await remoteFixture(t);
+    let paused = true;
+    const { sync, events } = coordinator(local, { paused: () => paused, intervalMs: 40 });
+    await sync.begin();
+    t.after(() => sync.end());
+    const tracked = async () => (await git(local, ['rev-parse', 'origin/main'])).trim();
+
+    await change(other, 'remote.md', 'from another machine\n', 'Remote work');
+    const before = await tracked();
+    // Well beyond the (shortened) healthy interval: no timer cycle fetches while paused.
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    assert.equal(await tracked(), before, 'no periodic fetch during Pause');
+    assert.equal(sync.view().nextAttemptAt, undefined, 'no periodic attempt is scheduled while paused');
+    assert.match(sync.view().suspended, /Paused/);
+    assert.equal((await sync.request('timer')).outcome, 'skipped');
+    assert.equal((await sync.request('boundary')).outcome, 'skipped', 'an operation boundary without a commit starts no remote work');
+    assert.equal(await tracked(), before);
+
+    // A commit boundary: fetch before the commit, integration and publication after it.
+    const fetched = await sync.request('pre-commit');
+    assert.equal(fetched.outcome, 'deferred', fetched.message);
+    assert.notEqual(await tracked(), before, 'the pre-commit attempt fetched');
+    await change(local, 'manual.md', 'saved while paused\n', 'ptbk: Manual save', false);
+    const published = await sync.request('post-commit');
+    assert.equal(published.outcome, 'synchronized', published.message);
+    assert.equal(events.integrated, 1, 'remote work was integrated after the local commit');
+    assert.equal((await git(origin, ['rev-parse', 'main'])).trim(), (await git(local, ['rev-parse', 'HEAD'])).trim(), 'the local commit was published');
+
+    // Synchronize now stays available while paused.
+    await change(other, 'second.md', 'more\n', 'More remote work', false);
+    await git(other, ['pull', '-q', '--no-rebase', '--no-edit', 'origin', 'main']);
+    await git(other, ['push', '-q', 'origin', 'HEAD:main']);
+    assert.equal((await sync.request('manual')).outcome, 'synchronized');
+    assert.equal(events.integrated, 2);
+
+    // A failed attempt's retry is timer-driven: it waits for Resume too.
+    await git(local, ['remote', 'set-url', 'origin', join(origin, 'missing')]);
+    await change(local, 'pending.md', 'pending\n', 'ptbk: Pending', false);
+    assert.equal((await sync.request("post-commit")).outcome, "failed");
+    const attempted = sync.view().lastAttemptAt;
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    assert.equal(sync.view().lastAttemptAt, attempted, 'no timer-driven retry during Pause');
+
+    // Running again: the periodic cycle that came due during Pause runs once.
+    await git(local, ['remote', 'set-url', 'origin', origin]);
+    paused = false;
+    assert.equal(sync.view().suspended, undefined);
+    // The backoff still applies to the resumed periodic attempt; a manual cycle brings it forward.
+    sync.resumed();
+    assert.equal((await sync.request('manual')).outcome, 'synchronized');
+    assert.equal((await git(origin, ['log', '-1', '--format=%s', 'main'])).trim(), 'ptbk: Pending');
+    await change(other, 'third.md', 'after resume\n', 'After resume', false);
+    await git(other, ['pull', '-q', '--no-rebase', '--no-edit', 'origin', 'main']);
+    await git(other, ['push', '-q', 'origin', 'HEAD:main']);
+    await waitFor(async () => events.integrated === 3 || undefined, { message: 'the periodic cycle after Resume', timeoutMs: 10_000, intervalMs: 50 });
+});
+
 test('synchronization setup: init publishes to the supplied origin with autosync on; no-commit conflicts; the default stays local', async (t) => {
     const { origin } = await remoteFixture(t);
     const bare = join(origin, '..', 'project.git');
