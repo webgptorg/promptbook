@@ -142,7 +142,7 @@ test('desktop Files: imports preflight collisions, hidden descendants and escapi
     const pack = review.items.find((item) => item.path === 'pack');
     assert.deepEqual(pack.rejected, ['pack/.env'], 'hidden descendants are never written');
     assert.equal(review.items.find((item) => item.path === 'readme.md').status, 'collision');
-    assert.match(review.summary, /Import 3 files and 2 folders into docs; 1 name already exist/);
+    assert.match(review.summary, /Import 3 files and 2 folders into docs; 1 name already exists; 1 item is not written/);
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '', 'preflight writes nothing');
 
     const applied = await files.apply({ id: review.id });
@@ -228,6 +228,18 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     assert.equal(await readFile(join(project, 'tasks', 'x.book'), 'utf8'), 'TASK X\n');
     assert.equal(await readFile(join(project, 'docs', 'secret', '.env'), 'utf8'), 'TOKEN=x\n');
 
+    // Deleting a file whose import is still pending supersedes it: nothing stays blocked.
+    const pendingImport = await files.preflight({ kind: 'import', destination: 'docs', entries: [{ path: 'gone.txt', type: 'file' }, { path: 'kept.txt', type: 'file' }], view: 'w' });
+    const pendingApplied = await files.apply({ id: pendingImport.id });
+    for (const upload of pendingApplied.uploads) await files.upload(pendingApplied.id, upload.index, Readable.from([Buffer.from(`${upload.target}\n`)]));
+    await files.complete(pendingApplied.id);
+    const removal = await files.preflight({ kind: 'delete', entries: [{ path: 'docs/gone.txt' }] });
+    await files.apply({ id: removal.id, confirm: true });
+    assert.deepEqual(files.view().batches.map((item) => item.paths), [['docs/kept.txt']]);
+    await files.flush();
+    assert.deepEqual(await log(project, 1), ['ptbk: Import 1 file into docs']);
+    assert.equal(files.view().batches.length, 0);
+
     // An import interrupted by a restart: applied items are identified, the batch waits for review, nothing is replayed.
     const review = await files.preflight({ kind: 'import', destination: 'docs', entries: [{ path: 'p.txt', type: 'file' }, { path: 'q.txt', type: 'file' }], view: 'v' });
     const applied = await files.apply({ id: review.id });
@@ -239,8 +251,9 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     assert.equal(batch.state, 'review');
     assert.match(batch.reason, /Interrupted: 1 file was not written \(docs\/q\.txt\)/);
     assert.deepEqual(batch.paths, ['docs/p.txt']);
+    const before = (await git(project, ['rev-parse', 'HEAD'])).trim();
     await new Promise((resolve) => setTimeout(resolve, 700));
-    assert.notEqual((await log(project, 1))[0], 'ptbk: Import 1 file into docs', 'an interrupted operation is not committed automatically');
+    assert.equal((await git(project, ['rev-parse', 'HEAD'])).trim(), before, 'an interrupted operation is not committed automatically');
     await session.files.flush(batch.id);
     assert.deepEqual(await log(project, 1), ['ptbk: Import 1 file into docs']);
     assert.deepEqual((await git(project, ['show', '--name-only', '--format=', 'HEAD'])).trim().split('\n'), ['docs/p.txt']);

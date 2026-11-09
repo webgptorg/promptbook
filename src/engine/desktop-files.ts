@@ -564,7 +564,7 @@ export class DesktopFiles {
         const summary =
             kind === 'delete'
                 ? `Delete ${scope}${items.some((item) => item.hidden) ? ` (including ${items.reduce((sum, item) => sum + (item.hidden ?? 0), 0)} hidden)` : ''}${rejected ? `; ${count(rejected, 'item')} cannot be deleted` : ''}.`
-                : `${kind === 'import' ? 'Import' : 'Copy'} ${scope} into ${input.destination ? normalize(input.destination) : 'the project root'}${colliding ? `; ${count(colliding, 'name')} already exist` : ''}${rejected ? `; ${count(rejected, 'item')} are not written` : ''}.`;
+                : `${kind === 'import' ? 'Import' : 'Copy'} ${scope} into ${input.destination ? normalize(input.destination) : 'the project root'}${colliding ? `; ${count(colliding, 'name')} already ${colliding === 1 ? 'exists' : 'exist'}` : ''}${rejected ? `; ${count(rejected, 'item')} ${rejected === 1 ? 'is' : 'are'} not written` : ''}.`;
         const review: FileOperationReview = { id, kind, ...(kind === 'delete' ? {} : { destination: normalize(input.destination ?? '') }), items, needsReview: kind === 'delete' || colliding > 0 || rejected > 0, summary };
         this.reviews.set(id, { review, entries, view: String(input.view ?? '').slice(0, 64), expiresAt: Date.now() + REVIEW_TTL_MS });
         return review;
@@ -955,6 +955,14 @@ export class DesktopFiles {
                 folders += item.folders;
             }
             if (!accepted.length) return { accepted, conflicting, batch: undefined };
+            // A pending (uncommitted) save or import of a deleted path is superseded by this deletion.
+            for (const other of this.journal.batches) {
+                if (other.state === 'committing' || other.writing.length) continue;
+                const superseded = Object.keys(other.paths).filter((path) => accepted.some((item) => path === item || path.startsWith(`${item}/`)));
+                for (const path of superseded) delete other.paths[path];
+                this.host.reserve(superseded.map((path) => resolve(this.host.projectRoot, ...path.split('/'))), false);
+            }
+            this.journal.batches = this.journal.batches.filter((other) => other.state === 'committing' || other.writing.length || Object.keys(other.paths).length);
             const batch = this.join(`delete:${review.id}`, 'delete', undefined, { files, folders });
             Object.assign(batch.paths, paths);
             batch.selection = accepted;
@@ -1008,9 +1016,9 @@ export class DesktopFiles {
     }
 
     /** The commit subject of a batch (prefixed with `ptbk: ` by the commit). */
-    private subject(batch: Batch): string {
-        // The files actually written (an interrupted import names only what it applied).
-        const files = Object.keys(batch.paths).length || batch.files;
+    private subject(batch: Batch, committed?: number): string {
+        // The files actually written (an interrupted import names only what it applied; a blocked one what it commits).
+        const files = committed ?? (Object.keys(batch.paths).length || batch.files);
         const into = batch.destination ? `into ${batch.destination}` : 'into the project root';
         if (batch.kind === 'save') return `Edit ${Object.keys(batch.paths)[0] ?? 'file'}`;
         if (batch.kind === 'import') return `Import ${count(files, 'file')} ${into}`;
@@ -1095,14 +1103,15 @@ export class DesktopFiles {
             }
             const ignored = await ignoredPaths(this.host.projectRoot, verified).catch(() => new Set<string>());
             const committable = verified.filter((path) => !ignored.has(path));
-            const sha = committable.length ? await this.host.commit(committable, subject, DESKTOP_OPERATION_TRAILER) : undefined;
+            const committedSubject = blocked.length && batch.kind !== 'delete' ? this.subject(batch, committable.length) : subject;
+            const sha = committable.length ? await this.host.commit(committable, committedSubject, DESKTOP_OPERATION_TRAILER) : undefined;
             if (blocked.length) {
                 // The verified part is committed; the rest is preserved as it is now and reported.
                 for (const path of verified) delete batch.paths[this.relative(path)!];
                 this.host.reserve(verified, false);
                 batch.state = 'blocked';
                 batch.reason = `Not committed: ${blocked.slice(0, 5).join(', ')}${blocked.length > 5 ? ', …' : ''}. Both versions are preserved: the current file stays in the working tree. Review it, then Commit now or Dismiss.`;
-                if (sha) this.record({ subject, at: new Date().toISOString(), outcome: 'committed', sha });
+                if (sha) this.record({ subject: committedSubject, at: new Date().toISOString(), outcome: 'committed', sha });
                 await this.save();
                 this.host.log(`Promptbook Desktop: "${subject}" is blocked: ${batch.reason}`, 'warning');
                 return sha;

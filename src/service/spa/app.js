@@ -66,6 +66,10 @@
         showAllVariants: false,
         /** Unsaved Book editor drafts by source path: { text, revision } (closing the editor never loses them). */
         bookDrafts: new Map(),
+        /** Unsaved drafts of ordinary text files edited in the desktop workspace (kept across closing and failed saves). */
+        textDrafts: new Map(),
+        /** The identity of this Files view: successive imports from it into one folder share a commit batch. */
+        filesView: `files-${Math.random().toString(36).slice(2, 10)}`,
     };
 
     /** Creates a DOM element; text children are always inserted as text (never parsed as HTML). */
@@ -108,6 +112,18 @@
         }
         if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
         return data;
+    }
+
+    /** Calls the local API and returns the status with the body, also for an expected non-2xx outcome (409 conflict). */
+    async function apiRaw(path, options = {}) {
+        const response = await fetch(path, {
+            method: options.method || 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { ...(options.raw ? {} : { 'Content-Type': 'application/json' }), 'X-PTBK-Client': 'dashboard', ...(state.csrf ? { 'X-PTBK-CSRF': state.csrf } : {}) },
+            body: options.raw ? options.raw : options.body ? JSON.stringify(options.body) : undefined,
+        });
+        return { status: response.status, data: await response.json().catch(() => ({})) };
     }
 
     /** Short transient feedback (in addition to the persistent status). */
@@ -1238,7 +1254,11 @@
         state.historyLoading = true;
         try {
             const seen = state.snapshot && state.snapshot.history ? state.snapshot.history.last.sha : null;
-            state.history = { ...(state.history || {}), view: await api('/api/history?limit=300'), error: null, seen };
+            // The desktop workspace adds the upstream and chosen local branches; the browser keeps the current branch.
+            const branches = desktop ? (state.history && state.history.branches) || [] : [];
+            const query = desktop ? `&upstream=1${branches.map((branch) => `&branch=${encodeURIComponent(branch)}`).join('')}` : '';
+            const [view, changes] = await Promise.all([api(`/api/history?limit=300${query}`), desktop ? api('/api/history/changes').catch((error) => ({ changes: [], protected: 0, problem: error.message })) : null]);
+            state.history = { ...(state.history || {}), view, changes, changesAt: Date.now(), error: null, seen };
         } catch (error) {
             state.history = { ...(state.history || {}), error: error.message };
         } finally {
@@ -1269,6 +1289,8 @@
         }
         if (history.error) return pageFrame('history', 'Git history', h('p', { className: 'warn' }, history.error));
         if (snapshot.history && history.seen && snapshot.history.last.sha !== history.seen) loadHistory();
+        // Current changes follow the live working tree: refreshed with engine changes, at most every few seconds.
+        else if (desktop && Date.now() - (history.changesAt || 0) > 3000) setTimeout(() => state.page === 'history' && loadHistory(), 0);
         const view = history.view;
         if (view.problem) return pageFrame('history', view.branch || 'Git history', h('p', { className: 'muted' }, view.problem));
         const rows = view.rows.map((row) => {
@@ -1303,10 +1325,87 @@
         });
         return pageFrame(
             'history',
-            `${view.branch || 'HEAD'} · messages and topology, read-only (never fetches)`,
+            `${view.detached ? 'Detached HEAD' : view.branch || 'HEAD'} · messages and topology, read-only (never fetches)`,
+            desktop ? renderCurrentChanges(history.changes) : null,
+            desktop ? renderBranchScope(view) : null,
             h('ul', { className: 'list history' }, ...rows),
             view.more ? h('p', { className: 'muted' }, 'Older commits are not shown here.') : null,
             view.shallow ? h('p', { className: 'warn' }, 'This is a shallow clone: older history is not available locally.') : null,
+        );
+    }
+
+    /** Labels of a current change's side. */
+    const CHANGE_LABELS = { added: 'added', modified: 'modified', deleted: 'deleted', renamed: 'renamed', copied: 'copied', 'type-changed': 'type changed' };
+
+    /**
+     * Desktop History's **Current Changes**: the live working tree and index (no commit SHA), grouped by conflicted,
+     * staged, unstaged and untracked. Read-only: no staging, discarding or checkout. Opening a path previews it in Files.
+     */
+    function renderCurrentChanges(view) {
+        const section = h('section', { className: 'card changes', 'aria-label': 'Current changes' }, h('h2', {}, 'Current Changes'));
+        if (!view) return section.append(h('p', { className: 'muted' }, 'Loading…')), section;
+        if (view.problem) return section.append(h('p', { className: 'warn' }, view.problem)), section;
+        const groups = [
+            ['Conflicted', view.changes.filter((change) => change.conflicted), () => 'conflicted'],
+            ['Staged', view.changes.filter((change) => change.staged), (change) => CHANGE_LABELS[change.staged]],
+            ['Unstaged', view.changes.filter((change) => change.unstaged), (change) => CHANGE_LABELS[change.unstaged]],
+            ['Untracked', view.changes.filter((change) => change.untracked), () => 'untracked'],
+        ].filter(([, items]) => items.length);
+        if (!groups.length) section.append(h('p', { className: 'muted' }, 'No uncommitted changes in the project.'));
+        for (const [title, items, label] of groups) {
+            section.append(
+                h('h3', {}, `${title} (${items.length})`),
+                h(
+                    'ul',
+                    { className: 'list inline' },
+                    ...items.map((change) => {
+                        const kind = label(change);
+                        const removed = kind === 'deleted';
+                        return h(
+                            'li',
+                            {},
+                            h('span', { className: `pill ${change.conflicted ? 'bad' : removed ? 'warn' : ''}` }, kind),
+                            ' ',
+                            removed ? h('span', {}, change.path) : h('button', { onclick: () => (openFiles(change.path, 'file'), openPage('files')) }, change.path),
+                            change.from ? h('span', { className: 'muted' }, ` ← ${change.from}`) : null,
+                            change.origin ? h('span', { className: 'muted' }, ` · ${change.origin.kind === 'task' ? `owned by ${change.origin.label}` : change.origin.label}`) : null,
+                        );
+                    }),
+                ),
+            );
+        }
+        if (view.protected) section.append(h('p', { className: 'muted' }, `${view.protected} protected path(s) (repository, runtime state or secrets) changed; they are not listed.`));
+        if (view.truncated) section.append(h('p', { className: 'muted' }, 'More changes exist than are listed here.'));
+        return section;
+    }
+
+    /** Desktop History's branch scope: the current branch with its upstream, and other locally known branches added on request. */
+    function renderBranchScope(view) {
+        const upstream = view.upstream || { state: 'none' };
+        const included = view.included || [];
+        const describe = view.detached
+            ? 'HEAD is detached: the graph shows the checked-out commit’s history; no upstream applies.'
+            : upstream.state === 'shown'
+              ? `${view.branch} and its upstream ${upstream.name} (local refs; History never fetches).`
+              : upstream.state === 'missing'
+                ? `${view.branch}: the configured upstream ${upstream.name} is not available locally.`
+                : `${view.branch} has no configured upstream.`;
+        const choose = h('select', { 'aria-label': 'Add a locally known branch' }, h('option', { value: '' }, 'Add a branch…'), ...(view.available || []).filter((name) => !included.includes(name)).map((name) => h('option', { value: name }, name)));
+        choose.addEventListener('change', () => {
+            if (!choose.value) return;
+            state.history = { ...(state.history || {}), branches: [...included, choose.value] };
+            loadHistory();
+        });
+        return h(
+            'section',
+            { className: 'card', 'aria-label': 'Branches in the graph' },
+            h('p', { className: upstream.state === 'missing' || view.detached ? 'warn' : 'muted' }, describe),
+            h(
+                'div',
+                { className: 'row' },
+                ...included.map((name) => h('button', { 'aria-label': `Remove ${name} from the graph`, onclick: () => ((state.history = { ...state.history, branches: included.filter((other) => other !== name) }), loadHistory()) }, `${name} ×`)),
+                (view.available || []).length ? choose : null,
+            ),
         );
     }
 
@@ -1333,17 +1432,41 @@
         const path = files.path || '';
         const parent = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
         const crumbs = h('div', { className: 'row' }, h('strong', {}, `/${path}`), path ? h('button', { onclick: () => openFiles(parent) }, '↑ Up') : null);
+        const selected = files.selected || new Set();
+        const entries = files.folder ? files.folder.entries : [];
+        // Desktop selection gestures (Shift for a range, Ctrl/⌘ to toggle) select for bulk operations without opening.
+        const select = (event, entry, index) => {
+            // The current selection (never one captured by an earlier render).
+            const now = state.files || {};
+            const next = new Set(event.ctrlKey || event.metaKey || event.shiftKey ? now.selected || [] : []);
+            if (event.shiftKey && now.anchor !== undefined) {
+                const [from, to] = [Math.min(now.anchor, index), Math.max(now.anchor, index)];
+                for (const item of entries.slice(from, to + 1)) if (item.type !== 'link-outside') next.add(item.path);
+            } else if (next.has(entry.path)) next.delete(entry.path);
+            else next.add(entry.path);
+            state.files = { ...state.files, selected: next, anchor: event.shiftKey ? now.anchor : index };
+            render(state.snapshot);
+        };
         const list = files.folder
             ? h(
                   'ul',
-                  { className: 'list' },
-                  ...files.folder.entries.map((entry) =>
+                  { className: `list${desktop ? ' files-list' : ''}`, ...(desktop ? { 'aria-multiselectable': 'true' } : {}) },
+                  ...entries.map((entry, index) =>
                       h(
                           'li',
-                          {},
+                          { className: selected.has(entry.path) ? 'selected' : undefined },
+                          desktop && entry.type !== 'link-outside' ? h('input', { type: 'checkbox', 'aria-label': `Select ${entry.name}`, checked: selected.has(entry.path), onclick: (event) => (event.preventDefault(), select({ ctrlKey: true, shiftKey: event.shiftKey }, entry, index)) }) : null,
                           entry.type === 'link-outside'
                               ? h('span', { className: 'muted' }, `${entry.name} → outside the project (not followed)`)
-                              : h('button', { onclick: () => openFiles(entry.path, entry.type === 'directory' ? 'folder' : 'file') }, entry.type === 'directory' ? `${entry.name}/` : entry.name),
+                              : h(
+                                    'button',
+                                    {
+                                        onclick: (event) => (desktop && (event.shiftKey || event.ctrlKey || event.metaKey) ? select(event, entry, index) : openFiles(entry.path, entry.type === 'directory' ? 'folder' : 'file')),
+                                        // Double-click (or starting an edit) opens an ordinary text file in its editor.
+                                        ondblclick: desktop && entry.type === 'file' ? () => (entry.kind === 'book' ? void openBook({ path: entry.path }) : TEXT_EDIT_KINDS.has(entry.kind) ? void openTextFile(entry.path) : undefined) : undefined,
+                                    },
+                                    entry.type === 'directory' ? `${entry.name}/` : entry.name,
+                                ),
                           entry.type === 'file' ? h('span', { className: 'muted' }, ` ${entry.kind} · ${entry.size} bytes${entry.modifiedAt ? ` · ${time(entry.modifiedAt)}` : ''}`) : null,
                       ),
                   ),
@@ -1355,7 +1478,15 @@
                   'section',
                   { className: 'card', 'aria-label': `File ${file.path}` },
                   h('h2', {}, file.path),
-                  h('p', { className: 'muted' }, `${file.kind} · ${file.size} bytes · read-only`, file.kind === 'book' ? ' ' : null, file.kind === 'book' ? h('button', { onclick: () => void openBook({ path: file.path }) }, 'Open in the Book editor') : null),
+                  h(
+                      'p',
+                      { className: 'muted' },
+                      `${file.kind} · ${file.size} bytes · ${desktop ? 'preview' : 'read-only'}`,
+                      file.kind === 'book' ? ' ' : null,
+                      file.kind === 'book' ? h('button', { onclick: () => void openBook({ path: file.path }) }, desktop ? 'Edit Book' : 'Open in the Book editor') : null,
+                      desktop && TEXT_EDIT_KINDS.has(file.kind) && !file.truncated ? ' ' : null,
+                      desktop && TEXT_EDIT_KINDS.has(file.kind) && !file.truncated ? h('button', { onclick: () => void openTextFile(file.path) }, state.textDrafts.has(file.path) ? 'Edit (unsaved draft)' : 'Edit') : null,
+                  ),
                   file.image ? h('img', { src: file.image, alt: file.name, className: 'file-image' }) : null,
                   file.kind === 'image' && !file.image ? h('p', { className: 'muted' }, 'The image is too large to display here.') : null,
                   file.kind === 'video' ? h('p', { className: 'muted' }, 'Video playback is not part of Files; the file is identified only.') : null,
@@ -1365,7 +1496,363 @@
                   file.truncated ? h('p', { className: 'warn' }, 'Only the beginning of this file is shown; the rest stays on disk.') : null,
               )
             : null;
+        if (desktop) {
+            return pageFrame(
+                'files',
+                'Engine-owned edits and bulk operations · hidden and protected paths (.git, .ptbk, .env …) are never shown or written',
+                crumbs,
+                renderFilesToolbar(path, selected),
+                renderFilesPersistence(state.snapshot && state.snapshot.files),
+                files.error ? h('p', { className: 'warn' }, files.error) : null,
+                files.loading ? h('p', { className: 'muted' }, 'Loading…') : null,
+                filesDropZone(path, list),
+                viewer,
+            );
+        }
         return pageFrame('files', 'Read-only · hidden and protected paths (.git, .ptbk, .env …) are never shown; agent Book folders such as agents/.core are', crumbs, files.error ? h('p', { className: 'warn' }, files.error) : null, files.loading ? h('p', { className: 'muted' }, 'Loading…') : null, list, viewer);
+    }
+
+    /** Kinds the desktop text editor saves (Books keep their own editor and scoped commit). */
+    const TEXT_EDIT_KINDS = new Set(['text', 'markdown', 'json']);
+
+    /** Desktop Files actions for the current folder and the selection. */
+    function renderFilesToolbar(path, selected) {
+        const picker = (directory) => {
+            const input = h('input', { type: 'file', multiple: true, hidden: true, ...(directory ? { webkitdirectory: true } : {}) });
+            input.addEventListener('change', () => {
+                const picked = [...input.files].map((file) => ({ path: file.webkitRelativePath || file.name, type: 'file', size: file.size, file }));
+                // A picked folder also brings its subfolders (so empty ones exist after the import).
+                const folders = new Set();
+                for (const entry of picked) for (let index = entry.path.indexOf('/'); index > 0; index = entry.path.indexOf('/', index + 1)) folders.add(entry.path.slice(0, index));
+                void importEntries([...[...folders].map((folder) => ({ path: folder, type: 'directory' })), ...picked], path);
+            });
+            return input;
+        };
+        const files = picker(false);
+        const folder = picker(true);
+        const count = selected.size;
+        return h(
+            'div',
+            { className: 'row files-toolbar', role: 'toolbar', 'aria-label': 'Files actions' },
+            files,
+            folder,
+            h('button', { onclick: () => files.click() }, 'Import files…'),
+            h('button', { onclick: () => folder.click() }, 'Import folder…'),
+            h('button', { disabled: !count, onclick: () => void copySelection([...selected], path) }, count ? `Copy ${count} selected…` : 'Copy selected…'),
+            h('button', { className: 'danger', disabled: !count, onclick: () => void deleteSelection([...selected]) }, count ? `Delete ${count} selected…` : 'Delete selected…'),
+            count ? h('button', { onclick: () => ((state.files = { ...state.files, selected: new Set() }), render(state.snapshot)) }, 'Clear selection') : null,
+        );
+    }
+
+    /** The folder list accepts files and complete folders dropped from the operating system (imported by the engine). */
+    function filesDropZone(path, list) {
+        const zone = h('div', { className: 'files-drop', 'aria-label': `Drop files or folders to import them into /${path}` }, list, h('p', { className: 'muted' }, `Drop files or folders here to import them into /${path}. Sources stay where they are.`));
+        zone.addEventListener('dragover', (event) => {
+            if (![...event.dataTransfer.types].includes('Files')) return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+            zone.classList.add('drop-active');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drop-active'));
+        zone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            zone.classList.remove('drop-active');
+            const roots = [...event.dataTransfer.items].map((item) => (item.webkitGetAsEntry ? item.webkitGetAsEntry() : null)).filter(Boolean);
+            void droppedEntries(roots).then((entries) => entries.length && importEntries(entries, path), (error) => toast(`Cannot read the dropped items: ${error.message}`));
+        });
+        return zone;
+    }
+
+    /** Reads dropped file system entries recursively into relative paths (folders included, contents as File objects). */
+    async function droppedEntries(roots) {
+        const entries = [];
+        const visit = async (entry, prefix) => {
+            const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+            if (entry.isFile) {
+                const file = await new Promise((resolve, reject) => entry.file(resolve, reject));
+                entries.push({ path, type: 'file', size: file.size, file });
+            } else if (entry.isDirectory) {
+                entries.push({ path, type: 'directory' });
+                const reader = entry.createReader();
+                // readEntries returns batches until an empty one.
+                for (;;) {
+                    const batch = await new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+                    if (!batch.length) break;
+                    for (const child of batch) await visit(child, path);
+                }
+            }
+        };
+        for (const root of roots) await visit(root, '');
+        return entries;
+    }
+
+    /**
+     * The one review of an operation (collisions, rejected items or a deletion's scope). Resolves to the chosen
+     * resolution, or null when cancelled.
+     */
+    function reviewOperation(review) {
+        return new Promise((resolve) => {
+            const deletion = review.kind === 'delete';
+            const choices = new Map();
+            const resolution = h('select', { 'aria-label': 'For existing names' }, h('option', { value: 'keep-both' }, 'Keep Both (default)'), h('option', { value: 'skip' }, 'Skip'), h('option', { value: 'replace' }, 'Replace'));
+            const rows = review.items.map((item) => {
+                const own = item.status === 'collision' ? h('select', { 'aria-label': `For ${item.path}` }, h('option', { value: '' }, 'As above'), h('option', { value: 'keep-both' }, 'Keep Both'), h('option', { value: 'skip' }, 'Skip'), h('option', { value: 'replace' }, 'Replace')) : null;
+                own?.addEventListener('change', () => (own.value ? choices.set(item.path, own.value) : choices.delete(item.path)));
+                const scope = [item.files ? `${item.files} file(s)` : '', item.folders ? `${item.folders} folder(s)` : '', item.hidden ? `${item.hidden} hidden` : ''].filter(Boolean).join(', ');
+                return h(
+                    'li',
+                    {},
+                    h('span', { className: `pill ${item.status === 'rejected' ? 'bad' : item.status === 'collision' ? 'warn' : 'ok'}` }, item.status === 'ok' ? (deletion ? 'delete' : 'new') : item.status),
+                    ' ',
+                    h('strong', {}, item.path),
+                    item.target && item.target !== item.path ? h('span', { className: 'muted' }, ` → ${item.target}`) : null,
+                    scope ? h('span', { className: 'muted' }, ` · ${scope}`) : null,
+                    item.reason ? h('span', { className: item.status === 'rejected' ? 'warn' : 'muted' }, ` · ${item.reason}`) : null,
+                    item.rejected && item.rejected.length ? h('div', { className: 'muted' }, `Not written: ${item.rejected.slice(0, 8).join(', ')}${item.rejected.length > 8 ? ', …' : ''}`) : null,
+                    own,
+                );
+            });
+            const acceptable = review.items.some((item) => item.status !== 'rejected');
+            const confirm = h('button', { className: deletion ? 'danger' : 'primary', disabled: !acceptable }, deletion ? 'Delete' : 'Apply');
+            const dialog = h(
+                'dialog',
+                { className: 'book-dialog review-dialog', 'aria-label': deletion ? 'Confirm deletion' : 'Review the operation' },
+                h('h2', {}, h('span', {}, deletion ? 'Delete from the project' : review.kind === 'import' ? 'Import into the project' : 'Copy within the project')),
+                h('p', {}, review.summary),
+                deletion ? h('p', { className: 'warn' }, 'Deleted files are removed from the working tree and committed as their own operation. Agents, tasks and chats are removed through their own pages.') : null,
+                !deletion && review.items.some((item) => item.status === 'collision') ? h('p', { className: 'row' }, 'For existing names: ', resolution) : null,
+                h('ul', { className: 'list inline' }, ...rows),
+                h('div', { className: 'row' }, confirm, h('button', { onclick: () => dialog.close() }, 'Cancel')),
+            );
+            let result = null;
+            confirm.addEventListener('click', () => {
+                result = deletion ? { confirm: true } : { choice: resolution.value, choices: Object.fromEntries(choices) };
+                dialog.close();
+            });
+            dialog.addEventListener('close', () => {
+                dialog.remove();
+                resolve(result);
+            });
+            document.body.append(dialog);
+            dialog.showModal();
+        });
+    }
+
+    /** Imports dropped or picked entries into a folder: engine preflight, one review when needed, upload, completion. */
+    async function importEntries(entries, destination) {
+        try {
+            const review = await api('/api/files/preflight', { method: 'POST', body: { kind: 'import', destination, view: state.filesView, entries: entries.map(({ path, type, size }) => ({ path, type, size })) } });
+            const decision = review.needsReview ? await reviewOperation(review) : {};
+            if (!decision) return toast('Import cancelled; nothing was written.');
+            const applied = await api('/api/files/apply', { method: 'POST', body: { id: review.id, ...decision } });
+            let failed = 0;
+            for (const upload of applied.uploads || []) {
+                const entry = entries[upload.index];
+                const sent = await apiRaw(`/api/files/upload?operation=${encodeURIComponent(applied.id)}&index=${upload.index}`, { method: 'PUT', raw: entry.file });
+                if (sent.status !== 200) failed++;
+            }
+            const outcome = applied.uploads ? await api('/api/files/complete', { method: 'POST', body: { id: applied.id } }) : applied;
+            toast(`${outcome.summary}${applied.skipped.length ? ` Skipped ${applied.skipped.length}.` : ''}${applied.conflicting.length ? ` ${applied.conflicting.length} not written.` : ''}${failed ? ` ${failed} upload(s) failed.` : ''}`);
+        } catch (error) {
+            toast(`Import failed: ${error.message}`);
+        }
+        await openFiles(destination);
+    }
+
+    /** Copies the selection within the project into a chosen folder. */
+    async function copySelection(paths, folder) {
+        const destination = window.prompt('Copy the selection into which project folder?', folder);
+        if (destination === null) return;
+        try {
+            const review = await api('/api/files/preflight', { method: 'POST', body: { kind: 'copy', destination: destination.trim(), view: state.filesView, entries: paths.map((path) => ({ path })) } });
+            const decision = review.needsReview ? await reviewOperation(review) : {};
+            if (!decision) return toast('Copy cancelled; nothing was written.');
+            const outcome = await api('/api/files/apply', { method: 'POST', body: { id: review.id, ...decision } });
+            toast(`${outcome.summary}${outcome.conflicting.length ? ` ${outcome.conflicting.length} not copied.` : ''}`);
+        } catch (error) {
+            toast(`Copy failed: ${error.message}`);
+        }
+        await openFiles(folder);
+    }
+
+    /** Deletes the selection after confirming its whole scope (protected content rejects its parent). */
+    async function deleteSelection(paths) {
+        const folder = state.files.path || '';
+        try {
+            const review = await api('/api/files/preflight', { method: 'POST', body: { kind: 'delete', entries: paths.map((path) => ({ path })) } });
+            const decision = await reviewOperation(review);
+            if (!decision) return toast('Nothing was deleted.');
+            const outcome = await api('/api/files/apply', { method: 'POST', body: { id: review.id, ...decision } });
+            toast(outcome.summary);
+            state.files = { ...state.files, selected: new Set() };
+        } catch (error) {
+            toast(`Delete failed: ${error.message}`);
+        }
+        await openFiles(folder);
+    }
+
+    /** Persistence of desktop Files changes: Saved · Pending commit, blocked or failed with its cause, and recent commits. */
+    function renderFilesPersistence(view) {
+        if (!view || (!view.batches.length && !view.recent.length)) return null;
+        const label = { pending: 'Saved · Pending commit', writing: 'Writing…', committing: 'Committing…', blocked: 'Blocked', failed: 'Saved · Commit failed', review: 'Interrupted · needs review' };
+        const busy = (id) => state.busy.has(`files:${id}`);
+        const act = async (id, action) => {
+            state.busy.add(`files:${id}`);
+            render(state.snapshot);
+            try {
+                const result = await api(`/api/files/${action}`, { method: 'POST', body: { id } });
+                if (action === 'commit') toast(result.commits.length ? `Committed ${result.commits.map((sha) => sha.slice(0, 8)).join(', ')}.` : 'Nothing was committed.');
+            } catch (error) {
+                toast(error.message);
+            } finally {
+                state.busy.delete(`files:${id}`);
+                render(state.snapshot);
+            }
+        };
+        return h(
+            'section',
+            { className: 'card', 'aria-label': 'Persistence' },
+            h('h2', {}, h('span', {}, 'Persistence'), view.batches.some((batch) => batch.state === 'pending') ? h('button', { disabled: busy(''), onclick: () => void act('', 'commit') }, 'Commit now') : null),
+            h(
+                'ul',
+                { className: 'list inline' },
+                ...view.batches.map((batch) =>
+                    h(
+                        'li',
+                        {},
+                        h('span', { className: `pill ${batch.state === 'pending' || batch.state === 'writing' ? '' : 'warn'}` }, label[batch.state] || batch.state),
+                        ' ',
+                        h('strong', {}, batch.subject),
+                        batch.dueAt ? h('span', { className: 'muted' }, ` · ${batch.state === 'failed' ? 'retry' : 'commit'} ${time(batch.dueAt)}`) : null,
+                        batch.reason ? h('div', { className: 'warn' }, batch.reason) : null,
+                        h(
+                            'div',
+                            { className: 'row' },
+                            batch.state === 'writing' ? null : h('button', { disabled: busy(batch.id), onclick: () => void act(batch.id, 'commit') }, batch.state === 'review' ? 'Commit applied items' : 'Commit now'),
+                            ['blocked', 'failed', 'review'].includes(batch.state) ? h('button', { disabled: busy(batch.id), onclick: () => void act(batch.id, 'dismiss') }, 'Dismiss (keep uncommitted)') : null,
+                        ),
+                    ),
+                ),
+                ...view.recent.slice(0, 5).map((item) => h('li', { className: 'muted' }, `${item.outcome === 'committed' ? 'Committed' : item.outcome === 'uncommitted' ? 'Saved, not committed' : item.outcome === 'ignored' ? 'Saved, ignored by Git' : 'Dismissed'} · ${item.subject}${item.sha ? ` · ${item.sha.slice(0, 8)}` : ''} · ${time(item.at)}${item.detail ? ` · ${item.detail}` : ''}`)),
+            ),
+        );
+    }
+
+    /**
+     * The desktop text editor for an ordinary project file: a modal outside the live-updating page. It saves through the
+     * engine against the revision it opened (Ctrl/⌘+S); a conflict shows the current source beside the draft for an
+     * explicit reconciliation, and a failed save or disconnect keeps the draft.
+     */
+    async function openTextFile(path) {
+        let source;
+        try {
+            source = await api(`/api/files/text?path=${encodeURIComponent(path)}`);
+        } catch (error) {
+            toast(`Cannot open ${path}: ${error.message}`);
+            return;
+        }
+        let draft = source.editable ? state.textDrafts.get(source.path) : undefined;
+        let revision = draft ? draft.revision : source.revision;
+        let baseline = source.text;
+        let conflict = null;
+        let busy = false;
+        let notice = draft ? (draft.revision === source.revision ? 'Restored your unsaved draft.' : 'Restored your unsaved draft; the file changed meanwhile, so saving reports a conflict to reconcile.') : '';
+        const field = h('textarea', { className: 'book-source', 'aria-label': `Text of ${source.path}`, spellcheck: 'false', wrap: 'off', readonly: !source.editable });
+        field.value = draft ? draft.text : baseline;
+        const current = h('pre', { className: 'log conflict-source', 'aria-label': 'Current source' });
+        const panes = h('div', { className: 'conflict-panes' });
+        const compare = h('div', { className: 'conflict' }, h('p', { className: 'warn' }, 'The file changed since you opened it. Your draft (left) is kept; the current source is on the right.'), panes);
+        const editorSlot = h('div', { className: 'text-editor' }, field);
+        let comparing = false;
+        // The draft moves between the plain and the side-by-side layout only when a conflict starts or ends.
+        const layout = () => {
+            if (Boolean(conflict) === comparing) return;
+            comparing = Boolean(conflict);
+            if (comparing) {
+                panes.replaceChildren(field, current);
+                editorSlot.replaceChildren(compare);
+            } else editorSlot.replaceChildren(field);
+        };
+        const status = h('p', { className: 'muted', role: 'status' });
+        const dirty = () => source.editable && field.value !== baseline;
+        const keep = () => (dirty() ? state.textDrafts.set(source.path, { text: field.value, revision }) : state.textDrafts.delete(source.path));
+        const saveButton = source.editable ? h('button', { className: 'primary', onclick: () => void save() }, 'Save') : null;
+        const takeCurrent = h('button', { hidden: true, onclick: () => {
+            if (!conflict) return;
+            if (dirty() && !window.confirm('Discard your draft and load the current source?')) return;
+            baseline = conflict.text;
+            revision = conflict.revision;
+            field.value = baseline;
+            conflict = null;
+            notice = 'Loaded the current source.';
+            show();
+        } }, 'Use current source');
+        const keepMine = h('button', { hidden: true, onclick: () => {
+            if (!conflict || !window.confirm('Save your draft over the current source?')) return;
+            revision = conflict.revision;
+            conflict = null;
+            void save();
+        } }, 'Save my draft over it');
+        const show = () => {
+            const persistence = (state.snapshot && state.snapshot.files && state.snapshot.files.batches.find((batch) => batch.paths.includes(source.path))) || null;
+            status.textContent = `${source.path}${source.editable ? ` · revision ${revision.slice(0, 8)}${dirty() ? ' · unsaved changes' : ''}` : ` · read-only${source.reason ? ` — ${source.reason}` : ''}`}${persistence ? ` · ${persistence.state === 'pending' ? 'Saved · Pending commit' : persistence.state}` : ''}${notice ? ` · ${notice}` : ''}`;
+            if (saveButton) saveButton.disabled = busy;
+            if (conflict) current.textContent = conflict.text;
+            takeCurrent.hidden = keepMine.hidden = !conflict;
+            layout();
+        };
+        const save = async () => {
+            if (busy || !source.editable) return;
+            busy = true;
+            notice = 'Saving…';
+            show();
+            const text = field.value;
+            try {
+                const outcome = await apiRaw('/api/files/text', { method: 'POST', body: { path: source.path, text, revision } });
+                if (outcome.status === 200 && outcome.data.status !== 'conflict') {
+                    revision = outcome.data.revision;
+                    baseline = text;
+                    notice = outcome.data.status === 'unchanged' ? 'Nothing changed; no commit.' : outcome.data.persistence === 'pending' ? 'Saved · Pending commit.' : outcome.data.persistence === 'ignored' ? 'Saved (ignored by Git; no commit).' : 'Saved (this project does not commit).';
+                } else if (outcome.data.status === 'conflict') {
+                    notice = `Not saved: ${outcome.data.message}`;
+                    if (outcome.data.current) conflict = outcome.data.current;
+                } else notice = `Not saved: ${outcome.data.error || `HTTP ${outcome.status}`}; your draft is kept.`;
+            } catch (error) {
+                notice = `Not saved: ${error.message}; your draft is kept.`;
+            } finally {
+                busy = false;
+                keep();
+                show();
+            }
+        };
+        const dialog = h(
+            'dialog',
+            { className: 'book-dialog', 'aria-label': `Text file: ${source.path}` },
+            h('h2', {}, h('span', {}, source.path), h('span', { className: 'row' }, saveButton, takeCurrent, keepMine, h('button', { onclick: () => dialog.close() }, 'Close'))),
+            status,
+            editorSlot,
+            h('p', { className: 'muted' }, source.editable ? 'Ctrl+S (⌘S) saves without closing · Esc closes and keeps unsaved changes' : 'Read-only · Esc closes'),
+        );
+        field.addEventListener('input', () => {
+            if (notice && !busy) notice = '';
+            keep();
+            show();
+        });
+        dialog.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+                event.preventDefault();
+                void save();
+            }
+        });
+        dialog.addEventListener('close', () => {
+            keep();
+            dialog.remove();
+            render(state.snapshot);
+        });
+        document.body.append(dialog);
+        show();
+        dialog.showModal();
+        field.focus();
     }
 
     /** An external action's outcome as a styled word (partial and uncertain stay explicit). */

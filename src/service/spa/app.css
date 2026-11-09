@@ -1379,3 +1379,88 @@ button.link {
     flex-direction: row-reverse;
     justify-content: space-between;
 }
+
+/* Desktop Files: selection, drop target and the review dialog. */
+.list.inline li {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.files-list li {
+    justify-content: flex-start;
+}
+
+.files-list li > .muted:last-child {
+    margin-left: auto;
+}
+
+.review-dialog .list li select {
+    margin-left: auto;
+    width: auto;
+}
+
+.files-list li.selected {
+    background: var(--surface-2);
+    border-radius: 6px;
+}
+
+.files-list input[type='checkbox'] {
+    margin-right: 8px;
+}
+
+.files-drop {
+    border: 1px dashed transparent;
+    border-radius: var(--radius);
+    padding: 4px;
+}
+
+.files-drop.drop-active {
+    border-color: var(--accent);
+    background: var(--surface-2);
+}
+
+.review-dialog {
+    height: auto;
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+}
+
+.text-editor {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.conflict {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 8px;
+    min-height: 0;
+}
+
+.conflict-panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+}
+
+.conflict-source {
+    margin: 0;
+    overflow: auto;
+}
+
+@media (max-width: 720px) {
+    .conflict-panes {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Desktop History: current changes above the graph. */
+.changes h3 {
+    margin: 10px 0 4px;
+    font-size: 13px;
+    color: var(--muted);
+}
