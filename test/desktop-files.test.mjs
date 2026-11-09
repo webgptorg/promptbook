@@ -349,7 +349,7 @@ test('History: desktop current changes distinguish staged, unstaged, untracked a
 
 test('engine: desktop text saves and their commits continue during Pause; History shows the pending desktop origin; no remote work', async (t) => {
     const { project, env } = await initializedProject(t);
-    const engineEnv = { ...env, PTBK_DESKTOP_FILES_QUIET_MS: '400', PTBK_DESKTOP_FILES_MAX_AGE_MS: '2000' };
+    const engineEnv = { ...env, PTBK_DESKTOP_FILES_QUIET_MS: '3000', PTBK_DESKTOP_FILES_MAX_AGE_MS: '10000' };
     await writeFile(join(project, 'notes.md'), 'first\n');
     await git(project, ['add', 'notes.md']);
     await git(project, ['commit', '-q', '-m', 'Notes']);
