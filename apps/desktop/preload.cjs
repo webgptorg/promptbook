@@ -21,7 +21,7 @@ contextBridge.exposeInMainWorld('desktop', {
     answer: (id, promptId, answer) => ipcRenderer.invoke('desktop:answer', { id, promptId, answer }),
     featureContext: (root) => ipcRenderer.invoke('desktop:feature-context', root),
     openFeature: (request) => ipcRenderer.invoke('desktop:feature-open', request),
-    closeFeature: (id) => ipcRenderer.invoke('desktop:feature-close', id),
+    closeFeature: (id, reason) => ipcRenderer.invoke('desktop:feature-close', id, reason),
     featureBounds: (feature, bounds) => ipcRenderer.send('desktop:feature-bounds', { feature, bounds }),
     tabTabs: (root, browser) => ipcRenderer.invoke('desktop:tab-tabs', { root, browser }),
     tabAction: (request) => ipcRenderer.invoke('desktop:tab-action', request),

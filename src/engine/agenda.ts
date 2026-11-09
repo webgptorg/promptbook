@@ -46,6 +46,7 @@ import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, openUs
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
 import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type ConversationContext, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
 import type { VoiceCallView } from '../chats/voice-call.js';
+import { resolveMessageAudio } from '../chats/message-audio.js';
 import { VoiceCalls, type VoiceAvailabilityReport, type VoiceMediaInput } from './voice-calls.js';
 import { migrateLegacyRequests } from '../chats/migration.js';
 import type { Project } from '../project/workspace.js';
@@ -1761,6 +1762,20 @@ export class Agenda {
         return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}), ...(voice ? { voice } : {}) };
     }
 
+    /**
+     * The recorded speech of one message for replay (inspection only: replaying never resends or dispatches anything).
+     * `message` and `segment` are 1-based and 0-based positions; the bound asset must be a file inside the project.
+     */
+    public async chatAudio(name: string, message: number, segment: number): Promise<{ readonly file: string; readonly type: string }> {
+        const detail = await chatDetail(this.chats, name);
+        const audio = Number.isInteger(message) && Number.isInteger(segment) ? detail.messages[message - 1]?.audio?.[segment] : undefined;
+        if (!audio) throw new PtbkError(`Message ${message} of {${detail.summary.name}} has no recording ${segment + 1}.`, { kind: 'not-found' });
+        const file = await resolveMessageAudio(this.options.project.root, audio.path);
+        const extension = audio.path.split('.').pop()?.toLowerCase() ?? '';
+        const type = ({ wav: 'audio/wav', webm: 'audio/webm', ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg', mp3: 'audio/mpeg', m4a: 'audio/mp4', mp4: 'audio/mp4', flac: 'audio/flac' } as Record<string, string>)[extension] ?? 'application/octet-stream';
+        return { file, type };
+    }
+
     /** Outstanding human requests of one chat with their responsible agent and relevance checks (no check is triggered). */
     private async chatRequestViews(name: string): Promise<ChatRequestView[]> {
         const key = nameKey(name);
@@ -1844,22 +1859,26 @@ export class Agenda {
 
     /**
      * Starts a new user-led chat with one agent (its first message is committed), then lets the agent reply.
+     *
+     * The request key is shared with {@link Agenda.chatOpen} of the same new-chat view: when voice opened that chat
+     * first (still without this text), the text becomes its first submitted message in the same Book; a retried
+     * creation returns the chat already prepared, never a second name or a second copy of the message.
      */
-    public async chatCreate(agent: string, text: string, options: { readonly name?: string; readonly requestKey?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
-        // A retried creation (same client request key) returns the chat already prepared, never a second name.
-        const previous = options.requestKey ? this.createdChats.get(options.requestKey) : undefined;
-        const existing = previous ? await this.chats.find(previous) : undefined;
-        if (existing) return existing;
-        const written: ChatWrite = await this.chatCreation.run(async () => {
-            const again = options.requestKey ? this.createdChats.get(options.requestKey) : undefined;
-            const stored = again ? await this.chats.find(again) : undefined;
-            return stored ?? (await createUserChat(this.chats, this.catalog, agent, text, options));
+    public async chatCreate(agent: string, text: string, options: { readonly name?: string; readonly requestKey?: string; readonly via?: string; readonly segments?: readonly ComposedSegment[] } = {}): Promise<ChatWrite> {
+        const key = options.requestKey;
+        const outcome = await this.chatCreation.run(async (): Promise<{ readonly written: ChatWrite; readonly fresh: boolean } | { readonly opened: string }> => {
+            const previous = key ? this.createdChats.get(key) : undefined;
+            const stored = previous ? await this.chats.find(previous) : undefined;
+            if (stored && key && this.openedChats.delete(key)) return { opened: stored.chat.name };
+            if (stored) return { written: stored, fresh: false };
+            const written = await createUserChat(this.chats, this.catalog, agent, text, options);
+            if (key) this.rememberCreated(key, written.chat.name);
+            return { written, fresh: true };
         });
-        if (options.requestKey) {
-            if (this.createdChats.get(options.requestKey) === written.chat.name) return written;
-            this.createdChats.set(options.requestKey, written.chat.name);
-            if (this.createdChats.size > 500) this.createdChats.delete(this.createdChats.keys().next().value!);
-        }
+        // The chat was opened empty under this key (voice set up first): this text is its next submitted message.
+        if ('opened' in outcome) return await this.chatSend(outcome.opened, text, { ...(options.via ? { via: options.via } : {}), ...(options.segments ? { segments: options.segments } : {}) });
+        const { written, fresh } = outcome;
+        if (!fresh) return written;
         this.log(`New chat {${written.chat.name}}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.chats.markRead(written.chat.name);
         await this.refreshChats();
@@ -1872,21 +1891,38 @@ export class Agenda {
     }
 
     /**
-     * Opens a new user-led chat with one agent and no message yet (the App's new thread); a retried creation with the
-     * same client request key returns the chat already opened.
+     * Opens a new user-led chat with one agent and no message yet (the App's new thread, or voice started before the
+     * first message of a new chat view); a retried or concurrent opening with the same client request key returns the
+     * chat already opened or created. Nothing is dispatched: only a submitted message or accepted utterance is.
      */
     public async chatOpen(agent: string, options: { readonly title?: string; readonly requestKey?: string } = {}): Promise<{ readonly name: string }> {
-        const previous = options.requestKey ? this.createdChats.get(options.requestKey) : undefined;
-        if (previous && (await this.chats.find(previous))) return { name: previous };
-        const written = await this.chatCreation.run(async () => await openUserChat(this.chats, this.catalog, agent, options.title));
-        if (options.requestKey) {
-            this.createdChats.set(options.requestKey, written.chat.name);
-            if (this.createdChats.size > 500) this.createdChats.delete(this.createdChats.keys().next().value!);
+        const key = options.requestKey;
+        const outcome = await this.chatCreation.run(async () => {
+            const previous = key ? this.createdChats.get(key) : undefined;
+            if (previous && (await this.chats.find(previous))) return { name: previous, fresh: false };
+            const written = await openUserChat(this.chats, this.catalog, agent, options.title);
+            if (key) {
+                this.rememberCreated(key, written.chat.name);
+                this.openedChats.add(key);
+            }
+            this.log(`New chat {${written.chat.name}}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
+            return { name: written.chat.name, fresh: true };
+        });
+        if (outcome.fresh) {
+            await this.chats.markRead(outcome.name);
+            await this.refreshChats();
         }
-        this.log(`New chat {${written.chat.name}}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
-        await this.chats.markRead(written.chat.name);
-        await this.refreshChats();
-        return { name: written.chat.name };
+        return { name: outcome.name };
+    }
+
+    /** Remembers the chat a client request key created (bounded; the oldest keys are forgotten first). */
+    private rememberCreated(key: string, name: string): void {
+        this.createdChats.set(key, name);
+        if (this.createdChats.size > 500) {
+            const oldest = this.createdChats.keys().next().value!;
+            this.createdChats.delete(oldest);
+            this.openedChats.delete(oldest);
+        }
     }
 
     /**
@@ -2009,6 +2045,9 @@ export class Agenda {
 
     /** Chats created per client request key (retries return the same chat). */
     private readonly createdChats = new Map<string, string>();
+
+    /** Request keys whose chat was opened without its first text yet (a later creation with the key sends into it). */
+    private readonly openedChats = new Set<string>();
 
     /** Serializes chat creation so a retried request cannot race its original. */
     private readonly chatCreation = new Mutex();
@@ -2801,7 +2840,7 @@ export class Agenda {
             ...this.queueWithSystemTasks(),
             // System task runs share the results feed with ordinary outcomes (newest first, same bound).
             results: { completed: this.completed, failed: this.failed, recent: [...this.recentResults, ...this.updater.resultViews()].sort((a, b) => Date.parse(b.endedAt) - Date.parse(a.endedAt)).slice(0, 20) },
-            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()], rechecks: this.chatRecheckViews(), pings: this.chatPings() },
+            chats: { waiting: this.waitingChats(), unread: this.chatSummaries.reduce((sum, chat) => sum + chat.unread, 0), total: this.chatSummaries.length, recent: this.chatSummaries.slice(0, 30), replying: [...this.liveReplies.keys()], voice: (this.voiceCallsInstance?.live() ?? []).map((call) => call.chat), rechecks: this.chatRecheckViews(), pings: this.chatPings() },
             blockers: this.blockers,
             errors: this.errors.slice(-10),
             activity: this.activity.slice(-120),

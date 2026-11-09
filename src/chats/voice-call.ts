@@ -49,7 +49,25 @@ export type VoiceCallView = {
     readonly problem?: string;
     /** Recording problems (incomplete archive). */
     readonly archive: readonly string[];
+    /**
+     * Messages this call saved from speech (1-based positions, in order) and the state of their recording: still
+     * `finalizing`, `saved` (bound as CHAT MESSAGE AUDIO) or `unavailable` (nothing could be bound). Clients mark these
+     * messages as spoken before the durable audio binding exists.
+     */
+    readonly spoken?: ReadonlyArray<{ readonly message: number; readonly recording: VoiceRecordingState }>;
 };
+
+/**
+ * Recording state of one spoken message during its call.
+ *
+ * @private voice calls
+ */
+export type VoiceRecordingState = 'finalizing' | 'saved' | 'unavailable';
+
+/**
+ * How many spoken messages a call view lists (the latest ones).
+ */
+const SPOKEN_VIEW_LIMIT = 200;
 
 /**
  * What a call needs from its engine: ordinary chat persistence and change notification.
@@ -251,6 +269,8 @@ export class VoiceCall {
     private ending?: Promise<void>;
     /** Messages this call appended (positions), so later context delivery skips them. */
     public readonly own = new Set<number>();
+    /** Recording state of each message this call saved from speech, by position. */
+    private readonly recordings = new Map<number, VoiceRecordingState>();
 
     public constructor(
         public readonly chat: string,
@@ -436,6 +456,7 @@ export class VoiceCall {
             ...(this.endedAt ? { endedAt: this.endedAt } : {}),
             ...(this.problem ? { problem: this.problem } : {}),
             archive: [...this.archive],
+            ...(this.recordings.size ? { spoken: [...this.recordings].slice(-SPOKEN_VIEW_LIMIT).map(([message, recording]) => ({ message, recording })) } : {}),
         };
     }
 
@@ -499,6 +520,7 @@ export class VoiceCall {
             try {
                 const position = await this.host.append(this.chat, role, clean, this.id);
                 this.own.add(position);
+                this.recordings.set(position, 'finalizing');
                 this.accepted++;
                 if (role === 'user') await this.bind(position, userAudio);
                 else {
@@ -532,13 +554,19 @@ export class VoiceCall {
 
     /** Records parts for a message, reporting an incomplete archive honestly. */
     private async bind(position: number, parts: readonly MessageAudioInput[]): Promise<void> {
-        if (!parts.length) return;
+        if (!parts.length) {
+            this.recordings.set(position, 'unavailable');
+            return this.host.onChange();
+        }
         try {
             const { problems } = await this.host.record(this.chat, position, parts);
             this.archive.push(...problems);
+            this.recordings.set(position, 'saved');
         } catch (error) {
+            this.recordings.set(position, 'unavailable');
             this.archive.push(`The recording of message ${position} was not saved: ${(error as Error).message}`);
         }
+        this.host.onChange();
     }
 
     /** The user spoke over the reply (the provider cuts it off): its audio is marked interrupted. */

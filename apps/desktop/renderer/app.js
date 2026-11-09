@@ -24,7 +24,6 @@ let activeFeature;
 let featureContext;
 let featureForm;
 let featureSignature;
-let voiceCall;
 
 /** DOM helper: project names, errors and prompt text are always text nodes. */
 function element(tag, attrs = {}, ...children) {
@@ -150,9 +149,8 @@ function controlOver(control) {
     return ['returned', 'ended', 'lost'].includes(control.state);
 }
 
-/** A short name of a live view for its switcher. */
+/** A short name of a live tab view for its switcher (voice has no separate view: it is part of its chat). */
 function featureLabel(item) {
-    if (item.kind === 'voice') return `Voice · ${item.chat}`;
     const view = item.view || {};
     let where = view.title || '';
     if (!where && view.url) { try { where = new URL(view.url).host; } catch { where = view.url; } }
@@ -179,9 +177,8 @@ async function openFeature(request) {
         for (const event of earlyFeatureEvents.get(result.feature) || []) featureEvent(event);
         earlyFeatureEvents.delete(result.feature);
         featureForm = undefined;
-        // Voice joins the current chat in a strip below the dashboard; a tab viewer takes the pane.
-        if (!features.has(result.feature)) renderFeatureBar(true);
-        else if (request.kind === 'voice') { if (mode === 'dashboard') renderFeatureBar(true); else void openProject(root); }
+        // Voice media joins its chat right below it (the dashboard stays); a tab viewer takes the pane.
+        if (!features.has(result.feature) || request.kind === 'voice') renderFeatureBar(true);
         else selectFeature(result.feature);
     } catch (error) { notice(error.message, true); }
     void refreshFeatures();
@@ -196,7 +193,6 @@ function selectFeature(id) {
 /** Closes a live view: voice ends; a tab viewer only closes (the tab stays with you until you return it). */
 async function closeFeature(id) {
     const item = features.get(id);
-    if (item?.kind === 'voice' && !window.confirm('End this voice call? The chat and its work continue.')) return;
     try { await api.closeFeature(id); } catch (error) { notice(error.message, true); }
     void refreshFeatures();
 }
@@ -212,11 +208,10 @@ async function tabAction(control, action, answer) {
     void refreshFeatures();
 }
 
-/** Voice call controls of this window's live call. */
+/** A call control of one chat's voice call (its chat shows the observed result). */
 async function voiceAction(item, action) {
-    try { voiceCall = await api.voiceControl(item.root, item.chat, action); }
+    try { await api.voiceControl(item.root, item.chat, action); }
     catch (error) { notice(error.message, true); }
-    renderFeatureBar(true);
 }
 
 /** The form choosing a tab to control (an existing tab of a browser, or a new tab at an address). */
@@ -244,12 +239,29 @@ function tabForm(context) {
     return form;
 }
 
-/** The form starting voice in a chosen chat. */
-function voiceForm(context) {
-    const chat = element('select', { 'aria-label': 'Chat' }, ...context.chats.map((item) => element('option', { value: item.name }, `${item.name}${item.agent ? ` · ${item.agent}` : ''}`)));
-    const form = element('form', { className: 'feature-form' }, element('span', {}, 'Talk in'), chat, element('button', { type: 'submit', className: 'primary' }, 'Start voice'), element('button', { type: 'button', onclick: () => { featureForm = undefined; renderFeatureBar(true); } }, 'Cancel'));
-    form.addEventListener('submit', (event) => { event.preventDefault(); void openFeature({ kind: 'voice', chat: chat.value }); });
-    return form;
+/**
+ * A voice intent of the open chat in this window's dashboard (start there, its call controls, or leaving that chat
+ * view). The chat that invoked it is the call's target; another chat shown later never takes the call over.
+ */
+async function voiceIntent({ root, action, chat }) {
+    if (root !== selected || mode !== 'dashboard') return;
+    const own = [...features].find(([, item]) => item.kind === 'voice' && item.root === root);
+    const mine = own && own[1].chat === chat ? own : undefined;
+    if (action === 'start') {
+        if (mine) return;
+        if (own) return notice(`Voice is live in {${own[1].chat}} in this window. End it in that chat first.`, true);
+        return void openFeature({ kind: 'voice', chat });
+    }
+    if (action === 'leave') {
+        if (mine) await api.closeFeature(mine[0], 'You left the chat, so the voice call ended. The chat and its work continue.').catch(() => undefined);
+        return;
+    }
+    if (action === 'end' && mine) {
+        try { await api.closeFeature(mine[0], 'Voice ended. The chat and its work continue.'); } catch (error) { notice(error.message, true); }
+        return;
+    }
+    // Mute controls (and ending a call this window does not present) act on the chat's own call.
+    await voiceAction({ root, chat }, action);
 }
 
 /**
@@ -259,9 +271,10 @@ function voiceForm(context) {
 function renderFeatureBar(force = false) {
     const bar = $('feature-bar');
     const context = featureContext?.root === selected ? featureContext : undefined;
-    const own = [...features].filter(([, item]) => item.root === selected);
-    const visible = !!selected && (mode === 'dashboard' || mode === 'feature') && (!!context || own.length > 0);
-    const signature = JSON.stringify({ visible, mode, activeFeature, context, own, featureForm, voiceCall });
+    // Voice lives in its chat (start, controls, media and captions): the bar shows tab control only.
+    const own = [...features].filter(([, item]) => item.root === selected && item.kind !== 'voice');
+    const visible = !!selected && (mode === 'dashboard' || mode === 'feature') && (!!context?.browsers?.length || !!context?.controls?.length || !!context?.pending?.length || own.length > 0);
+    const signature = JSON.stringify({ visible, mode, activeFeature, context, own, featureForm });
     syncVoiceStrip();
     if (!force && signature === featureSignature) return;
     featureSignature = signature;
@@ -270,14 +283,12 @@ function renderFeatureBar(force = false) {
     bar.hidden = !visible;
     if (!visible) { bar.replaceChildren(); requestAnimationFrame(layout); return; }
     const controls = (context?.controls || []).filter((control) => !controlOver(control));
-    const voice = own.find(([, item]) => item.kind === 'voice');
     const switcher = element('div', { className: 'feature-switch', role: 'tablist', 'aria-label': 'Views' },
         own.length ? element('button', { role: 'tab', 'aria-selected': String(mode === 'dashboard'), className: mode === 'dashboard' ? 'active' : '', onclick: () => void openProject(selected) }, 'Dashboard') : null,
         ...own.map(([id, item]) => element('button', { role: 'tab', 'aria-selected': String(mode === 'feature' && activeFeature === id), className: mode === 'feature' && activeFeature === id ? 'active' : '', title: item.view?.url || '', onclick: () => selectFeature(id) },
             featureLabel(item), element('span', { role: 'button', tabindex: '0', 'aria-label': `Close ${featureLabel(item)}`, onclick: (event) => { event.stopPropagation(); void closeFeature(id); } }, '  ×'))),
         element('span', { className: 'spacer' }),
         context?.browsers?.length ? element('button', { onclick: () => { featureForm = featureForm === 'tab' ? undefined : 'tab'; renderFeatureBar(true); } }, 'Take control of a tab…') : null,
-        context?.chats?.length && !voice ? element('button', { onclick: () => { featureForm = featureForm === 'voice' ? undefined : 'voice'; renderFeatureBar(true); } }, 'Start voice…') : null,
     );
     const rows = [];
     for (const control of controls) {
@@ -303,18 +314,7 @@ function renderFeatureBar(force = false) {
             element('span', {}, element('strong', {}, 'Sign-in needed'), ` · ${request.origin}${request.account ? ` · ${request.account}` : ''}`),
             element('span', { className: 'feature-buttons' }, element('button', { onclick: () => void openFeature({ kind: 'tab', request: request.id }) }, 'Sign in manually'))));
     }
-    if (voice) {
-        const [id, item] = voice;
-        const call = voiceCall?.chat === item.chat ? voiceCall : undefined;
-        rows.push(element('div', { className: 'feature-row' },
-            element('span', {}, element('strong', {}, 'Voice is live'), ` · ${item.chat}`),
-            element('span', { className: 'feature-buttons' },
-                element('button', { onclick: () => void voiceAction(item, call?.micMuted ? 'unmute-mic' : 'mute-mic') }, call?.micMuted ? 'Unmute microphone' : 'Mute microphone'),
-                element('button', { onclick: () => void voiceAction(item, call?.outputMuted ? 'unmute-output' : 'mute-output') }, call?.outputMuted ? 'Unmute output' : 'Mute output'),
-                element('button', { onclick: () => void closeFeature(id) }, 'End voice'))));
-    }
     if (featureForm === 'tab' && context?.browsers?.length) rows.push(tabForm(context));
-    if (featureForm === 'voice' && context?.chats?.length) rows.push(voiceForm(context));
     bar.replaceChildren(switcher, ...rows);
     requestAnimationFrame(layout);
 }
@@ -327,7 +327,6 @@ function featureEvent(event) {
     if (event.state) item.state = event.state;
     if (event.state === 'closed') {
         features.delete(event.feature);
-        if (item.kind === 'voice') voiceCall = undefined;
         if (event.reason) notice(event.reason);
         if (activeFeature === event.feature) {
             activeFeature = undefined;
@@ -593,6 +592,7 @@ api.onEvent((event) => {
     else if (event.type === 'theme') showTheme(event.source);
     else if (event.type === 'error') { api.hideDashboard(); notice(event.message, true); }
     else if (event.type === 'feature') featureEvent(event);
+    else if (event.type === 'voice-intent') void voiceIntent(event);
     else if (event.type === 'menu' && event.action === 'keep-awake-helper') {
         if (selected) void openTerminal('keep-awake-helper', selected);
         else notice('Select the project that should keep this Mac awake with the lid closed, then choose the menu item again.');

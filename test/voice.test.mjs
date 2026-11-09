@@ -288,10 +288,14 @@ test('voice call: page offer negotiates once per page, attributed transcripts an
     emit({ type: 'transcript', role: 'assistant', text: 'Všechno běží podle plánu.' });
     await waitFor(async () => (await store.find(name)).chat.messages.length === 4, { timeoutMs: 5_000, message: 'both utterances saved' });
     assert.equal(call.view().state, 'speaking');
+    // Both spoken messages are marked at once; the reply's recording still finalizes while it plays.
+    await waitFor(() => call.view().spoken?.[0]?.recording === 'saved', { timeoutMs: 5_000, message: 'the user recording bound' });
+    assert.deepEqual(call.view().spoken, [{ message: 3, recording: 'saved' }, { message: 4, recording: 'finalizing' }]);
     // The user speaks over the answer: the provider cuts it off; the reply's audio is marked interrupted.
     page.sendText({ type: 'barge-in' });
     page.sendText({ type: 'output', state: 'idle' });
     await waitFor(async () => (await store.find(name)).chat.messages[3].audio?.length === 1, { timeoutMs: 5_000, message: 'reply audio' });
+    await waitFor(() => call.view().spoken[1].recording === 'saved', { timeoutMs: 5_000, message: 'the reply recording state' });
     const { chat } = await store.find(name);
     assert.deepEqual(chat.messages.slice(2).map((message) => [message.sender, message.text]), [['@User', 'Ahoj, jaký je stav?'], ['@Accountant', 'Všechno běží podle plánu.']]);
     assert.equal(chat.messages[2].audio[0].status, 'complete');
@@ -452,4 +456,82 @@ test('engine: voice in an existing chat during Pause, native dispatch without a 
     const assets = (await git(project, ['ls-files', 'chats/_assets'])).trim().split('\n').filter(Boolean);
     assert.equal(assets.filter((file) => file.endsWith('.wav')).length, 2, 'both recordings are versioned');
     assert.match(await git(project, ['log', '--format=%B']), /Chat-Audio:/);
+});
+
+test('engine: voice before the first message of a new chat shares one creation with the first send; spoken messages are marked and replayable', { timeout: 240_000 }, async (t) => {
+    const { project, env: baseEnv, log } = await initializedProject(t, { check: 'process.exit(0);\n' });
+    const voiceLog = join(dirname(log), 'voice.log');
+    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '0', FAKE_CODEX_VOICE_LOG: voiceLog, FAKE_CODEX_VOICE_DELAY_MS: '1500', PTBK_VOICE_PAGE_GRACE_MS: '60000' };
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    t.after(async () => await ptbk(['stop', '--raw'], { cwd: project, env }).catch(() => undefined));
+    const turns = async () => (existsSync(log) ? (await readFile(log, 'utf8')).trim().split('\n').filter((line) => line && JSON.parse(line).chat).length : 0);
+    const before = await turns();
+    // The new chat view prepares its ordinary Book for voice: concurrent and retried openings are one chat, with no
+    // message and no reply.
+    const [first, second] = await Promise.all([control(project, 'chat-open', { requestKey: 'view-1' }), control(project, 'chat-open', { requestKey: 'view-1' })]);
+    assert.equal(first.name, second.name);
+    const name = first.name;
+    assert.equal((await control(project, 'chat-get', { name })).messages.length, 0, 'media setup leaves the history empty');
+    assert.equal((await control(project, 'chat-list')).filter((chat) => chat.name === name).length, 1);
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    assert.equal(await turns(), before, 'opening the chat dispatches nothing');
+    assert.equal((await control(project, 'chat-get', { name })).messages.length, 0);
+
+    const started = await control(project, 'voice-start', { name, client: 'desktop-window-1' });
+    assert.equal(started.call.chat, name, 'the call is bound to the opened chat');
+    const relay = await VoiceSurfaceRelay.open({
+        agent: started.call.agent,
+        chat: name,
+        channel: {
+            media: async (input) => await control(project, 'voice-media', { name, grant: started.grant, ...input }),
+            events: async (after) => await control(project, 'voice-media-events', { name, grant: started.grant, after, wait: 5_000 }),
+        },
+        onState: () => undefined,
+    });
+    t.after(async () => await relay.close());
+    const page = await surfaceClient(relay.url);
+    page.sendText({ type: 'format', sampleRate: 24_000 });
+    page.sendText({ type: 'offer', sdp: OFFER });
+    await waitFor(() => page.messages.some((message) => message.type === 'answer'), { message: 'the provider answer for the page' });
+    page.sendText({ type: 'page', mic: 'live', playback: 'ok', rtc: 'connected' });
+    for (let index = 0; index < 4; index++) page.sendBinary(frame('user'));
+    await pause(600);
+    // The first message of the chat is the spoken one; while its recording finalizes it is already marked as speech.
+    await waitFor(async () => (await control(project, 'chat-get', { name })).messages.length >= 2, { message: 'the spoken first exchange' });
+    let detail = await control(project, 'chat-get', { name });
+    assert.equal(detail.messages[0].text, 'Ahoj, jaký je stav projektu?');
+    assert.match(detail.messages[0].sender, /User/);
+    assert.deepEqual(detail.voice.spoken.map((entry) => entry.message), [1, 2]);
+    page.sendText({ type: 'output', state: 'speaking' });
+    for (let index = 0; index < 4; index++) page.sendBinary(frame('agent'));
+    await pause(600);
+    page.sendText({ type: 'output', state: 'idle' });
+    await waitFor(async () => (await control(project, 'chat-get', { name })).voice.spoken.every((entry) => entry.recording === 'saved'), { message: 'both recordings bound' });
+    assert.equal(await turns(), before, 'the native voice path answered; no text reply ran');
+    // A first send from the same view (late, or retried) lands in the same Book as a typed message, once.
+    const typed = await control(project, 'chat-create', { text: 'TYPED_IN_THE_SAME_VIEW', requestKey: 'view-1', via: 'test' });
+    assert.equal(typed.name, name, 'voice start and first send share one creation');
+    assert.equal((await control(project, 'chat-create', { text: 'TYPED_IN_THE_SAME_VIEW', requestKey: 'view-1', via: 'test' })).name, name);
+    detail = await control(project, 'chat-get', { name });
+    assert.equal(detail.messages.filter((message) => message.text === 'TYPED_IN_THE_SAME_VIEW').length, 1, 'a retry never sends twice');
+    assert.equal(detail.messages[2].audio, undefined, 'a typed message during the call keeps its ordinary presentation');
+    assert.equal(detail.messages[0].audio.length, 1);
+    await waitFor(async () => (await readFile(voiceLog, 'utf8')).includes('TYPED_IN_THE_SAME_VIEW'), { message: 'the typed turn reaches the live call once' });
+    // Replay over the project API is inspection only; availability is read-only and the API never starts a call.
+    const { token, http } = JSON.parse(await readFile(join(project, '.ptbk', 'service', 'process.json'), 'utf8'));
+    const headers = { Authorization: `Bearer ${token}` };
+    const base = http.url.replace(/\/$/, '');
+    const replay = await fetch(`${base}/api/chats/${encodeURIComponent(name)}/audio?message=1&segment=0`, { headers });
+    assert.equal(replay.status, 200, replay.status === 200 ? '' : await replay.text());
+    assert.equal(replay.headers.get('content-type'), 'audio/wav');
+    assert.equal(Buffer.from(await replay.arrayBuffer()).subarray(0, 4).toString(), 'RIFF');
+    assert.equal((await fetch(`${base}/api/chats/${encodeURIComponent(name)}/audio?message=3&segment=0`, { headers })).status, 404, 'typed messages have no recording');
+    const availability = await (await fetch(`${base}/api/chats/${encodeURIComponent(name)}/voice`, { headers })).json();
+    assert.equal(availability.chat, name);
+    assert.ok(!JSON.stringify(availability).includes(started.grant));
+    assert.equal((await fetch(`${base}/.ptbk-desktop/voice?action=start&chat=x`)).status, 204, 'an intent reaching the engine changes nothing');
+    const messages = (await control(project, 'chat-get', { name })).messages.length;
+    await control(project, 'voice-control', { name, action: 'end' });
+    await page.closed;
+    assert.equal((await control(project, 'chat-get', { name })).messages.length, messages, 'ending voice keeps the history');
 });

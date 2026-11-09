@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ACTIONS, PAGES, localDashboardUrl, terminalArguments, dashboardPage, terminalSize } from '../model.cjs';
+import { ACTIONS, PAGES, VOICE_INTENT_PATH, localDashboardUrl, terminalArguments, dashboardPage, terminalSize, voiceIntent } from '../model.cjs';
 
 test('dashboard attachments reject remote, credential-bearing and non-root addresses', () => {
     assert.equal(localDashboardUrl('http://127.0.0.1:3012/'), 'http://127.0.0.1:3012/');
@@ -28,4 +28,19 @@ test('native terminal dimensions are bounded and robust to invalid input', () =>
     assert.deepEqual(terminalSize(110, 40), { cols: 110, rows: 40 });
     assert.deepEqual(terminalSize(Infinity, -900), { cols: 500, rows: 10 });
     assert.deepEqual(terminalSize('not a number', undefined), { cols: 80, rows: 24 });
+});
+
+test('voice intents come only from the own chat view of the window: its origin, path and token, a known action and the chat', () => {
+    const origin = 'http://127.0.0.1:3012';
+    const token = 'a'.repeat(32);
+    const intent = (params, base = origin, path = VOICE_INTENT_PATH) => `${base}${path}?${new URLSearchParams(params)}`;
+    assert.deepEqual(voiceIntent(intent({ intent: token, action: 'start', chat: 'Invoices: export' }), origin, token), { action: 'start', chat: 'Invoices: export' });
+    for (const action of ['end', 'leave', 'mute-mic', 'unmute-mic', 'mute-output', 'unmute-output']) assert.equal(voiceIntent(intent({ intent: token, action, chat: 'B' }), origin, token).action, action);
+    assert.equal(voiceIntent(intent({ intent: 'b'.repeat(32), action: 'start', chat: 'B' }), origin, token), undefined, 'another view token');
+    assert.equal(voiceIntent(intent({ intent: token, action: 'start', chat: 'B' }, 'http://127.0.0.1:3013'), origin, token), undefined, 'another origin');
+    assert.equal(voiceIntent(intent({ intent: token, action: 'start', chat: 'B' }, origin, '/api/chats'), origin, token), undefined, 'another path');
+    assert.equal(voiceIntent(intent({ intent: token, action: 'pick-chat', chat: 'B' }), origin, token), undefined, 'unknown action');
+    assert.equal(voiceIntent(intent({ intent: token, action: 'start', chat: '' }), origin, token), undefined, 'no chat');
+    assert.equal(voiceIntent(intent({ intent: token, action: 'start', chat: 'a\nb' }), origin, token), undefined, 'control characters');
+    assert.equal(voiceIntent(intent({ intent: token, action: 'start', chat: 'B' }), origin, undefined), undefined, 'a view without a token');
 });

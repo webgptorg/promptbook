@@ -233,6 +233,8 @@ export type ChatsView = {
     readonly total: number;
     /** Chats whose agent is writing a reply now (their live progress is in the chat detail). */
     readonly replying?: readonly string[];
+    /** Chats with a live voice call (their call state, captions and spoken messages are in the chat detail). */
+    readonly voice?: readonly string[];
     /** Chats whose failed reply waits for its automatic recheck. */
     readonly rechecks?: readonly ChatRecheckView[];
     /** Recently active chats (bounded). */

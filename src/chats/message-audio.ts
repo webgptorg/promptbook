@@ -199,6 +199,23 @@ export function messageAudioLabel(audio: readonly Pick<MessageAudio, 'status'>[]
 }
 
 /**
+ * The visible **Voice** indicator of a spoken message, or nothing for a typed one. The durable indicator is the
+ * message's CHAT MESSAGE AUDIO binding; during its call a message saved from speech is marked before its recording is
+ * bound (`finalizing`) or when nothing could be bound (`unavailable`). The actual capture state follows the label.
+ *
+ * @private chat message audio
+ */
+export function messageVoiceLabel(audio: readonly Pick<MessageAudio, 'status'>[] | undefined, live?: 'finalizing' | 'saved' | 'unavailable'): string | undefined {
+    if (audio?.length) {
+        const state = audio.some((segment) => segment.status === 'incomplete') ? 'recording incomplete' : audio.some((segment) => segment.status === 'interrupted') ? 'recording interrupted' : 'recording available';
+        return `Voice · ${audio.length > 1 ? `${state} · ${audio.length} segments` : state}`;
+    }
+    if (live === 'finalizing' || live === 'saved') return 'Voice · recording finalizing…';
+    if (live === 'unavailable') return 'Voice · recording unavailable';
+    return undefined;
+}
+
+/**
  * Resolves a bound asset inside the project: the relative path must stay inside the root even after following
  * symlinks (a link escaping the project is refused). Returns the absolute path of an existing regular file.
  *

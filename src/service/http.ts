@@ -2,7 +2,9 @@ import { parseActionViewQuery } from '../engine/action-impact.js';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { highlightBook } from '../book/highlight.js';
 import { parseUsageRequest } from '../engine/usage.js';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { pipeline } from 'node:stream/promises';
 import { join } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { engineModule } from '../common/version.js';
@@ -89,10 +91,15 @@ const CONTENT_TYPES: Readonly<Record<string, string>> = {
 };
 
 /**
+ * Path of a desktop window's voice intent for its own shell (a popup the shell refuses; the engine does nothing).
+ */
+const DESKTOP_INTENT_PATH = '/.ptbk-desktop/voice';
+
+/**
  * Security headers on every response.
  */
 const SECURITY_HEADERS: Readonly<Record<string, string>> = {
-    'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+    'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; media-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
     'X-Frame-Options': 'DENY',
@@ -243,6 +250,13 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             response.end(standalone
                 ? content.toString('utf8').replace('<!-- standalone-dashboard-notice -->', '<aside class="deprecation-notice"><strong>Standalone browser dashboard deprecated.</strong> Use the Promptbook App connector for browser access.</aside>')
                 : content);
+            return;
+        }
+        if (url.pathname === DESKTOP_INTENT_PATH && method === 'GET') {
+            // A desktop window's dashboard hands voice intents to its own shell as a popup of this path, which the shell
+            // refuses. Reaching the server (no such shell) changes nothing.
+            response.writeHead(204, { ...SECURITY_HEADERS, 'Cache-Control': 'no-store' });
+            response.end();
             return;
         }
         if (!url.pathname.startsWith('/api/')) {
@@ -415,8 +429,22 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             return;
         }
         // Chats are selected by their normalized name (URL-encoded), never by a generated ID.
-        const chatMatch = /^\/api\/chats(?:\/([^/]+)(?:\/(messages|read|seen))?)?$/.exec(url.pathname);
+        const chatMatch = /^\/api\/chats(?:\/([^/]+)(?:\/(messages|read|seen|audio|voice))?)?$/.exec(url.pathname);
         const chatName = chatMatch?.[1] ? decodeURIComponent(chatMatch[1]) : undefined;
+        if (chatMatch && chatName && chatMatch[2] === 'voice' && method === 'GET') {
+            // Read-only voice availability of the open chat (the shared guidance shown in the chat before a start);
+            // the project HTTP API never starts calls or receives a media grant.
+            sendJson(response, 200, await agenda.voiceAvailability(chatName));
+            return;
+        }
+        if (chatMatch && chatName && chatMatch[2] === 'audio' && method === 'GET') {
+            // Replay of a message's recorded speech (inspection only; nothing is resent or dispatched).
+            const audio = await agenda.chatAudio(chatName, Number(url.searchParams.get('message') ?? NaN), Number(url.searchParams.get('segment') ?? '0'));
+            const size = (await stat(audio.file)).size;
+            response.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': audio.type, 'Content-Length': String(size), 'Cache-Control': 'no-store, private', 'Content-Disposition': 'inline' });
+            await pipeline(createReadStream(audio.file), response);
+            return;
+        }
         if (chatMatch && method === 'GET' && !chatMatch[2]) {
             sendJson(response, 200, chatName ? await applyChatAction(agenda, 'chat-get', { name: chatName }, 'api') : { chats: await applyChatAction(agenda, 'chat-list', {}, 'api') });
             return;
@@ -496,7 +524,9 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         }
         if (chatMatch) {
             const via = who === 'api' ? 'api' : 'browser';
-            if (!chatName) sendJson(response, 200, await applyChatAction(agenda, 'chat-create', { agent: body.agent, text: body.text, title: body.title, requestKey: body.requestKey }, via));
+            // `open` prepares a new chat view's Book without a message (voice before the first message), keyed like its send.
+            if (!chatName && body.open === true) sendJson(response, 200, await applyChatAction(agenda, 'chat-open', { agent: body.agent, title: body.title, requestKey: body.requestKey }, via));
+            else if (!chatName) sendJson(response, 200, await applyChatAction(agenda, 'chat-create', { agent: body.agent, text: body.text, title: body.title, requestKey: body.requestKey }, via));
             else if (chatMatch[2] === 'messages') sendJson(response, 200, await applyChatAction(agenda, 'chat-send', { name: chatName, text: body.text, expected: body.expected }, via));
             else if (chatMatch[2] === 'read') sendJson(response, 200, await applyChatAction(agenda, 'chat-read', { name: chatName }, via));
             else if (chatMatch[2] === 'seen') sendJson(response, 200, await applyChatAction(agenda, 'chat-seen', { name: chatName, messages: body.messages }, via));

@@ -1,11 +1,20 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { _electron } from 'playwright-core';
 import electron from 'electron';
-import { initializedProject, ptbk } from '../../../test/helpers.mjs';
+import { initializedProject, ptbk, waitFor } from '../../../test/helpers.mjs';
+import { readProcessRecord } from '../../../dist/service/records.js';
+import { projectAt } from '../../../dist/project/workspace.js';
+import { ControlClient } from '../../../dist/service/control.js';
+
+/** A control-channel request to the project's engine (the observed outcome, independent of the desktop UI). */
+async function control(project, method, params = {}) {
+    const record = await readProcessRecord(projectAt(project));
+    return await new ControlClient(projectAt(project), record).request(method, params, 60_000);
+}
 
 /** Runs actual Electron, native PTYs and the existing engine with the repository's deterministic fake harness. */
 test('desktop windows and native terminals are independent clients of the same paused engine', { timeout: 150000 }, async (t) => {
@@ -92,4 +101,68 @@ test('desktop windows and native terminals are independent clients of the same p
     } finally {
         await restarted.close();
     }
+});
+
+/** Voice starts beside the composer of the open (new) chat, stays bound to it, and leaving that chat view ends it. */
+test('desktop voice is started and controlled from the open chat, never from the feature bar', { timeout: 240000 }, async (t) => {
+    const { project, env: baseEnv, directory, log } = await initializedProject(t, { check: 'process.exit(0);\n' });
+    // The fake provider never transcribes here, so the history stays exactly what the user does.
+    const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '0', FAKE_CODEX_VOICE_LOG: join(dirname(log), 'voice.log'), FAKE_CODEX_VOICE_DELAY_MS: '600000', PTBK_VOICE_PAGE_GRACE_MS: '60000' };
+    const runtimeConfig = join(directory, 'desktop-runtime.json');
+    await writeFile(runtimeConfig, JSON.stringify({ installation: fileURLToPath(new URL('../../../', import.meta.url)), nodePath: process.execPath }));
+    const packagedMac = process.platform === 'darwin' && Boolean(process.env.PTBK_DESKTOP_EXECUTABLE);
+    const desktopEnv = { ...env };
+    if (packagedMac) {
+        delete desktopEnv.PTBK_DESKTOP_NODE;
+        delete desktopEnv.PTBK_DESKTOP_RUNTIME;
+    } else {
+        desktopEnv.PTBK_DESKTOP_NODE = process.execPath;
+        desktopEnv.PTBK_DESKTOP_RUNTIME = runtimeConfig;
+    }
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    t.after(async () => await ptbk(['stop', '--raw'], { cwd: project, env }).catch(() => undefined));
+    const profile = join(directory, 'desktop profile');
+    await mkdir(profile);
+    const application = await _electron.launch({
+        executablePath: process.env.PTBK_DESKTOP_EXECUTABLE || electron,
+        args: [...(process.env.PTBK_DESKTOP_EXECUTABLE ? [] : [fileURLToPath(new URL('../', import.meta.url))]), '--skip-init', `--user-data-dir=${profile}`],
+        env: desktopEnv,
+        colorScheme: null,
+        timeout: 45000,
+    });
+    t.after(() => application.close().catch(() => {}));
+    const shell = await application.firstWindow();
+    await shell.getByRole('heading', { name: 'Your projects' }).waitFor();
+    await shell.locator('tbody .status-dot').waitFor();
+    await shell.getByRole('button', { name: 'Open', exact: true }).click();
+    const dashboard = await waitFor(() => application.windows().find((page) => page.url().includes('view=desktop')), { timeoutMs: 45000, message: 'the graphical dashboard' });
+    assert.match(new URL(dashboard.url()).searchParams.get('intent') ?? '', /^[0-9a-f]{32}$/, 'the view has its own voice intent token');
+    await dashboard.evaluate(() => { location.hash = '#/chats'; });
+    await dashboard.reload();
+    await dashboard.getByRole('button', { name: 'New chat', exact: true }).click();
+    await dashboard.getByRole('button', { name: /^Chat with / }).click();
+    await dashboard.locator('textarea[data-draft="chat:new"]').fill('UNSENT DRAFT');
+    assert.equal(await shell.getByRole('button', { name: /Start voice/ }).count(), 0, 'no voice entry or chat picker in the shell');
+    await dashboard.getByRole('button', { name: 'Start voice chat' }).click();
+    // The new chat's ordinary Book exists without a message; the shell presents the call's media below that chat.
+    const name = await waitFor(async () => (await control(project, 'chat-list')).find((chat) => /new chat/.test(chat.name))?.name, { timeoutMs: 30000, message: 'the chat prepared for voice' });
+    await waitFor(async () => (await control(project, 'chat-get', { name })).voice, { timeoutMs: 30000, message: 'the call in that chat' });
+    assert.equal((await control(project, 'chat-get', { name })).messages.length, 0, 'media setup adds no message');
+    await waitFor(() => shell.evaluate(() => !document.getElementById('voice-strip').hidden), { timeoutMs: 30000, message: 'the media below the chat' });
+    await dashboard.locator('.voice-panel').waitFor({ timeout: 30000 });
+    assert.equal(await dashboard.locator('textarea[data-draft]').inputValue(), 'UNSENT DRAFT', 'the draft moved with its chat');
+    assert.equal(await dashboard.getByRole('button', { name: 'Start voice chat' }).count(), 0);
+    await dashboard.getByRole('button', { name: 'Mute microphone' }).click();
+    await waitFor(async () => (await control(project, 'chat-get', { name })).voice.micMuted || undefined, { timeoutMs: 20000, message: 'mute from the chat' });
+    await dashboard.getByRole('button', { name: 'Unmute microphone' }).waitFor({ timeout: 20000 });
+    // The same composer sends text during the call, into the same chat.
+    await dashboard.locator('textarea[data-draft]').fill('TYPED DURING CALL');
+    await dashboard.getByRole('button', { name: 'Send', exact: true }).click();
+    await waitFor(async () => (await control(project, 'chat-get', { name })).messages.some((message) => message.text === 'TYPED DURING CALL') || undefined, { timeoutMs: 20000, message: 'the typed message' });
+    // Leaving the chat view closes the call's owning view: voice ends, the chat stays.
+    await dashboard.getByRole('button', { name: 'Close', exact: true }).click();
+    await waitFor(async () => ['ended', 'failed'].includes((await control(project, 'chat-get', { name })).voice?.state) || undefined, { timeoutMs: 30000, message: 'the call ends on leaving its chat' });
+    await waitFor(() => shell.evaluate(() => document.getElementById('voice-strip').hidden), { timeoutMs: 30000, message: 'the media view goes away' });
+    assert.match(await shell.locator('#notice').textContent(), /left the chat/);
+    assert.ok((await control(project, 'chat-get', { name })).messages.length >= 1, 'the chat and its history remain');
 });

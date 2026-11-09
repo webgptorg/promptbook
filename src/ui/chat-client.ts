@@ -2,7 +2,7 @@ import { errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
 import { formatShortTime } from '../common/time.js';
 import { awaitsReply, collapseThinking, type ChatMessage } from '../chats/chat-book.js';
-import { messageAudioLabel } from '../chats/message-audio.js';
+import { messageVoiceLabel } from '../chats/message-audio.js';
 import type { ChatAgentChoice, ChatDetail } from '../chats/service.js';
 import type { ChatSummary } from '../chats/store.js';
 import { fit, stringWidth, truncate, wrap } from './ansi.js';
@@ -51,8 +51,16 @@ export type ChatSource = {
     readonly agents: () => Promise<ChatAgentChoice[]>;
     /** One chat with its messages. */
     readonly get: (name: string) => Promise<ChatDetail>;
-    /** Starts a new chat with one agent; returns its name. `segments` carries attachments (become project assets). */
-    readonly create: (agent: string, text: string, title?: string, segments?: readonly ComposedSegment[]) => Promise<ChatSent>;
+    /**
+     * Starts a new chat with one agent; returns its name. `segments` carries attachments (become project assets). The
+     * new chat view's `requestKey` makes retries and an earlier {@link ChatSource.open} resolve to the same chat.
+     */
+    readonly create: (agent: string, text: string, title?: string, segments?: readonly ComposedSegment[], requestKey?: string) => Promise<ChatSent>;
+    /**
+     * Prepares a new chat view's Book without a message (voice started before the first message); the same request key
+     * as its first send yields one chat. Absent where the source cannot (no engine, or an older one).
+     */
+    readonly open?: (agent: string, title: string | undefined, requestKey: string) => Promise<{ readonly name: string }>;
     /** Appends the user's message; `expected` is the message count the user saw (stale clients are rejected). */
     readonly send: (name: string, text: string, expected?: number, segments?: readonly ComposedSegment[]) => Promise<ChatSent>;
     /** Marks a chat as read by this viewer (never an answer). */
@@ -102,7 +110,8 @@ export function controlChatSource(request: (method: string, params?: Readonly<Re
         list: async () => (await request('chat-list')) as ChatSummary[],
         agents: async () => (await request('chat-agents')) as ChatAgentChoice[],
         get: async (name) => (await request('chat-get', { name })) as ChatDetail,
-        create: async (agent, text, title, segments) => (await request('chat-create', { agent, text, title, via, ...(segments ? { segments } : {}) })) as ChatSent,
+        create: async (agent, text, title, segments, requestKey) => (await request('chat-create', { agent, text, title, via, ...(segments ? { segments } : {}), ...(requestKey ? { requestKey } : {}) })) as ChatSent,
+        open: async (agent, title, requestKey) => (await request('chat-open', { agent, requestKey, ...(title ? { title } : {}) })) as { name: string },
         send: async (name, text, expected, segments) => (await request('chat-send', { name, text, expected, via, ...(segments ? { segments } : {}) })) as ChatSent,
         read: async (name) => {
             await request('chat-read', { name });
@@ -203,6 +212,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
     const input = new RichInput({ mode: 'flow', attachments: true, refresh: () => draw() });
     const editor = input.editor;
     let name = target.kind === 'existing' ? target.name : undefined;
+    /** One creation per new chat view: voice start and the first send (and their retries) share this key. */
+    const requestKey = `chat-${process.pid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     let detail: ChatDetail | undefined;
     let scroll = 0;
     let busy = '';
@@ -291,6 +302,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         const status = input.status(width - 6);
         const composer = renderPanel({
             title: busy || (question ? 'Your answer or question' : 'Message'),
+            // Voice belongs beside this composer (also before the first message of a new chat); typing stays available.
+            ...(voiceAction() ? { titleRight: voiceAction() } : {}),
             lines: [
                 ...choiceLines,
                 ...(attaching ? [`${style.bold('Attach file:')} ${attaching.layout(width - 22, 1).lines[0] ?? ''}`] : editor.empty ? [style.muted('Type a message… (Enter sends, Shift+Enter/Ctrl+J newline, Ctrl+V pastes text/images/files)')] : layout.lines),
@@ -302,7 +315,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             style,
         });
         const keys = input.keys().map((key) => key.replace(/^Enter submit$/, 'Enter send').replace(/^Esc cancel$/, options.embedded ? 'Esc back' : 'Ctrl+C close (the service keeps running)'));
-        const legend = style.muted(fit(`  ${[...keys, 'PgUp/PgDn scroll', ...(choiceFocus !== undefined ? ['Esc back to your message'] : choices.length && editor.empty ? ['↑↓ choose an answer', ...(terminal.pointer ? [POINTER_PICK_HINT] : [])] : []), ...(detail?.messages.some((message) => message.phase === 'progress') ? [`Ctrl+R ${showThinking ? 'hide' : 'show'} thinking`] : []), ...voiceKeys()].join(' · ')}`, width));
+        const legend = style.muted(fit(`  ${[...keys, ...voiceKeys(), 'PgUp/PgDn scroll', ...(choiceFocus !== undefined ? ['Esc back to your message'] : choices.length && editor.empty ? ['↑↓ choose an answer', ...(terminal.pointer ? [POINTER_PICK_HINT] : [])] : []), ...(detail?.messages.some((message) => message.phase === 'progress') ? [`Ctrl+R ${showThinking ? 'hide' : 'show'} thinking`] : [])].join(' · ')}`, width));
         // On its own line: behind the long legend a failed send would be cut off.
         const noticeLines = notice ? wrap(`${marks.arrow} ${notice}`, width - 4).map((line) => `  ${line}`) : [];
         const available = Math.max(3, height - top.length - composer.length - noticeLines.length - 1);
@@ -310,6 +323,8 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         /** The 1-based message each body line belongs to (for what the viewport actually displays). */
         const lineMessages: Array<number | undefined> = [];
         const positions = new Map((detail?.messages ?? []).map((message, index) => [message as object, index + 1]));
+        /** Messages the chat's (live or just ended) call saved from speech, with their recording state. */
+        const spoken = new Map((detail?.voice?.spoken ?? []).map((entry) => [entry.message, entry.recording] as const));
         const unseen = new Set((detail?.summary.pings ?? []).map((ping) => ping.message));
         for (const item of collapseThinking(detail?.messages ?? [])) {
             while (lineMessages.length < body.length) lineMessages.push(undefined);
@@ -327,9 +342,11 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             body.push(`${user ? style.accent(style.bold('You')) : style.bold(message.sender)} ${style.muted(`${message.at}${message.phase === 'progress' ? ' · working…' : ''}`)}${pinged}`);
             for (const line of wrap(message.text, width - 4)) body.push(`  ${message.phase === 'progress' ? style.muted(line) : line}`);
             if (message.choices?.length) body.push(`  ${style.muted(`offered: ${message.choices.join(' | ')}`)}`);
-            // Recorded speech of this same message (not an attachment); replaying it never resends anything.
-            const audio = messageAudioLabel((message as Pick<ChatMessage, 'audio'>).audio);
-            if (audio) body.push(`  ${style.muted(`♪ ${audio}`)}`);
+            // A spoken message carries the Voice indicator with its actual capture state (typed messages none); its
+            // recording is another form of this same message (not an attachment) and replaying it never resends it.
+            const recorded = (message as Pick<ChatMessage, 'audio'>).audio;
+            const voice = messageVoiceLabel(recorded, position !== undefined ? spoken.get(position) : undefined);
+            if (voice) body.push(`  ${style.accent('♪')} ${style.muted(`${voice}${recorded?.length ? ` · replay ${truncate(recorded.map((segment) => segment.path).join(', '), Math.max(16, width - voice.length - 16))}` : ''}`)}`);
             while (lineMessages.length < body.length) lineMessages.push(position);
             body.push('');
         }
@@ -389,9 +406,15 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         );
     };
 
+    /** The composer's voice action: start voice in this chat, or the live call's end shortcut. */
+    const voiceAction = (): string | undefined => {
+        if (!source.voice || (!name && !source.open)) return undefined;
+        return voiceLive(detail?.voice) ? 'Voice live · Ctrl+G end voice chat' : 'Ctrl+G start voice chat';
+    };
+
     /** The voice shortcuts that apply now (shown, never silently capturing typed text). */
     const voiceKeys = (): string[] => {
-        if (!source.voice || !name) return [];
+        if (!source.voice || (!name && !source.open)) return [];
         return voiceLive(detail?.voice) ? [`Ctrl+G end voice`, `Ctrl+N ${detail!.voice!.micMuted ? 'unmute' : 'mute'} mic`, `Ctrl+X ${detail!.voice!.outputMuted ? 'unmute' : 'mute'} sound`] : ['Ctrl+G start voice chat'];
     };
 
@@ -402,13 +425,22 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
             notice = 'Voice needs the project engine running on this computer (`ptbk start`).';
             return draw();
         }
-        if (!name) {
-            notice = 'Send a first message to create the chat, then start voice in it.';
+        if (!name && (target.kind !== 'new' || !source.open)) {
+            notice = 'Send a first message to create the chat, then start voice in it (this engine cannot prepare an empty chat).';
             return draw();
         }
         voiceBusy = true;
-        const chat = name;
         try {
+            // A new chat view gets its ordinary Book first (no message, nothing dispatched); the first spoken or typed
+            // message enters it. The view's request key makes a concurrent first send or a retry land in the same chat.
+            if (!name && target.kind === 'new' && source.open) {
+                if (remoteTerminal(process.env)) throw new Error('Voice uses this computer’s microphone and speakers; over SSH they are not available. Text chat keeps working.');
+                notice = 'Preparing the chat for voice…';
+                draw();
+                name = (await source.open(target.agent.reference, target.title, requestKey)).name;
+                await refresh();
+            }
+            const chat = name!;
             if (voiceLive(detail?.voice)) {
                 await source.voice.control(chat, 'end');
                 notice = 'Voice ended. The chat and its work continue; your draft is kept.';
@@ -486,7 +518,7 @@ export async function runChatClient(terminal: TerminalProfile, source: ChatSourc
         draw();
         try {
             if (!name && target.kind === 'new') {
-                const created = await source.create(target.agent.reference, text, target.title, attached);
+                const created = await source.create(target.agent.reference, text, target.title, attached, requestKey);
                 name = created.name;
                 notice = savedNotice(created);
             } else if (name) {

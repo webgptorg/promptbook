@@ -3,10 +3,10 @@ const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcM
 const { fork } = require('node:child_process');
 const { readFileSync, renameSync, writeFileSync } = require('node:fs');
 const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
-const { randomUUID } = require('node:crypto');
+const { randomBytes, randomUUID } = require('node:crypto');
 const { join, resolve, basename, delimiter } = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { ACTIONS, localDashboardUrl, terminalArguments, dashboardPage, terminalSize } = require('./model.cjs');
+const { ACTIONS, VOICE_INTENT_PATH, localDashboardUrl, terminalArguments, dashboardPage, terminalSize, voiceIntent } = require('./model.cjs');
 const { createPromptServer } = require('./prompt-server.cjs');
 
 /** macOS packages carry their own CLI runtime and use native application menus. */
@@ -260,11 +260,14 @@ async function externalLink(url, window) {
     if (result.response === 0) await shell.openExternal(parsed.href);
 }
 
-/** Prevents arbitrary navigation, browser permissions and popups in both shell and unprivileged project views. */
-function protect(contents, window, allowed) {
+/**
+ * Prevents arbitrary navigation, browser permissions and popups in both shell and unprivileged project views. A popup
+ * the view's `intercept` recognizes (a voice intent of its chat) is handled by the shell and never opened.
+ */
+function protect(contents, window, allowed, intercept) {
     contents.session.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
     contents.session.setPermissionCheckHandler(() => false);
-    contents.setWindowOpenHandler(({ url }) => { void externalLink(url, window); return { action: 'deny' }; });
+    contents.setWindowOpenHandler(({ url }) => { if (!intercept?.(url)) void externalLink(url, window); return { action: 'deny' }; });
     contents.on('will-navigate', (event, url) => { if (!allowed(url)) { event.preventDefault(); void externalLink(url, window); } });
     contents.on('will-redirect', (event, url) => { if (!allowed(url)) event.preventDefault(); });
     contents.on('will-attach-webview', (event) => event.preventDefault());
@@ -273,6 +276,8 @@ function protect(contents, window, allowed) {
 /** Destroys only a graphical project attachment, leaving its HTTP server and engine alone. */
 function hideDashboard(entry) {
     if (!entry.view) return;
+    // The chat view owning this window's voice call closes with the dashboard: the call ends (chat and work continue).
+    for (const feature of [...features.values()]) if (feature.entry === entry && feature.kind === 'voice') closeFeature(feature, 'The chat view closed, so the voice call ended. The chat and its work continue.');
     entry.window.contentView.removeChildView(entry.view);
     entry.view.webContents.close();
     entry.view = undefined;
@@ -422,6 +427,9 @@ ipcMain.handle('desktop:dashboard', async (event, { root, bounds }) => {
     const result = await controller('dashboard', { root });
     const url = new URL(localDashboardUrl(result.url));
     url.searchParams.set('view', 'desktop');
+    // This view's voice intent token: only its own chat view's intents reach this window's shell.
+    const intent = randomBytes(16).toString('hex');
+    url.searchParams.set('intent', intent);
     hideDashboard(entry);
     const view = new WebContentsView({ webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, partition: `desktop-project-${entry.window.id}` } });
     entry.view = view;
@@ -429,7 +437,16 @@ ipcMain.handle('desktop:dashboard', async (event, { root, bounds }) => {
     entry.page = undefined;
     entry.window.contentView.addChildView(view);
     setBounds(entry, bounds);
-    protect(view.webContents, entry.window, (target) => { try { return new URL(target).origin === url.origin; } catch { return false; } });
+    // Voice starts and is controlled from the open chat: its intent is a denied popup of a fixed path carrying this
+    // view's token. The shell owns the microphone and media view; the dashboard stays unprivileged.
+    protect(view.webContents, entry.window, (target) => { try { return new URL(target).origin === url.origin; } catch { return false; } }, (target) => {
+        let path;
+        try { path = new URL(target).pathname; } catch { return false; }
+        if (path !== VOICE_INTENT_PATH) return false;
+        const request = entry.view === view ? voiceIntent(target, url.origin, intent) : undefined;
+        if (request) emit(entry, { type: 'voice-intent', root, ...request });
+        return true;
+    });
     view.webContents.on('did-navigate-in-page', (_event, target) => {
         entry.page = dashboardPage(target);
         emit(entry, { type: 'page', page: entry.page });
@@ -467,7 +484,7 @@ ipcMain.handle('desktop:feature-open', async (event, request) => {
     }
     return { feature: result.feature, control: result.control };
 });
-ipcMain.handle('desktop:feature-close', (event, id) => { closeFeature(ownedFeature(owner(event), id), 'The view was closed.'); });
+ipcMain.handle('desktop:feature-close', (event, id, reason) => { closeFeature(ownedFeature(owner(event), id), typeof reason === 'string' && reason.length <= 300 ? reason : 'The view was closed.'); });
 ipcMain.on('desktop:feature-bounds', (event, { feature, bounds } = {}) => { try { setFeatureBounds(ownedFeature(owner(event), feature), bounds); } catch {} });
 ipcMain.handle('desktop:tab-tabs', async (event, { root, browser } = {}) => {
     owner(event);

@@ -108,12 +108,11 @@ async function handle(method, params) {
     if (method === 'feature-context') {
         const client = await engine(params.root);
         const snapshot = await client.request('snapshot');
-        const chats = await client.request('chat-list').catch(() => []);
+        // Voice is started from the open chat itself, so no chat list is offered here.
         return {
             pending: (snapshot.wallet?.pending ?? []).map(({ id, origin, account, problem }) => ({ id, origin, account, problem })),
             controls: snapshot.tabControls ?? [],
             browsers: (snapshot.browsers ?? []).filter((browser) => browser.isEnabled).map((browser) => browser.name),
-            chats: (Array.isArray(chats) ? chats : []).map((chat) => ({ name: chat.name, agent: chat.agent })),
         };
     }
     if (method === 'tab-tabs') return await (await engine(params.root)).request('tab-control-tabs', strings(params, ['browser']));
@@ -149,7 +148,7 @@ async function handle(method, params) {
                     events: async (after, signal) => await client.request('voice-media-events', { name: chat, grant: started.grant, after, wait: 15_000 }, 30_000, signal),
                 },
                 surface: factory,
-                hint: 'Controls are in the bar above. Closing this view ends the voice call; the chat and its work continue.',
+                hint: 'Voice controls are in the chat above. Leaving the chat or closing this window ends the call; the chat and its work continue.',
                 onState: () => undefined,
             });
         });

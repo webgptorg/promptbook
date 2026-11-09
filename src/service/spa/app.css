@@ -1464,3 +1464,79 @@ button.link {
     font-size: 13px;
     color: var(--muted);
 }
+
+/* Realtime voice in the open chat: the Voice indicator of spoken messages, replay, and the call beside the composer. */
+.notice.warning {
+    border-left-color: var(--warning);
+}
+
+.message-voice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 6px;
+    font-size: 0.85rem;
+}
+
+.message-voice audio {
+    height: 32px;
+    max-width: 100%;
+}
+
+.message-voice button {
+    padding: 2px 10px;
+    font-size: 0.85rem;
+}
+
+.voice-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.voice-panel {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--muted);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+}
+
+.voice-panel.live {
+    border-left-color: var(--accent);
+}
+
+.voice-panel .caption {
+    font-style: italic;
+}
+
+.voice-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+button.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .voice-panel.live .voice-badge {
+        animation: voice-pulse 1.6s ease-in-out infinite;
+    }
+}
+
+@keyframes voice-pulse {
+    50% {
+        opacity: 0.55;
+    }
+}

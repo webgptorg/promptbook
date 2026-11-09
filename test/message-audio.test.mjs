@@ -3,7 +3,7 @@ import { mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { parseChatBook } from '../dist/chats/chat-book.js';
-import { appendMessageAudio, messageAudioLabel, parseMessageAudio, renderMessageAudio, resolveMessageAudio } from '../dist/chats/message-audio.js';
+import { appendMessageAudio, messageAudioLabel, messageVoiceLabel, parseMessageAudio, renderMessageAudio, resolveMessageAudio } from '../dist/chats/message-audio.js';
 import { ChatStore } from '../dist/chats/store.js';
 import { matchCommitmentKeyword } from '../dist/book/commitments.js';
 import { projectAt } from '../dist/project/workspace.js';
@@ -37,6 +37,13 @@ test('CHAT MESSAGE AUDIO: one multiword keyword binding speech to the exact prec
     assert.equal(messageAudioLabel(chat.messages[1].audio), 'audio interrupted');
     assert.equal(messageAudioLabel(chat.messages[0].audio), 'audio available');
     assert.equal(messageAudioLabel(undefined), undefined);
+    // The Voice indicator: durable from the binding with the actual capture state, or live while recording finalizes.
+    assert.equal(messageVoiceLabel(chat.messages[0].audio), 'Voice · recording available');
+    assert.equal(messageVoiceLabel(chat.messages[1].audio, 'finalizing'), 'Voice · recording interrupted');
+    assert.equal(messageVoiceLabel(undefined, 'finalizing'), 'Voice · recording finalizing…');
+    assert.equal(messageVoiceLabel(undefined, 'unavailable'), 'Voice · recording unavailable');
+    assert.equal(messageVoiceLabel([{ status: 'incomplete' }, { status: 'complete' }]), 'Voice · recording incomplete · 2 segments');
+    assert.equal(messageVoiceLabel(undefined), undefined, 'a typed message has no voice indicator');
 });
 
 test('CHAT MESSAGE AUDIO diagnostics: orphan bindings, malformed JSON or timing and escaping paths keep the text and bind nothing', () => {

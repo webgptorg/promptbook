@@ -36,4 +36,23 @@ function terminalSize(cols, rows) {
     return { cols: Math.max(20, Math.min(500, Math.trunc(Number(cols) || 80))), rows: Math.max(10, Math.min(250, Math.trunc(Number(rows) || 24))) };
 }
 
-module.exports = { PAGES, ACTIONS, localDashboardUrl, terminalArguments, dashboardPage, terminalSize };
+/** Path of a voice intent a desktop window's dashboard hands to its own shell (a popup the shell refuses). */
+const VOICE_INTENT_PATH = '/.ptbk-desktop/voice';
+/** Voice intents a chat view may hand to its shell: start in this chat, its call controls, and leaving the chat view. */
+const VOICE_INTENTS = new Set(['start', 'end', 'leave', 'mute-mic', 'unmute-mic', 'mute-output', 'unmute-output']);
+
+/**
+ * Reads a voice intent of the window's own dashboard: the dashboard's origin and path, this view's token, a known
+ * action and the chat it is bound to. Anything else is not an intent (and is never acted on).
+ */
+function voiceIntent(target, origin, token) {
+    let url;
+    try { url = new URL(target); } catch { return undefined; }
+    if (url.origin !== origin || url.pathname !== VOICE_INTENT_PATH || typeof token !== 'string' || token.length < 16) return undefined;
+    const action = url.searchParams.get('action');
+    const chat = url.searchParams.get('chat');
+    if (url.searchParams.get('intent') !== token || !VOICE_INTENTS.has(action) || !chat || chat.length > 4096 || /[\u0000-\u001f]/.test(chat)) return undefined;
+    return { action, chat };
+}
+
+module.exports = { PAGES, ACTIONS, VOICE_INTENT_PATH, localDashboardUrl, terminalArguments, dashboardPage, terminalSize, voiceIntent };

@@ -625,6 +625,7 @@ export class ServiceHost {
             case 'chat-read':
             case 'chat-seen':
             case 'chat-create':
+            case 'chat-open':
             case 'chat-send':
                 // The authenticated local control channel of the engine host may attach local files.
                 return await applyChatAction(agenda, method, params, typeof params.via === 'string' ? params.via : 'cli', { trusted: true });

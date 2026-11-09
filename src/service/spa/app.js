@@ -11,6 +11,11 @@
     /** The desktop window opts into a different layout for the same local dashboard. */
     const desktop = new URLSearchParams(location.search).get('view') === 'desktop';
     document.documentElement.toggleAttribute('data-desktop', desktop);
+    /**
+     * The desktop shell's per-view voice intent token: only a desktop window's dashboard has one, and only its shell
+     * (which owns the microphone and the media view) acts on voice intents carrying it.
+     */
+    const desktopIntent = desktop ? new URLSearchParams(location.search).get('intent') : null;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const state = {
         snapshot: null,
@@ -68,6 +73,12 @@
         bookDrafts: new Map(),
         /** Unsaved drafts of ordinary text files edited in the desktop workspace (kept across closing and failed saves). */
         textDrafts: new Map(),
+        /** The chat this view started voice in (leaving that chat view ends its call, as closing a terminal chat does). */
+        voiceOwner: null,
+        /** Voice guidance shown in a chat after a refused start (setup, unsupported harness), by chat name. */
+        voiceNotes: new Map(),
+        /** Replay players of recorded messages, by `chat#message#segment` (kept across re-renders while playing). */
+        players: new Map(),
         /** The identity of this Files view: successive imports from it into one folder share a commit batch. */
         filesView: `files-${Math.random().toString(36).slice(2, 10)}`,
     };
@@ -133,11 +144,169 @@
         setTimeout(() => element.remove(), 3500);
     }
 
-    /** Label of a message's recorded speech (the same rule as the terminal): available, interrupted or incomplete. */
-    function messageAudioLabel(audio) {
-        if (!audio || !audio.length) return '';
-        const state = audio.some((segment) => segment.status === 'incomplete') ? 'audio incomplete' : audio.some((segment) => segment.status === 'interrupted') ? 'audio interrupted' : 'audio available';
-        return audio.length > 1 ? `${state} · ${audio.length} segments` : state;
+    /**
+     * The Voice indicator of a spoken message (the same rule as the terminal), or '' for a typed one: its durable
+     * CHAT MESSAGE AUDIO recording with the actual capture state, or, during its call, a recording that still finalizes
+     * or could not be saved.
+     */
+    function messageVoiceLabel(audio, live) {
+        if (audio && audio.length) {
+            const state = audio.some((segment) => segment.status === 'incomplete') ? 'recording incomplete' : audio.some((segment) => segment.status === 'interrupted') ? 'recording interrupted' : 'recording available';
+            return `Voice · ${audio.length > 1 ? `${state} · ${audio.length} segments` : state}`;
+        }
+        if (live === 'finalizing' || live === 'saved') return 'Voice · recording finalizing…';
+        if (live === 'unavailable') return 'Voice · recording unavailable';
+        return '';
+    }
+
+    /** Whether a voice call view is still live (not ended or failed). */
+    function voiceLive(call) {
+        return Boolean(call) && call.state !== 'ended' && call.state !== 'failed';
+    }
+
+    /**
+     * Hands a voice intent for one chat to this desktop window's shell, which owns the call's media and microphone:
+     * the shell refuses this popup and acts only on its own view token, so this page never navigates. The project API
+     * itself never starts calls.
+     */
+    function desktopVoice(action, chat) {
+        if (!desktopIntent) return;
+        const target = new URL('/.ptbk-desktop/voice', location.origin);
+        target.searchParams.set('intent', desktopIntent);
+        target.searchParams.set('action', action);
+        target.searchParams.set('chat', chat);
+        window.open(target.href, '_blank', 'noopener,noreferrer');
+    }
+
+    /**
+     * Starts voice in the open chat through the shared availability check: unsupported or incomplete setup is shown in
+     * this chat with its next action; otherwise the shell starts the call bound to this chat (navigation never retargets it).
+     */
+    async function startVoice(name) {
+        const key = `voice:${name}`;
+        if (state.busy.has(key)) return;
+        state.busy.add(key);
+        state.voiceNotes.delete(name);
+        render(state.snapshot);
+        try {
+            const report = await api(`/api/chats/${encodeURIComponent(name)}/voice`);
+            if (!report.selected) state.voiceNotes.set(name, report.guidance || 'No voice-capable harness is ready. Text chat keeps working.');
+            else {
+                state.voiceOwner = name;
+                desktopVoice('start', name);
+            }
+        } catch (error) {
+            state.voiceNotes.set(name, `Voice is not available: ${error.message}. Text chat keeps working.`);
+        } finally {
+            state.busy.delete(key);
+        }
+        render(state.snapshot);
+    }
+
+    /**
+     * Starts voice in a new chat before its first message: the view's ordinary Book is prepared (no message, nothing
+     * dispatched) with the same request key as its first send, the unsent draft moves with it, and voice starts there.
+     */
+    async function startVoiceInNewChat(agent) {
+        if (state.busy.has('new-chat')) return;
+        state.busy.add('new-chat');
+        render(state.snapshot);
+        let name;
+        try {
+            state.newChatKey = state.newChatKey || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+            name = (await api('/api/chats', { method: 'POST', body: { open: true, ...(agent ? { agent } : {}), requestKey: state.newChatKey } })).name;
+            state.newChatKey = null;
+            const draft = state.drafts.get('chat:new');
+            if (draft) state.drafts.set(`chat:${name}`, draft);
+            state.drafts.delete('chat:new');
+        } catch (error) {
+            toast(`Voice not started: ${error.message}`);
+        } finally {
+            state.busy.delete('new-chat');
+        }
+        if (!name) return render(state.snapshot);
+        openChat(name);
+        await startVoice(name);
+    }
+
+    /** A call control from the owning chat (mute, unmute, end), carried out by this window's shell. */
+    function voiceControl(name, action) {
+        if (action === 'end' && state.voiceOwner === name) state.voiceOwner = null;
+        desktopVoice(action, name);
+    }
+
+    /** Plays one recorded segment of a message (inspection only: nothing is resent or dispatched). */
+    async function replayRecording(name, message, segment) {
+        const key = `${name}#${message}#${segment}`;
+        if (state.players.has(key)) return;
+        try {
+            const response = await fetch(`/api/chats/${encodeURIComponent(name)}/audio?message=${message}&segment=${segment}`, { credentials: 'same-origin', cache: 'no-store', headers: { 'X-PTBK-Client': 'dashboard', ...(state.csrf ? { 'X-PTBK-CSRF': state.csrf } : {}) } });
+            if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || `HTTP ${response.status}`);
+            const source = URL.createObjectURL(await response.blob());
+            const player = h('audio', { controls: true, src: source, preload: 'auto', 'aria-label': `Recording of message ${message}${segment ? `, segment ${segment + 1}` : ''}` });
+            state.players.set(key, player);
+            // Only a few players stay loaded; the oldest are released.
+            while (state.players.size > 8) {
+                const [oldest, element] = state.players.entries().next().value;
+                URL.revokeObjectURL(element.src);
+                state.players.delete(oldest);
+            }
+            render(state.snapshot);
+            player.play().catch(() => undefined);
+        } catch (error) {
+            toast(`Recording unavailable: ${error.message}`);
+        }
+    }
+
+    /** The Voice indicator, actual capture state and replay of one spoken message (typed messages get nothing). */
+    function renderMessageVoice(name, message, position, live) {
+        const label = messageVoiceLabel(message.audio, live);
+        if (!label) return null;
+        const segments = message.audio || [];
+        return h(
+            'div',
+            { className: 'message-voice' },
+            h('span', { className: 'voice-badge' }, 'Voice'),
+            h('span', { className: 'muted' }, label.replace(/^Voice · /, '')),
+            ...segments.map((_segment, index) => state.players.get(`${name}#${position}#${index}`) || h('button', { className: 'small', 'aria-label': `Play the recording of message ${position}${segments.length > 1 ? `, segment ${index + 1}` : ''}`, onclick: () => replayRecording(name, position, index) }, segments.length > 1 ? `▶ ${index + 1}` : '▶ Play')),
+        );
+    }
+
+    /**
+     * The call of the open chat: its actual state, provisional captions and problems, and in a desktop window its
+     * microphone, sound and End controls (bound to this chat, never to whichever chat is displayed later).
+     */
+    function renderVoicePanel(name, call) {
+        const live = voiceLive(call);
+        if (!live && !(call.archive || []).length && Date.now() - Date.parse(call.endedAt || '') > 30000) return null;
+        const labels = {
+            connecting: 'connecting…',
+            'awaiting-browser': call.mic === 'denied' ? 'microphone denied: allow it for Promptbook, then start voice again' : call.mic === 'missing' ? 'no microphone found' : call.playback === 'blocked' ? 'click the voice view to allow sound' : call.page === 'connected' ? 'waiting for the microphone: allow it when asked' : 'preparing the voice view…',
+            listening: 'listening',
+            speaking: `${call.agent} is speaking`,
+            reconnecting: 'the voice view closed; it reconnects or the call ends',
+            ending: 'ending…',
+            ended: 'ended',
+            failed: 'failed',
+        };
+        return h(
+            'div',
+            { className: `voice-panel${live ? ' live' : ''}`, role: 'status', 'aria-label': 'Voice call' },
+            h('div', {}, h('span', { className: 'voice-badge' }, 'Voice'), ` ${labels[call.state] || call.state}`, live ? h('span', { className: 'muted' }, ` · microphone ${call.micMuted ? 'muted' : 'on'} · sound ${call.outputMuted ? 'muted' : 'on'}${call.tool ? ` · ${call.tool}` : ''}`) : null),
+            call.captions && call.captions.user ? h('div', { className: 'muted caption' }, `You (provisional): ${call.captions.user}`) : null,
+            call.captions && call.captions.assistant ? h('div', { className: 'muted caption' }, `${call.agent} (provisional): ${call.captions.assistant}`) : null,
+            call.problem ? h('div', { className: 'warn' }, call.problem) : null,
+            ...(call.archive || []).slice(-2).map((problem) => h('div', { className: 'warn' }, problem)),
+            live && desktopIntent
+                ? h(
+                      'div',
+                      { className: 'row voice-controls' },
+                      h('button', { onclick: () => voiceControl(name, call.micMuted ? 'unmute-mic' : 'mute-mic') }, call.micMuted ? 'Unmute microphone' : 'Mute microphone'),
+                      h('button', { onclick: () => voiceControl(name, call.outputMuted ? 'unmute-output' : 'mute-output') }, call.outputMuted ? 'Unmute sound' : 'Mute sound'),
+                      h('button', { className: 'danger', onclick: () => voiceControl(name, 'end') }, 'End voice chat'),
+                  )
+                : null,
+        );
     }
 
     /** Formats an ISO time as local short time. */
@@ -358,7 +527,7 @@
     }
 
     /** Text area with a persistent draft (survives re-renders and reconnects). */
-    function composer(key, label, onSend, disabled) {
+    function composer(key, label, onSend, disabled, extras = []) {
         const field = h('textarea', { 'data-draft': key, 'aria-label': label, placeholder: 'Type a message…', disabled });
         field.value = state.drafts.get(key) || '';
         field.addEventListener('input', () => state.drafts.set(key, field.value));
@@ -368,7 +537,7 @@
                 if (field.value.trim()) onSend(field.value);
             }
         });
-        return h('div', { className: 'composer' }, field, h('div', { className: 'row composer-actions' }, h('button', { className: 'primary', disabled, onclick: () => (field.value.trim() ? onSend(field.value) : field.focus()) }, 'Send'), h('span', { className: 'muted' }, 'Ctrl+Enter sends')));
+        return h('div', { className: 'composer' }, field, h('div', { className: 'row composer-actions' }, h('button', { className: 'primary', disabled, onclick: () => (field.value.trim() ? onSend(field.value) : field.focus()) }, 'Send'), ...extras, h('span', { className: 'muted' }, 'Ctrl+Enter sends')));
     }
 
     function renderAttention(snapshot) {
@@ -478,6 +647,8 @@
         // Unseen explicit User pings: actually displaying one to an active viewer marks it seen for every client
         // (the question keeps waiting; seeing never answers it).
         const unseen = new Set((summary.pings || []).map((ping) => ping.message));
+        /** Messages the chat's call saved from speech, with their recording state (before the durable binding exists). */
+        const spoken = new Map(((chat.detail.voice && chat.detail.voice.spoken) || []).map((entry) => [entry.message, entry.recording]));
         state.chatObserver?.disconnect();
         const observer = unseen.size && 'IntersectionObserver' in window ? new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && markSeen(summary.name, Number(entry.target.dataset.message), entry.target)), { root: thread, threshold: 0 }) : null;
         state.chatObserver = observer;
@@ -497,8 +668,9 @@
                 h('div', { className: 'meta' }, h('strong', {}, user ? 'You' : message.sender), ` · ${time(message.at)}${message.phase === 'progress' ? ' · working…' : ''}`, pinged ? h('span', { className: 'warn' }, ' · asks you (new)') : null),
                 h('div', { className: 'text' }, message.text),
                 message.choices && message.choices.length ? h('div', { className: 'muted' }, `Offered: ${message.choices.join(' | ')}`) : null,
-                // Recorded speech of this same message (CHAT MESSAGE AUDIO), distinct from attachments; never resent.
-                messageAudioLabel(message.audio) ? h('div', { className: 'muted message-audio' }, `♪ ${messageAudioLabel(message.audio)}`) : null,
+                // A spoken message's Voice indicator and replay (its CHAT MESSAGE AUDIO is another form of this same
+                // message, distinct from attachments); typed messages keep their ordinary presentation.
+                renderMessageVoice(summary.name, message, position, spoken.get(position)),
             );
             thread.append(article);
             if (pinged && observer) observer.observe(article);
@@ -534,7 +706,15 @@
                 card.append(h('div', { className: 'choices', role: 'group', 'aria-label': 'Offered answers' }, summary.awaiting.choices.map((choice) => h('button', { className: 'primary', disabled: busy, onclick: () => sendMessage(summary.name, choice, messages.length) }, choice))));
             }
             if (!summary.humanFacing) card.append(h('p', { className: 'muted' }, 'An agent thread: your first message adds you as a participant.'));
-            card.append(composer(`chat:${summary.name}`, `Message to ${summary.agent || 'the agent'}`, (text) => sendMessage(summary.name, text, messages.length), busy));
+            // Voice belongs to this chat view: its call state and controls sit with the composer, which keeps working.
+            const call = chat.detail.voice;
+            if (call) {
+                const panel = renderVoicePanel(summary.name, call);
+                if (panel) card.append(panel);
+            }
+            const voiceStart = desktopIntent && summary.humanFacing && !voiceLive(call) ? [h('button', { className: 'voice-start', disabled: state.busy.has(`voice:${summary.name}`), onclick: () => startVoice(summary.name) }, 'Start voice chat')] : [];
+            card.append(composer(`chat:${summary.name}`, `Message to ${summary.agent || 'the agent'}`, (text) => sendMessage(summary.name, text, messages.length), busy, voiceStart));
+            if (state.voiceNotes.has(summary.name)) card.append(h('div', { className: 'notice warning', role: 'status' }, state.voiceNotes.get(summary.name)));
         } else card.append(h('p', { className: 'muted' }, 'A task-internal consultation between agents (read-only).'));
         return card;
     }
@@ -572,7 +752,7 @@
         if (state.newChat === 'chatter' && chatter) {
             state.newChatAgent = null;
             card.append(h('p', {}, 'Talking to ', h('strong', {}, chatter.name)));
-            card.append(composer('chat:new', `First message to ${chatter.name}`, (text) => startChat(chatter.reference, text), state.busy.has('new-chat')));
+            card.append(composer('chat:new', `First message to ${chatter.name}`, (text) => startChat(chatter.reference, text), state.busy.has('new-chat'), desktopIntent ? [h('button', { className: 'voice-start', disabled: state.busy.has('new-chat'), onclick: () => startVoiceInNewChat(chatter.reference) }, 'Start voice chat')] : []));
         } else {
             const select = h('select', { 'aria-label': 'Agent', 'data-draft': 'chat:new-agent' });
             // An agent chosen on the Agents page is preselected once.
@@ -588,7 +768,7 @@
             if (state.drafts.get('chat:new-agent')) select.value = state.drafts.get('chat:new-agent');
             select.addEventListener('change', () => state.drafts.set('chat:new-agent', select.value));
             card.append(h('div', { className: 'row' }, h('label', {}, 'Talk to ', select)));
-            card.append(composer('chat:new', 'First message', (text) => startChat(select.value, text), state.busy.has('new-chat')));
+            card.append(composer('chat:new', 'First message', (text) => startChat(select.value, text), state.busy.has('new-chat'), desktopIntent ? [h('button', { className: 'voice-start', disabled: state.busy.has('new-chat'), onclick: () => startVoiceInNewChat(select.value) }, 'Start voice chat')] : []));
         }
         card.append(h('p', { className: 'muted' }, 'Every message is saved in chats/ and committed. Agents reply read-only and create ordinary tasks only when you ask for work.'));
         return card;
@@ -3482,6 +3662,13 @@
     /** Renders the home screen or the open page, preserving focus, drafts and scroll. */
     function render(snapshot) {
         if (!snapshot) return;
+        // Leaving the chat view that started voice closes its owning view: the shell ends that call (the chat and its
+        // work continue), exactly as closing a terminal chat does.
+        if (state.voiceOwner && !(state.page === 'chats' && !state.newChat && state.chat && state.chat.name === state.voiceOwner)) {
+            const owner = state.voiceOwner;
+            state.voiceOwner = null;
+            desktopVoice('leave', owner);
+        }
         const previousThread = app.querySelector('.messages[data-chat]');
         if (previousThread) state.chatScroll.set(previousThread.dataset.chat, { top: previousThread.scrollTop, bottom: previousThread.scrollHeight - previousThread.scrollTop - previousThread.clientHeight < 24 });
         state.chatObserver?.disconnect();
@@ -3561,7 +3748,9 @@
                     const replying = (snapshot.chats.replying || []).includes(state.chat.name) || Boolean(state.chat.detail.live);
                     const recheck = (snapshot.chats.rechecks || []).find((item) => item.chat === state.chat.name);
                     const recheckChanged = (recheck && recheck.nextAt) !== (state.chat.detail.recheck && state.chat.detail.recheck.nextAt);
-                    if (summary && (replying || recheckChanged || summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
+                    // A live call changes state, captions and recordings without new messages.
+                    const calling = (snapshot.chats.voice || []).includes(state.chat.name) || voiceLive(state.chat.detail.voice);
+                    if (summary && (replying || calling || recheckChanged || summary.messages !== state.chat.detail.messages.length || summary.status !== state.chat.detail.summary.status)) loadChat(state.chat.name);
                 }
                 if (snapshot.service.state === 'stopped' || snapshot.service.state === 'finished') {
                     // An exited engine is an observation; the page never starts or recreates a service.

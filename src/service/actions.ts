@@ -239,8 +239,14 @@ export async function applyChatAction(agenda: Agenda, method: string, params: Re
         case 'chat-create': {
             // A new human chat without an explicit target goes to Chatter (diagnosed, never silently replaced).
             const agent = text('agent') || defaultChatAgent(agenda.chatAgents()).reference;
-            const written = await agenda.chatCreate(agent, text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined, segments });
+            const written = await agenda.chatCreate(agent, text('text'), { name: text('title') || undefined, requestKey: text('requestKey') || undefined, via, segments });
             return { name: written.chat.name, path: written.relativePath, commit: written.commit, persistence: written.persistence, messages: written.chat.messages.length };
+        }
+        case 'chat-open': {
+            // A new chat view's Book without a message yet (voice set up before the first message); it shares the
+            // view's request key with its first send, so both resolve to one chat. Nothing is dispatched.
+            const agent = text('agent') || defaultChatAgent(agenda.chatAgents()).reference;
+            return await agenda.chatOpen(agent, { ...(text('title') ? { title: text('title') } : {}), ...(text('requestKey') ? { requestKey: text('requestKey') } : {}) });
         }
         case 'chat-send': {
             const expected = typeof params.expected === 'number' ? params.expected : undefined;
