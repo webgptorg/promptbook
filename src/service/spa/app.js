@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- * Promptbook browser dashboard: a small framework-free client of the project service API.
+ * Shared graphical client of the project service API, including the deprecated standalone browser entry.
  * All live data comes from /api/state (long polling); all controls go through the API.
  * Each home tile opens a full page (#/<page>, Back returns).
  */

@@ -16,6 +16,16 @@ Distinguish saved-to-file, pending Git, committed and failed persistence. A dura
 
 [Message audio](../book-language/commitments/chat-message-audio.md) is a primary chat asset: include finalized user/agent recordings and their Book bindings in the owning conversation batch by default, independently of trace/video settings. Save text immediately, finalize bounded media segments and never commit a new binding without its finalized file or a previously committed asset. Preserve ordinary no-commit/ignore rules, report incomplete archival and retry only persistence after failure.
 
+## Desktop file operations
+
+The engine owns [desktop Files](files.md#desktop-text-editing-and-bulk-operations) writes, exact accepted revisions, recovery and commits. Treat one import (including a directory tree) as one logical operation. Preflight its write set before mutating the tree. Persist enough operation state to recover or identify partially applied items after an interruption. Complete the accepted logical operation before committing it. A single Git commit groups the changes in history. File-operation recovery must handle individual filesystem writes separately.
+
+Save accepted ordinary text and import changes promptly. Combine compatible changes, such as repeated saves of the same text file or successive imports into the same destination from the same Files view, after **15 seconds of quiet**, with a hard cap of **60 seconds from the first accepted change**. If an accepted import is still writing when the cap expires, flush at its safe completion. Bulk deletion is a distinct confirmed operation with its own commit. Explicit Book saves keep their existing scoped commit path. Explicit uncommitted workflows and ignore rules remain authoritative.
+
+Track the exact paths and accepted content. Use shared ownership and revision checks to preserve unrelated staging and concurrent edits. Before a competing engine write or conflicting synchronization can change an affected path, safely flush the applicable pending commit or report/defer the conflict. Unrelated work can proceed. If a task already owns the file or an external edit invalidates the accepted revision, preserve both sides and report the block. Never stage a changed working copy as if it were the accepted version.
+
+Distinguish **Saved · Pending commit**, **Committed**, and any blocked or failed persistence with its cause. **Commit now** flushes the selected safe batch early. After interruption, resume or reconcile its persistence without replaying the user operation. Empty/no-op batches create no commit. Commit subjects describe the operation under the usual `ptbk: ` prefix, for example `ptbk: Import 12 files into docs/assets`, and metadata identifies Promptbook Desktop as the operation source. Local commits still occur during task Pause. Remote publication follows [Git synchronization](git-synchronization.md) and is separate from local persistence.
+
 ## Commit messages and history
 
 Every automatic engine subject starts with lowercase `ptbk: `, exactly once, followed by a meaningful operation summary. When actual agent work is responsible, include that agent's compact single-line textual visualization in backticks, using its shared [visual identity](../agents/visual-identity.md). Use the stable static identity, not an animation frame or a made-up system agent.

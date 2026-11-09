@@ -28,7 +28,7 @@ Credential references are readable, actual credentials are not. Where adding a s
 
 Expose the shared saved [brief](project-report.md), original time and actual availability/persistence/generation state, without calling Chatter on read. Explicit Refresh coalesces scheduled work subject to task pause and actual resource availability. Discuss creates a new normal chat seeded with the displayed snapshot/provenance and ordinary first-User-message MODEL routing.
 
-Expose bounded read-only External activity log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport.
+Expose bounded read-only External activity log, [History](history.md) and [Files](files.md), actual verified task/chat/evidence links and honest missing history. Confine files, hide protected/secret paths and sanitize untrusted content. Book viewing/editing shares one long-document model, without whole-history responses each refresh. Retain current local authentication/origin boundaries; add no remote transport. Desktop file writes use authenticated engine operations with preflight, revision/ownership checks, per-operation results and explicit local persistence state under the [desktop Files contract](files.md#desktop-text-editing-and-bulk-operations).
 
 ## Wallet and encryption boundary
 
@@ -56,11 +56,11 @@ Clients observe fresh changes from every channel. Inspection is read-only, inclu
 
 Bind HTTP only to `127.0.0.1`. Accept only the listener's exact `127.0.0.1:<port>` or `localhost:<port>` Host and matching HTTP Origin, and reject forwarded headers and cross-origin/cross-site fetches before serving assets or API. Never trust a proxy to grant local authority.
 
-The local browser bootstraps with `GET /api/session` and `X-PTBK-Client: dashboard`, then sends the returned in-memory `csrf` capability as `X-PTBK-CSRF` for API reads and writes. No pairing, persistent device session or cookie is created. Direct local clients use `Authorization: Bearer <token>` with the credential in the owner-readable ignored `.ptbk/service/process.json`; it changes when the engine restarts. Ordinary snapshots never disclose either credential. Old remote tokens and device cookies confer no authority. Keep Wallet owner-only recovery-word presentation restricted to local browser/terminal surfaces, not direct API clients.
+The shared local graphical view and the deprecated standalone browser entry bootstrap with `GET /api/session` and `X-PTBK-Client: dashboard`, then send the returned in-memory `csrf` capability as `X-PTBK-CSRF` for API reads and writes. The standalone entry creates no pairing, persistent device session or cookie. The packaged Android client has an additional app-owned bootstrap credential. Direct local clients use `Authorization: Bearer <token>` with the credential in the owner-readable ignored `.ptbk/service/process.json`; it changes when the engine restarts. Ordinary snapshots never disclose either credential. Old remote tokens and device cookies confer no authority. Keep Wallet owner-only recovery-word presentation restricted to local browser/terminal surfaces, not direct API clients.
 
 Reject invalid/stale credentials and access outside scope, prevent caching of private responses and never expose unredacted diagnostics or profile contents.
 
-Client failure cannot stop a daemon, reset state or duplicate tasks. The lightweight [SPA](dashboard.md) is a consumer at `/`; host-wide [global discovery](global-dashboard.md) is a separate local inventory, not silently extended project API authority.
+Client failure cannot stop a daemon, reset state or duplicate tasks. The shared [SPA](dashboard.md) serves packaged clients at `/`. Standalone access is deprecated. Host-wide [global discovery](global-dashboard.md) is a separate local inventory, not silently extended project API authority.
 
 Book-source inspection/editing is available through the shared operations, including source revision checks, nonblocking content warnings, scoped commits and ordinary repair task context. Chat and required first-message routing remain available alongside queued work and during scheduling pause; creating a task then saves it pending. Source edits cannot change engine-owned Expert definitions or overwrite another operation's changes.
 

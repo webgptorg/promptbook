@@ -1,5 +1,13 @@
 # Unreleased
 
+- Specify the read-only desktop History graph and current changes, including current branch plus upstream, optional local branches and verified working-tree provenance.
+
+- Specify engine-owned desktop Files imports, bulk operations and scoped Git batches, including the 15-second quiet period and 60-second cap. Manual saves and local commits continue during task Pause. Specify that Pause suspends periodic Git synchronization and retries, while allowing manual synchronization and synchronization around actual commits with autosync enabled.
+
+- Specify the shared Windows and macOS desktop workspace, including preview/regular/pinned tabs, document window moves and restoration, the Wallet recovery modal, and Monaco backed by the shared Book language logic.
+
+- Mark the standalone browser dashboard as deprecated in favor of the Promptbook App connector. The notice is scoped to direct browser access.
+
 - Retain redacted browser startup diagnostics in every native Wallet fixture instead of letting a failed browser open become a later login assertion. Include real device-approval sign-in in the Windows and macOS browser checks.
 
 - Select the newest Debian package revision from the signed Termux index when building Android, regardless of index order. Retained older Node builds can otherwise require an ICU version no longer supplied by the index. Verify both index orders and native Debian version comparisons before release.

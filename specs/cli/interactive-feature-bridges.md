@@ -10,7 +10,7 @@ The terminal dashboard and the local Windows/macOS dashboard expose the same pro
 - The terminal presenter uses one reusable helper for creating a temporary server, authorizing one surface, observing attachment/loss and closing the server. The CLI process rendering the dashboard or standalone interactive view starts and owns that server in process. Each operation gets a separate listener and scoped access. Feature-specific media, inputs and controls plug into the helper.
 - The desktop presenter embeds media and controls in the graphical client using the same domain operations over a trusted local client connection. It needs no terminal feature server, external browser window or duplicate feature state machine. An actual CLI view opened in the embedded terminal follows the terminal rules.
 
-The temporary server has its own lifetime and works with the project HTTP API and browser dashboard disabled (`--no-server`). The engine's scheduling and lifecycle remain independent of the surface.
+The temporary server has its own lifetime and works with the project loopback HTTP service disabled (`--no-server`). The engine's scheduling and lifecycle remain independent of the surface.
 
 ## Open one local surface
 

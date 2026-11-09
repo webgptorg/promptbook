@@ -132,6 +132,14 @@ test('loopback HTTP boundary: local bootstrap and controls, rebinding/proxy reje
         request.end();
     });
     assert.match(server.url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
+    for (const path of ['', 'index.html']) {
+        const standalone = await fetch(`${server.url}${path}`);
+        assert.equal(standalone.status, 200);
+        assert.match(await standalone.text(), /Standalone browser dashboard deprecated/);
+    }
+    const desktop = await fetch(`${server.url}?view=desktop`);
+    assert.equal(desktop.status, 200);
+    assert.doesNotMatch(await desktop.text(), /Standalone browser dashboard deprecated/);
     assert.equal((await fetch(`${server.url}api/session`)).status, 401);
     for (const headers of [{ Host: 'evil.example' }, { Origin: 'https://evil.example' }, { Origin: 'http://localhost:1' }, { 'X-Forwarded-Host': new URL(server.url).host }, { 'X-Forwarded-Proto': 'https' }, { Forwarded: 'for=127.0.0.1' }, { 'Sec-Fetch-Site': 'cross-site' }, { 'Sec-Fetch-Site': 'same-site' }]) {
         assert.equal(await requestStatus('api/session', { 'X-PTBK-Client': 'dashboard', ...headers }), 409, JSON.stringify(headers));
@@ -188,6 +196,7 @@ test('embedded dashboard requires a private application credential before mintin
     assert.equal((await session({ Cookie: 'ptbk-app=unrelated' })).status, 401);
     const dashboard = await fetch(server.url, { headers: { 'X-PTBK-App': options.dashboardAccessKey } });
     assert.equal(dashboard.status, 200);
+    assert.doesNotMatch(await dashboard.text(), /Standalone browser dashboard deprecated/);
     const cookie = dashboard.headers.get('set-cookie');
     assert.match(cookie, /HttpOnly; SameSite=Strict/);
     const headers = { Cookie: cookie.split(';')[0] };

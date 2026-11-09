@@ -41,7 +41,7 @@ const MAX_BODY_BYTES = 64 * 1024;
 const MAX_WALLET_BODY_BYTES = 16 * 1024 * 1024;
 
 /**
- * Static assets of the browser dashboard (served from the installation).
+ * Shared graphical client assets, also used by the deprecated standalone browser dashboard.
  */
 const STATIC_FILES: Readonly<Record<string, string>> = {
     '/': 'index.html',
@@ -217,7 +217,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
                 'Cache-Control': asset === 'index.html' ? 'no-store' : 'private, max-age=300',
                 ...(bootstrap ? { 'Set-Cookie': `ptbk-app=${accessKey}; HttpOnly; SameSite=Strict; Path=/` } : {}),
             });
-            response.end(content);
+            // Label only the deprecated standalone entry. The desktop query selects presentation, not authority.
+            const standalone = asset === 'index.html' && accessKey === undefined && url.searchParams.get('view') !== 'desktop';
+            response.end(standalone
+                ? content.toString('utf8').replace('<!-- standalone-dashboard-notice -->', '<aside class="deprecation-notice"><strong>Standalone browser dashboard deprecated.</strong> Use the Promptbook App connector for browser access.</aside>')
+                : content);
             return;
         }
         if (!url.pathname.startsWith('/api/')) {

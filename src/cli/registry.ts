@@ -207,7 +207,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
         name: 'start',
         category: 'Run the agenda',
         summary: 'Start (or reuse) the ongoing agenda as a background service, then open its dashboard.',
-        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. It is the ongoing work launcher (there is no separate finite run): it executes eligible tasks one at a time, lets Router choose the agent and concrete MODEL of tasks that do not determine them (also ahead of future tasks), checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon and serves the local dashboard/API on a free loopback port (from 3000) for access on this computer. In an interactive terminal it then opens the ordinary project dashboard (the same viewer as \`ptbk dashboard\`; leaving it keeps the daemon running). With \`--no-dashboard\`, \`--raw\`, \`--non-interactive\` or redirected output it renders one status snapshot and returns the terminal.
+        description: `Successful \`ptbk init\` already starts the agenda; use start for an initialized, cloned or intentionally stopped project. It is the ongoing work launcher (there is no separate finite run): it executes eligible tasks one at a time, lets Router choose the agent and concrete MODEL of tasks that do not determine them (also ahead of future tasks), checks and commits each accepted result, and discovers goal-driven work when the backlog is empty. By default it launches a persistent daemon and serves the local HTTP API on a free loopback port (from 3000). The standalone browser dashboard is deprecated in favor of the Promptbook App connector. In an interactive terminal it then opens the ordinary project dashboard (the same viewer as \`ptbk dashboard\`; leaving it keeps the daemon running). With \`--no-dashboard\`, \`--raw\`, \`--non-interactive\` or redirected output it renders one status snapshot and returns the terminal.
 
 Missing setup is offered through the same initialization workflow when interactive; unattended starts report what is missing. Repeated start never starts another service or changes the running one's configuration or pause: it is start-or-open (the dashboard attaches) or, without a dashboard, one report.
 
@@ -227,7 +227,7 @@ With \`--paused\` an absent service starts with a manual pause active before any
             PRESENTATION_OPTIONS,
         ],
         examples: [
-            { command: 'ptbk start', description: 'Background agenda with local dashboard and reboot persistence.' },
+            { command: 'ptbk start', description: 'Background agenda with the terminal dashboard and reboot persistence.' },
             { command: 'ptbk start --paused', description: 'Make the service available for inspection and chat without running queued tasks.' },
             { command: 'ptbk start --foreground', description: 'Own the agenda in this terminal with the live dashboard.' },
             { command: 'ptbk start --no-dashboard', description: 'Start the daemon and return after one status snapshot.' },

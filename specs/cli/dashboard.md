@@ -1,8 +1,14 @@
-# Lightweight browser dashboard
+# Shared graphical dashboard and deprecated standalone browser entry
 
-[Main specification](../_main.md) · [Project service API](api.md)
+[Main specification](../_main.md) · [Project service API](api.md) · [Desktop client](desktop.md)
 
-Serve a lightweight JavaScript SPA at `/` on the project's HTTP server. It is a frontend for the independent authenticated API, not another service/queue. No separate frontend server/setup is needed. The engine runs with zero clients and many browser/terminal/API clients may attach without owning its lock.
+## Standalone entry deprecation
+
+Opening the full project dashboard directly in a regular browser at the engine's loopback address is **deprecated** and scheduled for removal. The [Promptbook App connector](../app/connection.md) is the supported browser entry for full project control. While the standalone entry exists, mark it as deprecated in the page and CLI help.
+
+Retire only the direct, standalone browser entry. The shared graphical renderer and authenticated loopback API still serve the packaged clients, including Electron and the app-protected Android WebView. The terminal dashboard and its [temporary feature bridges](interactive-feature-bridges.md) for voice and live browser tab control have separate entry points and lifetimes. New desktop workspace functionality belongs to the [Electron client](desktop.md).
+
+Serve the shared JavaScript SPA from the project's loopback HTTP service for packaged local clients. It consumes the independent authenticated API. The engine runs with zero clients or with multiple attached clients, which do not own its lock.
 
 Load static shell/assets, then obtain live state and send controls only through API. Render in the browser without server-rendered runtime fragments, page reloads or server-side form actions. Keep it small, without React or another frontend application framework. Scheduling, validation, management, health monitoring, synchronization and recovery live in shared engine/sub-engine/domain operations, not duplicated UI code.
 
@@ -36,9 +42,9 @@ Updates never steal focus, reset page/list choices or discard drafts/secret-entr
 
 Show loading, disconnection, observed service exit and failed/unconfirmed/pending operations truthfully. Refresh/closure/failure never starts/stops/recreates the service or duplicates work/messages. Mutations obey authorization and revision/ownership checks.
 
-No secret is echoed in ordinary state or diagnostic errors. App connection details live on the App page rather than forcing the home page taller, and the local address is not presented. The browser opens directly on the engine computer using the API's local bootstrap and same-origin safeguards. The global dashboard remains a separate host-wide terminal feature. See [controls](controls.md), [channels](channels.md) and [start](start.md).
+No secret is echoed in ordinary state or diagnostic errors. App connection details live on the App page rather than forcing the home page taller, and the local address is not presented. The deprecated standalone browser entry uses the same local bootstrap and same-origin safeguards while it exists. The global dashboard remains a separate host-wide terminal feature. See [controls](controls.md), [channels](channels.md) and [start](start.md).
 
-Opening the view only reads the shared saved report; no generation occurs. Discuss creates a new ordinary Chatter chat seeded with the exact displayed brief, while explicit Refresh coalesces engine work. External activity log, History and read-only Files use shared readers even with autosync off; Book viewing/editing shares a core and supports long sources.
+Opening the view only reads the shared saved report; no generation occurs. Discuss creates a new ordinary Chatter chat seeded with the exact displayed brief, while explicit Refresh coalesces engine work. External activity log, History and Files browsing use shared readers even with autosync off; Book viewing/editing shares a core and supports long sources.
 
 ## Session inspection and native entry
 
@@ -48,4 +54,4 @@ The browser shares the **Harnesses** tile/page replacing Current work, common se
 
 The optional [desktop client](desktop.md) is another local observer/controller. CLI remains the primary interface. `ptbk dashboard --view <page>` opens a named home page directly without changing service state; it conflicts with `--global`. Every graphical page can fall back to that CLI page in the embedded terminal.
 
-The standalone project web dashboard shares the normal project state, including Wallet and chat status. Direct [voice and tab-control media surfaces](interactive-feature-bridges.md) are specified for the local desktop app and interactive CLI. The project SPA and its HTTP server are separate from the temporary CLI feature servers.
+Packaged clients share the normal project state, including Wallet and chat status. Direct [voice and tab-control media surfaces](interactive-feature-bridges.md) are specified for the local desktop app and interactive CLI. The project SPA and its HTTP server are separate from the temporary CLI feature servers.

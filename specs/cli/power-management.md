@@ -24,7 +24,7 @@ Tie live requests to verified engine ownership and lifetime so crashes, force st
 
 ## System controls and status
 
-Place **Keep awake** under **System → Power** in the interactive terminal dashboard and the local desktop app. The local browser dashboard and noninteractive `ptbk` command use the same engine operations and status. The controls describe power on the engine host. Opening the page never activates protection. An operator can change the mode or turn it off while the engine is paused without acquiring a request until it runs.
+Place **Keep awake** under **System → Power** in the interactive terminal dashboard and the local desktop app. The deprecated standalone browser dashboard and noninteractive `ptbk` command use the same engine operations and status. The controls describe power on the engine host. Opening the page never activates protection. An operator can change the mode or turn it off while the engine is paused without acquiring a request until it runs.
 
 Show the saved choice separately from observed protection, with the current power source and an expiry where applicable. Show idle-sleep protection and closed-lid protection separately, including when the lid follows OS policy. For inactive or degraded protection, explain the reason, such as Paused, Waiting for external power, Local approval required, Unsupported or an adapter failure. An unreachable engine's last observation is historical. Show which verified projects are currently holding protection in the global dashboard. Show when the project last did task or chat work, or that no activity is known, so the operator can notice an idle project and decide whether to turn it off. Idle reporting is passive and independent of [sounds and notifications](notifications.md).
 

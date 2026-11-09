@@ -44,7 +44,7 @@ Stable macOS releases require Developer ID signing and Apple notarization with s
 
 ### Additional Android release artifact
 
-Build an ARM64 APK with the exact tagged engine, the Android runtime prerequisites and the local dashboard. Publish the signed APK and its SHA-256 checksum as assets on the same release. With no persistent signing key, use a clearly labelled preview signed for that build. Installing an update over an existing copy requires the same signing identity.
+Build an ARM64 APK with the exact tagged engine, the Android runtime prerequisites and the app-protected Android WebView of the shared graphical dashboard. Publish the signed APK and its SHA-256 checksum as assets on the same release. With no persistent signing key, use a clearly labelled preview signed for that build. Installing an update over an existing copy requires the same signing identity.
 
 Check the APK signature, embedded version and native architecture. On branch changes, test the installed Android app in an emulator, including the real local engine, the setup Git commit, WebView access and the engine remaining available after the app goes to the background. The [Android installation guide](../../apps/android/README.md) describes the preview scope and signing setup.
 
