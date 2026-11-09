@@ -67,7 +67,7 @@ export type VoiceMediaInput = {
 };
 
 /**
- * Persisted natively accepted voice turns: chat key → message count accepted by the voice path.
+ * Persisted turns handled by native voice (spoken or supplied typed context): chat key → last accepted message.
  */
 type DispatchedState = { readonly version: 1; readonly chats: Record<string, number> };
 
@@ -280,7 +280,7 @@ export class VoiceCalls {
      * Delivers chat messages that arrived during a live call from elsewhere (typed text, written replies, task results)
      * to the voice session as context, once; the call's own utterances are skipped.
      */
-    public async observe(chatName: string, messages: readonly Pick<ChatMessage, 'sender' | 'text' | 'phase'>[]): Promise<void> {
+    public async observe(chatName: string, messages: readonly Pick<ChatMessage, 'sender' | 'senderKey' | 'text' | 'phase'>[]): Promise<void> {
         const key = nameKey(chatName);
         const call = this.calls.get(key);
         if (!call || call.over) return;
@@ -289,11 +289,14 @@ export class VoiceCalls {
         for (let index = from; index < messages.length; index++) {
             const message = messages[index]!;
             if (call.own.has(index + 1) || message.phase === 'progress') continue;
-            await call.supply(`New message in the chat from ${message.sender} (not spoken): ${message.text.slice(0, 4_000)}`);
+            // A typed user message delivered to native voice is handled by that conversation, not by a
+            // second ordinary text reply. Persist this before chatSend decides whether a reply is needed.
+            const delivered = await call.supply(`New message in the chat from ${message.sender} (not spoken): ${message.text.slice(0, 4_000)}`);
+            if (delivered && message.senderKey === 'user') await this.markDispatched(chatName, index + 1);
         }
     }
 
-    /** Messages of a chat accepted by the native voice path (a text reply never answers them again). */
+    /** Spoken or externally supplied user messages handled by native voice (no second text reply). */
     public async nativelyAccepted(chatName: string): Promise<number> {
         return (await this.state()).chats[nameKey(chatName)] ?? 0;
     }

@@ -538,4 +538,5 @@ test('engine: voice before the first message of a new chat shares one creation w
     await control(project, 'voice-control', { name, action: 'end' });
     await page.closed;
     assert.equal((await control(project, 'chat-get', { name })).messages.length, messages, 'ending voice keeps the history');
+    assert.equal(await turns(), before, 'typed input during native voice never starts a second text harness turn');
 });

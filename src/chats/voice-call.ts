@@ -467,9 +467,16 @@ export class VoiceCall {
         this.changed();
     }
 
-    /** Supplies a later chat message or backend outcome to the voice session as context. */
-    public async supply(text: string): Promise<void> {
-        await this.session?.supplyContext(text).catch((error: Error) => this.host.log(`Voice context in {${this.chat}} was not delivered: ${error.message}`));
+    /** Supplies external chat context; only a successful delivery counts as accepted by the voice session. */
+    public async supply(text: string): Promise<boolean> {
+        if (!this.session || this.over) return false;
+        try {
+            await this.session.supplyContext(text);
+            return true;
+        } catch (error) {
+            this.host.log(`Voice context in {${this.chat}} was not delivered: ${error instanceof Error ? error.message : String(error)}`);
+            return false;
+        }
     }
 
     /** Handles one provider event. */

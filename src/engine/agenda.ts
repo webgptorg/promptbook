@@ -1951,9 +1951,18 @@ export class Agenda {
         const { written, needsReply, replyAgent, replyAgents, waitingTask, answered } = await appendUserMessage(this.chats, this.state, name, text, { expected: options.expected, segments: options.segments, catalog: this.catalog });
         this.log(`Message in {${written.chat.name}}${options.via ? ` via ${options.via}` : ''}${answered && waitingTask ? ` answers ${questionAuthor(waitingTask)}'s question of "${waitingTask.taskTitle}"` : ''}${written.commit ? ` (${written.commit.slice(0, 8)})` : ''}.`);
         await this.refreshChats();
-        // Each addressed agent keeps its own request; an unaddressed message goes to the routed agent only.
-        if (replyAgents.length) for (const agent of replyAgents) this.queueChatReply(written.chat.name, { agent, followUp: true });
-        else if (needsReply) this.queueChatReply(written.chat.name, replyAgent ? { agent: replyAgent } : {});
+        // Typed input during native voice is already supplied to that session by refreshChats. Answering it
+        // again with the ordinary text harness creates an extra chat message (timing-dependent on CI and locally).
+        const voiceHandled = this.voiceCallsInstance ? (await this.voiceCallsInstance.nativelyAccepted(written.chat.name)) >= written.chat.messages.length : false;
+        const voiceAgent = voiceHandled ? this.voiceCallsInstance?.view(written.chat.name)?.agent : undefined;
+        if (replyAgents.length) {
+            for (const agent of replyAgents) {
+                if (voiceAgent && normalizeAgentName(agent.replace(/[@{}]/g, '')) === normalizeAgentName(voiceAgent)) {
+                    // The speaking agent received it as context; do not replay its address after a restart.
+                    await this.state.settleChatAddress(written.chat.name, agent);
+                } else this.queueChatReply(written.chat.name, { agent, followUp: true });
+            }
+        } else if (needsReply && !voiceHandled) this.queueChatReply(written.chat.name, replyAgent ? { agent: replyAgent } : {});
         this.wake();
         return written;
     }
