@@ -331,6 +331,8 @@ export class DesktopFiles {
     private journal: Journal = { batches: [], operations: [], recent: [] };
     private readonly reviews = new Map<string, PendingReview>();
     private readonly mutex = new Mutex();
+    /** Commits in flight by batch id: a deletion inside their paths waits for them instead of racing them. */
+    private readonly inflight = new Map<string, Promise<string | undefined>>();
     private timer?: NodeJS.Timeout;
     private loaded = false;
     private disposed = false;
@@ -929,6 +931,16 @@ export class DesktopFiles {
 
     /** Deletes a confirmed scope and commits it as its own operation. */
     private async applyDelete(review: FileOperationReview): Promise<FileOperationResult> {
+        const scope = review.items.filter((item) => item.status === 'ok').map((item) => item.path);
+        const inside = (path: string): boolean => scope.some((item) => path === item || path.startsWith(`${item}/`));
+        for (let attempt = 0; ; attempt++) {
+            // A batch committing paths of this scope finishes first; the deletion then removes what it committed
+            // (otherwise its accepted version would be verified against a file this deletion already removed).
+            const busy = this.journal.batches.filter((other) => other.state === 'committing' && Object.keys(other.paths).some(inside));
+            const running = busy.map((other) => this.inflight.get(other.id)).filter((promise): promise is Promise<string | undefined> => promise !== undefined);
+            if (!running.length || attempt >= 20) break;
+            await Promise.allSettled(running);
+        }
         const outcome = await this.mutex.run(async () => {
             const accepted: string[] = [];
             const conflicting: Array<{ path: string; reason: string }> = [];
@@ -1061,7 +1073,7 @@ export class DesktopFiles {
         // Without an id (a graceful stop, a due timer): pending and failed batches; blocked and interrupted ones wait for the user.
         const batches = this.journal.batches.filter((batch) => !batch.writing.length && batch.state !== 'committing' && (id ? batch.id === id : batch.state === 'pending' || batch.state === 'failed'));
         for (const batch of batches) {
-            const sha = await this.commitBatch(batch);
+            const sha = await this.tracked(batch);
             if (sha) commits.push(sha);
         }
         this.arm();
@@ -1073,14 +1085,25 @@ export class DesktopFiles {
     public async flushPaths(absolutePaths: readonly string[]): Promise<void> {
         const paths = absolutePaths.map((path) => this.relative(path)).filter((path): path is string => path !== undefined);
         const touched = this.journal.batches.filter((batch) => batch.state === 'pending' && !batch.writing.length && Object.keys(batch.paths).some((candidate) => paths.some((path) => path === candidate || path.startsWith(`${candidate}/`) || candidate.startsWith(`${path}/`))));
-        for (const batch of touched) await this.commitBatch(batch);
+        for (const batch of touched) await this.tracked(batch);
         if (touched.length) {
             this.arm();
             this.host.onChange();
         }
     }
 
-    /** Verifies and commits one batch. */
+    /** Commits one batch while it is known as in flight (a deletion of its paths waits for it). */
+    private async tracked(batch: Batch): Promise<string | undefined> {
+        const running = this.commitBatch(batch);
+        this.inflight.set(batch.id, running);
+        try {
+            return await running;
+        } finally {
+            if (this.inflight.get(batch.id) === running) this.inflight.delete(batch.id);
+        }
+    }
+
+    /** Verifies and commits one batch (see {@link DesktopFiles.flush}). */
     private async commitBatch(batch: Batch): Promise<string | undefined> {
         if (batch.state === 'committing' || !this.journal.batches.includes(batch)) return undefined;
         const subject = this.subject(batch);

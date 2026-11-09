@@ -194,7 +194,8 @@ test('desktop Files: imports preflight collisions, hidden descendants and escapi
 
 test('desktop Files: copies within the project and confirmed deletions with protected scopes; an interrupted import waits for review', async (t) => {
     const { project } = await projectFixture(t);
-    let session = desktopFiles(project);
+    // Batches here commit only when the test says so (a slow machine must not commit a batch mid-scenario).
+    let session = desktopFiles(project, { quietMs: 60_000, maxAgeMs: 120_000 });
     await session.files.recover();
     t.after(() => session.files.dispose());
     const { files } = session;
@@ -239,6 +240,21 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     await files.flush();
     assert.deepEqual(await log(project, 1), ['ptbk: Import 1 file into docs']);
     assert.equal(files.view().batches.length, 0);
+
+    // A deletion while that import's commit is in flight waits for it, then removes the committed file in its own commit.
+    const racing = await files.preflight({ kind: 'import', destination: 'docs', entries: [{ path: 'raced.txt', type: 'file' }, { path: 'stays.txt', type: 'file' }], view: 'w' });
+    const racingApplied = await files.apply({ id: racing.id });
+    for (const upload of racingApplied.uploads) await files.upload(racingApplied.id, upload.index, Readable.from([Buffer.from(`${upload.target}\n`)]));
+    await files.complete(racingApplied.id);
+    const racedRemoval = await files.preflight({ kind: 'delete', entries: [{ path: 'docs/raced.txt' }] });
+    const committing = files.flush();
+    assert.equal(files.view().batches.find((item) => item.paths.includes('docs/raced.txt'))?.state, 'committing');
+    await files.apply({ id: racedRemoval.id, confirm: true });
+    await committing;
+    assert.deepEqual(await log(project, 2), ['ptbk: Delete docs/raced.txt', 'ptbk: Import 2 files into docs']);
+    assert.equal(files.view().batches.length, 0, 'nothing is left blocked');
+    await assert.rejects(readFile(join(project, 'docs', 'raced.txt')), /ENOENT/);
+    assert.equal(await readFile(join(project, 'docs', 'stays.txt'), 'utf8'), 'docs/stays.txt\n');
 
     // An import interrupted by a restart: applied items are identified, the batch waits for review, nothing is replayed.
     const review = await files.preflight({ kind: 'import', destination: 'docs', entries: [{ path: 'p.txt', type: 'file' }, { path: 'q.txt', type: 'file' }], view: 'v' });
