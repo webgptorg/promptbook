@@ -65,7 +65,7 @@ function create(container, options) {
     return {
         editor,
         getText: () => model.getValue(),
-        /** Replaces the whole text as one undoable edit (loading the current source after a conflict). */
+        /** Replaces the whole text as one edit the user can undo (loading the current source after a conflict). */
         setText(text) {
             editor.pushUndoStop();
             editor.executeEdits('ptbk', [{ range: model.getFullModelRange(), text }]);

@@ -10,21 +10,55 @@ function changesOf(event) {
     return event.changes.map((change) => ({ offset: change.rangeOffset, length: change.rangeLength, text: change.text }));
 }
 
-/** Applies one recorded change event as its own undo step. */
-function apply(model, changes) {
-    const operations = changes.map((change) => {
-        const start = model.getPositionAt(change.offset);
-        const end = model.getPositionAt(change.offset + change.length);
-        return { range: { startLineNumber: start.lineNumber, startColumn: start.column, endLineNumber: end.lineNumber, endColumn: end.column }, text: change.text };
-    });
+/** Applies one undo step: its recorded change events, in order, as a single undo element. */
+function apply(model, step) {
     model.pushStackElement();
-    model.pushEditOperations([], operations, () => null);
+    for (const changes of step) {
+        const operations = changes.map((change) => {
+            const start = model.getPositionAt(change.offset);
+            const end = model.getPositionAt(change.offset + change.length);
+            return { range: { startLineNumber: start.lineNumber, startColumn: start.column, endLineNumber: end.lineNumber, endColumn: end.column }, text: change.text };
+        });
+        model.pushEditOperations([], operations, () => null);
+    }
     model.pushStackElement();
 }
 
 /**
- * Follows a model's history from its current text. With a transferred `history` (`{ base, undo, redo }`) the model must
- * hold `history.base`; its undo steps are replayed and its redo steps replayed and undone again first.
+ * The alternative version ids at which the model's undo elements end, so recorded changes keep Monaco's own grouping
+ * (consecutive typing is one undo step). Without that information every change event is its own step.
+ */
+function stepEnds(model) {
+    try {
+        const elements = model._undoRedoService.getElements(model.uri).past;
+        // An open element keeps its fields; a closed one is serialized (its after-version id is at byte 4, big-endian).
+        const end = (data) => (data instanceof ArrayBuffer ? new DataView(data).getUint32(4) : data && data.afterVersionId);
+        const ends = new Set(elements.map((element) => end(element._data)).filter(Number.isFinite));
+        return ends.size ? ends : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/** Splits recorded changes into undo steps that end at the given version ids (or one step per change). */
+function steps(entries, ends) {
+    const result = [];
+    let step = [];
+    for (const entry of entries) {
+        step.push(entry.changes);
+        if (!ends || ends.has(entry.alt)) {
+            result.push(step);
+            step = [];
+        }
+    }
+    if (step.length) result.push(step);
+    return result;
+}
+
+/**
+ * Follows a model's history from its current text. With a transferred `history` (`{ base, undo, redo }`, each a list of
+ * steps of change events) the model must hold `history.base`; its undo steps are replayed, then its redo steps are
+ * replayed and undone again.
  */
 export function trackHistory(model, history) {
     const base = history ? history.base : model.getValue();
@@ -49,18 +83,15 @@ export function trackHistory(model, history) {
         }
     });
     if (history) {
-        for (const changes of history.undo || []) apply(model, changes);
-        let undone = 0;
+        for (const step of history.undo || []) apply(model, step);
         // Redo groups are re-applied oldest first (the next redo is the last group), then undone again.
-        for (const group of [...(history.redo || [])].reverse()) for (const changes of group) {
-            apply(model, changes);
-            undone++;
-        }
-        for (let step = 0; step < undone; step++) model.undo();
+        const redone = [...(history.redo || [])].reverse();
+        for (const step of redone) apply(model, step);
+        for (let step = 0; step < redone.length; step++) model.undo();
     }
     return {
         /** The history to transfer with the document: the base text and the recorded undo and redo steps. */
-        export: () => ({ base, undo: undo.map((step) => step.changes), redo: redo.map((group) => group.map((step) => step.changes)) }),
+        export: () => ({ base, undo: steps(undo, stepEnds(model)), redo: redo.map((group) => group.map((step) => step.changes)) }),
         dispose: () => listener.dispose(),
     };
 }

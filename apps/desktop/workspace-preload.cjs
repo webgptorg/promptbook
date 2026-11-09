@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('desktopWorkspace', {
     save: (state) => ipcRenderer.send('workspace:save', state),
     locate: (key) => ipcRenderer.invoke('workspace:locate', String(key)),
     move: (document, target) => ipcRenderer.invoke('workspace:move', { document, target: String(target) }),
-    offer: (document) => ipcRenderer.invoke('workspace:offer', document),
+    offer: (document, token) => ipcRenderer.invoke('workspace:offer', document, String(token)),
     claim: (token) => ipcRenderer.invoke('workspace:claim', String(token)),
     accept: (id) => ipcRenderer.invoke('workspace:accept', String(id)),
     reject: (id, reason) => ipcRenderer.send('workspace:reject', { id: String(id), reason: String(reason || '') }),

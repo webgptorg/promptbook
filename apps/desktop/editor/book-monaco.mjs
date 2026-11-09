@@ -114,8 +114,8 @@ export function registerBook(monaco, language, configuration, hooks) {
         provideDefinition(model, position) {
             const reference = referenceAtOffset(language, model.getValue(), model.getOffsetAt(position));
             if (!reference) return;
-            const { name, normalized, ...range } = reference;
-            return [{ uri: monaco.Uri.from({ scheme: REFERENCE_SCHEME, path: `/${encodeURIComponent(name)}` }), range: { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 }, originSelectionRange: range }];
+            const { startLineNumber, startColumn, endLineNumber, endColumn } = reference;
+            return [{ uri: monaco.Uri.from({ scheme: REFERENCE_SCHEME, path: `/${encodeURIComponent(reference.name)}` }), range: { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 }, originSelectionRange: { startLineNumber, startColumn, endLineNumber, endColumn } }];
         },
     });
     monaco.languages.registerDocumentHighlightProvider('book', {

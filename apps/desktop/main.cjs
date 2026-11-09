@@ -21,11 +21,13 @@ const themeSources = new Set(['system', 'light', 'dark']);
  */
 const FEATURE_URL = 'ptbk-feature://surface/';
 /** The workspace editor (Monaco with the Book adapter) reaches a window's project dashboard from its own private scheme. */
-protocol.registerSchemesAsPrivileged([{ scheme: 'ptbk-feature', privileges: { standard: true, secure: true } }, { scheme: 'ptbk-editor', privileges: { standard: true, secure: true } }]);
+protocol.registerSchemesAsPrivileged([{ scheme: 'ptbk-feature', privileges: { standard: true, secure: true } }, { scheme: 'ptbk-editor', privileges: { standard: true, secure: true, corsEnabled: true } }]);
 
 /** The built workspace editor's directory and files (an unbuilt checkout has none, and dashboards keep a plain editor). */
 const editorDirectory = join(__dirname, 'renderer', 'vendor', 'editor');
 const editorFiles = (() => { try { return new Set(readdirSync(editorDirectory)); } catch { return new Set(); } })();
+/** The dashboard origin each project session currently serves the editor to. */
+const editorOrigins = new WeakMap();
 
 /** Live feature views by id: the owning window, the kind and their embedded view. */
 const features = new Map();
@@ -350,11 +352,14 @@ function hideDashboard(entry) {
  * script). Engine API responses and every other request are left as they are.
  */
 function prepareEditor(projectSession, origin) {
+    // A window's project session keeps its handler; the allowed origin follows its current dashboard.
+    editorOrigins.set(projectSession, origin);
     if (!projectSession.protocol.isProtocolHandled('ptbk-editor')) {
         projectSession.protocol.handle('ptbk-editor', async (request) => {
             const asset = editorAsset(request.url, editorFiles);
             if (!asset) return new Response('', { status: 404 });
-            return new Response(await readFile(join(editorDirectory, asset.name)), { headers: { 'content-type': asset.type, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' } });
+            // Static editor files only; fonts are CORS requests of the dashboard's origin.
+            return new Response(await readFile(join(editorDirectory, asset.name)), { headers: { 'content-type': asset.type, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'access-control-allow-origin': editorOrigins.get(projectSession) } });
         });
     }
     projectSession.webRequest.onHeadersReceived({ urls: [`${origin}/*`] }, (details, callback) => {
@@ -659,8 +664,7 @@ function failMove(id, reason) {
 }
 
 /** Registers a document leaving its window; it fails unless a target confirms ownership in time. */
-function startMove(source, document, target) {
-    const id = randomUUID();
+function startMove(source, document, target, id = randomUUID()) {
     const move = { id, source, sourceContents: source.view.webContents, root: source.root, document, target: undefined, timer: undefined };
     moves.set(id, move);
     move.timer = setTimeout(() => failMove(id, 'The other window did not take the document.'), target ? 30000 : 60000);
@@ -721,12 +725,13 @@ ipcMain.handle('workspace:move', (event, { document, target } = {}) => {
     } else throw new Error('Choose where to move the document.');
     return { id: startMove(source, moved, destination).id };
 });
-ipcMain.handle('workspace:offer', (event, document) => {
+ipcMain.handle('workspace:offer', (event, document, token) => {
     const source = workspaceOwner(event);
     const moved = movedDocument(document);
     if (!moved) throw new Error('This document cannot be moved.');
-    // A dragged tab: another window of the same project claims it by this id when it is dropped on its tab strip.
-    return { id: startMove(source, moved).id };
+    if (typeof token !== 'string' || !/^drag-[\w-]{16,80}$/.test(token) || moves.has(token)) throw new Error('Invalid drag.');
+    // A dragged tab: another window of the same project claims it by the drag's own id when it is dropped on its tab strip.
+    return { id: startMove(source, moved, undefined, token).id };
 });
 ipcMain.handle('workspace:claim', (event, id) => {
     const target = workspaceOwner(event);
