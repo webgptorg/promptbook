@@ -97,7 +97,13 @@ test('desktop Files: text saves check revisions and ownership, share one batched
     assert.ok(reserved.has(join(project, 'notes.md')), 'pending files are engine-authored meanwhile');
     assert.equal(files.pendingOrigin(join(project, 'notes.md')).kind, 'pending-desktop');
 
-    await waitFor(async () => (await log(project, 1))[0] === 'ptbk: Edit notes.md' || undefined, { message: 'the batched commit', timeoutMs: 20_000, intervalMs: 50 });
+    // Git exposes the new commit before DesktopFiles finishes its journal and reservation cleanup.
+    // Wait for the entire automatic commit lifecycle, not just the Git log (which races on slower runners).
+    await waitFor(async () => {
+        const view = files.view();
+        if (view.batches.length !== 0 || view.recent[0]?.outcome !== 'committed' || reserved.size !== 0) return false;
+        return (await log(project, 1))[0] === 'ptbk: Edit notes.md';
+    }, { message: 'the batched commit and its completed cleanup', timeoutMs: 20_000, intervalMs: 50 });
     assert.equal((await git(project, ['rev-list', '--count', 'HEAD'])).trim(), '2', 'repeated saves of one file share one commit');
     assert.match(await git(project, ['log', '-1', '--format=%B']), /Operation-Source: Promptbook Desktop/);
     assert.equal(files.view().batches.length, 0);
