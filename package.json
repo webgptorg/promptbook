@@ -45,7 +45,7 @@
         "build:vscode": "node scripts/build-vscode.mjs",
         "build:conformance": "node scripts/build.mjs && node scripts/build-conformance.mjs",
         "typecheck:vscode": "tsc -p extensions/vscode/tsconfig.json",
-        "test:vscode": "npm run build:vscode && node --test extensions/vscode/test/language.test.mjs extensions/vscode/test/package.test.mjs",
+        "test:vscode": "npm run build:vscode && node --test extensions/vscode/test/language.test.mjs extensions/vscode/test/monaco.test.mjs extensions/vscode/test/package.test.mjs",
         "package:vscode": "npm run build:vscode && node scripts/package-vscode.mjs",
         "release:vscode": "node scripts/publish-vscode.mjs"
     },

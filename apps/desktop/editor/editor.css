@@ -1,0 +1,16 @@
+/* Book token colors of the shared highlighter's kinds, matching the dashboard's read-only Book view. */
+.monaco-editor .ptbk-book-declaration,
+.monaco-editor .ptbk-book-keyword { color: #0b6bcb; font-weight: 600; }
+.monaco-editor .ptbk-book-name { color: #8a3ffc; font-weight: 600; }
+.monaco-editor .ptbk-book-reference { color: #0e7c86; text-decoration: underline dotted; }
+.monaco-editor .ptbk-book-literal { color: #6b6f76; }
+.monaco-editor .ptbk-book-unknown { color: #b42318; text-decoration: underline wavy; }
+
+@media (prefers-color-scheme: dark) {
+    .monaco-editor .ptbk-book-declaration,
+    .monaco-editor .ptbk-book-keyword { color: #5bd0ef; }
+    .monaco-editor .ptbk-book-name { color: #c4a7ff; }
+    .monaco-editor .ptbk-book-reference { color: #6fe3d1; }
+    .monaco-editor .ptbk-book-literal { color: #9aa3ad; }
+    .monaco-editor .ptbk-book-unknown { color: #ff8a80; }
+}
