@@ -498,7 +498,11 @@ test('engine: voice before the first message of a new chat shares one creation w
     await pause(600);
     // The first message of the chat is the spoken one; while its recording finalizes it is already marked as speech.
     await waitFor(async () => (await control(project, 'chat-get', { name })).messages.length >= 2, { message: 'the spoken first exchange' });
-    let detail = await control(project, 'chat-get', { name });
+    // The call marks a spoken message right after saving it (a reader can see the message an instant earlier).
+    let detail = await waitFor(async () => {
+        const current = await control(project, 'chat-get', { name });
+        return current.voice?.spoken?.length === 2 ? current : undefined;
+    }, { timeoutMs: 10_000, message: 'both spoken messages marked' });
     assert.equal(detail.messages[0].text, 'Ahoj, jaký je stav projektu?');
     assert.match(detail.messages[0].sender, /User/);
     assert.deepEqual(detail.voice.spoken.map((entry) => entry.message), [1, 2]);
