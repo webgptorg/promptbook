@@ -1591,6 +1591,7 @@
 
     /** Opens a folder or file in Files (read-only, confined to nonhidden project paths). */
     async function openFiles(path, kind) {
+        if (workspace.enabled && kind === 'file') return openDocument(documentKind(path), path, { preview: true });
         state.files = { ...(state.files || {}), loading: true };
         render(state.snapshot);
         try {
@@ -1641,9 +1642,9 @@
                               : h(
                                     'button',
                                     {
-                                        onclick: (event) => (desktop && (event.shiftKey || event.ctrlKey || event.metaKey) ? select(event, entry, index) : openFiles(entry.path, entry.type === 'directory' ? 'folder' : 'file')),
+                                        onclick: (event) => (desktop && (event.shiftKey || event.ctrlKey || event.metaKey) ? select(event, entry, index) : workspace.enabled && entry.type === 'file' ? void openDocument(entry.kind === 'book' ? 'book' : 'file', entry.path, { preview: true }) : openFiles(entry.path, entry.type === 'directory' ? 'folder' : 'file')),
                                         // Double-click (or starting an edit) opens an ordinary text file in its editor.
-                                        ondblclick: desktop && entry.type === 'file' ? () => (entry.kind === 'book' ? void openBook({ path: entry.path }) : TEXT_EDIT_KINDS.has(entry.kind) ? void openTextFile(entry.path) : undefined) : undefined,
+                                        ondblclick: desktop && entry.type === 'file' ? () => (workspace.enabled ? void openDocument(entry.kind === 'book' ? 'book' : 'file', entry.path) : entry.kind === 'book' ? void openBook({ path: entry.path }) : TEXT_EDIT_KINDS.has(entry.kind) ? void openTextFile(entry.path) : undefined) : undefined,
                                     },
                                     entry.type === 'directory' ? `${entry.name}/` : entry.name,
                                 ),
@@ -1924,6 +1925,7 @@
      * explicit reconciliation, and a failed save or disconnect keeps the draft.
      */
     async function openTextFile(path) {
+        if (workspace.enabled) return openDocument('file', path);
         let source;
         try {
             source = await api(`/api/files/text?path=${encodeURIComponent(path)}`);
@@ -1992,7 +1994,7 @@
                 if (outcome.status === 200 && outcome.data.status !== 'conflict') {
                     revision = outcome.data.revision;
                     baseline = text;
-                    notice = outcome.data.status === 'unchanged' ? 'Nothing changed; no commit.' : outcome.data.persistence === 'pending' ? 'Saved · Pending commit.' : outcome.data.persistence === 'ignored' ? 'Saved (ignored by Git; no commit).' : 'Saved (this project does not commit).';
+                    notice = textSaveNotice(outcome.data);
                 } else if (outcome.data.status === 'conflict') {
                     notice = `Not saved: ${outcome.data.message}`;
                     if (outcome.data.current) conflict = outcome.data.current;
@@ -2033,6 +2035,16 @@
         show();
         dialog.showModal();
         field.focus();
+    }
+
+    /** The outcome of an accepted desktop text save (its commit is batched). */
+    function textSaveNotice(outcome) {
+        return outcome.status === 'unchanged' ? 'Nothing changed; no commit.' : outcome.persistence === 'pending' ? 'Saved · Pending commit.' : outcome.persistence === 'ignored' ? 'Saved (ignored by Git; no commit).' : 'Saved (this project does not commit).';
+    }
+
+    /** The outcome of an accepted Book save, with its scoped commit and detected problems. */
+    function bookSaveNotice(outcome) {
+        return outcome.unchanged ? 'Nothing changed; no commit.' : `Saved${outcome.commit ? ` and committed ${outcome.commit.slice(0, 8)}` : ' (not committed)'}${outcome.diagnostics.length ? ` with ${outcome.diagnostics.length} warning(s)${outcome.repair ? '; Fixer got a repair task' : '; Fixer already has a repair task'}` : ''}.`;
     }
 
     /** An external action's outcome as a styled word (partial and uncertain stay explicit). */
@@ -2400,8 +2412,14 @@
         return match && DOMAINS.includes(match[1]) ? match[1] : null;
     }
 
-    /** Opens a domain page (a history entry, so browser Back returns home); viewing never changes the engine. */
+    /** Opens a domain page: a workspace tab in a desktop window, otherwise the page itself. */
     function openPage(domain) {
+        if (workspace.enabled) workspaceUpdate(W.open(workspace.model, pageTab(domain)));
+        else showPage(domain);
+    }
+
+    /** Shows a domain page (a history entry, so browser Back returns home); viewing never changes the engine. */
+    function showPage(domain) {
         const item = state.attention.get(domain);
         if (item) item.seen = true;
         state.focus = domain;
@@ -2416,8 +2434,9 @@
         if (desktop) app.querySelector('.page-header button')?.focus({ preventScroll: true });
     }
 
-    /** Returns to the home screen (Back control, Escape or browser history). */
+    /** Returns to the home screen (Back control, Escape or browser history); a desktop window keeps its tabs. */
     function goHome() {
+        if (workspace.enabled) return workspaceUpdate(W.activate(workspace.model, null));
         if (history.state && history.state.page) history.back();
         else {
             state.page = null;
@@ -2948,13 +2967,17 @@
 
     /** The engine's detected problems of a Book as a list; clicking one moves the cursor to its line. */
     function bookProblems(diagnostics, field) {
-        if (!diagnostics.length) return [];
-        const goTo = (line) => {
+        return bookProblemList(diagnostics, (line) => {
             const lines = field.value.split('\n');
             const offset = lines.slice(0, Math.max(0, line - 1)).reduce((sum, text) => sum + text.length + 1, 0);
             field.focus();
             field.setSelectionRange(offset, offset + (lines[line - 1] || '').length);
-        };
+        });
+    }
+
+    /** Detected problems with line links handled by `goTo(line)` (a textarea or the workspace editor). */
+    function bookProblemList(diagnostics, goTo) {
+        if (!diagnostics.length) return [];
         return [
             h('p', { className: 'warn' }, `Detected problems (${diagnostics.length}) — saving stays allowed; Fixer repairs them`),
             h(
@@ -3003,6 +3026,7 @@
      * draft for the next opening.
      */
     async function openBook(target) {
+        if (workspace.enabled && target.path) return openDocument('book', target.path);
         let source;
         try {
             source = await api(`/api/books?${target.path ? `path=${encodeURIComponent(target.path)}` : `ref=${encodeURIComponent(target.reference)}`}`);
@@ -3010,6 +3034,7 @@
             toast(`Cannot open the Book: ${error.message}`);
             return;
         }
+        if (workspace.enabled) return openDocument('book', source.path, { title: source.name });
         const editable = source.editable;
         const reason = source.reason;
         let draft = editable ? state.bookDrafts.get(source.path) : undefined;
@@ -3103,7 +3128,7 @@
                 draft = undefined;
                 keepDraft();
                 if (closed) toast(`Saved ${source.path}${outcome.commit ? ` (${outcome.commit.slice(0, 8)})` : ''}.`);
-                notice = outcome.unchanged ? 'Nothing changed; no commit.' : `Saved${outcome.commit ? ` and committed ${outcome.commit.slice(0, 8)}` : ' (not committed)'}${outcome.diagnostics.length ? ` with ${outcome.diagnostics.length} warning(s)${outcome.repair ? '; Fixer got a repair task' : '; Fixer already has a repair task'}` : ''}.`;
+                notice = bookSaveNotice(outcome);
             } catch (error) {
                 // Disk, permission, conflict or persistence failures keep the draft; they are not content warnings.
                 notice = `Not saved: ${error.message}`;
@@ -3150,6 +3175,628 @@
         dialog.showModal();
         field.focus();
         field.setSelectionRange(0, 0);
+    }
+
+
+    /*
+     * The desktop workspace (Windows and macOS app): project pages and documents open as tabs of this window, with one
+     * reusable preview, regular tabs and pinned tabs (the tab model is `workspace.js`). Text files and Books are edited in
+     * Monaco with Promptbook's shared Book language logic, served by the desktop shell; drafts stay in this client and
+     * every save goes through the engine's operations with revision and ownership checks. The shell keeps the workspace
+     * for a restart and hands documents to the same project's dashboard in another window. Without the desktop shell's
+     * workspace capability (the standalone browser, an older app) the modal editors remain.
+     */
+    const W = window.PtbkWorkspace;
+    const workspace = {
+        enabled: desktop && Boolean(window.desktopWorkspace) && Boolean(W),
+        model: W ? W.empty() : null,
+        /** Controllers of documents shown at least once, by tab key. */
+        docs: new Map(),
+        /** Restored drafts and editor positions of tabs not shown yet, by key. */
+        pending: new Map(),
+        /** Documents leaving this window, by move id → tab key. */
+        outgoing: new Map(),
+        /** The tab being dragged from this window's strip: { key, token }. */
+        drag: null,
+        strip: null,
+        area: null,
+        /** Whether the desktop app serves its Monaco editor to this page. */
+        editorAvailable: false,
+        /** Resolves to the Monaco editor factory, or null for the plain editor (loaded with the first document). */
+        editor: null,
+        saveTimer: null,
+    };
+    /** The drag type of a document tab dragged to another window's tab strip (its value is a one-time move id). */
+    const DOCUMENT_DRAG = 'application/x-ptbk-document';
+
+    /** A page tab of a dashboard domain. */
+    function pageTab(domain) {
+        return { key: `page:${domain}`, kind: 'page', page: domain, title: TITLES[domain] || domain };
+    }
+
+    /** The document kind of a project path (Books have their own editor and scoped commit). */
+    function documentKind(path) {
+        return /\.(book|ptbk)(\.md)?$/i.test(path) ? 'book' : 'file';
+    }
+
+    /**
+     * The desktop's Monaco editor (from the shell's private scheme), loaded once when the first document needs it so the
+     * dashboard itself never waits for it; null when unavailable.
+     */
+    function loadEditor() {
+        if (workspace.editor) return workspace.editor;
+        if (!workspace.editorAvailable) return (workspace.editor = Promise.resolve(null));
+        return (workspace.editor = new Promise((resolve) => {
+            document.head.append(h('link', { rel: 'stylesheet', href: 'ptbk-editor://editor/editor.css' }));
+            const script = h('script', { src: 'ptbk-editor://editor/editor.js' });
+            script.addEventListener('load', () => resolve(window.PromptbookEditor && window.PromptbookEditor.version === 1 ? window.PromptbookEditor : null));
+            script.addEventListener('error', () => resolve(null));
+            document.head.append(script);
+        }));
+    }
+
+    /** Applies a new workspace: released documents close, the active page shows, and the workspace is kept. */
+    function workspaceUpdate(next) {
+        workspace.model = next;
+        for (const [key, doc] of [...workspace.docs]) {
+            if (W.find(next, key)) continue;
+            doc.close();
+            workspace.docs.delete(key);
+        }
+        for (const key of [...workspace.pending.keys()]) if (!W.find(next, key)) workspace.pending.delete(key);
+        const active = next.active && W.find(next, next.active);
+        if (active && active.kind === 'page' && state.page !== active.page) showPage(active.page);
+        else if (!active && state.page) {
+            state.page = null;
+            history.replaceState(null, '', location.pathname + location.search);
+            render(state.snapshot);
+        }
+        showWorkspace();
+        scheduleWorkspaceSave();
+    }
+
+    /** Shows the active tab: a page in the dashboard area, a document in its own view (created on first show). */
+    function showWorkspace() {
+        if (!workspace.enabled || !workspace.strip) return;
+        const active = workspace.model.active && W.find(workspace.model, workspace.model.active);
+        const documentActive = Boolean(active && active.kind !== 'page');
+        if (documentActive) ensureDocument(active);
+        app.hidden = documentActive;
+        workspace.area.hidden = !documentActive;
+        for (const [key, doc] of workspace.docs) doc.element.hidden = !documentActive || key !== active.key;
+        if (documentActive) workspace.docs.get(active.key).shown();
+        renderStrip();
+    }
+
+    /** The open tab's controller, created with its restored or moved state. */
+    function ensureDocument(tab, init) {
+        let doc = workspace.docs.get(tab.key);
+        if (!doc) {
+            doc = createDocument(tab, init || workspace.pending.get(tab.key) || {});
+            workspace.pending.delete(tab.key);
+            workspace.docs.set(tab.key, doc);
+        }
+        return doc;
+    }
+
+    /** Keeps this window's workspace shortly after a change (tabs, drafts and editor positions; never a preview). */
+    function scheduleWorkspaceSave() {
+        if (!workspace.enabled) return;
+        clearTimeout(workspace.saveTimer);
+        workspace.saveTimer = setTimeout(saveWorkspaceNow, 300);
+    }
+
+    /** Hands the persisted part of the workspace to the desktop shell. */
+    function saveWorkspaceNow() {
+        if (!workspace.enabled) return;
+        clearTimeout(workspace.saveTimer);
+        const kept = W.persisted(workspace.model);
+        const documents = {};
+        for (const tab of kept.tabs) {
+            const doc = workspace.docs.get(tab.key);
+            const value = doc ? doc.persisted() : workspace.pending.get(tab.key);
+            if (value && (value.draft || value.viewState)) documents[tab.key] = { ...(value.draft ? { draft: value.draft } : {}), ...(value.viewState ? { viewState: value.viewState } : {}) };
+        }
+        window.desktopWorkspace.save({ ...kept, documents });
+    }
+
+    /**
+     * Opens a document tab: a preview (single click) or a regular tab (double-click, Edit, Edit Book). A document already
+     * open in another window of this project is focused there instead.
+     */
+    async function openDocument(kind, path, options = {}) {
+        const key = `${kind}:${path}`;
+        if (!W.find(workspace.model, key) && (await window.desktopWorkspace.locate(key).catch(() => false))) return;
+        workspaceUpdate(W.open(workspace.model, { key, kind, path, title: options.title || path.split('/').pop() || path }, { preview: Boolean(options.preview) }));
+        const doc = workspace.docs.get(key);
+        if (doc && !options.preview) doc.startEditing();
+    }
+
+    /** Opens the Book a reference names (Ctrl/Cmd+click in the editor), resolved by the engine. */
+    async function openReference(name) {
+        try {
+            const source = await api(`/api/books?ref=${encodeURIComponent(agentReference(name))}`);
+            await openDocument('book', source.path, { title: source.name });
+        } catch (error) {
+            toast(`Cannot open ${agentReference(name)}: ${error.message}`);
+        }
+    }
+
+    /** Closes a tab; an unsaved draft stays in this window for the next opening (unless the document moved away). */
+    function closeTab(key) {
+        workspaceUpdate(W.close(workspace.model, key));
+    }
+
+    /** Moves a document to a new window or the main window; this window keeps it until the target takes it. */
+    async function moveDocument(key, target) {
+        const tab = W.find(workspace.model, key);
+        if (!tab || tab.kind === 'page') return;
+        const doc = ensureDocument(tab);
+        if (doc.moving) return;
+        await doc.ready;
+        try {
+            const { id } = await window.desktopWorkspace.move({ tab, document: doc.exportState() }, target);
+            workspace.outgoing.set(id, key);
+            doc.setMoving(id);
+        } catch (error) {
+            toast(`Not moved: ${error.message}`);
+        }
+    }
+
+    /** Takes a document handed over by another window, then confirms ownership (or refuses, so the source keeps it). */
+    async function adoptIncoming(id, moved) {
+        const tab = moved && moved.tab;
+        if (!tab || typeof tab.key !== 'string') return window.desktopWorkspace.reject(id, 'The document was not readable.');
+        if (W.find(workspace.model, tab.key)) {
+            workspaceUpdate(W.activate(workspace.model, tab.key));
+            return window.desktopWorkspace.reject(id, 'The other window already has this document open.');
+        }
+        const opened = W.open(workspace.model, tab, { pinned: tab.mode === 'pinned' });
+        const doc = ensureDocument(W.find(opened, tab.key), moved.document ? { transfer: moved.document } : {});
+        workspaceUpdate(opened);
+        if (!(await doc.ready)) {
+            closeTab(tab.key);
+            return window.desktopWorkspace.reject(id, 'The document could not be opened in the other window.');
+        }
+        try {
+            await window.desktopWorkspace.accept(id);
+        } catch (error) {
+            // The source kept the document (the move ended): this copy is not an owner and closes without a draft.
+            doc.discard = true;
+            closeTab(tab.key);
+            toast(`Not moved: ${error.message}`);
+        }
+    }
+
+    /** Workspace events of the desktop shell: documents arriving, leaving or failing to leave, and focus requests. */
+    function onWorkspaceEvent(event) {
+        if (!event || typeof event !== 'object') return;
+        if (event.type === 'incoming') void adoptIncoming(event.id, event.document);
+        else if (event.type === 'activate' && W.find(workspace.model, event.key)) workspaceUpdate(W.activate(workspace.model, event.key));
+        else if (event.type === 'moved' || event.type === 'move-failed') {
+            const key = workspace.outgoing.get(event.id);
+            workspace.outgoing.delete(event.id);
+            const doc = key && workspace.docs.get(key);
+            if (!doc) return;
+            if (event.type === 'moved') {
+                // The other window owns the document now, including its draft and undo history.
+                doc.discard = true;
+                closeTab(key);
+            } else {
+                doc.setMoving(null);
+                if (event.reason && (!workspace.drag || workspace.drag.token !== event.id)) toast(`Not moved: ${event.reason}`);
+            }
+        }
+    }
+
+    /** One tab of the strip: its title, state, close button and keyboard-accessible tab actions. */
+    function renderTab(tab, index) {
+        const active = workspace.model.active === tab.key;
+        const doc = workspace.docs.get(tab.key);
+        const dirty = Boolean(doc && doc.dirty()) || Boolean(workspace.pending.get(tab.key) && workspace.pending.get(tab.key).draft);
+        const label = `${tab.title}${tab.mode === 'preview' ? ' (preview)' : ''}${tab.mode === 'pinned' ? ' (pinned)' : ''}${dirty ? ' · unsaved' : ''}`;
+        const actions = [
+            tab.mode === 'preview' ? ['keep', 'Keep Open'] : null,
+            tab.mode === 'pinned' ? ['unpin', 'Unpin'] : ['pin', 'Pin'],
+            ['close', 'Close'],
+            ['others', 'Close Others'],
+            ['unpinned', 'Close Unpinned Tabs'],
+            tab.kind !== 'page' ? ['new-window', 'Move to New Window'] : null,
+            tab.kind !== 'page' ? ['main-window', 'Move to Main Window'] : null,
+        ].filter(Boolean);
+        const menu = h('select', { className: 'ws-actions', 'aria-label': `Actions for ${tab.title}`, title: 'Tab actions' }, h('option', { value: '' }, '⋯'), ...actions.map(([value, text]) => h('option', { value }, text)));
+        menu.addEventListener('change', () => {
+            const action = menu.value;
+            menu.value = '';
+            if (action === 'keep') workspaceUpdate(W.promote(workspace.model, tab.key));
+            else if (action === 'pin') workspaceUpdate(W.pin(workspace.model, tab.key));
+            else if (action === 'unpin') workspaceUpdate(W.unpin(workspace.model, tab.key));
+            else if (action === 'close') closeTab(tab.key);
+            else if (action === 'others') workspaceUpdate(W.closeOthers(workspace.model, tab.key));
+            else if (action === 'unpinned') workspaceUpdate(W.closeUnpinned(workspace.model));
+            else if (action === 'new-window') void moveDocument(tab.key, 'new');
+            else if (action === 'main-window') void moveDocument(tab.key, 'main');
+        });
+        const title = h(
+            'button',
+            {
+                className: 'ws-title',
+                role: 'tab',
+                id: `ws-tab-${index}`,
+                'aria-selected': String(active),
+                'aria-label': label,
+                title: tab.path || tab.title,
+                'data-tab': tab.key,
+                onclick: () => workspaceUpdate(W.activate(workspace.model, tab.key)),
+                // Double-clicking a preview's tab keeps it open.
+                ondblclick: () => tab.mode === 'preview' && workspaceUpdate(W.promote(workspace.model, tab.key)),
+            },
+            tab.mode === 'pinned' ? h('span', { 'aria-hidden': 'true' }, '📌 ') : null,
+            tab.title,
+            dirty ? h('span', { className: 'ws-dirty', 'aria-hidden': 'true' }, ' ●') : null,
+        );
+        const element = h(
+            'div',
+            { className: `ws-tab ${tab.mode}${active ? ' active' : ''}`, draggable: tab.kind !== 'page' ? 'true' : undefined },
+            title,
+            menu,
+            h('button', { className: 'ws-close', 'aria-label': `Close ${tab.title}`, title: 'Close', onclick: () => closeTab(tab.key) }, '×'),
+        );
+        if (tab.kind !== 'page') {
+            // Dragging a document tab out of this window opens it in a new one; dropping it on another window's strip docks it.
+            element.addEventListener('dragstart', (event) => {
+                const token = `drag-${crypto.randomUUID()}`;
+                event.dataTransfer.setData(DOCUMENT_DRAG, token);
+                event.dataTransfer.effectAllowed = 'move';
+                workspace.drag = { key: tab.key, token };
+                workspace.outgoing.set(token, tab.key);
+                const doc = ensureDocument(tab);
+                void doc.ready.then(() => window.desktopWorkspace.offer({ tab, document: doc.exportState() }, token)).catch(() => undefined);
+            });
+            element.addEventListener('dragend', (event) => {
+                const drag = workspace.drag;
+                workspace.drag = null;
+                if (!drag || event.dataTransfer.dropEffect === 'move') return;
+                // Not docked anywhere: the offer ends; outside this window the document opens in a new window.
+                window.desktopWorkspace.reject(drag.token, 'The drag ended.');
+                const outside = event.screenX < window.screenX || event.screenY < window.screenY || event.screenX > window.screenX + window.outerWidth || event.screenY > window.screenY + window.outerHeight;
+                if (outside) void moveDocument(drag.key, 'new');
+            });
+        }
+        return element;
+    }
+
+    /** The tab strip: the project overview (the empty workspace) and the open pages and documents. */
+    function renderStrip() {
+        if (!workspace.strip) return;
+        // Live updates rebuild the strip only when it changes (an open tab-actions menu stays open).
+        const signature = JSON.stringify([workspace.model, [...workspace.docs].map(([key, doc]) => [key, doc.dirty()]), [...workspace.pending.keys()]]);
+        if (signature === workspace.stripSignature) return;
+        workspace.stripSignature = signature;
+        const focused = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-tab');
+        workspace.strip.replaceChildren(
+            h('button', { className: `ws-overview${workspace.model.active === null ? ' active' : ''}`, 'data-tab': 'overview', 'aria-pressed': String(workspace.model.active === null), onclick: () => workspaceUpdate(W.activate(workspace.model, null)) }, 'Overview'),
+            h('div', { className: 'ws-list', role: 'tablist', 'aria-label': 'Open pages and documents' }, ...workspace.model.tabs.map(renderTab)),
+        );
+        if (focused) workspace.strip.querySelector(`[data-tab="${CSS.escape(focused)}"]`)?.focus();
+        document.documentElement.style.setProperty('--tabs-height', `${workspace.strip.offsetHeight}px`);
+    }
+
+    /** A plain editor with the Monaco editor's interface (when the desktop app cannot provide Monaco). */
+    function plainEditor(container, options) {
+        const field = h('textarea', { className: 'book-source', 'aria-label': options.label, spellcheck: 'false', wrap: 'off', readonly: Boolean(options.readOnly) });
+        field.value = options.text;
+        container.append(field);
+        field.addEventListener('input', () => options.onChange && options.onChange(field.value));
+        field.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's') {
+                event.preventDefault();
+                if (options.onSave) options.onSave();
+            }
+        });
+        return {
+            getText: () => field.value,
+            setText: (text) => { field.value = text; },
+            setReadOnly: (readOnly) => { field.readOnly = readOnly; },
+            focus: () => field.focus(),
+            layout: () => undefined,
+            revealLine(line) {
+                const lines = field.value.split('\n');
+                const offset = lines.slice(0, Math.max(0, line - 1)).reduce((sum, text) => sum + text.length + 1, 0);
+                field.focus();
+                field.setSelectionRange(offset, offset + (lines[line - 1] || '').length);
+            },
+            exportState: () => ({ text: field.value }),
+            viewState: () => null,
+            dispose: () => field.remove(),
+        };
+    }
+
+    /**
+     * A document tab: a text file or Book in an editor, or the read-only view of another file. A preview is read-only
+     * until an edit starts (Edit, Edit Book, double-click or Keep Open). Saves go through the engine against the revision
+     * the draft is based on; a conflict shows the current source beside the draft until it is reconciled explicitly.
+     */
+    function createDocument(tab, init) {
+        const status = h('p', { className: 'muted doc-status', role: 'status' });
+        const actions = h('span', { className: 'row' });
+        const problems = h('div', { className: 'doc-problems' });
+        const body = h('div', { className: 'doc-body' }, h('p', { className: 'muted' }, 'Loading…'));
+        const element = h('section', { className: 'document-view', 'aria-label': tab.path, hidden: true }, h('header', { className: 'doc-header' }, h('h2', {}, tab.title, h('small', { className: 'muted' }, ` ${tab.path}`)), actions), status, problems, body);
+        workspace.area.append(element);
+        const BOM = '﻿';
+        const doc = {
+            key: tab.key,
+            element,
+            editor: null,
+            current: null,
+            source: null,
+            file: null,
+            revision: null,
+            baseline: null,
+            bom: false,
+            editing: false,
+            wantEdit: false,
+            moving: null,
+            conflict: null,
+            busy: false,
+            notice: '',
+            discard: false,
+            closed: false,
+            loaded: false,
+        };
+        const host = h('div', { className: 'doc-editor' });
+        const currentHost = h('div', { className: 'doc-editor' });
+        const editable = () => Boolean(doc.source && doc.source.editable);
+        doc.dirty = () => Boolean(doc.loaded && doc.editor && editable() && doc.editor.getText() !== doc.baseline);
+        doc.persisted = () => (doc.loaded ? { ...(doc.dirty() ? { draft: { text: doc.editor.getText(), revision: doc.revision } } : {}), ...(doc.editor && doc.editor.viewState() ? { viewState: doc.editor.viewState() } : {}) } : init);
+        doc.exportState = () => (doc.loaded && doc.editor ? { ...doc.editor.exportState(), revision: doc.revision, baseline: doc.baseline, editing: doc.editing } : undefined);
+        const readOnly = () => !editable() || !doc.editing || Boolean(doc.moving);
+        const reveal = (line) => doc.editor && doc.editor.revealLine(line);
+        const show = () => {
+            if (doc.closed) return;
+            const current = W.find(workspace.model, tab.key) || tab;
+            const persistence = tab.kind === 'file' && state.snapshot && state.snapshot.files ? state.snapshot.files.batches.find((batch) => batch.paths.includes(tab.path)) : null;
+            status.textContent = !doc.source
+                ? doc.file ? `${doc.file.kind} · ${doc.file.size} bytes · preview` : ''
+                : `${editable() ? `revision ${doc.revision.slice(0, 8)}${doc.dirty() ? ' · unsaved changes' : ''}` : `read-only${doc.source.reason ? ` — ${doc.source.reason}` : ''}`}${persistence ? ` · ${persistence.state === 'pending' ? 'Saved · Pending commit' : persistence.state}` : ''}${doc.moving ? ' · moving to another window…' : ''}${doc.notice ? ` · ${doc.notice}` : ''}`;
+            const buttons = [];
+            if (current.mode === 'preview') buttons.push(h('button', { onclick: () => workspaceUpdate(W.promote(workspace.model, tab.key)) }, 'Keep Open'));
+            if (doc.source && editable() && !doc.editing) buttons.push(h('button', { className: 'primary', onclick: () => doc.startEditing() }, tab.kind === 'book' ? 'Edit Book' : 'Edit'));
+            if (doc.source && editable() && doc.editing) buttons.push(h('button', { className: 'primary', disabled: doc.busy || Boolean(doc.moving), onclick: () => void save() }, 'Save'));
+            if (doc.conflict) {
+                buttons.push(h('button', { onclick: useCurrent }, 'Use current source'));
+                buttons.push(h('button', { onclick: () => { if (window.confirm('Save your draft over the current source?')) { doc.revision = doc.conflict.revision; endConflict(); void save(); } } }, 'Save my draft over it'));
+            }
+            actions.replaceChildren(...buttons);
+            problems.replaceChildren(...(tab.kind === 'book' && doc.source ? bookProblemList(doc.source.diagnostics || [], reveal) : []));
+            if (doc.editor) doc.editor.setReadOnly(readOnly());
+        };
+        const strip = (text) => (text.startsWith(BOM) ? text.slice(1) : text);
+        const startConflict = (current) => {
+            doc.conflict = { text: strip(current.text), revision: current.revision };
+            loadEditor().then((Editor) => {
+                if (doc.closed || !doc.conflict) return;
+                doc.current?.dispose();
+                currentHost.replaceChildren();
+                doc.current = (Editor ? Editor.create.bind(Editor) : plainEditor)(currentHost, { text: doc.conflict.text, kind: tab.kind, path: tab.path, readOnly: true, label: `Current source of ${tab.path}` });
+                body.replaceChildren(h('div', { className: 'conflict' }, h('p', { className: 'warn' }, 'The source changed since your draft was based on it. Your draft (left) is kept; the current source is on the right.'), h('div', { className: 'doc-compare' }, host, currentHost)));
+                show();
+            });
+        };
+        const endConflict = () => {
+            doc.conflict = null;
+            doc.current?.dispose();
+            doc.current = null;
+            body.replaceChildren(host);
+        };
+        function useCurrent() {
+            if (!doc.conflict) return;
+            if (doc.dirty() && !window.confirm('Discard your draft and load the current source?')) return;
+            doc.baseline = doc.conflict.text;
+            doc.revision = doc.conflict.revision;
+            doc.editor.setText(doc.baseline);
+            endConflict();
+            doc.notice = 'Loaded the current source.';
+            show();
+            scheduleWorkspaceSave();
+        }
+        const save = async () => {
+            if (doc.busy || !editable() || !doc.editing || doc.moving || doc.conflict) return;
+            doc.busy = true;
+            doc.notice = 'Saving…';
+            show();
+            const text = doc.editor.getText();
+            const request = { path: tab.path, text: doc.bom ? BOM + text : text, revision: doc.revision };
+            try {
+                if (tab.kind === 'book') {
+                    const outcome = await api('/api/books', { method: 'POST', body: request });
+                    doc.revision = outcome.revision;
+                    doc.baseline = text;
+                    doc.source = { ...doc.source, revision: outcome.revision, diagnostics: outcome.diagnostics };
+                    doc.notice = bookSaveNotice(outcome);
+                } else {
+                    const outcome = await apiRaw('/api/files/text', { method: 'POST', body: request });
+                    if (outcome.status === 200 && outcome.data.status !== 'conflict') {
+                        doc.revision = outcome.data.revision;
+                        doc.baseline = text;
+                        doc.notice = textSaveNotice(outcome.data);
+                    } else if (outcome.data.status === 'conflict') {
+                        doc.notice = `Not saved: ${outcome.data.message}`;
+                        if (outcome.data.current) startConflict(outcome.data.current);
+                    } else doc.notice = `Not saved: ${outcome.data.error || `HTTP ${outcome.status}`}; your draft is kept.`;
+                }
+            } catch (error) {
+                // Disk, permission, conflict or persistence failures keep the draft; a newer revision is reconciled.
+                doc.notice = `Not saved: ${error.message}; your draft is kept.`;
+                if (tab.kind === 'book') {
+                    const current = await api(`/api/books?path=${encodeURIComponent(tab.path)}`).catch(() => null);
+                    if (current && current.revision !== doc.revision) startConflict(current);
+                }
+            } finally {
+                doc.busy = false;
+                show();
+                renderStrip();
+                scheduleWorkspaceSave();
+            }
+        };
+        doc.startEditing = () => {
+            doc.wantEdit = true;
+            if (!doc.loaded) return;
+            if (!editable()) {
+                doc.notice = (doc.source && doc.source.reason) || 'This document is read-only here.';
+                return show();
+            }
+            if ((W.find(workspace.model, tab.key) || {}).mode === 'preview') workspaceUpdate(W.promote(workspace.model, tab.key));
+            doc.editing = true;
+            show();
+            doc.editor.focus();
+        };
+        doc.setMoving = (id) => {
+            doc.moving = id;
+            show();
+        };
+        doc.shown = () => {
+            show();
+            if (doc.editor) requestAnimationFrame(() => doc.editor && doc.editor.layout());
+        };
+        doc.close = () => {
+            if (doc.closed) return;
+            doc.closed = true;
+            // Closing keeps an unsaved draft for the next opening in this window, as the editors always did.
+            const drafts = tab.kind === 'book' ? state.bookDrafts : state.textDrafts;
+            if (!doc.discard && doc.dirty()) {
+                drafts.set(tab.path, { text: doc.editor.getText(), revision: doc.revision });
+                toast(`Unsaved changes to ${tab.path} are kept; open it again to continue.`);
+            }
+            doc.editor?.dispose();
+            doc.current?.dispose();
+            element.remove();
+        };
+        doc.ready = (async () => {
+            try {
+                if (tab.kind === 'book') doc.source = await api(`/api/books?path=${encodeURIComponent(tab.path)}`);
+                else {
+                    doc.file = await api(`/api/files/file?path=${encodeURIComponent(tab.path)}`);
+                    if (TEXT_EDIT_KINDS.has(doc.file.kind) && !doc.file.truncated) doc.source = await api(`/api/files/text?path=${encodeURIComponent(tab.path)}`);
+                }
+            } catch (error) {
+                body.replaceChildren(h('p', { className: 'warn' }, `Cannot open ${tab.path}: ${error.message}`));
+                return false;
+            }
+            if (doc.closed) return false;
+            if (!doc.source) {
+                body.replaceChildren(fileView(doc.file));
+                doc.loaded = true;
+                show();
+                return true;
+            }
+            doc.bom = doc.source.text.startsWith(BOM);
+            doc.baseline = strip(doc.source.text);
+            doc.revision = doc.source.revision;
+            let text = doc.baseline;
+            let history;
+            const moved = init.transfer;
+            const drafts = tab.kind === 'book' ? state.bookDrafts : state.textDrafts;
+            const draft = editable() ? init.draft || drafts.get(tab.path) : undefined;
+            drafts.delete(tab.path);
+            if (moved && typeof moved.text === 'string') {
+                text = moved.text;
+                history = moved.history;
+                doc.revision = typeof moved.revision === 'string' ? moved.revision : doc.revision;
+                doc.baseline = typeof moved.baseline === 'string' ? moved.baseline : doc.baseline;
+                doc.editing = Boolean(moved.editing);
+                if (doc.revision !== doc.source.revision) doc.notice = 'Moved with its unsaved changes; the source changed meanwhile, so saving reports a conflict to reconcile.';
+            } else if (draft && typeof draft.text === 'string') {
+                text = draft.text;
+                doc.revision = draft.revision;
+                doc.editing = true;
+                doc.notice = draft.revision === doc.source.revision ? 'Restored your unsaved draft.' : 'Restored your unsaved draft; the source changed meanwhile, so saving reports a conflict to reconcile.';
+            }
+            doc.editing = doc.editing || doc.wantEdit || (W.find(workspace.model, tab.key) || tab).mode !== 'preview';
+            const Editor = await loadEditor();
+            if (doc.closed) return false;
+            body.replaceChildren(host);
+            const options = {
+                text, history, viewState: (moved && moved.viewState) || init.viewState, kind: tab.kind === 'book' ? 'book' : doc.file && doc.file.kind, path: tab.path, readOnly: readOnly(), label: `${tab.kind === 'book' ? 'Source' : 'Text'} of ${tab.path}`,
+                onChange: () => {
+                    if (doc.notice && !doc.busy) doc.notice = '';
+                    show();
+                    renderStrip();
+                    scheduleWorkspaceSave();
+                },
+                onSave: () => (doc.editing ? void save() : doc.startEditing()),
+                onOpenReference: (name) => void openReference(name),
+            };
+            try {
+                doc.editor = Editor ? Editor.create(host, options) : plainEditor(host, options);
+            } catch {
+                doc.editor = plainEditor(host, options);
+            }
+            doc.loaded = true;
+            show();
+            renderStrip();
+            return true;
+        })();
+        return doc;
+    }
+
+    /** The read-only view of a file that is not edited as text (an image, a large or binary file). */
+    function fileView(file) {
+        return h(
+            'div',
+            { className: 'doc-file' },
+            file.image ? h('img', { src: file.image, alt: file.name, className: 'file-image' }) : null,
+            file.kind === 'image' && !file.image ? h('p', { className: 'muted' }, 'The image is too large to display here.') : null,
+            file.kind === 'video' ? h('p', { className: 'muted' }, 'Video playback is not part of Files; the file is identified only.') : null,
+            file.kind === 'binary' ? h('p', { className: 'muted' }, 'Binary file; not shown as text.') : null,
+            typeof file.text === 'string' ? h('pre', { className: 'log' }, file.text) : null,
+            file.truncated ? h('p', { className: 'warn' }, 'Only the beginning of this file is shown; the rest stays on disk.') : null,
+        );
+    }
+
+    /** Starts this window's workspace: restored tabs and drafts, drafts of closed windows, and documents moving in. */
+    async function startWorkspace() {
+        workspace.strip = h('nav', { className: 'workspace-tabs', 'aria-label': 'Workspace' });
+        workspace.area = h('div', { className: 'documents', hidden: true });
+        app.before(workspace.strip);
+        app.after(workspace.area);
+        workspace.strip.addEventListener('dragover', (event) => {
+            if (!event.dataTransfer.types.includes(DOCUMENT_DRAG)) return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        });
+        workspace.strip.addEventListener('drop', (event) => {
+            const token = event.dataTransfer.getData(DOCUMENT_DRAG);
+            if (!token) return;
+            event.preventDefault();
+            if (workspace.drag && workspace.drag.token === token) return;
+            void window.desktopWorkspace.claim(token).then((claimed) => adoptIncoming(claimed.id, claimed.document), (error) => toast(`Not docked: ${error.message}`));
+        });
+        window.desktopWorkspace.onEvent(onWorkspaceEvent);
+        window.addEventListener('pagehide', saveWorkspaceNow);
+        let restored = {};
+        try {
+            restored = (await window.desktopWorkspace.restore()) || {};
+        } catch {
+            // A workspace that cannot be restored starts empty.
+        }
+        workspace.editorAvailable = Boolean(restored.editor);
+        let next = W.restored(restored.state);
+        for (const [key, value] of Object.entries((restored.state && restored.state.documents) || {})) workspace.pending.set(key, value);
+        // Unsaved drafts of a closed window are offered in tabs; saving checks their base revision first.
+        const recovered = [];
+        for (const [key, item] of Object.entries(restored.recovered || {})) {
+            if (!item || !item.tab || !item.draft || W.find(next, key)) continue;
+            next = { ...W.open(next, item.tab, { pinned: item.tab.mode === 'pinned' }), active: next.active };
+            workspace.pending.set(key, { draft: item.draft });
+            recovered.push(item.tab.title || key);
+        }
+        if (recovered.length) toast(`Recovered unsaved drafts: ${recovered.join(', ')}. Saving checks the current source first.`);
+        if (state.page) next = W.open(next, pageTab(state.page));
+        else if (next.active && W.find(next, next.active).kind === 'page') state.page = W.find(next, next.active).page;
+        workspaceUpdate(next);
+        for (const item of restored.incoming || []) void adoptIncoming(item.id, item.document);
     }
 
     /**
@@ -3719,6 +4366,11 @@
             h('span', { className: 'header-details' }, attention ? h('span', { className: 'warn' }, `▲ ${attention} need${attention === 1 ? 's' : ''} attention · `) : '', live),
         );
         document.title = `${snapshot.chats.waiting.length ? `(${snapshot.chats.waiting.length}) ` : ''}ptbk · ${snapshot.project.name}`;
+        if (workspace.enabled) {
+            renderStrip();
+            const doc = workspace.model.active && workspace.docs.get(workspace.model.active);
+            if (doc) doc.shown();
+        }
     }
 
     /** Displays a local connection failure without claiming fresh state. */
@@ -3782,8 +4434,13 @@
         // Viewer-local navigation: the URL fragment names the open page, so browser Back returns home.
         state.page = routeFromHash();
         if (state.page) history.replaceState({ page: state.page }, '', `#/${state.page}`);
+        if (workspace.enabled) await startWorkspace();
         window.addEventListener('popstate', () => {
             state.page = routeFromHash();
+            if (workspace.enabled) {
+                workspace.model = state.page ? W.open(workspace.model, pageTab(state.page)) : W.activate(workspace.model, null);
+                showWorkspace();
+            }
             // Back/Forward into Tasks loads the current inventory, as opening the page does.
             if (state.page === 'tasks') loadTasks(true);
             if (state.page === 'usage') loadUsage(true);
@@ -3807,7 +4464,8 @@
         document.addEventListener('touchstart', interacted, { passive: true });
         document.addEventListener('keydown', (event) => {
             interacted();
-            const typing = event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName);
+            // Editors type into an edit context as well as text fields; keys in a workspace document stay with it.
+            const typing = event.target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable || Boolean(event.target.closest && event.target.closest('.monaco-editor, .documents')));
             if (event.key === 'Escape' && state.page && !typing) {
                 event.preventDefault();
                 goHome();

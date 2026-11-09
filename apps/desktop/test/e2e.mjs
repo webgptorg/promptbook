@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { dirname, join } from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { _electron } from 'playwright-core';
 import electron from 'electron';
@@ -101,6 +101,113 @@ test('desktop windows and native terminals are independent clients of the same p
     } finally {
         await restarted.close();
     }
+});
+
+/**
+ * The desktop workspace: preview reuse and promotion, pinning, Monaco with the shared Book language logic, saving
+ * through the engine, moving a dirty document with its undo history to a new window, and restoring after a restart.
+ */
+test('desktop workspace tabs, Monaco editing, cross-window moves and restart restoration', { timeout: 240000 }, async (t) => {
+    const { project, env, directory } = await initializedProject(t);
+    await writeFile(join(project, 'notes.md'), '# Notes\r\nŽluťoučký kůň 👋\r\n');
+    await writeFile(join(project, 'other.txt'), 'other\n');
+    const runtimeConfig = join(directory, 'desktop-runtime.json');
+    await writeFile(runtimeConfig, JSON.stringify({ installation: fileURLToPath(new URL('../../../', import.meta.url)), nodePath: process.execPath }));
+    const desktopEnv = { ...env, PTBK_DESKTOP_NODE: process.execPath, PTBK_DESKTOP_RUNTIME: runtimeConfig };
+    assert.equal((await ptbk(['start', '--paused', '--no-dashboard', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const profile = join(directory, 'desktop profile');
+    await mkdir(profile);
+    const launch = (...args) => _electron.launch({
+        executablePath: electron,
+        args: [fileURLToPath(new URL('../', import.meta.url)), '--skip-init', `--user-data-dir=${profile}`, ...args],
+        env: desktopEnv, colorScheme: null, timeout: 45000,
+    });
+    const closeBounded = async (application) => {
+        await Promise.race([application.close().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 15000))]);
+        try { application.process().kill(); } catch {}
+    };
+    const dashboards = (application) => application.windows().filter((page) => page.url().includes('view=desktop'));
+    const application = await launch('--project', project);
+    t.after(() => closeBounded(application));
+    const dashboard = await waitFor(() => dashboards(application)[0], { timeoutMs: 45000, message: 'the graphical dashboard' });
+    dashboard.on('pageerror', (error) => process.stderr.write(`Desktop dashboard: ${error.message}\n`));
+    await dashboard.locator('nav.workspace-tabs').waitFor();
+    await dashboard.evaluate(() => { location.hash = '#/files'; });
+    await dashboard.reload();
+    const tabs = dashboard.getByRole('tablist', { name: 'Open pages and documents' });
+    await tabs.getByRole('tab', { name: 'Files' }).waitFor();
+    const files = dashboard.locator('.files-list');
+    // A single click previews; previewing another file reuses the same preview tab.
+    await files.getByRole('button', { name: 'other.txt', exact: true }).click();
+    await tabs.getByRole('tab', { name: 'other.txt (preview)' }).waitFor();
+    await dashboard.waitForFunction(() => Boolean(window.PromptbookEditor) && document.querySelector('.document-view:not([hidden]) .monaco-editor'));
+    await tabs.getByRole('tab', { name: 'Files' }).click();
+    await files.getByRole('button', { name: 'notes.md', exact: true }).click();
+    await tabs.getByRole('tab', { name: 'notes.md (preview)' }).waitFor();
+    assert.equal(await tabs.getByRole('tab', { name: /other\.txt/ }).count(), 0, 'one preview per window');
+    // Starting an edit keeps the preview open as a regular tab.
+    await dashboard.getByRole('button', { name: 'Edit', exact: true }).click();
+    await tabs.getByRole('tab', { name: 'notes.md', exact: true }).waitFor();
+    const editor = dashboard.locator('.document-view:not([hidden]) .monaco-editor');
+    await editor.locator('.view-lines').click();
+    await dashboard.keyboard.press('Control+End');
+    await dashboard.keyboard.type('Saved line');
+    await dashboard.keyboard.press('Control+S');
+    await dashboard.locator('.document-view:not([hidden]) .doc-status').filter({ hasText: /Saved/ }).waitFor({ timeout: 30000 });
+    assert.equal(await readFile(join(project, 'notes.md'), 'utf8'), '# Notes\r\nŽluťoučký kůň 👋\r\nSaved line', 'saved through the engine with its CRLF and Unicode');
+    // Pinned tabs survive closing the unpinned ones.
+    await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('pin');
+    await tabs.getByRole('tab', { name: 'notes.md (pinned)' }).waitFor();
+    await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('unpinned');
+    await waitFor(async () => (await tabs.getByRole('tab').count()) === 1 || undefined, { timeoutMs: 10000, message: 'only the pinned tab stays' });
+    // A Book uses the shared language logic: highlighting, live diagnostics and Ctrl/Cmd+click to the referenced Book.
+    await dashboard.evaluate(() => { location.hash = '#/agents'; });
+    await tabs.getByRole('tab', { name: 'Agents' }).waitFor();
+    await dashboard.locator('.inventory li').filter({ hasNotText: 'engine-provided' }).first().getByRole('button', { name: 'Book', exact: true }).click();
+    const book = dashboard.locator('.document-view:not([hidden])');
+    await book.locator('.monaco-editor .ptbk-book-declaration').first().waitFor({ timeout: 20000 });
+    await book.locator('.view-lines').click();
+    await dashboard.keyboard.press('Control+End');
+    await dashboard.keyboard.press('Enter');
+    await dashboard.keyboard.type('NONSENSE THING here');
+    // Escape closes a suggestion and stays in the editor (it never leaves the document).
+    await dashboard.keyboard.press('Escape');
+    await dashboard.keyboard.press('Enter');
+    await dashboard.keyboard.type('GOAL Ask @Expert today.');
+    await dashboard.keyboard.press('Escape');
+    await book.locator('.monaco-editor .ptbk-book-unknown').waitFor({ timeout: 10000 });
+    await book.locator('.monaco-editor .squiggly-warning, .monaco-editor .squiggly-error').first().waitFor({ timeout: 10000 });
+    await book.locator('.monaco-editor .ptbk-book-reference', { hasText: 'Expert' }).last().click({ modifiers: [process.platform === 'darwin' ? 'Meta' : 'Control'] });
+    await tabs.getByRole('tab', { name: 'Expert', exact: true }).waitFor({ timeout: 20000 });
+    // An unsaved edit moves to a new window with its undo history; the source tab closes only after the target takes it.
+    await tabs.getByRole('tab', { name: /notes\.md/ }).click();
+    await editor.locator('.view-lines').click();
+    await dashboard.keyboard.press('Control+End');
+    await dashboard.keyboard.type(' DRAFT');
+    await tabs.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).waitFor();
+    await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('new-window');
+    const moved = await waitFor(() => dashboards(application).find((page) => page !== dashboard), { timeoutMs: 45000, message: 'the new window with the document' });
+    const movedTabs = moved.getByRole('tablist', { name: 'Open pages and documents' });
+    await movedTabs.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).waitFor({ timeout: 45000 });
+    await waitFor(async () => (await tabs.getByRole('tab', { name: /notes\.md/ }).count()) === 0 || undefined, { timeoutMs: 20000, message: 'the source tab closes after the move' });
+    const movedText = () => moved.evaluate(() => document.querySelector('.document-view:not([hidden]) .monaco-editor .view-lines').textContent.replace(/ /g, ' '));
+    assert.match(await movedText(), /Saved line DRAFT$/);
+    await moved.locator('.document-view:not([hidden]) .monaco-editor .view-lines').click();
+    await moved.keyboard.press('Control+Z');
+    await waitFor(async () => (/Saved line$/.test(await movedText()) || undefined), { timeoutMs: 10000, message: 'undo works after the move' });
+    await moved.keyboard.press('Control+Y');
+    await waitFor(async () => (/Saved line DRAFT$/.test(await movedText()) || undefined), { timeoutMs: 10000, message: 'redo works after the move' });
+    // The workspace and its draft return after a restart.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await closeBounded(application);
+    const restarted = await launch();
+    t.after(() => closeBounded(restarted));
+    const restored = await waitFor(async () => {
+        for (const page of dashboards(restarted)) if (await page.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).count()) return page;
+    }, { timeoutMs: 60000, message: 'the restored window with its pinned draft' });
+    await restored.getByRole('tab', { name: /notes\.md/ }).click();
+    await restored.locator('.document-view:not([hidden]) .doc-status').filter({ hasText: /Restored your unsaved draft/ }).waitFor({ timeout: 30000 });
+    assert.equal(await readFile(join(project, 'notes.md'), 'utf8'), '# Notes\r\nŽluťoučký kůň 👋\r\nSaved line', 'a draft is never written without a save');
 });
 
 /** Voice starts beside the composer of the open (new) chat, stays bound to it, and leaving that chat view ends it. */

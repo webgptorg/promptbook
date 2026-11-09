@@ -1540,3 +1540,147 @@ button.danger {
         opacity: 0.55;
     }
 }
+
+/* Desktop workspace: the tab strip of open pages and documents, and document views with their editor. */
+.workspace-tabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 6px 12px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    overflow-x: auto;
+}
+
+.workspace-tabs .ws-list {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    min-width: 0;
+}
+
+.workspace-tabs .ws-overview,
+.workspace-tabs .ws-tab {
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+}
+
+.workspace-tabs .ws-overview {
+    padding: 6px 10px;
+    margin-bottom: 0;
+}
+
+.workspace-tabs .ws-tab {
+    display: inline-flex;
+    align-items: center;
+    max-width: 280px;
+    padding: 0 2px 0 4px;
+}
+
+.workspace-tabs .ws-overview.active,
+.workspace-tabs .ws-tab.active {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+.workspace-tabs .ws-title {
+    min-width: 0;
+    overflow: hidden;
+    padding: 6px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.workspace-tabs .ws-tab.preview .ws-title {
+    font-style: italic;
+}
+
+.workspace-tabs .ws-tab.pinned .ws-close {
+    display: none;
+}
+
+.workspace-tabs .ws-dirty {
+    color: var(--warning);
+}
+
+.workspace-tabs .ws-actions,
+.workspace-tabs .ws-close {
+    width: auto;
+    padding: 2px 4px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+}
+
+.app[hidden],
+.documents[hidden],
+.document-view[hidden] {
+    display: none;
+}
+
+.documents {
+    padding: 12px 16px;
+}
+
+.document-view {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: calc(100dvh - var(--topbar-height, 48px) - var(--tabs-height, 40px) - 24px);
+    min-height: 320px;
+}
+
+.document-view .doc-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.document-view h2,
+.document-view .doc-status {
+    margin: 0;
+}
+
+.document-view .doc-problems:empty {
+    display: none;
+}
+
+.document-view .doc-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.document-view .doc-editor {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.document-view .doc-editor textarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    border: 0;
+}
+
+.document-view .doc-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+}
+
+.document-view .doc-file {
+    overflow: auto;
+}

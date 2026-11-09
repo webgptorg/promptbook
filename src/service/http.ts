@@ -70,6 +70,7 @@ const STATIC_FILES: Readonly<Record<string, string>> = {
     '/': 'index.html',
     '/index.html': 'index.html',
     '/assets/app.js': 'app.js',
+    '/assets/workspace.js': 'workspace.js',
     '/assets/app.css': 'app.css',
     '/assets/icon.svg': 'icon.svg',
     '/assets/fonts/fonts.css': 'fonts/fonts.css',
