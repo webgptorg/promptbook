@@ -68,7 +68,8 @@ async function log(project, count = 5) {
 
 test('desktop Files: text saves check revisions and ownership, share one batched commit after the quiet period and never commit a changed copy', async (t) => {
     const { project } = await projectFixture(t);
-    const { files, owned, reserved } = desktopFiles(project);
+    // The quiet period outlasts the saves on a slow runner, so they all join one pending batch before it commits.
+    const { files, owned, reserved } = desktopFiles(project, { quietMs: 2000, maxAgeMs: 10_000 });
     await files.recover();
     t.after(() => files.dispose());
 
@@ -96,7 +97,7 @@ test('desktop Files: text saves check revisions and ownership, share one batched
     assert.ok(reserved.has(join(project, 'notes.md')), 'pending files are engine-authored meanwhile');
     assert.equal(files.pendingOrigin(join(project, 'notes.md')).kind, 'pending-desktop');
 
-    await waitFor(async () => (await log(project, 1))[0] === 'ptbk: Edit notes.md' || undefined, { message: 'the batched commit', timeoutMs: 5000, intervalMs: 50 });
+    await waitFor(async () => (await log(project, 1))[0] === 'ptbk: Edit notes.md' || undefined, { message: 'the batched commit', timeoutMs: 20_000, intervalMs: 50 });
     assert.equal((await git(project, ['rev-list', '--count', 'HEAD'])).trim(), '2', 'repeated saves of one file share one commit');
     assert.match(await git(project, ['log', '-1', '--format=%B']), /Operation-Source: Promptbook Desktop/);
     assert.equal(files.view().batches.length, 0);
@@ -121,6 +122,21 @@ test('desktop Files: text saves check revisions and ownership, share one batched
     assert.equal(await readFile(join(project, 'notes.md'), 'utf8'), 'edited elsewhere\n');
     await files.dismiss(files.view().batches[0].id);
     assert.equal(files.view().recent[0].outcome, 'dismissed');
+
+    // A save that arrives while its file's batch commits waits for that commit, then starts the next batch: the commit
+    // never judges the newer save as an external change.
+    const readme = await files.readText('docs/readme.md');
+    const before = await files.saveText({ path: 'docs/readme.md', text: 'committing\n', revision: readme.revision });
+    const committing = files.flush();
+    const during = await files.saveText({ path: 'docs/readme.md', text: 'saved during the commit\n', revision: before.revision });
+    assert.equal(during.status, 'saved');
+    await committing;
+    assert.equal(await git(project, ['show', 'HEAD:docs/readme.md']), 'committing\n', 'the commit holds the version it accepted');
+    assert.deepEqual(files.view().batches.map((batch) => batch.state), ['pending'], 'the newer save waits in its own batch, never blocked');
+    await files.flush();
+    assert.equal(await git(project, ['show', 'HEAD:docs/readme.md']), 'saved during the commit\n');
+    assert.deepEqual((await log(project, 2)), ['ptbk: Edit docs/readme.md', 'ptbk: Edit docs/readme.md']);
+    assert.equal(files.view().batches.length, 0);
 });
 
 test('desktop Files: imports preflight collisions, hidden descendants and escaping links, upload into place and commit as one operation', async (t) => {
@@ -247,8 +263,9 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     for (const upload of racingApplied.uploads) await files.upload(racingApplied.id, upload.index, Readable.from([Buffer.from(`${upload.target}\n`)]));
     await files.complete(racingApplied.id);
     const racedRemoval = await files.preflight({ kind: 'delete', entries: [{ path: 'docs/raced.txt' }] });
+    // The deletion is applied while that flush is in flight (its commit takes the batch under the operation lock).
     const committing = files.flush();
-    assert.equal(files.view().batches.find((item) => item.paths.includes('docs/raced.txt'))?.state, 'committing');
+    assert.ok(['pending', 'committing'].includes(files.view().batches.find((item) => item.paths.includes('docs/raced.txt'))?.state));
     await files.apply({ id: racedRemoval.id, confirm: true });
     await committing;
     assert.deepEqual(await log(project, 2), ['ptbk: Delete docs/raced.txt', 'ptbk: Import 2 files into docs']);

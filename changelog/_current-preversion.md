@@ -1,5 +1,7 @@
 # Unreleased
 
+- Saving a desktop text file while its earlier save is being committed now waits for that commit, then starts the file's next batch. Before this, the in-flight commit could treat the newer save as an external edit and block it as "changed after it was saved", or commit the newer text under the earlier save. A commit now verifies its paths under the same lock as saves and deletions.
+
 - Deleting a desktop file while its import or save is being committed now waits for that commit, then removes the file in its own commit. Before this, the in-flight commit blocked the deleted file as "changed after it was saved".
 
 - Start realtime voice from the open chat. **Start voice chat** now sits beside the composer, also in a new chat before its first message. In the terminal dashboard and `ptbk chat`, Ctrl+G is shown on the composer itself. Starting voice in a new chat prepares its ordinary Book without a message or reply. Voice start and the first typed send share one creation, so concurrent clicks and retries never make a second chat or a second copy of the message. The first message may be spoken. The same composer keeps sending text during the call.

@@ -55,6 +55,11 @@ const REVIEW_TTL_MS = 30 * 60_000;
 const RECENT_OUTCOMES = 10;
 
 /**
+ * How many in-flight commits an operation waits out before it proceeds anyway (a commit of its paths finishes first).
+ */
+const SETTLE_ATTEMPTS = 20;
+
+/**
  * The commit trailer identifying Promptbook Desktop as the operation source.
  *
  * @private desktop Files
@@ -524,7 +529,22 @@ export class DesktopFiles {
         if (fileKind(path) === 'book') throw new PtbkError('Books are saved through the Book editor and its own scoped commit.', { kind: 'usage' });
         if (!TEXT_KINDS.has(fileKind(path))) throw new PtbkError(`${path} is not an ordinary text file.`, { kind: 'usage' });
         if (Buffer.byteLength(input.text) > MAX_TEXT_BYTES) throw new PtbkError(`${path} is too large for the text editor.`, { kind: 'usage' });
-        return await this.mutex.run(async (): Promise<TextSaveOutcome> => {
+        const same = (candidate: string): boolean => candidate === path;
+        for (let attempt = 0; ; attempt++) {
+            // A commit of this path finishes first: it never judges (or stages) a save it did not accept.
+            await this.settle(same);
+            const outcome = await this.saveTextOnce(path, input, attempt < SETTLE_ATTEMPTS ? same : undefined);
+            if (outcome) return outcome;
+        }
+    }
+
+    /**
+     * One locked save attempt of {@link DesktopFiles.saveText}; `undefined` when a commit of the path started meanwhile
+     * (`waitFor` matches it), so the save waits for that commit and tries again.
+     */
+    private async saveTextOnce(path: string, input: { readonly text: string; readonly revision: string }, waitFor: ((path: string) => boolean) | undefined): Promise<TextSaveOutcome | undefined> {
+        return await this.mutex.run(async (): Promise<TextSaveOutcome | undefined> => {
+            if (waitFor && this.inFlight(waitFor).length) return undefined;
             const target = await this.writable(path, 'replace');
             if (target.type === 'directory') throw new PtbkError(`${path} is a folder.`, { kind: 'usage' });
             const owner = this.host.ownerOf(target.absolute);
@@ -933,15 +953,22 @@ export class DesktopFiles {
     private async applyDelete(review: FileOperationReview): Promise<FileOperationResult> {
         const scope = review.items.filter((item) => item.status === 'ok').map((item) => item.path);
         const inside = (path: string): boolean => scope.some((item) => path === item || path.startsWith(`${item}/`));
+        // A batch committing paths of this scope finishes first; the deletion then removes what it committed
+        // (otherwise its accepted version would be verified against a file this deletion already removed).
         for (let attempt = 0; ; attempt++) {
-            // A batch committing paths of this scope finishes first; the deletion then removes what it committed
-            // (otherwise its accepted version would be verified against a file this deletion already removed).
-            const busy = this.journal.batches.filter((other) => other.state === 'committing' && Object.keys(other.paths).some(inside));
-            const running = busy.map((other) => this.inflight.get(other.id)).filter((promise): promise is Promise<string | undefined> => promise !== undefined);
-            if (!running.length || attempt >= 20) break;
-            await Promise.allSettled(running);
+            await this.settle(inside);
+            const outcome = await this.deleteOnce(review, attempt < SETTLE_ATTEMPTS ? inside : undefined);
+            if (outcome) return outcome;
         }
+    }
+
+    /**
+     * One locked attempt of {@link DesktopFiles.applyDelete}; `undefined` when a commit inside the scope started
+     * meanwhile (`waitFor` matches it), so the deletion waits for that commit and tries again.
+     */
+    private async deleteOnce(review: FileOperationReview, waitFor: ((path: string) => boolean) | undefined): Promise<FileOperationResult | undefined> {
         const outcome = await this.mutex.run(async () => {
+            if (waitFor && this.inFlight(waitFor).length) return undefined;
             const accepted: string[] = [];
             const conflicting: Array<{ path: string; reason: string }> = [];
             // The scope is checked again: something may have changed since the review.
@@ -982,6 +1009,7 @@ export class DesktopFiles {
             await this.save();
             return { accepted, conflicting, batch };
         });
+        if (!outcome) return undefined;
         // A deletion is a distinct confirmed operation with its own commit, made at once.
         if (outcome.batch) await this.flush(outcome.batch.id);
         this.host.onChange();
@@ -1092,7 +1120,24 @@ export class DesktopFiles {
         }
     }
 
-    /** Commits one batch while it is known as in flight (a deletion of its paths waits for it). */
+    /** In-flight commits of committing batches with a path that `inside` matches. */
+    private inFlight(inside: (path: string) => boolean): Array<Promise<string | undefined>> {
+        return this.journal.batches
+            .filter((batch) => batch.state === 'committing' && Object.keys(batch.paths).some(inside))
+            .map((batch) => this.inflight.get(batch.id))
+            .filter((promise): promise is Promise<string | undefined> => promise !== undefined);
+    }
+
+    /** Waits (bounded) until no commit of a path that `inside` matches is in flight. */
+    private async settle(inside: (path: string) => boolean): Promise<void> {
+        for (let attempt = 0; attempt < SETTLE_ATTEMPTS; attempt++) {
+            const running = this.inFlight(inside);
+            if (!running.length) return;
+            await Promise.allSettled(running);
+        }
+    }
+
+    /** Commits one batch while it is known as in flight (a deletion or save of its paths waits for it). */
     private async tracked(batch: Batch): Promise<string | undefined> {
         const running = this.commitBatch(batch);
         this.inflight.set(batch.id, running);
@@ -1105,25 +1150,35 @@ export class DesktopFiles {
 
     /** Verifies and commits one batch (see {@link DesktopFiles.flush}). */
     private async commitBatch(batch: Batch): Promise<string | undefined> {
-        if (batch.state === 'committing' || !this.journal.batches.includes(batch)) return undefined;
-        const subject = this.subject(batch);
-        if (!this.host.commitMode()) {
-            await this.end(batch, { subject, at: new Date().toISOString(), outcome: 'uncommitted', detail: 'The project uses an explicit no-commit workflow; the files are saved.' });
-            return undefined;
-        }
-        batch.state = 'committing';
-        this.host.onChange();
+        let subject = this.subject(batch);
+        let taken = false;
         try {
-            const verified: string[] = [];
-            const blocked: string[] = [];
-            for (const [path, accepted] of Object.entries(batch.paths)) {
-                const absolute = resolve(this.host.projectRoot, ...path.split('/'));
-                const owner = this.host.ownerOf(absolute);
-                const current = await currentContent(absolute);
-                if (owner) blocked.push(`${path} (${owner} owns it now)`);
-                else if (current !== accepted) blocked.push(`${path} (changed after it was saved)`);
-                else verified.push(absolute);
-            }
+            // Taking the batch and reading its paths hold the operation lock, so no save lands between reading a path
+            // and judging it; a later save of a committing path waits for this commit (see {@link DesktopFiles.saveText}).
+            const check = await this.mutex.run(async () => {
+                if (batch.state === 'committing' || !this.journal.batches.includes(batch)) return undefined;
+                subject = this.subject(batch);
+                if (!this.host.commitMode()) {
+                    await this.end(batch, { subject, at: new Date().toISOString(), outcome: 'uncommitted', detail: 'The project uses an explicit no-commit workflow; the files are saved.' });
+                    return undefined;
+                }
+                batch.state = 'committing';
+                taken = true;
+                this.host.onChange();
+                const verified: string[] = [];
+                const blocked: string[] = [];
+                for (const [path, accepted] of Object.entries(batch.paths)) {
+                    const absolute = resolve(this.host.projectRoot, ...path.split('/'));
+                    const owner = this.host.ownerOf(absolute);
+                    const current = await currentContent(absolute);
+                    if (owner) blocked.push(`${path} (${owner} owns it now)`);
+                    else if (current !== accepted) blocked.push(`${path} (changed after it was saved)`);
+                    else verified.push(absolute);
+                }
+                return { verified, blocked };
+            });
+            if (!check) return undefined;
+            const { verified, blocked } = check;
             const ignored = await ignoredPaths(this.host.projectRoot, verified).catch(() => new Set<string>());
             const committable = verified.filter((path) => !ignored.has(path));
             const committedSubject = blocked.length && batch.kind !== 'delete' ? this.subject(batch, committable.length) : subject;
@@ -1143,6 +1198,7 @@ export class DesktopFiles {
             await this.end(batch, sha ? { subject, at, outcome: 'committed', sha } : verified.length && !committable.length ? { subject, at, outcome: 'ignored', detail: 'Ignored by the project’s Git rules.' } : { subject, at, outcome: 'committed', detail: 'No change remained to commit.' });
             return sha;
         } catch (error) {
+            if (!taken) throw error;
             batch.state = 'failed';
             batch.reason = `The commit failed: ${errorMessage(error)}. The files are saved; only the commit is retried.`;
             batch.retryAt = Date.now() + RETRY_MS;
