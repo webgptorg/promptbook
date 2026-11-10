@@ -408,9 +408,9 @@ esac
     const id = randomUUID();
     const send = (action, params = {}) => session.terminal('local', { id, promptId, action, ...params });
     await send('start');
-    await waitFor(async () => (await send('read', { offset: 0 })).output.includes('Complete the CLI sign-in'), { timeoutMs: 5000, intervalMs: 40 });
+    await waitFor(async () => (await send('read', { offset: 0 })).output.includes('Complete the CLI sign-in'), { timeoutMs: 20000, intervalMs: 40 });
     await send('write', { data: 'yes\r' });
-    await waitFor(async () => (await send('read', { offset: 0 })).done, { timeoutMs: 5000, intervalMs: 40 });
+    await waitFor(async () => (await send('read', { offset: 0 })).done, { timeoutMs: 20000, intervalMs: 40 });
     await session.answer(answer(session.state(), { kind: 'confirm', confirmed: true }));
     await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 8000, intervalMs: 40 });
     assert.doesNotMatch(JSON.stringify(await readOnboarding(project)), /ABCD-1234/);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { _electron } from 'playwright-core';
@@ -9,6 +9,17 @@ import { initializedProject, ptbk, waitFor } from '../../../test/helpers.mjs';
 import { readProcessRecord } from '../../../dist/service/records.js';
 import { projectAt } from '../../../dist/project/workspace.js';
 import { ControlClient } from '../../../dist/service/control.js';
+
+/**
+ * The desktop app folder, without a trailing separator: Playwright quotes each argument for `cmd.exe` on Windows, and a
+ * trailing backslash would escape the closing quote and scramble every following argument (`--user-data-dir`, `--project`).
+ */
+const DESKTOP_APP = resolve(fileURLToPath(new URL('../', import.meta.url)));
+
+/** Monaco's `CtrlCmd` shortcuts and document navigation as the current platform types them. */
+const KEYS = process.platform === 'darwin'
+    ? { documentEnd: 'Meta+ArrowDown', save: 'Meta+S', undo: 'Meta+Z', redo: 'Meta+Shift+Z', reference: 'Meta' }
+    : { documentEnd: 'Control+End', save: 'Control+S', undo: 'Control+Z', redo: 'Control+Y', reference: 'Control' };
 
 /** A control-channel request to the project's engine (the observed outcome, independent of the desktop UI). */
 async function control(project, method, params = {}) {
@@ -37,7 +48,7 @@ test('desktop windows and native terminals are independent clients of the same p
     await mkdir(profile);
     const launch = () => _electron.launch({
         executablePath: process.env.PTBK_DESKTOP_EXECUTABLE || electron,
-        args: [...(process.env.PTBK_DESKTOP_EXECUTABLE ? [] : [fileURLToPath(new URL('../', import.meta.url))]), '--skip-init', `--user-data-dir=${profile}`],
+        args: [...(process.env.PTBK_DESKTOP_EXECUTABLE ? [] : [DESKTOP_APP]), '--skip-init', `--user-data-dir=${profile}`],
         env: desktopEnv,
         colorScheme: null,
         timeout: 45000,
@@ -117,108 +128,110 @@ test('desktop workspace tabs, Monaco editing, cross-window moves and restart res
     assert.equal((await ptbk(['start', '--paused', '--no-dashboard', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
     const profile = join(directory, 'desktop profile');
     await mkdir(profile);
-    const launch = (...args) => _electron.launch({
-        executablePath: electron,
-        args: [fileURLToPath(new URL('../', import.meta.url)), '--skip-init', `--user-data-dir=${profile}`, ...args],
-        env: desktopEnv, colorScheme: null, timeout: 45000,
-    });
+    // Clients close before the fixture's own cleanup: a running Electron keeps its profile (inside the fixture) open,
+    // and removing that directory under it never finishes on Windows, past the test's own timeout.
+    const clients = [];
+    const launch = async (...args) => {
+        const client = await _electron.launch({
+            executablePath: electron,
+            args: [DESKTOP_APP, '--skip-init', `--user-data-dir=${profile}`, ...args],
+            env: desktopEnv, colorScheme: null, timeout: 45000,
+        });
+        clients.push(client);
+        return client;
+    };
     const closeBounded = async (application) => {
         await Promise.race([application.close().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 15000))]);
         try { application.process().kill(); } catch {}
     };
     const dashboards = (application) => application.windows().filter((page) => page.url().includes('view=desktop'));
-    const application = await launch('--project', project);
-    t.after(() => closeBounded(application));
-    const dashboard = await waitFor(() => dashboards(application)[0], { timeoutMs: 45000, message: 'the graphical dashboard' });
-    dashboard.on('pageerror', (error) => process.stderr.write(`Desktop dashboard: ${error.message}\n`));
-    await dashboard.locator('nav.workspace-tabs').waitFor();
-    await dashboard.evaluate(() => { location.hash = '#/files'; });
-    await dashboard.reload();
-    const tabs = dashboard.getByRole('tablist', { name: 'Open pages and documents' });
-    await tabs.getByRole('tab', { name: 'Files' }).waitFor();
-    const files = dashboard.locator('.files-list');
-    // A single click previews; previewing another file reuses the same preview tab.
-    await files.getByRole('button', { name: 'other.txt', exact: true }).click();
-    await tabs.getByRole('tab', { name: 'other.txt (preview)' }).waitFor();
-    await dashboard.waitForFunction(() => Boolean(window.PromptbookEditor) && document.querySelector('.document-view:not([hidden]) .monaco-editor'));
-    await tabs.getByRole('tab', { name: 'Files' }).click();
-    await files.getByRole('button', { name: 'notes.md', exact: true }).click();
-    await tabs.getByRole('tab', { name: 'notes.md (preview)' }).waitFor();
-    assert.equal(await tabs.getByRole('tab', { name: /other\.txt/ }).count(), 0, 'one preview per window');
-    // Starting an edit keeps the preview open as a regular tab.
-    await dashboard.getByRole('button', { name: 'Edit', exact: true }).click();
-    await tabs.getByRole('tab', { name: 'notes.md', exact: true }).waitFor();
-    const editor = dashboard.locator('.document-view:not([hidden]) .monaco-editor');
-    await editor.locator('.view-lines').click();
-    await dashboard.keyboard.press('Control+End');
-    await dashboard.keyboard.type('Saved line');
-    await dashboard.keyboard.press('Control+S');
-    await dashboard.locator('.document-view:not([hidden]) .doc-status').filter({ hasText: /Saved/ }).waitFor({ timeout: 30000 });
-    assert.equal(await readFile(join(project, 'notes.md'), 'utf8'), '# Notes\r\nŽluťoučký kůň 👋\r\nSaved line', 'saved through the engine with its CRLF and Unicode');
-    // Pinned tabs survive closing the unpinned ones.
-    await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('pin');
-    await tabs.getByRole('tab', { name: 'notes.md (pinned)' }).waitFor();
-    await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('unpinned');
-    await waitFor(async () => (await tabs.getByRole('tab').count()) === 1 || undefined, { timeoutMs: 10000, message: 'only the pinned tab stays' });
-    // A Book uses the shared language logic: highlighting, live diagnostics and Ctrl/Cmd+click to the referenced Book.
-    await dashboard.evaluate(() => { location.hash = '#/agents'; });
-    await tabs.getByRole('tab', { name: 'Agents' }).waitFor();
-    await dashboard.locator('.inventory li').filter({ hasNotText: 'engine-provided' }).first().getByRole('button', { name: 'Book', exact: true }).click();
-    const book = dashboard.locator('.document-view:not([hidden])');
-    await book.locator('.monaco-editor .ptbk-book-declaration').first().waitFor({ timeout: 20000 });
-    await book.locator('.view-lines').click();
-    await dashboard.keyboard.press('Control+End');
-    await dashboard.keyboard.press('Enter');
-    await dashboard.keyboard.type('NONSENSE THING here');
-    // Escape closes a suggestion and stays in the editor (it never leaves the document).
-    await dashboard.keyboard.press('Escape');
-    await dashboard.keyboard.press('Enter');
-    await dashboard.keyboard.type('GOAL Ask @Expert today.');
-    await dashboard.keyboard.press('Escape');
-    await book.locator('.monaco-editor .ptbk-book-unknown').waitFor({ timeout: 10000 });
-    await book.locator('.monaco-editor .squiggly-warning, .monaco-editor .squiggly-error').first().waitFor({ timeout: 10000 });
-    await book.locator('.monaco-editor .ptbk-book-reference', { hasText: 'Expert' }).last().click({ modifiers: [process.platform === 'darwin' ? 'Meta' : 'Control'] });
-    await tabs.getByRole('tab', { name: 'Expert', exact: true }).waitFor({ timeout: 20000 });
-    // An unsaved edit moves to a new window with its undo history; the source tab closes only after the target takes it.
-    await tabs.getByRole('tab', { name: /notes\.md/ }).click();
-    await editor.locator('.view-lines').click();
-    await dashboard.keyboard.press('Control+End');
-    await dashboard.keyboard.type(' DRAFT');
-    await tabs.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).waitFor();
-    await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('new-window');
-    const moved = await waitFor(() => dashboards(application).find((page) => page !== dashboard), { timeoutMs: 45000, message: 'the new window with the document' });
-    const movedTabs = moved.getByRole('tablist', { name: 'Open pages and documents' });
-    await movedTabs.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).waitFor({ timeout: 45000 });
-    await waitFor(async () => (await tabs.getByRole('tab', { name: /notes\.md/ }).count()) === 0 || undefined, { timeoutMs: 20000, message: 'the source tab closes after the move' });
-    const movedText = () => moved.evaluate(() => document.querySelector('.document-view:not([hidden]) .monaco-editor .view-lines').textContent.replace(/ /g, ' '));
-    assert.match(await movedText(), /Saved line DRAFT$/);
-    await moved.locator('.document-view:not([hidden]) .monaco-editor .view-lines').click();
-    await moved.keyboard.press('Control+Z');
-    await waitFor(async () => (/Saved line$/.test(await movedText()) || undefined), { timeoutMs: 10000, message: 'undo works after the move' });
-    await moved.keyboard.press('Control+Y');
-    await waitFor(async () => (/Saved line DRAFT$/.test(await movedText()) || undefined), { timeoutMs: 10000, message: 'redo works after the move' });
-    // The workspace and its draft return after a restart.
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    await closeBounded(application);
-    const restarted = await launch();
-    t.after(() => closeBounded(restarted));
-    const restored = await waitFor(async () => {
-        for (const page of dashboards(restarted)) if (await page.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).count()) return page;
-    }, { timeoutMs: 60000, message: 'the restored window with its pinned draft' });
-    await restored.getByRole('tab', { name: /notes\.md/ }).click();
-    await restored.locator('.document-view:not([hidden]) .doc-status').filter({ hasText: /Restored your unsaved draft/ }).waitFor({ timeout: 30000 });
-    assert.equal(await readFile(join(project, 'notes.md'), 'utf8'), '# Notes\r\nŽluťoučký kůň 👋\r\nSaved line', 'a draft is never written without a save');
+    try {
+        const application = await launch('--project', project);
+        const dashboard = await waitFor(() => dashboards(application)[0], { timeoutMs: 45000, message: 'the graphical dashboard' });
+        dashboard.on('pageerror', (error) => process.stderr.write(`Desktop dashboard: ${error.message}\n`));
+        await dashboard.locator('nav.workspace-tabs').waitFor();
+        await dashboard.evaluate(() => { location.hash = '#/files'; });
+        await dashboard.reload();
+        const tabs = dashboard.getByRole('tablist', { name: 'Open pages and documents' });
+        await tabs.getByRole('tab', { name: 'Files' }).waitFor();
+        const files = dashboard.locator('.files-list');
+        // A single click previews; previewing another file reuses the same preview tab.
+        await files.getByRole('button', { name: 'other.txt', exact: true }).click();
+        await tabs.getByRole('tab', { name: 'other.txt (preview)' }).waitFor();
+        await dashboard.waitForFunction(() => Boolean(window.PromptbookEditor) && document.querySelector('.document-view:not([hidden]) .monaco-editor'));
+        await tabs.getByRole('tab', { name: 'Files' }).click();
+        await files.getByRole('button', { name: 'notes.md', exact: true }).click();
+        await tabs.getByRole('tab', { name: 'notes.md (preview)' }).waitFor();
+        assert.equal(await tabs.getByRole('tab', { name: /other\.txt/ }).count(), 0, 'one preview per window');
+        // Starting an edit keeps the preview open as a regular tab.
+        await dashboard.getByRole('button', { name: 'Edit', exact: true }).click();
+        await tabs.getByRole('tab', { name: 'notes.md', exact: true }).waitFor();
+        const editor = dashboard.locator('.document-view:not([hidden]) .monaco-editor');
+        await editor.locator('.view-lines').click();
+        await dashboard.keyboard.press(KEYS.documentEnd);
+        await dashboard.keyboard.type('Saved line');
+        await dashboard.keyboard.press(KEYS.save);
+        await dashboard.locator('.document-view:not([hidden]) .doc-status').filter({ hasText: /Saved/ }).waitFor({ timeout: 30000 });
+        assert.equal(await readFile(join(project, 'notes.md'), 'utf8'), '# Notes\r\nŽluťoučký kůň 👋\r\nSaved line', 'saved through the engine with its CRLF and Unicode');
+        // Pinned tabs survive closing the unpinned ones.
+        await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('pin');
+        await tabs.getByRole('tab', { name: 'notes.md (pinned)' }).waitFor();
+        await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('unpinned');
+        await waitFor(async () => (await tabs.getByRole('tab').count()) === 1 || undefined, { timeoutMs: 10000, message: 'only the pinned tab stays' });
+        // A Book uses the shared language logic: highlighting, live diagnostics and Ctrl/Cmd+click to the referenced Book.
+        await dashboard.evaluate(() => { location.hash = '#/agents'; });
+        await tabs.getByRole('tab', { name: 'Agents' }).waitFor();
+        await dashboard.locator('.inventory li').filter({ hasNotText: 'engine-provided' }).first().getByRole('button', { name: 'Book', exact: true }).click();
+        const book = dashboard.locator('.document-view:not([hidden])');
+        await book.locator('.monaco-editor .ptbk-book-declaration').first().waitFor({ timeout: 20000 });
+        await book.locator('.view-lines').click();
+        await dashboard.keyboard.press(KEYS.documentEnd);
+        await dashboard.keyboard.press('Enter');
+        await dashboard.keyboard.type('NONSENSE THING here');
+        // Escape closes a suggestion and stays in the editor (it never leaves the document).
+        await dashboard.keyboard.press('Escape');
+        await dashboard.keyboard.press('Enter');
+        await dashboard.keyboard.type('GOAL Ask @Expert today.');
+        await dashboard.keyboard.press('Escape');
+        await book.locator('.monaco-editor .ptbk-book-unknown').waitFor({ timeout: 10000 });
+        await book.locator('.monaco-editor .squiggly-warning, .monaco-editor .squiggly-error').first().waitFor({ timeout: 10000 });
+        await book.locator('.monaco-editor .ptbk-book-reference', { hasText: 'Expert' }).last().click({ modifiers: [KEYS.reference] });
+        await tabs.getByRole('tab', { name: 'Expert', exact: true }).waitFor({ timeout: 20000 });
+        // An unsaved edit moves to a new window with its undo history; the source tab closes only after the target takes it.
+        await tabs.getByRole('tab', { name: /notes\.md/ }).click();
+        await editor.locator('.view-lines').click();
+        await dashboard.keyboard.press(KEYS.documentEnd);
+        await dashboard.keyboard.type(' DRAFT');
+        await tabs.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).waitFor();
+        await tabs.locator('.ws-tab', { hasText: 'notes.md' }).locator('select').selectOption('new-window');
+        const moved = await waitFor(() => dashboards(application).find((page) => page !== dashboard), { timeoutMs: 45000, message: 'the new window with the document' });
+        const movedTabs = moved.getByRole('tablist', { name: 'Open pages and documents' });
+        await movedTabs.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).waitFor({ timeout: 45000 });
+        await waitFor(async () => (await tabs.getByRole('tab', { name: /notes\.md/ }).count()) === 0 || undefined, { timeoutMs: 20000, message: 'the source tab closes after the move' });
+        const movedText = () => moved.evaluate(() => document.querySelector('.document-view:not([hidden]) .monaco-editor .view-lines').textContent.replace(/ /g, ' '));
+        assert.match(await movedText(), /Saved line DRAFT$/);
+        await moved.locator('.document-view:not([hidden]) .monaco-editor .view-lines').click();
+        await moved.keyboard.press(KEYS.undo);
+        await waitFor(async () => (/Saved line$/.test(await movedText()) || undefined), { timeoutMs: 10000, message: 'undo works after the move' });
+        await moved.keyboard.press(KEYS.redo);
+        await waitFor(async () => (/Saved line DRAFT$/.test(await movedText()) || undefined), { timeoutMs: 10000, message: 'redo works after the move' });
+        // The workspace and its draft return after a restart.
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await closeBounded(application);
+        const restarted = await launch();
+        const restored = await waitFor(async () => {
+            for (const page of dashboards(restarted)) if (await page.getByRole('tab', { name: 'notes.md (pinned) · unsaved' }).count()) return page;
+        }, { timeoutMs: 60000, message: 'the restored window with its pinned draft' });
+        await restored.getByRole('tab', { name: /notes\.md/ }).click();
+        await restored.locator('.document-view:not([hidden]) .doc-status').filter({ hasText: /Restored your unsaved draft/ }).waitFor({ timeout: 30000 });
+        assert.equal(await readFile(join(project, 'notes.md'), 'utf8'), '# Notes\r\nŽluťoučký kůň 👋\r\nSaved line', 'a draft is never written without a save');
+    } finally {
+        for (const client of clients.reverse()) await closeBounded(client);
+    }
 });
 
 /** Voice starts beside the composer of the open (new) chat, stays bound to it, and leaving that chat view ends it. */
-/**
- * Windows has not passed this flow yet: on the windows-installer runner it never finished. Even its own timeout and
- * bounded cleanup did not end it, and the whole job was cancelled, so it is skipped there until it is diagnosed on a
- * Windows machine.
- */
-const VOICE_E2E_WINDOWS = process.platform === 'win32' ? { skip: 'desktop voice e2e hangs the Windows runner (undiagnosed); verified on macOS' } : {};
-
-test('desktop voice is started and controlled from the open chat, never from the feature bar', { timeout: 240000, ...VOICE_E2E_WINDOWS }, async (t) => {
+test('desktop voice is started and controlled from the open chat, never from the feature bar', { timeout: 240000 }, async (t) => {
     const { project, env: baseEnv, directory, log } = await initializedProject(t, { check: 'process.exit(0);\n' });
     // The fake provider never transcribes here, so the history stays exactly what the user does.
     const env = { ...baseEnv, FAKE_CODEX_SLOW_MS: '0', FAKE_CODEX_VOICE_LOG: join(dirname(log), 'voice.log'), FAKE_CODEX_VOICE_DELAY_MS: '600000', PTBK_VOICE_PAGE_GRACE_MS: '60000' };
@@ -239,48 +252,50 @@ test('desktop voice is started and controlled from the open chat, never from the
     await mkdir(profile);
     const application = await _electron.launch({
         executablePath: process.env.PTBK_DESKTOP_EXECUTABLE || electron,
-        args: [...(process.env.PTBK_DESKTOP_EXECUTABLE ? [] : [fileURLToPath(new URL('../', import.meta.url))]), '--skip-init', `--user-data-dir=${profile}`],
+        args: [...(process.env.PTBK_DESKTOP_EXECUTABLE ? [] : [DESKTOP_APP]), '--skip-init', `--user-data-dir=${profile}`],
         env: desktopEnv,
         colorScheme: null,
         timeout: 45000,
     });
     // Cleanup is bounded: a client that does not exit is killed, so a failure is reported instead of hanging the run.
-    t.after(async () => {
+    // It runs before the fixture's own cleanup, which cannot remove the profile from under a running client on Windows.
+    try {
+        const shell = await application.firstWindow();
+        await shell.getByRole('heading', { name: 'Your projects' }).waitFor();
+        await shell.locator('tbody .status-dot').waitFor();
+        await shell.getByRole('button', { name: 'Open', exact: true }).click();
+        const dashboard = await waitFor(() => application.windows().find((page) => page.url().includes('view=desktop')), { timeoutMs: 45000, message: 'the graphical dashboard' });
+        assert.match(new URL(dashboard.url()).searchParams.get('intent') ?? '', /^[0-9a-f]{32}$/, 'the view has its own voice intent token');
+        await dashboard.evaluate(() => { location.hash = '#/chats'; });
+        await dashboard.reload();
+        await dashboard.getByRole('button', { name: 'New chat', exact: true }).click();
+        await dashboard.getByRole('button', { name: /^Chat with / }).click();
+        await dashboard.locator('textarea[data-draft="chat:new"]').fill('UNSENT DRAFT');
+        assert.equal(await shell.getByRole('button', { name: /Start voice/ }).count(), 0, 'no voice entry or chat picker in the shell');
+        await dashboard.getByRole('button', { name: 'Start voice chat' }).click();
+        // The new chat's ordinary Book exists without a message; the shell presents the call's media below that chat.
+        const name = await waitFor(async () => (await control(project, 'chat-list')).find((chat) => /new chat/.test(chat.name))?.name, { timeoutMs: 30000, message: 'the chat prepared for voice' });
+        await waitFor(async () => (await control(project, 'chat-get', { name })).voice, { timeoutMs: 30000, message: 'the call in that chat' });
+        assert.equal((await control(project, 'chat-get', { name })).messages.length, 0, 'media setup adds no message');
+        await waitFor(() => shell.evaluate(() => !document.getElementById('voice-strip').hidden), { timeoutMs: 30000, message: 'the media below the chat' });
+        await dashboard.locator('.voice-panel').waitFor({ timeout: 30000 });
+        assert.equal(await dashboard.locator('textarea[data-draft]').inputValue(), 'UNSENT DRAFT', 'the draft moved with its chat');
+        assert.equal(await dashboard.getByRole('button', { name: 'Start voice chat' }).count(), 0);
+        await dashboard.getByRole('button', { name: 'Mute microphone' }).click();
+        await waitFor(async () => (await control(project, 'chat-get', { name })).voice.micMuted || undefined, { timeoutMs: 20000, message: 'mute from the chat' });
+        await dashboard.getByRole('button', { name: 'Unmute microphone' }).waitFor({ timeout: 20000 });
+        // The same composer sends text during the call, into the same chat.
+        await dashboard.locator('textarea[data-draft]').fill('TYPED DURING CALL');
+        await dashboard.getByRole('button', { name: 'Send', exact: true }).click();
+        await waitFor(async () => (await control(project, 'chat-get', { name })).messages.some((message) => message.text === 'TYPED DURING CALL') || undefined, { timeoutMs: 20000, message: 'the typed message' });
+        // Leaving the chat view closes the call's owning view: voice ends, the chat stays.
+        await dashboard.getByRole('button', { name: 'Close', exact: true }).click();
+        await waitFor(async () => ['ended', 'failed'].includes((await control(project, 'chat-get', { name })).voice?.state) || undefined, { timeoutMs: 30000, message: 'the call ends on leaving its chat' });
+        await waitFor(() => shell.evaluate(() => document.getElementById('voice-strip').hidden), { timeoutMs: 30000, message: 'the media view goes away' });
+        assert.match(await shell.locator('#notice').textContent(), /left the chat/);
+        assert.ok((await control(project, 'chat-get', { name })).messages.length >= 1, 'the chat and its history remain');
+    } finally {
         await Promise.race([application.close().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 15000))]);
         try { application.process().kill(); } catch {}
-    });
-    const shell = await application.firstWindow();
-    await shell.getByRole('heading', { name: 'Your projects' }).waitFor();
-    await shell.locator('tbody .status-dot').waitFor();
-    await shell.getByRole('button', { name: 'Open', exact: true }).click();
-    const dashboard = await waitFor(() => application.windows().find((page) => page.url().includes('view=desktop')), { timeoutMs: 45000, message: 'the graphical dashboard' });
-    assert.match(new URL(dashboard.url()).searchParams.get('intent') ?? '', /^[0-9a-f]{32}$/, 'the view has its own voice intent token');
-    await dashboard.evaluate(() => { location.hash = '#/chats'; });
-    await dashboard.reload();
-    await dashboard.getByRole('button', { name: 'New chat', exact: true }).click();
-    await dashboard.getByRole('button', { name: /^Chat with / }).click();
-    await dashboard.locator('textarea[data-draft="chat:new"]').fill('UNSENT DRAFT');
-    assert.equal(await shell.getByRole('button', { name: /Start voice/ }).count(), 0, 'no voice entry or chat picker in the shell');
-    await dashboard.getByRole('button', { name: 'Start voice chat' }).click();
-    // The new chat's ordinary Book exists without a message; the shell presents the call's media below that chat.
-    const name = await waitFor(async () => (await control(project, 'chat-list')).find((chat) => /new chat/.test(chat.name))?.name, { timeoutMs: 30000, message: 'the chat prepared for voice' });
-    await waitFor(async () => (await control(project, 'chat-get', { name })).voice, { timeoutMs: 30000, message: 'the call in that chat' });
-    assert.equal((await control(project, 'chat-get', { name })).messages.length, 0, 'media setup adds no message');
-    await waitFor(() => shell.evaluate(() => !document.getElementById('voice-strip').hidden), { timeoutMs: 30000, message: 'the media below the chat' });
-    await dashboard.locator('.voice-panel').waitFor({ timeout: 30000 });
-    assert.equal(await dashboard.locator('textarea[data-draft]').inputValue(), 'UNSENT DRAFT', 'the draft moved with its chat');
-    assert.equal(await dashboard.getByRole('button', { name: 'Start voice chat' }).count(), 0);
-    await dashboard.getByRole('button', { name: 'Mute microphone' }).click();
-    await waitFor(async () => (await control(project, 'chat-get', { name })).voice.micMuted || undefined, { timeoutMs: 20000, message: 'mute from the chat' });
-    await dashboard.getByRole('button', { name: 'Unmute microphone' }).waitFor({ timeout: 20000 });
-    // The same composer sends text during the call, into the same chat.
-    await dashboard.locator('textarea[data-draft]').fill('TYPED DURING CALL');
-    await dashboard.getByRole('button', { name: 'Send', exact: true }).click();
-    await waitFor(async () => (await control(project, 'chat-get', { name })).messages.some((message) => message.text === 'TYPED DURING CALL') || undefined, { timeoutMs: 20000, message: 'the typed message' });
-    // Leaving the chat view closes the call's owning view: voice ends, the chat stays.
-    await dashboard.getByRole('button', { name: 'Close', exact: true }).click();
-    await waitFor(async () => ['ended', 'failed'].includes((await control(project, 'chat-get', { name })).voice?.state) || undefined, { timeoutMs: 30000, message: 'the call ends on leaving its chat' });
-    await waitFor(() => shell.evaluate(() => document.getElementById('voice-strip').hidden), { timeoutMs: 30000, message: 'the media view goes away' });
-    assert.match(await shell.locator('#notice').textContent(), /left the chat/);
-    assert.ok((await control(project, 'chat-get', { name })).messages.length >= 1, 'the chat and its history remain');
+    }
 });
