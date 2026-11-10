@@ -367,7 +367,7 @@ export class EngineUpdater {
         if (limitation) {
             phase = 'unsupported';
             reason = limitation;
-        } else if (this.running) reason = this.runningReason;
+        } else if (this.active) reason = this.runningReason;
         else if (phase === 'verified' && !target) reason = `Updated to ptbk ${this.current}.`;
         else if (target) {
             phase = this.record.nextAttemptAt && Date.parse(this.record.nextAttemptAt) > Date.now() ? 'recovering' : 'waiting';
@@ -382,7 +382,7 @@ export class EngineUpdater {
             reason = this.record.lookupProblem ? `Release information is unknown: ${this.record.lookupProblem}` : this.record.checkedAt ? selection.reason : 'No release lookup yet.';
         }
         // A newer release this Node.js cannot run stays visible as skipped instead of silently missing.
-        const skipped = target || limitation || this.running ? [] : this.skippedReleases();
+        const skipped = target || limitation || this.active ? [] : this.skippedReleases();
         if (skipped.length) reason = `${reason} Skipped: ${skipped.map((entry) => `ptbk ${entry.version} (requires Node.js ${entry.requirement})`).join(', ')}; this engine runs on Node.js ${process.versions.node}.`;
         return {
             policy,
@@ -404,6 +404,13 @@ export class EngineUpdater {
 
     /** Explanation of the running phase. */
     private runningReason = '';
+
+    /**
+     * Whether clients see a run in progress. It ends as soon as the run's failure is recorded, while `running` still
+     * guards against a second run until the installation lock is released; otherwise a snapshot in between shows the
+     * recorded failure with the stale running phase instead of its scheduled recheck.
+     */
+    private active = false;
 
     /**
      * The system task in the shared task inventory: a pending/running update, or the last outcome as recent history.
@@ -428,9 +435,9 @@ export class EngineUpdater {
             definition: ENGINE_UPDATE_DEFINITION,
             ...(runs.length ? { runs } : {}),
         };
-        if (view.target || this.running) {
+        if (view.target || this.active) {
             const target = view.target ?? this.record.run?.target ?? '';
-            const readiness = this.running ? 'active' : view.phase === 'recovering' ? 'waiting-until' : 'not-ready';
+            const readiness = this.active ? 'active' : view.phase === 'recovering' ? 'waiting-until' : 'not-ready';
             const retry = this.record.failures ?? 0;
             return { ...common, title: `Update Promptbook ${view.current} → ${target}`, readiness, reason: view.reason, doneCount: runs.filter((run) => run.outcome === 'completed').length, ...(retry ? { retry } : {}), ...(view.phase === 'recovering' && view.nextAttemptAt ? { until: view.nextAttemptAt } : {}) };
         }
@@ -558,6 +565,7 @@ export class EngineUpdater {
         // successful update-check cadence is separate.
         const delay = progressiveDelay(WAITING_POLICIES.updateRecovery, failures);
         this.phase = 'failed';
+        this.active = false;
         await this.save({ run: undefined, failures, failure: detail, nextAttemptAt: new Date(Date.now() + delay).toISOString(), deferral: undefined, ...this.finished({ at: new Date().toISOString(), from, to, outcome: 'failed', detail }) });
     }
 
@@ -625,6 +633,7 @@ export class EngineUpdater {
     public async run(hooks: { readonly stillFree: () => boolean; readonly restart: () => void; readonly handoff?: () => Promise<string | undefined> }): Promise<void> {
         if (this.running) return;
         this.running = true;
+        this.active = true;
         this.phase = 'checking';
         this.runningReason = 'Checking the release and the update policy.';
         this.options.changed();
@@ -716,6 +725,7 @@ export class EngineUpdater {
         } finally {
             await release?.().catch(() => undefined);
             this.running = false;
+            this.active = false;
             this.options.changed();
         }
     }
