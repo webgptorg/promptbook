@@ -266,6 +266,8 @@ test('desktop voice is started and controlled from the open chat, never from the
         await shell.getByRole('button', { name: 'Open', exact: true }).click();
         const dashboard = await waitFor(() => application.windows().find((page) => page.url().includes('view=desktop')), { timeoutMs: 45000, message: 'the graphical dashboard' });
         assert.match(new URL(dashboard.url()).searchParams.get('intent') ?? '', /^[0-9a-f]{32}$/, 'the view has its own voice intent token');
+        // A reload while the just-opened dashboard is still navigating is aborted (net::ERR_ABORTED), so it waits until the dashboard has rendered.
+        await dashboard.locator('nav.workspace-tabs').waitFor();
         await dashboard.evaluate(() => { location.hash = '#/chats'; });
         await dashboard.reload();
         await dashboard.getByRole('button', { name: 'New chat', exact: true }).click();
