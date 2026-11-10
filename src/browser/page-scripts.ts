@@ -394,6 +394,11 @@ export type LoginScan = {
      * submission would not reach the website's decision about the login. Invisible widgets and badges do not count.
      */
     readonly captcha: boolean;
+    /**
+     * The page is still loading or shows nothing yet (no text and no field), for example during a self-refresh of a page
+     * waiting for an approval: it tells nothing about the sign-in, so it is never taken for a signed-in session.
+     */
+    readonly blank: boolean;
 };
 
 /**
@@ -459,7 +464,8 @@ export function loginFormScript(): string {
         });
         const responses = [...document.querySelectorAll('[name="g-recaptcha-response"], [name="h-captcha-response"], [name="cf-turnstile-response"]')];
         const captcha = widgets.length > 0 && (!responses.length || responses.some((element) => !element.value));
-        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval, captcha };
+        const blank = document.readyState !== 'complete' || (!inputs.length && !text.length);
+        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval, captcha, blank };
     })()`;
 }
 

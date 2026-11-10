@@ -54,6 +54,11 @@ const HEADLESS_WINDOW_SIZE = '1280,900';
 const ACTION_SETTLE_MS = 1000;
 
 /**
+ * How often a login scan of a still-loading or empty page is repeated after a submission before it counts as such.
+ */
+const BLANK_RESCANS = 6;
+
+/**
  * Pause after hovering, scrolling or pressing keys.
  */
 const HOVER_SETTLE_MS = 500;
@@ -1576,6 +1581,20 @@ export class TaskBrowser {
         }
     }
 
+    /**
+     * The login state of the page a submission led to: a page still loading or not yet showing anything (a redirect in
+     * progress, a self-refreshing approval page) is scanned again once it settled, instead of being read as signed in.
+     */
+    private async scanSubmitted(): Promise<LoginScan> {
+        let scan = await this.scanLogin();
+        for (let attempt = 0; scan.blank && attempt < BLANK_RESCANS; attempt++) {
+            await this.settle(5_000);
+            await delay(HOVER_SETTLE_MS);
+            scan = await this.scanLogin();
+        }
+        return scan;
+    }
+
     /** Enters one marked login field by trusted text input. */
     private async enterLoginField(field: 'username' | 'password' | 'code' | 'current' | `field-${number}` | `new-${number}`, value: string): Promise<void> {
         const { connection, sessionId } = await this.active();
@@ -1631,7 +1650,7 @@ export class TaskBrowser {
             if (!scan.password) {
                 await additional(scan, true);
                 await this.submitLogin();
-                scan = await this.scanLogin();
+                scan = await this.scanSubmitted();
                 if (scan.captcha) return CAPTCHA_ASKED;
                 if (!scan.password) return scan.otp ? { result: 'challenge', note: 'the site asks for a one-time code' } : scan.approval ? APPROVAL_ASKED : scan.username ? { result: 'rejected', note: 'the site did not accept the username' } : { result: 'no-form', note: 'no password field followed the username' };
                 const away = elsewhere(scan);
@@ -1642,7 +1661,7 @@ export class TaskBrowser {
             await this.enterLoginField('password', credentials.password);
             await additional(scan, true);
             await this.submitLogin();
-            let after = await this.scanLogin();
+            let after = await this.scanSubmitted();
             if (after.captcha) return CAPTCHA_ASKED;
             if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
             if (after.otp) return { result: 'challenge', note: 'the site asks for a one-time code' };
@@ -1654,7 +1673,7 @@ export class TaskBrowser {
                 if (unanswered.length) return asks(unanswered);
                 await additional(after, true);
                 await this.submitLogin();
-                after = await this.scanLogin();
+                after = await this.scanSubmitted();
                 if (after.captcha) return CAPTCHA_ASKED;
                 if (after.fields.length && originMatches(credentials.origin, after.origin)) return { result: 'rejected', note: 'the site asked for its sign-in question again' };
                 if (after.password && originMatches(credentials.origin, after.origin)) return { result: 'rejected' };
@@ -1682,7 +1701,7 @@ export class TaskBrowser {
             if (scan.captcha) return CAPTCHA_ASKED;
             await this.enterLoginField('code', code);
             await this.submitLogin();
-            const after = await this.scanLogin();
+            const after = await this.scanSubmitted();
             if (after.captcha) return CAPTCHA_ASKED;
             if (after.otp && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site asks for a code again' };
             if (after.password && originMatches(origin, after.origin)) return { result: 'rejected', note: 'the site returned to its login form' };
