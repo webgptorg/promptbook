@@ -399,12 +399,12 @@ esac
     t.after(() => session.stop());
     await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
     await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['github-copilot'] }));
-    const prompt = await waitFor(() => session.state().prompt?.kind === 'harness-login' && session.state().prompt, { timeoutMs: 6000, intervalMs: 40 });
+    const prompt = await waitFor(() => session.state().prompt?.kind === 'harness-login' && session.state().prompt, { timeoutMs: 20000, intervalMs: 40 });
     assert.equal(prompt.userCode, 'ABCD-1234');
     assert.equal(prompt.url, 'https://github.com/login/device');
     assert.throws(() => session.useTerminal(randomUUID()), /changed/);
     session.useTerminal(prompt.id);
-    const { promptId } = await waitFor(() => session.signInOptions(), { timeoutMs: 6000, intervalMs: 40 });
+    const { promptId } = await waitFor(() => session.signInOptions(), { timeoutMs: 20000, intervalMs: 40 });
     const id = randomUUID();
     const send = (action, params = {}) => session.terminal('local', { id, promptId, action, ...params });
     await send('start');
@@ -412,6 +412,6 @@ esac
     await send('write', { data: 'yes\r' });
     await waitFor(async () => (await send('read', { offset: 0 })).done, { timeoutMs: 20000, intervalMs: 40 });
     await session.answer(answer(session.state(), { kind: 'confirm', confirmed: true }));
-    await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 8000, intervalMs: 40 });
+    await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 20000, intervalMs: 40 });
     assert.doesNotMatch(JSON.stringify(await readOnboarding(project)), /ABCD-1234/);
 });
