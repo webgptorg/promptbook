@@ -1,5 +1,7 @@
 # Unreleased
 
+- Render the macOS menu-bar icon as a monochrome native template, with Retina resolution. The system keeps it visible on dark and light menu bars, independently of the desktop app's selected theme.
+
 - Verify the Ubuntu installer boot smoke test from the restored service state and manual pause, replacing an outdated message match. Deliberately stopped work must restore paused without starting any task.
 
 - Show the one-time owner setup link and QR automatically after attended pairing or startup, opening it only on a local desktop. Support --no-open and PTBK_NO_OPEN, retain explicit JSON output, and keep all secrets out of background logs.

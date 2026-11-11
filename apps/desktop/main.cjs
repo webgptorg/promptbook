@@ -449,11 +449,19 @@ function restoreWindows(options) {
 /** Location of the same product icon used by the installer. */
 function iconPath() { return app.isPackaged ? join(process.resourcesPath, 'icon.ico') : join(__dirname, 'icon.ico'); }
 
-/** macOS expects a small PNG for its menu bar; the app bundle supplies the Dock icon. */
+/** macOS tints the transparent template to match the menu bar, independently of the app's selected theme. */
 function trayIcon() {
     if (!isMac) return iconPath();
     const logo = app.isPackaged ? join(process.resourcesPath, 'tray.png') : join(__dirname, '../../design/logo-blue-transparent-256.png');
-    return nativeImage.createFromPath(logo).resize({ width: 18, height: 18 });
+    const source = nativeImage.createFromPath(logo);
+    const bitmap = source.toBitmap();
+    // Template images use black pixels and the logo's original alpha mask (BGRA).
+    for (let offset = 0; offset < bitmap.length; offset += 4) bitmap.fill(0, offset, offset + 3);
+    const monochrome = nativeImage.createFromBitmap(bitmap, source.getSize());
+    const icon = monochrome.resize({ width: 18, height: 18 });
+    icon.addRepresentation({ scaleFactor: 2, dataURL: monochrome.resize({ width: 36, height: 36 }).toDataURL() });
+    icon.setTemplateImage(true);
+    return icon;
 }
 
 /** Graceful or explicitly forced host-wide quit, using current registry/controller state on every pass. */

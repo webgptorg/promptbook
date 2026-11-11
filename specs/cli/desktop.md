@@ -3,6 +3,7 @@
 Windows and macOS share the same [Promptbook wordmark and robot artwork](../../design/README.md).
 The header follows the application's selected appearance. The empty project view uses
 the homepage robot as a supporting illustration.
+The macOS menu-bar icon uses a monochrome native template with Retina resolution, so the system renders it white on a dark menu bar and black on a light menu bar, independently of the application's selected appearance.
 
 [Main specification](../_main.md) · [Windows installer](windows-installer.md) · [Global dashboard](global-dashboard.md) · [Initialization](initialization.md) · [Harness sessions](harness-sessions.md)
 
