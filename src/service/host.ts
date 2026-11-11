@@ -304,10 +304,7 @@ export class ServiceHost {
         const env = this.options.env;
         const view = (): ReturnType<AppConnection['view']> | undefined => this.appConnection?.view();
         const directory = appDirectory(this.options.project.runtime.app, env);
-        // Created before anything listens: a release build refuses a conformance trust file, and an invalid update
-        // policy or release URL stops the engine rather than serving an unchecked UI.
-        const loader = await UiLoader.create({ directory, env, log: (text, level) => this.agenda.log(text, level) });
-        this.uiLoader = loader;
+        const loader = this.uiLoader!;
         const enginePageSha256 = createHash('sha256').update(engineHomePage.toString()).digest('hex');
         const api = new EngineApi({
             agenda: this.agenda,
@@ -383,6 +380,11 @@ export class ServiceHost {
     /** Acquires ownership and starts the agenda's local supporting services. */
     public async start(): Promise<void> {
         const { project } = this.options;
+        // Policy errors must stop startup before initialization can contact any service or open a listener.
+        if (this.options.mode !== 'maintenance') this.uiLoader = await UiLoader.create({
+            directory: appDirectory(project.runtime.app, this.options.env), env: this.options.env,
+            log: (text, level) => this.agenda.log(text, level),
+        });
         this.releaseLock = await acquireProjectLock(project, this.instanceId, this.options.mode);
         this.owned.start();
         try {

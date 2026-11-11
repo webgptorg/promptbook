@@ -8,6 +8,7 @@ import { CONFORMANCE_BUILD } from '../dist/app/build.js';
 import { engineHomePage } from '../dist/app/web/documents.js';
 import { CONFORMANCE_TRUST_FILE_ENV, UiLoader, isEngineOwnedPath, uiUpdatePolicy } from '../dist/app/web/ui-loader.js';
 import { ENGINE_VERSION } from '../dist/common/version.js';
+import { protocol, releaseTools } from '../dist/vendor/app-platform.js';
 import { temporaryDirectory } from './helpers.mjs';
 
 const POSIX = process.platform !== 'win32';
@@ -36,7 +37,9 @@ async function installedBundle(directory, files) {
     }
     const active = { version: '1.0.1', sha256: 'f'.repeat(64), logIndex: 42, directory: name, manifest: { version: '1.0.1', commit: 'a'.repeat(40), engineApi: '^1.0.0', entry: 'index.html', files: manifestFiles } };
     await writeFile(join(ui, 'state.json'), JSON.stringify({ v: 1, active, firstSeen: {} }), { mode: 0o600 });
-    return { name, path: join(ui, name), active };
+    const policyPath = join(directory, 'policy.json');
+    await writeFile(policyPath, JSON.stringify(trustPolicy()));
+    return { name, path: join(ui, name), active, env: { PTBK_UI_TRUST_POLICY_FILE: policyPath } };
 }
 
 test('release build: the conformance build switch is off and a conformance trust file is refused by name', async (t) => {
@@ -64,6 +67,58 @@ test('UI loader settings: update policy and release store URL', async (t) => {
     await UiLoader.create({ directory, env: { PTBK_UI_RELEASE_URL: 'https://store.localhost/releases/' } });
 });
 
+/** A policy with distinct public keys, using the platform's production release delays. */
+function trustPolicy(staging = false) {
+    const key = (value) => ({ publicKey: Buffer.alloc(32, value).toString('base64url') });
+    return {
+        releaseKeys: [key(1)], maintainerKeys: [key(2), key(3), key(4)], securityThreshold: 2,
+        workflowIdentity: { issuer: 'https://token.actions.githubusercontent.com', repository: 'webgptorg/app', repositoryId: '1411959168', workflowPath: '.github/workflows/ui-release.yml' },
+        revocationRule: { signers: 'release-or-maintainer', threshold: 1 },
+        delays: staging ? { regularMs: 300_000, securityMs: 300_000 } : { regularMs: 259_200_000, securityMs: 86_400_000 },
+        ...(staging ? { profile: 'staging' } : {}),
+    };
+}
+
+test('UI trust policy: release builds read a strict local policy once, using the pinned Sigstore root', async (t) => {
+    const directory = await temporaryDirectory(t, 'ptbk release trust');
+    const path = join(directory, 'policy.json');
+    const policy = trustPolicy();
+    await writeFile(path, JSON.stringify(policy));
+    const loader = await UiLoader.create({ directory, env: { PTBK_UI_TRUST_POLICY_FILE: path, NODE_ENV: 'production', PTBK_UI_RELEASE_URL: 'https://store.localhost/' } });
+    assert.deepEqual(loader.options.trust.policy, protocol.TrustPolicy.parse(policy));
+    assert.ok(releaseTools.PINNED_TRUSTED_ROOT);
+    await writeFile(path, 'changed after startup');
+    assert.deepEqual(loader.options.trust.policy, policy, 'changing the file cannot replace the running policy');
+    const staging = trustPolicy(true);
+    await writeFile(path, JSON.stringify(staging));
+    await assert.rejects(UiLoader.create({ directory, env: { PTBK_UI_TRUST_POLICY_FILE: path, NODE_ENV: 'production' } }), (error) => {
+        assert.equal(error.message, `PTBK_UI_TRUST_POLICY_FILE: ${path} is a staging trust policy, which must not be used in production`);
+        return true;
+    });
+    const development = await UiLoader.create({ directory, env: { PTBK_UI_TRUST_POLICY_FILE: path, NODE_ENV: 'development' } });
+    assert.deepEqual(development.options.trust.policy, staging);
+});
+
+test('UI trust policy: invalid input refuses startup without disclosing the file contents', async (t) => {
+    const directory = await temporaryDirectory(t, 'ptbk invalid trust');
+    const path = join(directory, 'policy.json');
+    const marker = 'PRIVATE_FILE_CONTENT_MARKER';
+    const env = { PTBK_UI_TRUST_POLICY_FILE: path };
+    const rejects = async (value = env) => assert.rejects(UiLoader.create({ directory, env: value }), (error) => {
+        assert.match(error.message, /PTBK_UI_TRUST_POLICY_FILE/);
+        assert.ok(error.message.includes(value.PTBK_UI_TRUST_POLICY_FILE));
+        assert.ok(!error.message.includes(marker));
+        return true;
+    });
+    await rejects(); // unreadable
+    await rejects({ PTBK_UI_TRUST_POLICY_FILE: 'relative.json' });
+    for (const content of [marker, JSON.stringify({ ...trustPolicy(), unexpected: marker }), JSON.stringify({ ...trustPolicy(), securityThreshold: 1 }), ' '.repeat(64 * 1024 + 1)]) {
+        await writeFile(path, content);
+        await rejects();
+    }
+    await rejects({ ...env, PTBK_CONFORMANCE_TRUST_FILE: '/conformance.json' });
+});
+
 test('UI loader paths: a bundle never occupies the engine’s own paths', () => {
     for (const path of ['/api', '/api/v1', '/api/v1/engine', '/auth', '/auth/sign-in', '/setup', '/setup/options', '/.well-known', '/.well-known/acme-challenge/x', '/_ptbk/harness-terminal', '/_ptbk/harness-terminal/xterm.js']) assert.equal(isEngineOwnedPath(path), true, path);
     for (const path of ['/', '/index.html', '/agents/1', '/assets/index-abcdefgh.js', '/apis', '/setups', '/authors']) assert.equal(isEngineOwnedPath(path), false, path);
@@ -87,8 +142,8 @@ test('UI loader serving: listed files only, SPA fallback for documents, cache he
     const directory = await temporaryDirectory(t, 'ptbk ui serve');
     const index = '<!doctype html><meta name="ui" content="1.0.1">';
     const script = 'console.log(1);';
-    await installedBundle(directory, { 'index.html': index, 'assets/index-BxD3f9_a.js': script, 'favicon.svg': '<svg/>' });
-    const loader = await UiLoader.create({ directory, env: {} });
+    const { env } = await installedBundle(directory, { 'index.html': index, 'assets/index-BxD3f9_a.js': script, 'favicon.svg': '<svg/>' });
+    const loader = await UiLoader.create({ directory, env });
     await loader.start();
     t.after(() => loader.stop());
 
@@ -136,7 +191,7 @@ test('UI loader integrity: a file changed on disk is never served, and a damaged
     const directory = await temporaryDirectory(t, 'ptbk ui tamper');
     const bundle = await installedBundle(directory, { 'index.html': '<!doctype html>v1', 'app.js': 'ok' });
     const logs = [];
-    const loader = await UiLoader.create({ directory, env: {}, log: (text, level) => logs.push({ text, level }) });
+    const loader = await UiLoader.create({ directory, env: bundle.env, log: (text, level) => logs.push({ text, level }) });
     await loader.start();
     t.after(() => loader.stop());
     assert.equal((await loader.serve(request('/app.js'))).status, 200);
@@ -147,7 +202,7 @@ test('UI loader integrity: a file changed on disk is never served, and a damaged
     assert.doesNotMatch(await damaged.text(), /tampered/);
     assert.ok(logs.some((entry) => entry.level === 'error' && /changed on disk/.test(entry.text)));
 
-    const restarted = await UiLoader.create({ directory, env: {}, log: (text, level) => logs.push({ text, level }) });
+    const restarted = await UiLoader.create({ directory, env: bundle.env, log: (text, level) => logs.push({ text, level }) });
     await restarted.start();
     t.after(() => restarted.stop());
     assert.equal(await restarted.serve(request('/', { accept: 'text/html' })), undefined);
@@ -155,6 +210,18 @@ test('UI loader integrity: a file changed on disk is never served, and a damaged
     assert.ok(logs.some((entry) => entry.level === 'error' && /no longer matches its manifest/.test(entry.text)));
     const state = JSON.parse(await readFile(join(directory, 'ui', 'state.json'), 'utf8'));
     assert.equal(state.active, undefined);
+});
+
+test('UI loader without a policy never serves a cached bundle or fetches a release', async (t) => {
+    const directory = await temporaryDirectory(t, 'ptbk removed policy');
+    await installedBundle(directory, { 'index.html': '<!doctype html>previous UI' });
+    const loader = await UiLoader.create({ directory, env: { PTBK_UI_RELEASE_URL: 'https://store.localhost/' } });
+    await loader.start();
+    t.after(() => loader.stop());
+    await loader.check();
+    assert.equal(await loader.serve(request('/', { accept: 'text/html' })), undefined);
+    assert.equal(loader.status('builtin').bundleSha256, 'builtin');
+    assert.equal(loader.status('builtin').lastUpdateCheck, null);
 });
 
 test('engine page: escaped, for documents only, read-only methods', async () => {

@@ -1,5 +1,7 @@
 # Unreleased
 
+- Load the signed App UI trust policy from a bounded, strict local file before startup. Refuse staging trust in production, preserve production service settings across restarts, and keep the plain page when no policy is configured. Add release-build conformance coverage (ENG-116).
+
 - Refresh the bundled App platform contracts and provenance to app/main 8188677eb7c6, including staging release trust policies.
 
 - The Wallet no longer reports a sign-in as successful while the page it led to is still loading. A page that refreshes itself while it waits for an approval on another device could be scanned between two loads, find no field and no approval request, and so be taken for a signed-in session. A submitted login, sign-in question or one-time code now waits until the resulting page shows content before deciding.

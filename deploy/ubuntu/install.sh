@@ -233,6 +233,7 @@ fi
 cat > /usr/local/bin/ptbk <<'LAUNCHER'
 #!/bin/sh
 # Promptbook VPS launcher
+export NODE_ENV=production
 export PATH="/opt/promptbook/node/bin:$HOME/.local/bin:$PATH"
 if [ "$(id -un)" = promptbook ]; then
     export XDG_CONFIG_HOME=/var/lib/promptbook/.config

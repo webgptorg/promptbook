@@ -134,6 +134,8 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
         }
         if (request.paused) installPausedStart(project, request.paused);
         const nonce = shortId(10);
+        // Installed background services always use production trust rules. Staging runs in the foreground.
+        const env = { ...request.env, NODE_ENV: 'production' };
         const metadata: LaunchMetadata = {
             version: 1,
             projectRoot: project.root,
@@ -144,7 +146,7 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
             cliHarnesses: request.cliHarnesses,
             cliBrowser: request.cliBrowser,
             tasksDirectory: request.tasksDirectory,
-            env: discoveryEnvironment(request.env),
+            env: discoveryEnvironment(env),
             persistent: request.persistent,
             ...(request.onboarding ? { onboarding: true } : {}),
             intentionallyStopped: false,
@@ -154,7 +156,7 @@ export async function launchDaemon(project: Project, request: LaunchRequest): Pr
         await writeLaunchMetadata(project, metadata);
         rotateServiceLog(servicePaths(project).supervisorLog);
         const log = openSync(servicePaths(project).supervisorLog, 'a');
-        const child = spawn(process.execPath, [engineModule('service/supervisor.js'), project.root], { cwd: project.root, detached: true, stdio: ['ignore', log, log], windowsHide: true, env: request.env });
+        const child = spawn(process.execPath, [engineModule('service/supervisor.js'), project.root], { cwd: project.root, detached: true, stdio: ['ignore', log, log], windowsHide: true, env });
         child.unref();
         const deadline = Date.now() + LAUNCH_TIMEOUT_MS;
         while (Date.now() < deadline) {
