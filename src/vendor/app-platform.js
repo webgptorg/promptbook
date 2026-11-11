@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable */
-// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 309a41252d370572f6e68b0d41f0c971f6ecc14a. Do not edit; regenerate.
+// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 8188677eb7c63068806b8db0d081b38088e31d57. Do not edit; regenerate.
 // Licenses: see THIRD_PARTY_LICENSES.md next to this file.
 import { createRequire } from "node:module";
 var __create = Object.create;
@@ -21445,6 +21445,7 @@ __export(exports_src2, {
   PROBLEM_DETAILS_MAX_BYTES: () => PROBLEM_DETAILS_MAX_BYTES,
   PROPOSED_MEMBER_ROLES: () => PROPOSED_MEMBER_ROLES,
   ProblemDetails: () => ProblemDetails2,
+  ProductionTrustPolicy: () => ProductionTrustPolicy,
   REGISTER_PATH: () => REGISTER_PATH,
   REGISTER_REQUEST_MAX_BYTES: () => REGISTER_REQUEST_MAX_BYTES,
   REGISTER_RESPONSE_MAX_BYTES: () => REGISTER_RESPONSE_MAX_BYTES,
@@ -21470,8 +21471,10 @@ __export(exports_src2, {
   SECURITY_THRESHOLD: () => SECURITY_THRESHOLD,
   SIGNED_MEMBER_MESSAGE_MAX_LENGTH: () => SIGNED_MEMBER_MESSAGE_MAX_LENGTH,
   SIGNING_CONTEXT: () => SIGNING_CONTEXT,
+  STAGING_MIN_DELAY_MS: () => STAGING_MIN_DELAY_MS,
   Sha256Hex: () => Sha256Hex2,
   SignedRelease: () => SignedRelease,
+  StagingTrustPolicy: () => StagingTrustPolicy,
   StreamId: () => StreamId,
   TUNNEL_CLOSE_CODE: () => TUNNEL_CLOSE_CODE,
   TUNNEL_FEATURES: () => TUNNEL_FEATURES,
@@ -21536,6 +21539,7 @@ __export(exports_src2, {
   generateLinkCode: () => generateLinkCode,
   heartbeatPath: () => heartbeatPath,
   importEd25519PrivateKey: () => importEd25519PrivateKey,
+  isStagingPolicy: () => isStagingPolicy,
   negotiateTunnel: () => negotiateTunnel,
   pae: () => pae,
   parseClientHello: () => parseClientHello,
@@ -36387,17 +36391,16 @@ var DEFAULT_REVOCATION_RULE = Object.freeze({
   signers: "release-or-maintainer",
   threshold: 1
 });
-var TrustPolicy = strictObject({
+var STAGING_MIN_DELAY_MS = 60 * 1000;
+var stagingDelay = (productionMs) => int().min(STAGING_MIN_DELAY_MS).max(productionMs);
+var policyFields = {
   releaseKeys: array(KeyRef).min(1).max(MAX_RELEASE_KEYS),
   maintainerKeys: array(KeyRef).length(MAINTAINER_KEY_COUNT),
   securityThreshold: literal(SECURITY_THRESHOLD),
   workflowIdentity: WorkflowIdentity,
-  revocationRule: RevocationRule,
-  delays: strictObject({
-    regularMs: literal(RELEASE_DELAYS.regularMs),
-    securityMs: literal(RELEASE_DELAYS.securityMs)
-  })
-}).superRefine((policy, context) => {
+  revocationRule: RevocationRule
+};
+function checkKeys(policy, context) {
   const release = policy.releaseKeys.map(({ publicKey }) => publicKey);
   const maintainers = policy.maintainerKeys.map(({ publicKey }) => publicKey);
   if (new Set(release).size !== release.length) {
@@ -36420,7 +36423,34 @@ var TrustPolicy = strictObject({
       message: "revocation threshold exceeds the keys allowed to sign"
     });
   }
+}
+var ProductionTrustPolicy = strictObject({
+  ...policyFields,
+  delays: strictObject({
+    regularMs: literal(RELEASE_DELAYS.regularMs),
+    securityMs: literal(RELEASE_DELAYS.securityMs)
+  })
+}).superRefine(checkKeys);
+var StagingTrustPolicy = strictObject({
+  ...policyFields,
+  profile: literal("staging"),
+  delays: strictObject({
+    regularMs: stagingDelay(RELEASE_DELAYS.regularMs),
+    securityMs: stagingDelay(RELEASE_DELAYS.securityMs)
+  })
+}).superRefine(checkKeys).superRefine(({ delays }, context) => {
+  if (delays.securityMs > delays.regularMs) {
+    context.addIssue({
+      code: "custom",
+      path: ["delays", "securityMs"],
+      message: "a security release may not wait longer than a regular one"
+    });
+  }
 });
+var TrustPolicy = union([ProductionTrustPolicy, StagingTrustPolicy]);
+function isStagingPolicy(policy) {
+  return "profile" in policy;
+}
 function revocationSigners(policy) {
   switch (policy.revocationRule.signers) {
     case "release":
@@ -36476,7 +36506,7 @@ function checkCertificateClaims(claims, expected) {
 var CONFORMANCE_TRUST_FILE_ENV = "PTBK_CONFORMANCE_TRUST_FILE";
 var ConformanceTrustFile = strictObject({
   v: literal(1),
-  trustPolicy: TrustPolicy,
+  trustPolicy: ProductionTrustPolicy,
   trustedRoot: record(string2(), unknown())
 });
 // ../../../packages/protocol/src/release/fake-provenance-verifier.ts

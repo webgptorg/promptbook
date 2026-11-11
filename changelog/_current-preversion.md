@@ -1,5 +1,7 @@
 # Unreleased
 
+- Refresh the bundled App platform contracts and provenance to app/main 8188677eb7c6, including staging release trust policies.
+
 - The Wallet no longer reports a sign-in as successful while the page it led to is still loading. A page that refreshes itself while it waits for an approval on another device could be scanned between two loads, find no field and no approval request, and so be taken for a signed-in session. A submitted login, sign-in question or one-time code now waits until the resulting page shows content before deciding.
 
 - The desktop voice check waits until the dashboard it opened has rendered before switching to Chats. A reload of the still-navigating dashboard was aborted (`net::ERR_ABORTED`), which made the macOS publish of the DMG flaky.
