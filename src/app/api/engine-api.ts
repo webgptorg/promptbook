@@ -17,6 +17,7 @@ import type { AppSecurityFacts } from '../connection.js';
 import { decodeBase64Url, encodeBase64Url } from '../encoding.js';
 import type { AccessStore, Actor, StoredMember, StoredPasskey, StoredSession } from '../web/access.js';
 import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
+import { walletHandlers } from './wallet.js';
 
 /**
  * Capabilities this engine advertises in `GET /engine` (every route of each works). The core API needs none.
@@ -272,6 +273,7 @@ export class EngineApi {
 
     /** The capabilities available at this stage of the engine's lifecycle. */
     private get capabilities(): readonly { readonly id: string; readonly version: number }[] {
+        if (this.deps.agenda) return [...ADVERTISED_CAPABILITIES, { id: 'wallet', version: 1 }];
         return this.deps.onboarding ? [...ADVERTISED_CAPABILITIES, { id: 'files', version: 1 }] : ADVERTISED_CAPABILITIES;
     }
 
@@ -344,6 +346,7 @@ export class EngineApi {
     private problemOf(error: unknown, route: ContractRoute): Outcome {
         if (error instanceof PtbkError) {
             const kind = error.details.kind;
+            if (route.capability?.id === 'wallet' && this.deps.agenda?.wallet.readiness !== 'ready') return fail('wallet-not-ready');
             if (kind === 'not-found') return fail('not-found');
             if (kind === 'conflict') return fail(route.id === 'createAgent' || route.id === 'deleteAgent' ? 'unavailable' : 'revision-conflict');
             if (kind === 'usage') return fail('validation-failed', { errors: [{ path: 'body', message: error.message.slice(0, 300) }] });
@@ -653,6 +656,7 @@ export class EngineApi {
 
     /** The handlers by route ID. */
     private readonly handlers: Readonly<Record<string, (context: Context) => Promise<Outcome>>> = {
+        ...walletHandlers(() => this.agenda.wallet),
         getOnboarding: async () => ok(this.deps.onboarding?.state() ?? completedOnboarding),
         answerOnboarding: async ({ body }) => {
             if (!this.deps.onboarding) return fail('onboarding-prompt-stale');
