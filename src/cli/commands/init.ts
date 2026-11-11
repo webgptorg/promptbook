@@ -1793,7 +1793,7 @@ export default async function init(context: CommandContext): Promise<number> {
         return EXIT.success;
     }
     if (flag(context, 'prepare-only')) {
-        const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'setup-link', 'json', 'persist', 'wait', 'non-interactive', 'interactive', 'raw', 'no-ui', 'terminal-title']);
+        const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'setup-link', 'open', 'json', 'persist', 'wait', 'non-interactive', 'interactive', 'raw', 'no-ui', 'terminal-title']);
         if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('With --prepare-only, project decisions come from onboarding after the engine starts.', 'init');
         const { prepareOnboarding } = await import('./onboarding.js');
         return await prepareOnboarding(context);

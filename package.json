@@ -89,7 +89,8 @@
         "registry": "https://registry.npmjs.org/"
     },
     "dependencies": {
-        "@scure/bip39": "2.4.0"
+        "@scure/bip39": "2.4.0",
+        "qr": "0.7.2"
     },
     "optionalDependencies": {
         "@lydell/node-pty": "1.2.0-beta.18"

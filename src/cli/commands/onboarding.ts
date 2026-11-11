@@ -16,7 +16,7 @@ import { readConcealed } from '../../ui/secret.js';
 import { CANCELLED, composeRich, confirm, inputLine, selectMany, selectOne, wasInterrupted } from '../../ui/prompts.js';
 import { printJson, readStdin } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
-import { ownerAccess } from './connect.js';
+import { automaticOwnerSetup, ownerAccess } from './connect.js';
 
 /** The write endpoint is private IPC and accepts exactly the same validated response as the App API. */
 async function submit(client: ControlClient, reply: OnboardingReply): Promise<void> {
@@ -242,6 +242,7 @@ export async function prepareOnboarding(context: CommandContext): Promise<number
         }
     }
     if (wantOwner) return await ownerAccess(context, project, json || !context.terminal.interactive);
+    if (result) await automaticOwnerSetup(context, project);
     if (json) printJson({ engineId: draft.engineId, outcome: result?.outcome ?? 'pending', app: result && 'app' in result ? result.app : undefined, persistence });
     else context.terminal.write('Pending initialization ' + draft.engineId + ' is running.\n' +
         (result ? 'Owner access: ptbk connect --onboarding ' + draft.engineId + ' --setup-link\n' : '') +

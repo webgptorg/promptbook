@@ -28,6 +28,7 @@ const START_OPTIONS: OptionGroup = {
     options: [
         { name: 'daemon', type: 'boolean', description: 'Run in the background, independent of this terminal (default).' },
         { name: 'foreground', type: 'boolean', description: 'Keep the service attached to this terminal (live dashboard, or plain events with --raw).' },
+        { name: 'open', type: 'boolean', negatable: true, negatedOnly: true, description: 'Print the owner setup link and QR without opening a local browser.' },
         { name: 'dashboard', type: 'boolean', negatable: true, negatedOnly: true, description: 'Report once and return instead of opening the project dashboard afterwards (the default in an interactive terminal; raw/noninteractive output never opens it).' },
         { name: 'persist', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not restart automatically after crashes or reboots (state stays durable).' },
         { name: 'harness-updates', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not update enabled harnesses automatically for this run.' },
@@ -130,6 +131,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                     { name: 'link', type: 'string', valueName: '<url>', description: 'With --prepare-only, pair with the App using its one-time pairing URL.' },
                     { name: 'link-stdin', type: 'boolean', description: 'With --prepare-only, read the pairing URL from standard input.' },
                     { name: 'setup-link', type: 'boolean', description: 'With pairing, wait for the engine address and print the owner setup link.' },
+                    { name: 'open', type: 'boolean', negatable: true, negatedOnly: true, description: 'Print the owner setup link and QR without opening a local browser.' },
                     { name: 'wait', type: 'boolean', negatable: true, negatedOnly: true, description: 'With --setup-link, report readiness without waiting.' },
                     JSON_OPTION,
                 ],
@@ -390,6 +392,7 @@ Browsers open the engine at its own address (https://<engine ID>.<engine domain>
                 options: [
                     { name: 'setup-link', type: 'boolean', description: 'Print a fresh one-time owner setup link of the engine’s address (interactive terminal only, or with --json); it waits until the address works.' },
                     { name: 'reset-owner', type: 'boolean', description: 'End every passkey and session of this engine, then print a new setup link (agents and data stay).' },
+                    { name: 'open', type: 'boolean', negatable: true, negatedOnly: true, description: 'Print the owner setup link and QR without opening a local browser.' },
                     { name: 'wait', type: 'boolean', negatable: true, description: 'With --setup-link: wait up to 10 minutes for the address to work (--no-wait says what is missing and exits 3).' },
                     { name: 'yes', type: 'boolean', description: 'With --reset-owner: skip typing the start of the engine ID.' },
                 ],

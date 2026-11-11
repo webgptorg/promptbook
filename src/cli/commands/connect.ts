@@ -15,6 +15,7 @@ import { renderPanel, type PanelTone } from '../../ui/panels.js';
 import { CANCELLED, inputLine } from '../../ui/prompts.js';
 import { printJson, selectedProject } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
+import { showOwnerSetup } from '../owner-setup.js';
 
 /**
  * What a running engine did with a changed link.
@@ -122,6 +123,7 @@ export default async function connect(context: CommandContext): Promise<number> 
         if (json) printJson(result);
         else if (result.outcome === 'refused') context.terminal.write(result.message + '\n');
         else renderView(context, result.app, { title: 'Paired with Promptbook App', tone: 'success' });
+        if (result.outcome !== 'refused') await automaticOwnerSetup(context, project);
         return result.outcome === 'refused' ? EXIT.incomplete : EXIT.success;
     }
     const service = await lookupService(project);
@@ -140,6 +142,7 @@ export default async function connect(context: CommandContext): Promise<number> 
             if (json) printJson(result);
             else if (result.outcome === 'already-linked') renderView(context, result.app, { title: 'Already linked', message: 'Run `ptbk disconnect` before using a different pairing URL.', tone: 'muted' });
             else renderView(context, result.app, { title: 'Linked to the Promptbook App', message: `Compare fingerprint ${result.app.fingerprint} with the App. The running engine is connecting now.`, tone: 'success' });
+            await automaticOwnerSetup(context, project);
             return EXIT.success;
         }
     }
@@ -176,6 +179,7 @@ export default async function connect(context: CommandContext): Promise<number> 
     const view = reload.kind === 'reloaded' ? reload.view : await currentView(project, context.env);
     if (json) printJson({ outcome: 'linked', app: view });
     else renderView(context, view, { title: 'Linked to the Promptbook App', message: `This project is the App engine ${outcome.registration.hostname}. Compare the fingerprint ${identity.fingerprint.formatted} with the one the App shows. ${reloadNote(reload, true)}`, tone: 'success' });
+    await automaticOwnerSetup(context, project);
     return EXIT.success;
 }
 
@@ -246,10 +250,11 @@ async function requestOwnerAccess(project: Project, method: 'app-setup-link' | '
 
 /**
  * `ptbk connect --setup-link` and `ptbk connect --reset-owner`: the owner setup link of the engine's own address,
- * printed only to an interactive terminal (or as `--json` when asked) and never to a log; the reset first ends every
+ * printed with a QR only to an interactive terminal (or as `--json` when asked) and opened on a local desktop;
+ * never sent to a log. The reset first ends every
  * passkey and session after the operator types the start of the engine ID (or `--yes`).
  */
-export async function ownerAccess(context: CommandContext, project: Project, json: boolean): Promise<number> {
+export async function ownerAccess(context: CommandContext, project: Project, json: boolean, automatic = false): Promise<number> {
     const { terminal } = context;
     const reset = flag(context, 'reset-owner') === true;
     const wait = flag(context, 'wait') !== false;
@@ -275,6 +280,7 @@ export async function ownerAccess(context: CommandContext, project: Project, jso
     const { style } = terminal;
     const width = Math.min(terminal.columns(), 100);
     if (outcome.kind === 'owner-exists') {
+        if (automatic) return EXIT.success;
         terminal.write(`${renderPanel({ title: 'This engine already has an owner', lines: [`Sign in at https://${outcome.hostname}/ with the owner's passkey.`, 'Lost every passkey? `ptbk connect --reset-owner` ends all access and prints a new setup link.'], width, tone: 'muted', unicode: terminal.unicode, style }).join('\n')}\n`);
         return EXIT.success;
     }
@@ -282,23 +288,18 @@ export async function ownerAccess(context: CommandContext, project: Project, jso
         terminal.write(`${renderPanel({ title: reset ? 'Owner reset; no setup link yet' : 'No setup link yet', lines: [outcome.missing, 'Run `ptbk connect --setup-link` again once the engine is reachable.'], width, tone: 'attention', unicode: terminal.unicode, style }).join('\n')}\n`);
         return EXIT.incomplete;
     }
-    terminal.write(
-        `${renderPanel({
-            title: reset ? 'Owner reset: set up access again' : 'Owner setup link',
-            lines: [
-                'Open this link on the device that should hold the owner passkey. It works once, until ' + new Date(outcome.expiresAt).toLocaleTimeString() + ', and whoever opens it first becomes the owner:',
-                '',
-                style.bold(outcome.url),
-                '',
-                `Before creating the passkey, check that the page shows engine ${outcome.engineId} and fingerprint ${outcome.fingerprint}.`,
-            ],
-            width,
-            tone: 'success',
-            unicode: terminal.unicode,
-            style,
-        }).join('\n')}\n`,
-    );
+    await showOwnerSetup(context, outcome, reset);
     return EXIT.success;
+}
+
+/** Shows setup without a second command, only for an attended, linked engine without an owner. @private owner setup */
+export async function automaticOwnerSetup(context: CommandContext, project: Project): Promise<void> {
+    if (!context.terminal.interactive || flag(context, 'json') === true) return;
+    const lookup = await lookupService(project);
+    if (lookup.state !== 'running' || !lookup.engine.compatible) return;
+    const app = await lookup.client.request<AppConnectionView | undefined>('app-status');
+    if (!app || app.state === 'unlinked' || app.owner === 'set') return;
+    await ownerAccess(context, project, false, true);
 }
 
 /**
