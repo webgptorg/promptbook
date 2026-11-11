@@ -90,6 +90,8 @@ test('App Tasks: retained failures, retries, completion stamps and an active reo
     const definition = snapshot.tasks.find(task => task.title === 'Retried work');
     const result = { taskRef: definition.ref, taskName: definition.title, title: definition.title, kind: 'task', attempts: 1, engineVersion: 'fixture', startedAt: '2026-11-03T10:00:00Z', endedAt: '2026-11-03T10:10:00Z', outcome: 'failed', summary: 'Failed check', runId: 'failed-run' };
     snapshot.results.push(result, { ...result, runId: 'completed-run', startedAt: '2026-11-03T10:20:00Z', endedAt: '2026-11-03T11:00:00Z', outcome: 'completed', summary: 'Verified completion' });
+    snapshot.results.push({ ...result, runId: 'completed-run', summary: 'Older checkpoint of the same run' });
+    snapshot.results.unshift({ ...result, runId: 'active-run', outcome: 'awaiting-user', startedAt: '2026-11-04T10:00:00Z', endedAt: '2026-11-04T10:10:00Z' });
     snapshot.active.push({ taskKey: definition.key, taskTitle: definition.title, runId: 'active-run', startedAt: '2026-11-04T10:00:00Z', phase: 'executing' });
     const route = `/tasks/${opaqueIdOf(definition.key)}/occurrences`;
     const response = await call(route);

@@ -65,6 +65,7 @@ async function project(snapshot: Snapshot, id: Id): Promise<TaskView[]> {
         const originText = task?.origin ?? item.origin;
         const originRef = originText ? findAgentReferences(originText)[0] : undefined;
         const originBook = originRef ? snapshot.books.find(book => book.normalized === originRef.normalized) : undefined;
+        const originTask = originRef ? findTask(snapshot.tasks, originRef.raw).task : undefined;
         const kind = item.kind ?? 'ordinary';
         const originKind = kind === 'engine' ? 'engine' : /^chat\b/i.test(originText ?? '') ? 'chat' : /^(task|assignment|learning|maintenance)\b/i.test(originText ?? '') ? 'task' : /^goal\b/i.test(originText ?? '') ? 'goal' : /^conversion\b/i.test(originText ?? '') ? 'conversion' : 'user';
         const conditions = dependsOn.map(dependency => ({ kind: 'dependency', met: dependency.state === 'met', text: `${dependency.name}: ${dependency.state}`.slice(0, 2048) }));
@@ -82,7 +83,7 @@ async function project(snapshot: Snapshot, id: Id): Promise<TaskView[]> {
             notBefore: task?.after === undefined ? null : new Date(task.after).toISOString(), dueAt: timestamp(task?.due, snapshot.timeZone),
             nextAt: timestamp(item.until, snapshot.timeZone), progress: null,
             parent: task?.parent ? reference(task.parent, snapshot, id) : null, dependsOn,
-            origin: originText || kind === 'engine' ? { kind: originKind, chatId: originBook?.kind === 'chat' ? originBook.name : null, taskId: originBook?.kind === 'task' ? id(originBook.normalized) : null, text: originText?.slice(0, 512) ?? null } : null,
+            origin: originText || kind === 'engine' ? { kind: originKind, chatId: originBook?.kind === 'chat' ? originBook.name : null, taskId: originTask ? id(originTask.key) : null, text: originText?.slice(0, 512) ?? null } : null,
             doneCount: item.doneCount, lastDoneAt: timestamp(item.lastDone, snapshot.timeZone), reopened: task?.reopened ?? false,
             sourcePath: kind === 'engine' ? null : (task?.source.relativePath.slice(0, 1024) ?? item.source.slice(0, 1024)) || null,
             allowedActions: [], updatedAt: fileTime ?? timestamp(item.runs?.[0]?.at ?? item.lastDone, snapshot.timeZone) ?? new Date(0).toISOString(),
@@ -101,11 +102,17 @@ function links(task: Definition | undefined, snapshot: Snapshot, id: Id): unknow
         seen.add(identity);
         result.push({ direction, target: { type: kind, [`${kind}Id`]: resolved ? kind === 'chat' ? name : id(key) : null, name: name.slice(0, 512) } });
     };
-    for (const book of snapshot.books) {
-        for (const edge of findAgentReferences(book.document.lines.join('\n'))) {
+    const sources = [
+        ...snapshot.books.map(book => ({ ...book, text: book.document.lines.join('\n') })),
+        ...snapshot.tasks.filter(task => task.source.kind === 'markdown').map(task => ({ normalized: task.key, name: task.title, kind: 'task', text: task.text })),
+    ];
+    for (const book of sources) {
+        for (const edge of findAgentReferences(book.text)) {
             if (book.normalized === task.key) {
                 const target = snapshot.books.find(candidate => candidate.normalized === edge.normalized);
+                const legacy = findTask(snapshot.tasks, edge.raw).task;
                 if (target && target.kind !== 'invalid') add('outgoing', target.kind, target.name, target.normalized, true);
+                else if (legacy) add('outgoing', 'task', legacy.title, legacy.key, true);
                 else if (snapshot.agents.some(agent => normalizeAgentName(agent.name) === edge.normalized)) add('outgoing', 'agent', edge.name, edge.normalized, true);
             } else if (edge.normalized === task.key && book.kind !== 'invalid') add('incoming', book.kind, book.name, book.normalized, true);
         }
@@ -120,6 +127,7 @@ function occurrences(task: TaskView, snapshot: Snapshot, id: Id): unknown[] {
     const results = snapshot.results.filter(result => id(normalizeAgentName(result.taskName ?? result.title)) === task.id);
     for (const result of results) {
         const run = result.runId ?? `${result.startedAt}:${result.endedAt}:${result.title}`;
+        if (entries.some(entry => entry.id === id(`occurrence:${task.id}:${run}`))) continue;
         entries.push({ id: id(`occurrence:${task.id}:${run}`), taskId: task.id, endedAt: result.endedAt, startedAt: result.startedAt,
             state: result.outcome === 'completed' || result.outcome === 'completed-uncommitted' ? 'completed' : result.outcome === 'interrupted' ? 'interrupted' : result.outcome === 'awaiting-user' || result.outcome === 'blocked' ? 'waiting' : result.outcome === 'skipped' ? 'cancelled' : 'failed',
             scheduledFor: timestamp(result.occurrence, snapshot.timeZone), summary: result.summary.slice(0, 1024), runIds: result.runId ? [id(result.runId)] : [] });
@@ -131,13 +139,14 @@ function occurrences(task: TaskView, snapshot: Snapshot, id: Id): unknown[] {
         }
     }
     for (const active of snapshot.active.filter(active => id(active.taskKey || normalizeAgentName(active.taskTitle)) === task.id)) {
-        if (entries.some(entry => (entry.runIds as string[]).includes(id(active.runId)))) continue;
+        const previous = entries.findIndex(entry => (entry.runIds as string[]).includes(id(active.runId)));
+        if (previous >= 0) entries.splice(previous, 1);
         entries.push({ id: id(`occurrence:${task.id}:${active.runId}`), taskId: task.id, state: active.phase.startsWith('awaiting-') ? 'waiting' : active.phase === 'failed' ? 'failed' : 'running',
             endedAt: null, startedAt: active.startedAt, scheduledFor: timestamp(active.occurrence, snapshot.timeZone), summary: null, runIds: [id(active.runId)] });
     }
     const inventory = snapshot.inventory.find(item => id(parseReferenceValue(item.ref)?.normalized ?? normalizeAgentName(item.title)) === task.id);
     for (const run of inventory?.runs ?? []) entries.push({ id: id(`system-occurrence:${task.id}:${run.at}:${run.title}`), taskId: task.id, state: run.outcome, startedAt: null, endedAt: run.at, scheduledFor: null, summary: run.detail.slice(0, 1024), runIds: [] });
-    entries.sort((a, b) => (a.startedAt ?? a.endedAt ?? '').localeCompare(b.startedAt ?? b.endedAt ?? '') || a.id.localeCompare(b.id));
+    entries.sort((a, b) => (Date.parse(a.startedAt ?? a.endedAt ?? '') || 0) - (Date.parse(b.startedAt ?? b.endedAt ?? '') || 0) || a.id.localeCompare(b.id));
     let cycle = 1;
     return entries.map((entry, index) => {
         const previous = entries[index - 1];
