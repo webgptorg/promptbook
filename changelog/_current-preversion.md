@@ -1,5 +1,7 @@
 # Unreleased
 
+- Verify the Ubuntu installer boot smoke test from the restored service state and manual pause, replacing an outdated message match. Deliberately stopped work must restore paused without starting any task.
+
 - Show the one-time owner setup link and QR automatically after attended pairing or startup, opening it only on a local desktop. Support --no-open and PTBK_NO_OPEN, retain explicit JSON output, and keep all secrets out of background logs.
 
 - Load the signed App UI trust policy from a bounded, strict local file before startup. Refuse staging trust in production, preserve production service settings across restarts, and keep the plain page when no policy is configured. Add release-build conformance coverage (ENG-116).
