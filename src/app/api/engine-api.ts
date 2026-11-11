@@ -18,6 +18,7 @@ import { decodeBase64Url, encodeBase64Url } from '../encoding.js';
 import type { AccessStore, Actor, StoredMember, StoredPasskey, StoredSession } from '../web/access.js';
 import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
 import { walletHandlers } from './wallet.js';
+import { taskHandlers } from './tasks.js';
 
 /**
  * Capabilities this engine advertises in `GET /engine` (every route of each works). The core API needs none.
@@ -273,7 +274,7 @@ export class EngineApi {
 
     /** The capabilities available at this stage of the engine's lifecycle. */
     private get capabilities(): readonly { readonly id: string; readonly version: number }[] {
-        if (this.deps.agenda) return [...ADVERTISED_CAPABILITIES, { id: 'wallet', version: 1 }];
+        if (this.deps.agenda) return [...ADVERTISED_CAPABILITIES, { id: 'wallet', version: 1 }, { id: 'tasks', version: 1 }];
         return this.deps.onboarding ? [...ADVERTISED_CAPABILITIES, { id: 'files', version: 1 }] : ADVERTISED_CAPABILITIES;
     }
 
@@ -562,7 +563,7 @@ export class EngineApi {
     }
 
     /** What the event stream compares between changes. */
-    private async eventDigest(): Promise<{ agents: Map<string, string>; status: Map<string, string>; chats: Map<string, string> }> {
+    private async eventDigest(): Promise<{ agents: Map<string, string>; status: Map<string, string>; chats: Map<string, string>; tasks: Map<string, { state: string; digest: string }> }> {
         const snapshot = this.agenda.snapshot();
         const agents = new Map<string, string>();
         const status = new Map<string, string>();
@@ -573,7 +574,14 @@ export class EngineApi {
         }
         const chats = new Map<string, string>();
         for (const summary of await this.agenda.chatList()) chats.set(summary.name, `${String(summary.messages)}|${summary.status}|${String(summary.unread)}|${summary.title}|${String(summary.pings?.length ?? 0)}`);
-        return { agents, status, chats };
+        const tasks = new Map<string, { state: string; digest: string }>();
+        const taskSnapshot = await this.agenda.taskReadSnapshot();
+        for (const item of taskSnapshot.inventory) {
+            const key = normalizeAgentName(item.title);
+            const source = taskSnapshot.tasks.find(task => task.key === key);
+            tasks.set(opaqueIdOf(key), { state: item.readiness, digest: textDigest(JSON.stringify([item, source?.source.fileHash, taskSnapshot.active.filter(record => record.taskKey === key).map(record => [record.runId, record.phase, record.updatedAt])])) });
+        }
+        return { agents, status, chats, tasks };
     }
 
     /** Live changes as `agent.status`, `agent.changed` and `chat.changed` events until the client leaves. */
@@ -593,6 +601,8 @@ export class EngineApi {
             for (const [id, value] of next.status) if (previous.status.get(id) !== value) yield { id: null, event: { type: 'agent.status', agentId: id, state: value, since: now } };
             for (const [name, value] of next.chats) if (previous.chats.get(name) !== value) yield { id: null, event: { type: 'chat.changed', chatId: name } };
             for (const name of previous.chats.keys()) if (!next.chats.has(name)) yield { id: null, event: { type: 'chat.changed', chatId: name } };
+            for (const [taskId, value] of next.tasks) if (previous.tasks.get(taskId)?.digest !== value.digest) yield { id: null, event: { type: 'task.changed', taskId, state: value.state } };
+            for (const [taskId, value] of previous.tasks) if (!next.tasks.has(taskId)) yield { id: null, event: { type: 'task.changed', taskId, state: value.state } };
             previous = next;
         }
     }
@@ -656,6 +666,7 @@ export class EngineApi {
 
     /** The handlers by route ID. */
     private readonly handlers: Readonly<Record<string, (context: Context) => Promise<Outcome>>> = {
+        ...taskHandlers(includeHistory => this.agenda.taskReadSnapshot(includeHistory), opaqueIdOf, page),
         ...walletHandlers(() => this.agenda.wallet),
         getOnboarding: async () => ok(this.deps.onboarding?.state() ?? completedOnboarding),
         answerOnboarding: async ({ body }) => {

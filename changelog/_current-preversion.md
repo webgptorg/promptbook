@@ -675,3 +675,5 @@
 
 - Added a separate production status for the owner's requested practical CLI video for 0.119.0-47, preserving both existing videos and the original brief. Recorded the rejected ElevenLabs owner login and protected Wallet request; the exact requested voice remains unverified, with no new media or publication.
 - Expose `wallet@1` to the Promptbook App over the real encrypted Wallet. Add, update and remove logins with strict validation, permissions and fresh step-up; return only account metadata, never passwords or additional field values. Seen and reject operations check the current request step, and saving reports the waiting requests it actually resolved. Updating a missing record returns not-found instead of silently adding another login.
+
+- Expose read-only `tasks@1` to the Promptbook App using the scheduler's real definitions and readiness. Include ordinary and engine-owned tasks, filters and pagination, parents, prerequisites, cycles, notes, directed Book links and retained run/completion evidence. Emit content-free task change hints; permissions and strict contract schemas guard every read, and no task route mutates a Book or starts work.

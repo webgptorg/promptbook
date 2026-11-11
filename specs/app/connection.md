@@ -96,7 +96,11 @@ The origin serves the platform's engine API v1 (`/api/v1`) over Reborn's own dom
 - **Chats** are `CHAT` threads with real authors. Every author joins before writing, a User message records which member sent it, `requestKey` makes a send idempotent (another content under the same key is `request-key-reused`), replies stream as SSE deltas that resume by `Last-Event-ID`, and a chat without an agent is Chatter's. Read and seen marks are shared with the other clients.
 - **Events** stream agent, status and chat changes.
 
-Initialized engines serve `onboarding@1` as completed. Pending initialization serves active prompts and advertises `files@1` for onboarding uploads. Other optional capabilities (`runs@1`, `triggers@1`, `integrations@1`, `wallet@1`, `tasks@1`, audit) are not advertised yet, so each of their routes answers `capability-not-supported`.
+Initialized engines serve `onboarding@1` as completed and advertise `wallet@1` and `tasks@1`. Wallet uses the same encrypted store as the local console: secrets are write-only, writes require the contract's permission and step-up, and request actions check the current human step. Setup, recovery words, import, rotation and reset stay on the host.
+
+Tasks are a read-only projection of the same parsed definitions and readiness inventory as the scheduler. The API lists ordinary and engine-owned definitions, filters and pages them, resolves parents, prerequisites and Book links, and exposes retained execution evidence and completion stamps as occurrences. Live changes send a content-free `task.changed` hint. Work changes through chat. An unknown legacy completion date stays unknown rather than acquiring an invented timestamp.
+
+Pending initialization serves active prompts and advertises `files@1` for onboarding uploads. Other optional capabilities (`runs@1`, `triggers@1`, `integrations@1`, audit) are not advertised yet, so each of their routes answers `capability-not-supported`.
 
 ## Engine UI
 

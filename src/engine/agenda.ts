@@ -3605,6 +3605,13 @@ export class Agenda {
         return system ? [...this.inventory, system] : this.inventory;
     }
 
+    /** Read-only task definitions, readiness, graph and retained run evidence for the App's task projection. */
+    public async taskReadSnapshot(includeHistory = false) {
+        const [queue, inventory, active, parked, results] = await Promise.all([this.readQueue(), this.taskInventory(), this.state.readActiveRecords(), this.state.readParked(), includeHistory ? this.state.recentResults(Number.MAX_SAFE_INTEGER) : Promise.resolve([])]);
+        return { tasks: queue.tasks.filter(task => !task.shadowedBy), inventory, active: [...active, ...parked.filter(record => !active.some(running => running.runId === record.runId))], results,
+            books: this.catalog.index.winners(), agents: this.snapshot().agents, timeZone: this.timeZone };
+    }
+
     /** A Book's source with its revision and detected problems (read-only). */
     public async bookSource(input: { readonly reference?: string; readonly path?: string }): Promise<BookSource> {
         return await readBookSource(this.options.project.root, this.catalog, input);
