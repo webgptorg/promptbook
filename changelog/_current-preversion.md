@@ -1,5 +1,7 @@
 # Unreleased
 
+- Keep active desktop interruption polling alive until the requested operation settles, including on Node 22. Retry transient Windows sharing failures while reading coordination tickets without ever treating an unreadable owner as absent; persistent failures remain closed.
+
 - Release a failed native desktop episode after verified input cleanup, including missing-permission and unsupported-helper failures, so another project can continue. Treat dispatched input failures as potentially partial effects and require a fresh observation before retrying.
 
 - Add engine-owned Computer Control for the primary Windows or Apple Silicon macOS desktop, independent of Electron: native input/screenshots, provider-neutral MCP tools, visible human-priority controls, cross-project coordination and an authenticated owner desktop viewer. Existing projects acquire the default tool once through the 0.119.0-97 migration; deliberate disable/removal is retained and immediately revokes native access.

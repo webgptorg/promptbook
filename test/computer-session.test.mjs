@@ -126,6 +126,52 @@ test('emergency stop from another project interrupts active input and stays latc
     assert.equal(restarted.backend.calls.length, 0);
 });
 
+test('an active native call keeps cross-project cancellation polling alive without a backend I/O handle', { timeout: 5000 }, async (t) => {
+    const { env } = await fixture(t);
+    const module = new URL('../dist/computer/session.js', import.meta.url).href;
+    const script = `
+        import { ComputerControl } from ${JSON.stringify(module)};
+        const env = ${JSON.stringify(env)};
+        const settings = () => ({ tools: [{ type: 'COMPUTER_CONTROL', variant: 'NATIVE', name: 'desktop', isEnabled: true }], values: { 'computer.isRecordingEnabled': false } });
+        let entered;
+        const started = new Promise((resolve) => { entered = resolve; });
+        class Backend {
+            async status() { return { platform: process.platform, supported: true, available: true, accessibility: true, screenRecording: true, cursor: 'shared', primaryScreen: { width: 100, height: 100, scaleFactor: 1, topology: 'fixture' }, context: 'window', lastHumanInputAt: 0, isPaused: false, isStopped: false }; }
+            onEvent() { return () => {}; }
+            async execute(command, signal) {
+                if (command.op !== 'move') return {};
+                entered();
+                return await new Promise((resolve, reject) => {
+                    if (signal.aborted) reject(signal.reason);
+                    else signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+                });
+            }
+            async setIndicator() {}
+            async releaseInputs() {}
+            async resume() {}
+            async close() {}
+        }
+        const first = new ComputerControl({ root: 'first' }, settings, env, () => {}, async () => undefined, new Backend());
+        const second = new ComputerControl({ root: 'second' }, settings, env, () => {}, async () => undefined, new Backend());
+        try {
+            const { frame } = await first.execute({ op: 'screenshot' }, { agent: 'Developer' });
+            const pending = first.execute({ op: 'move', x: 10, y: 20 }, { agent: 'Developer', frame }).then(
+                () => { throw new Error('The stopped native input unexpectedly completed.'); },
+                (error) => { if (!/interrupted/i.test(error.message)) throw error; },
+            );
+            await started;
+            await second.stop();
+            await pending;
+            process.stdout.write('cross-project input interrupted\\n');
+        } finally {
+            await first.close();
+            await second.close();
+        }
+    `;
+    const { stdout } = await promisify(execFile)(process.execPath, ['--input-type=module', '-e', script], { timeout: 4000 });
+    assert.match(stdout, /cross-project input interrupted/);
+});
+
 test('disabling an acquired tool interrupts an active primitive and denies later observation', { timeout: 5000 }, async (t) => {
     const { make } = await fixture(t);
     const { control, backend, disable } = make('first');

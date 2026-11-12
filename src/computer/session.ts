@@ -277,7 +277,8 @@ export class ComputerControl {
                 checking = true;
                 void this.permitted(owner).catch(() => abort.abort()).finally(() => { checking = false; });
             }, 50);
-            watch.unref();
+            // Pending explicit work must keep its cancellation polling alive even when a backend has no native
+            // process or referenced I/O handle. The idle watcher remains unref'ed; this timer is cleared below.
             try {
                 await this.permitted(owner);
                 const observes = command.op === 'screenshot' || command.op === 'accessibility';

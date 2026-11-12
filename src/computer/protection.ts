@@ -14,6 +14,12 @@ export function computerDirectory(env: NodeJS.ProcessEnv = process.env): string 
 /** One unique Lamport bakery participant; filenames are never reused or removed by a live peer. */
 type OperationTicket = { readonly pid: number; readonly choosing: boolean; readonly number: number };
 
+/** Windows can briefly deny opening a ticket while its owner atomically replaces or removes it. */
+const TRANSIENT_TICKET_READ_ERRORS = new Set(['EPERM', 'EACCES', 'EBUSY']);
+
+/** Bound sharing retries; persistent unreadability never grants desktop ownership. */
+const TICKET_READ_ATTEMPTS = 8;
+
 /**
  * Runs one short operation exclusively across engines using Lamport's bakery algorithm. Unique atomic tickets
  * avoid reclaiming a shared lock pathname: two recoverers can never delete a newly-created live owner's lock.
@@ -27,7 +33,19 @@ export async function desktopExclusive<T>(env: NodeJS.ProcessEnv, action: () => 
     const file = join(directory, id);
     const deadline = Date.now() + 30_000;
     const read = async (name: string): Promise<OperationTicket | undefined> => {
-        const record = await readJsonIfExists<OperationTicket>(join(directory, name));
+        let record: OperationTicket | undefined;
+        for (let attempt = 1; ; attempt++) {
+            signal?.throwIfAborted();
+            try {
+                record = await readJsonIfExists<OperationTicket>(join(directory, name));
+                break;
+            } catch (error) {
+                // A sharing failure is an unknown live owner, not an absent ticket. Stay outside the critical
+                // section until a real read/ENOENT succeeds; exhausted retries preserve the original error.
+                if (!TRANSIENT_TICKET_READ_ERRORS.has((error as NodeJS.ErrnoException).code ?? '') || attempt >= TICKET_READ_ATTEMPTS) throw error;
+                await delay(25, undefined, { signal });
+            }
+        }
         if (!record) return undefined;
         if (!Number.isInteger(record.pid) || !Number.isSafeInteger(record.number) || typeof record.choosing !== 'boolean') throw new Error('Desktop operation ownership is unreadable.');
         if (!isProcessAlive(record.pid)) {
