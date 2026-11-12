@@ -71,7 +71,8 @@ test('unattended init saves setup, a blank initial specification and one named E
     assert.deepEqual(config.tools, [
         { type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'MANAGED_GLOBAL' }, isHeadless: true },
         { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'openai-codex', isEnabled: true, authentication: 'NATIVE' },
-    ], 'one simple browser (dedicated managed profile) and one native harness instance, as named tools');
+        { type: 'COMPUTER_CONTROL', variant: 'NATIVE', name: 'computer-control', isEnabled: true },
+    ], 'one dedicated browser, one native harness and the default engine desktop tool');
     assert.equal(config.routing, undefined, 'no routing defaults: plugins own them and Router has a concrete MODEL');
     const router = await readFile(join(project, 'agents', '.core', 'router.book'), 'utf8');
     assert.match(router, /^AGENT Router$/m);
