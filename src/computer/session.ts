@@ -270,6 +270,7 @@ export class ComputerControl {
             this.active = abort;
             this.activeInput = command.op !== 'screenshot' && command.op !== 'accessibility';
             this.wasEnabled = this.enabled();
+            let dispatched = false;
             let checking = false;
             const watch = setInterval(() => {
                 if (checking) return;
@@ -303,6 +304,7 @@ export class ComputerControl {
                         if (owner && native.isPaused) await this.backend.resume();
                         await this.backend.setIndicator({ project: basename(this.project.root), agent: context.agent, state: !owner && Date.now() - humanAt < HUMAN_IDLE_MS ? 'human-paused' : 'active' });
                         abort.signal.throwIfAborted();
+                        dispatched = true;
                         const result = await this.backend.execute({ ...command, ...(!observes && native.context ? { context: native.context } : {}) }, abort.signal);
                         abort.signal.throwIfAborted();
                         await this.permitted(owner);
@@ -316,7 +318,15 @@ export class ComputerControl {
                         await context.trace?.event('computer-operation', { operation: command.op, agent: context.agent, outcome: 'completed', ...(frame ? { frame } : {}) });
                         return { ...result, ...(frame ? { frame } : {}), ...(observes ? { coordinateSpace: 'primary display pixels', cursor: 'shared' } : {}) };
                     } catch (error) {
-                        if (this.used) await this.backend.releaseInputs().catch(() => undefined);
+                        let released = !this.used;
+                        if (this.used) {
+                            try { await this.backend.releaseInputs(); released = true; } catch { /* Keep ownership until cleanup can be verified. */ }
+                        }
+                        // A failed observation must not strand an episode under a live engine PID (in particular
+                        // when an unsupported/missing helper never starts the idle cleanup watcher).
+                        const file = join(this.directory, 'lease.json');
+                        const failedLease = await readJsonIfExists<DesktopLease>(file);
+                        if (released && !owner && failedLease?.owner === this.owner(context.agent)) await rm(file, { force: true });
                         throw error;
                     } finally {
                         if (owner && this.used) {
@@ -330,8 +340,9 @@ export class ComputerControl {
                 }, abort.signal);
             } catch (error) {
                 this.frames.delete(context.agent);
-                await context.trace?.event('computer-operation', { operation: command.op, agent: context.agent, outcome: abort.signal.aborted ? 'interrupted-effect-unknown' : 'failed' });
+                await context.trace?.event('computer-operation', { operation: command.op, agent: context.agent, outcome: abort.signal.aborted ? 'interrupted-effect-unknown' : dispatched ? 'failed-effect-unknown' : 'failed' });
                 if (abort.signal.aborted) throw new Error('Desktop control was interrupted. Any partial input may already have taken effect; observe and reconcile before retrying.');
+                if (dispatched && this.activeInput) throw new Error(`${error instanceof Error ? error.message : 'Native desktop operation failed.'} Partial input may already have taken effect; observe and reconcile before retrying.`);
                 throw error;
             } finally {
                 clearInterval(watch);

@@ -74,7 +74,8 @@ owner's lock. A live stalled participant is never silently overtaken.
 
 Admission to observation/action episodes is FIFO, with a 15-second idle lease and 60-second total limit. The live
 previous owner releases held input before another agent takes an expired episode. `computer_release` ends the episode
-promptly; task cleanup does the same. Do not reserve the whole desktop for a long-running task. Browser and terminal
+promptly; task cleanup does the same. Failed observations release their episode after input cleanup, so an unavailable
+helper cannot strand the desktop under a live engine PID. Cleanup failures retain ownership until reconciled. Do not reserve the whole desktop for a long-running task. Browser and terminal
 work may continue independently, except where they share protected surfaces or lifecycle gates.
 
 Screenshots/accessibility observations return an opaque `frame`, tied to episode ownership, human-input epoch,

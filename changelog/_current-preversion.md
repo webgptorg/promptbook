@@ -1,5 +1,7 @@
 # Unreleased
 
+- Release a failed native desktop episode after verified input cleanup, including missing-permission and unsupported-helper failures, so another project can continue. Treat dispatched input failures as potentially partial effects and require a fresh observation before retrying.
+
 - Add engine-owned Computer Control for the primary Windows or Apple Silicon macOS desktop, independent of Electron: native input/screenshots, provider-neutral MCP tools, visible human-priority controls, cross-project coordination and an authenticated owner desktop viewer. Existing projects acquire the default tool once through the 0.119.0-97 migration; deliberate disable/removal is retained and immediately revokes native access.
 
 - Keep native desktop observations live-only by default, with optional bounded local screenshot recording. Default browser recording off, keep opted-in browser media outside Git, and strip browser/desktop tool payloads and images before persistent trace rendering. Shared Wallet and human-tab boundaries prevent whole-desktop access bypassing protected browser work. Existing history is not automatically rewritten.

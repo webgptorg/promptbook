@@ -183,6 +183,7 @@ test('coordinates and timings are bounded, and release cannot remove another age
         await assert.rejects(first.control.execute(command, { agent: 'Developer', frame }), /outside|duration|Scroll/i);
         assert.equal(first.backend.calls.length, count, 'invalid input never reaches native backend');
     }
+    await first.control.execute({ op: 'screenshot' }, { agent: 'Developer' });
     const lease = join(computerDirectory(env), 'lease.json');
     const before = await readFile(lease, 'utf8');
     await second.control.release('Developer');
@@ -190,6 +191,46 @@ test('coordinates and timings are bounded, and release cannot remove another age
     await first.control.release('Developer');
     await second.control.execute({ op: 'screenshot' }, { agent: 'Developer' });
     assert.notEqual(await readFile(lease, 'utf8'), before);
+});
+
+test('unavailable or unsupported native capture releases admission so another engine can use the desktop', { timeout: 5000 }, async (t) => {
+    const { env, make } = await fixture(t);
+    for (const [index, supported] of [false, true].entries()) {
+        const unavailable = make(`unavailable-${index}`);
+        const next = make(`next-${index}`);
+        unavailable.backend.state.supported = supported;
+        unavailable.backend.state.available = false;
+        unavailable.backend.state.reason = supported ? 'Native permissions are unavailable' : 'This host is unsupported';
+        await assert.rejects(unavailable.control.execute({ op: 'screenshot' }, { agent: 'Developer' }), /unavailable|unsupported/i);
+        assert.equal(unavailable.backend.calls.length, 0, 'unavailable capture never reaches native execution');
+        await assert.rejects(readFile(join(computerDirectory(env), 'lease.json')), { code: 'ENOENT' }, 'a failed capture cannot retain a live-PID desktop lease');
+        const observation = await next.control.execute({ op: 'screenshot' }, { agent: 'Developer' });
+        assert.equal(typeof observation.frame, 'string');
+        await next.control.release('Developer');
+    }
+});
+
+test('a native partial-input failure is never retried and requires a new observation before any continuation', async (t) => {
+    const { env, make } = await fixture(t);
+    const { control, backend } = make('first');
+    const { frame } = await control.execute({ op: 'screenshot' }, { agent: 'Developer' });
+    let effects = 0;
+    backend.onExecute = async (command) => {
+        if (command.op === 'screenshot') return { data: 'fresh-live-pixels', mimeType: 'image/png' };
+        effects++;
+        if (effects === 1) throw new Error('Native connection failed after partial input; effect is uncertain');
+        return { changed: true };
+    };
+    const releases = backend.releases;
+    await assert.rejects(control.execute({ op: 'click', x: 10, y: 20 }, { agent: 'Developer', frame }), /partial input|uncertain/i);
+    assert.equal(effects, 1, 'the coordinator does not automatically replay an uncertain native effect');
+    assert.ok(backend.releases > releases, 'the failed native primitive releases held input');
+    await assert.rejects(readFile(join(computerDirectory(env), 'lease.json')), { code: 'ENOENT' });
+    await assert.rejects(control.execute({ op: 'click', x: 10, y: 20 }, { agent: 'Developer', frame }), /stale|expired|observe/i);
+    assert.equal(effects, 1, 'the old observation cannot continue the failed episode');
+    const fresh = await control.execute({ op: 'screenshot' }, { agent: 'Developer' });
+    await control.execute({ op: 'click', x: 10, y: 20 }, { agent: 'Developer', frame: fresh.frame });
+    assert.equal(effects, 2, 'a reconciled fresh episode can continue explicitly');
 });
 
 test('releasing unrelated work keeps the current agent lease, frame, held input and indicator', async (t) => {
