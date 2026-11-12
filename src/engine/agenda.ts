@@ -87,7 +87,7 @@ import { EngineUpdater } from './engine-update.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
 import { applyToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../tools/operations.js';
-import { inspectBrowserTool, toolInventory, type BrowserReadiness } from '../tools/readiness.js';
+import { inspectBrowserTool, toolInventory, type BrowserReadiness, type ComputerReadiness } from '../tools/readiness.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import type { ComposedSegment } from '../ui/composer.js';
 import { completeWithDefaults, resolveRoute, routeWithDefaults, type RouteResolution, type RoutingContext } from './routing.js';
@@ -163,6 +163,8 @@ export type AgendaOptions = {
     readonly afterWork?: (task: Task) => Promise<void>;
     /** Named browser tools owned by the service: inspections for the dashboard pages and the names held by work. */
     readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
+    /** Last observed native desktop readiness; reads never start a helper or request OS permissions. */
+    readonly computers?: () => ReadonlyMap<string, ComputerReadiness>;
     /** Tabs users control live in this engine's browsers. */
     readonly tabControls?: () => readonly TabControlView[];
     /** Opens a separate, fresh login context of the project browser for a Wallet credential test. */
@@ -2835,7 +2837,7 @@ export class Agenda {
             browser: this.options.browsers?.primary(),
             browsers: this.options.browsers?.all(),
             ...(this.options.tabControls?.().length ? { tabControls: this.options.tabControls() } : {}),
-            tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
+            tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, computers: this.options.computers?.(), inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
             sync: this.sync.view(),
             files: this.desktopFiles.view(),
             health: this.health?.view(),
@@ -2997,7 +2999,7 @@ export class Agenda {
         const browsers = new Map<string, BrowserReadiness>();
         for (const tool of this.settings.tools) if (tool.type === 'BROWSER' && tool.isEnabled) browsers.set(tool.name, await inspectBrowserTool(this.options.project, tool, this.options.env));
         this.browserReadiness = browsers;
-        this.tools = toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers, inUse: this.toolsInUse(), retained: this.retainedTools() });
+        this.tools = toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers, computers: this.options.computers?.(), inUse: this.toolsInUse(), retained: this.retainedTools() });
         if (!this.tools.waiting) this.clearBlocker('tools');
         this.reviewChatRechecks();
         this.touch();

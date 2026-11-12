@@ -76,6 +76,7 @@ Direct Book/forms editing, existing-CLI attachment/re-pairing, browser control, 
 - [Tool management](cli/tool-management.md): Shared CLI/init/dashboard operations, immediate commits and confirmations.
 - [Live tool use](cli/tool-runtime.md): Continuous readiness, current-task additions and retained acquired uses.
 - [Environment references and editing](cli/environment.md): Symbolic secrets, non-destructive changes and local audit history.
+- [Computer Control](cli/computer-control.md): Engine-owned native primary-desktop fallback, human priority, protected traces and authenticated owner viewing.
 - [Browser](cli/browser.md): Profile connection pools, task tabs, lifecycle, diagnostics and shared restart/kill/test actions.
 - [Live browser tab control](cli/browser-tab-control.md) covers headless and headful interaction, including Wallet manual sign-in and explicit handoff.
 - [Wallet](cli/wallet.md): Project login sub-engine, automatic credential use and protected human input.

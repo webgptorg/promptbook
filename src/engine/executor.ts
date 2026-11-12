@@ -655,7 +655,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 tasksDirectory: toProjectRelative(project.root, environment.tasksDirectory),
                 context: context !== undefined && contextFile ? { name: contextFile, content: context } : undefined,
                 check: check ?? undefined,
-                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), prerequisite: tools.some((tool) => tool.name === 'create_prerequisite_task'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login'), actions: tools.some((tool) => tool.name === 'record_external_action') },
+                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), prerequisite: tools.some((tool) => tool.name === 'create_prerequisite_task'), browser: tools.some((tool) => tool.name.startsWith('browser_')), computer: tools.some((tool) => tool.name.startsWith('computer_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login'), actions: tools.some((tool) => tool.name === 'record_external_action') },
                 actions: tools.some((tool) => tool.name === 'record_external_action') ? await hooks.actionContext?.() : undefined,
                 feedback: record.feedback,
                 attempt,

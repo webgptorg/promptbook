@@ -75,7 +75,7 @@ Reconnect must preserve acknowledged commands, ordered chat/event history and pa
 
 The preferred fallback for features without native UI is an **interactive terminal dashboard inside the web App**, preserving input, colors and interaction through the same protected access. Alternatives for the App team's assessment are engine-generated text/Markdown rendered by the App, or deferring a feature until native UI exists. Assess feasibility and the first-release scope rather than declaring one implementation already agreed. An onboarding/authentication path still needs a genuinely usable interaction; a placeholder terminal or unfinishable login is not enough.
 
-Native project lifecycle remains required whichever fallback is selected. A service Markdown surface does not make Markdown a version-zero chat requirement. All fallback content/input obeys the same access, secrecy and encrypted-content boundaries. No unrelated full server desktop or browser administration UI is required now.
+Native project lifecycle remains required whichever fallback is selected. A service Markdown surface does not make Markdown a version-zero chat requirement. All fallback content/input obeys the same access, secrecy and encrypted-content boundaries. The separate [Computer Control](../cli/computer-control.md) capability exposes an owner-only primary-desktop viewer on the engine origin when its native host supports it. It uses the existing authenticated encrypted connection and does not make a headless VPS desktop usable or add this surface to the version-zero App UI contract.
 
 ## Explicitly deferred, designed for now
 
@@ -90,3 +90,7 @@ Extensibility is required now; the complete future feature set is not.
 ## Technical handoff and joint acceptance
 
 The engine owner defines Reborn behavior. The App/integration team proposes a
+
+## Engine-owned desktop extension
+
+Computer Control is now an engine capability, independent of the App UI bundle and Desktop Console. The owner-only `/computer` surface and `/api/v1/computer/*` routes display and operate the existing primary desktop of the engine host over the authenticated gateway. Screenshots are polled PNG frames, not the deferred `live-video@1` WebSocket capability; do not advertise that capability on this basis. Project members without the owner role cannot observe or operate the host. Tool defaults, permission readiness, human takeover, emergency stop and local-only media policy are defined in [Computer Control](../cli/computer-control.md). Control of a different machine remains deferred.

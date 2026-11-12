@@ -1,5 +1,9 @@
 # Unreleased
 
+- Add engine-owned Computer Control for the primary Windows or Apple Silicon macOS desktop, independent of Electron: native input/screenshots, provider-neutral MCP tools, visible human-priority controls, cross-project coordination and an authenticated owner desktop viewer. Existing projects acquire the default tool once through the 0.119.0-97 migration; deliberate disable/removal is retained and immediately revokes native access.
+
+- Keep native desktop observations live-only by default, with optional bounded local screenshot recording. Default browser recording off, keep opted-in browser media outside Git, and strip browser/desktop tool payloads and images before persistent trace rendering. Shared Wallet and human-tab boundaries prevent whole-desktop access bypassing protected browser work. Existing history is not automatically rewritten.
+
 - Render the macOS menu-bar icon as a monochrome native template, with Retina resolution. The system keeps it visible on dark and light menu bars, independently of the desktop app's selected theme.
 
 - Verify the Ubuntu installer boot smoke test from the restored service state and manual pause, replacing an outdated message match. Deliberately stopped work must restore paused without starting any task.

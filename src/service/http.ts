@@ -14,6 +14,7 @@ import type { KeepAwakeView } from '../power/view.js';
 import { secretToken } from '../common/ids.js';
 import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
 import { assertLocalRequest, authenticateLocalRequest, matchesCredential } from './auth.js';
+import { COMPUTER_OWNER_METHODS, type ComputerOwnerHandler, type ComputerOwnerMethod } from '../computer/viewer.js';
 import { TASK_SORT_FIELDS, filterTasks, groupSupportingWork, sortTasks, taskFilterChoices, type TaskFilter, type TaskSortField } from '../tasks/views.js';
 
 /**
@@ -69,6 +70,10 @@ const MAX_WALLET_BODY_BYTES = 16 * 1024 * 1024;
 const STATIC_FILES: Readonly<Record<string, string>> = {
     '/': 'index.html',
     '/index.html': 'index.html',
+    '/computer': 'computer.html',
+    '/computer/': 'computer.html',
+    '/assets/computer.js': 'computer.js',
+    '/assets/computer.css': 'computer.css',
     '/assets/app.js': 'app.js',
     '/assets/workspace.js': 'workspace.js',
     '/assets/app.css': 'app.css',
@@ -123,6 +128,8 @@ export type HttpServerOptions = {
     readonly keepAwake?: { readonly view: () => KeepAwakeView | undefined; readonly set: (params: Readonly<Record<string, unknown>>) => Promise<KeepAwakeView> };
     /** Owner-readable local control credential; never returned by HTTP. */
     readonly token: string;
+    /** Owner desktop requests, authenticated through the same local client boundary. */
+    readonly computer?: ComputerOwnerHandler;
     /** Requested port (exact) or undefined for automatic search from 3000. */
     readonly port?: number;
     /** Optional app-owned credential required before a browser can bootstrap a dashboard session. */
@@ -281,6 +288,18 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         const who = authenticateLocalRequest(request, options.token, csrfToken);
         if (!who) {
             sendJson(response, 401, { error: 'Local client authentication required.' });
+            return;
+        }
+        if (url.pathname === '/api/computer' || url.pathname.startsWith('/api/computer/')) {
+            if (!options.computer) { sendJson(response, 404, { error: 'Computer Control is unavailable.' }); return; }
+            const suffix = url.pathname.slice('/api/computer'.length);
+            const action = suffix === '' || suffix === '/status' ? 'status' : suffix.slice(1);
+            const controlMethod = `computer-${action}`;
+            if (!COMPUTER_OWNER_METHODS.has(controlMethod)) { sendJson(response, 404, { error: 'Not found.' }); return; }
+            const read = action === 'status' || action === 'screenshot';
+            if (method !== (read ? 'GET' : 'POST')) { sendJson(response, 405, { error: 'Method not allowed.' }); return; }
+            const body = read ? {} : await readJsonBody(request, 128 * 1024);
+            sendJson(response, 200, await options.computer(controlMethod as ComputerOwnerMethod, body));
             return;
         }
         if (url.pathname === '/api/state' && method === 'GET') {
@@ -520,7 +539,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
         }
         if (url.pathname === '/api/tools') {
             // Saved tool management through the shared operation; secrets are write-only and never echoed.
-            sendJson(response, 200, await applyToolAction(agenda, body, who === 'api' ? 'api' : 'dashboard'));
+            sendJson(response, 200, await applyToolAction(agenda, body, who === 'api' ? 'api' : 'dashboard', options.computer ? () => options.computer!('computer-stop', {}) : undefined));
             return;
         }
         if (chatMatch) {

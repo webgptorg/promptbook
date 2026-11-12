@@ -24,6 +24,11 @@ export type ControlAction =
     | 'restart'
     | 'stop-now'
     | 'cancel-stop'
+    | 'computer-status'
+    | 'computer-permissions'
+    | 'computer-pause'
+    | 'computer-resume'
+    | 'computer-stop'
     | 'browser-recheck'
     | 'browser-retry'
     | 'browser-restart'
@@ -56,6 +61,11 @@ export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>([
     'restart',
     'stop-now',
     'cancel-stop',
+    'computer-status',
+    'computer-permissions',
+    'computer-pause',
+    'computer-resume',
+    'computer-stop',
     'browser-recheck',
     'browser-retry',
     'browser-restart',
@@ -100,12 +110,37 @@ export type BrowserControls = {
 };
 
 /**
+ * Engine-owned desktop controls, shared by local owner clients and authenticated App access.
+ *
+ * @private shared runtime controls
+ */
+export type ComputerControls = {
+    readonly status: () => Promise<Record<string, unknown>>;
+    readonly requestPermissions: () => Promise<Record<string, unknown>>;
+    readonly pause: () => Promise<Record<string, unknown>>;
+    readonly resume: () => Promise<Record<string, unknown>>;
+    readonly stop: () => Promise<Record<string, unknown>>;
+};
+
+/**
  * Applies one runtime control action and reports its actual outcome (accepted/pending versus completed).
  *
  * @private shared runtime controls
  */
-export async function applyControlAction(agenda: Agenda, action: string, params: Readonly<Record<string, unknown>> = {}, browser?: BrowserControls): Promise<ControlOutcome> {
+export async function applyControlAction(agenda: Agenda, action: string, params: Readonly<Record<string, unknown>> = {}, browser?: BrowserControls, computer?: ComputerControls): Promise<ControlOutcome> {
     switch (action) {
+        case 'computer-status':
+        case 'computer-permissions':
+        case 'computer-pause':
+        case 'computer-resume':
+        case 'computer-stop': {
+            if (!computer) return { action, outcome: 'This process has no Computer Control.', applied: false };
+            const data = action === 'computer-status' ? await computer.status()
+                : action === 'computer-permissions' ? await computer.requestPermissions()
+                : action === 'computer-pause' ? await computer.pause()
+                : action === 'computer-resume' ? await computer.resume() : await computer.stop();
+            return { action, outcome: action === 'computer-status' ? 'Computer Control status.' : action === 'computer-permissions' ? 'System permission setup requested.' : action === 'computer-pause' ? 'Computer Control paused, including agent observation.' : action === 'computer-resume' ? 'Computer Control resumed.' : 'Computer Control stopped across this desktop session.', applied: action !== 'computer-status', data };
+        }
         case 'task-status':
             return { action, outcome: 'Task state.', applied: false, data: await agenda.taskStatus(String(params.query ?? '')) };
         case 'task-change': {
@@ -283,7 +318,7 @@ export async function applySettings(agenda: Agenda, params: Readonly<Record<stri
  *
  * @private shared runtime controls
  */
-export async function applyToolAction(agenda: Agenda, params: Readonly<Record<string, unknown>>, via: string): Promise<ToolOperationOutcome> {
+export async function applyToolAction(agenda: Agenda, params: Readonly<Record<string, unknown>>, via: string, stopComputer?: () => Promise<unknown>): Promise<ToolOperationOutcome> {
     const operation = params.operation as ToolOperation | undefined;
     const kinds = ['add', 'modify', 'enable', 'disable', 'remove', 'move'];
     if (!operation || typeof operation !== 'object' || !kinds.includes(String((operation as { kind?: unknown }).kind))) throw new PtbkError(`A tool operation needs a kind (${kinds.join(', ')}).`, { kind: 'usage' });
@@ -291,6 +326,9 @@ export async function applyToolAction(agenda: Agenda, params: Readonly<Record<st
     const acknowledgements = (params.acknowledgements ?? {}) as Record<string, unknown>;
     const secret = params.secret as { variable?: unknown; value?: unknown } | undefined;
     if (secret !== undefined && (typeof secret.variable !== 'string' || typeof secret.value !== 'string' || !secret.value)) throw new PtbkError('A secret needs its variable name and a nonempty value.', { kind: 'usage' });
+    // Desktop revocation is immediate, before configuration/Git persistence can block or fail. A failed save does
+    // not restore automatic control: only a later explicit owner resume can undo this durable stop.
+    if ((operation.kind === 'disable' || operation.kind === 'remove') && agenda.effectiveSettings.tools.some((tool) => tool.name === operation.name && tool.type === 'COMPUTER_CONTROL')) await stopComputer?.();
     return await agenda.toolOperation({
         operation,
         acknowledgements: { force: acknowledgements.force === true, confirmLastOfType: acknowledgements.confirmLastOfType === true },

@@ -1078,13 +1078,15 @@
         const variantOf = (harness) => ({ value: harness.id.toUpperCase().replace(/-/g, '_'), label: harness.name });
         const fields = [];
         if (form.mode === 'add') {
-            fields.push(formSelect(form, 'type', 'Type', [{ value: 'HARNESS', label: 'Harness' }, { value: 'BROWSER', label: 'Browser' }]));
+            fields.push(formSelect(form, 'type', 'Type', [{ value: 'HARNESS', label: 'Harness' }, { value: 'BROWSER', label: 'Browser' }, { value: 'COMPUTER_CONTROL', label: 'Computer control' }]));
             fields.push(
-                type === 'BROWSER'
+                type === 'COMPUTER_CONTROL'
+                    ? formSelect(form, 'variant', 'Variant', [{ value: 'NATIVE', label: 'Native desktop' }])
+                    : type === 'BROWSER'
                     ? formSelect(form, 'variant', 'Variant', [{ value: 'CHROME', label: 'Chrome (or another Chrome-compatible browser)' }, { value: 'CHROMIUM', label: 'Chromium' }, { value: 'EDGE', label: 'Microsoft Edge' }])
                     : formSelect(form, 'variant', 'Variant', [{ group: 'Featured', options: featured.map(variantOf) }, ...(state.showAllVariants ? [{ group: 'More', options: more.map(variantOf) }] : [])]),
             );
-            if (type !== 'BROWSER') fields.push(h('button', { type: 'button', onclick: () => ((state.showAllVariants = !state.showAllVariants), render(state.snapshot)) }, state.showAllVariants ? 'Featured only' : 'More…'));
+            if (type === 'HARNESS') fields.push(h('button', { type: 'button', onclick: () => ((state.showAllVariants = !state.showAllVariants), render(state.snapshot)) }, state.showAllVariants ? 'Featured only' : 'More…'));
             fields.push(formField(form, 'name', 'Name (kebab-case)', { placeholder: type === 'BROWSER' ? 'work-browser' : 'codex-company' }));
         } else fields.push(formField(form, 'rename', 'Name', {}));
         fields.push(formField(form, 'description', 'Description (optional)', {}));
@@ -1092,7 +1094,7 @@
             fields.push(formSelect(form, 'profileSource', 'Profile', [{ value: 'MANAGED_GLOBAL', label: 'Dedicated Promptbook profile (shared by your projects)' }, { value: 'PROJECT', label: 'Isolated project profile (.ptbk/)' }, { value: 'USER_EXISTING', label: 'Your existing Chrome profile' }, { value: 'CUSTOM', label: 'Custom path' }]));
             if (values.profileSource === 'CUSTOM') fields.push(formField(form, 'profilePath', 'Profile path', {}));
             fields.push(formSelect(form, 'isHeadless', 'Window', [{ value: 'true', label: 'Headless (no window)' }, { value: 'false', label: 'Visible window' }]));
-        } else {
+        } else if (type === 'HARNESS') {
             fields.push(formSelect(form, 'authentication', 'Authentication', [{ value: 'NATIVE', label: 'Native login / subscription' }, { value: 'API_KEY', label: 'API key (explicit paid access)' }]));
             if (values.authentication === 'API_KEY') {
                 fields.push(formField(form, 'apiKeyEnv', 'Key variable (stored as ${{ env.NAME }})', { placeholder: 'COMPANY_OPENAI_API_KEY' }));
@@ -1106,11 +1108,11 @@
             const common = { ...(text('description') ? { description: text('description') } : {}) };
             const browserFields = { profileSource: values.profileSource || 'MANAGED_GLOBAL', ...(values.profileSource === 'CUSTOM' && text('profilePath') ? { profilePath: text('profilePath') } : {}), isHeadless: values.isHeadless !== 'false' };
             const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...(text('baseUrl') ? { baseUrl: text('baseUrl') } : {}) };
-            const secret = values.authentication === 'API_KEY' && values.apiKeyValue ? { variable: text('apiKeyEnv'), value: values.apiKeyValue } : undefined;
+            const secret = type === 'HARNESS' && values.authentication === 'API_KEY' && values.apiKeyValue ? { variable: text('apiKeyEnv'), value: values.apiKeyValue } : undefined;
             const operation =
                 form.mode === 'add'
-                    ? { kind: 'add', tool: { type, variant: values.variant, name: text('name'), ...common, ...(type === 'BROWSER' ? browserFields : harnessFields) } }
-                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, baseUrl: text('baseUrl') || null }) } };
+                    ? { kind: 'add', tool: { type, variant: values.variant, name: text('name'), ...common, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'BROWSER' ? browserFields : harnessFields) } }
+                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, baseUrl: text('baseUrl') || null }) } };
             toolOperation({ operation, ...(secret ? { secret } : {}) });
         };
         return h('div', { className: 'tool-form', role: 'form', 'aria-label': form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}` }, h('h3', {}, form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}`), h('div', { className: 'fields' }, fields), h('div', { className: 'row' }, h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: submit }, 'Save (commits immediately)'), h('button', { onclick: () => ((state.toolForm = null), render(state.snapshot)) }, 'Cancel')));
@@ -1153,6 +1155,11 @@
                             { className: 'row', role: 'group', 'aria-label': `Actions of ${item.name}` },
                             pill(item.isEnabled ? item.state : 'disabled', tone[item.isEnabled ? item.state : 'disabled']),
                             h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: () => toolOperation({ operation: { kind: item.isEnabled ? 'disable' : 'enable', name: item.name } }) }, item.isEnabled ? 'Disable' : 'Enable'),
+                            item.type === 'COMPUTER_CONTROL' ? h('a', { href: '/computer', target: '_blank', rel: 'noopener' }, 'Open desktop') : null,
+                            item.type === 'COMPUTER_CONTROL' ? h('button', { onclick: () => control('computer-permissions') }, 'Permissions') : null,
+                            item.type === 'COMPUTER_CONTROL' ? h('button', { onclick: () => control('computer-pause') }, 'Pause desktop') : null,
+                            item.type === 'COMPUTER_CONTROL' ? h('button', { onclick: () => control('computer-resume') }, 'Resume desktop') : null,
+                            item.type === 'COMPUTER_CONTROL' ? h('button', { className: 'danger', onclick: () => control('computer-stop') }, 'Stop desktop') : null,
                             h('button', { title: 'Details', 'aria-expanded': state.toolDetails.has(item.name) ? 'true' : 'false', onclick: () => (state.toolDetails.has(item.name) ? state.toolDetails.delete(item.name) : state.toolDetails.add(item.name), render(state.snapshot)) }, 'Details'),
                             h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, values: { type: item.type, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', authentication: item.fields.authentication || 'NATIVE', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', baseUrl: endpointValue(item.fields.endpoint) } }), render(state.snapshot)) }, 'Modify'),
                             h('button', { title: 'Move up', 'aria-label': `Move ${item.name} up`, disabled: index === 0, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, before: tools.items[index - 1].name } }) }, '▲'),
@@ -2541,7 +2548,7 @@
                 const tools = snapshot.tools;
                 if (!tools) return [h('span', { className: 'muted' }, 'Not reported by this engine.')];
                 const count = (type) => `${tools.items.filter((item) => item.type === type && item.state === 'usable').length}/${tools.items.filter((item) => item.type === type).length}`;
-                return [`Harnesses ${count('HARNESS')} · Browsers ${count('BROWSER')}`, tools.waiting ? h('span', { className: 'warn' }, `New work waits: ${tools.waiting.reason}`) : null];
+                return [`Harnesses ${count('HARNESS')} · Browsers ${count('BROWSER')} · Desktop ${count('COMPUTER_CONTROL')}`, tools.waiting ? h('span', { className: 'warn' }, `New work waits: ${tools.waiting.reason}`) : null];
             }
             case 'history': {
                 const last = snapshot.history && snapshot.history.last;

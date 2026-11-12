@@ -19,6 +19,9 @@ import { ProjectEffects, effectsRequest, snapshotEffects } from '../engine/effec
 import { parseUsageRequest } from '../engine/usage.js';
 import type { VoiceMediaInput } from '../engine/voice-calls.js';
 import { browserTools } from '../browser/agent-tools.js';
+import { ComputerControl } from '../computer/session.js';
+import { computerCommand, computerTools } from '../computer/agent-tools.js';
+import { COMPUTER_OWNER_METHODS, computerAppRequest, computerDocument, type ComputerOwnerMethod } from '../computer/viewer.js';
 import { BrowserFleet } from '../browser/fleet.js';
 import { TabControls, type TabControlWallet, type TabInput } from '../browser/tab-control.js';
 import { describeProfileSource } from '../tools/model.js';
@@ -89,6 +92,10 @@ export class ServiceHost {
     /** A coalesced App view publication is queued. */
     private appViewQueued = false;
     private readonly browsers: BrowserFleet;
+    /** Engine-owned native desktop, independent of any Console window. */
+    private readonly computer: ComputerControl;
+    /** Agent attribution retained only until its task work segment ends. */
+    private readonly computerAgents = new Map<string, Set<string>>();
     /** Tabs the user controls live (reserved for every engine of their profile until handed back). */
     private readonly tabs: TabControls;
     /** Every execution process this engine starts, so a force stop (also from outside) ends all of them. */
@@ -114,9 +121,12 @@ export class ServiceHost {
             onEvent: options.onEvent,
             // Each task works in its own tabs of the shared browsers, with its own recordings (concurrent tasks too).
             extraTools: (task, context) => {
+                const agents = this.computerAgents.get(task.key) ?? new Set<string>();
+                agents.add(context.agent);
+                this.computerAgents.set(task.key, agents);
                 const scope = this.browsers.scope(task.key);
                 void scope.useFor(context.trace, context.attempt);
-                return browserTools(
+                return [...browserTools(
                     scope,
                     context.chats,
                     context.agent,
@@ -124,10 +134,17 @@ export class ServiceHost {
                     () => this.describeBrowsers(),
                     // A login request for the task's page only: the agent never reads a Wallet record.
                     { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title, agent: context.agent }), accounts: (site) => this.agenda.wallet.accounts(site), createLogin: async (page, request) => await this.agenda.wallet.createLogin(page, request), correctLogin: async (input) => await this.agenda.wallet.correctLogin(input), onWait: context.onWalletWait },
-                );
+                ), ...computerTools(this.computer, { agent: context.agent, trace: context.trace })];
             },
             finalizeEvidence: async (task) => await this.browsers.scope(task.key).finishEvidence(),
-            afterWork: async (task) => await this.browsers.endScope(task.key),
+            afterWork: async (task) => {
+                try { await this.browsers.endScope(task.key); }
+                finally {
+                    // A finished/interrupted task cannot retain the host desktop lease, even if browser cleanup fails.
+                    await Promise.allSettled([...(this.computerAgents.get(task.key) ?? [])].map((agent) => this.computer.release(agent)));
+                    this.computerAgents.delete(task.key);
+                }
+            },
             // A Wallet credential test signs in through its own scope of the project browser, in a fresh context.
             walletLoginContext: async (origin) => {
                 const key = `wallet-test-${shortId()}`;
@@ -155,12 +172,23 @@ export class ServiceHost {
                 all: () => (this.agenda.effectiveSettings ? this.browsers.inspectAll() : []),
                 inUse: () => this.browsers.inUse(),
             },
+            computers: () => {
+                const readiness = this.computer?.readiness();
+                return new Map(readiness ? this.agenda.effectiveSettings.tools.filter((tool) => tool.type === 'COMPUTER_CONTROL').map((tool) => [tool.name, readiness]) : []);
+            },
             tabControls: () => this.tabs?.views() ?? [],
             keepAwakeHandoff: async () => await this.keepAwake?.handoffProblem(),
         });
         this.browsers = new BrowserFleet(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange(), this.instanceId);
         this.tabs = new TabControls({ onChange: () => this.agenda.notifyChange(), log: (text) => this.agenda.log(text) });
+        this.computer = new ComputerControl(options.project, () => this.agenda.effectiveSettings, options.env, () => this.agenda.notifyChange(), async (owner) => {
+            if (owner) return undefined;
+            if (this.agenda.serviceState !== 'running') return `The engine is ${this.agenda.serviceState}.`;
+            if (this.tabs.views().some((tab) => tab.state === 'opening' || tab.state === 'controlled')) return 'A browser tab is under protected human control.';
+            return undefined;
+        });
         this.agenda.onChange(() => {
+            void this.computer.refresh().catch(() => undefined);
             if (this.effects.state.clients.length) this.effects.observe(snapshotEffects(this.agenda.snapshot()));
         });
     }
@@ -266,6 +294,13 @@ export class ServiceHost {
         throw new PtbkError(`Unknown tab control method "${method}".`, { kind: 'usage' });
     }
 
+    /** The same owner-only desktop operations behind local IPC, loopback HTTP and authenticated App access. */
+    private async computerOwner(method: ComputerOwnerMethod, params: Readonly<Record<string, unknown>>): Promise<unknown> {
+        if (method === 'computer-screenshot') return await this.computer.ownerScreenshot();
+        if (method === 'computer-input') return await this.computer.ownerInput(computerCommand(params));
+        return await applyControlAction(this.agenda, method, params, this.browserControls, this.computer);
+    }
+
     /** Local HTTP address, when serving. */
     public get httpUrl(): string | undefined {
         return this.http?.url;
@@ -324,8 +359,12 @@ export class ServiceHost {
             figures: () => this.appFigures(),
             log: (text, level) => this.agenda.log(text, level),
             web: {
-                api: (request, actor, access) => api.handle(request, actor, access),
-                documents: async (request, actor) => (await loader.serve(request)) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId }),
+                api: async (request, actor, access) => (await computerAppRequest(request, actor.role === 'owner', (method, params) => this.computerOwner(method, params))) ?? api.handle(request, actor, access),
+                documents: async (request, actor) => {
+                    const desktop = await computerDocument(request);
+                    if (desktop) return actor.role === 'owner' ? desktop : new Response('Only the engine owner can access its desktop.', { status: 403, headers: { 'cache-control': 'no-store' } });
+                    return (await loader.serve(request)) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId });
+                },
                 ...(CONFORMANCE_BUILD ? { certificateSource: 'dev-ca' as const } : {}),
             },
         });
@@ -397,7 +436,8 @@ export class ServiceHost {
                 try {
                     this.http = await startHttpServer({
                         agenda: this.agenda,
-                        control: (action, params) => applyControlAction(this.agenda, action, params, this.browserControls),
+                        control: (action, params) => applyControlAction(this.agenda, action, params, this.browserControls, this.computer),
+                        computer: (method, params) => this.computerOwner(method, params),
                         appPairing: (action, params) => this.handleControl(action, params),
                         keepAwake: { view: () => this.keepAwake?.view(), set: async (params) => await this.keepAwakeControl().set(keepAwakeChange(params)) },
                         token: this.token,
@@ -504,6 +544,7 @@ export class ServiceHost {
         // Keep awake ends first: a restart carries held protection to its replacement, every other end releases it.
         const keepAwake = this.keepAwake;
         if (keepAwake) await bounded(async () => (this.agenda.shutdownReason === 'restart' && !forced ? await keepAwake.handOff() : await keepAwake.stop()));
+        await bounded(() => this.computer.close());
         // A tab the user controls is closed rather than left to another engine's automation.
         await bounded(() => this.tabs.closeAll('The engine stopped, so the tab you controlled was closed (nothing was handed back to the agent).'));
         // Recording evidence is finalized even on force stop (bounded); this engine leaves its shared browsers (a
@@ -537,6 +578,7 @@ export class ServiceHost {
     /** Handles authenticated local control requests. */
     private async handleControl(method: string, params: Readonly<Record<string, unknown>>): Promise<unknown> {
         const agenda = this.agenda;
+        if (COMPUTER_OWNER_METHODS.has(method)) return await this.computerOwner(method as ComputerOwnerMethod, params);
         // The authenticated local channel is the owner's terminal: it may show the 12 words for recovery during setup.
         if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true, trustedFiles: true });
         switch (method) {
@@ -616,9 +658,9 @@ export class ServiceHost {
             case 'task-status':
             case 'task-change':
             case 'task-notify':
-                return await applyControlAction(agenda, method, params, this.browserControls);
+                return await applyControlAction(agenda, method, params, this.browserControls, this.computer);
             case 'tool-operation':
-                return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli');
+                return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli', () => this.computer.stop());
             case 'tool-recheck':
                 return await agenda.recheckTools();
             case 'chat-list':
