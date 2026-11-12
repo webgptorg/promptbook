@@ -34,6 +34,11 @@ jobs:
       - name: Compile the actual engine-owned macOS helper
         if: runner.os == 'macOS' && runner.arch == 'ARM64'
         run: node scripts/build-computer-helper.mjs
+      - name: Compile and verify the real Windows desktop helper protocol
+        if: runner.os == 'Windows'
+        run: |
+          node scripts/build.mjs
+          node --test test/computer-native.test.mjs
       - name: Validate Android native dependency selection
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s apps/android/test -p 'test_*.py'
