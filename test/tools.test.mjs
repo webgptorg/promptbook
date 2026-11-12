@@ -62,14 +62,14 @@ test('tool management (stopped project): canonical records, scoped commits, prot
     const before = (await subjects(project)).length;
     const add = await ptbk(['tool', 'add', 'browser', '--variant', 'chrome', '--name', 'Work Browser', '--profile-source', 'project', '--is-headless', 'false', '--description', 'LinkedIn account', '--raw'], { cwd: project, env });
     assert.equal(add.code, 0, add.output);
-    assert.deepEqual((await savedTools(project))[2], { type: 'BROWSER', variant: 'CHROME', name: 'work-browser', description: 'LinkedIn account', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: false }, 'tolerant input, canonical saved output');
+    assert.deepEqual((await savedTools(project)).find((tool) => tool.name === 'work-browser'), { type: 'BROWSER', variant: 'CHROME', name: 'work-browser', description: 'LinkedIn account', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: false }, 'tolerant input, canonical saved output');
     assert.equal((await subjects(project))[0], 'ptbk: Add browser tool work-browser');
 
     const secret = 'sk-fixture-secret-123';
     const api = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'company-api', '--authentication', 'API_KEY', '--api-key-env', 'COMPANY_OPENAI_API_KEY', '--api-key-stdin', '--raw'], { cwd: project, env, input: secret });
     assert.equal(api.code, 0, api.output);
     assert.doesNotMatch(api.output, new RegExp(secret));
-    assert.equal((await savedTools(project))[3].apiKey, '${{ env.COMPANY_OPENAI_API_KEY }}', 'only the reference is saved');
+    assert.equal((await savedTools(project)).find((tool) => tool.name === 'company-api').apiKey, '${{ env.COMPANY_OPENAI_API_KEY }}', 'only the reference is saved');
     const dotEnv = await readFile(join(project, '.env'), 'utf8');
     assert.match(dotEnv, new RegExp(`^COMPANY_OPENAI_API_KEY=${secret}$`, 'm'));
     assert.match(dotEnv, /^# \S+ ptbk: added — add harness tool company-api/m, 'the addition is annotated with a timestamp and reason');
@@ -86,9 +86,9 @@ test('tool management (stopped project): canonical records, scoped commits, prot
     assert.equal((await ptbk(['tool', 'enable', 'company-api', '--raw'], { cwd: project, env })).code, 0, 'a no-op succeeds');
     assert.equal((await subjects(project)).length, count, 'a no-op creates no commit');
     assert.equal((await ptbk(['tool', 'move', 'company-api', '--before', 'openai-codex', '--raw'], { cwd: project, env })).code, 0);
-    assert.deepEqual((await savedTools(project)).map((tool) => tool.name), ['project-browser', 'company-api', 'openai-codex', 'work-browser']);
+    assert.deepEqual((await savedTools(project)).map((tool) => tool.name), ['project-browser', 'company-api', 'openai-codex', 'computer-control', 'work-browser']);
     assert.equal((await ptbk(['tool', 'modify', 'work-browser', '--rename', 'linkedin-browser', '--raw'], { cwd: project, env })).code, 0);
-    assert.equal((await savedTools(project))[3].name, 'linkedin-browser');
+    assert.equal((await savedTools(project)).at(-1).name, 'linkedin-browser');
 
     // Disabling keeps credentials; the last enabled harness needs its own confirmation.
     assert.equal((await ptbk(['tool', 'disable', 'company-api', '--raw'], { cwd: project, env })).code, 0);

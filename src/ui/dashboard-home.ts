@@ -295,7 +295,7 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
         case 'tools': {
             const tools = snapshot.tools;
             if (!tools) return [style.muted('Not reported by this engine.')];
-            const summary = (type: 'HARNESS' | 'BROWSER', label: string): string => {
+            const summary = (type: 'HARNESS' | 'BROWSER' | 'COMPUTER_CONTROL', label: string): string => {
                 const items = tools.items.filter((item) => item.type === type);
                 const usable = items.filter((item) => item.state === 'usable').length;
                 const text = `${label} ${usable}/${items.length}`;
@@ -303,7 +303,7 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
             };
             const inUse = tools.items.filter((item) => item.inUse).map((item) => item.name);
             return [
-                `${summary('HARNESS', 'Harnesses')} ${style.muted(marks.dot)} ${summary('BROWSER', 'Browsers')}`,
+                `${summary('HARNESS', 'Harnesses')} ${style.muted(marks.dot)} ${summary('BROWSER', 'Browsers')} ${style.muted(marks.dot)} ${summary('COMPUTER_CONTROL', 'Desktop')}`,
                 ...(tools.waiting ? [style.warning(`new work waits: ${tools.waiting.reason}`)] : []),
                 ...tools.problems.slice(0, 1).map((problem) => style.warning(problem)),
                 ...(inUse.length ? [style.muted(`in use: ${inUse.join(', ')}`)] : []),

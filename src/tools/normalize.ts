@@ -2,13 +2,12 @@ import { KEBAB_IDENTIFIER, kebabIdentifier, matchEnum, matchProperty } from '../
 import { parseEnvironmentReference } from './environment.js';
 import {
     AUTHENTICATION_MODES,
-    BROWSER_VARIANTS,
     ENDPOINT_KEYWORDS,
-    HARNESS_VARIANTS,
     PROFILE_SOURCES,
     SUPERSEDED_HARNESS_FIELDS,
     TOOL_FIELDS,
     TOOL_TYPES,
+    variantsOf,
     type AuthenticationMode,
     type BrowserToolRecord,
     type HarnessToolRecord,
@@ -162,7 +161,7 @@ export function parseTools(raw: unknown): ParsedTools {
         const type = matchEnum(typeKey ? original[typeKey] : undefined, TOOL_TYPES) as ToolType | undefined;
         const entry = canonicalKeys(original, type ? TOOL_FIELDS[type] : TOOL_FIELDS.HARNESS.concat(TOOL_FIELDS.BROWSER.slice(5)), location, pending, problems);
         const resolvedType = canonicalEnumField(entry, 'type', TOOL_TYPES, location, pending, problems, { required: true, describe: 'tool type' });
-        const variant = resolvedType ? canonicalEnumField(entry, 'variant', resolvedType === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS, location, pending, problems, { required: true, describe: `${resolvedType.toLowerCase()} variant`, retired: resolvedType === 'HARNESS' ? RETIRED_HARNESS_VARIANTS : undefined }) : undefined;
+        const variant = resolvedType ? canonicalEnumField(entry, 'variant', variantsOf(resolvedType), location, pending, problems, { required: true, describe: `${resolvedType.toLowerCase()} variant`, retired: resolvedType === 'HARNESS' ? RETIRED_HARNESS_VARIANTS : undefined }) : undefined;
         let name: string | undefined;
         const rawName = entry.name;
         if (typeof rawName !== 'string' || !rawName.trim()) problems.push({ location: `${location}.name`, message: 'missing tool name', severity: 'error' });
@@ -177,7 +176,7 @@ export function parseTools(raw: unknown): ParsedTools {
         const known = resolvedType ? TOOL_FIELDS[resolvedType] : [];
         for (const key of Object.keys(entry)) {
             if (known.includes(key)) continue;
-            const otherType = resolvedType && TOOL_FIELDS[resolvedType === 'BROWSER' ? 'HARNESS' : 'BROWSER'].includes(key);
+            const otherType = resolvedType && TOOL_TYPES.some((type) => type !== resolvedType && TOOL_FIELDS[type].includes(key));
             if (SECRET_FIELD.test(key) && parseEnvironmentReference(entry[key]) === undefined) {
                 problems.push({ location: `${location}.${key}`, message: 'store credential references (${{ env.NAME }}), never secret values', severity: 'error' });
             } else if (resolvedType === 'HARNESS' && (SUPERSEDED_HARNESS_FIELDS as readonly string[]).includes(key)) {
@@ -193,6 +192,7 @@ export function parseTools(raw: unknown): ParsedTools {
         let record: ToolRecord | undefined;
         if (resolvedType === 'BROWSER' && variant) record = parseBrowserFields(entry, location, pending, problems, { name, isEnabled, variant: variant as BrowserToolRecord['variant'] });
         else if (resolvedType === 'HARNESS' && variant) record = parseHarnessFields(entry, location, pending, problems, { name, isEnabled, variant: variant as HarnessToolRecord['variant'] });
+        else if (resolvedType === 'COMPUTER_CONTROL' && variant && name) record = { type: 'COMPUTER_CONTROL', variant: 'NATIVE', name, isEnabled, ...(typeof entry.description === 'string' ? { description: entry.description } : {}) };
         corrections.push(...pending);
         if (name && record) {
             entry.name = name;
@@ -373,7 +373,7 @@ export function serializeTool(record: ToolRecord, previous?: Readonly<Record<str
         result.profile = { source: record.profile.source, ...(record.profile.path !== undefined ? { path: record.profile.path } : {}) };
         result.isHeadless = record.isHeadless;
         if (record.executable !== undefined) result.executable = record.executable;
-    } else {
+    } else if (record.type === 'HARNESS') {
         result.authentication = record.authentication;
         if (record.apiKey !== undefined) result.apiKey = record.apiKey;
         if (record.accountProfile !== undefined) result.accountProfile = record.accountProfile;

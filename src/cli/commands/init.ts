@@ -756,7 +756,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             const current = {
                 commit: saved('traces.isCommitted') ?? flagged.commit ?? state.traces?.commit ?? false,
                 ignoreVideos: saved('traces.isVideoIgnored') ?? flagged.ignoreVideos ?? state.traces?.ignoreVideos ?? true,
-                recordVideo: saved('traces.isVideoRecordingEnabled') ?? flagged.recordVideo ?? state.traces?.recordVideo ?? true,
+                recordVideo: saved('traces.isVideoRecordingEnabled') ?? flagged.recordVideo ?? state.traces?.recordVideo ?? false,
             };
             const complete = saved('traces.isCommitted') !== undefined && saved('traces.isVideoIgnored') !== undefined && saved('traces.isVideoRecordingEnabled') !== undefined;
             const decided = Object.values(flagged).every((value) => value !== undefined);
@@ -770,21 +770,21 @@ export async function initializeProject(context: CommandContext, options: { proj
                 await toggleList(terminal, {
                     frame: frame('traces', 'every task keeps its own audit trail'),
                     question: 'Traces: how should task evidence be kept?',
-                    intro: 'Each task records its harness output, events and (when enabled) browser video in traces/<task-file-basename>/, linked to its commits by the Task-Name trailer. Traces can contain project data and page content; sign-in steps are not recorded.',
+                    intro: 'Each task keeps a technical trace linked to commits by the Task-Name trailer. Optional browser video stays private in the ignored local trace directory; screen images are never committed. Traces may contain project data.',
                     toggles: [
                         { key: 'commit', label: 'Commit traces to Git', description: 'include each task’s traces in its result commit (shared with everyone who can read the repository); otherwise traces stay local and the whole traces/ folder is ignored' },
-                        { key: 'ignoreVideos', label: 'Ignore trace videos in Git', description: 'keep browser videos local even when traces are committed (videos are large and may show sensitive pages)' },
-                        { key: 'recordVideo', label: 'Record browser videos', description: 'record what agents do in the project browser, per task and attempt (independent of Git; text traces are always kept)' },
+                        { key: 'ignoreVideos', label: 'Ignore legacy trace videos in Git', description: 'also exclude older recordings outside the private local directory; new recordings always stay local' },
+                        { key: 'recordVideo', label: 'Record browser videos locally', description: 'opt in to private recordings; never committed (text traces continue)'  },
                     ],
                     initial: current,
                     effect: (values) => [
-                        `Effective: ${values.commit ? `task logs are committed${values.ignoreVideos ? '; videos stay local (ignored)' : '; videos are committed too'}` : 'traces stay local — the whole traces/ folder is ignored, videos included'}.`,
+                        `Effective: ${values.commit ? 'technical task logs are committed' : 'task traces stay local'}. New recordings always stay in the private ignored local directory.`,
                         values.recordVideo ? 'Browser activity is recorded for tasks that use the project browser.' : 'No browser video is recorded (text traces continue).',
                         ...(!values.commit && !values.ignoreVideos ? ['Note: "Ignore trace videos" has no effect while traces are not committed; the choice is kept for later.'] : []),
                     ],
                 }),
             );
-            answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? `recorded${state.traces.commit && !state.traces.ignoreVideos ? ' and committed' : ' locally'}` : 'off'}`);
+            answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? 'recorded locally' : 'off'}`);
         },
         // 8. Optional Wallet setup, default No; an existing vault is never recreated. Its words and an optional import
         // selection stay in this draft's memory; the Wallet is created only after the final confirmation.
@@ -1377,7 +1377,7 @@ export async function initializeProject(context: CommandContext, options: { proj
 
     const tasksDirectory = configBefore ? setting<string>(configBefore, 'paths.tasks') : 'tasks';
     const agentsDirectory = configBefore ? setting<string>(configBefore, 'paths.agents') : 'agents';
-    const tracePolicy = state.traces ?? { commit: false, ignoreVideos: true, recordVideo: true };
+    const tracePolicy = state.traces ?? { commit: false, ignoreVideos: true, recordVideo: false };
     const createdManifest = installation === 'local' && !(await pathExists(join(root, 'package.json')));
     // Runtime state and local secrets stay ignored independently of every trace choice.
     const ignore = await ensureRuntimeIgnore(root, [...(createdManifest || (await pathExists(join(root, 'node_modules'))) ? ['node_modules/'] : []), '.env']);
@@ -1536,6 +1536,14 @@ export async function initializeProject(context: CommandContext, options: { proj
             const name = typedTools.some((tool) => tool.name === id) ? id + (prepared ? '-api' : '-native') : id;
             operations.push({ kind: 'add', tool: prepared ? { ...prepared.tool, name, apiKeyEnv: prepared.credential.name } : { type: 'HARNESS', variant, name, authentication: 'NATIVE' } });
         } else if (!instances.some((tool) => tool.isEnabled)) operations.push({ kind: 'enable', name: instances[0]!.name });
+    }
+    // Only a new configuration gets the default desktop record here. Existing configurations use the versioned
+    // migration, so rerunning init cannot resurrect a deliberately removed or disabled desktop tool.
+    if (!file.exists && !typedTools.some((tool) => tool.type === 'COMPUTER_CONTROL')) {
+        const taken = new Set(existingTools.flatMap((tool) => tool && typeof tool === 'object' && typeof (tool as Record<string, unknown>).name === 'string' ? [(tool as Record<string, unknown>).name as string] : []));
+        let name = 'computer-control';
+        for (let suffix = 2; taken.has(name); suffix++) name = `computer-control-${suffix}`;
+        operations.push({ kind: 'add', tool: { type: 'COMPUTER_CONTROL', variant: 'NATIVE', name } });
     }
     const configured = operations.length ? applyToolOperationsToConfig({ ...raw, tools: existingTools }, operations) : canonicalizeConfig(raw).raw;
     const effectiveInstallation = installation === 'existing' ? (marker.installation ?? 'local') : installation;

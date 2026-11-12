@@ -620,7 +620,7 @@ export type BrowserDetailView = {
  */
 export type ToolView = {
     readonly name: string;
-    readonly type: 'BROWSER' | 'HARNESS';
+    readonly type: 'BROWSER' | 'HARNESS' | 'COMPUTER_CONTROL';
     readonly variant: string;
     /** Display name of the adapter (e.g. OpenAI Codex). */
     readonly variantLabel: string;

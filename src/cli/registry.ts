@@ -507,9 +507,9 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
             {
                 name: 'add',
                 category: 'Maintain',
-                summary: 'Add a named BROWSER or HARNESS tool.',
+                summary: 'Add a named BROWSER, HARNESS or COMPUTER_CONTROL tool.',
                 description: 'Creates a typed named instance with its variant-specific options and commits it immediately. Enum values are accepted in any case/separator spelling and saved canonically (CHROME, OPENAI_CODEX, MANAGED_GLOBAL, API_KEY …). A harness is then checked as this terminal and the background service see it; a native one that is not signed in is offered the same sign-in as init (in its own account context, over SSH on another device), interactively only.',
-                arguments: [{ name: 'type', description: 'BROWSER or HARNESS.', required: true }],
+                arguments: [{ name: 'type', description: 'BROWSER, HARNESS or COMPUTER_CONTROL.', required: true }],
                 optionGroups: [TOOL_IDENTITY_OPTIONS, TOOL_BROWSER_OPTIONS, TOOL_HARNESS_OPTIONS, TOOL_ORDER_OPTIONS, TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
                 examples: [
                     { command: 'ptbk tool add BROWSER --variant CHROME --name personal-browser --profile-source USER_EXISTING --is-headless false', description: 'Your own Chrome profile as an explicitly authorized browser.' },
@@ -545,7 +545,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
                 description:
                     name === 'enable'
                         ? 'Persists isEnabled: true and commits it; the running engine can use the tool at once, also in the current task. A native harness that is not signed in is offered its sign-in in an interactive terminal; enabling an already enabled tool changes nothing and only checks it again.'
-                        : 'Persists isEnabled: false and commits it. Disabling the last enabled browser or harness needs --yes: the engine keeps running but waits for tools. If active work uses the tool, --force saves the change while that work finishes with it.',
+                        : 'Persists isEnabled: false and commits it. Disabling the last enabled browser or harness needs --yes: the engine keeps running but waits for tools. If active work uses the browser or harness, --force saves the change while that work finishes with it. Computer control disable/remove stops desktop inputs and observation immediately.',
                 arguments: [{ name: 'name', description: 'Tool name.', required: true }],
                 optionGroups: [TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
                 examples: [...(name === 'enable' ? [{ command: 'ptbk tool enable codex-company', description: 'Check a native harness again and sign it in when its login is missing.' }] : []), { command: `ptbk tool ${name} company-api`, description: name === 'enable' ? 'Use the API fallback again.' : 'Pause using the API fallback.' }],

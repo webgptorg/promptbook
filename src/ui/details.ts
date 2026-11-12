@@ -313,10 +313,10 @@ export function toolsCompactLines(tools: ToolsView | undefined, style?: Style): 
     const ok = style?.success ?? ((text: string) => text);
     if (!tools) return [muted('Tool information is not available from this service.')];
     const lines: string[] = [];
-    for (const type of ['HARNESS', 'BROWSER'] as const) {
+    for (const type of ['HARNESS', 'BROWSER', 'COMPUTER_CONTROL'] as const) {
         const items = tools.items.filter((item) => item.type === type);
         const usable = items.filter((item) => item.state === 'usable');
-        const label = type === 'HARNESS' ? 'Harnesses' : 'Browsers ';
+        const label = type === 'HARNESS' ? 'Harnesses' : type === 'COMPUTER_CONTROL' ? 'Desktop  ' : 'Browsers ';
         const names = items.map((item) => `${item.state === 'usable' ? ok(item.name) : item.state === 'disabled' ? muted(item.name) : warn(item.name)}${item.inUse ? '*' : ''}`).join(' ');
         lines.push(`${label} ${usable.length}/${items.length} usable${items.length ? `  ${names}` : muted('  none configured')}`);
     }

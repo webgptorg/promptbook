@@ -183,7 +183,7 @@ test('configuration coordinator: one migration commit; repeated loads are no-ops
 
     const outcome = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0', env: { ...process.env, CODING_AGENT_GIT_NAME: 'Fixture', CODING_AGENT_GIT_EMAIL: 'f@example.test' } });
     assert.equal(outcome.migrated.from, PRE_VERSIONING_BASELINE);
-    assert.deepEqual(outcome.migrated.steps, ['0.119.0-22', '0.119.0-32', '0.119.0-35', '0.119.0-45'], 'every applicable sparse step, in order, in one pass');
+    assert.deepEqual(outcome.migrated.steps, ['0.119.0-22', '0.119.0-32', '0.119.0-35', '0.119.0-45', '0.119.0-97'], 'every applicable sparse step, in order, in one pass');
     assert.deepEqual(await subjects(root), [`ptbk: Migrate project from ${PRE_VERSIONING_BASELINE} to 0.121.0`, 'Legacy project']);
     const body = (await git(root, ['log', '-1', '--format=%B'])).trim();
     assert.match(body, /harnesses\.openai-codex → tools "openai-codex"/);

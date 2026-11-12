@@ -81,19 +81,20 @@ async function harnessFields(terminal: TerminalProfile, frame: WizardFrame, name
 export async function addToolForm(terminal: TerminalProfile): Promise<ToolForm | undefined> {
     const frame: WizardFrame = { title: 'ptbk dashboard', step: 'Add a tool' };
     try {
-        const type = answer(await selectOne(terminal, { frame, question: 'Tool type:', choices: [{ value: 'HARNESS', label: 'Harness', description: 'a coding agent integration instance (account, subscription or API key)' }, { value: 'BROWSER', label: 'Browser', description: 'a named browser profile for websites' }], defaultValue: 'HARNESS' }));
+        const type = answer(await selectOne(terminal, { frame, question: 'Tool type:', choices: [{ value: 'HARNESS', label: 'Harness', description: 'a coding agent integration instance (account, subscription or API key)' }, { value: 'BROWSER', label: 'Browser', description: 'a named browser profile for websites' }, { value: 'COMPUTER_CONTROL', label: 'Computer control', description: 'the engine host’s logged-in desktop (native OS permissions required)' }], defaultValue: 'HARNESS' }));
         const variant = answer(
             await selectOne(terminal, {
                 frame,
                 question: 'Variant:',
-                choices: type === 'BROWSER' ? BROWSER_VARIANTS.map((value) => ({ value, label: value })) : HARNESS_PLUGINS.map((plugin) => ({ value: plugin.variant, label: plugin.displayName, description: plugin.variant, featured: plugin.featured })),
-                defaultValue: type === 'BROWSER' ? 'CHROME' : 'OPENAI_CODEX',
+                choices: type === 'COMPUTER_CONTROL' ? [{ value: 'NATIVE', label: 'Native desktop' }] : type === 'BROWSER' ? BROWSER_VARIANTS.map((value) => ({ value, label: value })) : HARNESS_PLUGINS.map((plugin) => ({ value: plugin.variant, label: plugin.displayName, description: plugin.variant, featured: plugin.featured })),
+                defaultValue: type === 'COMPUTER_CONTROL' ? 'NATIVE' : type === 'BROWSER' ? 'CHROME' : 'OPENAI_CODEX',
             }),
         );
         const name = answer(await inputLine(terminal, { frame, question: 'Name (kebab-case, e.g. work-browser or codex-company):', validate: (value) => (!value ? 'Enter a name.' : undefined) }));
         const description = answer(await inputLine(terminal, { frame, question: 'Description (optional; helps agents choose it — enter "-" for none):', initial: '-' }));
         const base = { type, variant, name, ...(description && description !== '-' ? { description } : {}) };
         if (type === 'BROWSER') return { operation: { kind: 'add', tool: { ...base, ...(await browserFields(terminal, frame)) } } };
+        if (type === 'COMPUTER_CONTROL') return { operation: { kind: 'add', tool: base } };
         const harness = await harnessFields(terminal, frame, name);
         return { operation: { kind: 'add', tool: { ...base, ...harness.fields } }, secret: harness.secret };
     } catch (error) {
@@ -141,9 +142,9 @@ export async function modifyToolForm(terminal: TerminalProfile, item: ToolView):
                 choices: [
                     { value: 'description', label: 'Description' },
                     { value: 'rename', label: 'Name' },
-                    ...(item.type === 'BROWSER' ? [{ value: 'browser', label: 'Profile and window mode' }] : [{ value: 'authentication', label: 'Authentication / API key' }, { value: 'endpoint', label: 'Model endpoint' }]),
+                    ...(item.type === 'COMPUTER_CONTROL' ? [] : item.type === 'BROWSER' ? [{ value: 'browser', label: 'Profile and window mode' }] : [{ value: 'authentication', label: 'Authentication / API key' }, { value: 'endpoint', label: 'Model endpoint' }]),
                 ],
-                defaultValue: item.type === 'BROWSER' ? 'browser' : 'authentication',
+                defaultValue: item.type === 'COMPUTER_CONTROL' ? 'description' : item.type === 'BROWSER' ? 'browser' : 'authentication',
             }),
         );
         if (field === 'rename') {

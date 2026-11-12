@@ -20,7 +20,7 @@ Read-only inspection can report compatibility and required migrations but never 
 
 When `promptbookVersion` is absent, assume the fixed unversioned baseline **`0.119.0-21`**, the version inspected before this mechanism was introduced. Do not inspect the document's shape, guess its age, search Git history or invoke Fixer merely because the field is missing. This baseline never moves with future releases. Apply the ordinary forward migration chain from that point. Other genuine parse/validation problems still use automatic repair.
 
-The first release implementing the versioned tools format must bind [its migration](tools-migration.md) to that release's exact version, greater than the baseline. Future releases retain both the baseline and that historical migration target. This specification change does not bump the package version or claim the migration is already implemented.
+The first named-tools migration is bound to `0.119.0-22`, greater than the fixed baseline. Future releases retain both the baseline and that historical target; see [the original migration](tools-migration.md).
 
 ## Sparse, ordered migration chain
 
@@ -53,3 +53,14 @@ The project's saved version selects automatic steps. **Do not infer the age of a
 Acceptance additionally covers one step changing JSON and several Books, a later-step failure without a false version advance or partial visible migration, and one commit for the complete successful pass. Import an old Book into a current project and verify no age detector/migration agent or automatic conversion runs. See [Book conversion](migration.md) and [routing/model conversion](routing-migration.md).
 
 Dashboard removal retires `server.tunnel` and `service.qr`/`service.isQrShown` in one ordinary forward migration. Deterministic normalization also retires those obsolete fields in current-version projects. Neither path contacts a provider, installs software, reads old authentication files or changes local HTTP/persistence choices. Read-only inspection remains a preview.
+
+
+## Native desktop migration (`0.119.0-97`)
+
+Add one enabled `COMPUTER_CONTROL`/`NATIVE` record when no desktop record already exists. Preserve existing records, including disabled or diagnostically invalid desktop entries; never replace their user's choice. Use `computer-control`, or a deterministic unused numeric suffix on a name collision. Invalid non-array `tools` remains a repair problem and is never overwritten with a guessed inventory.
+
+The ordinary coordinator advances `promptbookVersion` with the complete pass. This is the one-time installation marker: a removed desktop record stays removed on subsequent startup and reinitialization. Retrying an interrupted pre-version-stamp pass never duplicates the record. No permission dialog, screenshot, input or native helper startup is part of the migration.
+
+Fill absent `traces.isVideoRecordingEnabled` with false and absent `traces.isVideoIgnored` with true, preserving explicit existing values. Optional desktop recording independently inherits `computer.isRecordingEnabled: false`; introducing the tool does not silently opt into recordings. New browser recordings use ignored local storage regardless of the legacy Git video preference. See [trace policy](trace-configuration.md) and [Computer Control](computer-control.md).
+
+Acceptance covers an existing enabled/disabled record, a name collision, interruption before version stamping, malformed `tools`, explicit recording choices, and deletion followed by reinit/startup without resurrection.

@@ -360,11 +360,51 @@ const SHARED_WORK_LIMIT_MIGRATION: ConfigurationMigration = {
 };
 
 /**
+ * Adds the native desktop tool once. Subsequent removal is intentional because the saved version advances past this
+ * step; interrupted migration is idempotent and existing disabled/native records are never overwritten.
+ */
+const COMPUTER_CONTROL_MIGRATION: ConfigurationMigration = {
+    target: '0.119.0-97',
+    title: 'Native computer control and private opt-in visual traces',
+    migrate: (raw) => {
+        const notes: string[] = [];
+        const problems: ConfigProblem[] = [];
+        if (raw.tools !== undefined && !Array.isArray(raw.tools)) {
+            problems.push({ location: 'ptbk.json › tools', message: 'expected an ordered array; repair it before adding computer control', severity: 'error' });
+            return { notes, problems };
+        }
+        const tools = Array.isArray(raw.tools) ? [...raw.tools] : [];
+        const existing = parseTools(tools);
+        // Tolerant recognition also protects a disabled entry with an unrelated invalid field from replacement.
+        if (!existing.tools.some((tool) => tool.type === 'COMPUTER_CONTROL') && !tools.some((tool) => {
+            if (!tool || typeof tool !== 'object' || Array.isArray(tool)) return false;
+            const entry = tool as Record<string, unknown>;
+            const key = Object.keys(entry).find((key) => matchProperty(key, ['type']) === 'type');
+            return key !== undefined && matchEnum(entry[key], ['COMPUTER_CONTROL']) !== undefined;
+        })) {
+            const names = new Set([...existing.tools.map((tool) => tool.name), ...tools.flatMap((tool) => tool && typeof tool === 'object' && typeof (tool as Record<string, unknown>).name === 'string' ? [(tool as Record<string, unknown>).name as string] : [])]);
+            let name = 'computer-control';
+            for (let suffix = 2; names.has(name); suffix++) name = `computer-control-${suffix}`;
+            tools.push(serializeTool({ type: 'COMPUTER_CONTROL', variant: 'NATIVE', name, isEnabled: true }));
+            raw.tools = tools;
+            notes.push(`added enabled native desktop tool ${name}; OS permissions are inspected separately`);
+        }
+        if (raw.traces === undefined) raw.traces = {};
+        if (raw.traces && typeof raw.traces === 'object' && !Array.isArray(raw.traces)) {
+            const traces = raw.traces as Record<string, unknown>;
+            if (traces.isVideoRecordingEnabled === undefined) { traces.isVideoRecordingEnabled = false; notes.push('visual recording defaults to off'); }
+            if (traces.isVideoIgnored === undefined) traces.isVideoIgnored = true;
+        }
+        return { notes, problems };
+    },
+};
+
+/**
  * Every registered configuration migration (sparse: most releases have none).
  *
  * @private configuration migrations
  */
-export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION, SHARED_WORK_LIMIT_MIGRATION];
+export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION, SHARED_WORK_LIMIT_MIGRATION, COMPUTER_CONTROL_MIGRATION];
 
 /**
  * Compares the saved configuration version with the running engine and selects the applicable ordered steps

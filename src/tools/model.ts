@@ -19,7 +19,7 @@ export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
  *
  * @private shared tool contract
  */
-export const TOOL_TYPES = ['BROWSER', 'HARNESS'] as const;
+export const TOOL_TYPES = ['BROWSER', 'HARNESS', 'COMPUTER_CONTROL'] as const;
 
 /**
  * One tool category.
@@ -157,11 +157,28 @@ export type HarnessToolRecord = ToolCommon & {
 };
 
 /**
+ * Native desktop adapters; input always targets the engine host's logged-in graphical session.
+ *
+ * @private shared tool contract
+ */
+export const COMPUTER_CONTROL_VARIANTS = ['NATIVE'] as const;
+
+/**
+ * Engine-owned access to the host's primary desktop. Image recording is off; live screenshots are ephemeral.
+ *
+ * @private shared tool contract
+ */
+export type ComputerControlToolRecord = ToolCommon & {
+    readonly type: 'COMPUTER_CONTROL';
+    readonly variant: (typeof COMPUTER_CONTROL_VARIANTS)[number];
+};
+
+/**
  * One typed tool record of `ptbk.json.tools`.
  *
  * @private shared tool contract
  */
-export type ToolRecord = BrowserToolRecord | HarnessToolRecord;
+export type ToolRecord = BrowserToolRecord | HarnessToolRecord | ComputerControlToolRecord;
 
 /**
  * Canonical fields of each tool type, in their saved order (used for tolerant key matching and serialization).
@@ -169,6 +186,7 @@ export type ToolRecord = BrowserToolRecord | HarnessToolRecord;
  * @private shared tool contract
  */
 export const TOOL_FIELDS: Readonly<Record<ToolType, readonly string[]>> = {
+    COMPUTER_CONTROL: ['type', 'variant', 'name', 'description', 'isEnabled'],
     BROWSER: ['type', 'variant', 'name', 'description', 'isEnabled', 'profile', 'isHeadless', 'executable'],
     HARNESS: ['type', 'variant', 'name', 'description', 'isEnabled', 'authentication', 'apiKey', 'accountProfile', 'baseUrl'],
 };
@@ -190,7 +208,7 @@ export function toolRuntime(tool: Pick<HarnessToolRecord, 'baseUrl'>): string {
  * @private shared tool contract
  */
 export function variantsOf(type: ToolType): readonly string[] {
-    return type === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS;
+    return type === 'BROWSER' ? BROWSER_VARIANTS : type === 'COMPUTER_CONTROL' ? COMPUTER_CONTROL_VARIANTS : HARNESS_VARIANTS;
 }
 
 /**
@@ -218,7 +236,7 @@ export function harnessVariantOf(pluginId: string): HarnessVariant | undefined {
  * @private shared tool contract
  */
 export function toolTypeLabel(type: ToolType): string {
-    return type === 'BROWSER' ? 'browser' : 'harness';
+    return type === 'BROWSER' ? 'browser' : type === 'COMPUTER_CONTROL' ? 'computer control' : 'harness';
 }
 
 /**

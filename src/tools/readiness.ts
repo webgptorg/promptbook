@@ -1,12 +1,31 @@
 import { pathExists } from '../common/fs.js';
 import { browserProfileDirectory, findBrowserExecutable, profileOwner } from '../browser/browser.js';
-import type { EffectiveSettings } from '../project/config.js';
+import { setting, type EffectiveSettings } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessPool } from '../engine/harnesses.js';
 import type { ToolsView, ToolView } from '../engine/snapshot.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { describeCredentialSource } from './environment.js';
 import { describeProfileSource, harnessPluginId, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
+
+/**
+ * Native desktop readiness without requiring a windowed Console. Undefined usability means permission checks have
+ * not run yet; unsupported hosts are unavailable and never block unrelated browser/terminal work.
+ *
+ * @private tool readiness
+ */
+export type ComputerReadiness = { readonly usable?: boolean; readonly summary: string; readonly nextAction?: string };
+
+/**
+ * Read-only platform check, deliberately not spawning a helper or displaying an OS permission prompt.
+ *
+ * @private tool readiness
+ */
+export function inspectComputerPlatform(platform: NodeJS.Platform = process.platform, architecture: string = process.arch): ComputerReadiness {
+    if (platform === 'darwin' && architecture === 'arm64') return { summary: 'macOS Apple Silicon supported; screen capture and Accessibility permissions have not been checked.', nextAction: 'In Console, open Tools › this desktop tool and press 1 to request permissions; grant Screen Recording and Accessibility to the native helper. The App desktop viewer offers the same setup.' };
+    if (platform === 'win32') return { summary: 'Windows desktop supported; the logged-in graphical session has not been checked.', nextAction: 'In Console, open Tools › this desktop tool and press 5 to check the logged-in Windows desktop session.' };
+    return { usable: false, summary: 'Native computer control requires Windows 10/11 or macOS on Apple Silicon with a logged-in graphical session.', nextAction: 'Run this engine in a supported desktop session; browser and terminal work can continue here.' };
+}
 
 /**
  * Observed readiness of one browser tool (never launches it).
@@ -38,7 +57,7 @@ export async function inspectBrowserTool(project: Project, tool: BrowserToolReco
  *
  * @private tool readiness
  */
-export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.ProcessEnv, pool?: HarnessPool): Record<string, string> {
+export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.ProcessEnv, pool?: HarnessPool, settings?: EffectiveSettings): Record<string, string> {
     if (tool.type === 'BROWSER') {
         return {
             profile: `${tool.profile.source}${tool.profile.path ? ` ${tool.profile.path}` : ''}`,
@@ -47,6 +66,7 @@ export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.Proce
             ...(tool.executable ? { executable: tool.executable } : {}),
         };
     }
+    if (tool.type === 'COMPUTER_CONTROL') return { session: 'engine host, primary monitor', recording: settings && setting<boolean>(settings, 'computer.isRecordingEnabled') ? 'on (private local desktop screenshots; never Git)' : 'off (live screenshots only)', permissions: 'system Accessibility and screen capture permissions may be required' };
     const credential = pool?.credential(tool);
     return {
         authentication: tool.authentication,
@@ -76,6 +96,7 @@ export function describeEndpoint(tool: HarnessToolRecord): string {
  * @private tool readiness
  */
 export function variantLabel(tool: Pick<ToolRecord, 'type' | 'variant'>): string {
+    if (tool.type === 'COMPUTER_CONTROL') return 'Native desktop';
     if (tool.type === 'HARNESS') return harnessPlugin(harnessPluginId(tool.variant as HarnessToolRecord['variant']))?.displayName ?? tool.variant;
     return tool.variant === 'CHROME' ? 'Chrome' : tool.variant === 'CHROMIUM' ? 'Chromium' : 'Microsoft Edge';
 }
@@ -93,6 +114,8 @@ export type ToolInventoryInput = {
     readonly pool: HarnessPool;
     /** Browser readiness by name (already inspected). */
     readonly browsers: ReadonlyMap<string, BrowserReadiness>;
+    /** Live native helper status by name; absent means permissions have not been inspected, never assumed. */
+    readonly computers?: ReadonlyMap<string, ComputerReadiness>;
     /** Names held by active work. */
     readonly inUse?: ReadonlySet<string>;
     /** Names whose acquired old configuration is still used (changed, disabled or removed). */
@@ -137,6 +160,11 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
                 : tool.authentication === 'NATIVE' && inspection?.installed && inspection.authenticated === false
                   ? nativeSignInAction(tool, inspection.nextAction)
                   : inspection?.nextAction;
+        } else if (tool.type === 'COMPUTER_CONTROL') {
+            const readiness = input.computers?.get(tool.name) ?? inspectComputerPlatform();
+            state = readiness.usable === undefined ? 'unknown' : readiness.usable ? 'usable' : 'unavailable';
+            summary = readiness.summary;
+            nextAction = readiness.nextAction;
         } else {
             const readiness = input.browsers.get(tool.name);
             state = !readiness ? 'unknown' : readiness.usable ? 'usable' : 'unavailable';
@@ -158,7 +186,7 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             inUse: Boolean(input.inUse?.has(tool.name)),
             ...(input.retained?.has(tool.name) ? { retained: true } : {}),
             ...(settings.overriddenTools.has(tool.name) ? { overridden: true } : {}),
-            fields: toolFields(project, tool, env, pool),
+            fields: toolFields(project, tool, env, pool, settings),
         };
     });
     for (const name of input.retained ?? []) {

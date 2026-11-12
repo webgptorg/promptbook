@@ -9,11 +9,10 @@ import type { Project } from '../project/workspace.js';
 import { dotEnvPath, editDotEnv, environmentReference, isEngineManagedAssignment, parseEnvironmentReference, readDotEnv, type DotEnvChange } from './environment.js';
 import {
     AUTHENTICATION_MODES,
-    BROWSER_VARIANTS,
-    HARNESS_VARIANTS,
     PROFILE_SOURCES,
     TOOL_TYPES,
     toolTypeLabel,
+    variantsOf,
     type HarnessToolRecord,
     type ToolRecord,
     type ToolType,
@@ -148,8 +147,8 @@ function invalid(message: string, next?: string): PtbkError {
 export function recordFromDraft(draft: ToolDraft): ToolRecord {
     const type = matchEnum(draft.type, TOOL_TYPES);
     if (!type) throw invalid(`Unknown tool type "${draft.type}".`, `Use one of ${TOOL_TYPES.join(', ')}.`);
-    const variant = matchEnum(draft.variant, type === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS);
-    if (!variant) throw invalid(`Unknown ${toolTypeLabel(type)} variant "${draft.variant}".`, `Use one of ${(type === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS).join(', ')}.`);
+    const variant = matchEnum(draft.variant, variantsOf(type));
+    if (!variant) throw invalid(`Unknown ${toolTypeLabel(type)} variant "${draft.variant}".`, `Use one of ${variantsOf(type).join(', ')}.`);
     const name = KEBAB_IDENTIFIER.test(draft.name) ? draft.name : kebabIdentifier(draft.name);
     if (!name) throw invalid(`"${draft.name}" cannot be a tool name.`, 'Use a kebab-case name such as work-browser or codex-company.');
     const raw: Record<string, unknown> = { type, variant, name, ...(draft.description !== undefined ? { description: draft.description } : {}), isEnabled: draft.isEnabled ?? true };
@@ -160,7 +159,7 @@ export function recordFromDraft(draft: ToolDraft): ToolRecord {
         raw.profile = { source, ...(draft.profilePath !== undefined ? { path: draft.profilePath } : {}) };
         raw.isHeadless = draft.isHeadless ?? true;
         if (draft.executable !== undefined) raw.executable = draft.executable;
-    } else {
+    } else if (type === 'HARNESS') {
         for (const field of ['profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (draft[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a HARNESS tool.`);
         const authentication = draft.authentication === undefined ? 'NATIVE' : matchEnum(draft.authentication, AUTHENTICATION_MODES);
         if (!authentication) throw invalid(`Unknown authentication "${draft.authentication}".`, `Use one of ${AUTHENTICATION_MODES.join(', ')}.`);
@@ -172,6 +171,9 @@ export function recordFromDraft(draft: ToolDraft): ToolRecord {
         if (draft.accountProfile !== undefined) raw.accountProfile = draft.accountProfile;
         // The default choice is the official endpoint, which needs no saved value; an explicit choice is saved.
         if (draft.baseUrl !== undefined && !/^default$/i.test(draft.baseUrl.trim())) raw.baseUrl = draft.baseUrl;
+    }
+    if (type === 'COMPUTER_CONTROL') {
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (draft[field] !== undefined) throw invalid(`The ${field} field does not apply to a COMPUTER_CONTROL tool.`);
     }
     const parsed = parseTools([raw]);
     const errors = parsed.problems.filter((problem) => problem.severity === 'error');
@@ -198,12 +200,15 @@ function modifiedRecord(record: ToolRecord, changes: ToolChanges, rename?: strin
         optional('profilePath', changes.profilePath, keepPath ? record.profile.path : undefined);
         draft.isHeadless = changes.isHeadless ?? record.isHeadless;
         optional('executable', changes.executable, record.executable);
-    } else {
+    } else if (record.type === 'HARNESS') {
         for (const field of ['profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (changes[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a HARNESS tool.`);
         draft.authentication = changes.authentication ?? record.authentication;
         optional('apiKeyEnv', changes.apiKeyEnv, parseEnvironmentReference(record.apiKey));
         optional('accountProfile', changes.accountProfile, record.accountProfile);
         optional('baseUrl', changes.baseUrl, record.baseUrl);
+    }
+    if (record.type === 'COMPUTER_CONTROL') {
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (changes[field] !== undefined) throw invalid(`The ${field} field does not apply to a COMPUTER_CONTROL tool.`);
     }
     return recordFromDraft(draft as ToolDraft);
 }
@@ -300,7 +305,8 @@ function requirements(plan: Plan, operation: ToolOperation, tools: readonly Tool
     const found: ToolRequirement[] = [];
     const command = commandOf(operation);
     const affectsUse = operation.kind === 'modify' || operation.kind === 'disable' || operation.kind === 'remove';
-    if (affectsUse && inUse.has(plan.name) && !acknowledgements.force) {
+    const immediateDesktopRevocation = plan.type === 'COMPUTER_CONTROL' && (operation.kind === 'disable' || operation.kind === 'remove');
+    if (!immediateDesktopRevocation && affectsUse && inUse.has(plan.name) && !acknowledgements.force) {
         found.push({
             kind: 'in-use',
             message: `The tool "${plan.name}" is in use by active work.`,
@@ -313,7 +319,7 @@ function requirements(plan: Plan, operation: ToolOperation, tools: readonly Tool
     const enabledBefore = tools.filter((tool) => tool.type === plan.type && tool.isEnabled).length;
     const parsedAfter = parseTools(plan.tools).tools;
     const enabledAfter = parsedAfter.filter((tool) => tool.type === plan.type && tool.isEnabled).length;
-    if ((operation.kind === 'disable' || operation.kind === 'remove') && enabledBefore > 0 && enabledAfter === 0 && !acknowledgements.confirmLastOfType) {
+    if (plan.type !== 'COMPUTER_CONTROL' && (operation.kind === 'disable' || operation.kind === 'remove') && enabledBefore > 0 && enabledAfter === 0 && !acknowledgements.confirmLastOfType) {
         const label = toolTypeLabel(plan.type);
         found.push({
             kind: 'last-of-type',
@@ -410,6 +416,7 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
         const needed = requirements(plan, request.operation, before, context.inUse ?? new Set(), request.acknowledgements ?? {});
         if (needed.length) return { status: 'needs-acknowledgement', summary: needed.map((requirement) => requirement.message).join(' '), requirements: needed } satisfies ToolOperationOutcome;
         const notes: string[] = [];
+        if (plan.type === 'COMPUTER_CONTROL' && (request.operation.kind === 'disable' || request.operation.kind === 'remove')) notes.push('Computer control stops immediately, including observation; acquired work does not retain desktop access.');
         const files: Array<{ path: string; content: string; working: string }> = [];
         // A supplied secret goes only to the ignored local .env (timestamped, non-destructive).
         const envChanges: DotEnvChange[] = [];

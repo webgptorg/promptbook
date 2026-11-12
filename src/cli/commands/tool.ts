@@ -80,10 +80,10 @@ function operationOf(context: CommandContext): ToolOperation {
     };
     switch (sub) {
         case 'add': {
-            if (!first) throw usageError('ptbk tool add needs the tool type (BROWSER or HARNESS).', context.path.join(' '));
+            if (!first) throw usageError('ptbk tool add needs the tool type (BROWSER, HARNESS or COMPUTER_CONTROL).', context.path.join(' '));
             const variant = option<string>(context, 'variant');
             const toolName = option<string>(context, 'name') ?? second;
-            if (!variant) throw usageError('ptbk tool add needs --variant (e.g. CHROME or OPENAI_CODEX).', context.path.join(' '));
+            if (!variant) throw usageError('ptbk tool add needs --variant (e.g. CHROME, OPENAI_CODEX or NATIVE).', context.path.join(' '));
             if (!toolName) throw usageError('ptbk tool add needs --name (a kebab-case identifier such as work-browser).', context.path.join(' '));
             const { variant: _variant, ...fields } = fieldOptions(context);
             void _variant;

@@ -10,11 +10,11 @@
 
 Resolve each supported setting from engine defaults, then the selected project's explicit `ptbk.json`, then explicit CLI overrides. Omitted values inherit; false, empty and disabled values are not omission. Harness API credentials use [environment references](environment.md), not a second project configuration file. Website login credentials instead use [Wallet](wallet.md); encryption material never belongs in ptbk.json or environment references.
 
-Configuration covers named browser/harness connections, checks, [trace settings](trace-configuration.md), operating/update policies and optional synchronization. A task's explicit requirements constrain selection; they are not lower-priority defaults to overwrite. Multiple browsers and harnesses coexist in `tools`; the old singleton browser and separate harness map are [migrated](tools-migration.md), not retained as competing live configuration sources.
+Configuration covers named browser/harness/native desktop tools, checks, [trace settings](trace-configuration.md), operating/update policies and optional synchronization. A task's explicit requirements constrain selection; they are not lower-priority defaults to overwrite. Multiple browsers and harnesses coexist with optional native desktop access in `tools`; the old singleton browser and separate harness map are [migrated](tools-migration.md), not retained as competing live configuration sources.
 
 Project-scoped paths resolve relative to the project; CLI paths resolve relative to the invocation directory. Managed-global browser profiles resolve per OS user, not as Git-versioned absolute machine paths. Existing/custom paths follow explicit ownership checks. Do not inherit another project's configuration merely because it is an ancestor or contains the installation. Preserve unrelated fields and diagnose problems at their actual location.
 
-Load/revalidate before every task and refresh promptly during work and waits. File edits, another terminal's tool command and dashboard saves become effective without restart. New tools can serve current work; changes to an already acquired tool retain its current use only under [runtime consistency](tool-runtime.md). Genuine startup-only placement/HTTP settings may still require restart and are labelled as such; that is not permission to make all configuration startup-only.
+Load/revalidate before every task and refresh promptly during work and waits. File edits, another terminal's tool command and dashboard saves become effective without restart. New tools can serve current work; changes to an already acquired browser/harness retain its current use only under [runtime consistency](tool-runtime.md). Computer Control disable/remove revokes existing input and observation immediately. Genuine startup-only placement/HTTP settings may still require restart and are labelled as such; that is not permission to make all configuration startup-only.
 
 ## Persistence boundaries
 
@@ -45,7 +45,9 @@ These settings define **soft** health boundaries only. There is no configurable 
 
 ## Traces, synchronization and access
 
-Save `traces.isCommitted`, `traces.isVideoIgnored` and `traces.isVideoRecordingEnabled` from the Traces step. Their defaults and parent/video ignore precedence are defined only in [trace configuration](trace-configuration.md). Recording is independent of Git inclusion and applies to attributable activity of any selected browser tool.
+Save `traces.isCommitted`, `traces.isVideoIgnored` and `traces.isVideoRecordingEnabled` from the Traces step. Defaults are `false`, `true` and `false` respectively; [trace configuration](trace-configuration.md) defines storage and legacy video-ignore precedence. Optional browser recordings stay in the ignored local trace directory and never join new result commits. Recording is independent of technical trace inclusion and applies only to attributable activity of the selected browser tool.
+
+`computer.isRecordingEnabled` defaults to `false` and applies live. Explicit opt-in stores bounded local desktop screenshots in ignored `.ptbk/` storage, never Git; it excludes owner-view screenshots and does not enable desktop video. The desktop tool record itself contains only common fields. See [Computer Control](computer-control.md) for permissions, control and recording boundaries.
 
 `isAutoSync` is the single saved opt-in for ongoing pull/push through the repository's existing origin and current branch; remote/branch definitions stay in Git, not duplicate JSON fields. New initialization asks, while migrated projects default off. See [Git synchronization](git-synchronization.md).
 
@@ -55,7 +57,7 @@ The deterministic configuration migration retires `server.tunnel` and `service.q
 
 ## Initialization and checks
 
-Init uses the same tool operations but keeps its simple selection UX; it does not ask users to design account pools or fallback chains. Preserve existing selections, profiles, native logins and explicit false values. New browser defaults remain the dedicated reusable global Promptbook profile, not personal Chrome.
+Init uses the same tool operations but keeps its simple selection UX; it does not ask users to design account pools or fallback chains. Preserve existing selections, profiles, native logins and explicit false values. New browser defaults remain the dedicated reusable global Promptbook profile, not personal Chrome. New configurations also contain enabled `COMPUTER_CONTROL`/`NATIVE`; existing projects receive it once through the `0.119.0-97` migration. Missing native permissions never block init, and reinitialization never recreates a deliberately removed desktop record.
 
 Init no longer asks for a checking command. Preserve an existing real `execution.check`; when absent, save an explicit successful informational placeholder such as `echo "Configure project checks in ptbk.json execution.check"`. It is not evidence of real validation and does not block bootstrap. A supplied `init --check COMMAND` can fill the missing choice without a question; existing valid defaults and temporary overrides retain their precedence. See [checks](checks.md) and [initialization](initialization.md).
 

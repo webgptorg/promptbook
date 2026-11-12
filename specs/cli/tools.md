@@ -1,14 +1,14 @@
 # Unified project tools
 
-[Main specification](../_main.md) · [Configuration](configuration.md) · [Tool management](tool-management.md) · [Live tool use](tool-runtime.md)
+[Main specification](../_main.md) · [Configuration](configuration.md) · [Tool management](tool-management.md) · [Live tool use](tool-runtime.md) · [Computer Control](computer-control.md)
 
-`ptbk.json.tools` is an ordered JSON array of pluggable project resources. Its initial types are **`BROWSER`** and **`HARNESS`**. They share the same external configuration/management model; their internal adapters may differ. There is no longer a singleton browser setting separate from the harness inventory.
+`ptbk.json.tools` is an ordered JSON array of pluggable project resources. Its types are **`BROWSER`**, **`HARNESS`** and **`COMPUTER_CONTROL`**. They share the same external configuration/management model; their internal adapters may differ. There is no longer a singleton browser setting separate from the harness inventory.
 
 ## Common fields and identity
 
 Every tool has required `type`, `variant` and `name`, optional free-text `description`, and `isEnabled` (default true). `type` identifies the category, `variant` the fixed implementation, and `name` an arbitrary user-editable identifier unique across the entire project's tools array. Names are kebab-case; type/variant and other fixed enum values are SCREAMING_SNAKE_CASE. Properties are camelCase and boolean properties begin with `is`; see [naming and tolerant normalization](../coding-standards/naming.md).
 
-`isEnabled: false` retains configuration and credentials but removes that instance from new selections. Enable/disable are the normal reversible actions; removal permanently removes the configuration record, not the browser profile or native account data. Only actual use retained under [in-use rules](tool-runtime.md) may continue after disabling/removal. Supported, configured, enabled, installed, usable and currently used are different states.
+`isEnabled: false` retains configuration and credentials but removes that instance from new selections. Enable/disable are the normal reversible actions; removal permanently removes the configuration record, not the browser profile or native account data. Browser/harness use retained under [in-use rules](tool-runtime.md) may continue after an acknowledged change. Computer Control is immediately revocable: disable/remove stops its observation and inputs, including already acquired use. Supported, configured, enabled, installed, usable and currently used are different states.
 
 Each type/variant has its own typed settings and validation under the [shared domain contract](../coding-standards/shared-logic.md). Do not accept arbitrary incompatible fields as though they worked. Unknown variants or ambiguous names use automatic repair, not silent selection of a different tool.
 
@@ -19,6 +19,14 @@ A browser record includes `profile` and `isHeadless`, plus the supported adapter
 A normal init creates one browser using the existing simple profile/mode choices. Advanced users may add more: a dedicated agent profile plus an explicitly authorized personal profile, separate Facebook/LinkedIn profiles, or several accounts on one site. All remain independently named and diagnosable. Browser website sessions are independent from harness authentication. Ownership, persistent profile safety and diagnostics are defined in [browser behavior](browser.md).
 
 Wallet is a project sub-engine rather than an entry in `tools[]`. Browser records connect to a [shared process pool per profile](browser.md); website passwords are mediated through [Wallet](wallet.md), independently of the harness authentication below.
+
+## Computer Control records
+
+`COMPUTER_CONTROL` has one variant, `NATIVE`, and only the common fields. It operates the primary monitor of the engine host's logged-in graphical session, independently of whether the engine was launched through npm/CLI or Desktop Console. It does not select a browser profile, a harness account or another computer. Support is Windows 10/11 and macOS on Apple Silicon; unsupported hosts and missing OS permissions remain honestly unavailable.
+
+New initialization adds an enabled `computer-control` tool without another required question. The versioned `0.119.0-97` migration adds it once to existing projects, preserving an existing desktop record, including disabled records. A collision gets a distinct deterministic name; after the project version advances, intentional removal is never undone by reinitialization or later startup. Configuration does not silently grant native OS permissions or start capture.
+
+The tool is a fallback for work that suitable purpose-built/browser tools cannot perform. Its availability is independent of the selected harness; MCP-capable harnesses receive the same shared tools. An unavailable optional desktop does not block unrelated browser/terminal work. Human priority, explicit takeover, session-wide emergency stop, shared-session coordination and recording are defined in [Computer Control](computer-control.md). Saved `computer.isRecordingEnabled` defaults to false and opts into ignored local screenshots only, never Git or desktop video.
 
 ## Harness records
 
@@ -57,6 +65,12 @@ An illustrative configuration fragment (other project settings omitted):
       "isEnabled": true,
       "authentication": "API_KEY",
       "apiKey": "${{ env.COMPANY_OPENAI_API_KEY }}"
+    },
+    {
+      "type": "COMPUTER_CONTROL",
+      "variant": "NATIVE",
+      "name": "computer-control",
+      "isEnabled": true
     }
   ]
 }
@@ -80,4 +94,4 @@ This supports two subscriptions, subscription then paid API, and multiple API ke
 
 For browsers, use task intent, names/descriptions, profile permissions and known sessions to choose the appropriate instance. Try an explicitly configured alternative when the first lacks the needed login/capability; do not post or pay from a different account merely because it is logged in. Keep actual account identity and effects attributable. Browser selection is not the same rule as same-variant harness quota pooling.
 
-Before every task and whenever availability changes, verify at least one enabled usable browser and harness, plus the task's actual constraints. Missing resources mean the engine is **running but waiting for tools**, not stopped or technically paused. Continue refreshing while idle and resume eligible work when tools become available. See [live runtime behavior](tool-runtime.md).
+Before every task and whenever availability changes, verify at least one enabled usable browser and harness, plus the task's actual constraints. Computer Control is an optional capability and is not an extra baseline resource requirement. Missing resources mean the engine is **running but waiting for tools**, not stopped or technically paused. Continue refreshing while idle and resume eligible work when tools become available. See [live runtime behavior](tool-runtime.md).

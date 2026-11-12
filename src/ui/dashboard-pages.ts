@@ -711,6 +711,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             if (!item) return { title: `Tools › ${page.name}`, context: 'This tool is no longer configured.', body: [style.muted('It was removed (possibly from another client).')], legend: back };
             const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name) ?? (snapshot.browser?.name === item.name ? snapshot.browser : undefined) : undefined;
             const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : [])];
+            if (item.type === 'COMPUTER_CONTROL') body.push('', '1 request native OS permissions · 2 pause input and observation · 3 resume · 4 stop session-wide · 5 check status', 'Human input always takes priority. A manual pause stays paused until you resume it.');
             const controls = item.type === 'BROWSER' ? (snapshot.tabControls ?? []).filter((control) => control.browser === item.name) : [];
             if (controls.length) {
                 body.push('', style.bold('Tabs you control'));
@@ -721,7 +722,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             }
             const live = controls.some((control) => !controlOver(control));
             const tabKeys = item.type === 'BROWSER' && context.tabControl ? ` · 6 take control of a tab${live ? ' · H return control to agent · V reopen viewer · E end use' : ''}` : '';
-            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart · 4 kill · 5 test GitHub tab' : ''}${tabKeys} · ${back}` };
+            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart · 4 kill · 5 test GitHub tab' : item.type === 'COMPUTER_CONTROL' ? ' · 1 permissions · 2 pause · 3 resume · 4 stop · 5 status' : ''}${tabKeys} · ${back}` };
         }
         case 'agents': {
             const items = teamOrder(snapshot, page.sort, context.inventory);

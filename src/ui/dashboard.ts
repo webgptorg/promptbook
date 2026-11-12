@@ -1614,7 +1614,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     if (key === 'e') confirmThen('End your use of the controlled tab without handing it back? The tab closes and no agent takes it over.', async () => await tabLifecycle(control, 'end'));
                     else void tabLifecycle(control, key === 'h' ? 'handback' : 'reopen');
                 } else if (['1', '2', '3', '4', '5'].includes(text) && focused) {
-                    if (focused.type !== 'BROWSER') notify('Browser recovery applies to browser tools.');
+                    if (focused.type === 'COMPUTER_CONTROL') {
+                        const action = text === '1' ? 'computer-permissions' : text === '2' ? 'computer-pause' : text === '3' ? 'computer-resume' : text === '4' ? 'computer-stop' : 'computer-status';
+                        void runAction(action);
+                    } else if (focused.type !== 'BROWSER') notify('Browser recovery applies to browser tools.');
                     else if (text === '3' || text === '4') {
                         // Restart and kill act on the profile's shared process: every connected engine is affected.
                         const browser = (snapshot.browsers ?? []).find((item) => item.name === focused.name);
