@@ -80,7 +80,7 @@ test('unattended init saves setup, a blank initial specification and one named E
     assert.match(fixer, /ask User before changing their explicit requirements/);
     assert.equal(config.execution.check, 'echo "Configure project checks in ptbk.json execution.check"', 'no check question: the explicit informational placeholder');
     assert.match(init.stdout, /informational placeholder/, 'the placeholder is labelled, never presented as passing tests');
-    assert.deepEqual(config.traces, { isCommitted: false, isVideoIgnored: true, isVideoRecordingEnabled: true });
+    assert.deepEqual(config.traces, { isCommitted: false, isVideoIgnored: true, isVideoRecordingEnabled: false });
     const tasks = (await readdir(join(project, 'tasks'))).filter((name) => name.endsWith('.book'));
     assert.equal(tasks.length, 1);
     const bootstrap = await readFile(join(project, 'tasks', tasks[0]), 'utf8');

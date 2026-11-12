@@ -12,6 +12,7 @@ import type { BrowserDetailView } from '../engine/snapshot.js';
 import type { ControlOutcome } from '../service/actions.js';
 import { createRedactor } from '../common/redact.js';
 import { promptbookAppData } from '../common/app-data.js';
+import { protectDesktop } from '../computer/protection.js';
 import { BrowserRecorder, type ScreencastPort } from './recording.js';
 import { BROWSER_STARTUP_TIMEOUT_MS, BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
 import { TabReservations } from './tab-reservations.js';
@@ -973,7 +974,7 @@ export class TaskBrowser {
         public readonly scope: string,
         private readonly project: Project,
         recordingEnabled: () => boolean,
-        env: NodeJS.ProcessEnv,
+        private readonly env: NodeJS.ProcessEnv,
     ) {
         this.recorder = new BrowserRecorder(project, recordingEnabled, env);
     }
@@ -1392,8 +1393,9 @@ export class TaskBrowser {
             if (!target.focused && target.visible && !target.covered && target.x !== undefined && target.y !== undefined) await this.mouse({ x: target.x, y: target.y }, {});
             if (!(await this.evaluate<boolean>(focusForEntryScript(ref, replace)))) throw staleReference(ref);
         } else if (replace) await this.evaluate<boolean>(focusForEntryScript(undefined, true));
-        if (target.secret) await this.recorder.pause('secret entry into a password/one-time-code field (not recorded)');
+        const unprotectDesktop = target.secret ? await protectDesktop(this.env, 'Protected browser input is in progress.') : undefined;
         try {
+            if (target.secret) await this.recorder.pause('secret entry into a password/one-time-code field (not recorded)');
             if (replace && !text) await this.key(parseKeyPress('Backspace'));
             const lines = target.singleLine ? [text] : text.split(/\r?\n/);
             for (const [index, line] of lines.entries()) {
@@ -1404,7 +1406,7 @@ export class TaskBrowser {
         } finally {
             if (target.secret) {
                 await delay(SUBMIT_SETTLE_MS);
-                await this.recorder.resume();
+                try { await this.recorder.resume(); } finally { await unprotectDesktop?.(); }
             }
         }
         await delay(input.submit ? SUBMIT_SETTLE_MS : TYPE_SETTLE_MS);
@@ -1623,8 +1625,9 @@ export class TaskBrowser {
      * approval elsewhere: neither is a rejection or a signed-in session.
      */
     private async walletSignIn(credentials: SignInCredentials): Promise<SignInAttempt> {
-        await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
+        const unprotectDesktop = await protectDesktop(this.env, 'The Wallet is entering protected credentials.');
         try {
+            await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
             let scan = await this.scanLogin();
             const elsewhere = (current: LoginScan): SignInAttempt | undefined => (originMatches(credentials.origin, current.origin) ? undefined : { result: 'no-form', note: `the page moved to ${current.origin}, which this login does not belong to` });
             /** Fills the form's additional fields the saved ones answer; the labels of required unanswered ones. */
@@ -1682,8 +1685,9 @@ export class TaskBrowser {
             }
             return { result: 'signed-in' };
         } finally {
-            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
-            await this.recorder.resume();
+            const cleared = await this.evaluate<boolean>(clearLoginFieldsScript()).catch(() => false);
+            // Do not reopen whole-desktop access when clearing protected values could not be verified.
+            try { await this.recorder.resume(); } finally { if (cleared) await unprotectDesktop(); }
         }
     }
 
@@ -1693,8 +1697,9 @@ export class TaskBrowser {
      * approval asked for next is a further step.
      */
     private async walletEnterCode(origin: string, code: string): Promise<SignInAttempt> {
-        await this.recorder.pause('Wallet one-time code entry (the code is not recorded)');
+        const unprotectDesktop = await protectDesktop(this.env, 'The Wallet is entering a protected one-time code.');
         try {
+            await this.recorder.pause('Wallet one-time code entry (the code is not recorded)');
             const scan = await this.scanLogin();
             if (!originMatches(origin, scan.origin)) return { result: 'no-form', note: `the page moved to ${scan.origin}` };
             if (!scan.otp) return { result: 'no-form', note: 'no one-time code field is shown' };
@@ -1708,8 +1713,9 @@ export class TaskBrowser {
             if (after.approval) return APPROVAL_ASKED;
             return { result: 'signed-in' };
         } finally {
-            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
-            await this.recorder.resume();
+            const cleared = await this.evaluate<boolean>(clearLoginFieldsScript()).catch(() => false);
+            // Do not reopen whole-desktop access when clearing protected values could not be verified.
+            try { await this.recorder.resume(); } finally { if (cleared) await unprotectDesktop(); }
         }
     }
 
@@ -1719,8 +1725,9 @@ export class TaskBrowser {
      * again means the website did not accept it. Nothing stays readable in the page, also when it was refused.
      */
     private async walletSubmitNewPassword(entry: { readonly origin: string; readonly password: string; readonly current?: string }): Promise<NewPasswordAttempt> {
-        await this.recorder.pause('Wallet password entry (the password is not recorded)');
+        const unprotectDesktop = await protectDesktop(this.env, 'The Wallet is entering a protected password.');
         try {
+            await this.recorder.pause('Wallet password entry (the password is not recorded)');
             const scan = await this.scanLogin();
             const form = await this.evaluate<NewPasswordScan>(newPasswordFormScript());
             if (!originMatches(entry.origin, form.origin)) return { result: 'no-form', note: `the page moved to ${form.origin}` };
@@ -1736,8 +1743,9 @@ export class TaskBrowser {
             if (originMatches(entry.origin, after.origin) && after.path === form.path && after.fresh.length === form.fresh.length) return { result: 'rejected', note: 'the website showed the form again' };
             return { result: 'accepted', ...(next.otp ? { note: 'the site asks for a one-time code next' } : next.approval ? { note: 'the site asks to approve this in its app or on another device' } : {}) };
         } finally {
-            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
-            await this.recorder.resume();
+            const cleared = await this.evaluate<boolean>(clearLoginFieldsScript()).catch(() => false);
+            // Do not reopen whole-desktop access when clearing protected values could not be verified.
+            try { await this.recorder.resume(); } finally { if (cleared) await unprotectDesktop(); }
         }
     }
 
