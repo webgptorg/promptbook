@@ -94,3 +94,7 @@ The engine owner defines Reborn behavior. The App/integration team proposes a
 ## Engine-owned desktop extension
 
 Computer Control is now an engine capability, independent of the App UI bundle and Desktop Console. The owner-only `/computer` surface and `/api/v1/computer/*` routes display and operate the existing primary desktop of the engine host over the authenticated gateway. Screenshots are polled PNG frames, not the deferred `live-video@1` WebSocket capability; do not advertise that capability on this basis. Project members without the owner role cannot observe or operate the host. Tool defaults, permission readiness, human takeover, emergency stop and local-only media policy are defined in [Computer Control](../cli/computer-control.md). Control of a different machine remains deferred.
+
+## Commercial authority, 13 November 2026
+
+Follow [website licensing](licensing.md). Website handles billing and capability grants; App coverage is advisory. Never stop or gate the engine for an absent/expired/over-capacity license, or sync failure. Existing security/ownership rules and manual pause remain unchanged. Website/App account handoff is distinct from engine pairing.

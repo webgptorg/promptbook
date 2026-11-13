@@ -1,3 +1,4 @@
+import type { LicenseUsage } from './license-usage.js';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import type { AppCertificateView, AppConnectionView, AppHeartbeatView, AppRelayView } from '../engine/snapshot.js';
 import { HEARTBEAT_INTERVAL_MS, buildHeartbeat, hostFigures, nextHeartbeatSeq, sendHeartbeat, type HeartbeatUpdateState } from './heartbeat.js';
@@ -46,6 +47,8 @@ export async function storedAppView(directory: string, env: NodeJS.ProcessEnv): 
 export type AppEngineFigures = {
     /** Project agents (not deleted). */
     readonly agents: number;
+    /** Local diagnostics only; not appended to the strict heartbeat wire payload. */
+    readonly licenseUsage?: LicenseUsage;
     /** People who can sign in to this engine through the App (0 until App sign-in exists). */
     readonly members: number;
     readonly update: HeartbeatUpdateState;
@@ -501,6 +504,7 @@ export class AppConnection {
     /** The App page's view of this connection (no secrets: no key, signature or link code). */
     public view(): AppConnectionView {
         const identity = this.identity;
+        const figures = this.options.figures();
         const registration = this.registration;
         const relays = this.links.map((link) => link.view());
         const connected = relays.filter((relay) => relay.state === 'connected').length;
@@ -508,6 +512,7 @@ export class AppConnection {
         const state: AppConnectionView['state'] = this.problem ? 'problem' : this.registrationRefusal ? 'refused' : this.registering ? 'connecting' : !registration ? 'unlinked' : connected ? 'linked' : refusal || this.heartbeat?.code === 'engine-suspended' ? 'refused' : 'connecting';
         return {
             state,
+            ...(figures.licenseUsage ? { licenseUsage: figures.licenseUsage } : {}),
             dashboardUrl: registration?.dashboardUrl ?? this.dashboardUrl,
             ...(identity ? { engineId: identity.engineId, fingerprint: identity.fingerprint.formatted } : {}),
             ...(registration ? { hostname: registration.hostname, url: `https://${registration.hostname}/`, linkedAt: registration.registeredAt } : {}),

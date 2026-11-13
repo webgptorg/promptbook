@@ -1,3 +1,4 @@
+import type { LicenseUsage } from '../app/license-usage.js';
 import type { DesktopFilesView } from './desktop-files.js';
 import type { ChatRecheckView } from '../chats/service.js';
 import type { ChatPingView, ChatSummary } from '../chats/store.js';
@@ -377,6 +378,8 @@ export type AppHeartbeatView = {
  * @private shared status view model
  */
 export type AppConnectionView = {
+    /** Content-free local commercial diagnostics, independent of heartbeat v1 and license enforcement. */
+    readonly licenseUsage?: LicenseUsage;
     /**
      * `offline` for a linked project whose engine is not running, `disabled` in runs without an App connection
      * (maintenance), `problem` when it cannot run at all.

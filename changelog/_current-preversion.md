@@ -1,5 +1,7 @@
 # Unreleased
 
+- Separate website-owned advisory license coverage from engine security and execution. Add content-free local commercial usage diagnostics without changing the signed heartbeat v1 contract; unknown controlling-user usage stays unknown. Document account handoff, heterogeneous grants and community-seat separation.
+
 - Keep active desktop interruption polling alive until the requested operation settles, including on Node 22. Retry transient Windows sharing failures while reading coordination tickets without ever treating an unreadable owner as absent; persistent failures remain closed.
 
 - Release a failed native desktop episode after verified input cleanup, including missing-permission and unsupported-helper failures, so another project can continue. Treat dispatched input failures as potentially partial effects and require a fresh observation before retrying.
