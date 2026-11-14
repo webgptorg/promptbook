@@ -14,6 +14,7 @@ import { activeConsumers, registerConsumer, withHostOperation } from '../dist/in
 import { recommendLocalModel } from '../dist/inference/catalog.js';
 import { ollamaAdapter } from '../dist/inference/ollama.js';
 import { resolveSettings } from '../dist/project/config.js';
+import { applyConfigurationMigration, planConfigurationMigration } from '../dist/project/migrations.js';
 import { parseTools } from '../dist/tools/normalize.js';
 import { planToolOperation } from '../dist/tools/operations.js';
 import { fakeHarness, git, initializedProject, initRepository, ptbk, temporaryDirectory } from './helpers.mjs';
@@ -332,4 +333,19 @@ test('local models: a local-only init checks and names through the local route, 
     const calls = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
     assert.ok(calls.length >= 2 && calls.every((call) => call.config.model_provider === '"ptbk_local"'), 'every preparatory call (check, capability checks, naming) used the local route');
     assert.ok(calls.some((call) => call.kind === 'name'), 'the project was named through the local route');
+});
+
+test('local models: the configuration migration is additive; a legacy LOCAL route is kept with a binding diagnostic and nothing is added', () => {
+    const tools = [
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'openai-codex', isEnabled: true, authentication: 'NATIVE' },
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'company-api', isEnabled: false, authentication: 'API_KEY', apiKey: '${{ env.COMPANY_KEY }}' },
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex-legacy-local', isEnabled: true, authentication: 'NATIVE', baseUrl: 'LOCAL' },
+    ];
+    const raw = { promptbookVersion: '0.119.0-103', tools };
+    const plan = planConfigurationMigration(raw, '0.119.0-104');
+    assert.equal(plan.kind, 'migrate');
+    const migrated = applyConfigurationMigration(raw, plan);
+    assert.deepEqual(migrated.raw.tools, tools, 'records, authentication, disabled state, names and order are unchanged; no runtime is guessed or added');
+    assert.ok(migrated.problems.some((problem) => problem.severity === 'warning' && /codex-legacy-local/.test(problem.location) && /ptbk tool setup-local/.test(problem.message)));
+    assert.equal(planConfigurationMigration({ ...raw, promptbookVersion: '0.119.0-104' }, '0.119.0-104').kind, 'current', 'a repeated current-version start does nothing');
 });

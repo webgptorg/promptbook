@@ -215,7 +215,12 @@ export async function chatRoutingPrompt(options: { chat: string; target: Routing
         ...candidates.map((candidate) => `- ${formatAgentReference(candidate.agent.name)}: MODEL ${describeModel(candidate.agent.model)}${candidate.example ? `; for example \`${candidate.example}\`` : ''}`),
         '',
         'Usable execution offers:',
-        ...(offers.length ? offers.map((offer) => `- \`harness=${offer.variant} runtime=${offer.runtime}\`: models ${offer.models.slice(0, 30).join(', ') || 'unknown'}; thinking ${offer.thinkingLevels.length ? offer.thinkingLevels.join(', ') : 'not applicable (omit it)'}`) : ['- (none)']),
+        ...(offers.length
+            ? offers.map(
+                  (offer) =>
+                      `- \`harness=${offer.variant} runtime=${offer.runtime}\`${offer.inferenceRuntime ? ` (credential-free local models of the runtime ${offer.inferenceRuntime} on the engine host, no provider billing)` : ''}: models ${offer.models.slice(0, 30).join(', ') || 'unknown'}${offer.nonLocalModels?.length ? ` (also served there but not local, so never for runtime=local: ${offer.nonLocalModels.slice(0, 10).join(', ')})` : ''}; thinking ${offer.thinkingLevels.length ? offer.thinkingLevels.join(', ') : 'not applicable (omit it)'}`,
+              )
+            : ['- (none)']),
         '',
         'Choose only from these offers, within every requirement; prefer an appropriate, economical configuration for a conversation. Do not edit files. Report:',
         'PTBK_RESULT {"status":"done","summary":"…","routing":{"harness":"OPENAI_CODEX","model":"<model id>","thinking":"low","runtime":"official"}}',

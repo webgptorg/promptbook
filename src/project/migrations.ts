@@ -2,7 +2,7 @@ import { canonicalEnumValue, matchEnum, matchProperty } from '../common/naming.j
 import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { environmentReference } from '../tools/environment.js';
-import { HARNESS_VARIANTS, THINKING_LEVELS, harnessPluginId, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from '../tools/model.js';
+import { HARNESS_VARIANTS, THINKING_LEVELS, harnessPluginId, harnessVariantOf, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from '../tools/model.js';
 import { parseTools, serializeTool, type ConfigProblem } from '../tools/normalize.js';
 
 /**
@@ -400,11 +400,35 @@ const COMPUTER_CONTROL_MIGRATION: ConfigurationMigration = {
 };
 
 /**
+ * Local inference schema expansion (`INFERENCE_RUNTIME`, harness `inferenceRuntime`, `authentication: NONE`): purely
+ * additive, so nothing is rewritten. Existing endpoints, authentication, logins, disabled records, names, order and
+ * MODEL stay as they are, and no local setup happens. A legacy `baseUrl: LOCAL` without a runtime association cannot be
+ * bound by guessing; it is preserved with an actionable diagnostic (the explicit setup or a modify binds it).
+ */
+const LOCAL_INFERENCE_MIGRATION: ConfigurationMigration = {
+    target: '0.119.0-104',
+    title: 'Local model runtimes and credential-free harness connections (additive; no automatic local setup)',
+    migrate: (raw) => {
+        const problems: ConfigProblem[] = [];
+        if (!Array.isArray(raw.tools)) return { notes: [], problems };
+        const legacy = parseTools(raw.tools).tools.filter((tool) => tool.type === 'HARNESS' && toolRuntime(tool) === 'local' && !tool.inferenceRuntime);
+        for (const tool of legacy) {
+            problems.push({
+                location: `ptbk.json › tools "${tool.name}"`,
+                message: `baseUrl LOCAL has no local model runtime, so ${tool.name} stays unusable until it is bound: run \`ptbk tool setup-local\`, or \`ptbk tool modify ${tool.name} --inference-runtime <runtime> --authentication NONE\` (nothing was guessed or installed)`,
+                severity: 'warning',
+            });
+        }
+        return { notes: legacy.length ? [`kept ${legacy.map((tool) => tool.name).join(', ')} unchanged (legacy LOCAL endpoint without a runtime binding)`] : [], problems };
+    },
+};
+
+/**
  * Every registered configuration migration (sparse: most releases have none).
  *
  * @private configuration migrations
  */
-export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION, SHARED_WORK_LIMIT_MIGRATION, COMPUTER_CONTROL_MIGRATION];
+export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION, SHARED_WORK_LIMIT_MIGRATION, COMPUTER_CONTROL_MIGRATION, LOCAL_INFERENCE_MIGRATION];
 
 /**
  * Compares the saved configuration version with the running engine and selects the applicable ordered steps
