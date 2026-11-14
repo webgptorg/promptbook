@@ -98,6 +98,10 @@ export type UsageRecord = {
     /** Local model runtime and verified locality of a managed local connection. */
     readonly runtime?: string;
     readonly locality?: 'local' | 'cloud' | 'unknown';
+    /** Runtime version, model digest and quantization of a local connection, where the runtime exposes them. */
+    readonly runtimeVersion?: string;
+    readonly modelDigest?: string;
+    readonly quantization?: string;
     /** Outcome of the run (failed and interrupted attempts consume too). */
     readonly outcome: string;
     /** Provider-native fields exactly as exposed. */
@@ -177,12 +181,12 @@ export function usageRecords(input: {
     readonly model?: string;
     readonly authentication: AuthenticationKind;
     /** The serving connection's local binding, when it is a managed local connection. */
-    readonly connection?: { readonly localRoute?: { readonly runtimeTool: string }; readonly locality?: 'local' | 'cloud' | 'unknown' };
+    readonly connection?: { readonly localRoute?: { readonly runtimeTool: string; readonly runtimeVersion?: string; readonly model?: { readonly digest?: string; readonly quantization?: string } }; readonly locality?: 'local' | 'cloud' | 'unknown' };
     readonly outcome: string;
     readonly attribution: UsageAttribution;
 }): UsageRecord[] {
     const correlation = `${input.attribution.work.run ?? input.attribution.work.kind}-${shortId()}`;
-    const common = { schema: USAGE_SCHEMA, correlation, harness: input.harness, ...(input.tool ? { tool: input.tool } : {}), ...(input.model ? { model: input.model } : {}), billing: billingOf(input.authentication, input.connection?.locality), ...(input.connection?.localRoute ? { runtime: input.connection.localRoute.runtimeTool, locality: input.connection.locality ?? 'unknown' } : {}), outcome: input.outcome, attribution: input.attribution } as const;
+    const common = { schema: USAGE_SCHEMA, correlation, harness: input.harness, ...(input.tool ? { tool: input.tool } : {}), ...(input.model ? { model: input.model } : {}), billing: billingOf(input.authentication, input.connection?.locality), ...(input.connection?.localRoute ? { runtime: input.connection.localRoute.runtimeTool, locality: input.connection.locality ?? 'unknown', ...(input.connection.localRoute.runtimeVersion ? { runtimeVersion: input.connection.localRoute.runtimeVersion } : {}), ...(input.connection.localRoute.model?.digest ? { modelDigest: input.connection.localRoute.model.digest } : {}), ...(input.connection.localRoute.model?.quantization ? { quantization: input.connection.localRoute.model.quantization } : {}) } : {}), outcome: input.outcome, attribution: input.attribution } as const;
     if (!input.observations.length) {
         const now = new Date().toISOString();
         return [{ ...common, observedAt: now, consumed: { from: input.startedAt, to: now }, semantics: 'none', certainty: 'unavailable' }];

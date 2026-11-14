@@ -831,6 +831,7 @@
             ...(session.endReason ? [['Ended', session.endReason]] : []),
             ['Tool', `${session.tool || 'no named tool'} · ${session.harnessName}${session.harnessVersion ? ` ${session.harnessVersion}` : ''}`],
             ['Billing', billing],
+            ...(session.connection ? [['Local', `${session.connection.model || 'model'} on ${session.connection.runtime} · ${session.connection.endpoint}${session.connection.digest ? ` · ${session.connection.digest.slice(0, 12)}` : ''}${session.connection.quantization ? ` · ${session.connection.quantization}` : ''} · ${session.connection.locality === 'local' ? 'runs on the engine host' : `locality ${session.connection.locality || 'unknown'}`}`]] : []),
             ['Model', session.model ? `${session.model} (reported)` : session.requestedModel ? `${session.requestedModel} (requested)` : 'harness default'],
             ...(session.thinkingLevel ? [['Thinking', session.thinkingLevel]] : []),
             ['Turns', `${session.turns}${session.lastOutcome ? ` · latest ${session.lastOutcome}` : ''}`],

@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import { parseModelRow } from '../dist/book/model.js';
 import { HarnessPool } from '../dist/engine/harnesses.js';
 import { routeConcrete } from '../dist/engine/routing.js';
-import { billingOf } from '../dist/engine/usage.js';
+import { billingOf, usageRecords } from '../dist/engine/usage.js';
 import { functionalCheck } from '../dist/harness/preparation.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { HarnessSessions } from '../dist/harness/sessions.js';
@@ -216,6 +216,8 @@ test('local models: usage is local only for verified local execution; hardware r
     assert.equal(billingOf('local', 'cloud'), 'unknown', 'a cloud model through a local runtime is not free local execution');
     assert.equal(billingOf('local', 'unknown'), 'unknown');
     assert.equal(billingOf('account'), 'subscription');
+    const [record] = usageRecords({ observations: [], startedAt: new Date().toISOString(), harness: 'OPENAI_CODEX', tool: 'codex-local', model: 'gpt-oss:20b', authentication: 'local', connection: { localRoute: { runtimeTool: 'local-ollama', runtimeVersion: '0.15.2', model: { id: 'gpt-oss:20b', digest: 'sha256:abc', quantization: 'MXFP4' } }, locality: 'local' }, outcome: 'completed', attribution: { agent: 'Router', work: { kind: 'chat' } } });
+    assert.deepEqual([record.billing, record.runtime, record.locality, record.runtimeVersion, record.modelDigest, record.quantization], ['local', 'local-ollama', 'local', '0.15.2', 'sha256:abc', 'MXFP4'], 'local usage names the runtime, version, digest and quantization');
 
     const gib = 1024 ** 3;
     const host = (memory, disk) => ({ platform: 'darwin', architecture: 'arm64', cpuCount: 8, totalMemoryBytes: memory * gib, freeMemoryBytes: memory * gib, inferenceMemoryBytes: memory * gib, freeDiskBytes: disk * gib, accelerator: { kind: 'unified', name: 'Apple M3' }, summary: '' });
