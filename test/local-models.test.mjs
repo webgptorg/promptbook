@@ -17,7 +17,10 @@ import { resolveSettings } from '../dist/project/config.js';
 import { applyConfigurationMigration, planConfigurationMigration } from '../dist/project/migrations.js';
 import { parseTools } from '../dist/tools/normalize.js';
 import { planToolOperation } from '../dist/tools/operations.js';
-import { fakeHarness, git, initializedProject, initRepository, ptbk, temporaryDirectory } from './helpers.mjs';
+import { fakeHarness, git, initializedProject, initRepository, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
+import { projectAt } from '../dist/project/workspace.js';
+import { ControlClient } from '../dist/service/control.js';
+import { readProcessRecord } from '../dist/service/records.js';
 
 /** A downloaded local model as Ollama lists it. */
 const LOCAL_MODEL = { name: 'gpt-oss:20b', model: 'gpt-oss:20b', size: 13_780_173_839, digest: 'aa4295ac10c3afb60e6d711289fc6896f5aef82258997b9efdaed6d0cc4cd8b8', details: { family: 'gptoss', parameter_size: '20.9B', quantization_level: 'MXFP4' } };
@@ -348,4 +351,32 @@ test('local models: the configuration migration is additive; a legacy LOCAL rout
     assert.deepEqual(migrated.raw.tools, tools, 'records, authentication, disabled state, names and order are unchanged; no runtime is guessed or added');
     assert.ok(migrated.problems.some((problem) => problem.severity === 'warning' && /codex-legacy-local/.test(problem.location) && /ptbk tool setup-local/.test(problem.message)));
     assert.equal(planConfigurationMigration({ ...raw, promptbookVersion: '0.119.0-104' }, '0.119.0-104').kind, 'current', 'a repeated current-version start does nothing');
+});
+
+test('local models: the running engine discovers, prepares in a background job with progress and saves the setup for every dashboard', async (t) => {
+    const { project } = await initializedProject(t, { start: true });
+    const ollama = await fakeOllama(t, { models: [LOCAL_MODEL] });
+    const client = new ControlClient(projectAt(project), await readProcessRecord(projectAt(project)));
+    const choices = { runtime: 'OLLAMA', endpoint: ollama.url, model: 'gpt-oss:20b' };
+    const discovered = await client.request('local-models', { action: 'discover', choices, via: 'dashboard' }, 60_000);
+    assert.deepEqual(discovered.plan.drafts.map((draft) => draft.name), ['local-ollama', 'codex-local']);
+    assert.ok(discovered.description.some((line) => /Save: local-ollama/.test(line)));
+    assert.ok(!ollama.state.requests.some((request) => request.path === '/api/pull' || request.path === '/api/generate'), 'discovery never downloads or runs inference');
+
+    const started = await client.request('local-models', { action: 'setup', choices, via: 'dashboard' }, 60_000);
+    assert.equal(started.job.state, 'running');
+    await assert.rejects(client.request('local-models', { action: 'setup', choices, via: 'dashboard' }, 60_000), /local models operation is running/, 'one operation at a time');
+    const job = await waitFor(async () => {
+        const current = (await client.request('snapshot')).tools?.localJob;
+        return current && current.state !== 'running' ? current : undefined;
+    }, { message: 'the setup job to finish' });
+    assert.equal(job.state, 'completed', `${job.message}\n${(job.notes ?? []).join('\n')}`);
+    const items = (await client.request('snapshot')).tools.items;
+    const runtime = items.find((item) => item.name === 'local-ollama');
+    assert.equal(runtime.runtime.running, true);
+    assert.deepEqual(runtime.runtime.dependents, ['codex-local']);
+    assert.equal(items.find((item) => item.name === 'codex-local').state, 'usable', 'the new local route is usable at once, without a restart');
+    const models = await client.request('local-models', { action: 'runtime', runtime: 'local-ollama', runtimeAction: 'models', via: 'dashboard' }, 60_000);
+    assert.equal(models.outcome.status, 'completed');
+    assert.deepEqual(models.outcome.models.map((model) => model.id), ['gpt-oss:20b']);
 });

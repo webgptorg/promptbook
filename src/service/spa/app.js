@@ -65,6 +65,8 @@
         toolDetails: new Set(),
         /** The open add/modify tool form: { mode, name?, values } (values survive re-renders; secrets stay in memory only). */
         toolForm: null,
+        /** Add local models: the engine host's discovery and the selected model, before consent. */
+        localSetup: null,
         /** A tool change waiting for an explicit acknowledgement: { request, requirements }. */
         toolAck: null,
         /** Whether the add form lists every harness variant (featured first, then More). */
@@ -1078,9 +1080,11 @@
         const variantOf = (harness) => ({ value: harness.id.toUpperCase().replace(/-/g, '_'), label: harness.name });
         const fields = [];
         if (form.mode === 'add') {
-            fields.push(formSelect(form, 'type', 'Type', [{ value: 'HARNESS', label: 'Harness' }, { value: 'BROWSER', label: 'Browser' }, { value: 'COMPUTER_CONTROL', label: 'Computer control' }]));
+            fields.push(formSelect(form, 'type', 'Type', [{ value: 'HARNESS', label: 'Harness' }, { value: 'BROWSER', label: 'Browser' }, { value: 'INFERENCE_RUNTIME', label: 'Local model runtime (advanced; Add local models sets it up for you)' }, { value: 'COMPUTER_CONTROL', label: 'Computer control' }]));
             fields.push(
-                type === 'COMPUTER_CONTROL'
+                type === 'INFERENCE_RUNTIME'
+                    ? formSelect(form, 'variant', 'Variant', [{ value: 'OLLAMA', label: 'Ollama' }, { value: 'LM_STUDIO', label: 'LM Studio' }])
+                    : type === 'COMPUTER_CONTROL'
                     ? formSelect(form, 'variant', 'Variant', [{ value: 'NATIVE', label: 'Native desktop' }])
                     : type === 'BROWSER'
                     ? formSelect(form, 'variant', 'Variant', [{ value: 'CHROME', label: 'Chrome (or another Chrome-compatible browser)' }, { value: 'CHROMIUM', label: 'Chromium' }, { value: 'EDGE', label: 'Microsoft Edge' }])
@@ -1094,8 +1098,11 @@
             fields.push(formSelect(form, 'profileSource', 'Profile', [{ value: 'MANAGED_GLOBAL', label: 'Dedicated Promptbook profile (shared by your projects)' }, { value: 'PROJECT', label: 'Isolated project profile (.ptbk/)' }, { value: 'USER_EXISTING', label: 'Your existing Chrome profile' }, { value: 'CUSTOM', label: 'Custom path' }]));
             if (values.profileSource === 'CUSTOM') fields.push(formField(form, 'profilePath', 'Profile path', {}));
             fields.push(formSelect(form, 'isHeadless', 'Window', [{ value: 'true', label: 'Headless (no window)' }, { value: 'false', label: 'Visible window' }]));
+        } else if (type === 'INFERENCE_RUNTIME') {
+            fields.push(formField(form, 'endpoint', 'Service URL (empty = the runtime’s own local address)', { placeholder: 'http://127.0.0.1:11434' }));
         } else if (type === 'HARNESS') {
-            fields.push(formSelect(form, 'authentication', 'Authentication', [{ value: 'NATIVE', label: 'Native login / subscription' }, { value: 'API_KEY', label: 'API key (explicit paid access)' }]));
+            fields.push(formSelect(form, 'authentication', 'Authentication', [{ value: 'NATIVE', label: 'Native login / subscription' }, { value: 'API_KEY', label: 'API key (explicit paid access)' }, { value: 'NONE', label: 'None — a credential-free local model connection' }]));
+            if (values.authentication === 'NONE') fields.push(formField(form, 'inferenceRuntime', 'Local model runtime (tool name)', { placeholder: 'local-ollama' }));
             if (values.authentication === 'API_KEY') {
                 fields.push(formField(form, 'apiKeyEnv', 'Key variable (stored as ${{ env.NAME }})', { placeholder: 'COMPANY_OPENAI_API_KEY' }));
                 fields.push(formField(form, 'apiKeyValue', 'New key value (optional; write-only, stored in the ignored .env)', { type: 'password' }));
@@ -1107,12 +1114,13 @@
             const text = (key) => (values[key] || '').trim();
             const common = { ...(text('description') ? { description: text('description') } : {}) };
             const browserFields = { profileSource: values.profileSource || 'MANAGED_GLOBAL', ...(values.profileSource === 'CUSTOM' && text('profilePath') ? { profilePath: text('profilePath') } : {}), isHeadless: values.isHeadless !== 'false' };
-            const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...(text('baseUrl') ? { baseUrl: text('baseUrl') } : {}) };
+            const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...(text('baseUrl') ? { baseUrl: text('baseUrl') } : values.authentication === 'NONE' ? { baseUrl: 'LOCAL' } : {}), ...(values.authentication === 'NONE' && text('inferenceRuntime') ? { inferenceRuntime: text('inferenceRuntime') } : {}) };
+            const runtimeFields = text('endpoint') ? { endpoint: text('endpoint') } : {};
             const secret = type === 'HARNESS' && values.authentication === 'API_KEY' && values.apiKeyValue ? { variable: text('apiKeyEnv'), value: values.apiKeyValue } : undefined;
             const operation =
                 form.mode === 'add'
-                    ? { kind: 'add', tool: { type, variant: values.variant, name: text('name'), ...common, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'BROWSER' ? browserFields : harnessFields) } }
-                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, baseUrl: text('baseUrl') || null }) } };
+                    ? { kind: 'add', tool: { type, variant: values.variant, name: text('name'), ...common, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'INFERENCE_RUNTIME' ? runtimeFields : type === 'BROWSER' ? browserFields : harnessFields) } }
+                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'INFERENCE_RUNTIME' ? { endpoint: text('endpoint') || null } : type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, baseUrl: text('baseUrl') || (values.authentication === 'NONE' ? 'LOCAL' : null), inferenceRuntime: values.authentication === 'NONE' ? text('inferenceRuntime') || null : null }) } };
             toolOperation({ operation, ...(secret ? { secret } : {}) });
         };
         return h('div', { className: 'tool-form', role: 'form', 'aria-label': form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}` }, h('h3', {}, form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}`), h('div', { className: 'fields' }, fields), h('div', { className: 'row' }, h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: submit }, 'Save (commits immediately)'), h('button', { onclick: () => ((state.toolForm = null), render(state.snapshot)) }, 'Cancel')));
@@ -1161,7 +1169,7 @@
                             item.type === 'COMPUTER_CONTROL' ? h('button', { onclick: () => control('computer-resume') }, 'Resume desktop') : null,
                             item.type === 'COMPUTER_CONTROL' ? h('button', { className: 'danger', onclick: () => control('computer-stop') }, 'Stop desktop') : null,
                             h('button', { title: 'Details', 'aria-expanded': state.toolDetails.has(item.name) ? 'true' : 'false', onclick: () => (state.toolDetails.has(item.name) ? state.toolDetails.delete(item.name) : state.toolDetails.add(item.name), render(state.snapshot)) }, 'Details'),
-                            h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, values: { type: item.type, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', authentication: item.fields.authentication || 'NATIVE', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', baseUrl: endpointValue(item.fields.endpoint) } }), render(state.snapshot)) }, 'Modify'),
+                            h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, values: { type: item.type, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', authentication: item.fields.authentication || 'NATIVE', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', baseUrl: endpointValue(item.fields.endpoint), endpoint: item.runtime && item.runtime.endpointSource === 'configured' ? item.runtime.endpoint : '', inferenceRuntime: item.fields.inferenceRuntime || '' } }), render(state.snapshot)) }, 'Modify'),
                             h('button', { title: 'Move up', 'aria-label': `Move ${item.name} up`, disabled: index === 0, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, before: tools.items[index - 1].name } }) }, '▲'),
                             h('button', { title: 'Move down', 'aria-label': `Move ${item.name} down`, disabled: index === tools.items.length - 1, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, after: tools.items[index + 1].name } }) }, '▼'),
                             h('button', { className: 'secondary danger', onclick: () => window.confirm(`Permanently remove the configuration of “${item.name}”? Disable keeps it instead. Browser profiles, native logins and .env history are never deleted.`) && toolOperation({ operation: { kind: 'remove', name: item.name } }) }, 'Remove'),
@@ -1174,6 +1182,140 @@
         if (form) card.append(form);
         else card.append(h('button', { onclick: () => ((state.toolForm = { mode: 'add', values: { type: 'HARNESS', authentication: 'NATIVE', profileSource: 'MANAGED_GLOBAL', isHeadless: 'true' } }), render(state.snapshot)) }, 'Add tool'));
         card.append(h('p', { className: 'muted' }, 'Saved changes are committed immediately and used by the running engine at once, also by the current task. API keys are stored only as ${{ env.NAME }} references; key values go to the ignored .env and are never shown again.'));
+        return card;
+    }
+
+    /** One request of local models on the engine host (discovery, accepted setup, runtime actions). */
+    async function localModels(body, confirmText) {
+        if (confirmText && !window.confirm(confirmText)) return undefined;
+        const key = `local-models:${body.action}:${body.runtime || ''}:${body.runtimeAction || ''}`;
+        if (state.busy.has(key)) return undefined;
+        state.busy.add(key);
+        render(state.snapshot);
+        try {
+            const result = await api('/api/local-models', { method: 'POST', body });
+            if (result && result.job) toast(`Started: ${result.job.label}`);
+            else if (result && result.outcome) toast(result.outcome.summary);
+            return result;
+        } catch (error) {
+            toast(`Not started: ${error.message}`);
+            return undefined;
+        } finally {
+            state.busy.delete(key);
+            render(state.snapshot);
+        }
+    }
+
+    /** Formats bytes like published download sizes (decimal gigabytes). */
+    function localBytes(bytes) {
+        if (!bytes && bytes !== 0) return '';
+        return bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : `${Math.max(1, Math.round(bytes / 1e6))} MB`;
+    }
+
+    /**
+     * Tools → Local models: Add local models (available before any runtime exists), honest operation progress and the
+     * runtimes with their models, connections and shared-host actions. Viewing never installs or runs inference.
+     */
+    function renderLocalModels(snapshot) {
+        const card = h('section', { className: 'card local-models', 'aria-label': 'Local models' });
+        const tools = snapshot.tools;
+        const runtimes = tools ? tools.items.filter((item) => item.type === 'INFERENCE_RUNTIME' && item.runtime) : [];
+        card.append(h('h2', {}, h('span', {}, 'Local models'), h('span', {}, runtimes.length ? `${runtimes.length} runtime${runtimes.length === 1 ? '' : 's'}` : '')));
+        const job = tools && tools.localJob;
+        if (job) {
+            const percent = job.totalBytes ? ` — ${Math.floor(((job.completedBytes || 0) / job.totalBytes) * 100)}% (${localBytes(job.completedBytes || 0)} of ${localBytes(job.totalBytes)})` : '';
+            card.append(
+                h(
+                    'div',
+                    { className: `notice${job.state === 'failed' ? ' error' : ''}`, role: 'status' },
+                    h('strong', {}, `${job.label}: ${job.state === 'running' ? job.stage : job.state}`),
+                    ` — ${job.message}${job.state === 'running' ? percent : ''}`,
+                    job.state === 'running' && job.totalBytes ? h('progress', { max: String(job.totalBytes), value: String(job.completedBytes || 0) }) : null,
+                    job.state !== 'running' && job.notes ? h('ul', { className: 'muted' }, job.notes.map((note) => h('li', {}, note))) : null,
+                    job.state === 'running' ? h('button', { onclick: () => localModels({ action: 'cancel' }) }, 'Cancel') : null,
+                ),
+            );
+        }
+        const setup = state.localSetup;
+        if (setup && setup.view) {
+            const view = setup.view;
+            const alternatives = [view.plan.model, ...view.plan.recommendation.alternatives.map((entry) => entry.model)].filter(Boolean);
+            const select = h('select', { 'aria-label': 'Model' }, alternatives.map((model, index) => h('option', { value: model }, `${model}${index === 0 ? ' (recommended)' : ''}`)));
+            select.value = setup.model || view.plan.model || '';
+            select.addEventListener('change', async () => {
+                setup.model = select.value;
+                setup.view = await localModels({ action: 'discover', choices: { model: select.value } });
+                render(state.snapshot);
+            });
+            card.append(
+                h(
+                    'div',
+                    { className: 'tool-form', role: 'form', 'aria-label': 'Add local models' },
+                    h('h3', {}, 'Add local models'),
+                    h('p', { className: 'muted' }, view.hardware.summary),
+                    h('ul', { className: 'muted' }, view.runtimes.map((runtime) => h('li', {}, `${runtime.displayName}: ${runtime.summary}`))),
+                    alternatives.length > 1 ? h('label', { className: 'field' }, h('span', {}, 'Model'), select) : null,
+                    h('ul', {}, view.description.map((line) => h('li', {}, line))),
+                    view.plan.notes.length ? h('ul', { className: 'muted' }, view.plan.notes.map((note) => h('li', {}, note))) : null,
+                    view.plan.problems.length ? h('div', { className: 'notice error' }, view.plan.problems.map((problem) => h('p', {}, problem))) : null,
+                    h(
+                        'div',
+                        { className: 'row' },
+                        h('button', { className: 'primary', disabled: view.plan.problems.length > 0 || (job && job.state === 'running'), onclick: async () => { const choices = setup.model ? { model: setup.model } : {}; state.localSetup = null; await localModels({ action: 'setup', choices }); } }, 'Prepare local models'),
+                        h('button', { onclick: () => ((state.localSetup = null), render(state.snapshot)) }, 'Cancel'),
+                    ),
+                    h('p', { className: 'muted' }, 'Runs on the engine host, never on this device. Installation and downloads are shared on that computer and are not undone by cancelling; hosted work continues meanwhile. Existing logins and agent MODEL requirements are not changed.'),
+                ),
+            );
+        } else {
+            card.append(h('button', { className: runtimes.length ? '' : 'primary', disabled: state.busy.has('local-models:discover::') || (job && job.state === 'running'), onclick: async () => { const view = await localModels({ action: 'discover', choices: {} }); if (view) { state.localSetup = { view }; render(state.snapshot); } } }, state.busy.has('local-models:discover::') ? 'Discovering…' : 'Add local models'));
+        }
+        for (const item of runtimes) {
+            const detail = item.runtime;
+            const act = (runtimeAction, model, confirmText, acknowledged) => localModels({ action: 'runtime', runtime: item.name, runtimeAction, ...(model ? { model } : {}), ...(acknowledged ? { acknowledged: true } : {}) }, confirmText);
+            const download = h('input', { type: 'text', 'aria-label': `Model to download into ${item.name}`, placeholder: 'model id, e.g. gpt-oss:20b', autocomplete: 'off' });
+            card.append(
+                h(
+                    'div',
+                    { className: 'runtime' },
+                    h('h3', {}, `${item.name} `, h('span', { className: 'muted' }, item.variantLabel), pill(detail.running ? `running${detail.version ? ` ${detail.version}` : ''}` : 'not running', detail.running ? 'ok' : 'warn')),
+                    h('p', { className: 'muted' }, `${detail.endpoint} (${detail.endpointSource}${detail.onEngineHost ? ', on the engine host' : ', not on the engine host'}) · connections: ${detail.dependents.length ? detail.dependents.join(', ') : 'none'}${item.isEnabled ? '' : ' · disabled for this project (the service is not affected)'}`),
+                    item.state !== 'usable' && item.nextAction ? h('p', { className: 'warn' }, item.nextAction) : null,
+                    h(
+                        'ul',
+                        { className: 'list' },
+                        detail.models.length
+                            ? detail.models.map((model) =>
+                                  h(
+                                      'li',
+                                      {},
+                                      h('span', { className: 'title' }, `${model.id} `, h('span', { className: 'muted' }, [model.locality === 'local' ? 'local' : model.locality === 'cloud' ? 'cloud — never local execution' : 'locality unknown', model.parameterSize, model.quantization, localBytes(model.sizeBytes), model.loaded ? 'loaded' : ''].filter(Boolean).join(' · '))),
+                                      model.installed
+                                          ? h(
+                                                'span',
+                                                { className: 'row' },
+                                                h('button', { onclick: () => act(model.loaded ? 'unload' : 'load', model.id) }, model.loaded ? 'Unload' : 'Load'),
+                                                detail.actions.includes('remove-model') ? h('button', { className: 'secondary danger', onclick: () => act('remove-model', model.id, `Delete the weights of ${model.id} from ${item.variantLabel} on the engine host? Every project and application on that computer loses it (refused while Promptbook work uses it).`, true) }, 'Remove model') : null,
+                                            )
+                                          : null,
+                                  ),
+                              )
+                            : [h('li', { className: 'muted' }, detail.running ? 'No model downloaded yet.' : 'Models are unknown while the service is not running.')],
+                    ),
+                    h(
+                        'div',
+                        { className: 'row' },
+                        download,
+                        h('button', { onclick: () => download.value.trim() && act('download', download.value.trim()) }, 'Download'),
+                        detail.running ? null : h('button', { className: 'primary', onclick: () => act('start') }, 'Start service'),
+                        detail.running && detail.actions.includes('stop') ? h('button', { onclick: () => act('stop', undefined, `Stop ${item.variantLabel} on the engine host? Other projects on that computer lose it meanwhile (refused while Promptbook work uses it; a service Promptbook did not start is not stopped).`) }, 'Stop service') : null,
+                        detail.running && detail.actions.includes('restart') ? h('button', { onclick: () => act('restart', undefined, `Restart ${item.variantLabel} on the engine host? (refused while Promptbook work uses it)`) }, 'Restart service') : null,
+                        h('button', { onclick: () => act('update') }, 'How to update'),
+                    ),
+                ),
+            );
+        }
+        card.append(h('p', { className: 'muted' }, 'Disable or remove a runtime above (Tools) to change only this project. Stopping a service or removing a model acts on the shared engine host, where other projects and applications may use it; downloads and service actions never create a project commit.'));
         return card;
     }
 
@@ -2548,7 +2690,8 @@
                 const tools = snapshot.tools;
                 if (!tools) return [h('span', { className: 'muted' }, 'Not reported by this engine.')];
                 const count = (type) => `${tools.items.filter((item) => item.type === type && item.state === 'usable').length}/${tools.items.filter((item) => item.type === type).length}`;
-                return [`Harnesses ${count('HARNESS')} · Browsers ${count('BROWSER')} · Desktop ${count('COMPUTER_CONTROL')}`, tools.waiting ? h('span', { className: 'warn' }, `New work waits: ${tools.waiting.reason}`) : null];
+                const local = tools.items.some((item) => item.type === 'INFERENCE_RUNTIME') ? ` · Local models ${count('INFERENCE_RUNTIME')}` : '';
+                return [`Harnesses ${count('HARNESS')} · Browsers ${count('BROWSER')} · Desktop ${count('COMPUTER_CONTROL')}${local}`, tools.localJob && tools.localJob.state === 'running' ? h('span', { className: 'muted' }, `${tools.localJob.label}: ${tools.localJob.stage}`) : null, tools.waiting ? h('span', { className: 'warn' }, `New work waits: ${tools.waiting.reason}`) : null];
             }
             case 'history': {
                 const last = snapshot.history && snapshot.history.last;
@@ -4295,7 +4438,7 @@
             case 'agents':
                 return renderAgentsPage(snapshot);
             case 'tools':
-                return pageFrame('tools', 'Named tools · saved changes are committed immediately and apply to new work at once', renderTools(snapshot), detailPanel('browser', 'Browser details — named browsers, profiles, health, recovery', renderBrowserDetails(snapshot)));
+                return pageFrame('tools', 'Named tools · saved changes are committed immediately and apply to new work at once', renderTools(snapshot), renderLocalModels(snapshot), detailPanel('browser', 'Browser details — named browsers, profiles, health, recovery', renderBrowserDetails(snapshot)));
             case 'usage':
                 return renderUsagePage(snapshot);
             case 'actions':

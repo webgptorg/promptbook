@@ -34,6 +34,7 @@ import type { ActionLinks, ActionSummary } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { appDetailLines } from './app-connection.js';
 import { keepAwakeLines } from './keep-awake.js';
+import { localJobLine, runtimeDetailLines, runtimeItems } from './local-models-page.js';
 
 /**
  * A commit as the History detail page shows it: the original message and its verified provenance links.
@@ -142,6 +143,7 @@ export type DashboardPage =
     | { readonly kind: 'wallet'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tools'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tool'; scroll: number; readonly name: string }
+    | { readonly kind: 'local-models'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'agents'; scroll: number; focus: number; selected?: string; detail: boolean; sort: TeamSortField }
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean; showSupporting: boolean }
@@ -703,14 +705,36 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 context: `${items.length} named tool${items.length === 1 ? '' : 's'} · saved changes are committed immediately and apply to new work at once`,
                 body,
                 anchor: page.focus,
-                legend: `↑↓ choose · Enter details · Space enable/disable · N add · M modify · [ ] move · D remove · ${back}`,
+                legend: `↑↓ choose · Enter details · Space enable/disable · N add · L local models · M modify · [ ] move · D remove · ${back}`,
+            };
+        }
+        case 'local-models': {
+            const runtimes = runtimeItems(snapshot);
+            const body: string[] = [];
+            const job = snapshot.tools?.localJob;
+            if (job) body.push(localJobLine(job, style), ...(job.state !== 'running' ? (job.notes ?? []).map((note) => style.muted(`  ${note}`)) : []), '');
+            let anchor = 0;
+            if (!runtimes.length) body.push(style.muted('No local model runtime is configured yet.'), 'Press A to add local models: a model that fits this computer, downloaded and checked, with a credential-free connection.');
+            for (const [index, item] of runtimes.entries()) {
+                if (index === page.focus) anchor = body.length;
+                const [head, ...rest] = runtimeDetailLines(item, style);
+                body.push(`${pointer(index === page.focus)} ${head}`, ...rest, '');
+            }
+            body.push(style.muted('Disabling or removing a runtime tool changes only this project; stopping a service or deleting models acts on the shared engine host (other projects and apps may use them).'));
+            return {
+                title: 'Tools › Local models',
+                context: 'Models on the engine host through credential-free connections · operations run in the engine and continue in the background',
+                body,
+                anchor,
+                legend: `A add local models · ↑↓ choose · D download · L load · U unload · X remove model · S start · T stop · R restart${job?.state === 'running' ? ' · C cancel' : ''} · ${back}`,
             };
         }
         case 'tool': {
             const item = toolsOf(snapshot).find((candidate) => candidate.name === page.name);
             if (!item) return { title: `Tools › ${page.name}`, context: 'This tool is no longer configured.', body: [style.muted('It was removed (possibly from another client).')], legend: back };
             const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name) ?? (snapshot.browser?.name === item.name ? snapshot.browser : undefined) : undefined;
-            const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : [])];
+            const runtime = item.type === 'INFERENCE_RUNTIME' ? runtimeItems(snapshot).find((candidate) => candidate.name === item.name) : undefined;
+            const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : []), ...(runtime ? ['', style.bold('Local model runtime'), ...runtimeDetailLines(runtime, style).slice(1), style.muted('Models and service actions: L opens Tools › Local models.')] : [])];
             if (item.type === 'COMPUTER_CONTROL') body.push('', '1 request native OS permissions · 2 pause input and observation · 3 resume · 4 stop session-wide · 5 check status', 'Human input always takes priority. A manual pause stays paused until you resume it.');
             const controls = item.type === 'BROWSER' ? (snapshot.tabControls ?? []).filter((control) => control.browser === item.name) : [];
             if (controls.length) {
@@ -1049,6 +1073,8 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
     switch (page.kind) {
         case 'tools':
             return toolsOf(context.snapshot).map((item) => item.name);
+        case 'local-models':
+            return runtimeItems(context.snapshot).map((item) => item.name);
         case 'agents':
             return teamOrder(context.snapshot, page.sort, context.inventory).map((agent) => agent.key);
         case 'chats':
