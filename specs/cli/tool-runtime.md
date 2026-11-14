@@ -10,9 +10,13 @@ Share configuration version checks, tolerant canonicalization and validation. Ex
 
 A newly added or enabled usable tool becomes available to **the currently running task** at its next applicable tool selection. Do not freeze the whole tool registry for the duration of a task. For example, a user adds the browser with the intended website login while an agent is working; the agent can then use it without a task restart or replay. An already dispatched external call need not be magically rewritten, but subsequent selections see the new inventory.
 
+Refresh inference-runtime health, installed/loaded models and connection-scoped catalogs on relevant changes too. A new local connection is immediately a candidate for compatible future selections, without rewriting a task/chat's committed MODEL. Runtime/model loss or capacity exhaustion waits affected work and leaves independent local/cloud work and management available. Loading/downloading is not a completed readiness check, and locality is checked for the actual model/route rather than the service address alone.
+
 ## Retained active uses, not frozen registries
 
 Once work has acquired a browser or harness tool, a confirmed modification/disable/removal may preserve that use's original configuration, credential context and safe owned resources until that work releases them. This is the meaning of tool-command `--force`, not termination. The changed saved configuration is committed immediately and governs new selections; the retained old instance is visibly draining/current-work-only. Other newly added tools remain usable during that same task.
+
+A dependent inference runtime is part of that acquired context. Disabling/removing its project reference prevents new dependent harness acquisitions but does not stop a shared service, delete weights or alter another engine. Reference/endpoint changes retain attributable old uses only under the same acknowledgement. Host maintenance is a separate operation with actual shared-scope checks; tool `--force` is not force-uninstall or permission to interrupt other consumers. See [inference lifecycle](inference-runtimes.md#shared-capacity-and-lifecycle).
 
 Do not resurrect a removed tool into the saved configuration when the task completes. An externally revoked key, killed browser or removed authentication store may make continuation impossible; record the real failure and use normal recovery rather than pretending the snapshot guarantees access. Retained secret material is runtime-only and redacted, not copied into task Books, configuration, traces or Git.
 

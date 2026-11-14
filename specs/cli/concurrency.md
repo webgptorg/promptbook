@@ -10,6 +10,8 @@ There is **no product-wide fixed limit of five active works**, nor a configurabl
 
 Different chats and tasks progress independently. Several viewers of one chat observe the same ordered conversation, not separate executions. Accept/save follow-up messages while an answer is in progress, retain source order and reconcile input at a supported boundary without duplicate turns. Idle open sessions require no ongoing paid inference. Consultation recursion/time/output bounds remain meaningful but are not a global work-count limit.
 
+Local inference has a distinct resource-admission boundary shared by actual runtime consumers across engines. Available weights/context memory, VRAM and supported inference concurrency can cause a model-capacity wait without imposing a shared task/chat count. A waiting parent releases safe inference capacity so its nested TEAM advisor can run even on a single-slot runtime; idle sessions do not keep slots. See [shared runtime capacity](inference-runtimes.md#shared-capacity-and-lifecycle). This does not require solving the separately deferred file-lock deadlocks below.
+
 Chat and its necessary routing/consultation remain eligible during task pause. New task work and automatic task continuations do not. Stop/force stop covers all owned work. See [service lifecycle](service-lifecycle.md) and [harness sessions](harness-sessions.md).
 
 ## One unfinished started task per agent

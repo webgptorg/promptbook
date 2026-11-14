@@ -20,6 +20,8 @@ TEAM User initiates/continues an attributed agent↔User chat with immediate sav
 
 Consultations remain bounded: initial defaults are five minutes, depth four, 24 calls and 128,000 response characters per task or originating bounded chat turn. Reaching limits is a visible outcome, not recursive hidden work. A reciprocal TEAM graph never means unbounded automatic consultation. Human waiting does not hold an MCP call open through think time. Advisors cannot exceed the originator's authority or mutate unrelated task-owned content.
 
+Each advisor uses its own effective MODEL and valid connection, not an implicit copy of the parent's harness or local-only setting. Verify content-sharing authority before forwarding the consultation. A local-only inference restriction alone is not a transitive privacy guarantee; an explicitly all-local/sensitive workflow also needs compatible routing/advisors/helpers and must wait rather than send protected context to a hosted model. Under [shared local capacity](inference-runtimes.md#shared-capacity-and-lifecycle), yield safe inference admission while awaiting advice so parent and child do not deadlock on the sole slot. Read-only consultation restrictions remain enforceable for the actual harness/runtime/model combination.
+
 See [channels](channels.md), [system agents](../agents/system-agents.md), [traces](traces.md) and [Git persistence](git-persistence.md).
 
 ## Delegated user direction

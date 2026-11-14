@@ -22,9 +22,28 @@ This permits either combination, not a hybrid. Partial rows such as `harness=OPE
 
 `runtime` accepts `default`, `official`, `local` or an explicit base URL. **official** always means the fixed provider endpoint declared by the plugin; tool configuration cannot redefine it. **default** uses the selected tool's configured default endpoint, which may be official, local or custom. **local** means inference local to the engine's host, not the dashboard's device; it is not an arbitrary remote OpenAI-compatible service. An explicit URL requires that endpoint. See [tool endpoints](../../cli/tools.md#harness-endpoints).
 
+## Local restrictions and mixed operation
+
+An unconstrained agent can use any authorized compatible local or hosted combination; installing local models does not alter its MODEL. For example, this agent requires local inference without fixing a harness:
+
+```book
+AGENT Lawyer
+MODEL runtime=local
+```
+
+To require a particular GLM as well, put `model=<exact-installed-model-id>` on that **same row**, replacing the placeholder with the chosen connection's actual model ID/version/quantization identifier. A family label is not permission to substitute any member. Separate local and model rows would be alternatives and would not express their conjunction. An independent agent may require `runtime=official`, and both agents can run simultaneously through distinct connections of the same harness.
+
+`runtime=local` is a **hard constraint**. An offline, busy, unloaded or temporarily missing local model causes an honest resource wait and ordinary permitted recovery, never a silent hosted fallback. Unknown locality or a cloud-backed model behind localhost does not satisfy it. An explicit URL likewise does not itself assert local execution; matching must use the actual model/route metadata under [inference runtimes](../../cli/inference-runtimes.md).
+
+**Prefer local models** is a soft instruction to Router, expressed in ordinary routing instructions and considered only among compatible authorized candidates. It is not another MODEL runtime value or a weakening of `runtime=local`. Once Router commits a concrete task/chat MODEL, that choice follows the existing persistence/change rules; a preference is not permission to rewrite it on each attempt. Adding a local resource does not silently add such a preference to existing Books.
+
+Local MODEL governs the attributed inference of that agent/task/chat, not all model calls induced elsewhere in the project. Router and advisors use their own requirements, with content-sharing authority checked before forwarding context; see [data scope](../../cli/inference-runtimes.md#locality-and-data-scope) and [TEAM](../../cli/team.md). Fully local projects must have compatible local bootstrap, routing and helper paths too, without cloud credentials.
+
 ## Resolution and change
 
 Intersect the agent's alternatives with the task/chat's applicable requirements and actual enabled tool capabilities. Neither agent nor task overwrites the other's explicit restriction. Router chooses only within the resulting intersection and fills unresolved dimensions. A concrete choice uses actual supported values for applicable dimensions; model-native absence of a thinking control is not an unresolved wildcard. No compatible agent/combination leaves the original task blocked and creates a separate Fixer repair task. Temporary resource unavailability retains its actual wait rather than silently relaxing requirements.
+
+Construct candidates from each enabled connection's own catalog before model validation. Check the combination of harness/transport, runtime and model, including read-only, tools/MCP, context and optional image/voice support. A model absent from a hosted catalog may be valid locally. Separate incompatible requirements from a temporary local download, load, capacity or service wait, and avoid duplicate repair tasks for unchanged availability. Same-variant account priority is applied only after matching the resolved model/endpoint; it cannot hide a suitable local choice behind an unrelated healthy subscription.
 
 Persist a single current MODEL for the task, progressively replacing its prior less-specific content in an ordinary commit. Do not add requested/resolved copies or an in-Book audit log; earlier values and authorship are in Git. The chosen combination does not bind a named tool, so eligible same-variant account fallback still works within the endpoint and other constraints. Recurring tasks reuse the saved choice until deliberately changed.
 
