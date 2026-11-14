@@ -65,6 +65,8 @@ function fieldOptions(context: CommandContext): Omit<ToolDraft, 'type' | 'varian
         ...(option<string>(context, 'api-key-env') !== undefined ? { apiKeyEnv: option<string>(context, 'api-key-env') } : {}),
         ...(option<string>(context, 'account-profile') !== undefined ? { accountProfile: option<string>(context, 'account-profile') } : {}),
         ...(option<string>(context, 'base-url') !== undefined ? { baseUrl: option<string>(context, 'base-url') } : {}),
+        ...(option<string>(context, 'inference-runtime') !== undefined ? { inferenceRuntime: option<string>(context, 'inference-runtime') } : {}),
+        ...(option<string>(context, 'endpoint') !== undefined ? { endpoint: option<string>(context, 'endpoint') } : {}),
     };
 }
 
@@ -80,10 +82,10 @@ function operationOf(context: CommandContext): ToolOperation {
     };
     switch (sub) {
         case 'add': {
-            if (!first) throw usageError('ptbk tool add needs the tool type (BROWSER, HARNESS or COMPUTER_CONTROL).', context.path.join(' '));
+            if (!first) throw usageError('ptbk tool add needs the tool type (BROWSER, HARNESS, INFERENCE_RUNTIME or COMPUTER_CONTROL).', context.path.join(' '));
             const variant = option<string>(context, 'variant');
             const toolName = option<string>(context, 'name') ?? second;
-            if (!variant) throw usageError('ptbk tool add needs --variant (e.g. CHROME, OPENAI_CODEX or NATIVE).', context.path.join(' '));
+            if (!variant) throw usageError('ptbk tool add needs --variant (e.g. CHROME, OPENAI_CODEX, OLLAMA or NATIVE).', context.path.join(' '));
             if (!toolName) throw usageError('ptbk tool add needs --name (a kebab-case identifier such as work-browser).', context.path.join(' '));
             const { variant: _variant, ...fields } = fieldOptions(context);
             void _variant;
@@ -95,6 +97,8 @@ function operationOf(context: CommandContext): ToolOperation {
                 ...fields,
                 ...(flag(context, 'clear-description') ? { description: null } : {}),
                 ...(/^default$/i.test(option<string>(context, 'base-url') ?? '') ? { baseUrl: null } : {}),
+                ...(/^default$/i.test(option<string>(context, 'endpoint') ?? '') ? { endpoint: null } : {}),
+                ...(/^none$/i.test(option<string>(context, 'inference-runtime') ?? '') ? { inferenceRuntime: null } : {}),
                 ...(flag(context, 'clear-executable') ? { executable: null } : {}),
             };
             const rename = option<string>(context, 'rename');
@@ -276,6 +280,18 @@ async function setUpHarness(context: CommandContext, project: Project, operation
     if (!tool || !plugin) return;
     const { terminal } = context;
     const marks = symbols(terminal.unicode);
+    if (tool.authentication === 'NONE' || tool.inferenceRuntime) {
+        // A credential-free connection has no sign-in: its readiness is the installation plus its runtime and models.
+        const pool = new HarnessPool(project.root, settings, persistentServiceEnvironment(context.env));
+        await pool.refresh([name], true);
+        const inspection = pool.inspectionOf(name);
+        if (inspection?.usable) {
+            terminal.write(`${terminal.style.success(marks.ok)} ${name}: ${inspection.summary}\n`);
+            const lookup = await lookupService(project);
+            if (lookup.state === 'running' && lookup.engine.compatible) await lookup.client.request('tool-recheck').catch(() => undefined);
+        } else terminal.write(`${terminal.style.warning(marks.warn)} ${name}: ${inspection?.summary ?? 'not inspected'}${inspection?.nextAction ? terminal.style.muted(` → ${inspection.nextAction}`) : ''}\n`);
+        return;
+    }
     // The instance as this terminal and as the background service (after detachment or reboot) see it.
     const pools = [new HarnessPool(project.root, settings, context.env), new HarnessPool(project.root, settings, persistentServiceEnvironment(context.env))];
     await Promise.all(pools.map(async (pool) => await pool.reloadCredentials()));
@@ -318,9 +334,11 @@ async function existingReference(context: CommandContext, project: Project, name
 }
 
 /**
- * Executes a request with the right owner.
+ * Executes a saved tool operation with the right owner: the running engine, or the shared implementation here.
+ *
+ * @private tool commands
  */
-async function execute(context: CommandContext, project: Project, request: ToolOperationRequest): Promise<ToolOperationOutcome> {
+export async function execute(context: CommandContext, project: Project, request: ToolOperationRequest): Promise<ToolOperationOutcome> {
     const lookup = await lookupService(project);
     if (lookup.state === 'running') {
         if (!lookup.engine.compatible) {

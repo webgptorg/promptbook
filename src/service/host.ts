@@ -26,7 +26,7 @@ import { COMPUTER_OWNER_METHODS, computerAppRequest, computerDocument, type Comp
 import { BrowserFleet } from '../browser/fleet.js';
 import { TabControls, type TabControlWallet, type TabInput } from '../browser/tab-control.js';
 import { describeProfileSource } from '../tools/model.js';
-import { WALLET_ACTIONS, applyChatAction, applyControlAction, applySettings, applyToolAction, applyWalletAction, type BrowserControls } from './actions.js';
+import { WALLET_ACTIONS, applyChatAction, applyControlAction, applyLocalModelsAction, applySettings, applyToolAction, applyWalletAction, type BrowserControls } from './actions.js';
 import { CONTROL_CONTRACT, startControlServer } from './control.js';
 import { registerEngine, summaryOfSnapshot } from './discovery.js';
 import { recordRunEnded, registerKnownProject } from './known-projects.js';
@@ -664,6 +664,8 @@ export class ServiceHost {
                 return await applyToolAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli', () => this.computer.stop());
             case 'tool-recheck':
                 return await agenda.recheckTools();
+            case 'local-models':
+                return await applyLocalModelsAction(agenda, params, typeof params.via === 'string' ? params.via : 'cli');
             case 'chat-list':
             case 'chat-agents':
             case 'chat-get':

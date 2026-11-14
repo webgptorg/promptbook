@@ -16,7 +16,7 @@ import { ollamaAdapter } from '../dist/inference/ollama.js';
 import { resolveSettings } from '../dist/project/config.js';
 import { parseTools } from '../dist/tools/normalize.js';
 import { planToolOperation } from '../dist/tools/operations.js';
-import { fakeHarness, temporaryDirectory } from './helpers.mjs';
+import { fakeHarness, git, initializedProject, ptbk, temporaryDirectory } from './helpers.mjs';
 
 /** A downloaded local model as Ollama lists it. */
 const LOCAL_MODEL = { name: 'gpt-oss:20b', model: 'gpt-oss:20b', size: 13_780_173_839, digest: 'aa4295ac10c3afb60e6d711289fc6896f5aef82258997b9efdaed6d0cc4cd8b8', details: { family: 'gptoss', parameter_size: '20.9B', quantization_level: 'MXFP4' } };
@@ -261,4 +261,54 @@ test('local models: a session continues only on its exact local binding', () => 
     const replaced = sessions.open(descriptor(binding('b'.repeat(64))));
     assert.notEqual(replaced.handle, first.handle);
     assert.match(replaced.predecessor.reason, /local connection binding changed/);
+});
+
+test('local models: `ptbk tool setup-local` prepares, verifies and saves the runtime and connection in one commit; `tool runtime` inspects and maintains it', async (t) => {
+    const { project, env } = await initializedProject(t);
+    const ollama = await fakeOllama(t, { models: [CLOUD_MODEL] });
+    const commitsBefore = Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim());
+
+    const refused = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--json'], { cwd: project, env });
+    assert.equal(refused.code, 3, refused.output);
+    assert.equal(JSON.parse(refused.stdout).status, 'needs-consent', 'a download is never started without consent');
+    assert.ok(!ollama.state.requests.some((request) => request.path === '/api/pull'));
+
+    const setup = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--yes', '--json'], { cwd: project, env });
+    assert.equal(setup.code, 0, setup.output);
+    const outcome = JSON.parse(setup.stdout);
+    assert.equal(outcome.status, 'ready', outcome.summary);
+    assert.equal(outcome.check.ok, true);
+    assert.deepEqual(Object.fromEntries(outcome.capabilities.map((capability) => [capability.name, capability.outcome])), { 'scratch-file': 'supported', 'read-only': 'supported', continuation: 'supported', mcp: 'unknown' });
+    assert.equal(outcome.saved.status, 'applied');
+    const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
+    const runtime = config.tools.find((tool) => tool.type === 'INFERENCE_RUNTIME');
+    const connection = config.tools.find((tool) => tool.inferenceRuntime === runtime.name);
+    assert.deepEqual({ name: runtime.name, variant: runtime.variant, endpoint: runtime.endpoint }, { name: 'local-ollama', variant: 'OLLAMA', endpoint: ollama.url });
+    assert.deepEqual({ name: connection.name, authentication: connection.authentication, baseUrl: connection.baseUrl }, { name: 'codex-local', authentication: 'NONE', baseUrl: 'LOCAL' });
+    assert.ok(config.tools.some((tool) => tool.type === 'HARNESS' && tool.name !== 'codex-local' && tool.authentication !== 'NONE'), 'the existing subscription connection is kept');
+    assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore + 1, 'one scoped commit for both records');
+
+    const again = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--yes', '--json', '--quick'], { cwd: project, env });
+    assert.equal(again.code, 0, again.output);
+    assert.equal(JSON.parse(again.stdout).saved, undefined, 'a repeated setup reuses the records without duplicates');
+    assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore + 1);
+
+    const models = await ptbk(['tool', 'runtime', 'local-ollama', 'models', '--json'], { cwd: project, env });
+    assert.equal(models.code, 0, models.output);
+    const listed = JSON.parse(models.stdout);
+    assert.deepEqual(listed.models.map((model) => [model.id, model.locality]), [['gpt-oss:120b-cloud', 'cloud'], ['tiny-model:1b', 'local']]);
+    assert.deepEqual(listed.dependents, ['codex-local']);
+
+    const remove = await ptbk(['tool', 'runtime', 'local-ollama', 'remove-model', 'tiny-model:1b'], { cwd: project, env });
+    assert.equal(remove.code, 3, 'deleting weights needs --yes');
+    const removed = await ptbk(['tool', 'runtime', 'local-ollama', 'remove-model', 'tiny-model:1b', '--yes'], { cwd: project, env });
+    assert.equal(removed.code, 0, removed.output);
+    assert.ok(!ollama.state.models.some((model) => model.name === 'tiny-model:1b'));
+    const stop = await ptbk(['tool', 'runtime', 'local-ollama', 'stop'], { cwd: project, env });
+    assert.equal(stop.code, 3, 'a service Promptbook did not start is not stopped');
+    assert.match(stop.output, /did not start/);
+    const update = await ptbk(['tool', 'runtime', 'local-ollama', 'update'], { cwd: project, env });
+    assert.equal(update.code, 3);
+    assert.match(update.output, /does not update the shared Ollama installation/);
+    assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore + 1, 'host maintenance never commits');
 });

@@ -12,7 +12,7 @@ import type { Agenda } from '../engine/agenda.js';
 import type { CollisionChoice, FileOperationEntry, FileOperationKind } from '../engine/desktop-files.js';
 import type { KeepAwakeView } from '../power/view.js';
 import { secretToken } from '../common/ids.js';
-import { applyChatAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
+import { applyChatAction, applyLocalModelsAction, applySettings, applyToolAction, applyWalletAction, CONTROL_ACTIONS, WALLET_ACTIONS, type ControlOutcome } from './actions.js';
 import { assertLocalRequest, authenticateLocalRequest, matchesCredential } from './auth.js';
 import { COMPUTER_OWNER_METHODS, type ComputerOwnerHandler, type ComputerOwnerMethod } from '../computer/viewer.js';
 import { TASK_SORT_FIELDS, filterTasks, groupSupportingWork, sortTasks, taskFilterChoices, type TaskFilter, type TaskSortField } from '../tasks/views.js';
@@ -535,6 +535,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<Runni
             const action = String(body.action ?? '');
             if (!WALLET_ACTIONS.has(action) || action === 'wallet') throw new PtbkError(`Unknown Wallet action "${action}".`, { kind: 'usage' });
             sendJson(response, 200, await applyWalletAction(agenda, action, body, { ownerSurface: who === 'browser' }));
+            return;
+        }
+        if (url.pathname === '/api/local-models') {
+            // Local models of the engine host (never the viewer's device): discovery, accepted setup and runtime actions.
+            sendJson(response, 200, await applyLocalModelsAction(agenda, body, who === 'api' ? 'api' : 'dashboard'));
             return;
         }
         if (url.pathname === '/api/tools') {

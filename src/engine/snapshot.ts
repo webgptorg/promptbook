@@ -676,10 +676,34 @@ export type RuntimeToolDetail = {
  */
 export type ToolsView = {
     readonly items: readonly ToolView[];
+    /** The engine's current or last local models operation (setup, download, service action) with honest progress. */
+    readonly localJob?: LocalModelsJobView;
     /** What new work waits for (no enabled usable browser/harness), with the concrete action; `automatic` when it only waits for known rechecks (no human action). */
     readonly waiting?: { readonly reason: string; readonly action: string; readonly automatic?: boolean };
     /** Configuration problems of `tools` (collisions, unknown variants, inline secrets) awaiting repair. */
     readonly problems: readonly string[];
+};
+
+/**
+ * One local models operation of the engine host: guided setup or a runtime action. Stages are operation/resource
+ * observations, never engine lifecycle states.
+ *
+ * @private shared status view model
+ */
+export type LocalModelsJobView = {
+    readonly id: string;
+    readonly kind: 'setup' | 'runtime';
+    readonly label: string;
+    /** Setup stage (`discovering`, `installing`, `downloading`, `verifying` …) or the runtime action. */
+    readonly stage: string;
+    readonly state: 'running' | 'completed' | 'failed' | 'cancelled' | 'refused' | 'unsupported';
+    readonly message: string;
+    readonly completedBytes?: number;
+    readonly totalBytes?: number;
+    readonly startedAt: string;
+    readonly endedAt?: string;
+    /** Notes and remaining steps of a finished operation. */
+    readonly notes?: readonly string[];
 };
 
 /**

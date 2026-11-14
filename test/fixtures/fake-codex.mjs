@@ -211,7 +211,11 @@ async function main() {
             process.exit(1);
         }
         const title = /NAME_ME:([^\n]+)/.exec(prompt)?.[1]?.trim() ?? 'Fixture Project';
-        const text = check ? 'PONG' : JSON.stringify({ title, folder: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') });
+        // Local capability checks: a scratch file (not written under the read-only sandbox) and a continued session.
+        const readOnly = args.includes('read-only') || configOverrides().sandbox_mode === '"read-only"';
+        if (prompt.includes('ptbk-check.txt') && !readOnly) writeFileSync(join(process.cwd(), 'ptbk-check.txt'), 'READY\n');
+        const resumed = args[1] === 'resume';
+        const text = prompt.includes('ptbk-check.txt') ? 'DONE' : prompt.includes('Remember the code word') ? 'OK' : prompt.includes('What was the code word') ? (resumed ? 'ORCHID-42' : 'I do not know.') : check ? 'PONG' : JSON.stringify({ title, folder: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') });
         print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
         print({ type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 2 } });
         process.exit(0);

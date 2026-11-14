@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { Readable } from 'node:stream';
 import type { KeepAwakeView } from '../power/view.js';
 import { AttentionOwner, evidenceFingerprint, type RelevanceVerdict } from './attention-owner.js';
@@ -113,13 +113,35 @@ import type {
     UsageOverview,
     WaitView,
     LocalApiView,
+    LocalModelsJobView,
 } from './snapshot.js';
+import { describeLocalPlan, discoverLocalSetup, planLocalSetup, prepareLocalSetup, type LocalSetupChoices } from '../inference/setup.js';
+import { runRuntimeAction } from '../inference/management.js';
+import type { RuntimeAction } from '../inference/types.js';
+import type { InferenceRuntimeToolRecord } from '../tools/model.js';
 import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ChatReplyRecheck, type RecheckSchedule, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { finishWorktree, isIntegrated } from './isolation.js';
 import { FileOwnership, TurnWindows, type FileConflict } from './concurrency.js';
 import { shortHash, shortId, slugify } from '../common/ids.js';
+
+/**
+ * A local models request of any channel (dashboard, API, desktop).
+ *
+ * @private agenda supervisor
+ */
+export type LocalModelsRequest = {
+    readonly action: 'discover' | 'setup' | 'runtime' | 'cancel';
+    readonly choices?: LocalSetupChoices;
+    /** Runtime tool name and action of `runtime`. */
+    readonly runtime?: string;
+    readonly runtimeAction?: RuntimeAction;
+    readonly model?: string;
+    /** Explicit destructive acknowledgement of model removal or stopping a service Promptbook did not start. */
+    readonly acknowledged?: boolean;
+    readonly via: string;
+};
 
 /**
  * Process placement of the agenda: the ongoing engine as a daemon or in a foreground terminal, or an in-process
@@ -2837,7 +2859,7 @@ export class Agenda {
             browser: this.options.browsers?.primary(),
             browsers: this.options.browsers?.all(),
             ...(this.options.tabControls?.().length ? { tabControls: this.options.tabControls() } : {}),
-            tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, computers: this.options.computers?.(), inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
+            tools: this.settings && this.pool ? { ...toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, computers: this.options.computers?.(), inUse: this.toolsInUse(), retained: this.retainedTools() }), ...(this.localJob ? { localJob: this.localJob } : {}) } : undefined,
             sync: this.sync.view(),
             files: this.desktopFiles.view(),
             health: this.health?.view(),
@@ -5296,6 +5318,99 @@ export class Agenda {
         await this.refreshTools(true);
         this.wake();
         return this.tools;
+    }
+
+    /** The current or last local models operation. */
+    private localJob?: LocalModelsJobView;
+
+    /** Cancels the running local models operation. */
+    private localJobController?: AbortController;
+
+    /**
+     * Local models of this engine host through the shared setup state machine and runtime operations (the same code as
+     * `ptbk tool setup-local` and `ptbk tool runtime`): `discover` plans read-only, `setup` prepares an accepted plan in
+     * the background and saves its records in one scoped commit, `runtime` runs a runtime action (maintenance in the
+     * background), `cancel` stops the running operation. Host prerequisites never create a project commit.
+     */
+    public async localModels(request: LocalModelsRequest): Promise<unknown> {
+        const env = this.options.env;
+        const tools = this.settings.tools;
+        switch (request.action) {
+            case 'discover': {
+                const discovery = await discoverLocalSetup(env, tools, { ...(request.choices?.endpoint ? { endpoint: request.choices.endpoint } : {}), ...(request.choices?.runtime ? { runtime: request.choices.runtime } : {}) });
+                const plan = planLocalSetup(discovery, tools, request.choices ?? {});
+                return { hardware: discovery.hardware, runtimes: discovery.runtimes.map((entry) => ({ variant: entry.variant, displayName: entry.displayName, summary: entry.observation.summary, running: entry.observation.running, problem: entry.observation.problem, installable: Boolean(entry.installation) })), harnesses: discovery.harnesses, plan, description: describeLocalPlan(plan) };
+            }
+            case 'cancel':
+                this.localJobController?.abort();
+                return { job: this.localJob };
+            case 'runtime': {
+                const tool = tools.find((candidate): candidate is InferenceRuntimeToolRecord => candidate.type === 'INFERENCE_RUNTIME' && candidate.name === request.runtime);
+                if (!tool) throw new PtbkError(`No local model runtime is named "${request.runtime ?? ''}".`, { kind: 'not-found', effect: 'Nothing was changed.' });
+                const action = request.runtimeAction ?? 'status';
+                const runtimeRequest = { runtime: tool.name, action, ...(request.model ? { model: request.model } : {}), ...(request.acknowledged ? { acknowledged: true } : {}) };
+                if (action === 'status' || action === 'models' || action === 'update' || action === 'uninstall') return { outcome: await runRuntimeAction({ tool, env, project: this.options.project.root }, runtimeRequest) };
+                return { job: this.startLocalJob('runtime', `${action}${request.model ? ` ${request.model}` : ''} on ${tool.name}`, action, async (signal, progress) => {
+                    const outcome = await runRuntimeAction({ tool, env, project: this.options.project.root, signal, onProgress: (item) => progress({ stage: action, message: item.message ?? item.stage, ...(item.completedBytes !== undefined ? { completedBytes: item.completedBytes } : {}), ...(item.totalBytes !== undefined ? { totalBytes: item.totalBytes } : {}) }), onWait: (holder) => progress({ stage: action, message: `Waiting for ${holder.label} (another Promptbook engine)…` }) }, runtimeRequest);
+                    return { state: outcome.status, message: outcome.summary, notes: [...outcome.notes, ...outcome.next] };
+                }) };
+            }
+            case 'setup': {
+                const choices = request.choices ?? {};
+                return { job: this.startLocalJob('setup', 'Add local models', 'discovering', async (signal, progress) => {
+                    const discovery = await discoverLocalSetup(env, this.settings.tools, { ...(choices.endpoint ? { endpoint: choices.endpoint } : {}), ...(choices.runtime ? { runtime: choices.runtime } : {}), signal });
+                    const plan = planLocalSetup(discovery, this.settings.tools, choices);
+                    const result = await prepareLocalSetup(env, plan, { accepted: true, project: this.options.project.root, signal, onProgress: (item) => progress(item) });
+                    const notes = [...result.completed, ...result.pending];
+                    if (result.status !== 'ready') return { state: result.status === 'cancelled' ? 'cancelled' : 'failed', message: result.summary, notes };
+                    if (result.operation) {
+                        const saved = await this.toolOperation({ operation: result.operation, acknowledgements: { force: false, confirmLastOfType: false }, via: request.via });
+                        if (saved.status === 'needs-acknowledgement') return { state: 'failed', message: saved.summary, notes };
+                        notes.unshift(saved.summary);
+                    }
+                    return { state: 'completed', message: result.summary, notes };
+                }) };
+            }
+            default:
+                throw new PtbkError(`Unknown local models action "${String((request as { action?: unknown }).action)}".`, { kind: 'usage' });
+        }
+    }
+
+    /**
+     * Runs one background local models operation (one at a time per engine; host-wide maintenance is also serialized
+     * across engines by the runtime operations themselves). Its progress is part of the tools view.
+     */
+    private startLocalJob(kind: LocalModelsJobView['kind'], label: string, stage: string, work: (signal: AbortSignal, progress: (item: { readonly stage: string; readonly message: string; readonly completedBytes?: number; readonly totalBytes?: number }) => void) => Promise<{ readonly state: LocalModelsJobView['state']; readonly message: string; readonly notes?: readonly string[] }>): LocalModelsJobView {
+        if (this.localJob?.state === 'running') throw new PtbkError(`A local models operation is running: ${this.localJob.label}.`, { kind: 'conflict', effect: 'Nothing was started.', next: ['Wait for it, or cancel it first.'] });
+        const controller = new AbortController();
+        this.localJobController = controller;
+        const id = randomUUID();
+        let lastTouch = 0;
+        this.localJob = { id, kind, label, stage, state: 'running', message: `${label}…`, startedAt: new Date().toISOString() };
+        this.touch();
+        const progress = (item: { readonly stage: string; readonly message: string; readonly completedBytes?: number; readonly totalBytes?: number }): void => {
+            if (this.localJob?.id !== id) return;
+            this.localJob = { ...this.localJob, stage: item.stage, message: item.message, ...(item.completedBytes !== undefined ? { completedBytes: item.completedBytes } : {}), ...(item.totalBytes !== undefined ? { totalBytes: item.totalBytes } : {}) };
+            // Download progress is frequent: viewers see it about once a second.
+            if (Date.now() - lastTouch > 1000) {
+                lastTouch = Date.now();
+                this.touch();
+            }
+        };
+        void (async () => {
+            let ended: { readonly state: LocalModelsJobView['state']; readonly message: string; readonly notes?: readonly string[] };
+            try {
+                ended = await work(controller.signal, progress);
+            } catch (error) {
+                ended = { state: controller.signal.aborted ? 'cancelled' : 'failed', message: (error as Error).message };
+            }
+            if (this.localJob?.id === id) this.localJob = { ...this.localJob, state: ended.state, stage: ended.state, message: ended.message, endedAt: new Date().toISOString(), ...(ended.notes?.length ? { notes: ended.notes } : {}) };
+            if (this.localJobController === controller) this.localJobController = undefined;
+            this.log(`${label}: ${ended.message}`, ended.state === 'completed' ? 'info' : 'warning');
+            await this.refreshTools(true).catch(() => undefined);
+            this.wake();
+        })();
+        return this.localJob;
     }
 
     /**

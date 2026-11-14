@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { kebabIdentifier } from '../common/naming.js';
@@ -51,7 +51,7 @@ export type FunctionalCheck = {
 /**
  * Runs one prompt as a preparatory call.
  */
-async function preparatoryRun(call: PreparatoryCall, prompt: string): Promise<HarnessRunResult> {
+async function preparatoryRun(call: PreparatoryCall, prompt: string, options: { readonly readOnly?: boolean; readonly resumeSessionId?: string } = {}): Promise<HarnessRunResult> {
     const directory = call.directory ?? (await mkdtemp(join(tmpdir(), 'ptbk-preparation-')));
     const promptFile = join(directory, `.ptbk-prompt-${process.pid}-${Date.now()}.md`);
     try {
@@ -68,7 +68,8 @@ async function preparatoryRun(call: PreparatoryCall, prompt: string): Promise<Ha
                 baseUrl: call.baseUrl,
                 localRoute: call.localRoute,
                 // The ordinary execution mode, so sandbox/runtime failures of real work show up here too.
-                readOnly: false,
+                readOnly: options.readOnly ?? false,
+                ...(options.resumeSessionId ? { resumeSessionId: options.resumeSessionId } : {}),
                 env: call.env,
                 timeoutMs: call.timeoutMs ?? 180_000,
                 signal: call.signal,
@@ -142,4 +143,67 @@ export async function proposeProjectName(call: PreparatoryCall, intent: string):
     const folder = kebabIdentifier(typeof data?.folder === 'string' && data.folder.trim() ? data.folder : title)?.slice(0, 40).replace(/-+$/, '') ?? '';
     if (!title || !folder) throw new Error(`${call.plugin.displayName} did not propose a usable name (${JSON.stringify(result.finalMessage.trim().slice(0, 120) || '(empty)')}).`);
     return { title, folder };
+}
+
+/**
+ * One bounded capability check of a local connection.
+ *
+ * @private harness setup
+ */
+export type CapabilityCheck = {
+    readonly name: 'scratch-file' | 'read-only' | 'continuation' | 'mcp';
+    readonly outcome: 'supported' | 'failed' | 'unknown';
+    readonly summary: string;
+};
+
+/**
+ * Bounded functional verification of a local connection beyond PONG, each in its own disposable directory: permitted
+ * scratch-file work (a harmless tool call), enforced read-only behavior and session continuation. Nothing touches a
+ * project, an outside account or the desktop. The shared MCP path is reported as unknown here: it is exercised by the
+ * first ordinary project turn, never claimed in advance.
+ *
+ * @private harness setup
+ */
+export async function localCapabilityChecks(call: PreparatoryCall): Promise<CapabilityCheck[]> {
+    const results: CapabilityCheck[] = [];
+    const scratch = async (readOnly: boolean): Promise<{ readonly result: HarnessRunResult | Error; readonly written: boolean }> => {
+        const directory = await mkdtemp(join(tmpdir(), 'ptbk-local-check-'));
+        try {
+            const result = await preparatoryRun(
+                { ...call, directory },
+                '# Harness check: scratch file\n\nThis is a capability check in a disposable directory. Create a file named `ptbk-check.txt` in the current directory containing exactly the word READY (use your file or shell tool). Then reply with exactly the word DONE.\n',
+                { readOnly },
+            ).catch((error: unknown) => error as Error);
+            const written = (await readFile(join(directory, 'ptbk-check.txt'), 'utf8').catch(() => '')).trim() === 'READY';
+            return { result, written };
+        } finally {
+            await rm(directory, { recursive: true, force: true });
+        }
+    };
+    const write = await scratch(false);
+    results.push(
+        write.written
+            ? { name: 'scratch-file', outcome: 'supported', summary: 'Wrote a scratch file with a tool call.' }
+            : { name: 'scratch-file', outcome: 'failed', summary: redact(write.result instanceof Error ? write.result.message : write.result.outcome === 'completed' ? 'Completed without writing the scratch file (tool calls may not work with this model).' : write.result.diagnostic) },
+    );
+    const readOnly = await scratch(true);
+    results.push(
+        readOnly.written
+            ? { name: 'read-only', outcome: 'failed', summary: 'A read-only turn wrote a file: read-only chat and consultations are not enforceable with this connection.' }
+            : readOnly.result instanceof Error || (readOnly.result.outcome !== 'completed' && !write.written)
+              ? { name: 'read-only', outcome: 'unknown', summary: redact(readOnly.result instanceof Error ? readOnly.result.message : readOnly.result.diagnostic) }
+              : { name: 'read-only', outcome: write.written ? 'supported' : 'unknown', summary: write.written ? 'The sandbox kept a read-only turn from writing.' : 'No write happened, but writes did not work either, so enforcement is not proven.' },
+    );
+    if (!call.plugin.sessions) results.push({ name: 'continuation', outcome: 'unknown', summary: `${call.plugin.displayName} has no session continuation in Promptbook.` });
+    else {
+        const first = await preparatoryRun(call, '# Harness check: continuation\n\nRemember the code word ORCHID-42. Do not use any tools. Reply with exactly the word OK.\n').catch((error: unknown) => error as Error);
+        if (first instanceof Error || first.outcome !== 'completed' || !first.sessionId) results.push({ name: 'continuation', outcome: first instanceof Error || first.outcome !== 'completed' ? 'failed' : 'unknown', summary: redact(first instanceof Error ? first.message : first.outcome !== 'completed' ? first.diagnostic : 'The harness reported no session to continue.') });
+        else {
+            const second = await preparatoryRun(call, '# Harness check: continuation\n\nWhat was the code word? Do not use any tools. Reply with only the code word.\n', { resumeSessionId: first.sessionId }).catch((error: unknown) => error as Error);
+            const ok = !(second instanceof Error) && second.outcome === 'completed' && /ORCHID-42/i.test(second.finalMessage);
+            results.push({ name: 'continuation', outcome: ok ? 'supported' : 'failed', summary: ok ? 'Continued the same session.' : redact(second instanceof Error ? second.message : second.outcome === 'completed' ? 'The continued session did not recall the earlier turn.' : second.diagnostic) });
+        }
+    }
+    results.push({ name: 'mcp', outcome: 'unknown', summary: 'The shared Promptbook tool path is exercised by the first project turn.' });
+    return results;
 }
