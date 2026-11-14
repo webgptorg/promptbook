@@ -21,6 +21,7 @@ The architecture uses this vocabulary for runtime domains such as:
 - the **Health sub-engine**, exactly one per Promptbook Engine, continuously observing host health and owning health incidents/actions;
 - browser sub-engine behavior, which can manage zero or many named browser tool instances;
 - harness sub-engine behavior, which can manage zero or many named harness instances and their execution/readiness;
+- inference-management behavior, which manages project references to [shared inference runtimes and models](inference-runtimes.md), coordinating external resources across engines without a global Promptbook scheduler;
 - the **[Wallet sub-engine](wallet.md)**, one per project engine, managing encrypted project login credentials and protected pending login actions.
 
 This list is extensible. A sub-engine may manage one singleton domain or a collection of configured instances; "sub-engine" does not imply one external process per item.
