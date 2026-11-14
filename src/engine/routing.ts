@@ -197,6 +197,7 @@ export async function routeConcrete(agent: EffectiveAgent, row: ModelRow, contex
     }
     const inspection = context.pool.inspectionOf(tool.name) ?? context.pool.inspection(plugin.id)!;
     const sameVariant = context.pool.instancesFor(plugin.id, row.runtime).length > 1;
+    const local = context.pool.localRoute(tool, row.model);
     const selection: RoutingSelection = {
         agent: agent.name,
         harness: plugin.id,
@@ -205,7 +206,7 @@ export async function routeConcrete(agent: EffectiveAgent, row: ModelRow, contex
         thinkingLevel: row.thinking,
         runtime: toolRuntime(tool),
         baseUrl: context.pool.baseUrl(tool),
-        ...(context.pool.localRoute(tool, row.model) ? { localRoute: context.pool.localRoute(tool, row.model), locality: context.pool.localRoute(tool, row.model)!.model?.locality ?? 'unknown' } : {}),
+        ...(local ? { localRoute: local, locality: local.model?.locality ?? 'unknown' } : {}),
         sources: { ...options.sources, ...(sameVariant ? { tool: `first usable ${plugin.displayName} instance${endpointLabel(row.runtime)} in ptbk.json tools order` } : options.tool ? { tool: `explicit instance (${options.tool})` } : {}) },
     };
     return { kind: 'routable', agent, selection, plugin, inspection };

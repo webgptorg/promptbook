@@ -214,6 +214,7 @@ test('repair deadlock: Fixer repair work runs despite a problematic MODEL inheri
         inspectionOf: () => ({ usable: true, summary: 'Ready.' }),
         inspection: () => ({ usable: true, summary: 'Ready.' }),
         baseUrl: () => undefined,
+        localRoute: () => undefined,
     };
     const context = { catalog, pool, settings: {} };
     const task = (agent, origin) =>
