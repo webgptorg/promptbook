@@ -203,7 +203,7 @@ async function main() {
     // brief's meaning marker NAME_ME:<title> ($FAKE_CODEX_NAME_FAIL fails it).
     if (prompt.startsWith('# Harness check') || prompt.startsWith('# Project name')) {
         const check = prompt.startsWith('# Harness check');
-        if (process.env.FAKE_CODEX_PREPARATION_LOG) appendFileSync(process.env.FAKE_CODEX_PREPARATION_LOG, `${JSON.stringify({ kind: check ? 'check' : 'name', cwd: process.cwd(), home: process.env.CODEX_HOME ?? null })}\n`);
+        if (process.env.FAKE_CODEX_PREPARATION_LOG) appendFileSync(process.env.FAKE_CODEX_PREPARATION_LOG, `${JSON.stringify({ kind: check ? 'check' : 'name', cwd: process.cwd(), home: process.env.CODEX_HOME ?? null, args, config: configOverrides(), apiKey: Boolean(process.env.OPENAI_API_KEY || process.env.CODEX_API_KEY) })}\n`);
         print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
         print({ type: 'turn.started' });
         if (check ? process.env.FAKE_CODEX_CHECK_FAIL : process.env.FAKE_CODEX_NAME_FAIL) {
@@ -238,7 +238,7 @@ async function main() {
     // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
     const api = Boolean(process.env.CODEX_API_KEY);
     const brief = prompt.startsWith('# Project brief');
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, changeMarkers: prompt.match(/CHANGE_MARKER_\w+/g) ?? [], reassigned: prompt.includes('## Taking over a reassigned task'), assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, changeMarkers: prompt.match(/CHANGE_MARKER_\w+/g) ?? [], reassigned: prompt.includes('## Taking over a reassigned task'), assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined, config: configOverrides() })}\n`);
     print({ type: 'thread.started', thread_id: resumedThread ?? `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     // Routing work only names the target: its markers apply to the target's own execution.

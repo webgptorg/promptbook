@@ -5,7 +5,7 @@ import { kebabIdentifier } from '../common/naming.js';
 import { redact } from '../common/redact.js';
 import type { ThinkingLevel } from '../project/config.js';
 import { runHarness, type HarnessRunResult } from './run.js';
-import type { HarnessInspection, HarnessPlugin } from './types.js';
+import type { HarnessInspection, HarnessPlugin, LocalRoute } from './types.js';
 
 /**
  * One small preparatory harness call outside any project: the selected instance's real (service-user) environment and
@@ -24,6 +24,8 @@ export type PreparatoryCall = {
     readonly model?: string;
     readonly thinkingLevel?: ThinkingLevel;
     readonly baseUrl?: string;
+    /** A managed local connection: its runtime route is used and no hosted default is ever inserted. */
+    readonly localRoute?: LocalRoute;
     /** Working directory; a temporary non-project directory when omitted. */
     readonly directory?: string;
     readonly timeoutMs?: number;
@@ -61,9 +63,10 @@ async function preparatoryRun(call: PreparatoryCall, prompt: string): Promise<Ha
                 cwd: directory,
                 prompt,
                 promptFile,
-                model: call.model ?? call.plugin.defaultModel,
-                thinkingLevel: call.thinkingLevel ?? (call.plugin.thinkingLevels.length ? (call.plugin.defaultThinkingLevel ?? call.plugin.thinkingLevels[0]) : undefined),
+                model: call.model ?? (call.localRoute ? undefined : call.plugin.defaultModel),
+                thinkingLevel: call.thinkingLevel ?? (!call.localRoute && call.plugin.thinkingLevels.length ? (call.plugin.defaultThinkingLevel ?? call.plugin.thinkingLevels[0]) : undefined),
                 baseUrl: call.baseUrl,
+                localRoute: call.localRoute,
                 // The ordinary execution mode, so sandbox/runtime failures of real work show up here too.
                 readOnly: false,
                 env: call.env,

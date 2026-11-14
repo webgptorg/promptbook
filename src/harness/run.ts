@@ -1,3 +1,4 @@
+import { registerConsumer } from '../inference/host.js';
 import { runProcess } from '../common/process.js';
 import { parseQuotaReset } from './quota-reset.js';
 import type { HarnessEvent, HarnessPlugin, HarnessRunRequest, ParserState, UsageObservation } from './types.js';
@@ -123,6 +124,11 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
         request.onEvent?.(event);
     };
     let result;
+    // A local run is an active consumer of the shared runtime service across engines (maintenance checks it); the
+    // record goes away with the run, so idle sessions never hold the runtime.
+    const releaseConsumer = request.localRoute
+        ? await registerConsumer(request.env, { resourceKey: request.localRoute.resourceKey, project: request.projectRoot, tool: request.localRoute.connection, ...(request.model ? { model: request.model } : {}), purpose: request.readOnly ? 'read-only turn' : 'turn' }).catch(() => undefined)
+        : undefined;
     try {
         result = await runProcess(executable, invocation.args, {
             cwd: request.cwd,
@@ -140,6 +146,7 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
             onStderrLine: (line) => request.onOutput?.('stderr', line),
         });
     } finally {
+        await releaseConsumer?.().catch(() => undefined);
         await invocation.cleanup?.().catch(() => undefined);
     }
     if (state.pendingText) {
@@ -167,7 +174,9 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
             const quotaResetAt = parseQuotaReset(failureText);
             return { ...base, outcome: 'quota', diagnostic: `${plugin.displayName} reported a quota/rate limit: ${reason}`, ...(quotaResetAt ? { quotaResetAt } : {}) };
         }
-        if (classified === 'authentication') return { ...base, outcome: 'authentication', diagnostic: `${plugin.displayName} reported missing authentication: ${reason}` };
+        // A credential-free local connection has no login to repair: its refusal is an ordinary failure of that route.
+        if (classified === 'authentication' && !request.localRoute) return { ...base, outcome: 'authentication', diagnostic: `${plugin.displayName} reported missing authentication: ${reason}` };
+        if (request.localRoute) return { ...base, outcome: 'failed', diagnostic: `${plugin.displayName} failed through the local ${request.localRoute.runtime === 'LM_STUDIO' ? 'LM Studio' : 'Ollama'} connection ${request.localRoute.connection}: ${reason}` };
         return { ...base, outcome: 'failed', diagnostic: `${plugin.displayName} failed: ${reason}` };
     }
     return { ...base, outcome: 'completed', diagnostic: `${plugin.displayName} completed its turn.` };

@@ -1,5 +1,5 @@
 import { runHarness, type HarnessRunResult } from './run.js';
-import type { AuthenticationKind, HarnessEvent, HarnessPlugin, HarnessRunRequest, HarnessSessionCapabilities } from './types.js';
+import type { AuthenticationKind, HarnessEvent, HarnessPlugin, HarnessRunRequest, HarnessSessionCapabilities, LocalRoute } from './types.js';
 
 /**
  * Observed state of a harness session, from actual adapter evidence. Control mode and engine lifecycle are separate
@@ -100,6 +100,11 @@ export type HarnessSessionRecord = {
     readonly costUsd?: number;
     /** The session this one replaced. */
     readonly predecessor?: { readonly handle: string; readonly reason: string };
+    /**
+     * Binding of a managed local connection: runtime, resolved protocol endpoint, runtime version and the model's
+     * identity/locality. Continuation reapplies exactly this connection; a changed binding starts a replacement.
+     */
+    readonly connection?: SessionConnection;
     /** Input holder other than the engine. */
     readonly lease?: HarnessSessionLease;
     /** Automatic inputs held back by a lease or lifecycle, in plain words. */
@@ -191,9 +196,51 @@ export type HarnessSessionDescriptor = {
     readonly account?: string;
     /** A helper session ends with its one turn (a consultation, a routing decision, a composed brief). */
     readonly ephemeral?: boolean;
+    /** Local connection binding (filled from the run's local route). */
+    readonly connection?: SessionConnection;
     /** Removes secrets from observed text. */
     readonly redact?: (text: string) => string;
 };
+
+/**
+ * The local binding a session was opened with.
+ *
+ * @private harness sessions
+ */
+export type SessionConnection = {
+    readonly runtime: string;
+    readonly runtimeVariant: string;
+    readonly endpoint: string;
+    readonly runtimeVersion?: string;
+    readonly model?: string;
+    readonly digest?: string;
+    readonly quantization?: string;
+    readonly locality?: string;
+};
+
+/**
+ * The session binding of a local route (undefined for hosted connections).
+ *
+ * @private harness sessions
+ */
+export function sessionConnection(route: LocalRoute | undefined): SessionConnection | undefined {
+    if (!route) return undefined;
+    return {
+        runtime: route.runtimeTool,
+        runtimeVariant: route.runtime,
+        endpoint: route.protocolUrl,
+        ...(route.runtimeVersion ? { runtimeVersion: route.runtimeVersion } : {}),
+        ...(route.model ? { model: route.model.id, ...(route.model.digest ? { digest: route.model.digest } : {}), ...(route.model.quantization ? { quantization: route.model.quantization } : {}), ...(route.model.locality ? { locality: route.model.locality } : {}) } : {}),
+    };
+}
+
+/**
+ * A binding in words (hosted when absent).
+ */
+function describeConnection(connection: SessionConnection | undefined): string {
+    if (!connection) return 'hosted connection';
+    return `${connection.runtime}${connection.model ? ` ${connection.model}${connection.digest ? `@${connection.digest.slice(0, 12)}` : ''}` : ''}${connection.runtimeVersion ? ` (runtime ${connection.runtimeVersion})` : ''}`;
+}
 
 /**
  * Lines kept of a session's event tail.
@@ -306,10 +353,22 @@ export class HarnessSessions {
         const current = this.byKey(descriptor.key);
         if (descriptor.ephemeral) this.ephemeral.add(descriptor.key);
         if (descriptor.redact) this.redactors.set(descriptor.key, descriptor.redact);
-        if (current && current.agent === descriptor.agent && (current.tool === descriptor.tool || !descriptor.tool) && current.harness === descriptor.plugin.id) {
+        // A local session continues only on its exact binding: never across local/hosted, another runtime or endpoint,
+        // or a changed model digest/version (the old loaded model is not claimed to persist).
+        const sameBinding = JSON.stringify(current?.connection ?? null) === JSON.stringify(descriptor.connection ?? null);
+        if (current && current.agent === descriptor.agent && (current.tool === descriptor.tool || !descriptor.tool) && current.harness === descriptor.plugin.id && sameBinding) {
             return this.update(current.handle, { requestedModel: descriptor.model, thinkingLevel: descriptor.thinkingLevel, harnessVersion: descriptor.harnessVersion ?? current.harnessVersion, revision: descriptor.revision ?? current.revision });
         }
-        const replaced = current ? this.close(descriptor.key, current.agent !== descriptor.agent ? `Replaced: the work moved to ${descriptor.agent}.` : `Replaced: work continues with the tool ${descriptor.tool ?? descriptor.plugin.displayName}.`) : undefined;
+        const replaced = current
+            ? this.close(
+                  descriptor.key,
+                  current.agent !== descriptor.agent
+                      ? `Replaced: the work moved to ${descriptor.agent}.`
+                      : current.tool === descriptor.tool && current.harness === descriptor.plugin.id && !sameBinding
+                        ? `Replaced: the local connection binding changed (${describeConnection(current.connection)} → ${describeConnection(descriptor.connection)}); its context is not transferred.`
+                        : `Replaced: work continues with the tool ${descriptor.tool ?? descriptor.plugin.displayName}.`,
+              )
+            : undefined;
         const at = new Date().toISOString();
         const record: HarnessSessionRecord = {
             handle: `hs-${Date.now().toString(36)}-${(this.sequence++).toString(36)}`,
@@ -333,6 +392,7 @@ export class HarnessSessions {
             output: [],
             nativeReturn: descriptor.plugin.sessions?.nativeReturn,
             ...(replaced ? { predecessor: { handle: replaced.handle, reason: replaced.endReason ?? 'replaced' } } : {}),
+            ...(descriptor.connection ? { connection: descriptor.connection } : {}),
         };
         this.records.set(record.handle, record);
         this.keys.set(record.key, record.handle);
@@ -422,9 +482,11 @@ export class HarnessSessions {
     }
 
     /** Provider session a next input may continue: the same tool only, and only with a verified continuation. */
-    public continuable(key: string, tool: string | undefined): string | undefined {
+    public continuable(key: string, tool: string | undefined, connection?: SessionConnection): string | undefined {
         const current = this.byKey(key);
         if (!current || current.tool !== tool || current.capabilities?.continueInput !== true) return undefined;
+        // A local session resumes only on its exact runtime, endpoint and model identity.
+        if (JSON.stringify(current.connection ?? null) !== JSON.stringify(connection ?? null)) return undefined;
         return current.providerIds[current.providerIds.length - 1];
     }
 
@@ -557,10 +619,11 @@ export class HarnessSessions {
  */
 export async function runHarnessInSession(sessions: HarnessSessions | undefined, descriptor: Omit<HarnessSessionDescriptor, 'plugin'>, plugin: HarnessPlugin, request: HarnessRunRequest, executable: string, options: { readonly detail?: string; readonly continueSession?: boolean } = {}): Promise<HarnessRunResult> {
     if (!sessions) return await runHarness(plugin, request, executable);
-    sessions.open({ ...descriptor, plugin });
+    const connection = sessionConnection(request.localRoute);
+    sessions.open({ ...descriptor, plugin, ...(connection ? { connection } : {}) });
     const capabilities = await plugin.sessions?.capabilities({ projectRoot: request.projectRoot, env: request.env, ...(request.signal ? { signal: request.signal } : {}) }).catch(() => undefined);
     if (capabilities) sessions.capabilities(descriptor.key, capabilities);
-    const resumeSessionId = options.continueSession ? sessions.continuable(descriptor.key, descriptor.tool) : undefined;
+    const resumeSessionId = options.continueSession ? sessions.continuable(descriptor.key, descriptor.tool, connection) : undefined;
     sessions.turnStarted(descriptor.key, options.detail);
     const onInterrupt = (): void => sessions.interruptRequested(descriptor.key, 'Asked to stop at its nearest safe point.');
     request.interruptSignal?.addEventListener('abort', onInterrupt, { once: true });

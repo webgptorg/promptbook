@@ -201,6 +201,7 @@ export function sessionRowLine(session: HarnessSessionRecord, style?: Style): st
 function billingLabel(session: HarnessSessionRecord): string {
     if (session.authentication === 'account') return `native account${session.account ? ` (${session.account})` : ''}, its plan pays`;
     if (session.authentication === 'api') return 'API key, billed through it';
+    if (session.authentication === 'local') return 'credential-free local connection, no provider billing for local models';
     if (session.authentication === 'none') return 'no authentication';
     return 'unknown';
 }

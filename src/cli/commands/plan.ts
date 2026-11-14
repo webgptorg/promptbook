@@ -146,6 +146,7 @@ export default async function plan(context: CommandContext): Promise<number> {
                     model: route.selection.model,
                     thinkingLevel: route.selection.thinkingLevel,
                     baseUrl: route.selection.baseUrl,
+                    localRoute: route.selection.localRoute,
                     timeoutMs: PLANNING_TIMEOUT_MS,
                     allowCredits: false,
                     authentication: inspection.authentication,

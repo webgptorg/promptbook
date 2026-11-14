@@ -1555,7 +1555,11 @@ export async function initializeProject(context: CommandContext, options: { proj
         await writeFileAtomic(project.configPath, text);
         createdPaths.push(project.configPath);
     }
-    for (const operation of operations) changed.push(operation.kind === 'add' ? `Tool ${operation.tool.name} (${operation.tool.type} ${operation.tool.variant})` : `Tool ${operation.name}: ${operation.kind}`);
+    for (const operation of operations) {
+        if (operation.kind === 'add') changed.push(`Tool ${operation.tool.name} (${operation.tool.type} ${operation.tool.variant})`);
+        else if (operation.kind === 'add-together') for (const tool of operation.tools) changed.push(`Tool ${tool.name} (${tool.type} ${tool.variant})`);
+        else changed.push(`Tool ${operation.name}: ${operation.kind}`);
+    }
     for (const path of createdPaths) {
         const label = toProjectRelative(root, path);
         if (!changed.includes(label)) changed.push(label);

@@ -6,7 +6,8 @@ import type { HarnessPool } from '../engine/harnesses.js';
 import type { ToolsView, ToolView } from '../engine/snapshot.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { describeCredentialSource } from './environment.js';
-import { describeProfileSource, harnessPluginId, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
+import { runtimeAdapter } from '../inference/registry.js';
+import { dependentHarnesses, describeProfileSource, harnessPluginId, runtimeVariantLabel, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
 
 /**
  * Native desktop readiness without requiring a windowed Console. Undefined usability means permission checks have
@@ -67,12 +68,23 @@ export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.Proce
         };
     }
     if (tool.type === 'COMPUTER_CONTROL') return { session: 'engine host, primary monitor', recording: settings && setting<boolean>(settings, 'computer.isRecordingEnabled') ? 'on (private local desktop screenshots; never Git)' : 'off (live screenshots only)', permissions: 'system Accessibility and screen capture permissions may be required' };
+    if (tool.type === 'INFERENCE_RUNTIME') {
+        const observation = pool?.runtimes.observation(tool.name);
+        const dependents = dependentHarnesses(settings?.tools ?? [], tool.name).map((dependent) => dependent.name);
+        return {
+            endpoint: observation ? `${observation.endpoint} (${observation.endpointSource}${observation.onEngineHost ? ', engine host' : ', NOT on the engine host: never local-only'})` : (tool.endpoint ?? `${runtimeAdapter(tool.variant).defaultEndpoint} (discovered)`),
+            ...(observation?.version ? { version: observation.version } : {}),
+            connections: dependents.length ? dependents.join(', ') : 'none (add one with `ptbk tool setup-local`)',
+            scope: 'shared host service and model store; removing this record never uninstalls software or deletes models',
+        };
+    }
     const credential = pool?.credential(tool);
     return {
         authentication: tool.authentication,
-        ...(tool.apiKey ? { apiKey: `${tool.apiKey}${tool.authentication === 'API_KEY' ? (credential ? ` (${describeCredentialSource(credential)})` : '') : ' (inactive metadata: NATIVE authentication)'}` } : {}),
+        ...(tool.apiKey ? { apiKey: `${tool.apiKey}${tool.authentication === 'API_KEY' ? (credential ? ` (${describeCredentialSource(credential)})` : '') : ` (inactive metadata: ${tool.authentication} authentication)`}` } : {}),
         ...(tool.accountProfile ? { accountProfile: tool.accountProfile } : {}),
         endpoint: describeEndpoint(tool),
+        ...(tool.inferenceRuntime ? { inferenceRuntime: tool.inferenceRuntime } : {}),
     };
 }
 
@@ -86,7 +98,8 @@ export function describeEndpoint(tool: HarnessToolRecord): string {
     const plugin = harnessPlugin(harnessPluginId(tool.variant));
     const runtime = toolRuntime(tool);
     if (runtime === 'official') return `official${plugin ? ` (${plugin.endpoints.official})` : ''}`;
-    if (runtime === 'local') return `local on the engine's host${plugin?.endpoints.local ? ` (${plugin.endpoints.local})` : ' (unsupported by this harness)'}`;
+    if (runtime === 'local' && tool.inferenceRuntime) return `local on the engine's host through the runtime ${tool.inferenceRuntime}${plugin?.endpoints.localConnection ? '' : ' (unsupported by this harness)'}`;
+    if (runtime === 'local') return `local on the engine's host${plugin?.endpoints.local ? ` (${plugin.endpoints.local}; no runtime binding)` : ' (unsupported by this harness)'}`;
     return `custom ${runtime}`;
 }
 
@@ -97,6 +110,7 @@ export function describeEndpoint(tool: HarnessToolRecord): string {
  */
 export function variantLabel(tool: Pick<ToolRecord, 'type' | 'variant'>): string {
     if (tool.type === 'COMPUTER_CONTROL') return 'Native desktop';
+    if (tool.type === 'INFERENCE_RUNTIME') return runtimeVariantLabel(tool.variant as 'OLLAMA' | 'LM_STUDIO');
     if (tool.type === 'HARNESS') return harnessPlugin(harnessPluginId(tool.variant as HarnessToolRecord['variant']))?.displayName ?? tool.variant;
     return tool.variant === 'CHROME' ? 'Chrome' : tool.variant === 'CHROMIUM' ? 'Chromium' : 'Microsoft Edge';
 }
@@ -160,6 +174,11 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
                 : tool.authentication === 'NATIVE' && inspection?.installed && inspection.authenticated === false
                   ? nativeSignInAction(tool, inspection.nextAction)
                   : inspection?.nextAction;
+        } else if (tool.type === 'INFERENCE_RUNTIME') {
+            const observation = pool.runtimes.observation(tool.name);
+            state = !observation ? 'unknown' : observation.running && observation.problem !== 'no-models' && observation.problem !== 'error' ? 'usable' : 'unavailable';
+            summary = observation?.summary ?? 'Not inspected yet.';
+            nextAction = observation?.nextAction;
         } else if (tool.type === 'COMPUTER_CONTROL') {
             const readiness = input.computers?.get(tool.name) ?? inspectComputerPlatform();
             state = readiness.usable === undefined ? 'unknown' : readiness.usable ? 'usable' : 'unavailable';
@@ -187,6 +206,7 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             ...(input.retained?.has(tool.name) ? { retained: true } : {}),
             ...(settings.overriddenTools.has(tool.name) ? { overridden: true } : {}),
             fields: toolFields(project, tool, env, pool, settings),
+            ...(tool.type === 'INFERENCE_RUNTIME' ? { runtime: runtimeDetail(tool.name, tool.variant, settings, pool) } : {}),
         };
     });
     for (const name of input.retained ?? []) {
@@ -195,6 +215,35 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
     }
     const problems = settings.diagnostics.filter((diagnostic) => diagnostic.location.includes('tools')).map((diagnostic) => `${diagnostic.location}: ${diagnostic.message}`);
     return { items, waiting: baselineWait(items), problems };
+}
+
+/**
+ * Observed detail of one runtime record for the Local models views (empty catalog while not observed).
+ */
+function runtimeDetail(name: string, variant: 'OLLAMA' | 'LM_STUDIO', settings: EffectiveSettings, pool: HarnessPool): NonNullable<ToolView['runtime']> {
+    const observation = pool.runtimes.observation(name);
+    const adapter = runtimeAdapter(variant);
+    return {
+        endpoint: observation?.endpoint ?? adapter.defaultEndpoint,
+        endpointSource: observation?.endpointSource ?? 'discovered',
+        onEngineHost: observation?.onEngineHost ?? false,
+        running: observation?.running ?? false,
+        ...(observation?.version ? { version: observation.version } : {}),
+        models: (observation?.models ?? []).map((model) => ({
+            id: model.id,
+            installed: model.installed,
+            locality: model.locality,
+            ...(model.loaded !== undefined ? { loaded: model.loaded } : {}),
+            ...(model.sizeBytes !== undefined ? { sizeBytes: model.sizeBytes } : {}),
+            ...(model.quantization ? { quantization: model.quantization } : {}),
+            ...(model.parameterSize ? { parameterSize: model.parameterSize } : {}),
+            tools: model.tools,
+            vision: model.vision,
+        })),
+        dependents: dependentHarnesses(settings.tools, name).map((tool) => tool.name),
+        actions: adapter.actions,
+        checkedAt: new Date(observation?.checkedAt ?? Date.now()).toISOString(),
+    };
 }
 
 /**
@@ -237,6 +286,7 @@ export function baselineWait(items: readonly ToolView[]): ToolsView['waiting'] {
  */
 export async function inspectInventory(project: Project, settings: EffectiveSettings, env: NodeJS.ProcessEnv, pool: HarnessPool): Promise<ToolsView> {
     await pool.refresh(pool.allInstances().filter((tool) => tool.isEnabled).map((tool) => tool.name), true);
+    await pool.runtimes.refresh(undefined, true);
     const browsers = new Map<string, BrowserReadiness>();
     for (const tool of settings.tools) if (tool.type === 'BROWSER' && tool.isEnabled) browsers.set(tool.name, await inspectBrowserTool(project, tool, env));
     return toolInventory({ project, settings, env, pool, browsers });

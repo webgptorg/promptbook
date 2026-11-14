@@ -158,6 +158,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                 model: route.selection.model,
                 thinkingLevel: route.selection.thinkingLevel,
                 baseUrl: route.selection.baseUrl,
+                localRoute: route.selection.localRoute,
                 timeoutMs: setting<number>(context.settings, 'team.timeout'),
                 signal: controller.signal,
                 interruptSignal: context.interruptSignal,
@@ -184,6 +185,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                     tool: instance.name,
                     model: result.model ?? route.selection.model,
                     authentication: instanceInspection?.authentication ?? 'unknown',
+                    connection: route.selection,
                     outcome: result.outcome,
                     attribution: {
                         agent: advisor.name,

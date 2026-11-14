@@ -19,6 +19,11 @@ function withoutApiKeys(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
 }
 
 /**
+ * Name of the invocation-scoped model provider of a managed local connection (never written to Codex's config).
+ */
+const LOCAL_PROVIDER = 'ptbk_local';
+
+/**
  * Formats a TOML string literal (JSON string syntax is valid TOML basic-string syntax).
  */
 function toml(value: string): string {
@@ -143,17 +148,33 @@ function classifyLogin(output: string): LoginFailure | undefined {
 async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvocation> {
     const context = { projectRoot: request.projectRoot, env: request.env };
     const execHelp = await helpText(context, 'codex', ['exec', '--help']);
-    const api = request.authentication === 'api';
+    const local = request.localRoute;
+    const api = !local && request.authentication === 'api';
     const env: NodeJS.ProcessEnv = api ? { ...request.env, CODEX_API_KEY: request.env.CODEX_API_KEY ?? request.env.OPENAI_API_KEY } : withoutApiKeys(request.env);
-    // A local or custom endpoint selected through the tool (the official endpoint needs no override).
-    if (request.baseUrl) env.OPENAI_BASE_URL = request.baseUrl;
+    // A local or custom endpoint selected through the tool (the official endpoint needs no override). A managed local
+    // connection is configured below as this invocation's own provider instead.
+    if (request.baseUrl && !local) env.OPENAI_BASE_URL = request.baseUrl;
     // `exec resume` keeps the same options through configuration: it has no --sandbox or --color of its own.
     const resume = request.resumeSessionId;
     const args = resume ? ['exec', 'resume', '--json', '--skip-git-repo-check', '-c', `sandbox_mode=${toml(request.readOnly ? 'read-only' : 'workspace-write')}`] : ['exec', '--json', '--color', 'never', '--skip-git-repo-check', '--sandbox', request.readOnly ? 'read-only' : 'workspace-write'];
-    args.push('-c', 'approval_policy="never"', '-c', `forced_login_method=${toml(api ? 'api' : 'chatgpt')}`);
+    args.push('-c', 'approval_policy="never"');
+    if (local) {
+        // This invocation's own credential-free provider: the global default provider, model and ChatGPT login stay
+        // untouched, and no ambient key or subscription authentication is sent to the local runtime.
+        args.push(
+            '-c',
+            `model_provider=${toml(LOCAL_PROVIDER)}`,
+            '-c',
+            `model_providers.${LOCAL_PROVIDER}.name=${toml(`${local.runtime === 'LM_STUDIO' ? 'LM Studio' : 'Ollama'} (Promptbook connection ${local.connection})`)}`,
+            '-c',
+            `model_providers.${LOCAL_PROVIDER}.base_url=${toml(local.protocolUrl)}`,
+            '-c',
+            `model_providers.${LOCAL_PROVIDER}.wire_api="responses"`,
+        );
+    } else args.push('-c', `forced_login_method=${toml(api ? 'api' : 'chatgpt')}`);
     if (!request.readOnly) args.push('-c', 'sandbox_workspace_write.network_access=true');
     for (const directory of request.readableDirectories) if (execHelp.includes('--add-dir') && !request.readOnly && !resume) args.push('--add-dir', directory);
-    if (!api && !request.allowCredits && !resume) {
+    if (!api && !local && !request.allowCredits && !resume) {
         // Apply a native credit restriction only when the installed CLI actually supports one.
         if (execHelp.includes('--no-credits')) args.push('--no-credits');
         else if (execHelp.includes('--disable-credits')) args.push('--disable-credits');
@@ -262,7 +283,7 @@ export const plugin: HarnessPlugin = {
     defaultModel: 'gpt-5-codex',
     defaultThinkingLevel: 'medium',
     modelCatalog: 'complete',
-    endpoints: { official: 'https://api.openai.com/v1', local: 'http://localhost:11434/v1', custom: true },
+    endpoints: { official: 'https://api.openai.com/v1', local: 'http://localhost:11434/v1', custom: true, localConnection: { protocol: 'openai', runtimes: { OLLAMA: '0.13.4', LM_STUDIO: '0.3.29' } } },
     capabilities: { mcp: true, readOnly: true },
     priceList: { providers: [{ catalog: 'openai' }] },
     loginArgs: ['login'],

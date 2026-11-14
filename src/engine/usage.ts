@@ -93,7 +93,11 @@ export type UsageRecord = {
     /** Named tool instance (nonsecret account context). */
     readonly tool?: string;
     readonly model?: string;
-    readonly billing: 'subscription' | 'api' | 'unknown';
+    /** Subscription, metered API, verified non-billed local inference, or unknown (a cloud model behind a local runtime). */
+    readonly billing: 'subscription' | 'api' | 'local' | 'unknown';
+    /** Local model runtime and verified locality of a managed local connection. */
+    readonly runtime?: string;
+    readonly locality?: 'local' | 'cloud' | 'unknown';
     /** Outcome of the run (failed and interrupted attempts consume too). */
     readonly outcome: string;
     /** Provider-native fields exactly as exposed. */
@@ -152,7 +156,10 @@ export function normalizeUsage(harness: string, usage: Readonly<Record<string, n
  *
  * @private raw usage
  */
-export function billingOf(authentication: AuthenticationKind): UsageRecord['billing'] {
+export function billingOf(authentication: AuthenticationKind, locality?: 'local' | 'cloud' | 'unknown'): UsageRecord['billing'] {
+    // Only verified local execution is non-billed; a hosted model served through a local runtime keeps its own
+    // (here unknown) billing classification.
+    if (authentication === 'local') return locality === 'local' ? 'local' : 'unknown';
     return authentication === 'account' ? 'subscription' : authentication === 'api' ? 'api' : 'unknown';
 }
 
@@ -169,11 +176,13 @@ export function usageRecords(input: {
     readonly tool?: string;
     readonly model?: string;
     readonly authentication: AuthenticationKind;
+    /** The serving connection's local binding, when it is a managed local connection. */
+    readonly connection?: { readonly localRoute?: { readonly runtimeTool: string }; readonly locality?: 'local' | 'cloud' | 'unknown' };
     readonly outcome: string;
     readonly attribution: UsageAttribution;
 }): UsageRecord[] {
     const correlation = `${input.attribution.work.run ?? input.attribution.work.kind}-${shortId()}`;
-    const common = { schema: USAGE_SCHEMA, correlation, harness: input.harness, ...(input.tool ? { tool: input.tool } : {}), ...(input.model ? { model: input.model } : {}), billing: billingOf(input.authentication), outcome: input.outcome, attribution: input.attribution } as const;
+    const common = { schema: USAGE_SCHEMA, correlation, harness: input.harness, ...(input.tool ? { tool: input.tool } : {}), ...(input.model ? { model: input.model } : {}), billing: billingOf(input.authentication, input.connection?.locality), ...(input.connection?.localRoute ? { runtime: input.connection.localRoute.runtimeTool, locality: input.connection.locality ?? 'unknown' } : {}), outcome: input.outcome, attribution: input.attribution } as const;
     if (!input.observations.length) {
         const now = new Date().toISOString();
         return [{ ...common, observedAt: now, consumed: { from: input.startedAt, to: now }, semantics: 'none', certainty: 'unavailable' }];
@@ -414,7 +423,7 @@ export type UsageSummary = {
  * Sums units (a unit counts once per call).
  */
 function totals(units: readonly UsageUnit[], prices: readonly PriceObservation[]): UsageTotals {
-    const billing = { subscription: 0, api: 0, unknown: 0 };
+    const billing = { subscription: 0, api: 0, local: 0, unknown: 0 };
     let [input, output, cachedInput, reasoning, reportedCostUsd, reported, unavailable, costReported] = [0, 0, 0, 0, 0, 0, 0, 0];
     const calculated = { apiUsd: 0, subscriptionEquivalentUsd: 0, priced: 0, estimated: 0, unpriced: 0 };
     for (const unit of units) {

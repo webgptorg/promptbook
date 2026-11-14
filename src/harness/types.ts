@@ -1,12 +1,39 @@
-import type { HarnessToolRecord, HarnessVariant, ThinkingLevel } from '../tools/model.js';
+import type { RuntimeProtocol } from '../inference/types.js';
+import type { HarnessToolRecord, HarnessVariant, InferenceRuntimeVariant, ThinkingLevel } from '../tools/model.js';
 import type { HarnessVoiceSupport } from './voice.js';
 
 /**
- * How a harness is authenticated.
+ * How a harness is authenticated: a native account, an API key, nothing usable (`none`), a credential-free local
+ * runtime connection (`local`, never billed by a model provider) or not known.
  *
  * @private harness plugin contract
  */
-export type AuthenticationKind = 'account' | 'api' | 'none' | 'unknown';
+export type AuthenticationKind = 'account' | 'api' | 'none' | 'local' | 'unknown';
+
+/**
+ * A managed local connection of one invocation: the harness reaches a runtime on the engine host through this
+ * protocol URL, configured for this invocation only (never the CLI's global provider, model or login).
+ *
+ * @private harness plugin contract
+ */
+export type LocalRoute = {
+    readonly runtime: InferenceRuntimeVariant;
+    /** The project's runtime tool name. */
+    readonly runtimeTool: string;
+    /** The harness connection (tool) name. */
+    readonly connection: string;
+    /** Actual service identity across loopback aliases (shared-consumer accounting). */
+    readonly resourceKey: string;
+    readonly protocol: RuntimeProtocol;
+    /** Endpoint the harness transport needs (e.g. the runtime's OpenAI-compatible `/v1`). */
+    readonly protocolUrl: string;
+    /** Non-secret token some clients require for a credential-free route (invocation-scoped protocol data). */
+    readonly compatibilityToken: string;
+    /** Runtime version where observed (evidence of the actual binding). */
+    readonly runtimeVersion?: string;
+    /** The routed model's identity in that runtime (digest/quantization where exposed). */
+    readonly model?: { readonly id: string; readonly digest?: string; readonly quantization?: string; readonly locality?: 'local' | 'cloud' | 'unknown' };
+};
 
 /**
  * Observed readiness of one globally installed harness (never obtained through a model call).
@@ -197,6 +224,8 @@ export type HarnessRunRequest = {
     readonly thinkingLevel?: ThinkingLevel;
     /** Base URL of a local or custom endpoint selected through the tool (undefined = the official endpoint). */
     readonly baseUrl?: string;
+    /** Managed local runtime connection of this invocation (credential-free; never inherits cloud authentication). */
+    readonly localRoute?: LocalRoute;
     /** Enforce read-only execution. */
     readonly readOnly: boolean;
     /** ptbk MCP bridge to load. */
@@ -289,6 +318,11 @@ export type HarnessEndpoints = {
     readonly local?: string;
     /** Whether an explicit custom base URL is supported. */
     readonly custom: boolean;
+    /**
+     * Managed local connections through inference runtimes: the protocol this harness speaks and the runtimes (with
+     * their minimum versions) whose endpoints it is verified with. Absent: no managed local connection.
+     */
+    readonly localConnection?: { readonly protocol: RuntimeProtocol; readonly runtimes: Readonly<Partial<Record<InferenceRuntimeVariant, string>>> };
 };
 
 /**

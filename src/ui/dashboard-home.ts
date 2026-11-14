@@ -181,7 +181,7 @@ export function compactCount(value: number): string {
  * @private terminal dashboard home
  */
 export function billingMix(totals: UsageTotals): string {
-    const parts = [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : ''].filter(Boolean);
+    const parts = [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.local ? `${totals.billing.local} local (no provider billing)` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : ''].filter(Boolean);
     return parts.join(' · ') || 'no runs';
 }
 

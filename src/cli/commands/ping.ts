@@ -39,9 +39,10 @@ export default async function ping(context: CommandContext): Promise<number> {
             inspection,
             env: pool.environment(instance),
             // Unspecified choices use the plugin's coded defaults (tool settings never define them).
-            model: option<string>(context, 'model') ?? (await pool.defaults(requirement.variant)).model,
-            thinkingLevel: option<ThinkingLevel>(context, 'thinking-level') ?? (await pool.defaults(requirement.variant)).thinkingLevel,
+            model: option<string>(context, 'model') ?? (await pool.defaults(instance.name)).model,
+            thinkingLevel: option<ThinkingLevel>(context, 'thinking-level') ?? (await pool.defaults(instance.name)).thinkingLevel,
             baseUrl: pool.baseUrl(instance),
+            localRoute: pool.localRoute(instance),
             directory: await ensureDirectory(project.runtime.temporary),
         });
         if (!check.ok) failures++;

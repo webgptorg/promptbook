@@ -820,7 +820,7 @@
     function renderSessionDetail(session) {
         const receiptsOf = (target) => ((state.snapshot && state.snapshot.taskControl && state.snapshot.taskControl.receipts) || []).filter((receipt) => receipt.session === target.handle || (!receipt.session && target.work.kind === 'task' && receipt.source === target.work.source));
         const usage = session.usage && Object.keys(session.usage).length ? Object.entries(session.usage).map(([field, value]) => `${field} ${value}`).join(' · ') : 'unknown for the latest turn';
-        const billing = session.authentication === 'account' ? `native account${session.account ? ` (${session.account})` : ''}, its plan pays` : session.authentication === 'api' ? 'API key, billed through it' : session.authentication === 'none' ? 'no authentication' : 'unknown';
+        const billing = session.authentication === 'account' ? `native account${session.account ? ` (${session.account})` : ''}, its plan pays` : session.authentication === 'api' ? 'API key, billed through it' : session.authentication === 'local' ? 'credential-free local connection, no provider billing for local models' : session.authentication === 'none' ? 'no authentication' : 'unknown';
         const rows = [
             ['Agent', session.agent],
             ['Serves', sessionWorkLabel(session)],
@@ -2298,7 +2298,7 @@
 
     /** Billing mode and certainty of usage totals in words. */
     function billingMix(totals) {
-        return [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : '', totals.coverage.unavailable ? `${totals.coverage.unavailable} without reported usage` : '']
+        return [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.local ? `${totals.billing.local} local (no provider billing)` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : '', totals.coverage.unavailable ? `${totals.coverage.unavailable} without reported usage` : '']
             .filter(Boolean)
             .join(' · ') || 'no runs';
     }

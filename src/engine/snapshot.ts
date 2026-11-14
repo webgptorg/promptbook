@@ -623,7 +623,7 @@ export type BrowserDetailView = {
  */
 export type ToolView = {
     readonly name: string;
-    readonly type: 'BROWSER' | 'HARNESS' | 'COMPUTER_CONTROL';
+    readonly type: 'BROWSER' | 'HARNESS' | 'INFERENCE_RUNTIME' | 'COMPUTER_CONTROL';
     readonly variant: string;
     /** Display name of the adapter (e.g. OpenAI Codex). */
     readonly variantLabel: string;
@@ -645,6 +645,28 @@ export type ToolView = {
     readonly overridden?: boolean;
     /** Non-secret configuration fields (an API key appears only as its `${{ env.NAME }}` reference and source). */
     readonly fields: Readonly<Record<string, string>>;
+    /** Observed host resource of an INFERENCE_RUNTIME item (Local models): service, catalog and dependents. */
+    readonly runtime?: RuntimeToolDetail;
+};
+
+/**
+ * Observed state of a local model runtime for the Local models views (read-only observation, never a setting).
+ *
+ * @private shared status view model
+ */
+export type RuntimeToolDetail = {
+    readonly endpoint: string;
+    readonly endpointSource: 'configured' | 'discovered';
+    /** Served on the engine host (a remote endpoint never satisfies local-only MODEL). */
+    readonly onEngineHost: boolean;
+    readonly running: boolean;
+    readonly version?: string;
+    readonly models: ReadonlyArray<{ readonly id: string; readonly installed: boolean; readonly locality: 'local' | 'cloud' | 'unknown'; readonly loaded?: boolean; readonly sizeBytes?: number; readonly quantization?: string; readonly parameterSize?: string; readonly tools: boolean | 'unknown'; readonly vision: boolean | 'unknown' }>;
+    /** Harness connections of this project that use the runtime. */
+    readonly dependents: readonly string[];
+    /** Host maintenance actions the adapter supports. */
+    readonly actions: readonly string[];
+    readonly checkedAt: string;
 };
 
 /**

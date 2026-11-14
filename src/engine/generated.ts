@@ -133,6 +133,10 @@ export type ExecutionOffer = {
     readonly catalog: 'complete' | 'partial';
     readonly thinkingLevels: readonly ThinkingLevel[];
     readonly defaults: { readonly model?: string; readonly thinkingLevel?: ThinkingLevel };
+    /** Local model runtime of a managed local connection (its own catalog, independent of the hosted one). */
+    readonly inferenceRuntime?: string;
+    /** Models of a local runtime that are cloud-backed or of unknown locality (never satisfy runtime=local). */
+    readonly nonLocalModels?: readonly string[];
 };
 
 /**
@@ -141,11 +145,13 @@ export type ExecutionOffer = {
  * @private generated work
  */
 export async function executionOffers(pool: HarnessPool): Promise<ExecutionOffer[]> {
-    const offers = new Map<string, { variant: HarnessVariant; runtime: string; tools: string[] }>();
+    // One offer per connection catalog: hosted connections of a variant/endpoint share one, every local runtime has its
+    // own (local and hosted routes of the same harness are both offered while healthy).
+    const offers = new Map<string, { variant: HarnessVariant; runtime: string; tools: string[]; inferenceRuntime?: string }>();
     for (const tool of pool.instances()) {
         if (!pool.inspectionOf(tool.name)?.usable) continue;
-        const key = `${tool.variant} ${toolRuntime(tool)}`;
-        const offer = offers.get(key) ?? { variant: tool.variant, runtime: toolRuntime(tool), tools: [] };
+        const key = `${tool.variant} ${toolRuntime(tool)} ${tool.inferenceRuntime ?? ''}`;
+        const offer = offers.get(key) ?? { variant: tool.variant, runtime: toolRuntime(tool), tools: [], ...(tool.inferenceRuntime ? { inferenceRuntime: tool.inferenceRuntime } : {}) };
         offer.tools.push(tool.name);
         offers.set(key, offer);
     }
@@ -155,6 +161,11 @@ export async function executionOffers(pool: HarnessPool): Promise<ExecutionOffer
         const plugin = harnessPlugin(id)!;
         const defaults = await pool.defaults(offer.tools[0]!);
         const catalog = await pool.models(offer.tools[0]!);
+        if (offer.inferenceRuntime) {
+            const nonLocal = catalog.filter((model) => pool.modelLocality(offer.tools[0]!, model) !== 'local');
+            result.push({ ...offer, models: catalog.filter((model) => !nonLocal.includes(model)), catalog: 'complete', thinkingLevels: defaults.thinkingLevel ? plugin.thinkingLevels : [], defaults, ...(nonLocal.length ? { nonLocalModels: nonLocal } : {}) });
+            continue;
+        }
         result.push({ ...offer, models: [...new Set([...(defaults.model ? [defaults.model] : []), ...catalog])], catalog: plugin.modelCatalog, thinkingLevels: plugin.thinkingLevels, defaults });
     }
     return result;
@@ -224,7 +235,7 @@ export async function assignmentPrompt(options: { target: Task; context: Routing
     const offers = await executionOffers(context.pool);
     const offerLines = offers.map(
         (offer) =>
-            `- \`harness=${offer.variant} runtime=${offer.runtime}\` (${harnessName(harnessPluginId(offer.variant))}; tools ${offer.tools.join(', ')}): models ${offer.models.length ? offer.models.slice(0, 30).join(', ') : 'unknown'}${offer.catalog === 'partial' ? ' (examples/aliases; other IDs the harness accepts are allowed)' : ''}; thinking ${offer.thinkingLevels.length ? `${offer.thinkingLevels.join(', ')} (default ${offer.defaults.thinkingLevel})` : 'not applicable (omit it)'}; plugin default model ${offer.defaults.model ?? 'none'}`,
+            `- \`harness=${offer.variant} runtime=${offer.runtime}\` (${harnessName(harnessPluginId(offer.variant))}; tools ${offer.tools.join(', ')}${offer.inferenceRuntime ? `; credential-free local models of the runtime ${offer.inferenceRuntime} on the engine host, no provider billing` : ''}): models ${offer.models.length ? offer.models.slice(0, 30).join(', ') : 'unknown'}${offer.catalog === 'partial' ? ' (examples/aliases; other IDs the harness accepts are allowed)' : ''}${offer.nonLocalModels?.length ? ` (also served there but not local, so never for runtime=local: ${offer.nonLocalModels.slice(0, 10).join(', ')})` : ''}; thinking ${offer.thinkingLevels.length ? `${offer.thinkingLevels.join(', ')} (default ${offer.defaults.thinkingLevel})` : 'not applicable (omit it)'}; ${offer.inferenceRuntime ? 'recommended' : 'plugin default'} model ${offer.defaults.model ?? 'none'}`,
     );
     const agentLines = candidates.map(
         (candidate) =>
@@ -303,13 +314,16 @@ export async function validateAssignment(data: Readonly<Record<string, unknown>>
     if (!refined.harness) return { ok: false, feedback: 'Include `routing.harness` (a harness variant from the offers).' };
     const plugin = harnessPlugin(harnessPluginId(refined.harness))!;
     if (!refined.model) return { ok: false, feedback: `Include \`routing.model\` (a model ${plugin.displayName} offers).` };
-    if (!refined.thinking && plugin.thinkingLevels.length) return { ok: false, feedback: `Include \`routing.thinking\` (one of ${plugin.thinkingLevels.join(', ')}).` };
+    const offers = await executionOffers(context.pool);
+    const servingOffer = offers.find((offer) => offer.variant === refined.harness && (!refined.runtime || refined.runtime === 'default' || offer.runtime === refined.runtime) && offer.models.includes(refined.model!));
+    const thinkingLevels = servingOffer ? servingOffer.thinkingLevels : plugin.thinkingLevels;
+    if (!refined.thinking && thinkingLevels.length) return { ok: false, feedback: `Include \`routing.thinking\` (one of ${thinkingLevels.join(', ')}).` };
     if (!refined.runtime || refined.runtime === 'default') {
-        const tool = context.pool.select(plugin.id, { runtime: refined.runtime });
+        const tool = context.pool.select(plugin.id, { runtime: refined.runtime, model: refined.model });
         if (!tool) return { ok: false, feedback: `No usable ${plugin.displayName} tool serves that endpoint; choose one of the offers.` };
         refined = { ...refined, runtime: toolRuntime(tool) };
     }
-    const offered = (await executionOffers(context.pool)).find((offer) => offer.variant === refined.harness && offer.runtime === refined.runtime);
+    const offered = offers.find((offer) => offer.variant === refined.harness && offer.runtime === refined.runtime && !offer.inferenceRuntime);
     if (plugin.modelCatalog === 'partial' && offered && !offered.models.includes(refined.model!) && !target.routing.model.rows.some((row) => row.model === refined.model) && !agent.model.rows.some((row) => row.model === refined.model)) {
         return { ok: false, feedback: `Model ${refined.model} is not among the models offered for ${plugin.displayName} (${offered.models.join(', ')}); choose one of them.` };
     }

@@ -725,6 +725,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         promptFile,
                         model: selection.model,
                         thinkingLevel: selection.thinkingLevel,
+                        baseUrl: selection.baseUrl,
+                        localRoute: selection.localRoute,
                         readOnly: false,
                         mcp: bridge?.launch(),
                         env: acquiredContext?.env ?? environment.env,
@@ -769,6 +771,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     tool: selection.tool,
                     model: lastResult.model ?? selection.model,
                     authentication: item.route.inspection.authentication,
+                    connection: selection,
                     outcome: lastResult.outcome,
                     attribution: {
                         agent: agent.name,

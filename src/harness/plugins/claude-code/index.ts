@@ -72,6 +72,13 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
         const configuration = { mcpServers: { ptbk: { type: 'stdio', command: request.mcp.command, args: request.mcp.args, env: request.mcp.env } } };
         args.push('--mcp-config', JSON.stringify(configuration));
     }
+    if (request.localRoute) {
+        // Credential-free local connection of this invocation: the runtime's Anthropic-compatible endpoint with its
+        // non-secret compatibility token; the subscription login and any ambient key are never sent there.
+        const env: NodeJS.ProcessEnv = { ...request.env, ANTHROPIC_BASE_URL: request.localRoute.protocolUrl, ANTHROPIC_AUTH_TOKEN: request.localRoute.compatibilityToken, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1' };
+        for (const name of ['ANTHROPIC_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN']) delete env[name];
+        return { args, input: request.prompt, env };
+    }
     return { args, input: request.prompt, env: request.baseUrl ? { ...request.env, ANTHROPIC_BASE_URL: request.baseUrl } : request.env };
 }
 
@@ -96,7 +103,7 @@ export const plugin: HarnessPlugin = {
     defaultModel: 'sonnet',
     defaultThinkingLevel: 'medium',
     modelCatalog: 'partial',
-    endpoints: { official: 'https://api.anthropic.com', custom: true },
+    endpoints: { official: 'https://api.anthropic.com', custom: true, localConnection: { protocol: 'anthropic', runtimes: { OLLAMA: '0.14.0' } } },
     capabilities: { mcp: true, readOnly: true },
     priceList: { providers: [{ catalog: 'anthropic' }] },
     loginArgs: ['auth', 'login'],

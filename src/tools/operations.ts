@@ -11,6 +11,8 @@ import {
     AUTHENTICATION_MODES,
     PROFILE_SOURCES,
     TOOL_TYPES,
+    dependentHarnesses,
+    isEffectivelyEnabled,
     toolTypeLabel,
     variantsOf,
     type HarnessToolRecord,
@@ -41,6 +43,10 @@ export type ToolDraft = {
     readonly accountProfile?: string;
     /** `OFFICIAL`, `LOCAL` or an explicit base URL (`default` or omitted: the official endpoint). */
     readonly baseUrl?: string;
+    /** Name of the INFERENCE_RUNTIME tool of a managed local harness connection. */
+    readonly inferenceRuntime?: string;
+    /** Service URL of an INFERENCE_RUNTIME tool (omitted: the adapter discovers its local service). */
+    readonly endpoint?: string;
 };
 
 /**
@@ -60,6 +66,10 @@ export type ToolChanges = {
     readonly accountProfile?: string | null;
     /** New endpoint; `null` (or `default`) returns to the official endpoint. */
     readonly baseUrl?: string | null;
+    /** New runtime reference; `null` removes it. */
+    readonly inferenceRuntime?: string | null;
+    /** New runtime service URL; `null` returns to discovery. */
+    readonly endpoint?: string | null;
 };
 
 /**
@@ -71,7 +81,9 @@ export type ToolOperation =
     | { readonly kind: 'add'; readonly tool: ToolDraft; readonly before?: string; readonly after?: string }
     | { readonly kind: 'modify'; readonly name: string; readonly changes: ToolChanges; readonly rename?: string }
     | { readonly kind: 'enable' | 'disable' | 'remove'; readonly name: string }
-    | { readonly kind: 'move'; readonly name: string; readonly before?: string; readonly after?: string };
+    | { readonly kind: 'move'; readonly name: string; readonly before?: string; readonly after?: string }
+    /** Several additions saved together in one scoped commit (e.g. a local runtime and its harness connection). */
+    | { readonly kind: 'add-together'; readonly tools: readonly ToolDraft[]; readonly summary: string };
 
 /**
  * Explicit acknowledgements of a consequential operation (each one only waives its own protection).
@@ -152,8 +164,11 @@ export function recordFromDraft(draft: ToolDraft): ToolRecord {
     const name = KEBAB_IDENTIFIER.test(draft.name) ? draft.name : kebabIdentifier(draft.name);
     if (!name) throw invalid(`"${draft.name}" cannot be a tool name.`, 'Use a kebab-case name such as work-browser or codex-company.');
     const raw: Record<string, unknown> = { type, variant, name, ...(draft.description !== undefined ? { description: draft.description } : {}), isEnabled: draft.isEnabled ?? true };
+    const flagName = (field: string): string => `--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`;
+    if (type !== 'HARNESS' && draft.inferenceRuntime !== undefined) throw invalid(`--inference-runtime applies to a HARNESS tool, not a ${toolTypeLabel(type)}.`);
+    if (type !== 'INFERENCE_RUNTIME' && draft.endpoint !== undefined) throw invalid(`--endpoint applies to an INFERENCE_RUNTIME tool; a harness uses --base-url.`);
     if (type === 'BROWSER') {
-        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl'] as const) if (draft[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a BROWSER tool.`);
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl'] as const) if (draft[field] !== undefined) throw invalid(`${flagName(field)} does not apply to a BROWSER tool.`);
         const source = draft.profileSource === undefined ? 'MANAGED_GLOBAL' : matchEnum(draft.profileSource, PROFILE_SOURCES);
         if (!source) throw invalid(`Unknown profile source "${draft.profileSource}".`, `Use one of ${PROFILE_SOURCES.join(', ')}.`);
         raw.profile = { source, ...(draft.profilePath !== undefined ? { path: draft.profilePath } : {}) };
@@ -171,6 +186,10 @@ export function recordFromDraft(draft: ToolDraft): ToolRecord {
         if (draft.accountProfile !== undefined) raw.accountProfile = draft.accountProfile;
         // The default choice is the official endpoint, which needs no saved value; an explicit choice is saved.
         if (draft.baseUrl !== undefined && !/^default$/i.test(draft.baseUrl.trim())) raw.baseUrl = draft.baseUrl;
+        if (draft.inferenceRuntime !== undefined) raw.inferenceRuntime = draft.inferenceRuntime;
+    } else if (type === 'INFERENCE_RUNTIME') {
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (draft[field] !== undefined) throw invalid(`${flagName(field)} does not apply to an INFERENCE_RUNTIME tool.`);
+        if (draft.endpoint !== undefined && !/^default$/i.test(draft.endpoint.trim())) raw.endpoint = draft.endpoint;
     }
     if (type === 'COMPUTER_CONTROL') {
         for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (draft[field] !== undefined) throw invalid(`The ${field} field does not apply to a COMPUTER_CONTROL tool.`);
@@ -191,6 +210,8 @@ function modifiedRecord(record: ToolRecord, changes: ToolChanges, rename?: strin
         if (value !== undefined) draft[key] = value;
     };
     optional('description', changes.description, record.description);
+    if (record.type !== 'HARNESS' && changes.inferenceRuntime !== undefined) throw invalid(`--inference-runtime applies to a HARNESS tool, not a ${toolTypeLabel(record.type)}.`);
+    if (record.type !== 'INFERENCE_RUNTIME' && changes.endpoint !== undefined) throw invalid('--endpoint applies to an INFERENCE_RUNTIME tool; a harness uses --base-url.');
     if (record.type === 'BROWSER') {
         for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl'] as const) if (changes[field] !== undefined) throw invalid(`--${field.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} does not apply to a BROWSER tool.`);
         const source = changes.profileSource ?? record.profile.source;
@@ -206,11 +227,29 @@ function modifiedRecord(record: ToolRecord, changes: ToolChanges, rename?: strin
         optional('apiKeyEnv', changes.apiKeyEnv, parseEnvironmentReference(record.apiKey));
         optional('accountProfile', changes.accountProfile, record.accountProfile);
         optional('baseUrl', changes.baseUrl, record.baseUrl);
+        optional('inferenceRuntime', changes.inferenceRuntime, record.inferenceRuntime);
+    } else if (record.type === 'INFERENCE_RUNTIME') {
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (changes[field] !== undefined) throw invalid(`The ${field} field does not apply to an INFERENCE_RUNTIME tool.`);
+        optional('endpoint', changes.endpoint, record.endpoint);
     }
     if (record.type === 'COMPUTER_CONTROL') {
-        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (changes[field] !== undefined) throw invalid(`The ${field} field does not apply to a COMPUTER_CONTROL tool.`);
+        for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable', 'endpoint'] as const) if (changes[field] !== undefined) throw invalid(`The ${field} field does not apply to a COMPUTER_CONTROL tool.`);
     }
     return recordFromDraft(draft as ToolDraft);
+}
+
+/**
+ * Refuses a new or changed runtime reference that does not resolve to an enabled INFERENCE_RUNTIME record of the same
+ * project, with its concrete cause (never a silent fallback to the official endpoint or another resource).
+ */
+function assertRuntimeReference(tools: readonly ToolRecord[], record: ToolRecord): void {
+    if (record.type !== 'HARNESS' || !record.inferenceRuntime) return;
+    const target = tools.find((tool) => tool.name === record.inferenceRuntime);
+    const runtimes = tools.filter((tool) => tool.type === 'INFERENCE_RUNTIME').map((tool) => tool.name);
+    const next = runtimes.length ? `Local model runtimes: ${runtimes.join(', ')}.` : 'Add one first (`ptbk tool setup-local`, or `ptbk tool add INFERENCE_RUNTIME --variant OLLAMA --name local-ollama`).';
+    if (!target) throw invalid(`No local model runtime is named "${record.inferenceRuntime}".`, next);
+    if (target.type !== 'INFERENCE_RUNTIME') throw invalid(`"${record.inferenceRuntime}" is a ${toolTypeLabel(target.type)} tool, not a local model runtime.`, next);
+    if (!target.isEnabled) throw invalid(`The local model runtime "${record.inferenceRuntime}" is disabled.`, `Enable it first: ptbk tool enable ${record.inferenceRuntime}`);
 }
 
 /**
@@ -244,9 +283,22 @@ export function planToolOperation(rawTools: readonly unknown[], operation: ToolO
         case 'add': {
             const record = recordFromDraft(operation.tool);
             if (indexOf(record.name) >= 0 || parsed.tools.some((tool) => tool.name === record.name)) throw new PtbkError(`A tool named "${record.name}" already exists.`, { kind: 'conflict', effect: 'Nothing was changed.', next: ['Choose another name, or change the existing tool with `ptbk tool modify`.'] });
+            assertRuntimeReference(parsed.tools, record);
             const at = position(record.name, operation.before, operation.after);
             tools.splice(at, 0, serializeTool(record));
             return { tools, summary: `Add ${toolTypeLabel(record.type)} tool ${record.name}`, name: record.name, type: record.type, after: record, noop: false };
+        }
+        case 'add-together': {
+            if (!operation.tools.length) throw invalid('Nothing to add.');
+            let current: unknown[] = tools;
+            const added: ToolRecord[] = [];
+            for (const draft of operation.tools) {
+                const step = planToolOperation(current, { kind: 'add', tool: draft });
+                current = step.tools;
+                added.push(step.after!);
+            }
+            const last = added[added.length - 1]!;
+            return { tools: current, summary: operation.summary, name: last.name, type: last.type, after: last, noop: false };
         }
         case 'modify': {
             const record = recordOf(operation.name);
@@ -254,10 +306,19 @@ export function planToolOperation(rawTools: readonly unknown[], operation: ToolO
             if (operation.rename && !rename && operation.rename !== record.name) throw invalid(`"${operation.rename}" cannot be a tool name.`);
             if (rename && (indexOf(rename) >= 0 || parsed.tools.some((tool) => tool.name === rename))) throw new PtbkError(`A tool named "${rename}" already exists.`, { kind: 'conflict', effect: 'Nothing was changed.' });
             const next = modifiedRecord(record, operation.changes, rename);
+            if (next.type === 'HARNESS' && record.type === 'HARNESS' && next.inferenceRuntime !== record.inferenceRuntime) assertRuntimeReference(parsed.tools, next);
             const index = indexOf(record.name);
             const serialized = serializeTool(next, tools[index] as Record<string, unknown>);
-            const noop = JSON.stringify(serialized) === JSON.stringify(tools[index]);
+            let noop = JSON.stringify(serialized) === JSON.stringify(tools[index]);
             tools[index] = serialized;
+            // Renaming a runtime updates its dependent harness references in the same atomic change.
+            if (rename && record.type === 'INFERENCE_RUNTIME') {
+                for (const dependent of dependentHarnesses(parsed.tools, record.name)) {
+                    const at = indexOf(dependent.name);
+                    tools[at] = serializeTool({ ...dependent, inferenceRuntime: rename }, tools[at] as Record<string, unknown>);
+                    noop = false;
+                }
+            }
             return { tools, summary: rename ? `Rename tool ${record.name} to ${rename}` : `Modify tool ${record.name}`, name: record.name, type: record.type, before: record, after: next, noop };
         }
         case 'enable':
@@ -306,24 +367,33 @@ function requirements(plan: Plan, operation: ToolOperation, tools: readonly Tool
     const command = commandOf(operation);
     const affectsUse = operation.kind === 'modify' || operation.kind === 'disable' || operation.kind === 'remove';
     const immediateDesktopRevocation = plan.type === 'COMPUTER_CONTROL' && (operation.kind === 'disable' || operation.kind === 'remove');
-    if (!immediateDesktopRevocation && affectsUse && inUse.has(plan.name) && !acknowledgements.force) {
+    // A runtime is part of the acquired context of every in-use harness connection that references it.
+    const usingDependents = plan.type === 'INFERENCE_RUNTIME' ? dependentHarnesses(tools, plan.name).filter((tool) => inUse.has(tool.name)).map((tool) => tool.name) : [];
+    if (!immediateDesktopRevocation && affectsUse && (inUse.has(plan.name) || usingDependents.length) && !acknowledgements.force) {
         found.push({
             kind: 'in-use',
-            message: `The tool "${plan.name}" is in use by active work.`,
+            message: usingDependents.length && !inUse.has(plan.name) ? `The local model runtime "${plan.name}" is in use by active work through ${usingDependents.join(', ')}.` : `The tool "${plan.name}" is in use by active work.`,
             alternatives: [
                 `${command} --force    # save now; the work that already acquired the tool finishes with its original configuration (not a kill)`,
                 `ptbk stop --force    # stop the whole engine; after it has stopped, repeat: ${command}`,
             ],
         });
     }
-    const enabledBefore = tools.filter((tool) => tool.type === plan.type && tool.isEnabled).length;
+    // Baseline types are browsers and harnesses; a harness counts only while its runtime reference (if any) resolves.
+    // Runtimes and computer control are optional: losing one matters only when it takes the last usable harness.
     const parsedAfter = parseTools(plan.tools).tools;
-    const enabledAfter = parsedAfter.filter((tool) => tool.type === plan.type && tool.isEnabled).length;
-    if (plan.type !== 'COMPUTER_CONTROL' && (operation.kind === 'disable' || operation.kind === 'remove') && enabledBefore > 0 && enabledAfter === 0 && !acknowledgements.confirmLastOfType) {
-        const label = toolTypeLabel(plan.type);
+    const baselineType = plan.type === 'INFERENCE_RUNTIME' ? 'HARNESS' : plan.type;
+    const enabledBefore = tools.filter((tool) => tool.type === baselineType && isEffectivelyEnabled(tools, tool)).length;
+    const enabledAfter = parsedAfter.filter((tool) => tool.type === baselineType && isEffectivelyEnabled(parsedAfter, tool)).length;
+    if (baselineType !== 'COMPUTER_CONTROL' && (operation.kind === 'disable' || operation.kind === 'remove') && enabledBefore > 0 && enabledAfter === 0 && !acknowledgements.confirmLastOfType) {
+        const label = toolTypeLabel(baselineType);
+        const dependents = plan.type === 'INFERENCE_RUNTIME' ? dependentHarnesses(tools, plan.name).filter((tool) => tool.isEnabled).map((tool) => tool.name) : [];
         found.push({
             kind: 'last-of-type',
-            message: `"${plan.name}" is the last enabled ${label}. The engine keeps running, but cannot start ordinary new work until another ${label} is enabled or added.`,
+            message:
+                plan.type === 'INFERENCE_RUNTIME'
+                    ? `Without the local model runtime "${plan.name}", no enabled harness remains usable (${dependents.join(', ')} depend on it). The engine keeps running, but cannot start ordinary new work until another harness is enabled or added. The runtime software and its models stay installed.`
+                    : `"${plan.name}" is the last enabled ${label}. The engine keeps running, but cannot start ordinary new work until another ${label} is enabled or added.`,
             alternatives: [`${command} --yes    # confirm`],
         });
     }
@@ -339,6 +409,8 @@ export function commandOf(operation: ToolOperation): string {
     switch (operation.kind) {
         case 'add':
             return `ptbk tool add ${operation.tool.type} --variant ${operation.tool.variant} --name ${operation.tool.name}`;
+        case 'add-together':
+            return `ptbk tool setup-local (${operation.tools.map((tool) => tool.name).join(', ')})`;
         case 'modify':
             return `ptbk tool modify ${operation.name}${operation.rename ? ` --rename ${operation.rename}` : ''} …`;
         case 'move':
@@ -417,6 +489,15 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
         if (needed.length) return { status: 'needs-acknowledgement', summary: needed.map((requirement) => requirement.message).join(' '), requirements: needed } satisfies ToolOperationOutcome;
         const notes: string[] = [];
         if (plan.type === 'COMPUTER_CONTROL' && (request.operation.kind === 'disable' || request.operation.kind === 'remove')) notes.push('Computer control stops immediately, including observation; acquired work does not retain desktop access.');
+        if (plan.type === 'INFERENCE_RUNTIME' && (request.operation.kind === 'disable' || request.operation.kind === 'remove')) {
+            const dependents = dependentHarnesses(before, plan.name).map((tool) => tool.name);
+            notes.push(`Only this project's reference changes: the ${plan.before?.variant === 'LM_STUDIO' ? 'LM Studio' : 'Ollama'} service and its downloaded models stay installed for other projects.`);
+            if (dependents.length) notes.push(`${dependents.join(', ')} ${dependents.length === 1 ? 'is' : 'are'} unavailable for new work until ${request.operation.kind === 'remove' ? 'rebound to another runtime' : 'the runtime is enabled again'} (never reconnected implicitly).`);
+        }
+        if (plan.type === 'INFERENCE_RUNTIME' && request.operation.kind === 'modify' && request.operation.rename && request.operation.rename !== plan.name) {
+            const dependents = dependentHarnesses(before, plan.name).map((tool) => tool.name);
+            if (dependents.length) notes.push(`Updated the runtime reference of ${dependents.join(', ')}.`);
+        }
         const files: Array<{ path: string; content: string; working: string }> = [];
         // A supplied secret goes only to the ignored local .env (timestamped, non-destructive).
         const envChanges: DotEnvChange[] = [];
