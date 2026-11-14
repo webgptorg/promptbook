@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { which } from '../common/process.js';
 import { redact } from '../common/redact.js';
 import { HarnessPool } from '../engine/harnesses.js';
-import { functionalCheck, localCapabilityChecks, type CapabilityCheck, type FunctionalCheck } from '../harness/preparation.js';
+import { functionalCheck, localCapabilityChecks, type CapabilityCheck, type FunctionalCheck, type PreparatoryCall } from '../harness/preparation.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../harness/registry.js';
 import { resolveSettings } from '../project/config.js';
 import { harnessPluginId, runtimeVariantLabel, type HarnessToolRecord, type HarnessVariant, type InferenceRuntimeToolRecord, type InferenceRuntimeVariant, type ToolRecord } from '../tools/model.js';
@@ -313,7 +313,32 @@ export async function prepareLocalSetup(
 }
 
 /**
- * Functional and bounded capability checks of the planned connection through a disposable non-project pool, with the
+ * The preparatory call of a planned local connection: the exact environment, provider and local route ordinary work
+ * uses, through a pool of only the planned records (no project file is read or written). Undefined while the connection
+ * is not usable (its inspection says why).
+ *
+ * @private local model setup
+ */
+export async function localPreparatoryCall(env: NodeJS.ProcessEnv, plan: LocalSetupPlan, directory: string, options: { readonly signal?: AbortSignal } = {}): Promise<{ readonly call?: PreparatoryCall; readonly summary: string }> {
+    const tools = [
+        { type: 'INFERENCE_RUNTIME', variant: plan.runtime, name: plan.names.runtime, ...(plan.endpoint ? { endpoint: plan.endpoint } : {}) },
+        { type: 'HARNESS', variant: plan.harness, name: plan.names.connection, authentication: 'NONE', baseUrl: 'LOCAL', inferenceRuntime: plan.names.runtime },
+    ];
+    const pool = new HarnessPool(directory, resolveSettings({ file: { tools } }), env);
+    await pool.refresh();
+    const tool = pool.instance(plan.names.connection)!;
+    const inspection = pool.inspectionOf(tool.name);
+    const localRoute = pool.localRoute(tool, plan.model);
+    if (!inspection?.usable || !localRoute) return { summary: inspection?.summary ?? 'The local connection could not be inspected.' };
+    const thinkingLevel = plan.combination?.defaultThinkingLevel;
+    return {
+        call: { plugin: pool.plugin(tool.name)!, inspection, env: pool.context(tool.name).env, ...(plan.model ? { model: plan.model } : {}), ...(thinkingLevel ? { thinkingLevel } : {}), localRoute, ...(options.signal ? { signal: options.signal } : {}), timeoutMs: 10 * 60_000 },
+        summary: inspection.summary,
+    };
+}
+
+/**
+ * Functional and bounded capability checks of the planned connection in a disposable non-project directory, with the
  * exact environment, provider and route ordinary work uses.
  *
  * @private local model setup
@@ -321,17 +346,8 @@ export async function prepareLocalSetup(
 export async function verifyLocalConnection(env: NodeJS.ProcessEnv, plan: LocalSetupPlan, options: { readonly signal?: AbortSignal; readonly extendedChecks?: boolean } = {}): Promise<{ readonly check: FunctionalCheck; readonly capabilities: readonly CapabilityCheck[] }> {
     const directory = await mkdtemp(join(tmpdir(), 'ptbk-local-setup-'));
     try {
-        const tools = [
-            { type: 'INFERENCE_RUNTIME', variant: plan.runtime, name: plan.names.runtime, ...(plan.endpoint ? { endpoint: plan.endpoint } : {}) },
-            { type: 'HARNESS', variant: plan.harness, name: plan.names.connection, authentication: 'NONE', baseUrl: 'LOCAL', inferenceRuntime: plan.names.runtime },
-        ];
-        const pool = new HarnessPool(directory, resolveSettings({ file: { tools } }), env);
-        await pool.refresh();
-        const tool = pool.instance(plan.names.connection)!;
-        const inspection = pool.inspectionOf(tool.name);
-        const plugin = pool.plugin(tool.name)!;
-        if (!inspection?.usable) return { check: { ok: false, summary: inspection?.summary ?? 'The connection could not be inspected.', durationMs: 0 }, capabilities: [] };
-        const call = { plugin, inspection, env: pool.context(tool.name).env, ...(plan.model ? { model: plan.model } : {}), localRoute: pool.localRoute(tool, plan.model)!, ...(options.signal ? { signal: options.signal } : {}), timeoutMs: 10 * 60_000 };
+        const { call, summary } = await localPreparatoryCall(env, plan, directory, options);
+        if (!call) return { check: { ok: false, summary, durationMs: 0 }, capabilities: [] };
         const check = await functionalCheck(call);
         const capabilities = check.ok && options.extendedChecks !== false ? await localCapabilityChecks(call) : [];
         return { check, capabilities };

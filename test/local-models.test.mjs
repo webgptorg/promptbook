@@ -16,7 +16,7 @@ import { ollamaAdapter } from '../dist/inference/ollama.js';
 import { resolveSettings } from '../dist/project/config.js';
 import { parseTools } from '../dist/tools/normalize.js';
 import { planToolOperation } from '../dist/tools/operations.js';
-import { fakeHarness, git, initializedProject, ptbk, temporaryDirectory } from './helpers.mjs';
+import { fakeHarness, git, initializedProject, initRepository, ptbk, temporaryDirectory } from './helpers.mjs';
 
 /** A downloaded local model as Ollama lists it. */
 const LOCAL_MODEL = { name: 'gpt-oss:20b', model: 'gpt-oss:20b', size: 13_780_173_839, digest: 'aa4295ac10c3afb60e6d711289fc6896f5aef82258997b9efdaed6d0cc4cd8b8', details: { family: 'gptoss', parameter_size: '20.9B', quantization_level: 'MXFP4' } };
@@ -311,4 +311,25 @@ test('local models: `ptbk tool setup-local` prepares, verifies and saves the run
     assert.equal(update.code, 3);
     assert.match(update.output, /does not update the shared Ollama installation/);
     assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore + 1, 'host maintenance never commits');
+});
+
+test('local models: a local-only init checks and names through the local route, bootstraps Router with runtime=local and adds no hosted route', async (t) => {
+    const directory = await temporaryDirectory(t);
+    const { env } = await fakeHarness(t, directory);
+    const ollama = await fakeOllama(t, { models: [LOCAL_MODEL] });
+    const project = join(directory, 'local project');
+    await initRepository(project);
+    const log = join(directory, 'preparation.log');
+    const init = await ptbk(['init', '--path', project, '--non-interactive', '--installation', 'global', '--harness', 'local-models', '--local-runtime', 'ollama', '--local-endpoint', ollama.url, '--no-start', '--intent', 'NAME_ME:Local Herbarium', '--raw'], { cwd: directory, env: { ...env, FAKE_CODEX_PREPARATION_LOG: log } });
+    assert.equal(init.code, 0, init.output);
+    assert.match(init.stdout, /Local models: codex-local answered through Ollama with gpt-oss:20b/);
+    const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
+    const harnesses = config.tools.filter((tool) => tool.type === 'HARNESS');
+    assert.deepEqual(harnesses.map((tool) => [tool.name, tool.authentication, tool.inferenceRuntime]), [['codex-local', 'NONE', 'local-ollama']], 'only the credential-free local connection: no hosted Codex route is reinserted');
+    assert.ok(config.tools.some((tool) => tool.type === 'INFERENCE_RUNTIME' && tool.name === 'local-ollama' && tool.endpoint === ollama.url));
+    const router = await readFile(join(project, 'agents', '.core', 'router.book'), 'utf8');
+    assert.match(router, /^MODEL harness=OPENAI_CODEX model=gpt-oss:20b thinking=medium runtime=local$/m, 'Router bootstraps on the prepared local model');
+    const calls = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
+    assert.ok(calls.length >= 2 && calls.every((call) => call.config.model_provider === '"ptbk_local"'), 'every preparatory call (check, capability checks, naming) used the local route');
+    assert.ok(calls.some((call) => call.kind === 'name'), 'the project was named through the local route');
 });
