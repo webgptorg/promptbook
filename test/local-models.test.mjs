@@ -279,6 +279,17 @@ test('local models: `ptbk tool setup-local` prepares, verifies and saves the run
     assert.equal(JSON.parse(refused.stdout).status, 'needs-consent', 'a download is never started without consent');
     assert.ok(!ollama.state.requests.some((request) => request.path === '/api/pull'));
 
+    const configBefore = await readFile(join(project, 'ptbk.json'), 'utf8');
+    const textOnly = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--yes', '--json'], { cwd: project, env: { ...env, FAKE_CODEX_NO_TOOLS: '1' } });
+    assert.equal(textOnly.code, 1, textOnly.output);
+    const notReady = JSON.parse(textOnly.stdout);
+    assert.equal(notReady.status, 'failed', 'a model that answers text but cannot use tools is not ready for agent work');
+    assert.equal(notReady.check.ok, true);
+    assert.match(notReady.summary, /scratch-file/);
+    assert.equal(notReady.saved, undefined);
+    assert.equal(await readFile(join(project, 'ptbk.json'), 'utf8'), configBefore, 'nothing is saved for an incomplete local setup');
+    assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore);
+
     const setup = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--yes', '--json'], { cwd: project, env });
     assert.equal(setup.code, 0, setup.output);
     const outcome = JSON.parse(setup.stdout);

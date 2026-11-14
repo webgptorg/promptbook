@@ -246,6 +246,12 @@ async function install(installation: RuntimeInstallation, env: NodeJS.ProcessEnv
 }
 
 /**
+ * Capability checks whose failure means the connection is not ready for agent work: tasks need tool calls and chats
+ * and consultations need an enforceable read-only mode (a failed continuation is reported but does not block).
+ */
+const READINESS_CAPABILITIES: readonly string[] = ['scratch-file', 'read-only'];
+
+/**
  * Prepares (install, start, download/reuse) and verifies an accepted plan on the engine host. The accepted choice
  * authorizes exactly its stated prerequisites. Host prerequisites already completed are reported and never rolled
  * back; the records to save are returned only when a real response through the local route proved the connection.
@@ -294,6 +300,13 @@ export async function prepareLocalSetup(
         progress({ stage: 'verifying', message: `Checking ${plan.model} through ${harnessPlugin(harnessPluginId(plan.harness))?.displayName ?? plan.harness}…` });
         const verification = await verifyLocalConnection(env, plan, { ...(options.signal ? { signal: options.signal } : {}), ...(options.extendedChecks === false ? { extendedChecks: false } : {}) });
         if (!verification.check.ok) return result('failed', `The local connection did not answer a real request: ${verification.check.summary}`, { check: verification.check, capabilities: verification.capabilities, pending: ['Fix the cause above and run the setup again; prepared prerequisites are reused.'] });
+        const blocking = verification.capabilities.filter((capability) => capability.outcome === 'failed' && READINESS_CAPABILITIES.includes(capability.name));
+        if (blocking.length)
+            return result('failed', `${plan.model} answered through ${adapter.displayName}, but it is not ready for agent work: ${blocking.map((capability) => `${capability.name} — ${capability.summary}`).join('; ')}`, {
+                check: verification.check,
+                capabilities: verification.capabilities,
+                pending: [`Choose another model or harness (nothing was saved; prepared prerequisites are reused): ptbk tool setup-local --model <model>.`],
+            });
         const operation: ToolOperation | undefined = plan.drafts.length ? { kind: 'add-together', tools: plan.drafts, summary: `Add local models (${plan.model} on ${adapter.displayName})` } : undefined;
         const failed = verification.capabilities.filter((capability) => capability.outcome === 'failed');
         progress({ stage: 'ready', message: `${plan.names.connection} is ready with ${plan.model}.` });
@@ -303,6 +316,7 @@ export async function prepareLocalSetup(
             ...(operation ? { operation } : {}),
             pending: [
                 ...failed.map((capability) => `${capability.name}: ${capability.summary}`),
+                ...(options.extendedChecks === false ? ['Only a real answer was checked (--quick): tool use, read-only enforcement and continuation are not verified yet.'] : []),
                 `To keep agents on local models, add runtime=local to their MODEL (for example: harness=${plan.harness} model=${plan.model} runtime=local).`,
             ],
         });
