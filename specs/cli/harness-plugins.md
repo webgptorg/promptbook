@@ -26,6 +26,8 @@ Readiness and variant-specific parsing feed the shared tool domain layer. Init, 
 
 Default integration catalogs show a small curated featured set, initially OpenAI Codex and Claude Code, plus **More**. All other supported variants remain reachable through bounded/searchable navigation even with hundreds of adapters. Default entries show names, not model/configuration dumps; reveal details on request and preserve selections.
 
+The simple setup picker additionally offers **Local models** as a separate resource category, not a harness plugin variant or a request for cloud login. It composes a runtime adapter with an existing verified harness integration under [shared local setup](local-models-setup.md).
+
 Featured status is presentation, not installation, enablement or paid-use authorization. The configured-tool inventory is different from the adapter catalog: it must distinguish several named instances of the same variant, their order, enabled state, availability and current uses. An active nonfeatured variant remains visible. See [harnesses](harnesses.md), [updates](harness-updates.md), [tool management](tool-management.md) and [help](help.md).
 
 ## Usage and current price lists
@@ -37,6 +39,8 @@ Each adapter can retrieve its current price list and retain independent timestam
 ## Real functional check
 
 Every harness adapter supplies a minimal actual request/response check through the shared setup contract. Executable discovery, version parsing and native-auth status alone are not proof of usable inference. Run with the selected instance's real service-user authentication and supported noninteractive execution/runtime/sandbox setup so relevant execution failures are detected, not hidden by a different test path. Return verified response/success or a concrete redacted cause, plus honest available usage.
+
+For advertised complete local setup, additionally verify the bounded disposable tool/MCP/read-only/session path in [local setup verification](local-models-setup.md#bounded-functional-verification). A PONG-only test cannot establish chat, TEAM or task capability. These checks use the selected local route and no cloud login; they are preparatory fixture checks, not inline execution of the new project's bootstrap task.
 
 Initialization tests every selected harness; at least one must pass, additional failures remain visible without blocking a working selection. Zero passes returns to harness configuration. The check and later project-name generation are separate preparatory calls outside a not-yet-created project, with accepted small usage excluded from project totals under [init](initialization.md#draft-confirmation-and-project-creation). Use a temporary non-project context without creating/touching the destination. Reuse this adapter operation in supported setup/test entry points, not provider-specific initializer copies.
 

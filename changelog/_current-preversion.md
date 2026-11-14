@@ -4,6 +4,8 @@
 
 - Specification only: extend MODEL/Router, TEAM, session recovery and usage rules for mixed local/hosted execution. Keep hard local restrictions, independent catalogs and session bindings, and release safe local inference capacity for nested consultations.
 
+- Specification only: add one Local models init/later-management journey, starting with automatic Ollama/Codex and existing LM Studio connections. Define hardware-aware recommendations, recoverable downloads, cloud-free bootstrap, shared-scope maintenance and LM01–LM14 acceptance scenarios; runtime code and release versions are unchanged.
+
 - Separate website-owned advisory license coverage from engine security and execution. Add content-free local commercial usage diagnostics without changing the signed heartbeat v1 contract; unknown controlling-user usage stays unknown. Document account handoff, heterogeneous grants and community-seat separation.
 
 - Keep active desktop interruption polling alive until the requested operation settles, including on Node 22. Retry transient Windows sharing failures while reading coordination tickets without ever treating an unreadable owner as absent; persistent failures remain closed.

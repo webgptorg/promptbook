@@ -6,9 +6,11 @@ Follow **Don't Repeat Yourself** for behavior, not merely for duplicated text. I
 
 ## One typed contract
 
-Use the same domain types, objects, validation rules and operations behind every entry point. In TypeScript, tool records form a typed discriminated contract: `type` selects BROWSER or HARNESS and `variant` selects the variant-specific configuration. Invalid combinations are not represented as unrelated bags of optional properties. Extending a variant must not require copying its business rules into three interfaces.
+Use the same domain types, objects, validation rules and operations behind every entry point. In TypeScript, tool records form a typed discriminated contract: `type` selects BROWSER, HARNESS, INFERENCE_RUNTIME or COMPUTER_CONTROL and `variant` selects the variant-specific configuration. Invalid combinations are not represented as unrelated bags of optional properties. Extending a variant must not require copying its business rules into three interfaces.
 
 The shared operations own canonicalization, uniqueness and reference checks, defaults, last-enabled-tool confirmation, in-use checks, configuration persistence, non-destructive environment-file edits, operation-scoped Git commits and notification of the running engine. A client gathers input and displays the shared result; it does not independently manipulate configuration, secrets, browser processes or Git. Browser and harness adapters may have different internals behind this common external tool model.
+
+The [Local models setup](../cli/local-models-setup.md) composes runtime and harness operations in one shared state machine. Runtime installation/discovery, model catalogs/downloads, capacity/ownership and maintenance stay in engine/domain adapters, never copied into init, CLI commands or a graphical installer. Project reference edits and host resource effects keep their distinct persistence/lifetime boundaries under [inference runtimes](../cli/inference-runtimes.md).
 
 Init calls these same operations in its bounded setup transaction, with simple generated names/defaults instead of exposing every advanced option. It may group setup writes in the setup commit; do not create an extra worker or a second tool implementation. CLI and dashboard use the same operations for later incremental changes. Different confirmation presentation is allowed, different domain semantics are not.
 

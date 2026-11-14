@@ -63,6 +63,8 @@ The editor buffers drafts locally and saves through engine operations with revis
 
 With no known projects, opening the application starts the first-project wizard. New project invokes the same intent-first initialization state machine and domain operations as `ptbk init`, with clickable choices, text fields and file attachments. There is no second initializer or project format. The CLI keeps its terminal presentation. Shared prompts may expose a private authenticated presentation transport; options, validation, Back, cancellation, review, deferred writes, login verification, Git, setup commits and the single background start remain owned by normal init.
 
+The same multi-selection includes **Local models**, alone or with hosted harnesses; later Tools → Local models reuses [the shared setup/management flow](local-models-setup.md). Runtime installation, model downloads and readiness are engine operations and remain fully usable from the CLI without Electron or a runtime GUI. Display progress/limitations and real engine-host scope without duplicating installer/provider logic in the renderer.
+
 Native sign-in and any terminal-only interactions remain available in the embedded terminal without restarting the wizard. Switching presentation must not submit an answer, lose a draft or duplicate initialization. Cancel is the normal init cancellation, not an engine stop. Show incomplete/failed setup truthfully and keep its diagnostics/retry path. On successful completion, attach the graphical dashboard to the exact project reported by the shared initializer; never infer it from another concurrently registered project or start another engine.
 
 ## Installation and isolation

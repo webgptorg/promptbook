@@ -4,6 +4,8 @@
 
 Initialization, CLI commands and dashboard management use one implementation of tool operations, types, validation, environment editing and persistence. Init keeps the simple browser/harness setup and adds the enabled native desktop tool by default, with sensible instance names and no additional required choice. Later management exposes the full registry without requiring reinitialization or engine restart.
 
+The simple **Add local models** operation prepares runtime/model/harness prerequisites through the same [local setup](local-models-setup.md) used by init. It saves named runtime/harness connections together without modifying native subscription routes or agent Books. Advanced resource edits remain available through ordinary typed tool operations.
+
 ## Command surface
 
 Use `ptbk tool` as a project-scoped command family, with discoverable scoped help and remote-like named-item ergonomics:
@@ -18,6 +20,8 @@ Use `ptbk tool` as a project-scoped command family, with discoverable scoped hel
 | `ptbk tool disable <name>` | Persist `isEnabled: false`, retaining configuration and credentials. |
 | `ptbk tool remove <name>` | Remove the configuration record, with conservative credential-retirement rules. `delete` is an equivalent explicit destructive label/alias. |
 | `ptbk tool move <name> --before <other>` or `--after <other>` | Persist ordering without recreating credentials or changing identity. |
+| `ptbk tool setup-local` | Shared guided local setup, adding/reusing the runtime and compatible credential-free harness connection. |
+| `ptbk tool runtime <name> <action>` | Runtime-scoped inspection/model/service management, with the actual shared-host scope described below. |
 
 Examples:
 
@@ -33,6 +37,8 @@ ptbk tool enable company-api
 
 `--profile-path` supplies a CUSTOM path. `--account-profile` selects an adapter-supported native context. `--api-key-env NAME` writes the canonical `${{ env.NAME }}` reference, not the key. Supplying a new key uses concealed input or explicit `--api-key-stdin` with the same safe `.env` editor; never accept a literal secret as an ordinary argv option. Enum flag input is tolerant but saved values are canonical. Do not silently ignore unsupported type/variant options.
 
+Advanced local setup accepts a runtime `--endpoint` on an `INFERENCE_RUNTIME` record and `--inference-runtime <name>`, `--base-url LOCAL`, `--authentication NONE` on a compatible harness record. The guided path generates these associations; users need not type them. Validate references and preserve them atomically on rename. A bare record-add does not claim software/model installation or tested readiness.
+
 Browser runtime restart/kill/test-GitHub-tab actions are defined separately in [browser controls](browser.md). They affect the actual shared profile pool, not configuration removal, and show their all-connected-engine scope.
 
 ## Saved operations and confirmations
@@ -43,6 +49,8 @@ Enable and disable are primary actions in all interfaces. Permanent removal is v
 
 Disabling/removing the **last enabled browser or harness instance** requires a specific confirmation explaining that the engine can remain running but cannot effectively start ordinary new work until another browser/harness is enabled or added. Recompute counts when applying the operation. An interactive management view asks; a noninteractive CLI reports the warning and requires explicit `--yes` acceptance. This confirmation is separate from acknowledging in-use work. It must not technically stop or pause the service, and it must not be auto-undone by Fixer.
 
+Apply the equivalent warning when disabling/removing a runtime reference would make the last otherwise usable harness unavailable. Show affected dependent connections and check the actual remaining eligible routes, rather than treating INFERENCE_RUNTIME as a mandatory baseline type for hosted-only projects. Removing the last optional runtime with a working hosted route does not claim the whole engine loses its harness. Reference removal never cascades into deleting dependent harness configuration, models or a shared service.
+
 ## Tool currently in use
 
 For browser/harness tools, if modify/disable/remove affects a tool held by active work, CLI rejects the operation without writes unless `--force` (alias `-F`) is supplied. It prints two concrete alternatives:
@@ -51,6 +59,14 @@ For browser/harness tools, if modify/disable/remove affects a tool held by activ
 2. Run the separate **`ptbk stop --force`** (or `-F`) to stop the entire engine, then repeat the original tool command without `--force` after confirmed termination. Stop itself neither changes nor removes tools.
 
 There is no `--force-stop` flag on tool commands. Dashboard confirmation offers the same meanings: save while current work finishes, or invoke the existing global service force-stop control. After stopping, apply/reconfirm the intended configuration operation separately and recheck that it is no longer in use. Never disguise stopping the whole service as deleting one tool. If both last-of-type and in-use protections apply, both acknowledgements are required; `--yes` does not imply `--force`, and `--force` does not waive the last-of-type warning.
+
+## Local runtime and model operations
+
+`ptbk tool runtime <name> status` and `models` inspect the named runtime and its catalog without inference or mutation. Adapter-supported `download <model-id>`, `load <model-id>`, `unload <model-id>`, `remove-model <model-id>`, `start`, `stop`, `restart`, `update` and `uninstall` operate the actual shared host resource. Expose only supported actions in scoped help and report unsupported ones honestly. Noninteractive setup supplies runtime/model/download choices equivalent to the guided journey; it does not require an interactive installer or hidden consent.
+
+Use the [shared runtime lifecycle/capacity rules](inference-runtimes.md#shared-capacity-and-lifecycle), revalidate consumers at execution and distinguish project enablement from service/model state. In-use changes to a project reference follow the retained-use acknowledgement; disabling/removing it never stops the service or deletes weights. Destructive model removal/uninstall identifies the actual host target and requires its explicit destructive acknowledgement (`--yes` noninteractively), without bypassing ownership or active-use refusal. Restart/update/unload cannot disrupt another active consumer merely because the requesting project's tool command has `--force`.
+
+Host-only lifecycle, weights and download operations create no project Git commit; saved tool/Book changes retain their separate mandatory scoped persistence. Report accepted/running/completed/failed/cancelled and remaining partial preparation honestly. Reference rename updates dependent harness references atomically; removal preserves dependent records with useful unavailable diagnostics, never implicit cascade or global uninstallation.
 
 ## Immediately revocable Computer Control
 

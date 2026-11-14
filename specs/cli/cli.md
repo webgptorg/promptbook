@@ -21,7 +21,7 @@ The root command is `ptbk`. Bare interactive invocation offers the context-depen
 | `connect` | Link the project to the Promptbook App with `--link <code>`, or print its [App connection](../app/connection.md) status (`--json`). |
 | `disconnect` | Stop the project's App connection on this computer and forget the link, keeping the engine identity. |
 | `keep-awake` | Show or change the project's [Keep awake](power-management.md) choice (`off`, `limited`, `always`, `--closed-lid`) through the same engine operation as System → Power; on macOS, `--install-helper`/`--remove-helper` manage the closed-lid helper with local administrator approval. |
-| `tool` | Named tool list/show/add/modify/move/enable/disable/remove using shared saved management. See [tool commands](tool-management.md). |
+| `tool` | Named tool list/show/add/modify/move/enable/disable/remove, simple `setup-local` and runtime/model operations through shared management. See [tool commands](tool-management.md). |
 | `chat` | New Chatter-first persistent conversation or explicit existing thread, without a dashboard requirement. |
 | `ask` | Compatibility/quick submission or enquiry using the same chat/task model. |
 | `answer` | Select a waiting chat and append a human reply. |

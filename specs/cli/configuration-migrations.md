@@ -64,3 +64,9 @@ The ordinary coordinator advances `promptbookVersion` with the complete pass. Th
 Fill absent `traces.isVideoRecordingEnabled` with false and absent `traces.isVideoIgnored` with true, preserving explicit existing values. Optional desktop recording independently inherits `computer.isRecordingEnabled: false`; introducing the tool does not silently opt into recordings. New browser recordings use ignored local storage regardless of the legacy Git video preference. See [trace policy](trace-configuration.md) and [Computer Control](computer-control.md).
 
 Acceptance covers an existing enabled/disabled record, a name collision, interruption before version stamping, malformed `tools`, explicit recording choices, and deletion followed by reinit/startup without resurrection.
+
+## Local inference compatibility
+
+The `INFERENCE_RUNTIME`, harness `inferenceRuntime` reference and `authentication: NONE` expansion follows this same coordinator when implemented; its release target is assigned with that implementation. It does not automatically opt existing projects into local setup. Preserve explicit endpoint/authentication choices, native logins, disabled records, names/order and every agent/task/chat MODEL. A legacy LOCAL endpoint without an unambiguous saved runtime association remains preserved with an actionable binding diagnostic; a deterministic migration cannot discover/guess a runtime, change billing mode, install software or download weights. Adding local support is the explicit [shared setup operation](local-models-setup.md), not a migration effect.
+
+Test migration of native/API/local records, repeated current-version startup and an ambiguous legacy route. No new local record, model download, global harness configuration change or automatic local-only policy appears without that setup choice. Unaffected existing routes remain available, and read-only compatibility inspection makes no writes.
