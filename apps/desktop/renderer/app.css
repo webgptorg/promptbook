@@ -301,7 +301,7 @@ main {
     display: none !important;
 }
 
-#notice {
+#notice, #desktop-update {
     max-height: 160px;
     padding: 10px 24px;
     overflow: auto;
@@ -309,6 +309,9 @@ main {
     border-bottom: 1px solid var(--line);
     white-space: pre-wrap;
 }
+
+#desktop-update button { margin: 0 12px; }
+#desktop-update small { display: block; margin-top: 4px; }
 
 #notice.error, .error-text {
     color: var(--danger);

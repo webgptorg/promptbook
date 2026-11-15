@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmod, cp, mkdir, mkdtemp, readFile, realpath, rm, symlink } from 'node:fs/promises';
+import { chmod, cp, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +30,7 @@ try {
     const nodeBin = join(runtime, 'bin');
     await mkdir(installation, { recursive: true });
     await mkdir(nodeBin, { recursive: true });
+    await writeFile(join(runtime, 'ptbk-installation.json'), JSON.stringify({ method: 'desktop-bundle', root: 'ptbk' }));
     await cp(node, join(nodeBin, 'node'));
     await cp(npm, join(runtime, 'lib', 'node_modules', 'npm'), { recursive: true, verbatimSymlinks: true });
     await symlink('../lib/node_modules/npm/bin/npm-cli.js', join(nodeBin, 'npm'));

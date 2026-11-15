@@ -58,6 +58,21 @@ test('desktop windows and native terminals are independent clients of the same p
     const page = await application.firstWindow();
     page.on('pageerror', (error) => process.stderr.write(`Desktop renderer: ${error.message}\n`));
     await page.getByRole('heading', { name: 'Your projects' }).waitFor();
+    // The real main/preload/renderer path offers an installer without touching the paused engine.
+    const updateBefore = await page.evaluate(() => window.desktop.update());
+    const base = updateBefore.current.split('+')[0].split('-')[0];
+    const parts = base.split('.').map(Number);
+    const target = updateBefore.current.includes('-') ? base : `${parts[0]}.${parts[1]}.${parts[2] + 1}`;
+    await application.evaluate((_electron, version) => {
+        const asset = process.platform === 'darwin' ? `Promptbook-${version}-macos-${process.arch}.dmg` : `Promptbook-Setup-${version}-windows-x64.exe`;
+        globalThis.fetch = async () => ({ ok: true, json: async () => [{ tag_name: `v${version}`, draft: false, prerelease: false, assets: [{ name: asset, state: 'uploaded', size: 100 }] }] });
+    }, target);
+    await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+    await page.getByRole('button', { name: 'Download installer', exact: true }).waitFor();
+    assert.match(await page.locator('#desktop-update').textContent(), new RegExp(target.replaceAll('.', '\\.')));
+    const updateAfter = JSON.parse((await ptbk(['status', '--json'], { cwd: project, env })).stdout);
+    assert.equal(updateAfter.service.instanceId, before.service.instanceId, 'discovery never restarts the engine');
+    assert.equal(updateAfter.service.state, 'pause');
     assert.equal(await page.locator('tbody tr').count(), 1);
     const appearance = page.getByRole('group', { name: 'Theme' });
     const selectedTheme = (window, theme) => window.locator(`#appearance [data-theme="${theme}"][aria-pressed="true"]`);
