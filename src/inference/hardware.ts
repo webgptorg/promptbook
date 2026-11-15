@@ -38,23 +38,62 @@ export function formatBytes(bytes: number | undefined): string {
 }
 
 /**
+ * Deterministic capacity substitute of a test fixture (`PTBK_HARDWARE_FIXTURE`, a JSON object with any of
+ * `totalMemoryBytes`, `freeMemoryBytes`, `freeDiskBytes` and `accelerator`). It makes local-model setup fixtures
+ * independent of the hosted runner's RAM, disk and load; the memory check itself still runs against these values.
+ */
+type HardwareFixture = Partial<Pick<HostHardware, 'totalMemoryBytes' | 'freeMemoryBytes' | 'freeDiskBytes' | 'accelerator'>>;
+
+/**
+ * Parses the fixture override; an unreadable value is an explicit failure rather than silently observing the host.
+ */
+function hardwareFixture(env: NodeJS.ProcessEnv): HardwareFixture | undefined {
+    const text = env.PTBK_HARDWARE_FIXTURE?.trim();
+    if (!text) return undefined;
+    let value: unknown;
+    try {
+        value = JSON.parse(text);
+    } catch {
+        throw new Error('PTBK_HARDWARE_FIXTURE is not valid JSON.');
+    }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('PTBK_HARDWARE_FIXTURE must be a JSON object.');
+    const fixture = value as Record<string, unknown>;
+    const bytes = (key: 'totalMemoryBytes' | 'freeMemoryBytes' | 'freeDiskBytes'): number | undefined => {
+        const amount = fixture[key];
+        if (amount === undefined) return undefined;
+        if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0) throw new Error(`PTBK_HARDWARE_FIXTURE.${key} must be a non-negative number of bytes.`);
+        return amount;
+    };
+    const accelerator = fixture.accelerator as HostHardware['accelerator'] | undefined;
+    if (accelerator !== undefined && (!accelerator || typeof accelerator !== 'object' || !['unified', 'discrete', 'none', 'unknown'].includes(accelerator.kind))) throw new Error('PTBK_HARDWARE_FIXTURE.accelerator.kind must be unified, discrete, none or unknown.');
+    const total = bytes('totalMemoryBytes');
+    const free = bytes('freeMemoryBytes');
+    const disk = bytes('freeDiskBytes');
+    return { ...(total !== undefined ? { totalMemoryBytes: total } : {}), ...(free !== undefined ? { freeMemoryBytes: free } : {}), ...(disk !== undefined ? { freeDiskBytes: disk } : {}), ...(accelerator ? { accelerator } : {}) };
+}
+
+/**
  * Read-only discovery of the engine user's hardware (bounded; never installs drivers or starts services).
  *
  * @private local inference hardware
  */
 export async function discoverHardware(env: NodeJS.ProcessEnv = process.env): Promise<HostHardware> {
+    const fixture = hardwareFixture(env);
     const os = platform();
     const architecture = arch();
-    const total = totalmem();
+    const total = fixture?.totalMemoryBytes ?? totalmem();
     let freeDiskBytes: number | undefined;
-    try {
-        const stats = await statfs(homedir());
-        freeDiskBytes = Number(stats.bavail) * Number(stats.bsize);
-    } catch {
-        freeDiskBytes = undefined;
-    }
+    if (fixture && 'freeDiskBytes' in fixture) freeDiskBytes = fixture.freeDiskBytes;
+    else
+        try {
+            const stats = await statfs(homedir());
+            freeDiskBytes = Number(stats.bavail) * Number(stats.bsize);
+        } catch {
+            freeDiskBytes = undefined;
+        }
     let accelerator: HostHardware['accelerator'] = { kind: 'unknown' };
-    if (os === 'darwin' && architecture === 'arm64') accelerator = { kind: 'unified', name: 'Apple Silicon GPU (Metal, shared system memory)' };
+    if (fixture?.accelerator) accelerator = fixture.accelerator;
+    else if (os === 'darwin' && architecture === 'arm64') accelerator = { kind: 'unified', name: 'Apple Silicon GPU (Metal, shared system memory)' };
     else if (await which('nvidia-smi', env)) {
         const result = await runProcess('nvidia-smi', ['--query-gpu=name,memory.total', '--format=csv,noheader,nounits'], { cwd: homedir(), env, timeoutMs: 5_000 });
         const [name, memory] = result.stdout.split('\n')[0]?.split(',').map((part) => part.trim()) ?? [];
@@ -69,7 +108,7 @@ export async function discoverHardware(env: NodeJS.ProcessEnv = process.env): Pr
         ...(cpu ? { cpuModel: cpu } : {}),
         cpuCount: cpus().length,
         totalMemoryBytes: total,
-        freeMemoryBytes: freemem(),
+        freeMemoryBytes: fixture?.freeMemoryBytes ?? freemem(),
         ...(freeDiskBytes !== undefined ? { freeDiskBytes } : {}),
         accelerator,
         inferenceMemoryBytes,

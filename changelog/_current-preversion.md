@@ -1,5 +1,7 @@
 # Unreleased
 
+- Local-model setup fixtures control the host's capacity: `PTBK_HARDWARE_FIXTURE` (a JSON object with memory, free disk and accelerator) replaces the observed hardware for deterministic checks, so the local-only init check passes on a hosted runner with little RAM while a separate small-host case verifies the honest memory failure, no download and an untouched destination. The product's memory check is unchanged.
+
 - Discover and offer updates across npm, shell, Windows desktop and macOS desktop using the running version's channel: stable installations never follow an npm `latest` prerelease; previews can follow newer preview bases and prefer their own stable release once published. Notification checks continue when automatic installation is off. The Console shows available updates, and the desktop app checks GitHub Releases in the background or through **Check for updates**, offering only an uploaded installer for the current OS/architecture. Downloads open in the browser without restarting work. Identify the shell bootstrap's writable engine prefix and protect bundled macOS engines from npm replacement; repeated shell bootstrap reads the actual installed version. Android updates are unchanged.
 
 - Name the local connection in session details (terminal and browser) with its model, runtime and endpoint, and record the local runtime version, model digest and quantization in usage records where the runtime exposes them.

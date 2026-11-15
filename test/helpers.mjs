@@ -58,6 +58,12 @@ export async function initRepository(directory) {
 }
 
 /**
+ * Deterministic capacity of a host that fits the smallest verified local model (64 GB unified memory, 500 GB free disk).
+ * Insufficient-capacity cases override `PTBK_HARDWARE_FIXTURE` explicitly.
+ */
+export const SUFFICIENT_HARDWARE = JSON.stringify({ totalMemoryBytes: 64e9, freeMemoryBytes: 48e9, freeDiskBytes: 500e9, accelerator: { kind: 'unified', name: 'Fixture GPU (shared system memory)' } });
+
+/**
  * Installs the deterministic fake Codex harness and returns an environment that finds it first.
  */
 export async function fakeHarness(t, directory) {
@@ -98,6 +104,8 @@ export async function fakeHarness(t, directory) {
             PTBK_BROWSER_START: 'lazy',
             // Fixtures never touch the real Keychain/DPAPI/systemd credentials (an explicit unprotected test store).
             PTBK_HOST_UNLOCK: 'insecure-test-file',
+            // Local-model setup sees a coherent sufficient-capacity host, independent of the runner's RAM, disk and load.
+            PTBK_HARDWARE_FIXTURE: SUFFICIENT_HARDWARE,
         },
     };
 }

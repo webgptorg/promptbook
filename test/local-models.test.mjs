@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -349,6 +349,26 @@ test('local models: a local-only init checks and names through the local route, 
     const calls = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
     assert.ok(calls.length >= 2 && calls.every((call) => call.config.model_provider === '"ptbk_local"'), 'every preparatory call (check, capability checks, naming) used the local route');
     assert.ok(calls.some((call) => call.kind === 'name'), 'the project was named through the local route');
+});
+
+test('local models: an insufficient-capacity host fails local-only init honestly, selects no hosted fallback and leaves the destination untouched', async (t) => {
+    const directory = await temporaryDirectory(t);
+    const { env } = await fakeHarness(t, directory);
+    const ollama = await fakeOllama(t, { models: [LOCAL_MODEL] });
+    const project = join(directory, 'small project');
+    await initRepository(project);
+    const before = { files: (await readdir(project)).sort(), status: await git(project, ['status', '--porcelain', '--untracked-files=all']) };
+    const small = JSON.stringify({ totalMemoryBytes: 8e9, freeMemoryBytes: 2e9, freeDiskBytes: 500e9, accelerator: { kind: 'none' } });
+    const init = await ptbk(['init', '--path', project, '--non-interactive', '--installation', 'global', '--harness', 'local-models', '--local-runtime', 'ollama', '--local-endpoint', ollama.url, '--no-start', '--intent', 'NAME_ME:Small Herbarium', '--raw'], { cwd: directory, env: { ...env, PTBK_HARDWARE_FIXTURE: small } });
+    assert.notEqual(init.code, 0, init.output);
+    assert.match(init.output, /needs about 16 GB of memory[^\n]*this host has 8\.0 GB/, 'the memory check reports the actual shortfall');
+    assert.match(init.output, /Nothing was created or changed in the destination/);
+    assert.deepEqual({ files: (await readdir(project)).sort(), status: await git(project, ['status', '--porcelain', '--untracked-files=all']) }, before, 'no configuration, files or commits are written');
+    assert.ok(!ollama.state.requests.some((request) => request.path === '/api/pull' || request.path === '/api/generate'), 'no download or inference on a host that cannot run the model');
+
+    const broken = await ptbk(['init', '--path', project, '--non-interactive', '--installation', 'global', '--harness', 'local-models', '--local-runtime', 'ollama', '--local-endpoint', ollama.url, '--no-start', '--raw'], { cwd: directory, env: { ...env, PTBK_HARDWARE_FIXTURE: '{not json' } });
+    assert.notEqual(broken.code, 0, 'an unreadable capacity fixture is an explicit failure, never the runner observed instead');
+    assert.match(broken.output, /PTBK_HARDWARE_FIXTURE is not valid JSON/);
 });
 
 test('local models: the configuration migration is additive; a legacy LOCAL route is kept with a binding diagnostic and nothing is added', () => {
