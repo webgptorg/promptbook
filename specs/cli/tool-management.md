@@ -80,8 +80,23 @@ A second terminal may add a tool while an engine/task is running. Commit just th
 
 The dashboard shows a compact tools overview and a keyboard-accessible detail/management view using its existing drill-down pattern. It supports the same operations, fields, diagnostics, confirmations and outcomes as CLI, not a separate implementation. API/transport adapters reuse those operations and return redacted state. See [dashboard details](dashboard-details.md).
 
+Parity applies to the maintained terminal dashboard and shared graphical Tools forms used by packaged clients; deprecation of the [standalone browser entry](dashboard.md#standalone-entry-deprecation) does not remove these management capabilities. Advanced fields may be grouped, but must be reachable on both add and modify without hand-editing JSON or leaving for a different interface:
+
+| Applicable record | Required field access |
+| --- | --- |
+| Every supported tool | Name, description, enabled state and ordering through the shared operations. |
+| Tool variants supported within its current type | Select `variant` when adding **and when modifying**; validate the resulting record with the same typed rules as CLI. Changing type is not implied. |
+| Browser | `profile.source`, applicable `profile.path`, `isHeadless`, and optional `executable`, including clearing the executable override. |
+| Native harness | Adapter-supported `accountProfile`, including selecting a distinct native account context and clearing an override. |
+| API harness | Symbolic key reference and concealed/write-only key replacement under the shared environment rules. |
+| Harness connection | Supported endpoint/authentication and inference-runtime fields from the same domain schema as CLI. |
+
+Opening and saving a form preserves fields the user did not change. Clearing an optional override is explicit; changing a variant validates compatibility without silently discarding account/profile settings or selecting another account. Unsupported adapter capabilities produce the shared diagnostic rather than a field that appears to work. Secret values are never prefilled or returned for display, and reading a form performs no mutation.
+
 ## Acceptance outcomes
 
 Manage a stopped and running project through CLI and dashboard and verify equivalent scoped commits. Add a browser from a second terminal during a task and use it before task completion. Exercise both in-use alternatives, their exact commands, no mutation on refusal, and separate last-of-type confirmation. Disable/re-enable preserves credentials; removing a shared key's consumer leaves the key active. No-op operations do not commit; failed commits never claim success or sweep task changes into tool history.
+
+Through each maintained management interface, add and modify a native harness with a distinct supported `accountProfile`, add/change/clear a browser `executable`, and change an existing tool to another supported variant of the same type. Inspect the saved canonical record and effective selected account/profile, not just a success message. An unchanged save preserves advanced settings and creates no commit; invalid variant/field combinations and cancellation leave configuration and secrets unchanged. Verify the ordinary in-use acknowledgement when a field change affects acquired work.
 
 Desktop acceptance also covers disable/remove during real input without `--force`/`--yes`, immediate revocation before delayed persistence, no retained desktop use and truthful status/permission guidance on unsupported or unauthorized hosts.

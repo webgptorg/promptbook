@@ -10,6 +10,8 @@ const manifest = JSON.parse(await readFile(new URL('./package.json', import.meta
 const engine = JSON.parse(await readFile(`${root}/package.json`));
 // The source manifest is a template; packaging derives its version from the root engine manifest.
 if (manifest.name !== 'ptbk-desktop') throw new Error('Invalid desktop package template.');
+// Desktop release discovery uses exactly the engine's channel selection and semantic-version ordering.
+await build({ entryPoints: [join(root, 'src/project/update-policy.ts')], bundle: true, platform: 'node', format: 'cjs', target: 'node22', outfile: fileURLToPath(new URL('./update-policy.cjs', import.meta.url)) });
 await mkdir(new URL('./renderer/vendor/', import.meta.url), { recursive: true });
 await build({ entryPoints: [fileURLToPath(new URL('./renderer/app.js', import.meta.url))], bundle: true, platform: 'browser', target: 'chrome140', outfile: fileURLToPath(new URL('./renderer/vendor/app.js', import.meta.url)) });
 // The workspace editor for project dashboards (served from the private `ptbk-editor:` scheme): Monaco's editor worker is

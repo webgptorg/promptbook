@@ -4,6 +4,7 @@ import { errorMessage } from '../common/errors.js';
 import { isDirectory } from '../common/fs.js';
 import { clockTime, formatShortTime } from '../common/time.js';
 import { projectAt } from '../project/workspace.js';
+import { checkForEngineUpdate } from '../project/self-update.js';
 import { lookupService, type ControlClient } from '../service/control.js';
 import { discoveryDirectory, readRegistry, verifyEngine, type DiscoveredEngine, type EngineSummary } from '../service/discovery.js';
 import { applyGlobalAction, summarizeOutcomes, type GlobalAction, type GlobalTarget, type ProjectActionOutcome } from '../service/global-controls.js';
@@ -325,6 +326,10 @@ export async function runGlobalDashboard(
     /** The first project is preselected once; after that the selection only changes by the user. */
     let autoSelect = true;
     let feedback = '';
+    /** Read-only client discovery also works before there are any project engines. */
+    let updateNotice = '';
+    let nextUpdateCheck = 0;
+    let checkingUpdate = false;
     /** `bulk`: the next action key applies to every applicable project; `confirm`: Y runs the pending action. */
     let modal: { readonly kind: 'bulk' } | { readonly kind: 'confirm'; readonly prompt: string; readonly run: () => void } | undefined;
     /** Latest per-project outcome, shown under its row. */
@@ -375,7 +380,7 @@ export async function runGlobalDashboard(
             ...renderPanel({
                 title: `${marks.bullet} Promptbook ${marks.dot} ptbk ${marks.dot} all projects on this computer`,
                 titleRight: `updated ${formatShortTime(Date.parse(observation.observedAt))}`,
-                lines: [known, style.muted(`Projects of ${user} only (other OS users are not visible) · registry ${knownProjectsDirectory(env)}`)],
+                lines: [known, style.muted(`Projects of ${user} only (other OS users are not visible) · registry ${knownProjectsDirectory(env)}`), ...(updateNotice ? [style.accent(updateNotice)] : [])],
                 width,
                 tone: 'accent',
                 unicode: terminal.unicode,
@@ -634,6 +639,13 @@ export async function runGlobalDashboard(
     draw();
     void (async () => {
         while (!closed) {
+            if (!checkingUpdate && Date.now() >= nextUpdateCheck) {
+                checkingUpdate = true;
+                void checkForEngineUpdate(6000, env).then((check) => {
+                    updateNotice = check.newer ? `ptbk ${check.current} → ${check.latest} available · project System → Engine updates` : check.unknownReason ? 'Update availability unknown (registry unavailable).' : '';
+                    nextUpdateCheck = Date.now() + (check.unknownReason ? 3_600_000 : 6 * 3_600_000);
+                }).catch(() => { nextUpdateCheck = Date.now() + 3_600_000; }).finally(() => { checkingUpdate = false; draw(); });
+            }
             try {
                 observation = await observeHost(env);
                 observed = true;

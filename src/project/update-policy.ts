@@ -200,8 +200,8 @@ export type UpdateSelection = {
  *
  * - a stable installation moves to the newest stable release the range allows (by default within the same major,
  *   including minor releases while the major is zero) and never enters a prerelease automatically;
- * - a prerelease installation advances on its own prerelease line and prefers that line's stable release once it is
- *   published, never crossing into another prerelease base;
+ * - a prerelease installation admits newer prereleases too (including later bases) and prefers its own base's
+ *   stable release once published; after that transition the stable rules apply again;
  * - an exact pin never moves away from that version (it is only reached when newer than the running one).
  *
  * The default never crosses a major version; an explicit range may. Nothing is ever selected below `current`.
@@ -226,8 +226,8 @@ export function selectUpdate(current: string, published: readonly string[], poli
         const line = newer.filter((version) => baseRelease(version) === baseRelease(current) && admitted(version));
         const stable = line.find((version) => !isPrerelease(version));
         if (stable) return { target: stable, reason: `${stable} is the stable release of the running prerelease line.` };
-        const target = newest(line);
-        return target ? { target, reason: `${target} continues the running prerelease line ${baseRelease(current)}.` } : { reason: `No newer release of the ${baseRelease(current)} prerelease line is published.`, constraint: 'none' };
+        const target = newest(newer.filter(admitted));
+        return target ? { target, reason: `${target} is the newest release ${scope} (prereleases included).` } : { reason: `No newer release ${scope} is published.`, constraint: 'none' };
     }
     const target = newest(newer.filter((version) => !isPrerelease(version) && admitted(version)));
     return target ? { target, reason: `${target} is the newest stable release ${scope}.` } : { reason: `No newer stable release ${scope} is published.`, constraint: 'none' };

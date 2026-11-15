@@ -2,9 +2,9 @@ import { dirname, join } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { readJsonIfExists } from '../common/fs.js';
 import { runProcess } from '../common/process.js';
-import { compareVersions, isNewerVersion } from '../common/semver.js';
+import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION, detectInstallation, type InstallationInfo } from '../common/version.js';
-import { parseVersionRange, rangeAdmits } from './update-policy.js';
+import { parseVersionRange, rangeAdmits, selectUpdate } from './update-policy.js';
 
 /**
  * Result of a bounded, best-effort release check.
@@ -31,12 +31,15 @@ export type UpdateCheck = {
  */
 export async function checkForEngineUpdate(timeoutMs = 6000, env: NodeJS.ProcessEnv = process.env): Promise<UpdateCheck> {
     const installation = detectInstallation();
-    const result = await runProcess('npm', ['view', 'ptbk', 'version'], { cwd: installation.root, env, timeoutMs });
-    const latest = result.exitCode === 0 ? result.stdout.trim().split('\n').pop()?.trim() : undefined;
-    if (!latest) return { current: ENGINE_VERSION, installation, newer: false, unknownReason: result.timedOut ? 'the registry did not answer in time' : 'release information is unavailable' };
-    if (!isNewerVersion(latest, ENGINE_VERSION)) return { current: ENGINE_VERSION, installation, latest, newer: false };
+    const deadline = Date.now() + timeoutMs;
+    const found = await publishedEngineVersions(installation, env, timeoutMs);
+    if (!found.versions) return { current: ENGINE_VERSION, installation, newer: false, unknownReason: found.problem };
+    const latest = selectUpdate(ENGINE_VERSION, found.versions, { isAutoUpdateEnabled: true }).target;
+    if (!latest) return { current: ENGINE_VERSION, installation, latest: ENGINE_VERSION, newer: false };
     // A release this Node.js cannot run is never offered (verified before installation).
-    const runtime = await checkReleaseRuntime(installation, latest, env, timeoutMs);
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return { current: ENGINE_VERSION, installation, newer: false, unknownReason: 'the registry did not answer in time' };
+    const runtime = await checkReleaseRuntime(installation, latest, env, remaining);
     if (runtime.incompatible) return { current: ENGINE_VERSION, installation, latest, newer: false, incompatible: runtime.incompatible };
     if (runtime.problem) return { current: ENGINE_VERSION, installation, latest, newer: false, unknownReason: runtime.problem };
     return { current: ENGINE_VERSION, installation, latest, newer: true };
@@ -118,8 +121,8 @@ export async function installEngineVersion(installation: InstallationInfo, versi
     } else {
         throw new PtbkError(`This ${installation.scope} installation cannot be updated by ptbk.`, {
             kind: 'unsupported',
-            reason: installation.scope === 'npx' ? 'It runs from the transient npx cache.' : 'It runs from a source checkout.',
-            next: [installation.scope === 'npx' ? 'Run `npx ptbk@latest ...` or install ptbk locally/globally.' : 'Pull and rebuild the checkout.'],
+            reason: installation.scope === 'bundled' ? 'It belongs to the desktop application bundle.' : installation.scope === 'npx' ? 'It runs from the transient npx cache.' : 'It runs from a source checkout.',
+            next: [installation.scope === 'bundled' ? 'Use Check for updates in Promptbook to download the desktop installer.' : installation.scope === 'npx' ? 'Run npx ptbk@<version> with a channel-eligible version or install ptbk locally/globally.' : 'Pull and rebuild the checkout.'],
         });
     }
     if (result.exitCode !== 0) {

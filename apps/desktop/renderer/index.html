@@ -42,10 +42,11 @@
     <button id="new-project" class="wide primary">+ New project</button>
     <button id="new-app-setup" class="wide">+ Set up with App</button>
     <button id="global-cli" class="wide">CLI global dashboard</button>
-    <footer><span id="version">ptbk</span><br>Closing a window leaves your engines running.</footer>
+    <footer><span id="version">ptbk</span><br><button id="check-update">Check for updates</button><br>Closing a window leaves your engines running.</footer>
   </aside>
   <div id="sidebar-divider" class="pane-divider" role="separator" aria-label="Projects sidebar width" aria-orientation="vertical" aria-controls="project-sidebar" tabindex="0"></div>
   <main>
+    <div id="desktop-update" role="status" hidden></div>
     <div id="notice" role="status" hidden></div>
     <div id="feature-bar" role="region" aria-label="Live control and voice" hidden></div>
     <div id="workspace">

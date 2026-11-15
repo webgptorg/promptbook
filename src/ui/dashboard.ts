@@ -1467,13 +1467,13 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     keepAwakeKey('mode');
                 } else if (key === 'l' && snapshot.keepAwake && snapshot.keepAwake.lid.capability !== 'unavailable') {
                     keepAwakeKey('lid');
-                } else if (key === 'c' && update.isSupported) {
+                } else if (key === 'c') {
                     notify('Looking up engine releases…');
                     void source
                         .action('update-check')
                         .then((value) => {
                             const view = value as unknown as NonNullable<ServiceSnapshot['update']>;
-                            notify(view.target ? `ptbk ${view.target} is available; it installs when the engine has free hands.` : view.reason);
+                            notify(view.available ? `ptbk ${view.available} is available. ${view.reason}` : view.reason);
                         })
                         .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
                 }

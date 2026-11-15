@@ -53,6 +53,7 @@ dist-installer/
 /apps/desktop/renderer/vendor/
 /apps/desktop/release/
 /apps/desktop/icon.ico
+/apps/desktop/update-policy.cjs
 
 
 # Old before `reborn/2026-10`

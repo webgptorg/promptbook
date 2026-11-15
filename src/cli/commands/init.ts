@@ -356,7 +356,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     const selfUpdate = option<string>(context, 'self-update');
     // Checked in the background while the user describes the project (bounded, best-effort).
     const updateCheck: Promise<UpdateCheck | undefined> =
-        !options.fromStart && (interactive || selfUpdate === 'yes') && selfUpdate !== 'no' ? checkForEngineUpdate().catch(() => undefined) : Promise.resolve(undefined);
+        !options.fromStart && (interactive || selfUpdate === 'yes') && selfUpdate !== 'no' ? checkForEngineUpdate(6000, context.env).catch(() => undefined) : Promise.resolve(undefined);
 
     const state: {
         intent?: IntentInput;
@@ -448,6 +448,11 @@ export async function initializeProject(context: CommandContext, options: { proj
             if (!check?.newer || !check.latest) {
                 if (check?.unknownReason && interactive) notes.push(`Update check skipped: ${check.unknownReason}`);
                 else if (check?.incompatible && interactive) notes.push(`Update not offered: ${check.incompatible}.`);
+                steps.set('update', false);
+                return;
+            }
+            if (check.installation.scope === 'bundled') {
+                notes.push(`Promptbook ${check.latest} is available. Use Check for updates in the desktop app to download its installer.`);
                 steps.set('update', false);
                 return;
             }

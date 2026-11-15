@@ -1507,7 +1507,8 @@
         const tone = update.phase === 'failed' || update.phase === 'recovering' ? 'warn' : '';
         const rows = [
             ['Automatic', h('span', {}, pill(update.policy.isAutoUpdateEnabled ? 'on' : 'off', update.policy.isAutoUpdateEnabled ? 'ok' : 'warn'), h('span', { className: 'muted' }, ` updates.isAutoUpdateEnabled (${update.policy.source})`))],
-            ['Allowed', update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `stable minor/patch releases within major ${major}${update.current.includes('-') ? '; this prerelease advances to its stable release' : ''}`],
+            ['Allowed', update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `${update.current.split('+')[0].includes('-') ? 'stable and prerelease' : 'stable minor/patch'} releases within major ${major}`],
+            ...(update.available ? [['Available', `ptbk ${update.current} → ${update.available}`]] : []),
             ['Running', `ptbk ${update.current} (${update.installation.scope} installation)`],
             ['Latest', update.latest ? `${update.latest}${update.checkedAt ? ` · checked ${time(update.checkedAt)}` : ''}` : update.lookupProblem ? `unknown (${update.lookupProblem})` : 'not looked up yet'],
             ['Status', h('span', { className: tone }, update.reason)],
@@ -1516,7 +1517,7 @@
         return h('section', { className: 'card', 'aria-label': 'Engine updates' },
             h('h2', {}, h('span', {}, 'Engine updates'), h('span', { className: 'row' },
                 h('button', { className: update.policy.isAutoUpdateEnabled ? '' : 'primary', onclick: () => updateAction({ action: 'policy', isAutoUpdateEnabled: !update.policy.isAutoUpdateEnabled }, `Turning automatic engine updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}…`) }, `Turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}`),
-                update.isSupported ? h('button', { onclick: () => updateAction({ action: 'check' }, 'Looking up engine releases…') }, 'Check now') : null)),
+                h('button', { onclick: () => updateAction({ action: 'check' }, 'Looking up engine releases…') }, 'Check now'))),
             h('dl', { className: 'kv' }, rows.flatMap(([label, value]) => [h('dt', {}, label), h('dd', {}, value)])),
             update.target ? h('p', { className: 'muted' }, 'A pending update is a low-priority engine-owned task in Tasks; ordinary work goes first and a manual pause or stop holds it.') : null);
     }
