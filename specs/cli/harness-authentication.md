@@ -16,6 +16,18 @@ The VPS launcher supplies its remote context. Ordinary init/setup also recognize
 
 Run login as the engine user with the same home, selected account context, credential-store configuration and executable discovery the daemon uses. An administrator/root-only sign-in is not that user's readiness. Preserve native credential storage/refresh and unrelated accounts; do not export credentials into a new Promptbook store, copy project-browser cookies or overwrite a shared account to simulate isolation. An inaccessible service credential store is an actionable setup failure.
 
+## Enforce the selected authentication mode
+
+The [saved authentication mode](tools.md#harness-records) applies to every adapter, including Gemini, Qwen Code and OpenCode, at both readiness inspection and actual invocation. A generic "some credentials exist" result is insufficient when those credentials belong to another mode or account.
+
+- `NATIVE`: establish readiness from the selected supported native account context. An ambient API key, an inactive `apiKey` reference on the record or an API-only inspection result does not establish native readiness. Preserve a ready native login; otherwise report the actual missing/unknown native readiness without silently changing the route.
+- `API_KEY`: resolve the selected record's symbolic reference and explicitly use that credential for the selected provider/endpoint. An unrelated environment key or an existing native login cannot substitute for a missing/rejected configured credential.
+- `NONE`: retain the explicitly supported credential-free endpoint/runtime route, with its actual capability and readiness checks; do not inherit cloud credentials or require a cloud sign-in. A ready local route remains independent of a native subscription of the same variant.
+
+Derive one invocation-scoped authentication environment for probes, catalog/capability discovery, functional setup checks and execution. Each adapter must account for all environment keys and mode selectors it or its CLI accepts, including aliases and alternate provider keys; filtering only its primary API-key name is insufficient. Exclude values that could silently select another authentication/billing route while preserving the selected native credential context and necessary OS environment. Never mutate the engine's shared environment or another instance's credentials. A CLI that cannot enforce the selected mode is unavailable for that configuration, with an honest capability reason.
+
+Keep the selected mode, observed authentication and billing provenance consistent across later dispatch/reconnect. An API key's presence is neither spending authority nor proof of subscription access; retain the existing [account and billing rules](harnesses.md#codex-account-login-and-billing), including explicit authorized API fallback. Readiness inspection remains non-inference; the separate real initialization check uses the same selected mode.
+
 ## Provider-specific flows
 
 Each adapter detects the installed version's real login capabilities; do not invent one common headless-login flag.
@@ -51,6 +63,9 @@ After login, recheck the selected instance through its real non-inference readin
 - Expiry, denial or cancellation preserves incomplete setup and its reason; retry continues the same wizard, while removal requires explicit deselection. No duplicate first task or worker results.
 - Unsupported remote login is explained promptly; local desktop login and explicit method choice still work. Noninteractive setup never waits on unseen human input.
 - Readiness is verified after login in service context. Persisted output/Git contain no tokens, returned sign-in codes or credential-bearing URLs; successful init reaches the ordinary terminal dashboard.
+- For each supported adapter, a NATIVE instance with no native login and only ambient provider/API credentials stays unready for native execution. Cover Gemini's Google/Gemini/Vertex selectors, Qwen's OpenAI/DashScope/Qwen keys and OpenCode's supported provider keys, not only Codex. No paid request is needed to verify this boundary.
+- With valid native login plus ambient API credentials, both readiness and the captured invocation retain native authentication. With two API instances, each receives only its configured credential; an empty/missing selected credential cannot borrow the other's key or native login. Concurrent probes/executions leave the shared environment unchanged.
+- A supported NONE local connection remains usable with its healthy runtime/model when cloud credentials are absent or unrelated cloud keys are present. Its invocation selects the credential-free route, while another native instance retains its original account.
 
 ## Preserve authentication across session transports
 
