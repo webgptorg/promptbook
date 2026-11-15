@@ -91,7 +91,10 @@ export const plugin: HarnessPlugin = {
     id: 'claude-code',
     variant: 'CLAUDE_CODE',
     apiKeyVariable: 'ANTHROPIC_API_KEY',
-    ambientApiKeyVariables: ['ANTHROPIC_API_KEY'],
+    // Keys, bearer tokens, endpoint overrides and the Bedrock/Vertex/Foundry selectors all choose another billing route.
+    ambientApiKeyVariables: ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY', 'ANTHROPIC_BEDROCK_BASE_URL', 'ANTHROPIC_VERTEX_BASE_URL', 'ANTHROPIC_FOUNDRY_API_KEY', 'ANTHROPIC_FOUNDRY_BASE_URL'],
+    // A long-lived subscription token is the native account context: kept for NATIVE only.
+    nativeCredentialVariables: ['CLAUDE_CODE_OAUTH_TOKEN'],
     accountHomeVariable: 'CLAUDE_CONFIG_DIR',
     displayName: 'Claude Code',
     featured: true,

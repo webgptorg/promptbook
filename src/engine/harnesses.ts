@@ -29,30 +29,32 @@ export function accountHome(plugin: HarnessPlugin, accountProfile: string, env: 
 }
 
 /**
- * The environment of one named harness instance: its own explicit API key (API_KEY), its own native account home
- * (accountProfile), and no ambient API keys for a native instance. Secret values are runtime-only.
+ * The invocation-scoped authentication environment of one named harness instance, used alike for probes, catalog and
+ * capability discovery, functional checks and execution. Every mode starts without the variables that could select
+ * another authentication/billing route (ambient keys, aliases, alternate provider keys, endpoint overrides and mode
+ * selectors); then `NATIVE` adds its own account home and native selectors, `API_KEY` exactly its configured credential
+ * (in an isolated configuration home where the CLI would otherwise prefer a stored login), and `NONE` nothing that
+ * belongs to a cloud account. The engine's shared environment is never mutated; secret values are runtime-only.
  *
  * @private harness availability
  */
 export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolRecord | undefined, credential: ResolvedReference | undefined, base: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
     const env: NodeJS.ProcessEnv = { ...base };
     if (!tool) return env;
-    if (tool.authentication === 'NONE') {
-        // Credential-free: never an ambient key, never a native account home (the subscription stays independent).
-        for (const name of plugin.ambientApiKeyVariables ?? []) delete env[name];
+    for (const name of plugin.ambientApiKeyVariables ?? []) delete env[name];
+    if (tool.authentication !== 'NATIVE') for (const name of plugin.nativeCredentialVariables ?? []) delete env[name];
+    Object.assign(env, plugin.modeEnvironment?.[tool.authentication] ?? {});
+    if (tool.authentication === 'NONE') return env;
+    if (tool.authentication === 'NATIVE') {
+        if (tool.accountProfile && plugin.accountHomeVariable) env[plugin.accountHomeVariable] = accountHome(plugin, tool.accountProfile, base);
         return env;
     }
-    if (tool.authentication === 'NATIVE') {
-        for (const name of plugin.ambientApiKeyVariables ?? []) delete env[name];
-        if (tool.accountProfile && plugin.accountHomeVariable) env[plugin.accountHomeVariable] = accountHome(plugin, tool.accountProfile, base);
-    } else {
-        for (const name of plugin.ambientApiKeyVariables ?? []) delete env[name];
-        if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
-        const setup = plugin.setupApiKey;
-        if (setup?.profile && credential?.value && credential.name === setup.reference) {
-            env[setup.profile.home] = accountHome(plugin, 'api-key', base);
-            for (const name of setup.profile.omit ?? []) delete env[name];
-        }
+    if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
+    const setup = plugin.setupApiKey;
+    const profile = plugin.apiKeyProfile ?? (setup?.profile && credential?.value && credential.name === setup.reference ? setup.profile : undefined);
+    if (profile) {
+        env[profile.home] = accountHome(plugin, 'api-key', base);
+        for (const name of profile.omit ?? []) delete env[name];
     }
     return env;
 }
@@ -219,6 +221,11 @@ export class HarnessPool {
             return { ...inspection, authenticated: true, authentication: 'api', usable: true, summary: `Ready (API key ${describeCredentialSource(credential)}${inspection.version ? `, v${inspection.version}` : ''}).` };
         }
         const inspection = await plugin.inspect(context);
+        // NATIVE readiness comes only from the native account context: API credentials (a CLI-configured key, helper or
+        // token) belong to another route, so they never make a native instance ready and the route is never changed.
+        if (inspection.authentication === 'api') {
+            return { ...inspection, usable: false, authenticated: false, authentication: 'none', summary: `${plugin.displayName} has no native login for ${tool.name}: only API credentials are visible, which a NATIVE instance never uses.`, problem: 'signed-out', nextAction: plugin.loginHint };
+        }
         if (tool.accountProfile && plugin.accountHomeVariable && inspection.problem === 'signed-out') {
             return { ...inspection, nextAction: `Log in to this separate account context: ${plugin.accountHomeVariable}="${accountHome(plugin, tool.accountProfile, this.env)}" ${plugin.executable} ${(plugin.loginArgs ?? ['login']).join(' ')}` };
         }

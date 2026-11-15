@@ -167,6 +167,15 @@ export function homePath(...segments: string[]): string {
 }
 
 /**
+ * Home directory the harness CLI sees with this invocation environment (the engine user's home otherwise).
+ *
+ * @private harness plugin helpers
+ */
+export function contextHome(env: NodeJS.ProcessEnv): string {
+    return (process.platform === 'win32' ? env.USERPROFILE || env.HOME : env.HOME) || homedir();
+}
+
+/**
  * Checks whether any listed file exists.
  *
  * @private harness plugin helpers

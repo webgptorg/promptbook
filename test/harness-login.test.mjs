@@ -141,16 +141,22 @@ test('native terminal methods keep each harness’s documented environment and i
     assert.deepEqual(qwen.args, ['--approval-mode', 'plan']);
 });
 
-test('Gemini isolates the wizard-created API connection while existing explicit instances keep their profile', () => {
+test('Gemini API_KEY instances always use the configured key in an isolated profile; route selectors never leak', () => {
     const plugin = harnessPlugin('gemini');
     const tool = { type: 'HARNESS', variant: 'GEMINI', name: 'gemini', isEnabled: true, authentication: 'API_KEY' };
-    const base = { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true' };
+    const base = { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true', GOOGLE_API_KEY: 'ambient-google-key' };
     const credential = { name: 'LEGACY_GEMINI_KEY', source: '.env', value: 'fixture-key' };
-    const legacy = instanceEnvironment(plugin, tool, credential, base);
-    assert.equal(legacy.GEMINI_CLI_HOME, base.GEMINI_CLI_HOME);
-    assert.equal(legacy.GOOGLE_GENAI_USE_VERTEXAI, 'true');
-    const prepared = instanceEnvironment(plugin, tool, { ...credential, name: plugin.setupApiKey.reference }, base);
-    assert.equal(prepared.GEMINI_CLI_HOME, join('/engine', 'harness-accounts', 'gemini', 'api-key'));
-    assert.equal(prepared.GOOGLE_GENAI_USE_VERTEXAI, undefined);
-    assert.equal(prepared.GEMINI_API_KEY, credential.value);
+    for (const selected of [credential, { ...credential, name: plugin.setupApiKey.reference }]) {
+        const env = instanceEnvironment(plugin, tool, selected, base);
+        assert.equal(env.GEMINI_CLI_HOME, join('/engine', 'harness-accounts', 'gemini', 'api-key'), 'the user’s saved Google-login selection cannot replace the key');
+        assert.equal(env.GOOGLE_GENAI_USE_VERTEXAI, undefined, 'an ambient Vertex selector never redirects the key');
+        assert.equal(env.GOOGLE_API_KEY, undefined);
+        assert.equal(env.GEMINI_API_KEY, credential.value);
+    }
+    const native = instanceEnvironment(plugin, { ...tool, authentication: 'NATIVE' }, undefined, base);
+    assert.equal(native.GEMINI_CLI_HOME, base.GEMINI_CLI_HOME, 'a native instance keeps the user’s own Gemini profile');
+    assert.equal(native.GOOGLE_GENAI_USE_GCA, 'true', 'and selects the Google login explicitly');
+    assert.equal(native.GOOGLE_GENAI_USE_VERTEXAI, undefined);
+    assert.equal(native.GOOGLE_API_KEY, undefined);
+    assert.deepEqual(base, { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true', GOOGLE_API_KEY: 'ambient-google-key' }, 'the shared environment is unchanged');
 });

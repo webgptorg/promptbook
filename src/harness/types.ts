@@ -363,8 +363,24 @@ export type HarnessPlugin = {
         /** Isolates a wizard-created connection from the CLI's existing subscription settings. */
         readonly profile?: { readonly home: string; readonly omit?: readonly string[] };
     };
-    /** Ambient variables that would silently switch a native instance to API billing (removed for `NATIVE`). */
+    /**
+     * Every environment variable the adapter or its CLI accepts that could select an authentication/billing route:
+     * API keys with their aliases and alternate provider keys, endpoint overrides and mode selectors. All are removed
+     * from every instance's invocation-scoped environment before the selected mode applies its own values.
+     */
     readonly ambientApiKeyVariables?: readonly string[];
+    /**
+     * Native credential variables (for example a subscription token): kept for `NATIVE`, which uses that account
+     * context, and removed for `API_KEY` and `NONE`.
+     */
+    readonly nativeCredentialVariables?: readonly string[];
+    /** Values that make the CLI use the selected mode (for example a native-login selector), per mode. */
+    readonly modeEnvironment?: { readonly NATIVE?: Readonly<Record<string, string>>; readonly API_KEY?: Readonly<Record<string, string>>; readonly NONE?: Readonly<Record<string, string>> };
+    /**
+     * Isolated configuration home of every `API_KEY` instance, so a stored native login or saved provider selection of
+     * the user's own CLI configuration can never substitute for the configured key.
+     */
+    readonly apiKeyProfile?: { readonly home: string; readonly omit?: readonly string[] };
     /** Variable selecting a separate native account/configuration home (`accountProfile`; absent: unsupported). */
     readonly accountHomeVariable?: string;
     /** Display name. */

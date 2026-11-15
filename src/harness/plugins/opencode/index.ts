@@ -4,7 +4,10 @@ import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation
 /**
  * Provider environment variables OpenCode can use without stored credentials.
  */
-const PROVIDER_VARIABLES = ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY', 'OPENROUTER_API_KEY', 'GROQ_API_KEY', 'XAI_API_KEY', 'DEEPSEEK_API_KEY'];
+const PROVIDER_VARIABLES = [
+    'OPENCODE_API_KEY', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_GENERATIVE_AI_API_KEY', 'OPENROUTER_API_KEY', 'GROQ_API_KEY', 'XAI_API_KEY', 'DEEPSEEK_API_KEY',
+    'MISTRAL_API_KEY', 'TOGETHER_AI_API_KEY', 'FIREWORKS_API_KEY', 'CEREBRAS_API_KEY', 'AZURE_API_KEY', 'ZHIPU_API_KEY', 'MOONSHOT_API_KEY', 'ANTHROPIC_BASE_URL', 'OPENAI_BASE_URL',
+];
 
 /**
  * Inspects installation and stored credentials (`opencode auth list`).
@@ -17,7 +20,7 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     const plain = listing.output.replace(/\x1b\[[0-9;]*m/g, '');
     const count = Number(/(\d+)\s+credentials?/i.exec(plain)?.[1] ?? 'NaN');
     if (count > 0) return withAuthentication(inspection, true, 'account', plugin.loginHint);
-    if (PROVIDER_VARIABLES.some((name) => context.env[name])) return withAuthentication(inspection, true, 'api', plugin.loginHint);
+    if (context.tool?.authentication !== 'NATIVE' && PROVIDER_VARIABLES.some((name) => context.env[name])) return withAuthentication(inspection, true, 'api', plugin.loginHint);
     if (count === 0) return withAuthentication(inspection, false, 'none', plugin.loginHint, 'Installed, but no provider credentials are stored.');
     return withAuthentication(inspection, 'unknown', 'unknown', plugin.loginHint);
 }
@@ -101,6 +104,9 @@ export const plugin: HarnessPlugin = {
     id: 'opencode',
     variant: 'OPENCODE',
     apiKeyVariable: 'OPENCODE_API_KEY',
+    ambientApiKeyVariables: PROVIDER_VARIABLES,
+    // Provider credentials stored by `opencode auth login` must not replace the configured key: API_KEY uses its own data home.
+    apiKeyProfile: { home: 'XDG_DATA_HOME' },
     setupApiKey: {
         reference: 'PTBK_OPENCODE_API_KEY', label: 'OpenCode Console API key', url: 'https://opencode.ai/auth',
         model: 'opencode/claude-sonnet-4-5', thinkingLevel: 'high', profile: { home: 'XDG_DATA_HOME' },
