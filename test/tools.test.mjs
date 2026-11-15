@@ -372,22 +372,26 @@ test('retained revisions: a removed acquired harness keeps its actual identity w
     }, { message: 'the slow task', timeoutMs: 60_000 });
     assert.equal(running.current.tool, 'openai-codex');
     const owner = running.current.taskTitle;
+    // Other work that acquired the same revision (e.g. the onboarding review on a slow runner) is listed too.
+    const pattern = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const owns = (text) => (text ?? '').split(', ').includes(owner);
 
     const removed = await ptbk(['tool', 'remove', 'openai-codex', '--force', '--raw'], { cwd: project, env });
     assert.equal(removed.code, 0, removed.output);
     let snapshot = await status(project, env);
     const [retained, ...others] = snapshot.tools.items.filter((item) => item.name === 'openai-codex');
     assert.equal(others.length, 0);
-    assert.deepEqual([retained.type, retained.variant, retained.retained, retained.inUse, retained.owner, retained.isEnabled], ['HARNESS', 'OPENAI_CODEX', true, true, owner, false], 'never a placeholder browser');
+    assert.deepEqual([retained.type, retained.variant, retained.retained, retained.inUse, retained.isEnabled], ['HARNESS', 'OPENAI_CODEX', true, true, false], 'never a placeholder browser');
+    assert.ok(owns(retained.owner), `the owning work is named: ${retained.owner}`);
     assert.match(retained.summary, /Removed from ptbk\.json; current work only/);
     assert.ok(retained.revision);
     assert.equal(snapshot.tools.items.filter((item) => item.type === 'HARNESS' && item.state === 'usable').map((item) => item.name).join(), 'codex-second', 'not counted as an available harness');
     assert.ok(!snapshot.tools.items.some((item) => item.type === 'BROWSER' && item.name === 'openai-codex'));
     const listed = await ptbk(['tool', 'list', '--raw'], { cwd: project, env });
-    assert.match(listed.output, new RegExp(`openai-codex HARNESS OPENAI_CODEX · draining: old configuration, current work only \\(${owner}\\)`));
+    assert.match(listed.output, new RegExp(`openai-codex HARNESS OPENAI_CODEX · draining: old configuration, current work only \\([^\\n]*${pattern}`));
     const shown = await ptbk(['tool', 'show', 'openai-codex', '--raw'], { cwd: project, env });
     assert.match(shown.output, /\(HARNESS OPENAI_CODEX\), retained revision/);
-    assert.match(shown.output, new RegExp(`Held by\\s+${owner}`));
+    assert.match(shown.output, new RegExp(`Held by\\s+[^\\n]*${pattern}`));
 
     // An identical record added under the same name is a new revision: it never revives or retargets the old use.
     const replaced = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'openai-codex', '--raw'], { cwd: project, env });
@@ -398,7 +402,7 @@ test('retained revisions: a removed acquired harness keeps its actual identity w
     const saved = both.find((item) => !item.retained);
     assert.equal(saved.inUse, false, 'the old work does not hold the replacement');
     assert.equal(saved.isEnabled, true);
-    assert.equal(both.find((item) => item.retained).owner, owner);
+    assert.ok(owns(both.find((item) => item.retained).owner));
     const modified = await ptbk(['tool', 'modify', 'openai-codex', '--description', 'Replacement account', '--raw'], { cwd: project, env });
     assert.equal(modified.code, 0, `the replacement needs no in-use acknowledgement: ${modified.output}`);
     await rm(barrier);
@@ -407,7 +411,7 @@ test('retained revisions: a removed acquired harness keeps its actual identity w
     snapshot = await waitFor(async () => {
         const current = await status(project, env);
         return current.tools.items.some((item) => item.retained) ? undefined : current;
-    }, { message: 'the old revision to be released', timeoutMs: 30_000 });
+    }, { message: 'every old revision to be released', timeoutMs: 60_000 });
     const after = snapshot.tools.items.filter((item) => item.name === 'openai-codex');
     assert.equal(after.length, 1);
     assert.equal(after[0].description, 'Replacement account', 'completing the old work neither removed nor changed the replacement');
