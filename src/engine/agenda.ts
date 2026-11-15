@@ -620,7 +620,7 @@ export class Agenda {
             // Task Pause suspends periodic cycles and retries (`pausing` and `pause`); manual and commit boundaries stay.
             paused: () => this.serviceState === 'pausing' || this.serviceState === 'pause',
             ...(Number(options.env.PTBK_SYNC_INTERVAL_MS) > 0 ? { intervalMs: Number(options.env.PTBK_SYNC_INTERVAL_MS) } : {}),
-            integrationBlocker: async (files) => await this.integrationBlocker(files),
+            integrationBlocker: async (files, assessment) => await this.integrationBlocker(files, assessment?.locked === true),
             onConflict: async (conflict) => await this.scheduleSyncConflict(conflict),
             onIntegrated: async () => {
                 await this.refreshContext();
@@ -3031,6 +3031,8 @@ export class Agenda {
     private async refreshLive(): Promise<void> {
         try {
             this.settings = await this.loadEffectiveSettings();
+            // A saved isAutoSync change takes effect at once: one schedule when on, no timer at all when off.
+            this.sync.refresh();
             await this.refreshTools();
         } catch (error) {
             this.logOnce(`Configuration reload failed: ${errorMessage(error)}`, 'warning');
@@ -3061,6 +3063,7 @@ export class Agenda {
             loaded = await this.loadEffectiveSettings();
         }
         this.settings = loaded;
+        this.sync.refresh();
         this.catalog = await AgentCatalog.load(this.options.project.root, setting<string>(loaded, 'paths.agents'), setting<string>(loaded, 'paths.tasks'));
         await this.refreshTools(initial || this.waitView?.kind === 'tools');
         const gitInfo = await inspectGit(this.options.project.root);
@@ -5189,16 +5192,18 @@ export class Agenda {
     /**
      * Why integrating remote changes now would be unsafe: a running check or result commit (its validated content must
      * not change underneath it), or incoming files that active work owns or that have uncommitted local edits (never
-     * overwritten, stashed or reset). Other concurrent work does not prevent integration.
+     * overwritten, stashed or reset). Other concurrent work does not prevent integration. With `locked` it is the
+     * recheck under the Git lock: accepted desktop changes are not flushed there (that commit needs the same lock), so
+     * they count as the uncommitted edits they are.
      */
-    private async integrationBlocker(incomingFiles: readonly string[]): Promise<string | undefined> {
+    private async integrationBlocker(incomingFiles: readonly string[], locked = false): Promise<string | undefined> {
         const validating = [...this.units.values()].find((unit) => unit.current && ['checking', 'finalizing', 'committing'].includes(unit.current.phase));
         if (validating) return `"${validating.label}" is validating or committing its result; integration happens after it`;
         if (!this.repositoryRoot) return 'the project is not in a Git working tree';
         const base = toProjectRelative(this.repositoryRoot, this.options.project.root);
         const incoming = incomingFiles.map((file) => (base && base !== '.' && file.startsWith(`${base}/`) ? file.slice(base.length + 1) : file));
         // Accepted desktop changes of incoming files are committed first, so integration never overwrites them.
-        await this.desktopFiles.flushPaths(incoming.map((file) => join(this.options.project.root, file))).catch(() => undefined);
+        if (!locked) await this.desktopFiles.flushPaths(incoming.map((file) => join(this.options.project.root, file))).catch(() => undefined);
         const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot });
         const owned = incoming.filter((file) => this.ownership.ownerOf(file));
         if (owned.length) return `active work owns incoming files (${owned.slice(0, 5).join(', ')}); integration happens once it releases them`;

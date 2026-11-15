@@ -369,7 +369,7 @@ export async function execute(context: CommandContext, project: Project, request
             onChange: () => undefined,
             log: (text, level) => level !== 'info' && context.terminal.write(`${text}\n`),
         });
-        sync = { before: async () => void (await coordinator.request('boundary')), after: async () => void (await coordinator.request('post-commit')) };
+        sync = { before: async () => void (await coordinator.request('pre-commit')), after: async () => void (await coordinator.request('post-commit')) };
     }
     return await applyToolOperation(project, request, { env: context.env, sync, timeZone: setting<string>(settings, 'timezone') });
 }

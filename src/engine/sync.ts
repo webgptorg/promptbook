@@ -68,8 +68,14 @@ export type SyncHost = {
     readonly paused?: () => boolean;
     /** Healthy timer cadence (tests shorten it; the product default is {@link SYNC_INTERVAL_MS}). */
     readonly intervalMs?: number;
-    /** Whether integrating remote files now is safe; `undefined` when it is, otherwise the reason to defer. */
-    readonly integrationBlocker: (incomingFiles: readonly string[]) => Promise<string | undefined>;
+    /** Timer functions of the periodic schedule (a controllable clock in tests; the global timers otherwise). */
+    readonly timers?: { readonly setInterval: (callback: () => void, ms: number) => unknown; readonly clearInterval: (handle: unknown) => void };
+    /**
+     * Whether integrating remote files now is safe; `undefined` when it is, otherwise the reason to defer. It runs once
+     * to assess and again with `locked` under the shared Git coordination right before the merge (where it must not take
+     * that coordination itself).
+     */
+    readonly integrationBlocker: (incomingFiles: readonly string[], options?: { readonly locked?: boolean }) => Promise<string | undefined>;
     /** A genuine conflict for Fixer. */
     readonly onConflict: (conflict: SyncConflict) => Promise<void>;
     /** Remote changes were integrated: refresh tasks, configuration version, tools and readiness. */
@@ -98,7 +104,10 @@ export class SyncCoordinator {
     private failures = 0;
     /** Shared progressive-waiting schedule of the current failure (absent while healthy). */
     private backoff?: ProgressiveSchedule;
-    private timer?: NodeJS.Timeout;
+    /** The single periodic schedule; it exists only while the engine runs with synchronization enabled. */
+    private timer?: unknown;
+    /** Between {@link begin} and {@link end}: the engine is running and may own a periodic schedule. */
+    private started = false;
     private startedBranch?: string;
     private readonly redact = createRedactor();
 
@@ -115,11 +124,48 @@ export class SyncCoordinator {
             this.failures = this.backoff.rounds;
             this.set({ reason: saved.cause, nextAttemptAt: this.backoff.nextAt });
         }
-        clearInterval(this.timer);
-        this.timer = setInterval(() => {
-            if (this.host.enabled()) void this.request('timer');
-        }, this.interval);
-        this.timer.unref();
+        this.started = true;
+        this.refresh();
+    }
+
+    /**
+     * Applies the effective switch to the schedule; idempotent, so repeated configuration refreshes or client attachments
+     * never create a second schedule. Enabled while running: exactly one periodic schedule. Disabled: no live timer at all
+     * (not a dormant one), and queued automatic triggers are dropped; an in-flight Git mutation settles on its own.
+     */
+    public refresh(): void {
+        if (this.started && this.host.enabled()) {
+            if (this.timer === undefined) {
+                const timers = this.host.timers;
+                const tick = () => {
+                    if (!this.host.enabled()) return this.refresh();
+                    void this.request('timer');
+                };
+                if (timers) this.timer = timers.setInterval(tick, this.interval);
+                else {
+                    const handle = setInterval(tick, this.interval);
+                    handle.unref();
+                    this.timer = handle;
+                }
+            }
+            return;
+        }
+        this.cancelSchedule();
+        this.again = undefined;
+        this.suspendedTimer = false;
+    }
+
+    /** Whether a periodic schedule exists right now (observable for diagnostics and regression checks). */
+    public get scheduled(): boolean {
+        return this.timer !== undefined;
+    }
+
+    /** Removes the periodic schedule, if any. */
+    private cancelSchedule(): void {
+        if (this.timer === undefined) return;
+        if (this.host.timers) this.host.timers.clearInterval(this.timer);
+        else clearInterval(this.timer as NodeJS.Timeout);
+        this.timer = undefined;
     }
 
     /** Healthy timer cadence. */
@@ -142,10 +188,10 @@ export class SyncCoordinator {
         if (this.host.enabled()) void this.request('timer');
     }
 
-    /** Stops the background timer. */
+    /** Stops the background timer and drops queued automatic triggers (the engine stopped). */
     public end(): void {
-        clearInterval(this.timer);
-        this.timer = undefined;
+        this.started = false;
+        this.refresh();
     }
 
     /** The cockpit view, only while synchronization is enabled. */
@@ -164,10 +210,14 @@ export class SyncCoordinator {
 
     /**
      * Requests one cycle. A request during a running cycle is coalesced into at most one following cycle; a pre-commit
-     * attempt only fetches (integration is deferred until after the local commit).
+     * attempt fetches and integrates when the safety assessment allows it, and never publishes before the local commit.
      */
     public async request(trigger: SyncTrigger): Promise<SyncOutcome> {
-        if (!this.host.enabled()) return { outcome: 'disabled', message: 'Automatic synchronization is off (isAutoSync false).' };
+        if (!this.host.enabled()) {
+            // Turned off (possibly by a refresh this engine has not applied yet): no timer and no queued remote work.
+            this.refresh();
+            return { outcome: 'disabled', message: 'Automatic synchronization is off (isAutoSync false).' };
+        }
         // Pause permits only a manual cycle and the commit boundaries of an operation that actually commits.
         if ((trigger === 'timer' || trigger === 'boundary') && this.paused) {
             if (trigger === 'timer') this.suspendedTimer = true;
@@ -191,7 +241,8 @@ export class SyncCoordinator {
         if (this.again) {
             const follow = this.again;
             this.again = undefined;
-            void this.request(follow);
+            // A follow-up queued before synchronization was turned off is dropped, not started later.
+            if (this.host.enabled()) void this.request(follow);
         }
         if (trigger === 'manual') this.set({ manual: { at: new Date().toISOString(), outcome: outcome.message } });
         return outcome;
@@ -209,7 +260,22 @@ export class SyncCoordinator {
         return { outcome: state === 'pending' ? 'pending' : state === 'unconfigured' ? 'unconfigured' : 'failed', message: reason };
     }
 
-    /** One cycle: fetch, safe integration (unless pre-commit), publication. */
+    /**
+     * Why integration must wait right now, from the coordinator's own Git facts (staged index entries, which a merge
+     * would mix into its commit) and the host's ownership/validation assessment. A failed assessment is uncertainty,
+     * which preserves the local work.
+     */
+    private async integrationDeferral(root: string, files: readonly string[], locked: boolean): Promise<string | undefined> {
+        const staged = (await git(root, ['diff', '--cached', '--name-only'])).stdout.split('\n').filter(Boolean);
+        if (staged.length) return `staged changes in the index (${staged.slice(0, 5).join(', ')}) are preserved; a merge needs a clean index`;
+        try {
+            return await this.host.integrationBlocker(files, { locked });
+        } catch (error) {
+            return `the safety of integration could not be assessed (${this.redact(error instanceof Error ? error.message : String(error))}), so local work is preserved`;
+        }
+    }
+
+    /** One cycle: fetch, safe integration (also before a local commit), publication (never before that commit). */
     private async cycle(trigger: SyncTrigger): Promise<SyncOutcome> {
         const root = this.host.repositoryRoot();
         if (!root) return { outcome: 'unconfigured', message: 'The project is not in a Git working tree.' };
@@ -234,18 +300,20 @@ export class SyncCoordinator {
         let outgoing = Number((await git(root, ['rev-list', '--count', `${upstream}..HEAD`])).stdout.trim() || 0);
         this.set({ incoming, outgoing });
         if (incoming > 0) {
-            if (trigger === 'pre-commit') {
-                this.set({ phase: 'idle', state: 'deferred', reason: `Fetched ${incoming} incoming commit(s); integration follows after the local commit.` });
-                return { outcome: 'deferred', message: `Fetched ${incoming} incoming commit(s); integration is deferred until after the local commit.` };
-            }
-            const files = (await git(root, ['diff', '--name-only', `HEAD...${upstream}`])).stdout.split('\n').filter(Boolean);
-            const blocker = await this.host.integrationBlocker(files);
-            if (blocker) {
-                this.set({ phase: 'idle', state: 'deferred', reason: `Integration deferred: ${blocker}` });
-                return { outcome: 'deferred', message: `Fetched ${incoming} incoming commit(s); integration deferred: ${blocker}` };
-            }
+            // A pre-commit trigger alone is no reason to wait: the actual ownership, index and validation state decide.
+            const incomingFiles = async () => (await git(root, ['diff', '--name-only', `HEAD...${upstream}`])).stdout.split('\n').filter(Boolean);
+            const deferred = (blocker: string): SyncOutcome => {
+                const after = trigger === 'pre-commit' ? ' The local commit proceeds; integration is retried at the next safe boundary.' : '';
+                this.set({ phase: 'idle', state: 'deferred', reason: `Integration deferred: ${blocker}.${after}` });
+                return { outcome: 'deferred', message: `Fetched ${incoming} incoming commit(s); integration deferred: ${blocker}.${after}` };
+            };
+            const blocker = await this.integrationDeferral(root, await incomingFiles(), false);
+            if (blocker) return deferred(blocker);
             this.set({ phase: 'integrating' });
             const merged = await this.host.gitLock(async () => {
+                // Revalidated under the shared Git coordination: another commit, claim or edit may have happened meanwhile.
+                const late = await this.integrationDeferral(root, await incomingFiles(), true);
+                if (late) return { ok: false as const, conflicted: [], deferred: late };
                 const identity = await resolveCommitIdentity(root, this.host.env);
                 // A visible merge commit even when fast-forward would be possible; history stays append-only.
                 const result = await git(root, [...identity.configArgs, 'merge', '--no-ff', '--no-edit', '-m', `ptbk: Merge ${upstream} into ${branch}`, upstream], { env: this.host.env });
@@ -256,6 +324,7 @@ export class SyncCoordinator {
                 return { ok: false as const, conflicted, reason: this.redact(result.stderr.trim() || result.stdout.trim()).split('\n').slice(-DIAGNOSTIC_LINES).join(' ') };
             });
             if (!merged.ok) {
+                if ('deferred' in merged && merged.deferred !== undefined) return deferred(merged.deferred);
                 if (merged.conflicted.length) {
                     this.set({ phase: 'idle', state: 'conflict', reason: `Merging ${upstream} conflicts in ${merged.conflicted.join(', ')}; the local branch is unchanged and Fixer was asked to resolve it.` });
                     await this.host.onConflict({ upstream, branch, files: merged.conflicted, incoming });
