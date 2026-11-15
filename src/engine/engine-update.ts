@@ -150,6 +150,8 @@ export type EngineUpdateView = {
     readonly reason: string;
     readonly latest?: string;
     readonly target?: string;
+    /** Channel-eligible newer release, even when automatic installation is off or unsupported. */
+    readonly available?: string;
     readonly checkedAt?: string;
     readonly nextLookupAt?: string;
     readonly lookupProblem?: string;
@@ -232,6 +234,7 @@ export class EngineUpdater {
     private get limitation(): string | undefined {
         if (this.options.env.PTBK_ANDROID_NODE) return 'Install a newer Promptbook APK from GitHub Releases to update the Android engine.';
         if (this.options.mode === 'maintenance') return 'A maintenance operation never updates the engine.';
+        if (this.installation.scope === 'bundled') return 'This engine is bundled with the desktop app. Use Check for updates in Promptbook to download the matching installer.';
         if (this.installation.scope === 'development') return 'This engine runs from a source checkout; update it by pulling and rebuilding the checkout.';
         if (this.installation.scope === 'npx') return 'This engine runs from the transient npx cache; install ptbk locally or globally for automatic updates.';
         if (this.options.mode === 'foreground') return 'A foreground engine cannot replace its own loaded code; the background service (`ptbk start`) updates itself.';
@@ -360,6 +363,7 @@ export class EngineUpdater {
         const policy = this.options.policy();
         const limitation = this.limitation;
         const selection = this.selection();
+        const available = selectUpdate(this.current, (this.record.published ?? []).filter((version) => !this.skippedReleases().some((entry) => entry.version === version)), { ...policy, isAutoUpdateEnabled: true }).target;
         const target = limitation ? undefined : selection.target;
         const deferral = this.record.deferral && Date.parse(this.record.deferral.until) > Date.now() ? this.record.deferral : undefined;
         let phase = this.phase;
@@ -379,7 +383,7 @@ export class EngineUpdater {
                       : `ptbk ${target} is installed when this engine has free hands (low priority; ordinary work goes first).`;
         } else {
             phase = this.record.failure && this.record.lastOutcome?.outcome === 'failed' ? 'failed' : 'idle';
-            reason = this.record.lookupProblem ? `Release information is unknown: ${this.record.lookupProblem}` : this.record.checkedAt ? selection.reason : 'No release lookup yet.';
+            reason = this.record.lookupProblem ? `Release information is unknown: ${this.record.lookupProblem}` : available ? `ptbk ${available} is available. Automatic installation is off; turn it on to update when the engine has free hands.` : this.record.checkedAt ? selection.reason : 'No release lookup yet.';
         }
         // A newer release this Node.js cannot run stays visible as skipped instead of silently missing.
         const skipped = target || limitation || this.active ? [] : this.skippedReleases();
@@ -391,10 +395,11 @@ export class EngineUpdater {
             phase,
             reason,
             isSupported: !limitation,
-            ...(this.record.latest ? { latest: this.record.latest } : {}),
+            ...(this.record.checkedAt && !this.record.lookupProblem ? { latest: available ?? this.current } : {}),
             ...(target ? { target } : {}),
+            ...(available ? { available } : {}),
             ...(this.record.checkedAt ? { checkedAt: this.record.checkedAt } : {}),
-            ...(!limitation && this.nextLookupAt() ? { nextLookupAt: new Date(this.nextLookupAt()!).toISOString() } : {}),
+            ...(this.nextLookupAt() ? { nextLookupAt: new Date(this.nextLookupAt()!).toISOString() } : {}),
             ...(this.record.lookupProblem ? { lookupProblem: this.record.lookupProblem } : {}),
             ...(this.record.failure ? { failure: this.record.failure } : {}),
             ...(this.record.nextAttemptAt ? { nextAttemptAt: this.record.nextAttemptAt } : {}),
@@ -467,7 +472,7 @@ export class EngineUpdater {
 
     /** When the next release lookup is due (undefined when lookups do not apply). */
     public nextLookupAt(): number | undefined {
-        if (this.limitation || !this.options.policy().isAutoUpdateEnabled) return undefined;
+        if (this.options.mode === 'maintenance' || this.options.env.PTBK_ANDROID_NODE) return undefined;
         if (this.record.nextLookupAt) return Math.max(Date.parse(this.record.nextLookupAt), this.startedAt + FIRST_LOOKUP_DELAY_MS);
         return this.startedAt + FIRST_LOOKUP_DELAY_MS;
     }
@@ -480,8 +485,8 @@ export class EngineUpdater {
 
     /** Starts a due lookup in the background (never blocks the agenda loop); `force` checks now. */
     public lookupIfDue(force = false): Promise<void> | undefined {
-        if (this.lookingUp || this.limitation) return undefined;
-        if (!force && (!this.options.policy().isAutoUpdateEnabled || (this.nextLookupAt() ?? Infinity) > Date.now())) return undefined;
+        if (this.lookingUp || this.options.mode === 'maintenance' || this.options.env.PTBK_ANDROID_NODE) return undefined;
+        if (!force && (this.nextLookupAt() ?? Infinity) > Date.now()) return undefined;
         this.lookingUp = true;
         return this.lookup().finally(() => {
             this.lookingUp = false;
@@ -490,7 +495,7 @@ export class EngineUpdater {
 
     /** One lookup: remembers newer published versions and announces a newly selected target. */
     private async lookup(): Promise<void> {
-        const previous = this.selection().target;
+        const previous = this.view().available;
         const found = await publishedEngineVersions(this.installation, this.options.env, LOOKUP_TIMEOUT_MS);
         const now = Date.now();
         if (!found.versions) {
@@ -498,12 +503,12 @@ export class EngineUpdater {
             return;
         }
         const newer = found.versions.filter((version) => (compareVersions(version, this.current) ?? 0) > 0);
-        const latest = [...found.versions].sort((a, b) => compareVersions(b, a) ?? 0)[0];
+        const latest = selectUpdate(this.current, found.versions, { ...this.options.policy(), isAutoUpdateEnabled: true }).target ?? this.current;
         await this.save({ checkedAt: new Date(now).toISOString(), published: newer, latest, lookupProblem: undefined, nextLookupAt: new Date(now + LOOKUP_INTERVAL_MS).toISOString() });
-        const target = this.selection().target;
+        const target = this.view().available;
         if (target && target !== previous) {
             await this.save({ discoveredAt: new Date(now).toISOString() });
-            this.options.log(`Engine update available: ptbk ${this.current} → ${target}. It installs as a low-priority system task when this engine has free hands.`);
+            this.options.log(`Engine update available: ptbk ${this.current} → ${target}. ${this.limitation ?? (this.options.policy().isAutoUpdateEnabled ? 'It installs as a low-priority system task when this engine has free hands.' : 'Automatic installation is off; enable it in System → Engine updates to install.')}`);
         }
     }
 

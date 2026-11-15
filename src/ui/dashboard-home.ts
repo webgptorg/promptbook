@@ -474,7 +474,8 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
     } else {
         lines.push(...wrap('The terminal is too small for the dashboard. Enlarge it, or press O for plain output.', width - 1).map((line) => style.warning(` ${line}`)));
     }
-    const footer = `${view.controlNote ? `${view.controlNote}  ` : ''}${view.feedback ? `${view.legend}   ${style.accent(marks.arrow)} ${view.feedback}` : view.legend}`;
+    const updateNotice = snapshot.update?.available ? `ptbk ${snapshot.update.available} available · System → Engine updates` : '';
+    const footer = `${updateNotice ? `${updateNotice}  ` : ''}${view.controlNote ? `${view.controlNote}  ` : ''}${view.feedback ? `${view.legend}   ${style.accent(marks.arrow)} ${view.feedback}` : view.legend}`;
     while (lines.length < height - 1) lines.push('');
     lines.length = Math.min(lines.length, height - 1);
     lines.push(truncate(style.muted(footer), width));

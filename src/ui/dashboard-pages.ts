@@ -571,7 +571,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 ...(snapshot.errors.length ? ['', style.bold('Recent errors'), ...snapshot.errors.slice(-5).flatMap((error) => [`${style.muted(time(error.at))} ${style.error(error.summary)}`, ...(error.next ? [style.muted(`      next: ${error.next}`)] : [])])] : []),
             ];
             const update = snapshot.update;
-            const updateKeys = update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}${update.isSupported ? ' · C check for a release now' : ''} · ` : '';
+            const updateKeys = update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'} · C check for a release now · ` : '';
             const awake = snapshot.keepAwake;
             const powerKeys = awake ? `K keep awake: ${awake.mode === 'off' ? 'two hours' : awake.mode === 'limited' ? 'always' : 'off'}${awake.lid.capability !== 'unavailable' ? ` · L closed lid ${awake.closedLid ? 'off' : 'on'}` : ''} · ` : '';
             return { title: 'System', context: 'Engine identity, lifecycle, every active pause reason, manual controls, automatic updates and keep awake', body, legend: `${actions.map((action) => `${action.key} ${action.label}`).join(' · ')}${actions.length ? ' · ' : ''}${updateKeys}${powerKeys}↑↓ scroll · ${back}` };
@@ -1029,11 +1029,12 @@ export function engineUpdateLines(update: NonNullable<ServiceSnapshot['update']>
     const lines = [
         style.bold('Engine updates'),
         `${style.muted('Automatic ')} ${update.policy.isAutoUpdateEnabled ? style.success('on') : style.warning('off')}${style.muted(` · updates.isAutoUpdateEnabled (${update.policy.source})`)}`,
-        `${style.muted('Allowed   ')} ${update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `stable minor/patch releases within major ${major}${/-/.test(update.current) ? `; this prerelease advances to its stable release` : ''}`}`,
+        `${style.muted('Allowed   ')} ${update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `${/-/.test(update.current.split('+')[0]!) ? 'stable and prerelease' : 'stable minor/patch'} releases within major ${major}`}`,
         `${style.muted('Running   ')} ptbk ${update.current} ${style.muted(`(${update.installation.scope} installation)`)}`,
         `${style.muted('Latest    ')} ${update.latest ?? style.muted(update.lookupProblem ? `unknown (${update.lookupProblem})` : 'not looked up yet')}${update.checkedAt ? style.muted(` · checked ${time(update.checkedAt)}`) : ''}${update.nextLookupAt ? style.muted(` · next ${time(update.nextLookupAt)}`) : ''}`,
         `${style.muted('Status    ')} ${update.phase === 'failed' || update.phase === 'recovering' ? style.warning(update.reason) : update.phase === 'unsupported' ? style.muted(update.reason) : update.reason}`,
     ];
+    if (update.available) lines.push(style.accent(`Available: ptbk ${update.current} → ${update.available}${!update.isSupported ? '; update this installation using its installer' : update.policy.isAutoUpdateEnabled ? '; waiting for a safe idle moment' : '; A enables automatic installation when idle'}.`));
     if (update.lastOutcome) lines.push(`${style.muted('Last      ')} ${update.lastOutcome.outcome === 'verified' ? style.success('verified') : style.warning('failed')} ${update.lastOutcome.from} → ${update.lastOutcome.to}${style.muted(` · ${time(update.lastOutcome.at)} · ${update.lastOutcome.detail}`)}`);
     if (update.target) lines.push(style.muted('  A pending update is a low-priority system task in Tasks; ordinary work goes first and a manual pause or stop holds it.'));
     return lines;

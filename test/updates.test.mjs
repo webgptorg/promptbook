@@ -31,7 +31,7 @@ test('update policy: stable installations take stable minor/patch within the maj
 test('update policy: a running prerelease advances on its line, prefers its stable release and never re-enters prereleases', () => {
     assert.equal(selectUpdate('0.119.0-39', ['0.119.0-40', '0.119.0-41'], DEFAULT).target, '0.119.0-41', 'newer prereleases of the same line');
     assert.equal(selectUpdate('0.119.0-39', PUBLISHED, DEFAULT).target, '0.119.0', 'the stable transition wins once published');
-    assert.equal(selectUpdate('0.119.0-41', ['0.119.0-41', '0.120.0-0', '0.120.0-1'], DEFAULT).target, undefined, 'no crossing into another prerelease base');
+    assert.equal(selectUpdate('0.119.0-41', ['0.119.0-41', '0.120.0-0', '0.120.0-1'], DEFAULT).target, '0.120.0-1', 'a prerelease installation also follows newer prerelease bases');
     // After the stable transition the stable rules apply: the next prerelease line is not entered automatically.
     assert.equal(selectUpdate('0.119.0', ['0.119.1-0', '0.120.0-0'], DEFAULT).target, undefined);
     assert.equal(selectUpdate('0.119.0-9', ['0.119.0-10'], DEFAULT).target, '0.119.0-10', 'numeric prerelease ordering');
