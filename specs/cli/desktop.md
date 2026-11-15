@@ -15,6 +15,10 @@ Ship Windows and macOS desktop clients from one Electron, xterm.js and native PT
 
 Preserve the existing per-project supervisors, engine ownership, discovery registry and OS-startup rules. Do not introduce a global engine or a new always-running engine supervisor. Shared refactoring is permitted when observable CLI/engine semantics are preserved. Clients never own scheduling, Git transactions, credentials or project state.
 
+## Release discovery
+
+The desktop client independently discovers newer GitHub Releases under the shared [release-channel and update-offer contract](updates.md#discovery-and-offers-across-installation-methods). **Check for updates** is available in the window and application/tray menus. A nonmodal banner offers the matching Windows EXE or macOS architecture's DMG; downloads open in the user's browser, and unsigned experimental builds are labelled. Background discovery continues with only the tray open. It never installs or restarts automatically. Distinguish the client version from its running engines; the macOS bundle is updated as one installer-owned unit, while the Windows npm engine retains its own updater.
+
 ## Tray and lifetime
 
 The optional desktop installation provides a background tray controller and any number of independent windows. The tray controller starts at Windows sign-in without opening a window or starting/resuming a project. On macOS, Open at Login is an opt-in native login item. Login opens the controller without opening the first-project wizard or starting a project. The Dock icon reopens a window. Standard macOS Quit closes the client, and Quit Promptbook and engines uses the explicit host-wide operation below. Engine startup remains governed by existing persistence. An engine-only npm installation has no tray or Electron dependency.
