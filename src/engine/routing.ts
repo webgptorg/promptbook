@@ -207,7 +207,8 @@ export async function routeConcrete(agent: EffectiveAgent, row: ModelRow, contex
         runtime: toolRuntime(tool),
         baseUrl: context.pool.baseUrl(tool),
         ...(local ? { localRoute: local, locality: local.model?.locality ?? 'unknown' } : {}),
-        sources: { ...options.sources, ...(sameVariant ? { tool: `first usable ${plugin.displayName} instance${endpointLabel(row.runtime)} in ptbk.json tools order` } : options.tool ? { tool: `explicit instance (${options.tool})` } : {}) },
+        // An explicitly named instance is an account constraint (no fallback); otherwise tools order chose it.
+        sources: { ...options.sources, ...(options.tool ? { tool: `explicit instance (${options.tool})` } : sameVariant ? { tool: `first usable ${plugin.displayName} instance${endpointLabel(row.runtime)} in ptbk.json tools order` } : {}) },
     };
     return { kind: 'routable', agent, selection, plugin, inspection };
 }

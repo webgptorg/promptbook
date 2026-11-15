@@ -74,7 +74,15 @@ const QUOTA_MIN_WAIT_MS = 30_000;
 /**
  * A runtime quota or authentication failure, scoped to its connection identity and bounded by time.
  */
-type UnavailableMark = { readonly kind: 'quota' | 'authentication'; readonly reason: string; readonly until: number; readonly identity: string };
+type UnavailableMark = { readonly kind: 'quota' | 'authentication' | 'technical'; readonly reason: string; readonly until: number; readonly identity: string };
+
+/**
+ * Bounded recheck of an instance after an observed technical invocation failure that moved work to a fallback: the
+ * earlier instance regains priority at a later selection once it passes.
+ *
+ * @private harness availability
+ */
+export const TECHNICAL_RECHECK_MS = 5 * 60_000;
 
 /**
  * Tracks inspections of the project's enabled harness instances (only configured instances are inspected) and selects
@@ -380,7 +388,7 @@ export class HarnessPool {
         const mark = this.unavailable.get(name);
         const tool = this.instance(name);
         if (!inspection || !tool || this.inspectedConfig.get(name) !== this.inspectionFingerprint(tool)) return undefined;
-        if (mark && mark.identity === this.fingerprint(tool) && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: 'error', nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction, ...(mark.kind === 'quota' ? { recheckAt: mark.until } : {}) };
+        if (mark && mark.identity === this.fingerprint(tool) && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: 'error', nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction, ...(mark.kind === 'quota' || mark.kind === 'technical' ? { recheckAt: mark.until } : {}) };
         if (mark) this.unavailable.delete(name);
         return tool.inferenceRuntime ? this.localReadiness(tool, inspection) : inspection;
     }
@@ -537,6 +545,26 @@ export class HarnessPool {
         const waitMs = result.quotaResetAt ? Math.max(QUOTA_MIN_WAIT_MS, result.quotaResetAt - Date.now()) : QUOTA_BACKOFF_MS;
         this.markUnavailable(name, 'quota', `Quota/rate limit: ${result.diagnostic}`, waitMs, context);
         return waitMs;
+    }
+
+    /**
+     * The eligible same-variant fallback of a selection whose instance failed: the next usable enabled instance in
+     * `tools` order on the same resolved endpoint whose catalog serves the same model. An explicitly named instance is
+     * an account constraint and has no fallback; a different endpoint or unsupported model is never interchangeable.
+     */
+    public fallbackFor(selection: { readonly harness: string; readonly tool?: string; readonly model?: string; readonly runtime?: string; readonly sources?: { readonly tool?: string } }): HarnessToolRecord | undefined {
+        if (!selection.tool || selection.sources?.tool?.startsWith('explicit instance')) return undefined;
+        const failed = this.instance(selection.tool);
+        const runtime = selection.runtime ?? (failed ? toolRuntime(failed) : undefined);
+        return this.select(selection.harness, { except: selection.tool, ...(runtime ? { runtime } : {}), ...(selection.model ? { model: selection.model } : {}) });
+    }
+
+    /**
+     * Records an observed technical invocation failure against the exact acquired connection when a fallback will serve
+     * the continuation (a late failure of an old credential, profile or endpoint never marks its replacement).
+     */
+    public markTechnical(name: string, diagnostic: string, context?: HarnessContext): void {
+        this.markUnavailable(name, 'technical', `Technical failure: ${diagnostic}`, TECHNICAL_RECHECK_MS, context);
     }
 
     /** Marks a variant or instance for recheck (e.g. after an authentication failure). */

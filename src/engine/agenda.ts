@@ -4385,6 +4385,10 @@ export class Agenda {
                 this.resumeAfter.set(item.runId, Date.now() + BLOCKER_RECHECK_MS);
                 break;
             }
+            case 'fallback':
+                // The run is routed again at once; the failed connection is marked for a bounded recheck.
+                this.log(`${harnessName(selection.harness)} instance "${outcome.tool}" failed technically (${outcome.reason}); "${item.task.title}" continues with the same-variant fallback "${outcome.fallback}".`, 'warning');
+                break;
             case 'quota': {
                 // An authorized later instance of the same variant serves the retry at once (no wait through this reset).
                 const fallback = this.sameVariantFallback(item, outcome.tool);
@@ -4432,6 +4436,7 @@ export class Agenda {
             case 'awaiting-wallet':
             case 'awaiting-task':
             case 'quota':
+            case 'fallback':
             case 'setup':
             case 'persistence-failed':
                 this.sessions.waiting(key, 'reason' in outcome && outcome.reason ? outcome.reason : 'Waiting for what it needs before it continues.');
@@ -4470,7 +4475,8 @@ export class Agenda {
      */
     private sameVariantFallback(item: WorkItem, failed: string | undefined): ReturnType<HarnessPool['select']> {
         if (!failed) return undefined;
-        return this.pool.select(item.route.selection.harness, { runtime: item.route.selection.runtime, except: failed });
+        // The same eligibility as a technical fallback: endpoint, model and explicit account constraints are preserved.
+        return this.pool.fallbackFor({ ...item.route.selection, tool: failed });
     }
 
     /**

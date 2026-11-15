@@ -322,6 +322,29 @@ test('live tools: a browser added during a task serves that task; an in-use tool
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });
 
+test('same-variant fallback: a technical failure of the first instance continues on the ready next one, within the same budget and without a wait', async (t) => {
+    const { project, env, log } = await initializedProject(t, { check: CHECK });
+    const api = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'codex-api', '--authentication', 'API_KEY', '--api-key-env', 'FALLBACK_KEY', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'fallback-secret' });
+    assert.equal(api.code, 0, api.output);
+    // Repeating the failed route would wait this long between technical retries.
+    const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
+    config.execution.waitAfterError = '15m';
+    await writeFile(join(project, 'ptbk.json'), `${JSON.stringify(config, null, 4)}\n`);
+    await git(project, ['commit', '-q', '-am', 'Long technical backoff']);
+    await ptbk(['add', 'Summarize the news TECHNICAL_NATIVE', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    const started = Date.now();
+    const run = await drive(project, env, async () => findGenerated(await subjects(project), 'Summarize the news TECHNICAL_NATIVE', 'ptbk: '), { args: ['--harness', 'openai-codex'], message: 'the result through the technical fallback' });
+    assert.equal(run.code, 0, run.output);
+    assert.ok(Date.now() - started < 120_000, 'no technical backoff against the failed route while a fallback is ready');
+    assert.match(run.output, /continues with the same-variant fallback "codex-api"/);
+    assert.match(run.output, /technical retry 1\//, 'the switch consumes the shared technical budget');
+    const turns = (await readFile(log, 'utf8')).trim().split('\n').map((line) => JSON.parse(line)).filter((turn) => turn.title.startsWith('Summarize the news'));
+    assert.deepEqual(turns.map((turn) => turn.api), [false, true], 'the failed native route is not repeated before the fallback');
+    assert.equal(turns[1].apiKey, 'fallback-secret');
+    assert.ok(!turns.some((turn) => turn.agent === 'Fixer'), 'no Fixer handover while a fallback is ready');
+    assert.ok((await subjects(project)).some((subject) => /^ptbk: Summarize the news/.test(subject)));
+});
+
 test('same-variant fallback: a quota failure of the first instance moves the work to the next one promptly', async (t) => {
     const { project, env, log } = await initializedProject(t, { check: CHECK });
     const api = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'codex-api', '--authentication', 'API_KEY', '--api-key-env', 'FALLBACK_KEY', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'fallback-secret' });

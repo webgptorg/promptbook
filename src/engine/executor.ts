@@ -232,6 +232,11 @@ export type ExecutionOutcome =
     | { readonly kind: 'failed'; readonly reason: string; readonly trace?: string }
     | { readonly kind: 'setup'; readonly reason: string; readonly next?: string; readonly tool?: string }
     | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number; readonly tool?: string }
+    /**
+     * A technical invocation failure of `tool` while the eligible same-variant `fallback` is ready: the continuation is
+     * routed again (same checkpoint, effects and combined technical budget) instead of repeating the failed route.
+     */
+    | { readonly kind: 'fallback'; readonly reason: string; readonly tool: string; readonly fallback: string }
     | { readonly kind: 'interrupted' }
     | { readonly kind: 'persistence-failed'; readonly reason: string }
     /** Not started: a file the run must change is owned by other active work (the supervisor claims it again later). */
@@ -852,6 +857,16 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             if (lastResult.outcome !== 'completed') {
                 const technical = record.technicalRetries + 1;
                 if (technical > technicalBudget) return await fail(`${lastResult.diagnostic} (technical retries exhausted)`);
+                // A ready, compatible same-variant instance serves the continuation before this route is repeated; the
+                // switch consumes the same technical budget and the failure is recorded against the acquired connection.
+                const fallback = selection.tool && !environment.signal.aborted ? environment.pool.fallbackFor(selection) : undefined;
+                if (fallback && selection.tool) {
+                    environment.pool.markTechnical(selection.tool, lastResult.diagnostic, acquiredContext);
+                    await save({ technicalRetries: technical, attempt: attempt - 1, feedback: `The previous run ended with a technical failure (${lastResult.diagnostic}). Continue the task.` });
+                    hooks.emit({ type: 'activity', text: `${lastResult.diagnostic} — continuing with the same-variant fallback ${fallback.name} (technical retry ${technical}/${technicalBudget})`, level: 'warning' });
+                    await trace.event('technical-fallback', { runId: record.runId, retry: technical, budget: technicalBudget, diagnostic: lastResult.diagnostic, tool: selection.tool, fallback: fallback.name });
+                    return { kind: 'fallback', reason: lastResult.diagnostic, tool: selection.tool, fallback: fallback.name };
+                }
                 await save({ technicalRetries: technical, attempt: attempt - 1, feedback: `The previous run ended with a technical failure (${lastResult.diagnostic}). Continue the task.` });
                 hooks.emit({ type: 'activity', text: `${lastResult.diagnostic} — technical retry ${technical}/${technicalBudget}`, level: 'warning' });
                 await trace.event('technical-retry', { runId: record.runId, retry: technical, budget: technicalBudget, diagnostic: lastResult.diagnostic });

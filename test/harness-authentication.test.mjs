@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { HarnessPool } from '../dist/engine/harnesses.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { resolveSettings } from '../dist/project/config.js';
-import { temporaryDirectory } from './helpers.mjs';
+import { fakeHarness, temporaryDirectory } from './helpers.mjs';
 
 /**
  * A deterministic stand-in for the five non-Codex CLIs: each reports a version, and the probes that decide native
@@ -172,4 +172,33 @@ test('harness authentication: each API_KEY instance receives only its configured
     assert.equal(invocation.env.OPENAI_API_KEY, 'configured-a');
     assert.equal(invocation.env.OPENAI_BASE_URL, qwen.endpoints.official, 'the key goes to the selected endpoint, never an ambient override');
     assert.equal(invocation.env.DASHSCOPE_API_KEY, undefined);
+});
+
+test('technical fallback eligibility: same endpoint and enabled only, never for an explicit instance; a late failure cannot mark a replacement', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk technical fallback');
+    const { env } = await fakeHarness(t, root);
+    const tools = [
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex-first', authentication: 'NATIVE' },
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex-other-endpoint', authentication: 'API_KEY', apiKey: '${{ env.OTHER_KEY }}', baseUrl: 'https://proxy.example/v1' },
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex-disabled', authentication: 'API_KEY', apiKey: '${{ env.SECOND_KEY }}', isEnabled: false },
+        { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex-second', authentication: 'API_KEY', apiKey: '${{ env.SECOND_KEY }}' },
+    ];
+    const keys = { ...env, OTHER_KEY: 'other', SECOND_KEY: 'second' };
+    const pool = new HarnessPool(root, resolveSettings({ file: { tools } }), keys);
+    await pool.refresh();
+    const selection = { harness: 'openai-codex', tool: 'codex-first', runtime: 'official', sources: { tool: 'first usable OpenAI Codex instance in ptbk.json tools order' } };
+    assert.equal(pool.fallbackFor(selection)?.name, 'codex-second', 'the next enabled instance on the same endpoint, skipping another endpoint and a disabled tool');
+    assert.equal(pool.fallbackFor({ ...selection, sources: { tool: 'explicit instance (codex-first)' } }), undefined, 'an explicit instance is an account constraint');
+
+    // The failure is recorded against the acquired connection: the earlier instance is skipped until its recheck.
+    const acquired = { projectRoot: root, tool: pool.instance('codex-first'), env: pool.environment(pool.instance('codex-first')) };
+    pool.markTechnical('codex-first', 'stream disconnected', acquired);
+    assert.equal(pool.select('openai-codex', { runtime: 'official' }).name, 'codex-second');
+    assert.match(pool.inspectionOf('codex-first').summary, /Technical failure: stream disconnected \(rechecked after/);
+
+    // A late failure of the replaced connection (another account profile now) never marks the replacement.
+    const replaced = new HarnessPool(root, resolveSettings({ file: { tools: [{ ...tools[0], accountProfile: 'company' }, tools[3]] } }), keys);
+    await replaced.refresh();
+    replaced.markTechnical('codex-first', 'late failure of the old profile', acquired);
+    assert.doesNotMatch(replaced.inspectionOf('codex-first')?.summary ?? '', /late failure/);
 });

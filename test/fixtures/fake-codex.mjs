@@ -15,6 +15,8 @@
  *                     $FAKE_CODEX_SLOW_MS (default 6 s) before finishing (lifecycle draining)
  *   QUOTA_NATIVE    → a native (ChatGPT) run fails with a usage limit; an API-key run (CODEX_API_KEY) succeeds
  *   QUOTA_RESET     → a native run fails with a usage limit that states its reset ("try again in 2 days 3 hours")
+ *   TECHNICAL_NATIVE → a native run fails technically (a dropped stream, neither quota nor authentication); an API-key
+ *                     run succeeds
  *   LIST_BROWSERS   → after the work (and any SLOW_WORK wait) lists the browser tools through the bridge into
  *                     output/browsers.txt (a tool added meanwhile must be visible to this same task)
  *   CLAIM_SHARED    → claims output/shared.txt through the `claim_files` tool, appends the task name to it and then
@@ -251,6 +253,10 @@ async function main() {
     const taskTurn = !prompt.includes('## Assignment work') && !brief && !chat && !prompt.startsWith('# Consultation');
     if (prompt.includes('QUOTA_RESET') && !api && taskTurn) {
         print({ type: 'turn.failed', error: { message: "You've hit your usage limit. Upgrade to Pro, or try again in 2 days 3 hours." } });
+        process.exit(1);
+    }
+    if (prompt.includes('TECHNICAL_NATIVE') && !api && taskTurn) {
+        print({ type: 'turn.failed', error: { message: 'Fixture technical failure: the response stream disconnected before completion.' } });
         process.exit(1);
     }
     if (prompt.includes('QUOTA_NATIVE') && !api && taskTurn) {
