@@ -1,7 +1,11 @@
+import { randomBytes } from 'node:crypto';
+import { open, readFile, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { PtbkError } from '../common/errors.js';
-import { readTextIfExists, writeFileAtomic } from '../common/fs.js';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { PtbkError, errorMessage } from '../common/errors.js';
+import { ensureDirectory, readTextIfExists, writeFileAtomic } from '../common/fs.js';
 import { ENVIRONMENT_NAME } from '../common/naming.js';
+import { isProcessAlive } from '../common/process.js';
 import { formatIsoWithOffset, systemTimeZone } from '../common/time.js';
 
 /**
@@ -153,8 +157,11 @@ export function describeCredentialSource(resolved: ResolvedReference): string {
 export type DotEnvChange =
     /** Sets the active value (a changed value keeps the old assignment commented out). */
     | { readonly kind: 'set'; readonly name: string; readonly value: string }
-    /** Comments out the active assignment (retirement; never deletion). */
-    | { readonly kind: 'retire'; readonly name: string };
+    /**
+     * Comments out the active assignment (retirement; never deletion). `consumers` rediscovers remaining consumers at
+     * the coordinated write boundary: a returned reason, or a failed discovery, keeps the assignment active.
+     */
+    | { readonly kind: 'retire'; readonly name: string; readonly consumers?: () => Promise<string | undefined> };
 
 /**
  * Outcome of a `.env` edit.
@@ -172,17 +179,89 @@ function quoteValue(value: string): string {
 }
 
 /**
- * Applies changes to the project's `.env` non-destructively: every engine-authored addition, replacement and
- * retirement gets an adjacent timestamped comment with its reason; old assignments are commented out, never deleted;
- * unrelated lines, comments and newline conventions stay intact; a repeated identical edit is a no-op.
- *
- * Secret values never appear in the returned notes.
+ * Longest wait for another ptbk writer of the same `.env` (CLI, dashboard or engine in another process).
+ */
+const LOCK_WAIT_MS = 15_000;
+
+/**
+ * Age after which a lock whose holder cannot be identified is treated as abandoned.
+ */
+const STALE_LOCK_MS = 60_000;
+
+/**
+ * Bounded re-reads when the file keeps changing underneath an edit (an external editor saving repeatedly).
+ */
+const REVISION_ATTEMPTS = 5;
+
+/**
+ * Path of the cross-process lock that serializes ptbk's read/modify/replace of one project's `.env`.
+ */
+function environmentLockPath(projectRoot: string): string {
+    return join(projectRoot, '.ptbk', 'locks', 'env.lock');
+}
+
+/**
+ * Runs `action` while holding the project's `.env` edit lock, across processes (an in-process mutex or an atomic
+ * rename alone cannot prevent a lost update between two CLIs or a CLI and an engine). A holder that no longer exists is
+ * replaced; a live holder is waited for (bounded) and then reported as a recoverable conflict.
  *
  * @private environment references
  */
-export async function editDotEnv(projectRoot: string, changes: readonly DotEnvChange[], audit: { readonly reason: string; readonly operation: string; readonly timeZone?: string }): Promise<DotEnvEditOutcome> {
-    const path = dotEnvPath(projectRoot);
-    const original = (await readTextIfExists(path)) ?? '';
+export async function withEnvironmentLock<T>(projectRoot: string, action: () => Promise<T>): Promise<T> {
+    const path = environmentLockPath(projectRoot);
+    await ensureDirectory(join(projectRoot, '.ptbk', 'locks'));
+    const token = randomBytes(8).toString('hex');
+    const deadline = Date.now() + LOCK_WAIT_MS;
+    for (let attempt = 0; ; attempt++) {
+        try {
+            const handle = await open(path, 'wx', 0o600);
+            await handle.writeFile(JSON.stringify({ pid: process.pid, token, at: new Date().toISOString() }));
+            await handle.close();
+            break;
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+            let holder: { pid?: number } | undefined;
+            try {
+                holder = JSON.parse(await readFile(path, 'utf8')) as { pid?: number };
+            } catch {
+                holder = undefined;
+            }
+            const age = await stat(path).then((info) => Date.now() - info.mtimeMs).catch(() => 0);
+            const abandoned = holder ? !isProcessAlive(holder.pid) : age > STALE_LOCK_MS;
+            if (abandoned) {
+                await rm(path, { force: true });
+                continue;
+            }
+            if (Date.now() > deadline) {
+                throw new PtbkError('Another ptbk process is editing this project’s .env.', {
+                    kind: 'conflict',
+                    project: projectRoot,
+                    reason: `${path} is held by process ${String(holder?.pid ?? 'unknown')}.`,
+                    effect: 'Nothing was changed in .env or ptbk.json.',
+                    next: ['Retry once the other tool change has finished.'],
+                });
+            }
+            await sleep(Math.min(250, 20 * (attempt + 1)));
+        }
+    }
+    try {
+        return await action();
+    } finally {
+        try {
+            const current = JSON.parse(await readFile(path, 'utf8')) as { token?: string };
+            if (current.token === token) await rm(path, { force: true });
+        } catch {
+            // already gone
+        }
+    }
+}
+
+/**
+ * The edited text of `.env` content (pure apart from consumer rediscovery): every engine-authored addition,
+ * replacement and retirement gets an adjacent timestamped comment with its reason; old assignments are commented out,
+ * never deleted; unrelated lines, comments and newline conventions stay intact; an identical edit changes nothing.
+ */
+async function editedDotEnvText(original: string, changes: readonly DotEnvChange[], audit: { readonly reason: string; readonly operation: string; readonly timeZone?: string }): Promise<{ readonly text: string; readonly changed: boolean; readonly notes: readonly string[] }> {
     const newline = original.includes('\r\n') ? '\r\n' : '\n';
     const lines = original === '' ? [] : original.split(/\r?\n/);
     const trailingNewline = original === '' || original.endsWith('\n');
@@ -224,15 +303,55 @@ export async function editDotEnv(projectRoot: string, changes: readonly DotEnvCh
             changed = true;
         } else {
             if (!active.length) continue;
+            // Consumers are rediscovered here, under the lock: uncertainty is not proof of non-use.
+            let kept: string | undefined;
+            try {
+                kept = await change.consumers?.();
+            } catch (error) {
+                kept = `its remaining consumers could not be established (${errorMessage(error)})`;
+            }
+            if (kept) {
+                notes.push(`${change.name} stays active in .env: ${kept}.`);
+                continue;
+            }
             for (const entry of [...active].reverse()) lines.splice(entry.index, 1, comment('commented out (no remaining consumer)'), `# ${lines[entry.index]}`);
             notes.push(`Retired ${change.name} in .env (commented out, not deleted).`);
             changed = true;
         }
     }
-    if (!changed) return { changed: false, notes };
-    const text = `${lines.join(newline)}${trailingNewline ? newline : ''}`;
-    await writeFileAtomic(path, text, { mode: 0o600 });
-    return { changed: true, notes };
+    return { text: `${lines.join(newline)}${trailingNewline ? newline : ''}`, changed, notes };
+}
+
+/**
+ * Applies changes to the project's `.env` non-destructively (see {@link editedDotEnvText}) as one coordinated
+ * read/modify/replace: ptbk writers in any process are serialized by the edit lock, and a revision changed on disk
+ * before replacement (for example by an external editor) is re-read and the changes are reapplied onto it, so
+ * independent edits all survive. A file that keeps changing is a reported conflict, never an overwrite.
+ *
+ * Secret values never appear in the returned notes.
+ *
+ * @private environment references
+ */
+export async function editDotEnv(projectRoot: string, changes: readonly DotEnvChange[], audit: { readonly reason: string; readonly operation: string; readonly timeZone?: string }): Promise<DotEnvEditOutcome> {
+    const path = dotEnvPath(projectRoot);
+    return await withEnvironmentLock(projectRoot, async () => {
+        for (let attempt = 1; attempt <= REVISION_ATTEMPTS; attempt++) {
+            const original = (await readTextIfExists(path)) ?? '';
+            const edit = await editedDotEnvText(original, changes, audit);
+            if (!edit.changed) return { changed: false, notes: edit.notes };
+            // Revision check right before the replacement: a newer on-disk content is never overwritten.
+            if (((await readTextIfExists(path)) ?? '') !== original) continue;
+            await writeFileAtomic(path, edit.text, { mode: 0o600 });
+            return { changed: true, notes: edit.notes };
+        }
+        throw new PtbkError('.env kept changing while ptbk was saving it.', {
+            kind: 'conflict',
+            project: projectRoot,
+            reason: 'Another program edited .env repeatedly between reading and replacing it.',
+            effect: 'Nothing was changed in .env; the newer content is kept.',
+            next: ['Retry once the other editor has saved its changes.'],
+        });
+    });
 }
 
 /**

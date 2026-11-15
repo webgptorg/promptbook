@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { parseQuotaReset } from '../dist/harness/quota-reset.js';
@@ -112,6 +112,106 @@ test('tool management (stopped project): canonical records, scoped commits, prot
     const added = (await subjects(project)).length - before;
     assert.equal(added, 8, 'every real change is one commit');
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
+});
+
+test('tool management: a secret-only rotation first saves and commits the effective .env ignore rule; failures leave the previous secret', async (t) => {
+    const { project, env } = await initializedProject(t, { check: CHECK });
+    const add = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'company-api', '--authentication', 'API_KEY', '--api-key-env', 'COMPANY_KEY', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'sk-first' });
+    assert.equal(add.code, 0, add.output);
+    // .env becomes untracked but not ignored (the rule was removed and committed), with unrelated uncommitted work.
+    const ignore = (await readFile(join(project, '.gitignore'), 'utf8')).split('\n').filter((line) => line.trim() !== '.env').join('\n');
+    await writeFile(join(project, '.gitignore'), ignore);
+    await git(project, ['add', '.gitignore']);
+    await git(project, ['commit', '-q', '-m', 'Stop ignoring .env']);
+    assert.equal((await git(project, ['check-ignore', '.env']).catch(() => '')).trim(), '', '.env is not ignored');
+    await writeFile(join(project, 'unrelated.md'), 'unrelated uncommitted work\n');
+    const config = await readFile(join(project, 'ptbk.json'), 'utf8');
+    const count = (await subjects(project)).length;
+
+    const rotated = await ptbk(['tool', 'modify', 'company-api', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'sk-second' });
+    assert.equal(rotated.code, 0, rotated.output);
+    assert.equal((await git(project, ['check-ignore', '.env'])).trim(), '.env', 'the effective ignore rule exists');
+    assert.equal((await subjects(project)).length, count + 1, 'the versioned protection change has its scoped commit');
+    assert.match((await subjects(project))[0], /ignore \.env before storing its secret/);
+    assert.deepEqual((await git(project, ['show', '--name-only', '--format=', 'HEAD'])).trim().split('\n'), ['.gitignore'], 'only the ignore rule is committed');
+    assert.match(await git(project, ['status', '--porcelain']), /\?\? unrelated\.md/, 'unrelated work stays uncommitted');
+    assert.equal(await readFile(join(project, 'ptbk.json'), 'utf8'), config, 'no tool field changed');
+    assert.match(await readFile(join(project, '.env'), 'utf8'), /^COMPANY_KEY=sk-second$/m);
+    assert.doesNotMatch(await git(project, ['log', '-p']), /sk-first|sk-second/);
+
+    const again = await ptbk(['tool', 'modify', 'company-api', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'sk-third' });
+    assert.equal(again.code, 0, again.output);
+    assert.equal((await subjects(project)).length, count + 1, 'with protection present a secret-only rotation creates no empty commit');
+    assert.match(await readFile(join(project, '.env'), 'utf8'), /# \S+ ptbk: commented out the previous value \(replaced below\)[^\n]*\n# COMPANY_KEY=sk-second\n# \S+ ptbk: added[^\n]*\nCOMPANY_KEY=sk-third$/m, 'the audit is recorded inside .env');
+
+    // Protection that cannot be established: the previous secret stays and no success is reported.
+    await writeFile(join(project, '.gitignore'), `${ignore}\n.env\n!.env\n`);
+    await git(project, ['add', '.gitignore']);
+    await git(project, ['commit', '-q', '-m', 'Re-include .env']);
+    const before = await readFile(join(project, '.env'), 'utf8');
+    const refused = await ptbk(['tool', 'modify', 'company-api', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'sk-fourth' });
+    assert.notEqual(refused.code, 0, refused.output);
+    assert.match(refused.output, /could not make Git ignore \.env, so the secret was not stored/);
+    assert.doesNotMatch(refused.output, /Added \.env to \.gitignore/);
+    assert.equal(await readFile(join(project, '.env'), 'utf8'), before, 'the previous secret file is unchanged');
+
+    // A failed protection write (read-only project directory) also leaves the previous secret in place.
+    if (process.platform !== 'win32' && process.getuid?.() !== 0) {
+        await writeFile(join(project, '.gitignore'), ignore);
+        await git(project, ['add', '.gitignore']);
+        await git(project, ['commit', '-q', '-m', 'Stop ignoring .env again']);
+        await chmod(project, 0o555);
+        try {
+            const blocked = await ptbk(['tool', 'modify', 'company-api', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'sk-fifth' });
+            assert.notEqual(blocked.code, 0, blocked.output);
+            assert.match(blocked.output, /could not make Git ignore \.env/);
+        } finally {
+            await chmod(project, 0o755);
+        }
+        assert.equal(await readFile(join(project, '.env'), 'utf8'), before, 'an injected protection-write failure stores nothing');
+        assert.equal(await readFile(join(project, '.gitignore'), 'utf8'), ignore);
+    }
+});
+
+test('tool management: removing the last tool of an engine-added key keeps it while ptbk.json (committed or working copy) still uses it', async (t) => {
+    const { project, env } = await initializedProject(t, { check: CHECK });
+    const addTool = async (name) => {
+        const added = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', name, '--authentication', 'API_KEY', '--api-key-env', 'SHARED_KEY', '--api-key-stdin', '--raw'], { cwd: project, env, input: 'sk-shared' });
+        assert.equal(added.code, 0, added.output);
+    };
+    const setCheck = async (check, commit) => {
+        const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
+        config.execution.check = check;
+        await writeFile(join(project, 'ptbk.json'), `${JSON.stringify(config, null, 4)}\n`);
+        if (commit) {
+            await git(project, ['add', 'ptbk.json']);
+            await git(project, ['commit', '-q', '-m', 'Check uses the key']);
+        }
+    };
+    await addTool('api-one');
+    await setCheck('node -e "process.exit(process.env.SHARED_KEY === undefined ? 0 : 0)" && node check.mjs', true);
+    const removed = await ptbk(['tool', 'remove', 'api-one', '--raw'], { cwd: project, env });
+    assert.equal(removed.code, 0, removed.output);
+    assert.match(await readFile(join(project, '.env'), 'utf8'), /^SHARED_KEY=sk-shared$/m, 'a check command is a consumer');
+    assert.match(removed.output, /SHARED_KEY stays active in \.env: ptbk\.json still uses it/);
+
+    // Only an uncommitted working-copy edit uses it.
+    await setCheck('node check.mjs', true);
+    await addTool('api-two');
+    await setCheck('echo $SHARED_KEY && node check.mjs', false);
+    const working = await ptbk(['tool', 'remove', 'api-two', '--raw'], { cwd: project, env });
+    assert.equal(working.code, 0, working.output);
+    assert.match(working.output, /uncommitted working copy/);
+    assert.match(await readFile(join(project, '.env'), 'utf8'), /^SHARED_KEY=sk-shared$/m);
+
+    // Proven unused: retired by commenting, history preserved.
+    await setCheck('node check.mjs', false);
+    await addTool('api-three');
+    const unused = await ptbk(['tool', 'remove', 'api-three', '--raw'], { cwd: project, env });
+    assert.equal(unused.code, 0, unused.output);
+    const text = await readFile(join(project, '.env'), 'utf8');
+    assert.match(text, /^# SHARED_KEY=sk-shared$/m);
+    assert.doesNotMatch(text, /^SHARED_KEY=/m);
 });
 
 test('tool management keeps someone else’s uncommitted edit of ptbk.json out of its commit', async (t) => {

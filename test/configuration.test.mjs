@@ -9,8 +9,11 @@ import { maintainProjectConfiguration } from '../dist/project/configuration.js';
 import { applyConfigurationMigration, planConfigurationMigration, PRE_VERSIONING_BASELINE } from '../dist/project/migrations.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { editDotEnv, parseEnvironmentReference, readDotEnv, resolveVariable } from '../dist/tools/environment.js';
+import { remainingConsumers } from '../dist/tools/operations.js';
 import { parseTools } from '../dist/tools/normalize.js';
 import { fakeHarness, git, initRepository, subjects, temporaryDirectory } from './helpers.mjs';
+import { spawn } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 /**
  * The unversioned configuration format of engines before versioned configuration (singleton browser, harness map).
@@ -240,6 +243,69 @@ test('environment references and .env: bounded notation, process precedence, non
     assert.equal(resolveVariable('DUP', {}, await readDotEnv(root)).source, 'ambiguous');
     await assert.rejects(editDotEnv(root, [{ kind: 'set', name: 'DUP', value: 'c' }], { reason: 'x', operation: 'y' }), /several times/);
     assert.equal(await readFile(join(root, '.env'), 'utf8'), 'DUP=a\nDUP=b\n', 'an ambiguous file is left untouched');
+});
+
+test('environment edits: separate writers from the same revision and an external edit between read and replacement all survive', async (t) => {
+    const root = await temporaryDirectory(t);
+    await writeFile(join(root, '.env'), '# shared\nBASE=1\n');
+    const module = pathToFileURL(join(process.cwd(), 'dist', 'tools', 'environment.js')).href;
+    // Two separate processes start from the same revision and add different variables at the same moment.
+    const writer = (name) => new Promise((resolve, reject) => {
+        const script = `const { editDotEnv } = await import(${JSON.stringify(module)}); const outcome = await editDotEnv(${JSON.stringify(root)}, [{ kind: 'set', name: ${JSON.stringify(name)}, value: 'v-${name}' }], { reason: 'writer ${name}', operation: 'fixture', timeZone: 'UTC' }); process.stdout.write(JSON.stringify(outcome));`;
+        const child = spawn(process.execPath, ['--input-type=module', '-e', script], { stdio: ['ignore', 'pipe', 'pipe'] });
+        let output = '';
+        child.stdout.on('data', (chunk) => (output += chunk));
+        child.stderr.on('data', (chunk) => (output += chunk));
+        child.on('error', reject);
+        child.on('close', (code) => (code === 0 ? resolve(JSON.parse(output)) : reject(new Error(output))));
+    });
+    const outcomes = await Promise.all(['FIRST_KEY', 'SECOND_KEY', 'THIRD_KEY'].map(writer));
+    assert.ok(outcomes.every((outcome) => outcome.changed), 'every writer reports success');
+    const both = await readFile(join(root, '.env'), 'utf8');
+    for (const name of ['FIRST_KEY', 'SECOND_KEY', 'THIRD_KEY']) {
+        assert.match(both, new RegExp(`^${name}=v-${name}$`, 'm'), `${name} survived`);
+        assert.match(both, new RegExp(`ptbk: added — writer ${name}`), `${name}'s audit survived`);
+    }
+    assert.ok(both.startsWith('# shared\nBASE=1\n'));
+
+    // An external editor saves between ptbk's read and its replacement: the newer content is kept and the change reapplied.
+    let edited = false;
+    const outcome = await editDotEnv(root, [
+        { kind: 'retire', name: 'BASE', consumers: async () => {
+            if (!edited) {
+                edited = true;
+                await writeFile(join(root, '.env'), `${await readFile(join(root, '.env'), 'utf8')}EXTERNAL=editor\n`);
+            }
+            return 'a fixture consumer still uses it';
+        } },
+        { kind: 'set', name: 'ROTATED', value: 'new' },
+    ], { reason: 'rotate', operation: 'fixture', timeZone: 'UTC' });
+    assert.equal(outcome.changed, true);
+    const after = await readFile(join(root, '.env'), 'utf8');
+    assert.match(after, /^EXTERNAL=editor$/m, 'the external edit is preserved');
+    assert.match(after, /^ROTATED=new$/m, 'the change was reapplied onto the newer revision');
+    assert.equal(after.match(/ptbk: added — rotate/g).length, 1, 'no duplicated audit comment for the same edit');
+    assert.match(after, /^BASE=1$/m, 'a remaining consumer keeps the assignment active');
+    assert.ok(outcome.notes.some((note) => /BASE stays active in \.env: a fixture consumer still uses it/.test(note)));
+});
+
+test('environment retirement: failed or remaining consumer discovery keeps the assignment active', async (t) => {
+    const root = await temporaryDirectory(t);
+    await writeFile(join(root, '.env'), 'KEY=1\n');
+    const failed = await editDotEnv(root, [{ kind: 'retire', name: 'KEY', consumers: async () => { throw new Error('search failed'); } }], { reason: 'remove tool x', operation: 'fixture', timeZone: 'UTC' });
+    assert.equal(failed.changed, false);
+    assert.match(failed.notes.join(' '), /could not be established \(search failed\)/);
+    assert.equal(await readFile(join(root, '.env'), 'utf8'), 'KEY=1\n', 'uncertainty is not proof of non-use');
+
+    // The whole post-operation configuration counts, not only the remaining tools; a failed search is an error.
+    const project = projectAt(root);
+    await initRepository(root);
+    assert.match(await remainingConsumers(project, root, 'KEY', [JSON.stringify({ execution: { check: 'test -n "$KEY"' }, tools: [] })]), /ptbk\.json still uses it \(`execution`\)/);
+    assert.match(await remainingConsumers(project, root, 'KEY', [JSON.stringify({ tools: [] }), JSON.stringify({ execution: { check: 'echo $KEY' }, tools: [] })]), /uncommitted working copy/);
+    assert.match(await remainingConsumers(project, root, 'KEY', [JSON.stringify({ tools: [{ type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'other', isEnabled: false, authentication: 'API_KEY', apiKey: '${{ env.KEY }}' }] })]), /tool other/);
+    assert.equal(await remainingConsumers(project, root, 'KEY', [JSON.stringify({ tools: [] })]), undefined, 'the .env assignment itself is not a consumer');
+    const outside = await temporaryDirectory(t);
+    await assert.rejects(remainingConsumers(projectAt(outside), outside, 'KEY', [JSON.stringify({ tools: [] })]), /searching the project for KEY failed/);
 });
 
 test('environment precedence: an explicitly empty process value prevents use of a file credential', async (t) => {

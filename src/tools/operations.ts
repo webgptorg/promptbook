@@ -1,4 +1,5 @@
-import { join } from 'node:path';
+import { rm } from 'node:fs/promises';
+import { join, relative } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { readTextIfExists, writeFileAtomic } from '../common/fs.js';
 import { ENVIRONMENT_NAME, KEBAB_IDENTIFIER, kebabIdentifier, matchEnum } from '../common/naming.js';
@@ -432,6 +433,42 @@ function withIgnoreLine(content: string, line: string): string | undefined {
 }
 
 /**
+ * Undoes this operation's own `.gitignore` working-copy change when the secret could not be stored, unless someone
+ * changed the file since (their newer content is kept).
+ */
+async function restoreProtection(protection: { readonly path: string; readonly previous: string | undefined; readonly written: string } | undefined): Promise<void> {
+    if (!protection || protection.previous === protection.written) return;
+    if ((await readTextIfExists(protection.path).catch(() => undefined)) !== protection.written) return;
+    if (protection.previous === undefined) await rm(protection.path, { force: true }).catch(() => undefined);
+    else await writeFileAtomic(protection.path, protection.previous).catch(() => undefined);
+}
+
+/**
+ * Why an environment variable still has a consumer after an operation, or `undefined` when none was found: the
+ * post-operation configuration texts (committed and working copy) and every other tracked or untracked, non-ignored
+ * project file. A failed search throws: uncertainty is never proof of non-use.
+ *
+ * @private shared tool management
+ */
+export async function remainingConsumers(project: Project, repositoryRoot: string, variable: string, configurations: readonly string[]): Promise<string | undefined> {
+    const word = new RegExp(`(^|[^A-Za-z0-9_])${variable}([^A-Za-z0-9_]|$)`);
+    const configuration = configurations.find((text) => word.test(text));
+    if (configuration !== undefined) {
+        const raw = JSON.parse(configuration) as Record<string, unknown>;
+        const tools = parseTools(Array.isArray(raw.tools) ? (raw.tools as unknown[]) : []).tools;
+        const tool = tools.find((entry) => word.test(JSON.stringify(serializeTool(entry))));
+        if (tool) return `the tool ${tool.name} (enabled or disabled) still references it`;
+        const fields = Object.keys(raw).filter((key) => key !== 'tools' && word.test(JSON.stringify(raw[key])));
+        return `ptbk.json still uses it (${fields.map((key) => `\`${key}\``).join(', ') || 'configuration'}${configurations.indexOf(configuration) > 0 ? ', uncommitted working copy' : ''})`;
+    }
+    const exclude = (path: string): string => `:!${relative(repositoryRoot, path).replace(/\\/g, '/')}`;
+    const search = await git(repositoryRoot, ['grep', '--untracked', '-I', '-l', '-w', '-F', variable, '--', '.', exclude(project.configPath), exclude(dotEnvPath(project.root))], { literal: false });
+    if (search.exitCode === 0) return `it is also used by ${search.stdout.trim().split('\n').slice(0, 3).join(', ')}`;
+    if (search.exitCode !== 1) throw new Error(`searching the project for ${variable} failed: ${(search.spawnError ?? search.stderr.trim()) || `exit ${String(search.exitCode)}`}`);
+    return undefined;
+}
+
+/**
  * Context of applying an operation (the engine passes its coordination; a stopped project uses safe defaults).
  *
  * @private shared tool management
@@ -501,6 +538,8 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
         const files: Array<{ path: string; content: string; working: string }> = [];
         // A supplied secret goes only to the ignored local .env (timestamped, non-destructive).
         const envChanges: DotEnvChange[] = [];
+        /** Working `.gitignore` before this operation established the protection (restored if it fails). */
+        let protection: { readonly path: string; readonly previous: string | undefined; readonly written: string } | undefined;
         if (request.secret) {
             const reference = parseEnvironmentReference((plan.after as HarnessToolRecord | undefined)?.apiKey);
             if (plan.type !== 'HARNESS' || !reference) throw invalid('A secret can only be stored for a HARNESS tool with an apiKey reference.', 'Pass --api-key-env NAME together with --api-key-stdin.');
@@ -509,13 +548,30 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
             if (tracked.exitCode === 0) {
                 throw new PtbkError('.env is tracked by Git, so ptbk does not store secrets in it.', { kind: 'conflict', project: project.root, effect: 'Nothing was changed.', next: ['Untrack it (`git rm --cached .env`, commit) and rotate any secret that was committed, then retry.'] });
             }
-            if (!(await ignoredPaths(project.root, [dotEnvPath(project.root)])).size) {
+            const dotEnvFile = dotEnvPath(project.root);
+            if (!(await ignoredPaths(project.root, [dotEnvFile])).size) {
+                // The effective ignore rule is persisted and verified before the secret is stored, also for a secret-only
+                // rotation; a prepared patch alone is not protection. Its versioned change gets its scoped commit below.
                 const gitignore = join(project.root, '.gitignore');
                 const headIgnore = (await readAtHead(repositoryRoot, gitignore)) ?? '';
-                const workingIgnore = (await readTextIfExists(gitignore)) ?? '';
+                const workingIgnore = await readTextIfExists(gitignore);
                 const committed = withIgnoreLine(headIgnore, '.env');
-                if (committed) files.push({ path: gitignore, content: committed, working: withIgnoreLine(workingIgnore, '.env') ?? workingIgnore });
-                notes.push('Added .env to .gitignore before storing the secret.');
+                const workingWithRule = withIgnoreLine(workingIgnore ?? '', '.env') ?? workingIgnore ?? '';
+                try {
+                    if (workingWithRule !== (workingIgnore ?? '')) await writeFileAtomic(gitignore, workingWithRule);
+                    protection = { path: gitignore, previous: workingIgnore, written: workingWithRule };
+                    if (!(await ignoredPaths(project.root, [dotEnvFile])).size) throw new Error('Git still does not ignore .env with the added rule (another ignore rule re-includes it)');
+                } catch (error) {
+                    await restoreProtection(protection);
+                    throw new PtbkError('ptbk could not make Git ignore .env, so the secret was not stored.', {
+                        kind: 'conflict',
+                        project: project.root,
+                        reason: errorMessage(error),
+                        effect: 'Nothing was changed: .env keeps its previous content and ptbk.json is unchanged.',
+                        next: ['Make sure `.env` is ignored (add `.env` to .gitignore and remove any `!.env` rule), then retry.'],
+                    });
+                }
+                if (committed) files.push({ path: gitignore, content: committed, working: workingWithRule });
             }
             envChanges.push({ kind: 'set', name: request.secret.variable, value: request.secret.value });
         }
@@ -523,30 +579,43 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
         if (request.operation.kind === 'remove' && plan.before?.type === 'HARNESS') {
             const variable = parseEnvironmentReference(plan.before.apiKey);
             if (variable) {
-                const remaining = parseTools(plan.tools).tools.some((tool) => tool.type === 'HARNESS' && parseEnvironmentReference(tool.apiKey) === variable);
+                // The whole post-operation configuration (committed and working copy, including uncommitted edits such as a
+                // check command) is a consumer candidate; only the removed tool's own reference is excluded.
+                const postOperation = [JSON.stringify({ ...head.raw, tools: plan.tools }), JSON.stringify({ ...working.raw, tools: workingPlan.tools })];
+                const consumers = async (): Promise<string | undefined> => await remainingConsumers(project, repositoryRoot, variable, postOperation);
                 const dotEnv = await readDotEnv(project.root);
-                const elsewhere = (await git(repositoryRoot, ['grep', '--untracked', '-I', '-l', '-w', '-F', variable, '--', '.', ':!ptbk.json'], { literal: false })).stdout.trim();
-                if (remaining) notes.push(`${variable} stays active in .env: another tool (enabled or disabled) still references it.`);
-                else if (elsewhere) notes.push(`${variable} stays active in .env: it is also used by ${elsewhere.split('\n').slice(0, 3).join(', ')}.`);
+                const kept = await consumers().catch((error: unknown) => `its remaining consumers could not be established (${errorMessage(error)})`);
+                if (kept) notes.push(`${variable} stays active in .env: ${kept}.`);
                 else if (!isEngineManagedAssignment(dotEnv, variable)) notes.push(`${variable} stays active: ptbk did not add it, so its other consumers are unknown.`);
-                else envChanges.push({ kind: 'retire', name: variable });
+                // Rechecked at the coordinated .env write boundary before the assignment is commented out.
+                else envChanges.push({ kind: 'retire', name: variable, consumers });
             }
         }
-        if (plan.noop && !envChanges.length) return { status: 'no-op', summary: `${plan.summary}: nothing to change.`, notes } satisfies ToolOperationOutcome;
+        if (plan.noop && !envChanges.length && !files.length) return { status: 'no-op', summary: `${plan.summary}: nothing to change.`, notes } satisfies ToolOperationOutcome;
         if (envChanges.length) {
-            const edit = await editDotEnv(project.root, envChanges, { reason: plan.summary.toLowerCase(), operation: commandOf(request.operation), timeZone: context.timeZone });
+            let edit: Awaited<ReturnType<typeof editDotEnv>>;
+            try {
+                edit = await editDotEnv(project.root, envChanges, { reason: plan.summary.toLowerCase(), operation: commandOf(request.operation), timeZone: context.timeZone });
+            } catch (error) {
+                // The secret was not stored: the protection added for it is withdrawn rather than left as a silent change.
+                await restoreProtection(protection);
+                throw error;
+            }
             notes.push(...edit.notes);
         }
+        if (protection) notes.push('Added .env to .gitignore before storing the secret.');
         let commit: string | undefined;
-        if (!plan.noop) {
-            const headConfig = canonicalizeConfig({ ...head.raw, tools: plan.tools }).raw;
-            const workingConfig = canonicalizeConfig({ ...working.raw, tools: workingPlan.tools }).raw;
-            files.unshift({ path: project.configPath, content: configText(headConfig), working: configText(workingConfig) });
+        if (!plan.noop || files.length) {
+            if (!plan.noop) {
+                const headConfig = canonicalizeConfig({ ...head.raw, tools: plan.tools }).raw;
+                const workingConfig = canonicalizeConfig({ ...working.raw, tools: workingPlan.tools }).raw;
+                files.unshift({ path: project.configPath, content: configText(headConfig), working: configText(workingConfig) });
+            }
             const result = await commitFileContents({
                 projectRoot: project.root,
                 repositoryRoot,
                 files: files.map((file) => ({ path: file.path, content: file.content })),
-                subject: plan.summary,
+                subject: plan.noop ? `${plan.summary}: ignore .env before storing its secret` : plan.summary,
                 body: [`Saved tool management${request.via ? ` (${request.via})` : ''}: ${commandOf(request.operation)}`, ...notes.filter((note) => !/\.env/.test(note) || /gitignore/.test(note))].join('\n'),
                 trailers: { 'PTBK-Tool': plan.after?.name ?? plan.name },
                 temporaryDirectory: project.runtime.temporary,
