@@ -2,6 +2,7 @@ import { rm } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { readTextIfExists, writeFileAtomic } from '../common/fs.js';
+import { harnessPlugin } from '../harness/registry.js';
 import { ENVIRONMENT_NAME, KEBAB_IDENTIFIER, kebabIdentifier, matchEnum } from '../common/naming.js';
 import { canonicalizeConfig, configText, parseConfigText } from '../project/config.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
@@ -13,6 +14,7 @@ import {
     PROFILE_SOURCES,
     TOOL_TYPES,
     dependentHarnesses,
+    harnessPluginId,
     isEffectivelyEnabled,
     toolTypeLabel,
     variantsOf,
@@ -229,6 +231,12 @@ function modifiedRecord(record: ToolRecord, changes: ToolChanges, rename?: strin
         optional('accountProfile', changes.accountProfile, record.accountProfile);
         optional('baseUrl', changes.baseUrl, record.baseUrl);
         optional('inferenceRuntime', changes.inferenceRuntime, record.inferenceRuntime);
+        // A variant change never silently discards a native account context or falls back to another (default) account.
+        const variant = matchEnum(String(draft.variant), variantsOf('HARNESS'));
+        const target = variant && variant !== record.variant ? harnessPlugin(harnessPluginId(variant as HarnessToolRecord['variant'])) : undefined;
+        if (target && draft.accountProfile !== undefined && String(draft.authentication).toUpperCase() === 'NATIVE' && !target.accountHomeVariable) {
+            throw invalid(`${target.displayName} does not support separate native account contexts, so ${record.name} cannot keep accountProfile "${String(draft.accountProfile)}" as a ${variant} tool.`, `Clear it explicitly in the same change (ptbk tool modify ${record.name} --variant ${variant} --clear-account-profile), or keep the variant.`);
+        }
     } else if (record.type === 'INFERENCE_RUNTIME') {
         for (const field of ['authentication', 'apiKeyEnv', 'accountProfile', 'baseUrl', 'profileSource', 'profilePath', 'isHeadless', 'executable'] as const) if (changes[field] !== undefined) throw invalid(`The ${field} field does not apply to an INFERENCE_RUNTIME tool.`);
         optional('endpoint', changes.endpoint, record.endpoint);

@@ -3,6 +3,7 @@ import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { parseQuotaReset } from '../dist/harness/quota-reset.js';
+import { toolInventory } from '../dist/tools/readiness.js';
 import { drive, findGenerated, git, initializedProject, ptbk, subjects, waitFor } from './helpers.mjs';
 
 /**
@@ -25,6 +26,41 @@ async function status(project, env) {
 async function savedTools(project) {
     return JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8')).tools;
 }
+
+test('retained revisions in the inventory: actual type/variant and owner, separate from a same-name saved tool, never counted for readiness', () => {
+    const project = { root: '/projects/site', name: 'site', runtime: { root: '/projects/site/.ptbk', temporary: '/projects/site/.ptbk/tmp', browserProfile: '/projects/site/.ptbk/browser/profile' } };
+    const pool = { inspectionOf: () => ({ usable: true, summary: 'Ready.' }), credential: () => undefined, runtimes: { observation: () => undefined } };
+    const browser = { type: 'BROWSER', variant: 'CHROME', name: 'work-browser', isEnabled: true, profile: { source: 'MANAGED_GLOBAL' }, isHeadless: true };
+    const browsers = new Map([['work-browser', { usable: true, summary: 'Ready.' }]]);
+    const acquired = { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'openai-codex', isEnabled: true, authentication: 'NATIVE', accountProfile: 'company' };
+    const settings = (tools) => ({ tools, diagnostics: [], overriddenTools: new Set() });
+    const inventory = (tools, retained) => toolInventory({ project, settings: settings(tools), env: {}, pool, browsers, inUse: new Set(), retained });
+
+    // Removed: one entry with its acquired identity, and new work waits for a harness.
+    const removed = inventory([browser], [{ name: 'openai-codex', record: acquired, owner: 'Draft the release notes' }]);
+    const [entry] = removed.items.filter((item) => item.name === 'openai-codex');
+    assert.deepEqual([entry.type, entry.variant, entry.variantLabel, entry.retained, entry.inUse, entry.isEnabled, entry.owner], ['HARNESS', 'OPENAI_CODEX', 'OpenAI Codex', true, true, false, 'Draft the release notes']);
+    assert.equal(entry.fields.accountProfile, 'company', 'the effective account reference of the acquired revision');
+    assert.match(entry.summary, /^Removed from ptbk\.json; current work only: "Draft the release notes"/);
+    assert.match(removed.waiting?.reason ?? '', /no harness tool is configured/i, 'a retained revision never satisfies readiness');
+
+    // Replaced by a same-name tool: two distinct entries, the saved one first and selectable.
+    const replacement = { ...acquired, accountProfile: 'personal' };
+    const replaced = inventory([browser, replacement], [{ name: 'openai-codex', record: acquired, owner: 'Draft the release notes' }]);
+    const both = replaced.items.filter((item) => item.name === 'openai-codex');
+    assert.equal(both.length, 2);
+    assert.equal(both[0].retained, undefined);
+    assert.equal(both[0].fields.accountProfile, 'personal');
+    assert.equal(both[1].retained, true);
+    assert.match(both[1].summary, /^Changed in ptbk\.json/);
+    assert.notEqual(both[1].revision, undefined);
+    assert.equal(replaced.waiting, undefined);
+
+    // A replacement of another type keeps both identities.
+    const crossType = inventory([browser, { ...browser, name: 'openai-codex' }], [{ name: 'openai-codex', record: acquired }]);
+    assert.deepEqual(crossType.items.filter((item) => item.name === 'openai-codex').map((item) => `${item.type}:${item.retained ?? false}`), ['BROWSER:false', 'HARNESS:true']);
+    assert.match(crossType.items.find((item) => item.retained).summary, /Replaced in ptbk\.json by a BROWSER tool/);
+});
 
 test('quota resets: the wait a provider reports is understood in its usual forms; nothing is invented', () => {
     const now = Date.UTC(2026, 9, 30, 10, 0, 0);
@@ -319,6 +355,63 @@ test('live tools: a browser added during a task serves that task; an in-use tool
     const saved = await savedTools(project);
     assert.equal(saved.find((item) => item.name === tool).isEnabled, false, 'the saved change survives the task completion');
     assert.ok(saved.some((item) => item.name === 'facebook-browser'));
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+});
+
+test('retained revisions: a removed acquired harness keeps its actual identity while draining; a same-name replacement is separate and survives the old work', async (t) => {
+    const { directory, project, env: base } = await initializedProject(t, { check: CHECK });
+    const barrier = join(directory, 'retained revision');
+    await writeFile(barrier, 'hold the turn until the retained revision and its replacement are inspected\n');
+    const env = { ...base, FAKE_CODEX_SLOW_MS: '0', FAKE_CODEX_WORK_BARRIER: barrier };
+    assert.equal((await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'codex-second', '--raw'], { cwd: project, env })).code, 0);
+    await ptbk(['add', 'Draft the release notes SLOW_WORK', '--agent', 'Developer', '--raw'], { cwd: project, env });
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    const running = await waitFor(async () => {
+        const snapshot = await status(project, env);
+        return snapshot.current?.taskTitle.startsWith('Draft the release notes') && snapshot.current.phase === 'executing' ? snapshot : undefined;
+    }, { message: 'the slow task', timeoutMs: 60_000 });
+    assert.equal(running.current.tool, 'openai-codex');
+    const owner = running.current.taskTitle;
+
+    const removed = await ptbk(['tool', 'remove', 'openai-codex', '--force', '--raw'], { cwd: project, env });
+    assert.equal(removed.code, 0, removed.output);
+    let snapshot = await status(project, env);
+    const [retained, ...others] = snapshot.tools.items.filter((item) => item.name === 'openai-codex');
+    assert.equal(others.length, 0);
+    assert.deepEqual([retained.type, retained.variant, retained.retained, retained.inUse, retained.owner, retained.isEnabled], ['HARNESS', 'OPENAI_CODEX', true, true, owner, false], 'never a placeholder browser');
+    assert.match(retained.summary, /Removed from ptbk\.json; current work only/);
+    assert.ok(retained.revision);
+    assert.equal(snapshot.tools.items.filter((item) => item.type === 'HARNESS' && item.state === 'usable').map((item) => item.name).join(), 'codex-second', 'not counted as an available harness');
+    assert.ok(!snapshot.tools.items.some((item) => item.type === 'BROWSER' && item.name === 'openai-codex'));
+    const listed = await ptbk(['tool', 'list', '--raw'], { cwd: project, env });
+    assert.match(listed.output, new RegExp(`openai-codex HARNESS OPENAI_CODEX · draining: old configuration, current work only \\(${owner}\\)`));
+    const shown = await ptbk(['tool', 'show', 'openai-codex', '--raw'], { cwd: project, env });
+    assert.match(shown.output, /\(HARNESS OPENAI_CODEX\), retained revision/);
+    assert.match(shown.output, new RegExp(`Held by\\s+${owner}`));
+
+    // An identical record added under the same name is a new revision: it never revives or retargets the old use.
+    const replaced = await ptbk(['tool', 'add', 'HARNESS', '--variant', 'OPENAI_CODEX', '--name', 'openai-codex', '--raw'], { cwd: project, env });
+    assert.equal(replaced.code, 0, replaced.output);
+    snapshot = await status(project, env);
+    const both = snapshot.tools.items.filter((item) => item.name === 'openai-codex');
+    assert.equal(both.length, 2, `saved and retained revisions are distinct entries: ${JSON.stringify(both)}`);
+    const saved = both.find((item) => !item.retained);
+    assert.equal(saved.inUse, false, 'the old work does not hold the replacement');
+    assert.equal(saved.isEnabled, true);
+    assert.equal(both.find((item) => item.retained).owner, owner);
+    const modified = await ptbk(['tool', 'modify', 'openai-codex', '--description', 'Replacement account', '--raw'], { cwd: project, env });
+    assert.equal(modified.code, 0, `the replacement needs no in-use acknowledgement: ${modified.output}`);
+    await rm(barrier);
+
+    await waitFor(async () => (await subjects(project)).some((subject) => /^ptbk: Draft the release notes/.test(subject)), { message: 'the task result', timeoutMs: 90_000 });
+    snapshot = await waitFor(async () => {
+        const current = await status(project, env);
+        return current.tools.items.some((item) => item.retained) ? undefined : current;
+    }, { message: 'the old revision to be released', timeoutMs: 30_000 });
+    const after = snapshot.tools.items.filter((item) => item.name === 'openai-codex');
+    assert.equal(after.length, 1);
+    assert.equal(after[0].description, 'Replacement account', 'completing the old work neither removed nor changed the replacement');
+    assert.equal((await savedTools(project)).filter((item) => item.name === 'openai-codex').length, 1);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });
 

@@ -172,6 +172,7 @@ export class ServiceHost {
                 primary: () => (this.agenda.effectiveSettings ? this.browsers.primary() : undefined),
                 all: () => (this.agenda.effectiveSettings ? this.browsers.inspectAll() : []),
                 inUse: () => this.browsers.inUse(),
+                retained: () => this.browsers.retained(),
             },
             computers: () => {
                 const readiness = this.computer?.readiness();
@@ -457,17 +458,21 @@ export class ServiceHost {
             await this.writeRecord();
             if (this.options.mode !== 'maintenance') await this.startKeepAwake();
             // Enabled browsers start (or join their profile's shared process) with the engine, not at their first task,
-            // and again when the enabled set changes; a failure is that browser's resource wait, never the engine's.
-            if (this.options.env.PTBK_BROWSER_START !== 'lazy') {
-                let enabled = '';
-                const startBrowsers = (): void => {
-                    const names = this.agenda.effectiveSettings ? this.browsers.enabledNames().join('\n') : '';
-                    if (names === enabled) return;
-                    enabled = names;
-                    void this.browsers.startEnabled();
-                };
-                startBrowsers();
-                this.agenda.onChange(startBrowsers);
+            // and again when a browser record changes (a changed profile reconnects to it, releasing or retiring the old
+            // connection); a failure is that browser's resource wait, never the engine's.
+            // Lazily started browsers are still reconciled with every observed change (a removed tool's connection is
+            // retired or released at once, so re-adding the name cannot revive it).
+            const lazy = this.options.env.PTBK_BROWSER_START === 'lazy';
+            let observed = '';
+            const startBrowsers = (): void => {
+                const records = this.agenda.effectiveSettings ? JSON.stringify(this.agenda.effectiveSettings.tools.filter((tool) => tool.type === 'BROWSER')) : '';
+                if (records === observed) return;
+                observed = records;
+                void (lazy ? this.browsers.reconcile() : this.browsers.startEnabled()).catch(() => undefined);
+            };
+            startBrowsers();
+            this.agenda.onChange(startBrowsers);
+            if (!lazy) {
                 // Diagnostics follow other engines joining or leaving the shared browsers.
                 this.browsers.watch();
             }

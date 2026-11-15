@@ -142,7 +142,7 @@ export type DashboardPage =
     | { readonly kind: 'health'; scroll: number; cache?: CachePreview; swap?: SwapPlan }
     | { readonly kind: 'wallet'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tools'; scroll: number; focus: number; selected?: string }
-    | { readonly kind: 'tool'; scroll: number; readonly name: string }
+    | { readonly kind: 'tool'; scroll: number; readonly name: string; /** A retained revision's entry (absent: the saved tool). */ readonly revision?: string }
     | { readonly kind: 'local-models'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'agents'; scroll: number; focus: number; selected?: string; detail: boolean; sort: TeamSortField }
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
@@ -730,9 +730,9 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             };
         }
         case 'tool': {
-            const item = toolsOf(snapshot).find((candidate) => candidate.name === page.name);
+            const item = toolsOf(snapshot).find((candidate) => candidate.name === page.name && candidate.revision === page.revision);
             if (!item) return { title: `Tools › ${page.name}`, context: 'This tool is no longer configured.', body: [style.muted('It was removed (possibly from another client).')], legend: back };
-            const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name) ?? (snapshot.browser?.name === item.name ? snapshot.browser : undefined) : undefined;
+            const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name && Boolean(candidate.retained) === Boolean(item.retained)) ?? (snapshot.browser?.name === item.name && !item.retained ? snapshot.browser : undefined) : undefined;
             const runtime = item.type === 'INFERENCE_RUNTIME' ? runtimeItems(snapshot).find((candidate) => candidate.name === item.name) : undefined;
             const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : []), ...(runtime ? ['', style.bold('Local model runtime'), ...runtimeDetailLines(runtime, style).slice(1), style.muted('Models and service actions: L opens Tools › Local models.')] : [])];
             if (item.type === 'COMPUTER_CONTROL') body.push('', '1 request native OS permissions · 2 pause input and observation · 3 resume · 4 stop session-wide · 5 check status', 'Human input always takes priority. A manual pause stays paused until you resume it.');

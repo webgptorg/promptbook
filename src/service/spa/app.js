@@ -1043,11 +1043,12 @@
     }
 
     /** The editable endpoint value of a tool's displayed endpoint (`official …` → empty, `local …` → LOCAL, `custom URL` → URL). */
-    function endpointValue(endpoint) {
+    function endpointValue(endpoint, saved) {
         const text = String(endpoint || '');
         if (text.startsWith('local')) return 'LOCAL';
         if (text.startsWith('custom ')) return text.slice('custom '.length);
-        return '';
+        // An explicitly saved official endpoint stays saved; empty is the unsaved default.
+        return /^official$/i.test(String(saved || '')) ? 'OFFICIAL' : '';
     }
 
     /** One form field whose value survives live re-renders. */
@@ -1080,8 +1081,11 @@
         const more = (snapshot.harnesses || []).filter((harness) => !harness.featured);
         const variantOf = (harness) => ({ value: harness.id.toUpperCase().replace(/-/g, '_'), label: harness.name });
         const fields = [];
-        if (form.mode === 'add') {
-            fields.push(formSelect(form, 'type', 'Type', [{ value: 'HARNESS', label: 'Harness' }, { value: 'BROWSER', label: 'Browser' }, { value: 'INFERENCE_RUNTIME', label: 'Local model runtime (advanced; Add local models sets it up for you)' }, { value: 'COMPUTER_CONTROL', label: 'Computer control' }]));
+        const adapter = (snapshot.harnesses || []).find((harness) => variantOf(harness).value === values.variant);
+        if (form.mode === 'add') fields.push(formSelect(form, 'type', 'Type', [{ value: 'HARNESS', label: 'Harness' }, { value: 'BROWSER', label: 'Browser' }, { value: 'INFERENCE_RUNTIME', label: 'Local model runtime (advanced; Add local models sets it up for you)' }, { value: 'COMPUTER_CONTROL', label: 'Computer control' }]));
+        // The variant is chosen when adding and when modifying (within the same type; the domain validates the result).
+        {
+            const current = form.mode === 'modify' && type === 'HARNESS' && !featured.concat(state.showAllVariants ? more : []).some((harness) => variantOf(harness).value === values.variant) ? (snapshot.harnesses || []).filter((harness) => variantOf(harness).value === values.variant) : [];
             fields.push(
                 type === 'INFERENCE_RUNTIME'
                     ? formSelect(form, 'variant', 'Variant', [{ value: 'OLLAMA', label: 'Ollama' }, { value: 'LM_STUDIO', label: 'LM Studio' }])
@@ -1089,16 +1093,18 @@
                     ? formSelect(form, 'variant', 'Variant', [{ value: 'NATIVE', label: 'Native desktop' }])
                     : type === 'BROWSER'
                     ? formSelect(form, 'variant', 'Variant', [{ value: 'CHROME', label: 'Chrome (or another Chrome-compatible browser)' }, { value: 'CHROMIUM', label: 'Chromium' }, { value: 'EDGE', label: 'Microsoft Edge' }])
-                    : formSelect(form, 'variant', 'Variant', [{ group: 'Featured', options: featured.map(variantOf) }, ...(state.showAllVariants ? [{ group: 'More', options: more.map(variantOf) }] : [])]),
+                    : formSelect(form, 'variant', 'Variant', [{ group: 'Featured', options: featured.map(variantOf) }, ...(state.showAllVariants ? [{ group: 'More', options: more.map(variantOf) }] : []), ...(current.length ? [{ group: 'Current', options: current.map(variantOf) }] : [])]),
             );
             if (type === 'HARNESS') fields.push(h('button', { type: 'button', onclick: () => ((state.showAllVariants = !state.showAllVariants), render(state.snapshot)) }, state.showAllVariants ? 'Featured only' : 'More…'));
-            fields.push(formField(form, 'name', 'Name (kebab-case)', { placeholder: type === 'BROWSER' ? 'work-browser' : 'codex-company' }));
-        } else fields.push(formField(form, 'rename', 'Name', {}));
+        }
+        if (form.mode === 'add') fields.push(formField(form, 'name', 'Name (kebab-case)', { placeholder: type === 'BROWSER' ? 'work-browser' : 'codex-company' }));
+        else fields.push(formField(form, 'rename', 'Name', {}));
         fields.push(formField(form, 'description', 'Description (optional)', {}));
         if (type === 'BROWSER') {
             fields.push(formSelect(form, 'profileSource', 'Profile', [{ value: 'MANAGED_GLOBAL', label: 'Dedicated Promptbook profile (shared by your projects)' }, { value: 'PROJECT', label: 'Isolated project profile (.ptbk/)' }, { value: 'USER_EXISTING', label: 'Your existing Chrome profile' }, { value: 'CUSTOM', label: 'Custom path' }]));
-            if (values.profileSource === 'CUSTOM') fields.push(formField(form, 'profilePath', 'Profile path', {}));
+            fields.push(formField(form, 'profilePath', values.profileSource === 'CUSTOM' ? 'Profile path' : 'Profile path (optional; empty = the default location of this source)', {}));
             fields.push(formSelect(form, 'isHeadless', 'Window', [{ value: 'true', label: 'Headless (no window)' }, { value: 'false', label: 'Visible window' }]));
+            fields.push(formField(form, 'executable', 'Browser executable (optional; empty = discover the installed browser)', { placeholder: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }));
         } else if (type === 'INFERENCE_RUNTIME') {
             fields.push(formField(form, 'endpoint', 'Service URL (empty = the runtime’s own local address)', { placeholder: 'http://127.0.0.1:11434' }));
         } else if (type === 'HARNESS') {
@@ -1108,20 +1114,25 @@
                 fields.push(formField(form, 'apiKeyEnv', 'Key variable (stored as ${{ env.NAME }})', { placeholder: 'COMPANY_OPENAI_API_KEY' }));
                 fields.push(formField(form, 'apiKeyValue', 'New key value (optional; write-only, stored in the ignored .env)', { type: 'password' }));
             }
+            // A separate native account context only where the adapter supports one (or to clear an override it cannot use).
+            if (values.authentication === 'NATIVE' && (adapter?.accountProfiles || (values.accountProfile || '').trim())) fields.push(formField(form, 'accountProfile', adapter?.accountProfiles ? 'Native account context (optional; empty = the default login)' : `Native account context (unsupported by ${adapter ? adapter.name : 'this adapter'}; clear it)`, { placeholder: 'company' }));
             // Model and thinking defaults belong to the harness plugin and Book MODEL; the tool only names its endpoint.
             fields.push(formField(form, 'baseUrl', 'Endpoint (empty = official; LOCAL or a base URL)', { placeholder: 'https://proxy.example/v1' }));
         }
         const submit = () => {
             const text = (key) => (values[key] || '').trim();
             const common = { ...(text('description') ? { description: text('description') } : {}) };
-            const browserFields = { profileSource: values.profileSource || 'MANAGED_GLOBAL', ...(values.profileSource === 'CUSTOM' && text('profilePath') ? { profilePath: text('profilePath') } : {}), isHeadless: values.isHeadless !== 'false' };
-            const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...(text('baseUrl') ? { baseUrl: text('baseUrl') } : values.authentication === 'NONE' ? { baseUrl: 'LOCAL' } : {}), ...(values.authentication === 'NONE' && text('inferenceRuntime') ? { inferenceRuntime: text('inferenceRuntime') } : {}) };
+            // A path belongs to its source: switching the source drops the previous source's untouched path.
+            const profilePath = form.initialProfile && values.profileSource !== form.initialProfile.source && text('profilePath') === form.initialProfile.path ? '' : text('profilePath');
+            const browserFields = { profileSource: values.profileSource || 'MANAGED_GLOBAL', ...(profilePath ? { profilePath } : {}), isHeadless: values.isHeadless !== 'false', ...(text('executable') ? { executable: text('executable') } : {}) };
+            const harnessFields = { authentication: values.authentication || 'NATIVE', ...(values.authentication === 'API_KEY' && text('apiKeyEnv') ? { apiKeyEnv: text('apiKeyEnv') } : {}), ...((values.authentication || 'NATIVE') === 'NATIVE' && text('accountProfile') ? { accountProfile: text('accountProfile') } : {}), ...(text('baseUrl') ? { baseUrl: text('baseUrl') } : values.authentication === 'NONE' ? { baseUrl: 'LOCAL' } : {}), ...(values.authentication === 'NONE' && text('inferenceRuntime') ? { inferenceRuntime: text('inferenceRuntime') } : {}) };
+            const variantChange = form.mode === 'modify' && values.variant && values.variant !== form.variant ? { variant: values.variant } : {};
             const runtimeFields = text('endpoint') ? { endpoint: text('endpoint') } : {};
             const secret = type === 'HARNESS' && values.authentication === 'API_KEY' && values.apiKeyValue ? { variable: text('apiKeyEnv'), value: values.apiKeyValue } : undefined;
             const operation =
                 form.mode === 'add'
                     ? { kind: 'add', tool: { type, variant: values.variant, name: text('name'), ...common, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'INFERENCE_RUNTIME' ? runtimeFields : type === 'BROWSER' ? browserFields : harnessFields) } }
-                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { description: text('description') || null, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'INFERENCE_RUNTIME' ? { endpoint: text('endpoint') || null } : type === 'BROWSER' ? { ...browserFields, ...(values.profileSource !== 'CUSTOM' ? { profilePath: null } : {}) } : { ...harnessFields, baseUrl: text('baseUrl') || (values.authentication === 'NONE' ? 'LOCAL' : null), inferenceRuntime: values.authentication === 'NONE' ? text('inferenceRuntime') || null : null }) } };
+                    : { kind: 'modify', name: form.name, ...(text('rename') && text('rename') !== form.name ? { rename: text('rename') } : {}), changes: { ...variantChange, description: text('description') || null, ...(type === 'COMPUTER_CONTROL' ? {} : type === 'INFERENCE_RUNTIME' ? { endpoint: text('endpoint') || null } : type === 'BROWSER' ? { ...browserFields, profilePath: profilePath || null, executable: text('executable') || null } : { ...harnessFields, ...((values.authentication || 'NATIVE') === 'NATIVE' ? { accountProfile: text('accountProfile') || null } : {}), baseUrl: text('baseUrl') || (values.authentication === 'NONE' ? 'LOCAL' : null), inferenceRuntime: values.authentication === 'NONE' ? text('inferenceRuntime') || null : null }) } };
             toolOperation({ operation, ...(secret ? { secret } : {}) });
         };
         return h('div', { className: 'tool-form', role: 'form', 'aria-label': form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}` }, h('h3', {}, form.mode === 'add' ? 'Add a tool' : `Modify ${form.name}`), h('div', { className: 'fields' }, fields), h('div', { className: 'row' }, h('button', { className: 'primary', disabled: state.busy.has('tool-operation'), onclick: submit }, 'Save (commits immediately)'), h('button', { onclick: () => ((state.toolForm = null), render(state.snapshot)) }, 'Cancel')));
@@ -1131,7 +1142,7 @@
     function renderTools(snapshot) {
         const card = h('section', { className: 'card tools', 'aria-label': 'Tools' });
         const tools = snapshot.tools;
-        const usable = tools ? tools.items.filter((item) => item.state === 'usable').length : 0;
+        const usable = tools ? tools.items.filter((item) => item.state === 'usable' && !item.retained).length : 0;
         card.append(h('h2', {}, h('span', {}, 'Tools'), h('span', {}, tools ? `${usable} usable` : '')));
         if (!tools) {
             card.append(h('p', { className: 'muted' }, 'Tool information is not available from this service.'));
@@ -1147,7 +1158,22 @@
                 'ul',
                 { className: 'list' },
                 tools.items.map((item, index) =>
-                    h(
+                    // A retained old revision is current-work-only runtime state: shown with its own identity, never managed.
+                    item.retained
+                        ? h(
+                              'li',
+                              { 'data-revision': item.revision || '' },
+                              h(
+                                  'span',
+                                  { className: 'title' },
+                                  `${item.name} `,
+                                  h('span', { className: 'muted' }, `${item.variantLabel} · ${item.type}`),
+                                  pill('draining · current work only', 'warn'),
+                                  h('span', { className: 'why' }, item.summary),
+                                  h('dl', { className: 'kv' }, [...(item.owner ? [['Held by', item.owner]] : []), ['Revision', item.revision || ''], ...Object.entries(item.fields)].map(([key, value]) => [h('dt', {}, key), h('dd', {}, value)])),
+                              ),
+                          )
+                        : h(
                         'li',
                         {},
                         h(
@@ -1170,9 +1196,9 @@
                             item.type === 'COMPUTER_CONTROL' ? h('button', { onclick: () => control('computer-resume') }, 'Resume desktop') : null,
                             item.type === 'COMPUTER_CONTROL' ? h('button', { className: 'danger', onclick: () => control('computer-stop') }, 'Stop desktop') : null,
                             h('button', { title: 'Details', 'aria-expanded': state.toolDetails.has(item.name) ? 'true' : 'false', onclick: () => (state.toolDetails.has(item.name) ? state.toolDetails.delete(item.name) : state.toolDetails.add(item.name), render(state.snapshot)) }, 'Details'),
-                            h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, values: { type: item.type, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', authentication: item.fields.authentication || 'NATIVE', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', baseUrl: endpointValue(item.fields.endpoint), endpoint: item.runtime && item.runtime.endpointSource === 'configured' ? item.runtime.endpoint : '', inferenceRuntime: item.fields.inferenceRuntime || '' } }), render(state.snapshot)) }, 'Modify'),
+                            h('button', { onclick: () => ((state.toolForm = { mode: 'modify', name: item.name, variant: item.variant, initialProfile: { source: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], path: (item.fields.profile || '').split(' ').slice(1).join(' ') }, values: { type: item.type, variant: item.variant, rename: item.name, description: item.description || '', profileSource: (item.fields.profile || 'MANAGED_GLOBAL').split(' ')[0], profilePath: (item.fields.profile || '').split(' ').slice(1).join(' '), isHeadless: item.fields.isHeadless || 'true', executable: item.fields.executable || '', authentication: item.fields.authentication || 'NATIVE', accountProfile: item.fields.accountProfile || '', apiKeyEnv: ((item.fields.apiKey || '').match(/env\.([A-Za-z_][A-Za-z0-9_]*)/) || [])[1] || '', baseUrl: endpointValue(item.fields.endpoint, item.fields.baseUrl), endpoint: item.runtime && item.runtime.endpointSource === 'configured' ? item.runtime.endpoint : '', inferenceRuntime: item.fields.inferenceRuntime || '' } }), render(state.snapshot)) }, 'Modify'),
                             h('button', { title: 'Move up', 'aria-label': `Move ${item.name} up`, disabled: index === 0, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, before: tools.items[index - 1].name } }) }, '▲'),
-                            h('button', { title: 'Move down', 'aria-label': `Move ${item.name} down`, disabled: index === tools.items.length - 1, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, after: tools.items[index + 1].name } }) }, '▼'),
+                            h('button', { title: 'Move down', 'aria-label': `Move ${item.name} down`, disabled: !tools.items[index + 1] || tools.items[index + 1].retained, onclick: () => toolOperation({ operation: { kind: 'move', name: item.name, after: tools.items[index + 1].name } }) }, '▼'),
                             h('button', { className: 'secondary danger', onclick: () => window.confirm(`Permanently remove the configuration of “${item.name}”? Disable keeps it instead. Browser profiles, native logins and .env history are never deleted.`) && toolOperation({ operation: { kind: 'remove', name: item.name } }) }, 'Remove'),
                         ),
                     ),
@@ -2691,7 +2717,7 @@
             case 'tools': {
                 const tools = snapshot.tools;
                 if (!tools) return [h('span', { className: 'muted' }, 'Not reported by this engine.')];
-                const count = (type) => `${tools.items.filter((item) => item.type === type && item.state === 'usable').length}/${tools.items.filter((item) => item.type === type).length}`;
+                const count = (type) => `${tools.items.filter((item) => item.type === type && item.state === 'usable').length}/${tools.items.filter((item) => item.type === type && !item.retained).length}`;
                 const local = tools.items.some((item) => item.type === 'INFERENCE_RUNTIME') ? ` · Local models ${count('INFERENCE_RUNTIME')}` : '';
                 return [`Harnesses ${count('HARNESS')} · Browsers ${count('BROWSER')} · Desktop ${count('COMPUTER_CONTROL')}${local}`, tools.localJob && tools.localJob.state === 'running' ? h('span', { className: 'muted' }, `${tools.localJob.label}: ${tools.localJob.stage}`) : null, tools.waiting ? h('span', { className: 'warn' }, `New work waits: ${tools.waiting.reason}`) : null];
             }

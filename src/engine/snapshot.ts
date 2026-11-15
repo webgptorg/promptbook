@@ -310,6 +310,10 @@ export type HarnessView = {
     readonly usable: boolean;
     readonly summary: string;
     readonly version?: string;
+    /** The adapter supports separate native account contexts (`accountProfile`); absent from older engines. */
+    readonly accountProfiles?: boolean;
+    /** Endpoints the adapter can reach besides the official one; absent from older engines. */
+    readonly endpoints?: { readonly local: boolean; readonly custom: boolean };
 };
 
 /**
@@ -639,8 +643,16 @@ export type ToolView = {
     readonly recheckAt?: string;
     /** Held by active work right now. */
     readonly inUse: boolean;
-    /** Active work keeps an acquired old configuration of this (changed/disabled/removed) tool. */
+    /**
+     * A separate, current-work-only entry: active work keeps this acquired old configuration revision of a changed,
+     * disabled or removed tool. It is never counted for readiness or offered to new selections, and a saved tool of
+     * the same name is another entry.
+     */
     readonly retained?: boolean;
+    /** The work holding a retained revision (its task or chat). */
+    readonly owner?: string;
+    /** Short identifier of the acquired configuration revision of a retained entry (distinguishes same-name tools). */
+    readonly revision?: string;
     /** Changed only for this invocation (command-line overrides), not saved. */
     readonly overridden?: boolean;
     /** Non-secret configuration fields (an API key appears only as its `${{ env.NAME }}` reference and source). */

@@ -1,4 +1,5 @@
 import { pathExists } from '../common/fs.js';
+import { shortHash } from '../common/ids.js';
 import { browserProfileDirectory, findBrowserExecutable, profileOwner } from '../browser/browser.js';
 import { setting, type EffectiveSettings } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
@@ -84,6 +85,8 @@ export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.Proce
         ...(tool.apiKey ? { apiKey: `${tool.apiKey}${tool.authentication === 'API_KEY' ? (credential ? ` (${describeCredentialSource(credential)})` : '') : ` (inactive metadata: ${tool.authentication} authentication)`}` } : {}),
         ...(tool.accountProfile ? { accountProfile: tool.accountProfile } : {}),
         endpoint: describeEndpoint(tool),
+        // The saved choice itself (absent: the default), so management forms preserve an explicit one.
+        ...(tool.baseUrl ? { baseUrl: tool.baseUrl } : {}),
         ...(tool.inferenceRuntime ? { inferenceRuntime: tool.inferenceRuntime } : {}),
     };
 }
@@ -132,9 +135,42 @@ export type ToolInventoryInput = {
     readonly computers?: ReadonlyMap<string, ComputerReadiness>;
     /** Names held by active work. */
     readonly inUse?: ReadonlySet<string>;
-    /** Names whose acquired old configuration is still used (changed, disabled or removed). */
-    readonly retained?: ReadonlySet<string>;
+    /** Acquired old configuration revisions active work still uses (changed, disabled or removed meanwhile). */
+    readonly retained?: readonly RetainedToolUse[];
 };
+
+/**
+ * One acquired configuration revision that active work still uses after its tool was changed, disabled or removed.
+ * It is captured when the work acquires the tool, so removal from `ptbk.json` cannot erase its identity.
+ *
+ * @private tool readiness
+ */
+export type RetainedToolUse = {
+    readonly name: string;
+    /** The acquired record (non-secret: an API key is only its `${{ env.NAME }}` reference). */
+    readonly record: ToolRecord;
+    /** The work holding it (task title or chat). */
+    readonly owner?: string;
+};
+
+/**
+ * Short identifier of a tool's configuration revision (the same record always yields the same revision).
+ *
+ * @private tool readiness
+ */
+export function toolRevision(tool: ToolRecord): string {
+    return shortHash(JSON.stringify(tool), 8);
+}
+
+/**
+ * Whether a saved configuration still governs an acquired revision: the same name, enabled and unchanged.
+ *
+ * @private tool readiness
+ */
+export function isCurrentRevision(acquired: ToolRecord, saved: readonly ToolRecord[]): boolean {
+    const record = saved.find((tool) => tool.name === acquired.name);
+    return Boolean(record?.isEnabled) && JSON.stringify(record) === JSON.stringify(acquired);
+}
 
 /**
  * The repair of a native harness instance that is not signed in: the shared attended sign-in in that instance's own
@@ -203,15 +239,35 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             ...(nextAction ? { nextAction } : {}),
             ...(recheckAt ? { recheckAt: new Date(recheckAt).toISOString() } : {}),
             inUse: Boolean(input.inUse?.has(tool.name)),
-            ...(input.retained?.has(tool.name) ? { retained: true } : {}),
             ...(settings.overriddenTools.has(tool.name) ? { overridden: true } : {}),
             fields: toolFields(project, tool, env, pool, settings),
             ...(tool.type === 'INFERENCE_RUNTIME' ? { runtime: runtimeDetail(tool.name, tool.variant, settings, pool) } : {}),
         };
     });
-    for (const name of input.retained ?? []) {
-        if (items.some((item) => item.name === name)) continue;
-        items.push({ name, type: 'BROWSER', variant: 'CHROME', variantLabel: 'browser', order: items.length + 1, isEnabled: false, state: 'disabled', summary: 'Removed from ptbk.json; the current task finishes with it.', inUse: true, retained: true, fields: {} });
+    // Retained revisions are separate entries with their acquired identity, after every saved tool.
+    const seen = new Set<string>();
+    for (const use of input.retained ?? []) {
+        const revision = toolRevision(use.record);
+        if (seen.has(`${use.name}\0${revision}`)) continue;
+        seen.add(`${use.name}\0${revision}`);
+        const saved = settings.tools.find((tool) => tool.name === use.name);
+        const status = !saved ? 'Removed from ptbk.json' : saved.type !== use.record.type ? `Replaced in ptbk.json by a ${saved.type} tool of the same name` : !saved.isEnabled ? 'Disabled in ptbk.json' : 'Changed in ptbk.json';
+        items.push({
+            name: use.name,
+            type: use.record.type,
+            variant: use.record.variant,
+            variantLabel: variantLabel(use.record),
+            ...(use.record.description ? { description: use.record.description } : {}),
+            order: items.length + 1,
+            isEnabled: false,
+            state: 'disabled',
+            summary: `${status}; current work only: ${use.owner ? `"${use.owner}"` : 'the active work'} finishes with this acquired configuration, no new work selects it.`,
+            inUse: true,
+            retained: true,
+            ...(use.owner ? { owner: use.owner } : {}),
+            revision,
+            fields: toolFields(project, use.record, env, undefined, settings),
+        });
     }
     const problems = settings.diagnostics.filter((diagnostic) => diagnostic.location.includes('tools')).map((diagnostic) => `${diagnostic.location}: ${diagnostic.message}`);
     return { items, waiting: baselineWait(items), problems };

@@ -87,7 +87,7 @@ import { EngineUpdater } from './engine-update.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
 import { applyToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../tools/operations.js';
-import { inspectBrowserTool, toolInventory, type BrowserReadiness, type ComputerReadiness } from '../tools/readiness.js';
+import { inspectBrowserTool, isCurrentRevision, toolInventory, toolRevision, type BrowserReadiness, type ComputerReadiness, type RetainedToolUse } from '../tools/readiness.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import type { ComposedSegment } from '../ui/composer.js';
 import { completeWithDefaults, resolveRoute, routeWithDefaults, type RouteResolution, type RoutingContext } from './routing.js';
@@ -118,7 +118,7 @@ import type {
 import { describeLocalPlan, discoverLocalSetup, planLocalSetup, prepareLocalSetup, type LocalSetupChoices } from '../inference/setup.js';
 import { runRuntimeAction } from '../inference/management.js';
 import type { RuntimeAction } from '../inference/types.js';
-import type { InferenceRuntimeToolRecord } from '../tools/model.js';
+import type { BrowserToolRecord, HarnessToolRecord, InferenceRuntimeToolRecord, ToolRecord } from '../tools/model.js';
 import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ChatReplyRecheck, type RecheckSchedule, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
@@ -184,7 +184,13 @@ export type AgendaOptions = {
     /** Releases a task's own resources (its browser tabs) after each of its executed runs, whatever the outcome. */
     readonly afterWork?: (task: Task) => Promise<void>;
     /** Named browser tools owned by the service: inspections for the dashboard pages and the names held by work. */
-    readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
+    readonly browsers?: {
+        readonly primary: () => BrowserDetailView | undefined;
+        readonly all: () => BrowserDetailView[];
+        readonly inUse: () => string[];
+        /** Old browser revisions only the tasks that acquired them still use (their task scope keys). */
+        readonly retained?: () => ReadonlyArray<{ readonly record: BrowserToolRecord; readonly scopes: readonly string[] }>;
+    };
     /** Last observed native desktop readiness; reads never start a helper or request OS permissions. */
     readonly computers?: () => ReadonlyMap<string, ComputerReadiness>;
     /** Tabs users control live in this engine's browsers. */
@@ -441,7 +447,19 @@ type WorkUnit = {
     /** Live view of the work. */
     current?: CurrentWorkView;
     /** Effective routing of the run and its consultation contexts (for the execution panel). */
-    context?: { readonly selection: RoutingSelection; readonly harnessVersion?: string; readonly source: string; consultations: ExecutionContextView[] };
+    context?: {
+        readonly selection: RoutingSelection;
+        readonly harnessVersion?: string;
+        readonly source: string;
+        consultations: ExecutionContextView[];
+        /** The harness configuration revision this run acquired (its identity survives a change or removal). */
+        readonly acquired?: HarnessToolRecord;
+        /**
+         * Set once the saved configuration was observed no longer to be the acquired revision: a same-name tool added
+         * later, even an identical one, is a new revision and never makes this use current again.
+         */
+        detached?: boolean;
+    };
     /** A pacing/backoff wait inside the run (skippable) or its wait for files. */
     wait?: WaitView;
     /** Since when its failing check waits for other runs' uncommitted files to settle (orders mutual waits). */
@@ -2827,6 +2845,8 @@ export class Agenda {
                       usable: Boolean(inspection?.usable),
                       summary: inspection?.summary ?? (this.pool.enabled().includes(plugin.id) ? 'Not inspected yet.' : 'Not enabled.'),
                       version: inspection?.version,
+                      accountProfiles: Boolean(plugin.accountHomeVariable),
+                      endpoints: { local: Boolean(plugin.endpoints.local), custom: Boolean(plugin.endpoints.custom) },
                   };
               })
             : [];
@@ -2972,24 +2992,53 @@ export class Agenda {
         }
     }
 
-    /** Names of tools held by active work (each task's harness instance, active consultations, acquired browsers). */
+    /**
+     * Names of saved tools held by active work: each task's harness instance while the saved configuration still is
+     * the revision it acquired, active consultations and browsers acquired in their current revision. A retained old
+     * revision never makes a changed or same-name replacement tool "in use".
+     */
     private toolsInUse(): Set<string> {
         const names = new Set<string>(this.options.browsers?.inUse() ?? []);
         for (const unit of this.units.values()) {
-            if (unit.current && unit.context?.selection.tool) names.add(unit.context.selection.tool);
+            if (unit.current && unit.context?.selection.tool && !this.retainsOldRevision(unit)) names.add(unit.context.selection.tool);
             for (const consultation of unit.context?.consultations ?? []) if (consultation.state === 'active' && consultation.harness.tool) names.add(consultation.harness.tool);
         }
         return names;
     }
 
-    /** Tools whose acquired old configuration active work still uses (changed, disabled or removed meanwhile). */
-    private retainedTools(): Set<string> {
-        const retained = new Set((this.options.browsers?.all() ?? []).filter((browser) => browser.retained && browser.inUse).map((browser) => browser.name));
+    /**
+     * Acquired old configuration revisions active work still uses (changed, disabled, removed or replaced meanwhile),
+     * each with its actual type/variant and owning work; one entry per revision, its owners combined.
+     */
+    private retainedTools(): RetainedToolUse[] {
+        const uses = new Map<string, { record: ToolRecord; owners: string[] }>();
+        const add = (record: ToolRecord, owner: string | undefined): void => {
+            const key = `${record.name}\0${toolRevision(record)}`;
+            const use = uses.get(key) ?? { record, owners: [] };
+            if (owner && !use.owners.includes(owner)) use.owners.push(owner);
+            uses.set(key, use);
+        };
+        const ownerOf = (scope: string): string | undefined => {
+            const unit = [...this.units.values()].find((candidate) => candidate.key === scope || candidate.id === scope);
+            return unit ? (unit.current?.taskTitle ?? unit.label) : undefined;
+        };
+        for (const browser of this.options.browsers?.retained?.() ?? []) for (const scope of browser.scopes.length ? browser.scopes : ['']) add(browser.record, ownerOf(scope));
         for (const unit of this.units.values()) {
-            const tool = unit.current ? unit.context?.selection.tool : undefined;
-            if (tool && !this.settings.tools.some((record) => record.name === tool && record.isEnabled)) retained.add(tool);
+            const acquired = unit.current ? unit.context?.acquired : undefined;
+            if (acquired && this.retainsOldRevision(unit)) add(acquired, unit.current?.taskTitle ?? unit.label);
         }
-        return retained;
+        return [...uses.values()].map((use) => ({ name: use.record.name, record: use.record, ...(use.owners.length ? { owner: use.owners.join(', ') } : {}) }));
+    }
+
+    /**
+     * Whether a unit's acquired harness revision is no longer the saved configuration (changed, disabled, removed or
+     * replaced). Once observed, it stays retained: re-adding the name creates a new revision.
+     */
+    private retainsOldRevision(unit: WorkUnit): boolean {
+        const context = unit.context;
+        if (!context?.acquired) return false;
+        if (!context.detached && !isCurrentRevision(context.acquired, this.settings.tools)) context.detached = true;
+        return Boolean(context.detached);
     }
 
     /** Ready/queued work that waits for its agent or for files, counted at the last evaluation. */
@@ -3801,6 +3850,7 @@ export class Agenda {
             settings: this.settings,
             catalog: this.catalog,
             pool: this.pool,
+            ...(unit.context?.acquired ? { acquiredTool: unit.context.acquired } : {}),
             state: this.state,
             chats: this.chats,
             takenNames: () => this.catalog.index.names(),
@@ -4316,7 +4366,8 @@ export class Agenda {
             startedAt: new Date().toISOString(),
             target: targetRef ? { ref: targetRef, title: targetRef } : undefined,
         };
-        unit.context = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [] };
+        const acquired = selection.tool ? this.pool.instance(selection.tool) : undefined;
+        unit.context = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [], ...(acquired ? { acquired } : {}) };
         this.touch();
         const others = this.units.size - 1;
         this.log(`${item.resume ? 'Resuming' : 'Starting'} ${item.kind === 'task' ? '' : `${item.kind} `}"${item.task.title}" with ${selection.agent} on ${harnessName(selection.harness)}${selection.tool ? ` [${selection.tool}]` : ''}${selection.model ? ` (${selection.model})` : ''}${others > 0 ? ` alongside ${others} other active unit${others === 1 ? '' : 's'}` : ''}`);

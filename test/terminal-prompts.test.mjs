@@ -233,6 +233,67 @@ test('the model endpoint is chosen among what the harness can reach; an explicit
     assert.equal(plan('LOCAL'), 'LOCAL');
 });
 
+test('tool form parity: a variant changes within its type, a browser executable and a native account context are set and cleared explicitly', LIMIT, async () => {
+    /** Runs one modify form with keys sent after it renders; each key lets the next prompt render. */
+    const run = async (item, keys) => {
+        written = '';
+        const form = modifyToolForm(terminal, item);
+        await settle();
+        for (const key of keys) {
+            await send(key);
+            await settle();
+        }
+        return (await form).operation;
+    };
+    const erase = (text) => '\x7f'.repeat(text.length);
+    const browser = { name: 'work-browser', type: 'BROWSER', variant: 'CHROME', fields: { profile: 'MANAGED_GLOBAL', isHeadless: 'true', executable: '/opt/chrome' } };
+
+    // Variant: one entry below the browser fields, within the type; the other settings are kept.
+    const variant = await run(browser, ['\x1b[B', '\r', '\x1b[B', '\r']);
+    assert.deepEqual(variant, { kind: 'modify', name: 'work-browser', changes: { variant: 'CHROMIUM' } });
+
+    // Unchanged answers keep the saved fields (and the domain finds no change to commit).
+    const unchanged = await run(browser, ['\r', '\r', '\r', '\r', '\r']);
+    assert.deepEqual(unchanged.changes, { profileSource: 'MANAGED_GLOBAL', profilePath: null, isHeadless: true, executable: '/opt/chrome' });
+    const plan = planToolOperation([{ type: 'BROWSER', variant: 'CHROME', name: 'work-browser', isEnabled: true, profile: { source: 'MANAGED_GLOBAL' }, isHeadless: true, executable: '/opt/chrome' }], unchanged);
+    assert.equal(plan.noop, true, 'an unchanged save is no change');
+
+    // Emptying the executable clears the override explicitly; a new one replaces it.
+    const cleared = await run(browser, ['\r', '\r', '\r', '\r', `${erase('/opt/chrome')}\r`]);
+    assert.equal(cleared.changes.executable, null);
+    const changed = await run(browser, ['\r', '\r', '\r', '\r', `${erase('/opt/chrome')}/usr/bin/chromium\r`]);
+    assert.equal(changed.changes.executable, '/usr/bin/chromium');
+
+    // A native account context where the adapter supports one: two entries below the authentication.
+    const codex = { name: 'codex', type: 'HARNESS', variant: 'OPENAI_CODEX', fields: { authentication: 'NATIVE', accountProfile: 'company', endpoint: 'official' } };
+    written = '';
+    const offered = modifyToolForm(terminal, codex);
+    await settle();
+    assert.match(latest().lines.join('\n'), /Native account context/);
+    await send('\x1b[B');
+    await send('\x1b[B');
+    await send('\r');
+    await settle();
+    await send(`${erase('company')}personal\r`);
+    assert.deepEqual((await offered).operation.changes, { accountProfile: 'personal' });
+    const clearedAccount = await run(codex, ['\x1b[B', '\x1b[B', '\r', `${erase('company')}\r`]);
+    assert.deepEqual(clearedAccount.changes, { accountProfile: null }, 'clearing returns to the default login explicitly');
+
+    // An adapter without separate account contexts offers no such field.
+    written = '';
+    const gemini = modifyToolForm(terminal, { name: 'gemini', type: 'HARNESS', variant: 'GEMINI', fields: { authentication: 'NATIVE', endpoint: 'official' } });
+    await settle();
+    assert.doesNotMatch(latest().lines.join('\n'), /Native account context/);
+    await send('\x1b');
+    assert.equal(await gemini, undefined, 'cancelling changes nothing');
+
+    // The shared domain refuses a variant change that would silently drop the account context.
+    const tools = [{ type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex', isEnabled: true, authentication: 'NATIVE', accountProfile: 'company' }];
+    assert.throws(() => planToolOperation(tools, { kind: 'modify', name: 'codex', changes: { variant: 'GEMINI' } }), /does not support separate native account contexts/);
+    assert.equal(planToolOperation(tools, { kind: 'modify', name: 'codex', changes: { variant: 'GEMINI', accountProfile: null } }).tools[0].accountProfile, undefined);
+    assert.equal(planToolOperation(tools, { kind: 'modify', name: 'codex', changes: { variant: 'CLAUDE_CODE' } }).tools[0].accountProfile, 'company', 'a compatible variant keeps it');
+});
+
 /** A screen that keeps the latest frame instead of drawing it. */
 const fakeScreen = () => {
     const screen = { lines: [], cursor: undefined, enter() {}, leave() {}, invalidate() {}, draw: (lines, cursor) => Object.assign(screen, { lines, cursor }) };

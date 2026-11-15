@@ -1385,7 +1385,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             } else if (event.name === 'enter') {
                 if (page.kind === 'tools') {
                     const tool = toolsOf(snapshot)[page.focus];
-                    if (tool) openPage({ kind: 'tool', scroll: 0, name: tool.name });
+                    if (tool) openPage({ kind: 'tool', scroll: 0, name: tool.name, ...(tool.revision ? { revision: tool.revision } : {}) });
                     return;
                 }
                 if (page.kind === 'chats') {
@@ -1635,11 +1635,17 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             case 'tools':
             case 'tool': {
                 const items = toolsOf(snapshot);
-                const focused = page.kind === 'tool' ? items.find((item) => item.name === page.name) : items[page.focus];
+                const focused = page.kind === 'tool' ? items.find((item) => item.name === page.name && item.revision === page.revision) : items[page.focus];
+                // A retained revision is current-work-only runtime state, not a saved tool: management targets the saved one.
+                if (focused?.retained && (text === ' ' || text === '[' || text === ']' || key === 'm' || key === 'd')) {
+                    notify(`This is the old configuration "${focused.name}" that ${focused.owner ? `"${focused.owner}"` : 'current work'} keeps until it finishes; it is not saved in ptbk.json and cannot be managed.`);
+                    draw();
+                    return;
+                }
                 if (text === ' ' && focused) void runTool({ operation: { kind: focused.isEnabled ? 'disable' : 'enable', name: focused.name } });
                 else if (page.kind === 'tools' && (text === '[' || text === ']') && focused) {
                     const neighbour = items[page.focus + (text === '[' ? -1 : 1)];
-                    if (!neighbour) notify('It is already at that end of the list.');
+                    if (!neighbour || neighbour.retained) notify('It is already at that end of the list.');
                     else {
                         void runTool({ operation: { kind: 'move', name: focused.name, ...(text === '[' ? { before: neighbour.name } : { after: neighbour.name }) } });
                     }

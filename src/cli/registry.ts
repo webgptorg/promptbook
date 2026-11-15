@@ -545,7 +545,7 @@ Local models: \`ptbk tool setup-local\` prepares a local model runtime (Ollama, 
                 optionGroups: [
                     { title: 'Identity', options: [{ name: 'rename', type: 'string', valueName: '<new-name>', description: 'New kebab-case name.' }, TOOL_IDENTITY_OPTIONS.options[0]!, TOOL_IDENTITY_OPTIONS.options[2]!, { name: 'clear-description', type: 'boolean', description: 'Remove the description.' }] },
                     { ...TOOL_BROWSER_OPTIONS, options: [...TOOL_BROWSER_OPTIONS.options, { name: 'clear-executable', type: 'boolean', description: 'Use the default executable discovery again.' }] },
-                    TOOL_HARNESS_OPTIONS,
+                    { ...TOOL_HARNESS_OPTIONS, options: [...TOOL_HARNESS_OPTIONS.options, { name: 'clear-account-profile', type: 'boolean', description: 'Use the default native login context again (removes accountProfile).' }] },
                     TOOL_RUNTIME_OPTIONS,
                     TOOL_SAFETY_OPTIONS,
                     PROJECT_OPTIONS,

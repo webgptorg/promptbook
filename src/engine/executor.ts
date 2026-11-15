@@ -127,6 +127,11 @@ export type ExecutionEnvironment = {
     readonly settings: EffectiveSettings;
     readonly catalog: AgentCatalog;
     readonly pool: HarnessPool;
+    /**
+     * The harness instance this run acquired (its configuration revision): it serves every attempt of the run even if
+     * the saved tool is changed, disabled, removed or replaced by a same-name tool meanwhile.
+     */
+    readonly acquiredTool?: HarnessToolRecord;
     readonly state: StateStore;
     /** The project's chats (human-facing questions are committed per message). */
     readonly chats: ChatStore;
@@ -485,7 +490,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames, onCreated: (path) => hooks.own?.([path]), designated: record.originChat ?? chatOriginOf(task.origin) });
     let lastResult: HarnessRunResult | undefined;
     let lastReport: AgentReport | undefined;
-    let retainedInstance: HarnessToolRecord | undefined;
+    let retainedInstance: HarnessToolRecord | undefined = environment.acquiredTool;
     const contextFile = setting<string | null>(settings, 'paths.context');
     const context = contextFile ? await readTextIfExists(resolve(project.root, contextFile)) : undefined;
 
@@ -674,8 +679,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const promptFile = join(promptDirectory, `prompt-${record.runId}-${attempt}.md`);
             await writeFile(promptFile, prompt);
             const harnessLabel = `${plugin.displayName} ${item.route.inspection.version ?? ''}${selection.tool ? ` · tool ${selection.tool}` : ''}`.trim();
-            // The acquired instance (retained for this attempt even if its saved configuration changes meanwhile).
-            const instance = selection.tool ? (environment.pool.instance(selection.tool) ?? retainedInstance) : undefined;
+            // The acquired instance: the run keeps its revision even if the saved tool changes or a same-name tool replaces it.
+            const instance = selection.tool ? (retainedInstance ?? environment.pool.instance(selection.tool)) : undefined;
             if (instance) retainedInstance = instance;
             /** Capture before awaiting: live edits govern later selections, never this dispatched use or its failure. */
             const acquiredContext = instance ? { projectRoot: project.root, tool: instance, env: environment.pool.environment(instance) } : undefined;
