@@ -25,6 +25,12 @@ Track the pool of connected engines. Pause retains the connection/browser. Stopp
 
 Allocate task-specific tabs in the selected shared browser so independent tasks can work concurrently; do not create a separate browser process per task or require whole-profile exclusive task execution. Coordinate destructive browser-wide actions and do not casually close another active task's tabs. Tab separation does not isolate cookies/account changes.
 
+## Configuration changes and connection reuse
+
+After a saved profile change is observed, every **new acquisition** resolves the new configuration, including acquisition by a task that started earlier but had not yet acquired that browser. A cached connection under the same tool name is not sufficient evidence that its actual profile matches. Canonically equivalent profile paths may share their existing pool; a change resolving to a different profile must connect to that new profile before serving the acquisition. If the new profile is unavailable, report that failure/wait rather than silently serving the old account.
+
+Work that acquired the old revision may finish in its original profile under [retained-use rules](tool-runtime.md#retained-active-uses-not-frozen-registries). New work must be able to acquire the new revision while that old use drains; do not postpone the change until all tasks using the tool name finish. If the old connection has no active uses, invalidate/release it on refresh before assigning a new use. Removing and re-adding a name cannot revive its old connection for new work. Release connections according to actual profile/revision ownership, preserving other connected engines and never copying cookies between profiles. A mode-only change to the same shared profile still follows the existing requested/effective-mode rule and does not silently restart the shared process.
+
 ## Access and credentials
 
 The configured/enabled tool grants normal browser control without a second permission/capability switch: list/open/switch/close tabs and windows, navigation, text/DOM including supported frames/open shadow roots, screenshots, trusted keyboard/mouse/scroll, rich-text entry, options and file upload. Task-specific programmatic JavaScript/CDP and connection endpoints remain available for authorized automation **subject to the Wallet secret boundary**. Missing ordinary controls are tool defects for automatic repair, not routine requests for the user to grant more access.
@@ -57,3 +63,10 @@ Runtime controls do not remove/disable tools, delete sessions or create Git comm
 Record only attributable task-tab activity when enabled. Exclude unrelated tabs/projects, all secret entry and the full interval of user-controlled tab access. Keep named-tool/attempt provenance in the actual source-filename trace directory. Persistent profiles survive stopping/restart/kill.
 
 Start two engines with the default profile: one browser process, two pool connections, task-specific tabs and no master/slave. Pause either and disconnect the engine that launched it: the other keeps working. Last disconnect closes the managed process. Test isolated/existing/custom sources, concurrent startup, dropped connections, effective mode and eager startup without a task. Restart/kill clearly affects all connected engines; test GitHub opens in the selected instance. Verify live tool changes, full headless/headful ordinary interaction, [manual control](browser-tab-control.md#acceptance-outcomes) and Wallet secrecy.
+
+For live profile changes, use two distinguishable profile fixtures and assert the actual acquired connection/profile, not only the displayed saved path:
+
+- Change an eagerly connected but unused tool from profile A to B; the next acquisition uses B.
+- Let task A acquire profile A, then change that tool to B with the required acknowledgement. Task A keeps A; a new task and an already-running task with no prior acquisition both get B before task A finishes.
+- Remove the tool while A drains and add the same name with profile B; releasing A preserves B and any other engine still connected to A.
+- Make B unavailable; new acquisitions report B's failure and never reuse A. Repeat the applicable cases through saved management and a live external configuration refresh.
