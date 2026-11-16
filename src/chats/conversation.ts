@@ -192,6 +192,9 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${routerAgentDefinition.name} is routing {${stored.chat.name}}`);
     const instance = context.pool.instance(routerRoute.selection.tool!)!;
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `routing:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -229,6 +232,7 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
             routerRoute.inspection.executablePath ?? routerRoute.plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await rm(promptFile, { force: true });
     }
     const usageFile = chatUsageFile(context.project, stored.path);
@@ -710,7 +714,7 @@ export type BriefComposition = { readonly text?: string; readonly error?: string
  *
  * @private chats
  */
-export async function composeProjectBrief(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>, input: { readonly agent: string; readonly digest: string; readonly previous?: { readonly text: string; readonly at: string }; readonly reportPath: string }): Promise<BriefComposition> {
+export async function composeProjectBrief(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions' | 'onHarnessUse'>, input: { readonly agent: string; readonly digest: string; readonly previous?: { readonly text: string; readonly at: string }; readonly reportPath: string }): Promise<BriefComposition> {
     const agent = await resolveEffectiveAgent(context.catalog, input.agent);
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { error: `${input.agent} cannot write the brief: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
@@ -742,6 +746,9 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
     const promptFile = join(directory, `brief-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is writing the project brief`);
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `brief:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -779,6 +786,7 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
             route.inspection.executablePath ?? plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await rm(promptFile, { force: true });
     }
     await appendUsage(
@@ -834,7 +842,7 @@ export type RelevanceRequest = {
  * @private chats
  */
 export async function assessAttentionRelevance(
-    context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>,
+    context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions' | 'onHarnessUse'>,
     input: { readonly agent: string; readonly requests: readonly RelevanceRequest[]; readonly digest?: string },
 ): Promise<{ readonly verdicts: ReadonlyArray<{ readonly id: string; readonly needed: boolean; readonly reason?: string }> } | { readonly unavailable: string }> {
     const agent = await resolveEffectiveAgent(context.catalog, formatAgentReference(input.agent));
@@ -876,6 +884,9 @@ export async function assessAttentionRelevance(
     const promptFile = join(directory, `relevance-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is checking whether its requests to the owner are still needed`);
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `relevance:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -913,6 +924,7 @@ export async function assessAttentionRelevance(
             route.inspection.executablePath ?? plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await rm(promptFile, { force: true });
     }
     const first = input.requests[0]!;
@@ -977,7 +989,7 @@ const LOGIN_CODE_TIMEOUT_MS = 3 * 60_000;
  *
  * @private chats
  */
-export async function findLoginCode(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>, input: { readonly agent: string; readonly origin: string; readonly account: string; readonly tools: readonly BridgeTool[] }): Promise<string | undefined> {
+export async function findLoginCode(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions' | 'onHarnessUse'>, input: { readonly agent: string; readonly origin: string; readonly account: string; readonly tools: readonly BridgeTool[] }): Promise<string | undefined> {
     const agent = await resolveEffectiveAgent(context.catalog, input.agent);
     if (agent.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) return undefined;
     const route = await readOnlyRoute(agent, undefined, { catalog: context.catalog, pool: context.pool, settings: context.settings });
@@ -1011,6 +1023,9 @@ export async function findLoginCode(context: Pick<ConversationContext, 'project'
     const promptFile = join(directory, `login-code-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} looks for the one-time code of a Wallet test of ${input.origin}`);
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `login-code:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -1050,6 +1065,7 @@ export async function findLoginCode(context: Pick<ConversationContext, 'project'
             route.inspection.executablePath ?? plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await bridge.close();
         await rm(promptFile, { force: true });
     }

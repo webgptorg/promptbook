@@ -285,6 +285,11 @@ async function main() {
         }
         message('Fixture advice: keep it simple.');
     } else if (brief) {
+        // $FAKE_CODEX_BRIEF_BARRIER: the brief notes `<barrier>.reached` and waits until the barrier is removed.
+        if (process.env.FAKE_CODEX_BRIEF_BARRIER) {
+            appendFileSync(`${process.env.FAKE_CODEX_BRIEF_BARRIER}.reached`, 'brief\n');
+            while (existsSync(process.env.FAKE_CODEX_BRIEF_BARRIER)) await new Promise((resolve) => setTimeout(resolve, 100));
+        }
         const outages = process.env.FAKE_CODEX_LOG ? `${process.env.FAKE_CODEX_LOG}.brief-outages` : undefined;
         const failed = outages && existsSync(outages) ? readFileSync(outages, 'utf8').split('\n').filter(Boolean).length : 0;
         if (outages && failed < Number(process.env.FAKE_CODEX_FAIL_BRIEFS ?? 0)) {

@@ -103,6 +103,37 @@ test('retained revisions: a chat reply and its TEAM consultation hold the revisi
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });
 
+test('retained revisions: a helper call (the project brief) holds the revision it acquired; a forced change retains it for that call only', async (t) => {
+    const { directory, project, env: base } = await initializedProject(t, { check: CHECK });
+    const barrier = join(directory, 'brief barrier');
+    await writeFile(barrier, 'hold the brief until the held revision is inspected\n');
+    const env = { ...base, FAKE_CODEX_BRIEF_BARRIER: barrier, PTBK_REPORT_INTERVAL_MS: '600000' };
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    await waitFor(async () => (await readFile(`${barrier}.reached`, 'utf8').catch(() => '')).includes('brief'), { message: 'the brief turn', timeoutMs: 90_000 });
+    // The onboarding review also uses openai-codex: wait until only the brief can hold it.
+    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'ptbk: '), { message: 'the onboarding review result', timeoutMs: 60_000 });
+    await waitFor(async () => !(await status(project, env)).current, { message: 'no task running beside the brief', timeoutMs: 60_000 });
+
+    let snapshot = await status(project, env);
+    assert.equal(snapshot.tools.items.find((item) => item.name === 'openai-codex' && !item.retained).inUse, true, 'the brief is active work of its harness');
+    const refused = await ptbk(['tool', 'modify', 'openai-codex', '--description', 'Another account', '--raw'], { cwd: project, env });
+    assert.equal(refused.code, 3, refused.output);
+    assert.match(refused.output, /in use by active work/);
+
+    const forced = await ptbk(['tool', 'modify', 'openai-codex', '--description', 'Another account', '--force', '--raw'], { cwd: project, env });
+    assert.equal(forced.code, 0, forced.output);
+    snapshot = await status(project, env);
+    const held = snapshot.tools.items.find((item) => item.name === 'openai-codex' && item.retained);
+    assert.ok(held, `the held revision stays visible: ${JSON.stringify(snapshot.tools.items.map((item) => [item.name, item.retained, item.owner]))}`);
+    assert.deepEqual([held.type, held.variant, held.inUse, held.owner], ['HARNESS', 'OPENAI_CODEX', true, 'Project brief']);
+    assert.equal(snapshot.tools.items.find((item) => item.name === 'openai-codex' && !item.retained).inUse, false, 'the changed saved tool is not held by the brief');
+
+    await rm(barrier);
+    await waitFor(async () => (await status(project, env)).report?.brief, { message: 'the brief', timeoutMs: 60_000 });
+    await waitFor(async () => !(await status(project, env)).tools.items.some((item) => item.retained), { message: 'the held revision is released with the brief', timeoutMs: 30_000 });
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+});
+
 test('quota resets: the wait a provider reports is understood in its usual forms; nothing is invented', () => {
     const now = Date.UTC(2026, 9, 30, 10, 0, 0);
     const minutes = 60_000;

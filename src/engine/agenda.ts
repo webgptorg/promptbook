@@ -835,7 +835,7 @@ export class Agenda {
             input.push({ id: request.id, chat: request.chat, relativePath: request.relativePath, at: request.at, text: request.text, later, links: request.links });
         }
         return await assessAttentionRelevance(
-            { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: this.ownedWork.signal, onActivity: (text) => this.log(text), sessions: this.sessions },
+            { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: this.ownedWork.signal, onActivity: (text) => this.log(text), sessions: this.sessions, onHarnessUse: (use) => this.recordHelperUse(`relevance check of ${owner}`, use) },
             { agent: owner, requests: input, digest: this.reportDigest() },
         );
     }
@@ -3033,6 +3033,7 @@ export class Agenda {
             // Consultations and chat replies hold the revision they acquired, exactly like the task's own instance.
             for (const use of unit.uses.values()) if (!this.isRetained(use)) names.add(use.record.name);
         }
+        for (const use of this.helperUses.values()) if (!this.isRetained(use)) names.add(use.record.name);
         return names;
     }
 
@@ -3059,6 +3060,7 @@ export class Agenda {
             if (acquired && this.retainsOldRevision(unit)) add(acquired, owner);
             for (const use of unit.uses.values()) if (this.isRetained(use)) add(use.record, owner);
         }
+        for (const use of this.helperUses.values()) if (this.isRetained(use)) add(use.record, use.owner);
         return [...uses.values()].map((use) => ({ name: use.record.name, record: use.record, ...(use.owners.length ? { owner: use.owners.join(', ') } : {}) }));
     }
 
@@ -3077,6 +3079,16 @@ export class Agenda {
     private isRetained(use: HarnessUse): boolean {
         if (!use.detached && !isCurrentRevision(use.record, this.settings.tools)) use.detached = true;
         return Boolean(use.detached);
+    }
+
+    /** Harness revisions held by helper calls that run outside a work unit (relevance checks, one-time code searches). */
+    private readonly helperUses = new Map<string, HarnessUse & { readonly owner: string }>();
+
+    /** Records an acquired or released harness revision of a helper call outside a work unit. */
+    private recordHelperUse(owner: string, use: { readonly id: string; readonly state: 'acquired' | 'started'; readonly record?: HarnessToolRecord } | { readonly id: string; readonly state: 'released' | 'finished' }): void {
+        if ((use.state === 'acquired' || use.state === 'started') && 'record' in use && use.record) this.helperUses.set(use.id, { record: use.record, owner });
+        else this.helperUses.delete(use.id);
+        this.touch();
     }
 
     /** Records an acquired or released harness revision of a unit's consultation or chat reply. */
@@ -4950,7 +4962,7 @@ export class Agenda {
             const author = await this.catalog.resolve(REPORT_AUTHOR);
             const agent = author.kind === 'agent' ? formatAgentReference(author.definition.name) : REPORT_AUTHOR;
             const composed = await composeProjectBrief(
-                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]), onActivity: (text) => this.log(text) },
+                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]), onActivity: (text) => this.log(text), onHarnessUse: (use) => this.recordUse(unit, use) },
                 { agent, digest: this.reportDigest(), previous: this.reportView.brief, reportPath: join(this.options.project.root, REPORT_FILE) },
             );
             if (!composed.text) {
@@ -4980,7 +4992,7 @@ export class Agenda {
         const session = codeTools();
         try {
             return await findLoginCode(
-                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([request.signal, this.ownedWork.signal]), onActivity: (text) => this.log(text) },
+                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([request.signal, this.ownedWork.signal]), onActivity: (text) => this.log(text), onHarnessUse: (use) => this.recordHelperUse(`Fixer's one-time code search for ${request.origin}`, use) },
                 { agent: formatAgentReference('Fixer'), origin: request.origin, account: request.account, tools: session.tools },
             );
         } finally {
