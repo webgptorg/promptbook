@@ -731,3 +731,6 @@
 - Expose read-only `tasks@1` to the Promptbook App using the scheduler's real definitions and readiness. Include ordinary and engine-owned tasks, filters and pagination, parents, prerequisites, cycles, notes, directed Book links and retained run/completion evidence. Emit content-free task change hints; permissions and strict contract schemas guard every read, and no task route mutates a Book or starts work.
 
 - Keep one task occurrence when the same run checkpoints and resumes, prefer its current active state, and retain links to legacy Markdown tasks and task origins.
+
+- App member-access state now preserves legacy owner credentials while serializing durable approval, removal,
+  invitation and role transitions; failed writes cannot silently grant access and ticket/poll secrets stay hashed.

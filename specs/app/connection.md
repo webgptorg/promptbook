@@ -109,3 +109,28 @@ The engine serves the App's signed UI bundle itself. Its UI loader fetches relea
 Every build reads `PTBK_UI_TRUST_POLICY_FILE` once, before initialization or any connection. It must be an absolute path to a strictly parsed `TrustPolicy` of at most 64 KiB. Invalid, unreadable or oversized files stop startup with the variable and path in the error, never the contents. The file cannot be combined with `PTBK_CONFORMANCE_TRUST_FILE`; only a conformance build accepts that separate test policy and root. With no policy the loader never fetches releases and serves the plain engine page, even if a bundle remains cached on disk.
 
 A staging policy is refused when `NODE_ENV=production`, including a value inlined by a bundler. Installed background services and the Ubuntu launcher set production mode; the service preserves the nonsecret policy path and release settings over restarts, but never a pairing code or conformance trust. The ordinary TypeScript build does not inline `NODE_ENV`. Staging uses a foreground engine with `NODE_ENV=development`, `PTBK_UI_RELEASE_URL=https://ui.ptbk.link/` and the absolute path to `apps/engine-ui/release/trust-policy.staging.json` from the pinned App checkout. The production policy still waits for the platform's key ceremony.
+
+## Member access and invitations
+
+Access is owned by the engine, never granted by dashboard membership alone. The gateway accepts a dashboard ticket
+only after the platform protocol verifies its signature against the registration's pinned member key, its engine,
+validity and one-use ID. A verified passkey becomes a pending access request, not a sign-in credential. The engine
+shows the joining browser a random six-digit code; a member with `members.manage` and a fresh passkey assertion
+approves that code and a role. Requests expire after seven days, at most twenty wait, and the fifth wrong code declines
+the request. A new ticket for the same dashboard user replaces their previous pending request.
+
+The private access store migrates existing v1 owners, credentials and sessions in place. Read/modify/write operations
+are serialized and a draft becomes visible to authorization only after its atomic, flushed write succeeds. A failure
+is returned to the caller and closes authentication until persistence recovers; it never reports a successful grant.
+Ticket consumption and request creation share the same durable transition. Pending credentials, hashed approval
+codes, hashed one-use poll tokens and dashboard acknowledgments survive restarts. They stay in ignored runtime state.
+
+Roles and member removals protect the last active owner, including concurrent requests. Removing a member disables
+their credentials and all sessions within the next request. Engine-issued invite links contain a random one-use
+secret in the fragment, returned only on creation and stored only as a digest. Their role is preapproved by the member
+manager with step-up; registering a passkey consumes the invitation and completes sign-in through the join page.
+Listing or revoking invitations never reveals the secret. Owner reset also invalidates invitations and pending joins.
+
+The access transitions retain a content-free local audit chain with actor, action, target ID and outcome. Approval
+codes, ticket bodies, invitation and session secrets, passkey responses and email hints never enter audit details.
+This journal does not advertise the broader optional `audit@1` API.

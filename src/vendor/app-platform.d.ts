@@ -55,6 +55,14 @@ export type ContractTransport = (route: ContractRoute, request: ContractTranspor
 
 /** `@ptbk/engine-api` as the engine uses it. */
 export declare const api: {
+    readonly MAX_PENDING_ACCESS_REQUESTS: number;
+    readonly ACCESS_REQUEST_TTL_MS: number;
+    readonly MAX_ACCESS_CODE_ATTEMPTS: number;
+    readonly JOIN_PATH: string;
+    readonly JOIN_OPTIONS_PATH: string;
+    readonly JOIN_VERIFY_PATH: string;
+    readonly JOIN_STATUS_PATH: string;
+    readonly JOIN_PROBLEM: Readonly<Record<string, string>>;
     readonly ENGINE_API_VERSION: string;
     readonly ENGINE_API_PREFIX: string;
     readonly ENGINE_UI_CSP: string;
@@ -92,6 +100,15 @@ export type LinkUrlProblem = 'not-a-url' | 'not-https' | 'credentials' | 'not-li
 
 /** `@ptbk/protocol` as the engine uses it. */
 export declare const protocol: {
+    readonly MAX_HEARTBEAT_ACKS: number;
+    readonly ACCESS_TICKET_MAX_SKEW_MS: number;
+    readonly SIGNED_MEMBER_MESSAGE_MAX_LENGTH: number;
+    readonly HEARTBEAT_REPLY_MAX_BYTES: number;
+    readonly revocationPredates: (revocation: { readonly issuedAt: string }, joinedAt: string) => boolean;
+    readonly verifyAccessTicket: (input: { readonly token: string; readonly memberKey: Uint8Array; readonly engineId: string; readonly now: string }) => Promise<{ readonly kind: 'accepted'; readonly ticket: import('../app/web/access.js').AccessTicket } | { readonly kind: 'malformed' | 'bad-signature' | 'invalid-body' | 'engine-mismatch' | 'not-yet-valid' | 'expired' }>;
+    readonly verifyMemberRevocation: (input: { readonly token: string; readonly memberKey: Uint8Array; readonly engineId: string }) => Promise<{ readonly kind: 'accepted'; readonly revocation: { readonly revocationId: string; readonly dashboardUserId: string; readonly issuedAt: string } } | { readonly kind: 'malformed' | 'bad-signature' | 'invalid-body' | 'engine-mismatch' }>;
+    readonly buildHeartbeatV2: (input: import('../app/heartbeat.js').HeartbeatInput & { readonly accessRequests: number; readonly acks: readonly import('../app/web/access.js').HeartbeatAck[] }) => Uint8Array;
+    readonly TolerantHeartbeatReply: ContractSchema<{ readonly v: 1; readonly revocations: readonly string[] }>;
     readonly createClientHelloBuffer: (limits: { readonly maxBytes: number; readonly maxChunks?: number }) => { push(chunk: Uint8Array): ClientHelloParse; bytes(): Uint8Array };
     /** What `connect --link` accepts: a link URL `https://<dashboard host>/link#<code>`, or a bare code (`dashboardOrigin: null`). */
     readonly parseLinkArgument: (text: string) => { readonly kind: 'ok'; readonly dashboardOrigin: string | null; readonly linkCode: string } | { readonly kind: 'invalid'; readonly problem: LinkUrlProblem };
