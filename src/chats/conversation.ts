@@ -1,3 +1,4 @@
+import { replyStep, stepOfEvent, type ReplyStep } from './reply-steps.js';
 import type { TaskControlOperation, TaskControlOrigin, TaskControlOutcome, TaskStatusView } from '../engine/task-control.js';
 import { rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -555,6 +556,9 @@ export async function replyInChat(context: ConversationContext, chatName: string
     if (!mainReference) throw new PtbkError(`The chat "${chat.name}" has no agent participant.`, { kind: 'configuration' });
     const addressed = options.agent ? chatAgents(chat).find((member) => parseReferenceValue(member)?.normalized === parseReferenceValue(options.agent!)?.normalized) : undefined;
     const agentReference = addressed ?? mainReference;
+    const turnStartedAt = Date.now();
+    context.onLive?.(chat.name, { sender: agentReference, startedAt: new Date(turnStartedAt).toISOString(), activity: [], steps: [] });
+    try {
     const isMain = agentReference === mainReference;
     // A follow-up turn answers user messages that arrived while the previous reply was being written; a turn that was
     // interrupted or failed left only unfinished progress, so its user message still gets a reply.
@@ -603,7 +607,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const promptFile = join(directory, `chat-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is replying in {${chat.name}}`);
-    const progress = new ReplyProgress(context, chat.name, formatAgentReference(agent.name));
+    const progress = new ReplyProgress(context, chat.name, formatAgentReference(agent.name), turnStartedAt, bridge ? text => text.split(bridge.secret).join('[REDACTED]') : text => text);
     // The reply holds this exact configuration revision until its turn ends.
     const useId = `reply:${shortId(8)}`;
     context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
@@ -689,6 +693,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }
     return { reply, createdTasks: created, learning, consultations, seen: chat.messages.length };
+    } finally { context.onLive?.(chat.name, undefined); }
 }
 
 /**
@@ -1079,6 +1084,8 @@ export type LiveReply = {
     readonly startedAt: string;
     /** Latest progress lines (bounded). */
     readonly activity: readonly string[];
+    /** Latest structured activity (at most twenty steps). */
+    readonly steps: readonly ReplyStep[];
     /** The reply text streamed so far, where the harness streams it. */
     readonly text?: string;
 };
@@ -1104,7 +1111,7 @@ const PROGRESS_LINES = 40;
  * final reply is then marked `final`; an interrupted turn keeps its progress marked unfinished.
  */
 class ReplyProgress {
-    private readonly startedAt = Date.now();
+    private readonly steps: ReplyStep[] = [];
     private readonly at: string;
     private readonly lines: string[] = [];
     private text = '';
@@ -1117,19 +1124,23 @@ class ReplyProgress {
         private readonly context: ConversationContext,
         private readonly chat: string,
         private readonly sender: string,
+        private readonly startedAt: number,
+        private readonly redact: (text: string) => string,
     ) {
         this.at = context.chats.now();
     }
 
     /** Takes one harness event. */
     public event(event: HarnessEvent): void {
-        if (event.type === 'activity') this.lines.push(event.text.replace(/\s+/g, ' ').slice(0, 200));
-        else if (event.type === 'reasoning') this.lines.push(`thinking: ${event.text.replace(/\s+/g, ' ').slice(0, 300)}`);
-        else if (event.type === 'partial') this.text = event.text;
-        else return;
+        const step = stepOfEvent(event, this.redact);
+        if (step) { this.steps.push(step); if (this.steps.length > 200) this.steps.splice(0, this.steps.length - 200); }
+        if (event.type === 'activity') this.lines.push(this.redact(event.text).replace(/\s+/g, ' ').slice(0, 200));
+        else if (event.type === 'reasoning') this.lines.push(`thinking: ${this.redact(event.text).replace(/\s+/g, ' ').slice(0, 300)}`);
+        else if (event.type === 'partial') this.text = this.redact(event.text);
+        else if (!step) return;
         if (this.lines.length > PROGRESS_LINES) this.lines.splice(0, this.lines.length - PROGRESS_LINES);
         this.dirty = true;
-        this.context.onLive?.(this.chat, { sender: this.sender, startedAt: new Date(this.startedAt).toISOString(), activity: this.lines.slice(-8), ...(this.text ? { text: this.text } : {}) });
+        this.context.onLive?.(this.chat, { sender: this.sender, startedAt: new Date(this.startedAt).toISOString(), activity: this.lines.slice(-8), steps: this.steps.slice(-20), ...(this.text ? { text: this.text } : {}) });
         this.schedule();
     }
 
@@ -1153,8 +1164,7 @@ class ReplyProgress {
     private async save(note?: string): Promise<void> {
         if (!this.dirty && !note) return;
         this.dirty = false;
-        await this.context.chats.upsertProgress(this.chat, { sender: this.sender, at: this.at, text: this.render(note) }).catch(() => undefined);
-        this.saved = true;
+        await this.context.chats.upsertProgress(this.chat, { sender: this.sender, at: this.at, text: this.render(note), steps: this.steps }).then(() => { this.saved = true; }, () => { this.dirty = true; });
     }
 
     /** Ends the turn: saves the complete progress when any was saved, and says whether the final reply closes it. */
@@ -1168,10 +1178,12 @@ class ReplyProgress {
 
     /** Ends an interrupted or failed turn: its progress stays, explicitly marked unfinished. */
     public async unfinished(reason: string): Promise<void> {
+        this.steps.push(replyStep({ kind: 'note', tool: null, text: reason, level: 'error' }, this.redact));
+        if (this.steps.length > 200) this.steps.splice(0, this.steps.length - 200);
         clearTimeout(this.timer);
         this.timer = undefined;
         await this.writing;
-        if (this.saved || this.text || this.lines.length) await this.save(`(unfinished reply: ${reason})`);
+        await this.save(`(unfinished reply: ${this.redact(reason)})`);
         this.context.onLive?.(this.chat, undefined);
     }
 }

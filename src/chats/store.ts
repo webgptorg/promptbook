@@ -376,7 +376,7 @@ export class ChatStore {
      * Saves the progress of a reply in progress: the turn's one `progress` message (identified by its sender and turn
      * timestamp) is updated in place, or appended when it does not exist yet. Returns its position.
      */
-    public async upsertProgress(name: string, message: Pick<ChatMessage, 'sender' | 'at' | 'text'>): Promise<ChatWrite> {
+    public async upsertProgress(name: string, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'steps'>): Promise<ChatWrite> {
         return await this.mutex.run(async () => {
             const stored = await this.find(name);
             if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found' });

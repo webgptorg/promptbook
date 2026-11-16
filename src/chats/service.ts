@@ -1,3 +1,4 @@
+import type { ReplyStep } from './reply-steps.js';
 import type { ComposedSegment } from '../ui/composer.js';
 import type { VoiceCallView } from './voice-call.js';
 import { PtbkError } from '../common/errors.js';
@@ -54,6 +55,7 @@ export type ChatRecheckView = {
  */
 export type ChatDetail = {
     readonly summary: ChatSummary;
+    readonly linkPositions?: ChatBook['linkPositions'];
     /** Live cards of the tasks this chat created or links (from the engine's own task state). */
     readonly tasks?: readonly ChatTaskCard[];
     /** The reply being written now: available progress and streamed text (the same for every client). */
@@ -64,7 +66,7 @@ export type ChatDetail = {
     readonly requests?: readonly ChatRequestView[];
     /** The chat's realtime voice call (live or just ended), without its private page URL. */
     readonly voice?: VoiceCallView;
-    readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final'; readonly audio?: readonly MessageAudio[] }>;
+    readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final'; readonly steps?: readonly ReplyStep[]; readonly audio?: readonly MessageAudio[] }>;
 };
 
 /**
@@ -142,7 +144,7 @@ export async function chatDetail(store: ChatStore, name: string): Promise<ChatDe
     const stored = await store.find(name);
     if (!stored) throw new PtbkError(`No chat named "${name}".`, { kind: 'not-found', next: ['List chats with `ptbk chat --list`.'] });
     const summary = (await store.summaries()).find((item) => item.path === stored.relativePath)!;
-    return { summary, messages: stored.chat.messages.map((message) => ({ sender: message.sender, at: message.at, text: message.text, choices: message.choices, ...(message.phase ? { phase: message.phase } : {}), ...(message.audio?.length ? { audio: message.audio } : {}) })) };
+    return { summary, linkPositions: stored.chat.linkPositions, messages: stored.chat.messages.map((message) => ({ sender: message.sender, at: message.at, text: message.text, choices: message.choices, steps: message.steps, ...(message.phase ? { phase: message.phase } : {}), ...(message.audio?.length ? { audio: message.audio } : {}) })) };
 }
 
 /**

@@ -2163,7 +2163,7 @@ export class Agenda {
                     if (error instanceof PtbkError && (error.details.kind === 'not-found' || error.details.kind === 'usage')) throw error;
                     failure = errorMessage(error);
                 } finally {
-                    this.liveReplies.delete(name);
+                    for (const chat of this.liveReplies.keys()) if (nameKey(chat) === key) this.liveReplies.delete(chat);
                     this.finishUnit(unit);
                 }
                 if (failure) await this.chatReplyFailed(name, failure, options.agent);

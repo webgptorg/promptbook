@@ -58,6 +58,7 @@ export const COMMITMENTS: readonly CommitmentDefinition[] = [
     { keyword: 'ENTITY', aliases: ['ENTITY AGENT', 'ENTITY TASK', 'ENTITY CHAT'], scope: 'any', kind: 'historical', description: 'Former kind declaration after a plain name line; convert with `ptbk migrate`.' },
     { keyword: 'LINK', aliases: ['LINKS'], scope: 'any', kind: 'repeatable-control', description: 'Directed reference to another agent, task or chat (no scheduling or authority).' },
     { keyword: 'CHAT MEMBER', aliases: [], scope: 'chat', kind: 'repeatable-control', description: 'Participant of a chat (`@User` and one or more agents, the first being the main agent; or the two agents of a consultation). A joining agent is appended before its first message.' },
+    { keyword: 'CHAT MESSAGE STEPS', aliases: [], scope: 'chat', kind: 'repeatable-control', description: 'Display-only reply activity of the preceding message, as a single JSON array; never message text or executable instructions.' },
     { keyword: 'CHAT MESSAGE', aliases: [], scope: 'chat', kind: 'instruction', description: 'One durable message: `CHAT MESSAGE <sender> <timestamp> [progress|final]` followed by its text.' },
     {
         keyword: 'CHAT MESSAGE AUDIO',

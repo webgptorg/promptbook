@@ -79,7 +79,7 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
         case 'tool_use': {
             const toolState = (part.state ?? {}) as Record<string, unknown>;
             const paths = editedFiles(part.tool, toolState.input);
-            return [{ type: 'activity', text: `${String(part.tool ?? 'tool')} ${summarizeToolInput(toolState.input)}`.trim() }, ...(paths.length ? [{ type: 'files' as const, paths }] : [])];
+            return [{ type: 'activity', tool: String(part.tool ?? 'tool'), detail: summarizeToolInput(toolState.input), text: `${String(part.tool ?? 'tool')} ${summarizeToolInput(toolState.input)}`.trim() }, ...(paths.length ? [{ type: 'files' as const, paths }] : [])];
         }
         case 'step_finish': {
             // Each finished step reports its own increment.

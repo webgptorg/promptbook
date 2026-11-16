@@ -133,6 +133,7 @@ export function messageAudioGroups(document: BookDocument): { readonly groups: R
             owner = commitment;
             continue;
         }
+        if (commitment.keyword === 'CHAT MESSAGE STEPS') continue;
         if (commitment.keyword !== MESSAGE_AUDIO_KEYWORD) {
             owner = undefined;
             continue;
@@ -174,6 +175,7 @@ export function appendMessageAudio(source: string, index: number, segments: read
     const at = document.commitments.indexOf(target);
     let last = target;
     for (const commitment of document.commitments.slice(at + 1)) {
+        if (commitment.keyword === 'CHAT MESSAGE STEPS') { last = commitment; continue; }
         if (commitment.keyword !== MESSAGE_AUDIO_KEYWORD) break;
         last = commitment;
     }

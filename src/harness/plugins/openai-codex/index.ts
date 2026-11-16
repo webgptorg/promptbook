@@ -227,22 +227,22 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
                 if (completed && typeof item.text === 'string') events.push({ type: 'reasoning', text: item.text });
                 break;
             case 'command_execution':
-                if (!completed && typeof item.command === 'string') events.push({ type: 'activity', text: `$ ${item.command.replace(/\s+/g, ' ').slice(0, 160)}` });
+                if (!completed && typeof item.command === 'string') events.push({ type: 'activity', tool: 'shell', detail: item.command, text: `$ ${item.command.replace(/\s+/g, ' ').slice(0, 160)}` });
                 else if (completed && typeof item.exit_code === 'number' && item.exit_code !== 0) events.push({ type: 'activity', text: `command exited with ${item.exit_code}` });
                 break;
             case 'file_change': {
                 const changes = Array.isArray(item.changes) ? (item.changes as Array<{ path?: string; kind?: string }>) : [];
                 if (completed && changes.length) {
-                    events.push({ type: 'activity', text: `edited ${changes.map((change) => change.path).join(', ').slice(0, 160)}` });
+                    events.push({ type: 'activity', tool: 'apply_patch', detail: changes.map(change => change.path).filter(Boolean).join(', '), text: `edited ${changes.map((change) => change.path).join(', ').slice(0, 160)}` });
                     events.push({ type: 'files', paths: changes.map((change) => change.path).filter((path): path is string => typeof path === 'string' && path !== '') });
                 }
                 break;
             }
             case 'mcp_tool_call':
-                if (!completed) events.push({ type: 'activity', text: `${String(item.server)}.${String(item.tool)} ${summarizeToolInput(item.arguments)}`.trim() });
+                if (!completed) events.push({ type: 'activity', tool: `mcp__${String(item.server)}__${String(item.tool)}`, detail: summarizeToolInput(item.arguments), text: `${String(item.server)}.${String(item.tool)} ${summarizeToolInput(item.arguments)}`.trim() });
                 break;
             case 'web_search':
-                if (!completed) events.push({ type: 'activity', text: `web search ${String(item.query ?? '')}`.trim() });
+                if (!completed) events.push({ type: 'activity', tool: 'web_search', detail: String(item.query ?? ''), text: `web search ${String(item.query ?? '')}`.trim() });
                 break;
             case 'error':
                 if (typeof item.message === 'string') events.push({ type: 'error', text: item.message });

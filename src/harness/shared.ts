@@ -227,7 +227,7 @@ export function parseJsonLine(line: string): Record<string, unknown> | undefined
 export function summarizeToolInput(input: unknown): string {
     if (!input || typeof input !== 'object') return typeof input === 'string' ? input.slice(0, 120) : '';
     const record = input as Record<string, unknown>;
-    for (const key of ['command', 'cmd', 'file_path', 'path', 'filePath', 'pattern', 'url', 'query', 'description', 'agent']) {
+    for (const key of ['command', 'cmd', 'file_path', 'path', 'filePath', 'pattern', 'url', 'query', 'description', 'title', 'name', 'agent']) {
         const value = record[key];
         if (typeof value === 'string' && value) return value.replace(/\s+/g, ' ').slice(0, 120);
         if (Array.isArray(value) && value.length) return value.join(' ').replace(/\s+/g, ' ').slice(0, 120);
@@ -278,7 +278,7 @@ export function parseStreamJson(line: string, state: ParserState): HarnessEvent[
             if (block.type === 'text' && typeof block.text === 'string') texts.push(block.text);
             else if (block.type === 'thinking' && typeof block.thinking === 'string') events.push({ type: 'reasoning', text: block.thinking });
             else if (block.type === 'tool_use') {
-                events.push({ type: 'activity', text: `${String(block.name)} ${summarizeToolInput(block.input)}`.trim() });
+                events.push({ type: 'activity', tool: String(block.name), detail: summarizeToolInput(block.input), text: `${String(block.name)} ${summarizeToolInput(block.input)}`.trim() });
                 const paths = editedFiles(block.name, block.input);
                 if (paths.length) events.push({ type: 'files', paths });
             }
@@ -296,7 +296,7 @@ export function parseStreamJson(line: string, state: ParserState): HarnessEvent[
             events.push({ type: 'message', text: state.pendingText });
             state.pendingText = '';
         }
-        events.push({ type: 'activity', text: `${String(event.tool_name ?? event.name ?? 'tool')} ${summarizeToolInput(event.parameters ?? event.input)}`.trim() });
+        events.push({ type: 'activity', tool: String(event.tool_name ?? event.name ?? 'tool'), detail: summarizeToolInput(event.parameters ?? event.input), text: `${String(event.tool_name ?? event.name ?? 'tool')} ${summarizeToolInput(event.parameters ?? event.input)}`.trim() });
         const paths = editedFiles(event.tool_name ?? event.name, event.parameters ?? event.input);
         if (paths.length) events.push({ type: 'files', paths });
     } else if (type === 'result') {
