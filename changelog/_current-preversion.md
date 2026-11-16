@@ -736,3 +736,5 @@
   invitation and role transitions; failed writes cannot silently grant access and ticket/poll secrets stay hashed.
 - Complete dashboard access requests and member management: real passkey joining and consumable engine invitations, step-up protected approvals/roles/removals, persistent heartbeat v2 acknowledgments and verified dashboard revocations. Preserve existing owners, protect the last owner and recheck authority against concurrent revocation.
 - Preserve structured, redacted tool/reasoning steps with chat progress in `.book`, recover older progress, and announce working agents before routing begins (ENG-119).
+- Update the App contracts and serve chat phases, saved/live steps, working authors, task cards and chronological task links consistently in lists and details. Add idempotent retry of automatic chat rechecks and content-free activity hints with a trailing step wake (ENG-119).
+- Add a real App access conformance target independent of the project scheduler; the pinned platform's 15 member-access checks pass without skips.

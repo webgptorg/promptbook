@@ -10,7 +10,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
 import { confinePath, ensureDirectory, pathExists, toProjectRelative } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
-import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../common/time.js';
+import { creationTimestamp, parseDateTime, formatIsoWithOffset, formatShortTime } from '../common/time.js';
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { appendCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName, toReference } from '../book/references.js';
@@ -42,7 +42,7 @@ import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite, type OutstandingRequest } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
-import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, openUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
+import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, openUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatActivity, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
 import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type ConversationContext, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
 import type { VoiceCallView } from '../chats/voice-call.js';
@@ -1812,7 +1812,7 @@ export class Agenda {
         const recheck = this.chatRecheckViews().find((view) => nameKey(view.chat) === nameKey(detail.summary.name));
         const requests = await this.chatRequestViews(detail.summary.name);
         const voice = this.voiceCallsInstance?.view(detail.summary.name);
-        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}), ...(voice ? { voice } : {}) };
+        return { ...detail, summary, tasks: (await this.chatActivitySnapshot([detail.summary])).get(detail.summary.name)?.tasks ?? [], ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}), ...(voice ? { voice } : {}) };
     }
 
     /**
@@ -1843,43 +1843,60 @@ export class Agenda {
         return [...this.chatRechecks.values()].filter((entry) => entry.timer).map((entry) => ({ chat: entry.name, cause: entry.schedule.cause, nextAt: entry.schedule.nextAt, rounds: entry.schedule.rounds }));
     }
 
-    /**
-     * Live cards of the tasks a chat created (`TASK ORIGIN Chat`) or links: queued, running, waiting, blocked,
-     * completed or failed, observed from the same engine state as the Tasks view (presentation, not new states).
-     */
-    private async chatTaskCards(chat: string, links: readonly string[]): Promise<ChatTaskCard[]> {
-        const inventory = await this.taskInventory().catch(() => this.inventory);
-        const linked = new Set(links.map((link) => parseReferenceValue(link)?.normalized).filter((key): key is string => Boolean(key)));
-        const chatKey = nameKey(chat);
-        const tasks = inventory.filter((item) => linked.has(nameKey(item.title)) || nameKey(chatOriginOf(item.origin) ?? '') === chatKey);
-        const active = this.activeViews();
-        const receipts = (item: TaskInventoryItem): Pick<ChatTaskCard, 'receipts'> => {
-            const lines = item.source ? this.taskControlStore.receiptsOf(item.source).filter(isOutstandingReceipt).map(receiptLine) : [];
-            return lines.length ? { receipts: lines } : {};
-        };
-        return tasks.map((item): ChatTaskCard => {
-            const running = active.find((view) => view.kind !== 'chat' && nameKey(view.taskTitle) === nameKey(item.title));
-            const result = this.recentResults.find((candidate) => nameKey(candidate.title) === nameKey(item.title));
-            if (running) return { ...receipts(item), name: item.title, ref: item.ref, state: running.phase === 'awaiting-user' ? 'waiting' : 'running', detail: `${running.phase}${running.detail ? ` · ${running.detail}` : ''}`, agent: running.agent.name };
-            switch (item.readiness) {
-                case 'cancelled':
-                    return { name: item.title, ref: item.ref, state: 'cancelled', detail: item.reason, agent: item.agent, ...receipts(item) };
-                case 'retired':
-                    return { name: item.title, ref: item.ref, state: 'retired', detail: item.reason, agent: item.agent, ...receipts(item) };
-                case 'done':
-                    return { name: item.title, ref: item.ref, state: 'completed', detail: result?.summary, agent: result?.agent ?? item.agent, commit: result?.commit };
-                case 'awaiting-user':
-                    return { name: item.title, ref: item.ref, state: 'waiting', detail: item.reason, agent: item.agent };
-                case 'failed':
-                    return { name: item.title, ref: item.ref, state: 'failed', detail: item.reason, agent: item.agent };
-                case 'blocked':
-                case 'needs-recovery':
-                case 'incompatible':
-                    return { name: item.title, ref: item.ref, state: 'blocked', detail: item.reason, agent: item.agent };
-                default:
-                    return { name: item.title, ref: item.ref, state: 'queued', detail: item.reason, agent: item.agent, ...receipts(item) };
-            }
-        });
+    /** Reads definitions, inventory and retained results once for every requested chat, including list views. */
+    public async chatActivitySnapshot(summaries: readonly ChatSummary[] = this.chatSummaries, snapshot?: Awaited<ReturnType<Agenda['taskReadSnapshot']>>): Promise<ReadonlyMap<string, ChatActivity>> {
+        const activities = new Map<string, ChatActivity>();
+        if (!summaries.length) return activities;
+        const [tasks, chats] = await Promise.all([snapshot ? Promise.resolve(snapshot) : this.taskReadSnapshot(true), this.chats.list()]);
+        const active = new Map(this.activeViews().filter(view => view.kind !== 'chat').map(view => [nameKey(view.taskTitle), view]));
+        const definitions = new Map(tasks.tasks.map(task => [task.key, task]));
+        const results = new Map<string, ResultRecord>();
+        for (const result of tasks.results) {
+            const key = parseReferenceValue(result.taskRef)?.normalized ?? nameKey(result.taskName ?? result.title);
+            if (!results.has(key) || Date.parse(results.get(key)!.endedAt) < Date.parse(result.endedAt)) results.set(key, result);
+        }
+        const wanted = new Map<string, Set<string>>();
+        const names = new Map(summaries.map(summary => [nameKey(summary.name), summary.name]));
+        for (const summary of summaries) for (const link of summary.links) {
+            const key = parseReferenceValue(link)?.normalized; if (!key) continue;
+            if (!wanted.has(key)) wanted.set(key, new Set()); wanted.get(key)!.add(summary.name);
+        }
+        const cards = new Map(summaries.map(summary => [summary.name, [] as ChatTaskCard[]]));
+        for (const item of tasks.inventory) {
+            const key = parseReferenceValue(item.ref)?.normalized ?? nameKey(item.title);
+            const targets = new Set(wanted.get(key));
+            const origin = names.get(nameKey(chatOriginOf(item.origin) ?? '')); if (origin) targets.add(origin);
+            if (!targets.size) continue;
+            const running = active.get(key); const result = results.get(key); const task = definitions.get(key);
+            const state: ChatTaskCard['state'] = running ? running.phase === 'awaiting-user' ? 'waiting' : 'running'
+                : ({ done: 'completed', cancelled: 'cancelled', retired: 'retired', 'awaiting-user': 'waiting', failed: 'failed', blocked: 'blocked', 'needs-recovery': 'blocked', incompatible: 'blocked' } as Readonly<Record<string, ChatTaskCard['state']>>)[item.readiness] ?? 'queued';
+            const ended = ['completed', 'failed', 'cancelled', 'retired'].includes(state);
+            const creation = / — (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/.exec(item.title)?.[1];
+            const parsed = creation ? parseDateTime(creation, this.timeZone) : undefined;
+            const receipts = item.source ? this.taskControlStore.receiptsOf(item.source).filter(isOutstandingReceipt).map(receiptLine) : [];
+            const card: ChatTaskCard = { name: item.title, ref: item.ref, state, detail: running ? `${running.phase}${running.detail ? ` · ${running.detail}` : ''}` : state === 'completed' ? result?.summary : item.reason,
+                agent: running?.agent.name ?? result?.agent ?? item.agent, commit: state === 'completed' ? result?.commit : undefined,
+                reopened: task?.reopened ?? false, startedAt: running?.startedAt ?? result?.startedAt, endedAt: ended ? result?.endedAt : undefined,
+                ...(parsed?.ok ? { createdAt: new Date(parsed.epochMs).toISOString() } : {}), ...(receipts.length ? { receipts } : {}) };
+            for (const name of targets) cards.get(name)!.push(card);
+        }
+        const rechecks = new Map(this.chatRecheckViews().map(view => [nameKey(view.chat), view]));
+        const stored = new Map(chats.map(chat => [chat.chat.key, chat.chat]));
+        for (const summary of summaries) {
+            const key = nameKey(summary.name); const chat = stored.get(key);
+            const progressDigest = createHash('sha256').update(JSON.stringify(chat?.messages.filter(message => message.phase === 'progress').map(message => [message.at, message.text, message.steps]) ?? [])).digest('hex');
+            activities.set(summary.name, { tasks: cards.get(summary.name)!, live: this.liveReplies.get(summary.name), recheck: rechecks.get(key), progressDigest });
+        }
+        return activities;
+    }
+
+    /** Brings forward an existing automatic recheck; repeated requests never start a second attempt. */
+    public chatRetry(name: string): 'started' | 'running' | 'none' {
+        const entry = this.chatRechecks.get(nameKey(name));
+        if (!entry) return 'none';
+        if (!entry.timer) return 'running';
+        this.startChatRecheck(nameKey(name), 'asked to retry now');
+        return 'started';
     }
 
     /** Agents the user may start a chat with (ordinary first; hidden/core and Expert behind More). */

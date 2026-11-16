@@ -1140,8 +1140,13 @@ class ReplyProgress {
         else if (!step) return;
         if (this.lines.length > PROGRESS_LINES) this.lines.splice(0, this.lines.length - PROGRESS_LINES);
         this.dirty = true;
-        this.context.onLive?.(this.chat, { sender: this.sender, startedAt: new Date(this.startedAt).toISOString(), activity: this.lines.slice(-8), steps: this.steps.slice(-20), ...(this.text ? { text: this.text } : {}) });
+        this.publishLive();
         this.schedule();
+    }
+
+    /** Also wakes API readers after a progress save that changed no message count. */
+    private publishLive(): void {
+        this.context.onLive?.(this.chat, { sender: this.sender, startedAt: new Date(this.startedAt).toISOString(), activity: this.lines.slice(-8), steps: this.steps.slice(-20), ...(this.text ? { text: this.text } : {}) });
     }
 
     /** Arms the next durable save. */
@@ -1164,7 +1169,7 @@ class ReplyProgress {
     private async save(note?: string): Promise<void> {
         if (!this.dirty && !note) return;
         this.dirty = false;
-        await this.context.chats.upsertProgress(this.chat, { sender: this.sender, at: this.at, text: this.render(note), steps: this.steps }).then(() => { this.saved = true; }, () => { this.dirty = true; });
+        await this.context.chats.upsertProgress(this.chat, { sender: this.sender, at: this.at, text: this.render(note), steps: this.steps }).then(() => { this.saved = true; this.publishLive(); }, () => { this.dirty = true; });
     }
 
     /** Ends the turn: saves the complete progress when any was saved, and says whether the final reply closes it. */

@@ -18,6 +18,9 @@ type Id = (name: string) => string;
 /** Paging is shared with every other API collection. */
 type Page = (items: readonly unknown[], query: Readonly<Record<string, unknown>>) => ContractResponse;
 
+/** The same normalized task key for task resources, chat cards and change hints. @private App task API */
+export function taskKeyOf(ref: string | undefined, name: string): string { return parseReferenceValue(ref ?? '')?.normalized ?? normalizeAgentName(name); }
+
 /** A source timestamp in the project's time zone, without inventing an instant for an unknown legacy stamp. */
 function timestamp(value: string | undefined, zone: string): string | null {
     if (!value) return null;
@@ -52,7 +55,7 @@ function cyclic(from: Definition, target: Definition, snapshot: Snapshot): boole
 async function project(snapshot: Snapshot, id: Id): Promise<TaskView[]> {
     const byKey = new Map(snapshot.tasks.map(task => [task.key, task]));
     return await Promise.all(smartTaskOrder(snapshot.inventory).map(async item => {
-        const key = parseReferenceValue(item.ref)?.normalized ?? normalizeAgentName(item.title);
+        const key = taskKeyOf(item.ref, item.title);
         const task = byKey.get(key);
         const agentName = item.kind === 'engine' ? null : item.agent ? referenceName(item.agent).slice(0, 256) : null;
         const agent = agentName ? snapshot.agents.find(agent => normalizeAgentName(agent.name) === normalizeAgentName(agentName)) : undefined;
@@ -144,7 +147,7 @@ function occurrences(task: TaskView, snapshot: Snapshot, id: Id): unknown[] {
         entries.push({ id: id(`occurrence:${task.id}:${active.runId}`), taskId: task.id, state: active.phase.startsWith('awaiting-') ? 'waiting' : active.phase === 'failed' ? 'failed' : 'running',
             endedAt: null, startedAt: active.startedAt, scheduledFor: timestamp(active.occurrence, snapshot.timeZone), summary: null, runIds: [id(active.runId)] });
     }
-    const inventory = snapshot.inventory.find(item => id(parseReferenceValue(item.ref)?.normalized ?? normalizeAgentName(item.title)) === task.id);
+    const inventory = snapshot.inventory.find(item => id(taskKeyOf(item.ref, item.title)) === task.id);
     for (const run of inventory?.runs ?? []) entries.push({ id: id(`system-occurrence:${task.id}:${run.at}:${run.title}`), taskId: task.id, state: run.outcome, startedAt: null, endedAt: run.at, scheduledFor: null, summary: run.detail.slice(0, 1024), runIds: [] });
     entries.sort((a, b) => (Date.parse(a.startedAt ?? a.endedAt ?? '') || 0) - (Date.parse(b.startedAt ?? b.endedAt ?? '') || 0) || a.id.localeCompare(b.id));
     let cycle = 1;

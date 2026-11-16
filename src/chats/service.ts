@@ -69,6 +69,12 @@ export type ChatDetail = {
     readonly messages: ReadonlyArray<{ readonly sender: string; readonly at: string; readonly text: string; readonly choices?: readonly string[]; readonly phase?: 'progress' | 'final'; readonly steps?: readonly ReplyStep[]; readonly audio?: readonly MessageAudio[] }>;
 };
 
+/** One shared read of chat activity for list/detail/event projections. @private chats */
+export type ChatActivity = Pick<ChatDetail, 'tasks' | 'live' | 'recheck'> & {
+    /** Hash of persisted progress; message count alone does not change during a save. */
+    readonly progressDigest?: string;
+};
+
 /**
  * One outstanding human request of a chat as every client shows it: its calling message, author, responsible agent and
  * the actual last/next relevance check (or its paused/unavailable state). Inspecting it never triggers a check.

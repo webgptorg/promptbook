@@ -1,10 +1,11 @@
+import { legacyReplySteps, replyStep } from '../../chats/reply-steps.js';
 import { AccessDenied } from '../web/access.js';
 import { createHash } from 'node:crypto';
 import { stat } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
 import { commitmentsOf, parseBook, type BookDiagnostic } from '../../book/parse.js';
 import { normalizeAgentName, referenceName } from '../../book/references.js';
-import type { ChatDetail } from '../../chats/service.js';
+import type { ChatActivity, ChatDetail } from '../../chats/service.js';
 import type { ChatSummary } from '../../chats/store.js';
 import { PtbkError, errorMessage } from '../../common/errors.js';
 import { ENGINE_VERSION } from '../../common/version.js';
@@ -20,7 +21,7 @@ import type { AccessStore, Actor, StoredMember, StoredPasskey, StoredSession } f
 import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
 import { memberHandlers, memberView, MEMBER_ACTIONS } from './members.js';
 import { walletHandlers } from './wallet.js';
-import { taskHandlers } from './tasks.js';
+import { taskHandlers, taskKeyOf } from './tasks.js';
 
 /**
  * Capabilities this engine advertises in `GET /engine` (every route of each works). The core API needs none.
@@ -451,9 +452,9 @@ export class EngineApi {
     }
 
     /** A chat summary as the contract's `Chat` (questions from the detail when given, else the unseen pings). */
-    private async chat(summary: ChatSummary, detail?: ChatDetail): Promise<Record<string, unknown>> {
+    private async chat(summary: ChatSummary, detail?: ChatActivity & Partial<Pick<ChatDetail, 'messages' | 'requests'>>): Promise<Record<string, unknown>> {
         const times = await this.chatTimes(summary);
-        const questions = detail
+        const questions = detail?.messages
             ? (detail.requests ?? []).map((request) => ({ id: request.id.slice(0, 512), messageId: `${summary.name}#${String(request.message)}`, seen: request.seen, author: this.authorRef(request.sender) }))
             : (summary.pings ?? []).map((ping) => ({ id: ping.id.slice(0, 512), messageId: `${summary.name}#${String(ping.message)}`, seen: false, author: this.authorRef(ping.sender) }));
         return {
@@ -468,6 +469,13 @@ export class EngineApi {
             status: summary.status === 'waiting-for-user' || summary.status === 'resolved' ? summary.status : 'open',
             members: this.members(summary),
             questions,
+            working: detail?.live ? [{ startedAt: iso(detail.live.startedAt, times.createdAt), messageId: detail.live.text ? `${summary.name}#${String((detail.messages?.length ?? summary.messages) + 1)}` : null, author: this.authorRef(detail.live.sender), steps: (detail.live.steps ?? []).slice(-20).map(step => replyStep(step)) }] : [],
+            tasks: (detail?.tasks ?? []).slice(0, 100).map(card => ({ name: card.name.slice(0, 512), state: card.state, detail: card.detail?.slice(0, 500) ?? null,
+                taskId: this.capabilities.some(capability => capability.id === 'tasks') ? opaqueIdOf(taskKeyOf(card.ref, card.name)) : null,
+                agentId: card.agent ? this.authorRef(card.agent).key : null, commit: card.state === 'completed' && card.commit && /^[0-9a-f]{7,64}$/.test(card.commit) ? card.commit : null,
+                reopened: card.reopened ?? false, startedAt: iso(card.startedAt, '') || null,
+                endedAt: ['completed', 'failed', 'cancelled', 'retired'].includes(card.state) && card.endedAt ? iso(card.endedAt, '') || null : null })),
+            recheck: detail?.recheck ? { cause: detail.recheck.cause.trim().slice(0, 500) || 'The reply failed.', nextAt: iso(detail.recheck.nextAt, times.updatedAt), rounds: Math.max(1, Math.floor(detail.recheck.rounds)) } : null,
         };
     }
 
@@ -493,6 +501,8 @@ export class EngineApi {
             id,
             chatId,
             content: message.text,
+            phase: message.phase ?? null,
+            steps: message.phase === 'progress' ? (message.steps ?? legacyReplySteps(message.text)).slice(-200).map(step => replyStep(step)) : [],
             status: 'completed',
             createdBy: author.kind === 'user' ? state.messageAuthor(id) : null,
             createdAt: iso(message.at, fallbackAt),
@@ -514,16 +524,31 @@ export class EngineApi {
             entries.push({ type: 'joined', id: `${name}#joined:${key}`.slice(0, 512), chatId: name, createdAt: at, participant });
         };
         for (const member of this.members(summary)) join(member, createdAt);
+        const links = new Map<number, { name: string; key: string }[]>();
+        const seenLinks = new Set<string>();
+        for (const card of (detail.tasks ?? []).slice(0, 100)) {
+            const key = taskKeyOf(card.ref, card.name); if (seenLinks.has(key)) continue;
+            seenLinks.add(key);
+            const explicit = detail.linkPositions?.find(link => taskKeyOf(link.reference, link.reference) === key);
+            const following = card.createdAt ? detail.messages.findIndex(message => Date.parse(message.at) > Date.parse(card.createdAt!)) : 0;
+            const after = Math.max(0, Math.min(detail.messages.length, explicit?.afterMessage ?? (following < 0 ? detail.messages.length : following)));
+            if (!links.has(after)) links.set(after, []); links.get(after)!.push({ name: card.name.slice(0, 512), key });
+        }
+        const linked = (after: number): void => {
+            for (const task of links.get(after) ?? []) entries.push({ type: 'linked', id: `${name}#linked:${task.key}`.slice(0, 512), chatId: name, createdAt: after > 0 ? iso(detail.messages[after - 1]!.at, createdAt) : createdAt, task: task.name });
+        };
+        linked(0);
         detail.messages.forEach((message, index) => {
             const entry = this.message(name, index + 1, message, state, createdAt);
             join(this.participant(message.sender), entry.createdAt as string);
             entries.push(entry);
+            linked(index + 1);
         });
-        if (detail.live) {
+        if (detail.live?.text) {
             const author = this.participant(detail.live.sender);
             const at = iso(detail.live.startedAt, createdAt);
             join(author, at);
-            entries.push({ type: 'message', id: `${name}#${String(detail.messages.length + 1)}`, chatId: name, content: detail.live.text ?? '', status: 'streaming', createdBy: null, createdAt: at, choices: [], author: { kind: author.kind, key: author.key } });
+            entries.push({ type: 'message', id: `${name}#${String(detail.messages.length + 1)}`, chatId: name, content: detail.live.text, phase: null, steps: [], status: 'streaming', createdBy: null, createdAt: at, choices: [], author: { kind: author.kind, key: author.key } });
         }
         return entries;
     }
@@ -571,7 +596,7 @@ export class EngineApi {
     }
 
     /** What the event stream compares between changes. */
-    private async eventDigest(): Promise<{ agents: Map<string, string>; status: Map<string, string>; chats: Map<string, string>; tasks: Map<string, { state: string; digest: string }> }> {
+    private async eventDigest(): Promise<{ agents: Map<string, string>; status: Map<string, string>; chats: Map<string, { main: string; steps: string }>; tasks: Map<string, { state: string; digest: string }> }> {
         const snapshot = this.agenda.snapshot();
         const agents = new Map<string, string>();
         const status = new Map<string, string>();
@@ -580,12 +605,17 @@ export class EngineApi {
             agents.set(id, `${view.name}|${view.role ?? ''}`);
             status.set(id, view.activity === 'working' ? 'running' : 'idle');
         }
-        const chats = new Map<string, string>();
-        for (const summary of await this.agenda.chatList()) chats.set(summary.name, `${String(summary.messages)}|${summary.status}|${String(summary.unread)}|${summary.title}|${String(summary.pings?.length ?? 0)}`);
+        const chats = new Map<string, { main: string; steps: string }>();
+        const summaries = await this.agenda.chatList();
+        const taskSnapshot = await this.agenda.taskReadSnapshot(true);
+        const activity = await this.agenda.chatActivitySnapshot?.(summaries, taskSnapshot);
+        for (const summary of summaries) {
+            const view = activity?.get(summary.name);
+            chats.set(summary.name, { main: textDigest(JSON.stringify([summary.messages, summary.status, summary.unread, summary.title, summary.pings, summary.links, view?.live ? [view.live.sender, view.live.startedAt, view.live.text] : null, view?.progressDigest, view?.tasks, view?.recheck])), steps: textDigest(JSON.stringify(view?.live?.steps ?? [])) });
+        }
         const tasks = new Map<string, { state: string; digest: string }>();
-        const taskSnapshot = await this.agenda.taskReadSnapshot();
         for (const item of taskSnapshot.inventory) {
-            const key = normalizeAgentName(item.title);
+            const key = taskKeyOf(item.ref, item.title);
             const source = taskSnapshot.tasks.find(task => task.key === key);
             tasks.set(opaqueIdOf(key), { state: item.readiness, digest: textDigest(JSON.stringify([item, source?.source.fileHash, taskSnapshot.active.filter(record => record.taskKey === key).map(record => [record.runId, record.phase, record.updatedAt])])) });
         }
@@ -597,17 +627,35 @@ export class EngineApi {
         const agenda = this.agenda;
         let since = agenda.currentRevision;
         let previous = await this.eventDigest();
+        const lastStepEmit = new Map<string, number>();
+        let stepWake = Infinity;
         while (!signal.aborted) {
-            await Promise.race([agenda.waitForChange(since, EVENTS_WAIT_MS), pause(EVENTS_WAIT_MS, signal)]);
+            const waitMs = Math.min(EVENTS_WAIT_MS, Math.max(0, stepWake - Date.now()));
+            const wake = new AbortController();
+            const stop = (): void => wake.abort(); signal.addEventListener('abort', stop, { once: true });
+            try { await Promise.race([agenda.waitForChange(since, waitMs), pause(waitMs, wake.signal)]); }
+            finally { wake.abort(); signal.removeEventListener('abort', stop); }
             if (signal.aborted) return;
             since = agenda.currentRevision;
-            await pause(STREAM_POLL_MS, signal);
+            await pause(Math.min(STREAM_POLL_MS, Math.max(0, stepWake - Date.now())), signal);
             const next = await this.eventDigest();
             const now = new Date().toISOString();
             for (const [id, value] of next.agents) if (previous.agents.get(id) !== value) yield { id: null, event: { type: 'agent.changed', agentId: id } };
             for (const id of previous.agents.keys()) if (!next.agents.has(id)) yield { id: null, event: { type: 'agent.changed', agentId: id } };
             for (const [id, value] of next.status) if (previous.status.get(id) !== value) yield { id: null, event: { type: 'agent.status', agentId: id, state: value, since: now } };
-            for (const [name, value] of next.chats) if (previous.chats.get(name) !== value) yield { id: null, event: { type: 'chat.changed', chatId: name } };
+            stepWake = Infinity;
+            for (const [name, value] of next.chats) {
+                const before = previous.chats.get(name);
+                if (before?.main === value.main && before.steps === value.steps) continue;
+                const due = (lastStepEmit.get(name) ?? 0) + 1000;
+                if (before?.main === value.main && Date.now() < due) {
+                    next.chats.set(name, { ...value, steps: before.steps });
+                    stepWake = Math.min(stepWake, due);
+                    continue;
+                }
+                lastStepEmit.set(name, Date.now());
+                yield { id: null, event: { type: 'chat.changed', chatId: name } };
+            }
             for (const name of previous.chats.keys()) if (!next.chats.has(name)) yield { id: null, event: { type: 'chat.changed', chatId: name } };
             for (const [taskId, value] of next.tasks) if (previous.tasks.get(taskId)?.digest !== value.digest) yield { id: null, event: { type: 'task.changed', taskId, state: value.state } };
             for (const [taskId, value] of previous.tasks) if (!next.tasks.has(taskId)) yield { id: null, event: { type: 'task.changed', taskId, state: value.state } };
@@ -839,14 +887,16 @@ export class EngineApi {
                 const needle = query.q.toLowerCase();
                 summaries = summaries.filter((summary) => summary.title.toLowerCase().includes(needle) || summary.name.toLowerCase().includes(needle));
             }
-            const chats = await Promise.all(summaries.map((summary) => this.chat(summary)));
+            const activity = await this.deps.agenda?.chatActivitySnapshot?.(summaries);
+            const chats = await Promise.all(summaries.map((summary) => this.chat(summary, activity?.get(summary.name))));
             chats.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)) || String(a.id).localeCompare(String(b.id)));
             return page(chats, query);
         },
         listAgentChats: async ({ params, query, state }) => {
             if (!(await this.agent(String(params.agentId), state))) return fail('not-found');
             const summaries = (await this.agenda.chatList()).filter((summary) => this.members(summary).some((member) => member.key === params.agentId));
-            const chats = await Promise.all(summaries.map((summary) => this.chat(summary)));
+            const activity = await this.deps.agenda?.chatActivitySnapshot?.(summaries);
+            const chats = await Promise.all(summaries.map((summary) => this.chat(summary, activity?.get(summary.name))));
             chats.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)) || String(a.id).localeCompare(String(b.id)));
             return page(chats, query);
         },
@@ -918,9 +968,19 @@ export class EngineApi {
             const name = String(params.chatId);
             const found = await this.chatByName(name);
             const position = this.position(name, String(params.messageId));
-            if (!found || !position || position > found.detail.messages.length + (found.detail.live ? 1 : 0)) return fail('not-found');
+            if (!found || !position || position > found.detail.messages.length + (found.detail.live?.text ? 1 : 0)) return fail('not-found');
             const after = lastEventId && /^\d{1,9}$/.test(lastEventId) ? Number(lastEventId) : 0;
             return ok(this.replyStream(name, position, after, signal));
+        },
+        retryChatReply: async ({ params, access, actor }) => {
+            const name = String(params.chatId);
+            const found = await this.chatByName(name);
+            if (!found) return fail('not-found');
+            const result = this.agenda.chatRetry(found.summary.name);
+            await access.recordAudit('chat.reply.retry', actor, 'chat', name, result === 'none' ? 'failed' : 'success', result === 'none' ? 'nothing-to-retry' : undefined);
+            if (result === 'none') return fail('nothing-to-retry');
+            const updated = await this.chatByName(name);
+            return updated ? ok(await this.chat(updated.summary, updated.detail)) : fail('not-found');
         },
         cancelChatReply: async ({ params }) => {
             const name = String(params.chatId);

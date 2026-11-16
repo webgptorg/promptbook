@@ -263,6 +263,10 @@ export function parseChatBook(source: string): ChatBook {
     // Recorded speech binds to the exact message before its group; orphan or malformed bindings are diagnosed.
     const audio = messageAudioGroups(document);
     diagnostics.push(...audio.diagnostics);
+    for (const metadata of commitmentsOf(document, 'CHAT MESSAGE STEPS')) {
+        const previous = document.commitments[document.commitments.indexOf(metadata) - 1];
+        if (previous?.keyword !== 'CHAT MESSAGE' || metadata.continuation) diagnostics.push({ line: metadata.startLine + 1, message: 'CHAT MESSAGE STEPS must be one JSON line directly after its message.', severity: 'warning' });
+    }
     const messages: ChatMessage[] = [];
     for (const commitment of messageCommitments) {
         const header = /^(\{[^{}]+\}|@\S+)\s+(\S+)(?:\s+(progress|final))?$/.exec(commitment.value.trim());
