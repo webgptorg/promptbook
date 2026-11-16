@@ -29,33 +29,59 @@ export function accountHome(plugin: HarnessPlugin, accountProfile: string, env: 
 }
 
 /**
+ * Hosted inference and cloud-account credentials a credential-free `NONE` connection never inherits, whichever adapter
+ * runs it: hosted model API keys and endpoints, AWS (Bedrock), Google Cloud (Vertex AI) and Azure account credentials.
+ * Unrelated credentials (for example a GitHub token used by the work itself) stay available.
+ */
+const CLOUD_CREDENTIAL_VARIABLES: readonly string[] = [
+    'OPENAI_API_KEY', 'OPENAI_BASE_URL', 'OPENAI_ORG_ID', 'OPENAI_PROJECT_ID', 'CODEX_API_KEY',
+    'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'CLAUDE_CODE_OAUTH_TOKEN',
+    'GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENERATIVE_AI_API_KEY', 'DASHSCOPE_API_KEY', 'QWEN_API_KEY', 'OPENCODE_API_KEY',
+    'OPENROUTER_API_KEY', 'MISTRAL_API_KEY', 'GROQ_API_KEY', 'XAI_API_KEY', 'DEEPSEEK_API_KEY', 'TOGETHER_AI_API_KEY', 'FIREWORKS_API_KEY', 'CEREBRAS_API_KEY', 'MOONSHOT_API_KEY', 'ZHIPU_API_KEY',
+    'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN', 'AWS_PROFILE', 'AWS_DEFAULT_PROFILE', 'AWS_BEARER_TOKEN_BEDROCK', 'AWS_WEB_IDENTITY_TOKEN_FILE', 'AWS_ROLE_ARN',
+    'AWS_CONTAINER_CREDENTIALS_FULL_URI', 'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI', 'AWS_CONTAINER_AUTHORIZATION_TOKEN',
+    'GOOGLE_APPLICATION_CREDENTIALS', 'GOOGLE_CLOUD_ACCESS_TOKEN', 'CLOUDSDK_AUTH_ACCESS_TOKEN', 'GOOGLE_CLOUD_PROJECT', 'GOOGLE_CLOUD_PROJECT_ID', 'GCLOUD_PROJECT', 'GOOGLE_VERTEX_PROJECT', 'GOOGLE_CLOUD_QUOTA_PROJECT', 'ANTHROPIC_VERTEX_PROJECT_ID',
+    'AZURE_API_KEY', 'AZURE_OPENAI_API_KEY', 'AZURE_RESOURCE_NAME', 'AZURE_CLIENT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_TENANT_ID', 'AZURE_FEDERATED_TOKEN_FILE',
+];
+
+/**
  * The invocation-scoped authentication environment of one named harness instance, used alike for probes, catalog and
  * capability discovery, functional checks and execution. Every mode starts without the variables that could select
  * another authentication/billing route (ambient keys, aliases, alternate provider keys, endpoint overrides and mode
  * selectors); then `NATIVE` adds its own account home and native selectors, `API_KEY` exactly its configured credential
  * (in an isolated configuration home where the CLI would otherwise prefer a stored login), and `NONE` nothing that
- * belongs to a cloud account. The engine's shared environment is never mutated; secret values are runtime-only.
+ * belongs to a cloud account (no hosted or cloud credential at all). Where the CLI itself fills absent variables from a
+ * `.env` file of its working directory, every removed variable is passed empty instead, so that file cannot reinstate
+ * the route. The engine's shared environment is never mutated; secret values are runtime-only.
  *
  * @private harness availability
  */
 export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolRecord | undefined, credential: ResolvedReference | undefined, base: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
     const env: NodeJS.ProcessEnv = { ...base };
     if (!tool) return env;
-    for (const name of plugin.ambientApiKeyVariables ?? []) delete env[name];
-    if (tool.authentication !== 'NATIVE') for (const name of plugin.nativeCredentialVariables ?? []) delete env[name];
+    const removed = new Set<string>();
+    const remove = (names: readonly string[]): void => {
+        for (const name of names) {
+            delete env[name];
+            removed.add(name);
+        }
+    };
+    remove(plugin.ambientApiKeyVariables ?? []);
+    if (tool.authentication !== 'NATIVE') remove(plugin.nativeCredentialVariables ?? []);
+    if (tool.authentication === 'NONE') remove(CLOUD_CREDENTIAL_VARIABLES);
     Object.assign(env, plugin.modeEnvironment?.[tool.authentication] ?? {});
-    if (tool.authentication === 'NONE') return env;
     if (tool.authentication === 'NATIVE') {
         if (tool.accountProfile && plugin.accountHomeVariable) env[plugin.accountHomeVariable] = accountHome(plugin, tool.accountProfile, base);
-        return env;
+    } else if (tool.authentication === 'API_KEY') {
+        if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
+        const setup = plugin.setupApiKey;
+        const profile = plugin.apiKeyProfile ?? (setup?.profile && credential?.value && credential.name === setup.reference ? setup.profile : undefined);
+        if (profile) {
+            env[profile.home] = accountHome(plugin, 'api-key', base);
+            remove(profile.omit ?? []);
+        }
     }
-    if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
-    const setup = plugin.setupApiKey;
-    const profile = plugin.apiKeyProfile ?? (setup?.profile && credential?.value && credential.name === setup.reference ? setup.profile : undefined);
-    if (profile) {
-        env[profile.home] = accountHome(plugin, 'api-key', base);
-        for (const name of profile.omit ?? []) delete env[name];
-    }
+    if (plugin.fillsFromWorkspaceDotEnv) for (const name of removed) if (env[name] === undefined) env[name] = '';
     return env;
 }
 

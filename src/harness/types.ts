@@ -374,6 +374,12 @@ export type HarnessPlugin = {
      * context, and removed for `API_KEY` and `NONE`.
      */
     readonly nativeCredentialVariables?: readonly string[];
+    /**
+     * The CLI fills variables absent from its process environment from a `.env` file of its (trusted) working directory
+     * or home, but keeps variables that are present even when empty. Removed route and credential variables are then
+     * passed empty, so a project's `.env` cannot reinstate a route the selected mode excluded.
+     */
+    readonly fillsFromWorkspaceDotEnv?: boolean;
     /** Values that make the CLI use the selected mode (for example a native-login selector), per mode. */
     readonly modeEnvironment?: { readonly NATIVE?: Readonly<Record<string, string>>; readonly API_KEY?: Readonly<Record<string, string>>; readonly NONE?: Readonly<Record<string, string>> };
     /**

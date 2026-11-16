@@ -149,14 +149,14 @@ test('Gemini API_KEY instances always use the configured key in an isolated prof
     for (const selected of [credential, { ...credential, name: plugin.setupApiKey.reference }]) {
         const env = instanceEnvironment(plugin, tool, selected, base);
         assert.equal(env.GEMINI_CLI_HOME, join('/engine', 'harness-accounts', 'gemini', 'api-key'), 'the user’s saved Google-login selection cannot replace the key');
-        assert.equal(env.GOOGLE_GENAI_USE_VERTEXAI, undefined, 'an ambient Vertex selector never redirects the key');
-        assert.equal(env.GOOGLE_API_KEY, undefined);
+        assert.equal(env.GOOGLE_GENAI_USE_VERTEXAI, '', 'an ambient Vertex selector never redirects the key (passed empty, so a project .env cannot reinstate it)');
+        assert.equal(env.GOOGLE_API_KEY, '');
         assert.equal(env.GEMINI_API_KEY, credential.value);
     }
     const native = instanceEnvironment(plugin, { ...tool, authentication: 'NATIVE' }, undefined, base);
     assert.equal(native.GEMINI_CLI_HOME, base.GEMINI_CLI_HOME, 'a native instance keeps the user’s own Gemini profile');
     assert.equal(native.GOOGLE_GENAI_USE_GCA, 'true', 'and selects the Google login explicitly');
-    assert.equal(native.GOOGLE_GENAI_USE_VERTEXAI, undefined);
-    assert.equal(native.GOOGLE_API_KEY, undefined);
+    assert.equal(native.GOOGLE_GENAI_USE_VERTEXAI, '');
+    assert.equal(native.GOOGLE_API_KEY, '');
     assert.deepEqual(base, { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true', GOOGLE_API_KEY: 'ambient-google-key' }, 'the shared environment is unchanged');
 });

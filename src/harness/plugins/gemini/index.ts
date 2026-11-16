@@ -4,9 +4,19 @@ import { anyExists, baseInspection, contextHome, observedSessionSupport, parseSt
 import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginLocation } from '../../types.js';
 
 /**
- * Every variable through which Gemini CLI chooses an API-key, Vertex AI or Code Assist route (or another endpoint).
+ * Every variable through which Gemini CLI chooses an API-key, Vertex AI, gateway, Code Assist or compute-ADC route (or
+ * another endpoint), including its relaunch override of the saved authentication type.
  */
-const ROUTE_VARIABLES = ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENAI_USE_VERTEXAI', 'GOOGLE_GENAI_USE_GCA', 'GOOGLE_GEMINI_BASE_URL', 'GOOGLE_VERTEX_BASE_URL'];
+const ROUTE_VARIABLES = [
+    'GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENAI_USE_VERTEXAI', 'GOOGLE_GENAI_USE_GCA', 'GOOGLE_GEMINI_BASE_URL', 'GOOGLE_VERTEX_BASE_URL',
+    'GEMINI_CLI_AUTH_OVERRIDE', 'GEMINI_DEFAULT_AUTH_TYPE', 'GEMINI_CLI_USE_COMPUTE_ADC', 'CLOUD_SHELL',
+];
+
+/**
+ * The Google Cloud account context (project, location, application default credentials): part of a native Google
+ * login on Workspace/Code Assist accounts, never of a Gemini API key.
+ */
+const GOOGLE_CLOUD_VARIABLES = ['GOOGLE_APPLICATION_CREDENTIALS', 'GOOGLE_CLOUD_ACCESS_TOKEN', 'GOOGLE_CLOUD_PROJECT', 'GOOGLE_CLOUD_PROJECT_ID', 'GOOGLE_CLOUD_LOCATION', 'GOOGLE_CLOUD_QUOTA_PROJECT'];
 
 /**
  * Saved authentication types of Gemini CLI that are API routes, not a native Google login.
@@ -61,6 +71,9 @@ export const plugin: HarnessPlugin = {
     variant: 'GEMINI',
     apiKeyVariable: 'GEMINI_API_KEY',
     ambientApiKeyVariables: ROUTE_VARIABLES,
+    nativeCredentialVariables: GOOGLE_CLOUD_VARIABLES,
+    // `--skip-trust` makes the project trusted, and Gemini CLI then fills absent variables from the project's `.env`.
+    fillsFromWorkspaceDotEnv: true,
     // Without a saved selection, headless Gemini CLI uses the Google login only when asked to.
     modeEnvironment: { NATIVE: { GOOGLE_GENAI_USE_GCA: 'true' } },
     // The user's own settings.json could select the Google login over the configured key: API_KEY uses its own home.

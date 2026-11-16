@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { delimiter, join } from 'node:path';
 import { test } from 'node:test';
-import { HarnessPool } from '../dist/engine/harnesses.js';
+import { HarnessPool, instanceEnvironment } from '../dist/engine/harnesses.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { resolveSettings } from '../dist/project/config.js';
 import { fakeHarness, temporaryDirectory } from './helpers.mjs';
@@ -101,7 +101,7 @@ test('harness authentication: a NATIVE instance with only ambient API credential
         assert.notEqual(inspection.authentication, 'api', name);
         const visible = pool.environment(pool.instance(name));
         const plugin = harnessPlugin(pool.instance(name).variant.toLowerCase().replace(/_/g, '-'));
-        for (const key of plugin.ambientApiKeyVariables ?? []) if (!(key in (plugin.modeEnvironment?.NATIVE ?? {}))) assert.equal(visible[key], undefined, `${name} never sees ${key}`);
+        for (const key of plugin.ambientApiKeyVariables ?? []) if (!(key in (plugin.modeEnvironment?.NATIVE ?? {}))) assert.ok(!visible[key], `${name} never sees ${key}`);
     }
     assert.equal(JSON.stringify(process.env), before, 'probes never mutate the shared environment');
 
@@ -154,13 +154,13 @@ test('harness authentication: each API_KEY instance receives only its configured
     const a = pool.environment(pool.instance('gemini-a'));
     assert.equal(pool.inspectionOf('gemini-a').usable, true);
     assert.equal(a.GEMINI_API_KEY, 'configured-a');
-    assert.equal(a.GOOGLE_API_KEY, undefined);
-    assert.equal(a.GOOGLE_GENAI_USE_VERTEXAI, undefined);
+    assert.equal(a.GOOGLE_API_KEY, '');
+    assert.equal(a.GOOGLE_GENAI_USE_VERTEXAI, '');
     assert.notEqual(a.GEMINI_CLI_HOME, undefined, 'an isolated configuration home: the Google login cannot substitute');
     for (const name of ['gemini-b', 'opencode-api']) {
         assert.equal(pool.inspectionOf(name).usable, false, `${name}: an empty selected credential is not ready`);
         const missing = pool.environment(pool.instance(name));
-        assert.equal(missing.GEMINI_API_KEY, undefined, `${name} cannot borrow the other instance's key`);
+        assert.ok(!missing.GEMINI_API_KEY, `${name} cannot borrow the other instance's key`);
         assert.equal(missing.OPENCODE_API_KEY, undefined);
         if (name === 'opencode-api') assert.equal(missing.OPENROUTER_API_KEY, undefined, 'nor an alternate provider key');
     }
@@ -172,6 +172,45 @@ test('harness authentication: each API_KEY instance receives only its configured
     assert.equal(invocation.env.OPENAI_API_KEY, 'configured-a');
     assert.equal(invocation.env.OPENAI_BASE_URL, qwen.endpoints.official, 'the key goes to the selected endpoint, never an ambient override');
     assert.equal(invocation.env.DASHSCOPE_API_KEY, undefined);
+});
+
+test('harness authentication: NONE inherits no cloud credential, Google Cloud context stays native-only and Gemini masks removed variables against the project .env', () => {
+    const base = {
+        PTBK_HOME: '/engine', PATH: '/usr/bin', GH_TOKEN: 'work-token',
+        AWS_ACCESS_KEY_ID: 'AKIAFIXTURE', AWS_SECRET_ACCESS_KEY: 'aws-secret', AWS_PROFILE: 'bedrock', AWS_BEARER_TOKEN_BEDROCK: 'bedrock-bearer',
+        GOOGLE_APPLICATION_CREDENTIALS: '/keys/service-account.json', GOOGLE_CLOUD_PROJECT: 'billing-project', AZURE_OPENAI_API_KEY: 'azure-key',
+        OPENAI_API_KEY: 'hosted-openai', ANTHROPIC_API_KEY: 'hosted-anthropic', CLAUDE_CODE_OAUTH_TOKEN: 'subscription-token',
+        CLOUD_SHELL: 'true', GEMINI_CLI_USE_COMPUTE_ADC: 'true', GEMINI_CLI_AUTH_OVERRIDE: 'vertex-ai', GEMINI_DEFAULT_AUTH_TYPE: 'compute-default-credentials',
+    };
+    const snapshot = JSON.stringify(base);
+    for (const [id, variant] of [['openai-codex', 'OPENAI_CODEX'], ['claude-code', 'CLAUDE_CODE'], ['qwen-code', 'QWEN_CODE']]) {
+        const env = instanceEnvironment(harnessPlugin(id), { type: 'HARNESS', variant, name: `${id}-local`, authentication: 'NONE', inferenceRuntime: 'local-ollama' }, undefined, base);
+        for (const key of ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_PROFILE', 'AWS_BEARER_TOKEN_BEDROCK', 'GOOGLE_APPLICATION_CREDENTIALS', 'GOOGLE_CLOUD_PROJECT', 'AZURE_OPENAI_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN']) {
+            assert.equal(env[key], undefined, `${id} NONE never inherits ${key}`);
+        }
+        assert.equal(env.GH_TOKEN, 'work-token', 'an unrelated credential of the work itself stays available');
+        assert.equal(env.PATH, '/usr/bin');
+    }
+
+    const gemini = harnessPlugin('gemini');
+    const native = instanceEnvironment(gemini, { type: 'HARNESS', variant: 'GEMINI', name: 'gemini', authentication: 'NATIVE' }, undefined, base);
+    assert.equal(native.GOOGLE_GENAI_USE_GCA, 'true');
+    for (const key of ['CLOUD_SHELL', 'GEMINI_CLI_USE_COMPUTE_ADC', 'GEMINI_CLI_AUTH_OVERRIDE', 'GEMINI_DEFAULT_AUTH_TYPE', 'GEMINI_API_KEY', 'GOOGLE_GENAI_USE_VERTEXAI', 'GOOGLE_GEMINI_BASE_URL']) {
+        assert.ok(key in native && native[key] === '', `native Gemini receives ${key} empty: neither the engine environment nor the trusted project .env selects compute ADC, Vertex AI or a key`);
+    }
+    assert.equal(native.GOOGLE_CLOUD_PROJECT, 'billing-project', 'a native Workspace/Code Assist login keeps its Google Cloud project');
+    assert.equal(native.GOOGLE_APPLICATION_CREDENTIALS, '/keys/service-account.json');
+
+    const api = instanceEnvironment(gemini, { type: 'HARNESS', variant: 'GEMINI', name: 'gemini-api', authentication: 'API_KEY' }, { name: 'PTBK_GEMINI_API_KEY', source: '.env', value: 'configured-key' }, base);
+    assert.equal(api.GEMINI_API_KEY, 'configured-key');
+    for (const key of ['GOOGLE_APPLICATION_CREDENTIALS', 'GOOGLE_CLOUD_PROJECT', 'CLOUD_SHELL', 'GEMINI_CLI_AUTH_OVERRIDE']) assert.equal(api[key], '', `an API key instance never sees ${key}`);
+    const missing = instanceEnvironment(gemini, { type: 'HARNESS', variant: 'GEMINI', name: 'gemini-api', authentication: 'API_KEY' }, undefined, base);
+    assert.ok('GEMINI_API_KEY' in missing && missing.GEMINI_API_KEY === '', 'a missing configured key stays absent even where a project .env has GEMINI_API_KEY');
+
+    const codexNative = instanceEnvironment(harnessPlugin('openai-codex'), { type: 'HARNESS', variant: 'OPENAI_CODEX', name: 'codex', authentication: 'NATIVE' }, undefined, base);
+    assert.equal(codexNative.OPENAI_API_KEY, undefined);
+    assert.equal('OPENAI_API_KEY' in codexNative, false, 'only adapters that read a workspace .env receive masked values');
+    assert.equal(JSON.stringify(base), snapshot, 'the shared environment is never mutated');
 });
 
 test('technical fallback eligibility: same endpoint and enabled only, never for an explicit instance; a late failure cannot mark a replacement', async (t) => {
