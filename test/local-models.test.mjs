@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -318,6 +318,27 @@ test('local models: `ptbk tool setup-local` prepares, verifies and saves the run
     assert.equal(again.code, 0, again.output);
     assert.equal(JSON.parse(again.stdout).saved, undefined, 'a repeated setup reuses the records without duplicates');
     assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore + 1);
+
+    // Capability evidence of the identical combination is reused; the real answer is still checked every time.
+    const log = join(project, '..', 'evidence-preparation.log');
+    const checkTurns = async (args) => {
+        await rm(log, { force: true });
+        const run = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--yes', '--json', ...args], { cwd: project, env: { ...env, FAKE_CODEX_PREPARATION_LOG: log } });
+        assert.equal(run.code, 0, run.output);
+        const turns = (await readFile(log, 'utf8')).trim().split('\n').filter((line) => JSON.parse(line).kind === 'check').length;
+        return { outcome: JSON.parse(run.stdout), turns };
+    };
+    const reused = await checkTurns([]);
+    assert.equal(reused.turns, 1, 'only the real answer check ran');
+    assert.ok(reused.outcome.capabilities.every((capability) => capability.outcome === 'supported' && capability.verifiedAt), JSON.stringify(reused.outcome.capabilities));
+    assert.match(reused.outcome.capabilities[0].summary, /verified \d{4}-\d{2}-\d{2} with the same harness, runtime and model versions/);
+    const rechecked = await checkTurns(['--recheck']);
+    assert.ok(rechecked.turns > 1, '--recheck repeats the capability turns');
+    assert.ok(rechecked.outcome.capabilities.every((capability) => !capability.verifiedAt));
+    ollama.state.models.find((model) => model.name === 'tiny-model:1b').digest = 'e'.repeat(64);
+    const changed = await checkTurns([]);
+    assert.ok(changed.turns > 1, 'a changed model digest invalidates the evidence');
+    assert.ok(changed.outcome.capabilities.every((capability) => !capability.verifiedAt));
 
     const models = await ptbk(['tool', 'runtime', 'local-ollama', 'models', '--json'], { cwd: project, env });
     assert.equal(models.code, 0, models.output);

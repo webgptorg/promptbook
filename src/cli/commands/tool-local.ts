@@ -214,6 +214,7 @@ export async function setupLocal(context: CommandContext): Promise<number> {
             interactive: terminal.interactive && !json,
             signal: controller.signal,
             extendedChecks: !flag(context, 'quick'),
+            recheck: flag(context, 'recheck') === true,
             onProgress: (progress: LocalSetupProgress) => {
                 if (progress.stage !== lastStage && progress.stage !== 'downloading') {
                     printer.done();

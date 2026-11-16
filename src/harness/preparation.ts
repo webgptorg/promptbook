@@ -157,6 +157,8 @@ export type CapabilityCheck = {
     readonly name: 'scratch-file' | 'read-only' | 'continuation' | 'mcp';
     readonly outcome: 'supported' | 'failed' | 'unknown';
     readonly summary: string;
+    /** When this outcome was verified, if it was reused from earlier evidence of the identical combination (ISO). */
+    readonly verifiedAt?: string;
 };
 
 /**

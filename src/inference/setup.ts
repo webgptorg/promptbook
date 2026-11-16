@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
 import { which } from '../common/process.js';
 import { redact } from '../common/redact.js';
 import { HarnessPool } from '../engine/harnesses.js';
@@ -13,6 +15,7 @@ import type { ToolDraft, ToolOperation } from '../tools/operations.js';
 import { knownLocalModel, LOCAL_COMBINATIONS, recommendLocalModel, type LocalCombination, type LocalRecommendation } from './catalog.js';
 import { discoverHardware, formatBytes, type HostHardware } from './hardware.js';
 import { runRuntimeAction } from './management.js';
+import { inferenceRegistryDirectory } from './host.js';
 import { RUNTIME_ADAPTERS, runtimeAdapter } from './registry.js';
 import type { RuntimeInstallation, RuntimeObservation } from './types.js';
 
@@ -262,7 +265,7 @@ const READINESS_CAPABILITIES: readonly string[] = ['scratch-file', 'read-only', 
 export async function prepareLocalSetup(
     env: NodeJS.ProcessEnv,
     plan: LocalSetupPlan,
-    options: { readonly accepted: boolean; readonly project?: string; readonly interactive?: boolean; readonly signal?: AbortSignal; readonly onProgress?: (progress: LocalSetupProgress) => void; readonly extendedChecks?: boolean } = { accepted: false },
+    options: { readonly accepted: boolean; readonly project?: string; readonly interactive?: boolean; readonly signal?: AbortSignal; readonly onProgress?: (progress: LocalSetupProgress) => void; readonly extendedChecks?: boolean; readonly recheck?: boolean } = { accepted: false },
 ): Promise<LocalSetupResult> {
     const completed: string[] = [];
     const progress = (value: LocalSetupProgress): void => options.onProgress?.(value);
@@ -299,7 +302,7 @@ export async function prepareLocalSetup(
 
         // Connect/test through the exact local route ordinary work will use (a disposable non-project directory).
         progress({ stage: 'verifying', message: `Checking ${plan.model} through ${harnessPlugin(harnessPluginId(plan.harness))?.displayName ?? plan.harness}…` });
-        const verification = await verifyLocalConnection(env, plan, { ...(options.signal ? { signal: options.signal } : {}), ...(options.extendedChecks === false ? { extendedChecks: false } : {}) });
+        const verification = await verifyLocalConnection(env, plan, { ...(options.signal ? { signal: options.signal } : {}), ...(options.extendedChecks === false ? { extendedChecks: false } : {}), ...(options.recheck ? { recheck: true } : {}) });
         if (!verification.check.ok) return result('failed', `The local connection did not answer a real request: ${verification.check.summary}`, { check: verification.check, capabilities: verification.capabilities, pending: ['Fix the cause above and run the setup again; prepared prerequisites are reused.'] });
         const blocking = verification.capabilities.filter((capability) => capability.outcome === 'failed' && READINESS_CAPABILITIES.includes(capability.name));
         if (blocking.length)
@@ -353,18 +356,92 @@ export async function localPreparatoryCall(env: NodeJS.ProcessEnv, plan: LocalSe
 }
 
 /**
+ * Version of the capability checks. Evidence recorded by different checks is never reused.
+ */
+const CAPABILITY_CHECKS_VERSION = 1;
+
+/**
+ * Checks that reusable evidence must contain, each with a supported outcome.
+ */
+const REUSABLE_CAPABILITIES: readonly CapabilityCheck['name'][] = ['scratch-file', 'read-only', 'continuation', 'mcp'];
+
+/**
+ * At most this many combinations keep evidence (the oldest are forgotten first).
+ */
+const MAX_EVIDENCE_RECORDS = 64;
+
+/**
+ * Recorded capability evidence of one exact combination on this host (observed machine state, outside project Git).
+ */
+type CapabilityEvidence = { readonly at: string; readonly capabilities: readonly CapabilityCheck[] };
+
+/**
+ * The exact combination that capability evidence belongs to: the check version, the harness and its version, the runtime
+ * service, its version and endpoint identity, and the model with its digest, quantization and thinking level. A changed
+ * version, model or capability invalidates the evidence. Without a known harness version, runtime version and model
+ * digest, no evidence is recorded or reused.
+ */
+function evidenceKey(call: PreparatoryCall): string | undefined {
+    const route = call.localRoute;
+    if (!route?.model?.digest || !route.runtimeVersion || !call.inspection.version) return undefined;
+    const identity = [CAPABILITY_CHECKS_VERSION, call.plugin.id, call.inspection.version, route.runtime, route.runtimeVersion, route.resourceKey, route.model.id, route.model.digest, route.model.quantization ?? null, call.thinkingLevel ?? null];
+    return createHash('sha256').update(JSON.stringify(identity)).digest('hex').slice(0, 32);
+}
+
+/**
+ * Where this OS user's capability evidence is stored, next to the host inference registry.
+ */
+function evidenceFile(env: NodeJS.ProcessEnv): string {
+    return join(inferenceRegistryDirectory(env), 'capability-evidence.json');
+}
+
+/**
+ * Evidence of a combination that is still valid: complete and supported in every reusable check.
+ */
+async function priorEvidence(env: NodeJS.ProcessEnv, key: string): Promise<CapabilityEvidence | undefined> {
+    const stored = await readJsonIfExists<{ readonly records?: Record<string, CapabilityEvidence> }>(evidenceFile(env)).catch(() => undefined);
+    const evidence = stored?.records?.[key];
+    if (!evidence || typeof evidence.at !== 'string' || !Array.isArray(evidence.capabilities)) return undefined;
+    const complete = REUSABLE_CAPABILITIES.every((name) => evidence.capabilities.some((capability) => capability.name === name && capability.outcome === 'supported'));
+    return complete ? evidence : undefined;
+}
+
+/**
+ * Records fully supported evidence of a combination. Failing or unknown checks are never recorded, so they run again.
+ * Evidence is only a cache: a concurrent write from another engine may win, and a write failure changes nothing.
+ */
+async function recordEvidence(env: NodeJS.ProcessEnv, key: string, capabilities: readonly CapabilityCheck[]): Promise<void> {
+    if (!REUSABLE_CAPABILITIES.every((name) => capabilities.some((capability) => capability.name === name && capability.outcome === 'supported'))) return;
+    const file = evidenceFile(env);
+    const stored = await readJsonIfExists<{ readonly records?: Record<string, CapabilityEvidence> }>(file).catch(() => undefined);
+    const records = Object.entries({ ...(stored?.records ?? {}), [key]: { at: new Date().toISOString(), capabilities: capabilities.map(({ name, outcome, summary }) => ({ name, outcome, summary })) } })
+        .sort(([, a], [, b]) => b.at.localeCompare(a.at))
+        .slice(0, MAX_EVIDENCE_RECORDS);
+    await writeJsonAtomic(file, { records: Object.fromEntries(records) }).catch(() => undefined);
+}
+
+/**
  * Functional and bounded capability checks of the planned connection in a disposable non-project directory, with the
- * exact environment, provider and route ordinary work uses.
+ * exact environment, provider and route ordinary work uses. The real answer is always checked. Capability evidence of
+ * the identical combination (same harness, runtime and model versions) is reused instead of repeating those turns,
+ * unless `recheck` asks for new evidence.
  *
  * @private local model setup
  */
-export async function verifyLocalConnection(env: NodeJS.ProcessEnv, plan: LocalSetupPlan, options: { readonly signal?: AbortSignal; readonly extendedChecks?: boolean } = {}): Promise<{ readonly check: FunctionalCheck; readonly capabilities: readonly CapabilityCheck[] }> {
+export async function verifyLocalConnection(env: NodeJS.ProcessEnv, plan: LocalSetupPlan, options: { readonly signal?: AbortSignal; readonly extendedChecks?: boolean; readonly recheck?: boolean } = {}): Promise<{ readonly check: FunctionalCheck; readonly capabilities: readonly CapabilityCheck[] }> {
     const directory = await mkdtemp(join(tmpdir(), 'ptbk-local-setup-'));
     try {
         const { call, summary } = await localPreparatoryCall(env, plan, directory, options);
         if (!call) return { check: { ok: false, summary, durationMs: 0 }, capabilities: [] };
         const check = await functionalCheck(call);
-        const capabilities = check.ok && options.extendedChecks !== false ? await localCapabilityChecks(call) : [];
+        if (!check.ok || options.extendedChecks === false) return { check, capabilities: [] };
+        const key = evidenceKey(call);
+        const prior = key && !options.recheck ? await priorEvidence(env, key) : undefined;
+        if (prior) {
+            return { check, capabilities: prior.capabilities.map((capability) => ({ ...capability, summary: `${capability.summary} (verified ${prior.at.slice(0, 10)} with the same harness, runtime and model versions)`, verifiedAt: prior.at })) };
+        }
+        const capabilities = await localCapabilityChecks(call);
+        if (key) await recordEvidence(env, key, capabilities);
         return { check, capabilities };
     } finally {
         await rm(directory, { recursive: true, force: true });
