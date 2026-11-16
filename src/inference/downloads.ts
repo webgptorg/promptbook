@@ -64,6 +64,8 @@ function downloadsDirectory(env: NodeJS.ProcessEnv, resourceKey: string): string
 export class DownloadTracker {
     private lastWrite = 0;
     private ended = false;
+    /** Writes run one after another, so a late progress write never overtakes the final state. */
+    private writes: Promise<unknown> = Promise.resolve();
 
     /** @private use {@link trackDownload} */
     public constructor(
@@ -77,20 +79,29 @@ export class DownloadTracker {
         this.record = { ...this.record, updatedAt: new Date().toISOString(), ...(progress.completedBytes !== undefined ? { completedBytes: progress.completedBytes } : {}), ...(progress.totalBytes !== undefined ? { totalBytes: progress.totalBytes } : {}) };
         if (Date.now() - this.lastWrite < PROGRESS_WRITE_MS) return;
         this.lastWrite = Date.now();
-        void writeJsonAtomic(this.path, this.record, { mode: 0o600 }).catch(() => undefined);
+        const record = this.record;
+        void this.serialized(async () => await writeJsonAtomic(this.path, record, { mode: 0o600 })).catch(() => undefined);
     }
 
     /** The model is installed: no partial state remains to show. */
     public async complete(): Promise<void> {
         this.ended = true;
-        await rm(this.path, { force: true });
+        await this.serialized(async () => await rm(this.path, { force: true }));
     }
 
     /** The download stopped without installing the model. */
     public async stopped(state: 'cancelled' | 'failed', problem?: string): Promise<void> {
         this.ended = true;
-        this.record = { ...this.record, state, updatedAt: new Date().toISOString(), ...(problem ? { problem: problem.slice(0, 500) } : {}) };
-        await writeJsonAtomic(this.path, this.record, { mode: 0o600 });
+        const record: DownloadRecord = { ...this.record, state, updatedAt: new Date().toISOString(), ...(problem ? { problem: problem.slice(0, 500) } : {}) };
+        this.record = record;
+        await this.serialized(async () => await writeJsonAtomic(this.path, record, { mode: 0o600 }));
+    }
+
+    /** Runs a write of the record after every earlier one (a failed write does not block later ones). */
+    private serialized(write: () => Promise<void>): Promise<void> {
+        const next = this.writes.then(write);
+        this.writes = next.catch(() => undefined);
+        return next;
     }
 }
 
