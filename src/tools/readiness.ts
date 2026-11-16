@@ -299,6 +299,7 @@ function runtimeDetail(name: string, variant: 'OLLAMA' | 'LM_STUDIO', settings: 
         })),
         dependents: dependentHarnesses(settings.tools, name).map((tool) => tool.name),
         capacity: inferenceCapacity(variant, env),
+        partialDownloads: pool.runtimes.partialDownloads(name).map((download) => ({ model: download.model, state: download.state, ...(download.completedBytes !== undefined ? { completedBytes: download.completedBytes } : {}), ...(download.totalBytes !== undefined ? { totalBytes: download.totalBytes } : {}), updatedAt: download.updatedAt, ...(download.problem ? { problem: download.problem } : {}) })),
         actions: adapter.actions,
         checkedAt: new Date(observation?.checkedAt ?? Date.now()).toISOString(),
     };

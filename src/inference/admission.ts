@@ -116,7 +116,7 @@ export function inferenceCapacity(runtime: InferenceRuntimeVariant, env: NodeJS.
         const configured = Number(env.OLLAMA_NUM_PARALLEL);
         if (Number.isInteger(configured) && configured >= 1) return { perModel: configured, source: `OLLAMA_NUM_PARALLEL=${configured} in the engine environment` };
     }
-    return { perModel: 1, source: 'its parallelism is not observed, so one request per model at a time' };
+    return { perModel: 1, source: 'parallelism not observed, conservative default' };
 }
 
 /**

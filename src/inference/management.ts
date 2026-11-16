@@ -1,3 +1,4 @@
+import { trackDownload } from './downloads.js';
 import { runtimeJson } from './http.js';
 import { activeConsumers, forgetOwnedService, ownedService, recordOwnedService, withHostOperation, type HostOperation } from './host.js';
 import { stopLmStudioServer } from './lm-studio.js';
@@ -141,9 +142,23 @@ export async function runRuntimeAction(context: RuntimeActionContext, request: R
                         if (!current.running) return outcome('refused', `${adapter.displayName} is not running at ${current.endpoint}.`, { observation: current, next: [`ptbk tool runtime ${context.tool.name} start`] });
                         const existing = has(model!);
                         if (existing?.installed) return outcome('completed', `${model} is already downloaded${existing.digest ? ` (${existing.digest.slice(0, 12)})` : ''}; it is reused.`, { observation: current });
-                        await adapter.download!(runtimeContext, model!, (progress) => context.onProgress?.(progress));
+                        // Recorded outside project Git while it runs, so an interruption (even a crash) stays visible and resumable.
+                        const tracker = await trackDownload(context.env, { resourceKey: current.resourceKey, runtime: context.tool.name, model: model!, ...(context.project ? { project: context.project } : {}) });
+                        try {
+                            await adapter.download!(runtimeContext, model!, (progress) => {
+                                tracker.progress(progress);
+                                context.onProgress?.(progress);
+                            });
+                        } catch (error) {
+                            await tracker.stopped(context.signal?.aborted ? 'cancelled' : 'failed', context.signal?.aborted ? undefined : (error as Error).message).catch(() => undefined);
+                            throw error;
+                        }
                         const after = await observe(adapter, runtimeContext);
-                        if (!after.models?.some((entry) => entry.id === model && entry.installed)) return outcome('failed', `${adapter.displayName} finished, but ${model} is not listed as downloaded.`, { observation: after });
+                        if (!after.models?.some((entry) => entry.id === model && entry.installed)) {
+                            await tracker.stopped('failed', `${adapter.displayName} finished without listing it as downloaded.`).catch(() => undefined);
+                            return outcome('failed', `${adapter.displayName} finished, but ${model} is not listed as downloaded.`, { observation: after, next: [`Retry: ptbk tool runtime ${context.tool.name} download ${model}`] });
+                        }
+                        await tracker.complete();
                         return outcome('completed', `Downloaded ${model}.`, { observation: after, notes: ['The weights are shared on this computer (outside project Git).'] });
                     }
                     case 'load': {
@@ -212,7 +227,7 @@ export async function runRuntimeAction(context: RuntimeActionContext, request: R
             { ...(context.signal ? { signal: context.signal } : {}), ...(context.onWait ? { onWait: context.onWait } : {}) },
         );
     } catch (error) {
-        if (context.signal?.aborted) return outcome('cancelled', `Cancelled ${label}. Partial download data stays resumable in ${adapter.displayName}; nothing is reported as installed.`);
+        if (context.signal?.aborted) return outcome('cancelled', `Cancelled ${label}. ${request.action === 'download' ? `Partial download data stays with ${adapter.displayName}; nothing is reported as installed.` : 'Nothing is reported as completed.'}`, request.action === 'download' ? { next: [`Resume: ptbk tool runtime ${context.tool.name} download ${model}`] } : {});
         return outcome('failed', `${label} failed: ${(error as Error).message}`, { observation: await observe(adapter, runtimeContext).catch(() => before) });
     }
 }

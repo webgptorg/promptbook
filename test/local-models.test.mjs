@@ -10,7 +10,9 @@ import { billingOf, usageRecords } from '../dist/engine/usage.js';
 import { functionalCheck } from '../dist/harness/preparation.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { HarnessSessions } from '../dist/harness/sessions.js';
-import { activeConsumers, registerConsumer, withHostOperation } from '../dist/inference/host.js';
+import { activeConsumers, digest, inferenceRegistryDirectory, registerConsumer, withHostOperation } from '../dist/inference/host.js';
+import { partialDownloads } from '../dist/inference/downloads.js';
+import { runRuntimeAction } from '../dist/inference/management.js';
 import { acquireInference, admissionDecision, admissionDirectory, admissionQueue, inferenceCapacity } from '../dist/inference/admission.js';
 import { ToolBridge } from '../dist/engine/bridge.js';
 import { runHarness } from '../dist/harness/run.js';
@@ -483,7 +485,7 @@ test('local models (LM07): admission follows the runtime\'s actual capacity, arr
     assert.match(admissionDecision([running, other], other, one, undefined).reason, /is not known/, 'unknown memory is never assumed to fit');
     assert.match(admissionDecision([running, { ...other, modelBytes: undefined }], { ...other, modelBytes: undefined }, one, 64e9).reason, /is not known/);
 
-    assert.deepEqual(inferenceCapacity('OLLAMA', {}), { perModel: 1, source: 'its parallelism is not observed, so one request per model at a time' }, 'conservative start where capacity is uncertain');
+    assert.deepEqual(inferenceCapacity('OLLAMA', {}), { perModel: 1, source: 'parallelism not observed, conservative default' }, 'conservative start where capacity is uncertain');
     assert.equal(inferenceCapacity('OLLAMA', { OLLAMA_NUM_PARALLEL: '4' }).perModel, 4);
     assert.equal(inferenceCapacity('OLLAMA', { OLLAMA_NUM_PARALLEL: 'many' }).perModel, 1);
     assert.equal(inferenceCapacity('LM_STUDIO', { OLLAMA_NUM_PARALLEL: '4' }).perModel, 1);
@@ -592,4 +594,36 @@ test('local models (LM07): a local-only project answers a chat that consults a t
     const runtime = JSON.parse((await ptbk(['tool', 'runtime', 'local-ollama', 'status', '--json'], { cwd: project, env })).stdout);
     assert.equal(runtime.admission.perModel, 1, 'the runtime status shows the admission capacity it applied');
     assert.ok(Array.isArray(runtime.admission.uses));
+});
+
+test('local models (LM08): a download that does not complete stays visible as resumable partial state, never as installed', async (t) => {
+    const root = await temporaryDirectory(t);
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home') };
+    const ollama = await fakeOllama(t, { models: [] });
+    const tools = localTools(ollama.url);
+    ollama.state.pulls = 'interrupted';
+    const failed = await runRuntimeAction({ tool: tools[0], env, project: root }, { runtime: 'local-ollama', action: 'download', model: 'gpt-oss:20b' });
+    assert.equal(failed.status, 'failed', failed.summary);
+    const resourceKey = failed.observation.resourceKey;
+    const [partial] = await partialDownloads(env, resourceKey);
+    assert.deepEqual([partial.model, partial.state, partial.completedBytes, partial.totalBytes, partial.runtime, partial.project], ['gpt-oss:20b', 'failed', 50, 100, 'local-ollama', root], 'the real progress and cause are kept outside project Git');
+    assert.match(partial.problem, /without confirming/);
+
+    // Every dashboard reads the same record through the shared tool inventory.
+    const pool = new HarnessPool(root, resolveSettings({ file: { tools } }), env);
+    await pool.refresh();
+    assert.deepEqual(pool.runtimes.partialDownloads('local-ollama').map((entry) => [entry.model, entry.state]), [['gpt-oss:20b', 'failed']]);
+    assert.ok(!pool.runtimes.observation('local-ollama').models.some((model) => model.id === 'gpt-oss:20b'), 'a partial download is never listed as installed');
+
+    // A downloader that crashed mid-way leaves an interrupted download, not a running one.
+    const path = join(inferenceRegistryDirectory(env), 'downloads', digest(resourceKey), `${digest('gpt-oss:20b')}.json`);
+    const record = JSON.parse(await readFile(path, 'utf8'));
+    await writeFile(path, JSON.stringify({ ...record, state: 'running', pid: 999_999, processStartedAt: '2026-01-01T00:00:00.000Z' }));
+    assert.equal((await partialDownloads(env, resourceKey))[0].state, 'interrupted');
+
+    // Downloading again resumes it; the record disappears once the runtime lists the model.
+    ollama.state.pulls = 'complete';
+    const resumed = await runRuntimeAction({ tool: tools[0], env, project: root }, { runtime: 'local-ollama', action: 'download', model: 'gpt-oss:20b' });
+    assert.equal(resumed.status, 'completed', resumed.summary);
+    assert.deepEqual(await partialDownloads(env, resourceKey), []);
 });

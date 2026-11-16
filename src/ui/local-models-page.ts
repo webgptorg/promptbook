@@ -1,4 +1,5 @@
 import type { LocalModelsJobView, ServiceSnapshot, ToolView } from '../engine/snapshot.js';
+import { describePartialDownload } from '../inference/downloads.js';
 import { formatBytes } from '../inference/hardware.js';
 import { CANCELLED, confirm, inputLine, selectOne } from './prompts.js';
 import type { Style } from './ansi.js';
@@ -48,6 +49,9 @@ export function runtimeDetailLines(item: RuntimeItem, style: Pick<Style, 'muted'
     for (const [index, model] of detail.models.entries()) {
         const facts = [model.locality === 'local' ? 'local' : model.locality === 'cloud' ? 'cloud — never local execution' : 'locality unknown', model.parameterSize, model.quantization, model.sizeBytes ? formatBytes(model.sizeBytes) : undefined, model.loaded ? 'loaded' : undefined, model.tools === false ? 'no tool calls' : undefined].filter(Boolean);
         lines.push(`  ${index ? '             ' : 'Models       '}${model.id} ${style.muted(facts.join(' · '))}`);
+    }
+    for (const [index, download] of detail.partialDownloads.entries()) {
+        lines.push(`  ${index ? '             ' : 'Downloads    '}${describePartialDownload({ ...download, resourceKey: '', runtime: item.name, startedAt: download.updatedAt }, formatBytes)}${download.state === 'running' ? '' : style.muted(' · D resumes it (nothing is installed yet)')}`);
     }
     if (item.state !== 'usable' && item.nextAction) lines.push(style.warning(`  Action       ${item.nextAction}`));
     return lines;
@@ -109,6 +113,14 @@ export async function addLocalModelsForm(terminal: TerminalProfile, discover: (c
 export async function chooseRuntimeModel(terminal: TerminalProfile, item: RuntimeItem, action: string, options: { readonly allowNew?: boolean } = {}): Promise<string | undefined> {
     const frame = { title: `Local models › ${item.name}`, step: action };
     const installed = item.runtime.models.filter((model) => model.installed);
+    // A download that did not complete is offered first: downloading it again resumes where the runtime kept its data.
+    const resumable = action === 'download' ? item.runtime.partialDownloads.filter((download) => download.state !== 'running') : [];
+    if (resumable.length) {
+        const NEW = '\u0000new';
+        const value = await selectOne(terminal, { frame, question: 'Model to download:', choices: [...resumable.map((download) => ({ value: download.model, label: `Resume ${download.model}`, description: describePartialDownload({ ...download, resourceKey: '', runtime: item.name, startedAt: download.updatedAt }, formatBytes) })), { value: NEW, label: 'Another model…', description: 'Enter the runtime\'s identifier' }] });
+        if (value === CANCELLED) return undefined;
+        if (value !== NEW) return value;
+    }
     if (options.allowNew || !installed.length) {
         const value = await inputLine(terminal, { frame, question: `Model to ${action} (the runtime's identifier, e.g. gpt-oss:20b):`, validate: (text) => (text.trim() ? undefined : 'Enter a model identifier.') });
         return value === CANCELLED ? undefined : value.trim();

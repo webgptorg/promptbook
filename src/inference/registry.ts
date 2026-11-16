@@ -1,4 +1,5 @@
 import type { InferenceRuntimeToolRecord, InferenceRuntimeVariant, ToolRecord } from '../tools/model.js';
+import { partialDownloads, type PartialDownload } from './downloads.js';
 import { lmStudioAdapter } from './lm-studio.js';
 import { ollamaAdapter } from './ollama.js';
 import type { RuntimeAdapter, RuntimeModel, RuntimeObservation } from './types.js';
@@ -34,6 +35,8 @@ const OBSERVATION_TTL_MS = 60_000;
 export class RuntimePool {
     private readonly observations = new Map<string, RuntimeObservation>();
     private readonly observedConfig = new Map<string, string>();
+    /** Downloads that did not complete, per runtime record (host state, re-read on every refresh). */
+    private readonly partials = new Map<string, readonly PartialDownload[]>();
     private tools: readonly ToolRecord[] = [];
 
     public constructor(private readonly env: NodeJS.ProcessEnv) {}
@@ -61,14 +64,18 @@ export class RuntimePool {
                 if (!tool) return;
                 const fingerprint = JSON.stringify([tool.variant, tool.endpoint]);
                 const existing = this.observations.get(name);
-                if (!force && existing && this.observedConfig.get(name) === fingerprint && Date.now() - existing.checkedAt < OBSERVATION_TTL_MS) return;
-                const adapter = runtimeAdapter(tool.variant);
-                try {
-                    this.observations.set(name, await adapter.inspect({ tool, env: this.env }));
-                } catch (error) {
-                    this.observations.set(name, { variant: tool.variant, displayName: adapter.displayName, endpoint: tool.endpoint ?? adapter.defaultEndpoint, endpointSource: tool.endpoint ? 'configured' : 'discovered', onEngineHost: false, resourceKey: `${tool.variant}@unknown`, running: false, summary: `Inspection failed: ${(error as Error).message}`, problem: 'error', checkedAt: Date.now() });
+                if (force || !existing || this.observedConfig.get(name) !== fingerprint || Date.now() - existing.checkedAt >= OBSERVATION_TTL_MS) {
+                    const adapter = runtimeAdapter(tool.variant);
+                    try {
+                        this.observations.set(name, await adapter.inspect({ tool, env: this.env }));
+                    } catch (error) {
+                        this.observations.set(name, { variant: tool.variant, displayName: adapter.displayName, endpoint: tool.endpoint ?? adapter.defaultEndpoint, endpointSource: tool.endpoint ? 'configured' : 'discovered', onEngineHost: false, resourceKey: `${tool.variant}@unknown`, running: false, summary: `Inspection failed: ${(error as Error).message}`, problem: 'error', checkedAt: Date.now() });
+                    }
+                    this.observedConfig.set(name, fingerprint);
                 }
-                this.observedConfig.set(name, fingerprint);
+                const observation = this.observations.get(name)!;
+                const installed = (observation.models ?? []).filter((model) => model.installed).map((model) => model.id);
+                this.partials.set(name, await partialDownloads(this.env, observation.resourceKey, observation.models ? installed : []).catch(() => []));
             }),
         );
     }
@@ -89,6 +96,11 @@ export class RuntimePool {
         }
         this.observations.delete(name);
         this.observedConfig.delete(name);
+    }
+
+    /** Downloads through a runtime record's service that did not complete (interrupted, cancelled, failed or running elsewhere). */
+    public partialDownloads(name: string): readonly PartialDownload[] {
+        return this.partials.get(name) ?? [];
     }
 
     /** One model of a runtime's observed catalog. */

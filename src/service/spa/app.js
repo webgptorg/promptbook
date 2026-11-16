@@ -1308,6 +1308,14 @@
                     h('h3', {}, `${item.name} `, h('span', { className: 'muted' }, item.variantLabel), pill(detail.running ? `running${detail.version ? ` ${detail.version}` : ''}` : 'not running', detail.running ? 'ok' : 'warn')),
                     h('p', { className: 'muted' }, `${detail.endpoint} (${detail.endpointSource}${detail.onEngineHost ? ', on the engine host' : ', not on the engine host'}) · connections: ${detail.dependents.length ? detail.dependents.join(', ') : 'none'}${detail.capacity ? ` · capacity: ${detail.capacity.perModel} request${detail.capacity.perModel === 1 ? '' : 's'} per model at a time (${detail.capacity.source})` : ''}${item.isEnabled ? '' : ' · disabled for this project (the service is not affected)'}`),
                     item.state !== 'usable' && item.nextAction ? h('p', { className: 'warn' }, item.nextAction) : null,
+                    ...(detail.partialDownloads ?? []).map((download) =>
+                        h(
+                            'p',
+                            { className: download.state === 'running' ? 'muted' : 'warn' },
+                            `${download.model}: ${download.state === 'running' ? 'downloading' : `${download.state}, not installed`}${download.totalBytes ? ` at ${Math.floor(((download.completedBytes ?? 0) / download.totalBytes) * 100)}% (${localBytes(download.completedBytes ?? 0)} of ${localBytes(download.totalBytes)})` : ''}${download.problem ? ` — ${download.problem}` : ''} `,
+                            download.state === 'running' ? null : h('button', { disabled: job && job.state === 'running', onclick: () => act('download', download.model) }, 'Resume download'),
+                        ),
+                    ),
                     h(
                         'ul',
                         { className: 'list' },

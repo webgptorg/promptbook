@@ -678,6 +678,8 @@ export type RuntimeToolDetail = {
     readonly dependents: readonly string[];
     /** Concurrent requests per model admitted across engines, and where that estimate comes from. */
     readonly capacity: { readonly perModel: number; readonly source: string };
+    /** Downloads that did not complete (interrupted, cancelled, failed, or still running elsewhere): resumable, never installed. */
+    readonly partialDownloads: ReadonlyArray<{ readonly model: string; readonly state: 'running' | 'interrupted' | 'cancelled' | 'failed'; readonly completedBytes?: number; readonly totalBytes?: number; readonly updatedAt: string; readonly problem?: string }>;
     /** Host maintenance actions the adapter supports. */
     readonly actions: readonly string[];
     readonly checkedAt: string;
