@@ -266,6 +266,11 @@ async function main() {
     const message = (text) => print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
     const done = (summary, extra = {}) => message(`${summary}\n\nPTBK_RESULT ${JSON.stringify({ status: 'done', summary, evidence: 'fixture', ...extra })}`);
     if (prompt.startsWith('# Consultation')) {
+        // $FAKE_CODEX_CONSULT_BARRIER: the advisor's turn notes `<barrier>.reached` and waits until the barrier is removed.
+        if (process.env.FAKE_CODEX_CONSULT_BARRIER) {
+            appendFileSync(`${process.env.FAKE_CODEX_CONSULT_BARRIER}.reached`, 'consultation\n');
+            while (existsSync(process.env.FAKE_CODEX_CONSULT_BARRIER)) await new Promise((resolve) => setTimeout(resolve, 100));
+        }
         message('Fixture advice: keep it simple.');
     } else if (brief) {
         const outages = process.env.FAKE_CODEX_LOG ? `${process.env.FAKE_CODEX_LOG}.brief-outages` : undefined;

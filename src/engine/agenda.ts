@@ -460,12 +460,23 @@ type WorkUnit = {
          */
         detached?: boolean;
     };
+    /**
+     * Other harness configuration revisions this unit holds now: its consultations' advisors and a chat turn's reply,
+     * keyed by acquisition. Each stays in use (or retained once changed) until released.
+     */
+    readonly uses: Map<string, HarnessUse>;
     /** A pacing/backoff wait inside the run (skippable) or its wait for files. */
     wait?: WaitView;
     /** Since when its failing check waits for other runs' uncommitted files to settle (orders mutual waits). */
     checkWaitingSince?: number;
     waiter?: { readonly skippable: boolean; readonly resolve: (reason: 'elapsed' | 'skipped' | 'cancelled' | 'woken') => void };
 };
+
+/**
+ * One acquired harness configuration revision. `detached` is set once the saved configuration was observed to differ:
+ * a same-name tool added later, even an identical one, is a new revision and never makes this use current again.
+ */
+type HarnessUse = { readonly record: HarnessToolRecord; detached?: boolean };
 
 /**
  * The project supervisor: concurrent background tasks and chat turns in the project's one working tree, within the
@@ -2141,6 +2152,7 @@ export class Agenda {
                                 else this.liveReplies.delete(chat);
                                 this.touch();
                             },
+                            onHarnessUse: (use) => this.recordUse(unit, use),
                         },
                         name,
                         options,
@@ -2498,7 +2510,7 @@ export class Agenda {
 
     /** Registers an active unit. */
     private registerUnit(input: { readonly id: string; readonly kind: WorkUnit['kind']; readonly label: string; readonly key?: string }): WorkUnit {
-        const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id, interrupt: new AbortController() };
+        const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id, interrupt: new AbortController(), uses: new Map() };
         this.units.set(unit.id, unit);
         if (unit.key) this.claimedKeys.add(unit.key);
         this.touch();
@@ -3001,7 +3013,8 @@ export class Agenda {
         const names = new Set<string>(this.options.browsers?.inUse() ?? []);
         for (const unit of this.units.values()) {
             if (unit.current && unit.context?.selection.tool && !this.retainsOldRevision(unit)) names.add(unit.context.selection.tool);
-            for (const consultation of unit.context?.consultations ?? []) if (consultation.state === 'active' && consultation.harness.tool) names.add(consultation.harness.tool);
+            // Consultations and chat replies hold the revision they acquired, exactly like the task's own instance.
+            for (const use of unit.uses.values()) if (!this.isRetained(use)) names.add(use.record.name);
         }
         return names;
     }
@@ -3024,8 +3037,10 @@ export class Agenda {
         };
         for (const browser of this.options.browsers?.retained?.() ?? []) for (const scope of browser.scopes.length ? browser.scopes : ['']) add(browser.record, ownerOf(scope));
         for (const unit of this.units.values()) {
+            const owner = unit.kind === 'chat' ? `chat {${unit.label}}` : (unit.current?.taskTitle ?? unit.label);
             const acquired = unit.current ? unit.context?.acquired : undefined;
-            if (acquired && this.retainsOldRevision(unit)) add(acquired, unit.current?.taskTitle ?? unit.label);
+            if (acquired && this.retainsOldRevision(unit)) add(acquired, owner);
+            for (const use of unit.uses.values()) if (this.isRetained(use)) add(use.record, owner);
         }
         return [...uses.values()].map((use) => ({ name: use.record.name, record: use.record, ...(use.owners.length ? { owner: use.owners.join(', ') } : {}) }));
     }
@@ -3039,6 +3054,19 @@ export class Agenda {
         if (!context?.acquired) return false;
         if (!context.detached && !isCurrentRevision(context.acquired, this.settings.tools)) context.detached = true;
         return Boolean(context.detached);
+    }
+
+    /** The same observation for one consultation or chat-reply use: once its saved revision changed, it stays retained. */
+    private isRetained(use: HarnessUse): boolean {
+        if (!use.detached && !isCurrentRevision(use.record, this.settings.tools)) use.detached = true;
+        return Boolean(use.detached);
+    }
+
+    /** Records an acquired or released harness revision of a unit's consultation or chat reply. */
+    private recordUse(unit: WorkUnit, use: { readonly id: string; readonly state: 'acquired' | 'started'; readonly record?: HarnessToolRecord } | { readonly id: string; readonly state: 'released' | 'finished' }): void {
+        if ((use.state === 'acquired' || use.state === 'started') && 'record' in use && use.record) unit.uses.set(use.id, { record: use.record });
+        else unit.uses.delete(use.id);
+        this.touch();
     }
 
     /** Ready/queued work that waits for its agent or for files, counted at the last evaluation. */
@@ -3878,7 +3906,9 @@ export class Agenda {
                         this.updateUnit(unit, { phase, detail: event.detail, agent: agentView(unit.current.agent.name, phase === 'awaiting-user' ? 'waiting-user' : 'working') });
                     } else if (event.type === 'attempt') this.updateUnit(unit, { attempt: event.attempt, attemptBudget: event.budget });
                     else if (event.type === 'model') this.updateUnit(unit, { model: event.model, modelSource: 'reported' });
-                    else if (event.type === 'consultation' && unit.context) {
+                    else if (event.type === 'consultation') {
+                        this.recordUse(unit, event.state === 'started' ? { id: `consultation:${event.id}`, state: 'started', record: event.acquired } : { id: `consultation:${event.id}`, state: 'finished' });
+                        if (!unit.context) return;
                         const consultations = unit.context.consultations;
                         if (event.state === 'started') {
                             consultations.push(executionContextView({ role: 'consultation', agent: event.advisor, by: event.by, harness: event.harness, tool: event.tool, model: event.model, state: 'active' }));

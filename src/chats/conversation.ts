@@ -21,7 +21,7 @@ import { parseAgentReport } from '../engine/result.js';
 import { hasThinking, readOnlyRoute, routeConcrete, type RouteResolution, type RoutingContext } from '../engine/routing.js';
 import type { RoutingSelection } from '../engine/state.js';
 import { harnessPlugin } from '../harness/registry.js';
-import { harnessPluginId, harnessVariantOf } from '../tools/model.js';
+import { harnessPluginId, harnessVariantOf, type HarnessToolRecord } from '../tools/model.js';
 import { teamTools } from '../engine/team.js';
 import { appendUsage, chatUsageFile, usageRecords, walletTestUsageFile } from '../engine/usage.js';
 import { parseTaskPurpose } from '../tasks/purpose.js';
@@ -84,6 +84,11 @@ export type ConversationContext = {
     readonly establishedExecution?: (chat: string) => Promise<RoutingSelection | undefined>;
     /** Live progress of a reply being written (undefined once it ended), shared with every client of the chat. */
     readonly onLive?: (chat: string, live: LiveReply | undefined) => void;
+    /**
+     * A harness configuration revision this chat's work acquired (the reply's own instance or a consultation's) and its
+     * release: the engine counts exactly that revision as in use, or retained after a change, until it is released.
+     */
+    readonly onHarnessUse?: (use: { readonly id: string; readonly state: 'acquired'; readonly record: HarnessToolRecord } | { readonly id: string; readonly state: 'released' }) => void;
     readonly onActivity?: (text: string) => void;
 };
 
@@ -428,6 +433,8 @@ export function chatTools(context: ConversationContext, stored: StoredChat, agen
                     signal: controller.signal,
                     onUserChat: () => undefined,
                     onActivity: (text) => context.onActivity?.(`${agent.name} in {${chat.name}}: ${text}`),
+                    onConsultation: (consultation) =>
+                        context.onHarnessUse?.(consultation.state === 'started' && consultation.acquired ? { id: `consultation:${consultation.id}`, state: 'acquired', record: consultation.acquired } : { id: `consultation:${consultation.id}`, state: 'released' }),
                     usage: { file: usageFile, parent: { kind: 'chat', name: chat.name } },
                 },
                 { includeUser: false },
@@ -597,6 +604,9 @@ export async function replyInChat(context: ConversationContext, chatName: string
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is replying in {${chat.name}}`);
     const progress = new ReplyProgress(context, chat.name, formatAgentReference(agent.name));
+    // The reply holds this exact configuration revision until its turn ends.
+    const useId = `reply:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -640,6 +650,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
         await progress.unfinished(errorMessage(error));
         throw error;
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await bridge?.close();
         await rm(promptFile, { force: true });
     }

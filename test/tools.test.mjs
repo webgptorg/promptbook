@@ -62,6 +62,47 @@ test('retained revisions in the inventory: actual type/variant and owner, separa
     assert.match(crossType.items.find((item) => item.retained).summary, /Replaced in ptbk\.json by a BROWSER tool/);
 });
 
+test('retained revisions: a chat reply and its TEAM consultation hold the revision they acquired; a forced change retains it for that chat only', async (t) => {
+    const { directory, project, env: base } = await initializedProject(t, { check: CHECK });
+    const barrier = join(directory, 'consultation barrier');
+    await writeFile(barrier, 'hold the advisor until the held revision is inspected\n');
+    const env = { ...base, FAKE_CODEX_CONSULT_BARRIER: barrier };
+    assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
+    // The onboarding review also uses openai-codex: only the chat may hold it here.
+    await waitFor(async () => findGenerated(await subjects(project), 'Review the initialized project', 'ptbk: '), { message: 'the onboarding review result', timeoutMs: 60_000 });
+    await waitFor(async () => {
+        const idle = await status(project, env);
+        return !idle.current && !idle.tools.items.some((item) => item.inUse) ? idle : undefined;
+    }, { message: 'no active work', timeoutMs: 60_000 });
+    const asked = ptbk(['chat', 'Which approach should we take? CONSULT_TEAM', '--raw'], { cwd: project, env });
+    await waitFor(async () => (await readFile(`${barrier}.reached`, 'utf8').catch(() => '')).includes('consultation'), { message: 'the consultation turn', timeoutMs: 60_000 });
+
+    let snapshot = await status(project, env);
+    assert.equal(snapshot.tools.items.find((item) => item.name === 'openai-codex' && !item.retained).inUse, true, 'a chat reply and its consultation are active work');
+    const refused = await ptbk(['tool', 'modify', 'openai-codex', '--description', 'Another account', '--raw'], { cwd: project, env });
+    assert.equal(refused.code, 3, refused.output);
+    assert.match(refused.output, /in use by active work/);
+
+    const forced = await ptbk(['tool', 'modify', 'openai-codex', '--description', 'Another account', '--force', '--raw'], { cwd: project, env });
+    assert.equal(forced.code, 0, forced.output);
+    snapshot = await status(project, env);
+    const entries = snapshot.tools.items.filter((item) => item.name === 'openai-codex');
+    assert.equal(entries.length, 2, `the saved and the held revision are distinct: ${JSON.stringify(entries)}`);
+    const saved = entries.find((item) => !item.retained);
+    const held = entries.find((item) => item.retained);
+    assert.equal(saved.inUse, false, 'the changed saved tool is not held by the chat that acquired the old revision');
+    assert.deepEqual([held.type, held.variant, held.inUse], ['HARNESS', 'OPENAI_CODEX', true]);
+    assert.match(held.owner, /^chat \{/, held.owner);
+    assert.match(held.summary, /^Changed in ptbk\.json/);
+
+    await rm(barrier);
+    const reply = await asked;
+    assert.equal(reply.code, 0, reply.output);
+    assert.match(reply.stdout, /Developer advises: Fixture advice/);
+    await waitFor(async () => !(await status(project, env)).tools.items.some((item) => item.retained), { message: 'the held revision is released with the reply', timeoutMs: 30_000 });
+    assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
+});
+
 test('quota resets: the wait a provider reports is understood in its usual forms; nothing is invented', () => {
     const now = Date.UTC(2026, 9, 30, 10, 0, 0);
     const minutes = 60_000;

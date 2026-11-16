@@ -34,7 +34,7 @@ import { chatOriginOf } from '../chats/chat-tasks.js';
 import { parseAgentReport, type AgentReport } from './result.js';
 import type { RouteResolution } from './routing.js';
 import type { ActiveRecord, ResultRecord, RoutingSelection, StateStore, WorkKind } from './state.js';
-import { teamTools, type ConsultationBudget } from './team.js';
+import { teamTools, type ConsultationBudget, type ConsultationEvent } from './team.js';
 import { TaskTrace, traceHeader } from './task-trace.js';
 import { appendUsage, taskUsageFile, usageRecords } from './usage.js';
 import { recordDiagnostic } from './traces.js';
@@ -56,7 +56,7 @@ export type ExecutionEvent =
     | { readonly type: 'attempt'; readonly attempt: number; readonly budget: number }
     | { readonly type: 'activity'; readonly text: string; readonly level?: 'info' | 'warning' | 'error' }
     | { readonly type: 'model'; readonly model: string }
-    | { readonly type: 'consultation'; readonly advisor: string; readonly by: string; readonly harness: string; readonly tool?: string; readonly model?: string; readonly state: 'started' | 'finished' };
+    | ({ readonly type: 'consultation' } & ConsultationEvent);
 
 /**
  * Waiting reported to the supervisor (skippable pacing/backoff waits only).
