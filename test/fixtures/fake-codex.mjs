@@ -159,8 +159,8 @@ function tomlValue(text) {
     return trimmed;
 }
 
-/** Calls a tool of the ptbk MCP server configured for this turn. */
-async function callTool(name, toolArguments) {
+/** Calls a tool of the ptbk MCP server configured for this turn (`listOnly`: loads the server and lists its tools, as the CLI does at startup). */
+async function callTool(name, toolArguments, { listOnly = false } = {}) {
     const overrides = configOverrides();
     const command = tomlValue(overrides['mcp_servers.ptbk.command']);
     const commandArgs = tomlValue(overrides['mcp_servers.ptbk.args']);
@@ -187,6 +187,10 @@ async function callTool(name, toolArguments) {
     await request(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'fake-codex', version: '1' } });
     const list = await request(2, 'tools/list', {});
     const names = list.result.tools.map((tool) => tool.name);
+    if (listOnly) {
+        child.stdin.end();
+        return names.join(', ');
+    }
     if (!names.includes(name)) throw new Error(`Tool ${name} missing (have ${names.join(', ')})`);
     const response = await request(3, 'tools/call', { name, arguments: toolArguments });
     child.stdin.end();
@@ -218,6 +222,14 @@ async function main() {
         const readOnly = args.includes('read-only') || configOverrides().sandbox_mode === '"read-only"';
         if (prompt.includes('ptbk-check.txt') && !readOnly && !process.env.FAKE_CODEX_NO_TOOLS) writeFileSync(join(process.cwd(), 'ptbk-check.txt'), 'READY\n');
         const resumed = args[1] === 'resume';
+        // The tool-bridge check: a model with tool calls ($FAKE_CODEX_NO_TOOLS/$FAKE_CODEX_NO_MCP: without) calls the check tool.
+        if (prompt.includes('ptbk_capability_check')) {
+            const unable = process.env.FAKE_CODEX_NO_TOOLS || process.env.FAKE_CODEX_NO_MCP;
+            const code = unable ? (await callTool(undefined, {}, { listOnly: true }), 'I cannot call tools.') : await callTool('ptbk_capability_check', {});
+            print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text: code } });
+            print({ type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 2 } });
+            process.exit(0);
+        }
         const text = prompt.includes('ptbk-check.txt') ? 'DONE' : prompt.includes('Remember the code word') ? 'OK' : prompt.includes('What was the code word') ? (resumed ? 'ORCHID-42' : 'I do not know.') : check ? 'PONG' : JSON.stringify({ title, folder: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') });
         print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
         print({ type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 2 } });

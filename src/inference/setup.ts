@@ -246,10 +246,11 @@ async function install(installation: RuntimeInstallation, env: NodeJS.ProcessEnv
 }
 
 /**
- * Capability checks whose failure means the connection is not ready for agent work: tasks need tool calls and chats
- * and consultations need an enforceable read-only mode (a failed continuation is reported but does not block).
+ * Capability checks whose failure means the connection is not ready for agent work: tasks need tool calls, chats and
+ * consultations need an enforceable read-only mode, and both reach TEAM, chat actions and browser tools through the
+ * Promptbook MCP bridge (a failed continuation is reported but does not block; an unknown outcome never blocks).
  */
-const READINESS_CAPABILITIES: readonly string[] = ['scratch-file', 'read-only'];
+const READINESS_CAPABILITIES: readonly string[] = ['scratch-file', 'read-only', 'mcp'];
 
 /**
  * Prepares (install, start, download/reuse) and verifies an accepted plan on the engine host. The accepted choice
@@ -316,7 +317,7 @@ export async function prepareLocalSetup(
             ...(operation ? { operation } : {}),
             pending: [
                 ...failed.map((capability) => `${capability.name}: ${capability.summary}`),
-                ...(options.extendedChecks === false ? ['Only a real answer was checked (--quick): tool use, read-only enforcement and continuation are not verified yet.'] : []),
+                ...(options.extendedChecks === false ? ['Only a real answer was checked (--quick): tool use, read-only enforcement, continuation and the Promptbook tool bridge (MCP) are not verified yet.'] : []),
                 `To keep agents on local models, add runtime=local to their MODEL (for example: harness=${plan.harness} model=${plan.model} runtime=local).`,
             ],
         });

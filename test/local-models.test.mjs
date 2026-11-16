@@ -290,12 +290,21 @@ test('local models: `ptbk tool setup-local` prepares, verifies and saves the run
     assert.equal(await readFile(join(project, 'ptbk.json'), 'utf8'), configBefore, 'nothing is saved for an incomplete local setup');
     assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore);
 
+    const noBridge = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--yes', '--json'], { cwd: project, env: { ...env, FAKE_CODEX_NO_MCP: '1' } });
+    assert.equal(noBridge.code, 1, noBridge.output);
+    const withoutMcp = JSON.parse(noBridge.stdout);
+    assert.equal(withoutMcp.status, 'failed', 'a model that writes files but never calls a Promptbook tool cannot serve TEAM, chat actions or browser tools');
+    assert.match(withoutMcp.summary, /mcp — Listed the Promptbook tools but never called one/);
+    assert.equal(withoutMcp.saved, undefined);
+    assert.equal(await readFile(join(project, 'ptbk.json'), 'utf8'), configBefore);
+
     const setup = await ptbk(['tool', 'setup-local', '--runtime', 'ollama', '--endpoint', ollama.url, '--model', 'tiny-model:1b', '--yes', '--json'], { cwd: project, env });
     assert.equal(setup.code, 0, setup.output);
     const outcome = JSON.parse(setup.stdout);
     assert.equal(outcome.status, 'ready', outcome.summary);
     assert.equal(outcome.check.ok, true);
-    assert.deepEqual(Object.fromEntries(outcome.capabilities.map((capability) => [capability.name, capability.outcome])), { 'scratch-file': 'supported', 'read-only': 'supported', continuation: 'supported', mcp: 'unknown' });
+    assert.deepEqual(Object.fromEntries(outcome.capabilities.map((capability) => [capability.name, capability.outcome])), { 'scratch-file': 'supported', 'read-only': 'supported', continuation: 'supported', mcp: 'supported' });
+    assert.match(outcome.capabilities.find((capability) => capability.name === 'mcp').summary, /relayed its result/, 'the model called the bridge tool and relayed the code it returned');
     assert.equal(outcome.saved.status, 'applied');
     const config = JSON.parse(await readFile(join(project, 'ptbk.json'), 'utf8'));
     const runtime = config.tools.find((tool) => tool.type === 'INFERENCE_RUNTIME');

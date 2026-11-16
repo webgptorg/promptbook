@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -5,7 +6,8 @@ import { kebabIdentifier } from '../common/naming.js';
 import { redact } from '../common/redact.js';
 import type { ThinkingLevel } from '../project/config.js';
 import { runHarness, type HarnessRunResult } from './run.js';
-import type { HarnessInspection, HarnessPlugin, LocalRoute } from './types.js';
+import { ToolBridge } from '../engine/bridge.js';
+import type { HarnessInspection, HarnessPlugin, LocalRoute, McpServerLaunch } from './types.js';
 
 /**
  * One small preparatory harness call outside any project: the selected instance's real (service-user) environment and
@@ -51,7 +53,7 @@ export type FunctionalCheck = {
 /**
  * Runs one prompt as a preparatory call.
  */
-async function preparatoryRun(call: PreparatoryCall, prompt: string, options: { readonly readOnly?: boolean; readonly resumeSessionId?: string } = {}): Promise<HarnessRunResult> {
+async function preparatoryRun(call: PreparatoryCall, prompt: string, options: { readonly readOnly?: boolean; readonly resumeSessionId?: string; readonly mcp?: McpServerLaunch } = {}): Promise<HarnessRunResult> {
     const directory = call.directory ?? (await mkdtemp(join(tmpdir(), 'ptbk-preparation-')));
     const promptFile = join(directory, `.ptbk-prompt-${process.pid}-${Date.now()}.md`);
     try {
@@ -70,6 +72,7 @@ async function preparatoryRun(call: PreparatoryCall, prompt: string, options: { 
                 // The ordinary execution mode, so sandbox/runtime failures of real work show up here too.
                 readOnly: options.readOnly ?? false,
                 ...(options.resumeSessionId ? { resumeSessionId: options.resumeSessionId } : {}),
+                ...(options.mcp ? { mcp: options.mcp } : {}),
                 env: call.env,
                 timeoutMs: call.timeoutMs ?? 180_000,
                 signal: call.signal,
@@ -157,10 +160,52 @@ export type CapabilityCheck = {
 };
 
 /**
+ * The Promptbook tool path (the `ptbk` MCP server) through one connection: a read-only turn, as in chats and
+ * consultations, that must call a check tool of a disposable bridge and relay the code it returns. The bridge serves
+ * nothing else, so the model can reach no project, account or desktop through it.
+ */
+async function mcpCapabilityCheck(call: PreparatoryCall): Promise<CapabilityCheck> {
+    if (!call.plugin.capabilities.mcp) return { name: 'mcp', outcome: 'unknown', summary: `${call.plugin.displayName} cannot load the Promptbook tool bridge (TEAM consultations, chat actions and browser tools are unavailable through it).` };
+    const code = `PTBK-${randomBytes(3).toString('hex').toUpperCase()}`;
+    let called = false;
+    const bridge = await ToolBridge.start([
+        {
+            name: 'ptbk_capability_check',
+            description: 'Returns the verification code of this Promptbook capability check. Takes no arguments.',
+            inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+            handler: async () => {
+                called = true;
+                return { text: code };
+            },
+        },
+    ]);
+    try {
+        const result = await preparatoryRun(
+            call,
+            '# Harness check: tool bridge\n\nThis is a capability check. Call the tool `ptbk_capability_check` of the `ptbk` MCP server (it takes no arguments). Then reply with exactly the code it returned and nothing else.\n',
+            { readOnly: true, mcp: bridge.launch() },
+        ).catch((error: unknown) => error as Error);
+        if (called) {
+            const relayed = !(result instanceof Error) && result.outcome === 'completed' && result.finalMessage.includes(code);
+            return { name: 'mcp', outcome: 'supported', summary: relayed ? 'Called a Promptbook tool through the MCP bridge in a read-only turn and relayed its result.' : 'Called a Promptbook tool through the MCP bridge in a read-only turn.' };
+        }
+        if (result instanceof Error || result.outcome !== 'completed') return { name: 'mcp', outcome: 'unknown', summary: redact(result instanceof Error ? result.message : result.diagnostic) };
+        return {
+            name: 'mcp',
+            outcome: 'failed',
+            summary: bridge.discovered
+                ? 'Listed the Promptbook tools but never called one: TEAM consultations, chat actions and browser tools would not work with this model.'
+                : 'Never loaded the Promptbook tool bridge: TEAM consultations, chat actions and browser tools would not work through this connection.',
+        };
+    } finally {
+        await bridge.close();
+    }
+}
+
+/**
  * Bounded functional verification of a local connection beyond PONG, each in its own disposable directory: permitted
- * scratch-file work (a harmless tool call), enforced read-only behavior and session continuation. Nothing touches a
- * project, an outside account or the desktop. The shared MCP path is reported as unknown here: it is exercised by the
- * first ordinary project turn, never claimed in advance.
+ * scratch-file work (a harmless tool call), enforced read-only behavior, session continuation and a call through the
+ * Promptbook MCP tool path. Nothing touches a project, an outside account or the desktop.
  *
  * @private harness setup
  */
@@ -204,6 +249,6 @@ export async function localCapabilityChecks(call: PreparatoryCall): Promise<Capa
             results.push({ name: 'continuation', outcome: ok ? 'supported' : 'failed', summary: ok ? 'Continued the same session.' : redact(second instanceof Error ? second.message : second.outcome === 'completed' ? 'The continued session did not recall the earlier turn.' : second.diagnostic) });
         }
     }
-    results.push({ name: 'mcp', outcome: 'unknown', summary: 'The shared Promptbook tool path is exercised by the first project turn.' });
+    results.push(await mcpCapabilityCheck(call));
     return results;
 }
