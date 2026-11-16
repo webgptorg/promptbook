@@ -93,6 +93,9 @@ export class VoiceCalls {
 
     public constructor(private readonly host: VoiceCallsHost) {}
 
+    /** The latest observation of each chat with a live call (they run one after another). */
+    private readonly observations = new Map<string, Promise<void>>();
+
     /** Pending MODEL resolutions of chats whose first User message was spoken. */
     private readonly models = new Map<string, Promise<void>>();
 
@@ -320,6 +323,20 @@ export class VoiceCalls {
      * to the voice session as context, once; the call's own utterances are skipped.
      */
     public async observe(chatName: string, messages: readonly Pick<ChatMessage, 'sender' | 'senderKey' | 'text' | 'phase'>[]): Promise<void> {
+        // Observations of one chat run in order: a caller (chatSend deciding whether a typed message still needs a
+        // text reply) returns only after every earlier delivery, including one already in flight, is persisted.
+        const key = nameKey(chatName);
+        const run = (this.observations.get(key) ?? Promise.resolve()).then(async () => await this.deliver(chatName, messages));
+        const settled = run.catch(() => undefined);
+        this.observations.set(key, settled);
+        void settled.then(() => {
+            if (this.observations.get(key) === settled) this.observations.delete(key);
+        });
+        await run;
+    }
+
+    /** Supplies the chat messages the live call has not seen yet (one observation). */
+    private async deliver(chatName: string, messages: readonly Pick<ChatMessage, 'sender' | 'senderKey' | 'text' | 'phase'>[]): Promise<void> {
         const key = nameKey(chatName);
         const call = this.calls.get(key);
         if (!call || call.over) return;
