@@ -332,7 +332,7 @@ export class HarnessPool {
             protocolUrl,
             compatibilityToken: adapter.compatibilityToken,
             ...(observation.version ? { runtimeVersion: observation.version } : {}),
-            ...(model ? { model: { id: model, ...(served?.digest ? { digest: served.digest } : {}), ...(served?.quantization ? { quantization: served.quantization } : {}), locality: served ? (observation.onEngineHost ? served.locality : 'unknown') : 'unknown' } } : {}),
+            ...(model ? { model: { id: model, ...(served?.digest ? { digest: served.digest } : {}), ...(served?.quantization ? { quantization: served.quantization } : {}), ...(served?.sizeBytes !== undefined ? { sizeBytes: served.sizeBytes } : {}), locality: served ? (observation.onEngineHost ? served.locality : 'unknown') : 'unknown' } } : {}),
         };
     }
 

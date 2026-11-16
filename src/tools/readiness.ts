@@ -7,6 +7,7 @@ import type { HarnessPool } from '../engine/harnesses.js';
 import type { ToolsView, ToolView } from '../engine/snapshot.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { describeCredentialSource } from './environment.js';
+import { inferenceCapacity } from '../inference/admission.js';
 import { runtimeAdapter } from '../inference/registry.js';
 import { dependentHarnesses, describeProfileSource, harnessPluginId, runtimeVariantLabel, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
 
@@ -241,7 +242,7 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             inUse: Boolean(input.inUse?.has(tool.name)),
             ...(settings.overriddenTools.has(tool.name) ? { overridden: true } : {}),
             fields: toolFields(project, tool, env, pool, settings),
-            ...(tool.type === 'INFERENCE_RUNTIME' ? { runtime: runtimeDetail(tool.name, tool.variant, settings, pool) } : {}),
+            ...(tool.type === 'INFERENCE_RUNTIME' ? { runtime: runtimeDetail(tool.name, tool.variant, settings, pool, env) } : {}),
         };
     });
     // Retained revisions are separate entries with their acquired identity, after every saved tool.
@@ -276,7 +277,7 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
 /**
  * Observed detail of one runtime record for the Local models views (empty catalog while not observed).
  */
-function runtimeDetail(name: string, variant: 'OLLAMA' | 'LM_STUDIO', settings: EffectiveSettings, pool: HarnessPool): NonNullable<ToolView['runtime']> {
+function runtimeDetail(name: string, variant: 'OLLAMA' | 'LM_STUDIO', settings: EffectiveSettings, pool: HarnessPool, env: NodeJS.ProcessEnv): NonNullable<ToolView['runtime']> {
     const observation = pool.runtimes.observation(name);
     const adapter = runtimeAdapter(variant);
     return {
@@ -297,6 +298,7 @@ function runtimeDetail(name: string, variant: 'OLLAMA' | 'LM_STUDIO', settings: 
             vision: model.vision,
         })),
         dependents: dependentHarnesses(settings.tools, name).map((tool) => tool.name),
+        capacity: inferenceCapacity(variant, env),
         actions: adapter.actions,
         checkedAt: new Date(observation?.checkedAt ?? Date.now()).toISOString(),
     };

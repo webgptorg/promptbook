@@ -676,6 +676,8 @@ export type RuntimeToolDetail = {
     readonly models: ReadonlyArray<{ readonly id: string; readonly installed: boolean; readonly locality: 'local' | 'cloud' | 'unknown'; readonly loaded?: boolean; readonly sizeBytes?: number; readonly quantization?: string; readonly parameterSize?: string; readonly tools: boolean | 'unknown'; readonly vision: boolean | 'unknown' }>;
     /** Harness connections of this project that use the runtime. */
     readonly dependents: readonly string[];
+    /** Concurrent requests per model admitted across engines, and where that estimate comes from. */
+    readonly capacity: { readonly perModel: number; readonly source: string };
     /** Host maintenance actions the adapter supports. */
     readonly actions: readonly string[];
     readonly checkedAt: string;

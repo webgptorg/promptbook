@@ -1306,7 +1306,7 @@
                     'div',
                     { className: 'runtime' },
                     h('h3', {}, `${item.name} `, h('span', { className: 'muted' }, item.variantLabel), pill(detail.running ? `running${detail.version ? ` ${detail.version}` : ''}` : 'not running', detail.running ? 'ok' : 'warn')),
-                    h('p', { className: 'muted' }, `${detail.endpoint} (${detail.endpointSource}${detail.onEngineHost ? ', on the engine host' : ', not on the engine host'}) · connections: ${detail.dependents.length ? detail.dependents.join(', ') : 'none'}${item.isEnabled ? '' : ' · disabled for this project (the service is not affected)'}`),
+                    h('p', { className: 'muted' }, `${detail.endpoint} (${detail.endpointSource}${detail.onEngineHost ? ', on the engine host' : ', not on the engine host'}) · connections: ${detail.dependents.length ? detail.dependents.join(', ') : 'none'}${detail.capacity ? ` · capacity: ${detail.capacity.perModel} request${detail.capacity.perModel === 1 ? '' : 's'} per model at a time (${detail.capacity.source})` : ''}${item.isEnabled ? '' : ' · disabled for this project (the service is not affected)'}`),
                     item.state !== 'usable' && item.nextAction ? h('p', { className: 'warn' }, item.nextAction) : null,
                     h(
                         'ul',

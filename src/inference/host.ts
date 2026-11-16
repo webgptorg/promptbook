@@ -55,15 +55,19 @@ export function inferenceRegistryDirectory(env: NodeJS.ProcessEnv = process.env)
 
 /**
  * File-name-safe digest of a resource key.
+ *
+ * @private inference host registry
  */
-function digest(value: string): string {
+export function digest(value: string): string {
     return createHash('sha256').update(value).digest('hex').slice(0, 24);
 }
 
 /**
  * Whether a recorded process is still the same live process.
+ *
+ * @private inference host registry
  */
-async function alive(pid: number, startedAt: string): Promise<boolean> {
+export async function alive(pid: number, startedAt: string): Promise<boolean> {
     const verdict = await verifyRecordedProcess(pid, startedAt);
     return verdict === 'verified' || verdict === 'unknown';
 }

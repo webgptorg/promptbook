@@ -42,6 +42,7 @@ export function runtimeDetailLines(item: RuntimeItem, style: Pick<Style, 'muted'
         `${style.bold(item.name)} — ${item.variantLabel}${item.isEnabled ? '' : style.muted(' (disabled for this project; the service is not affected)')}`,
         `  Service      ${detail.running ? `running${detail.version ? ` ${detail.version}` : ''}` : style.warning('not running')} at ${detail.endpoint}${style.muted(` (${detail.endpointSource}${detail.onEngineHost ? ', on the engine host' : ', not on the engine host'})`)}`,
         `  Connections  ${detail.dependents.length ? detail.dependents.join(', ') : style.muted('none')}`,
+        `  Capacity     ${detail.capacity.perModel} request${detail.capacity.perModel === 1 ? '' : 's'} per model at a time ${style.muted(`(${detail.capacity.source}; other work waits for it)`)}`,
     ];
     if (!detail.models.length) lines.push(`  Models       ${style.muted(detail.running ? 'none downloaded' : 'unknown while the service is not running')}`);
     for (const [index, model] of detail.models.entries()) {

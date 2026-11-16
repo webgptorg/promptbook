@@ -32,7 +32,7 @@ export type LocalRoute = {
     /** Runtime version where observed (evidence of the actual binding). */
     readonly runtimeVersion?: string;
     /** The routed model's identity in that runtime (digest/quantization where exposed). */
-    readonly model?: { readonly id: string; readonly digest?: string; readonly quantization?: string; readonly locality?: 'local' | 'cloud' | 'unknown' };
+    readonly model?: { readonly id: string; readonly digest?: string; readonly quantization?: string; readonly locality?: 'local' | 'cloud' | 'unknown'; readonly sizeBytes?: number };
 };
 
 /**
@@ -252,6 +252,8 @@ export type HarnessRunRequest = {
     readonly onOutput?: (stream: 'stdout' | 'stderr', line: string) => void;
     /** Silence after which the harness is considered stalled (unattended operation; 0 disables). */
     readonly stallTimeoutMs?: number;
+    /** A local run waits for runtime capacity (its reason), or was admitted after waiting (`undefined`). */
+    readonly onAdmission?: (wait: string | undefined) => void;
 };
 
 /**

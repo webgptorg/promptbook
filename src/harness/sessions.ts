@@ -458,6 +458,12 @@ export class HarnessSessions {
         if (this.ephemeral.has(key)) this.close(key, result.outcome === 'completed' ? 'Its one turn finished.' : result.diagnostic, next.state === 'failed');
     }
 
+    /** A turn that waited (for example for local inference capacity) runs again. */
+    public working(key: string, detail?: string): void {
+        const current = this.byKey(key);
+        if (current?.state === 'waiting') this.update(current.handle, { state: 'working', detail }, true);
+    }
+
     /** The session waits (for the user, a resource or a lifecycle decision). */
     public waiting(key: string, detail: string, state: Extract<HarnessSessionState, 'waiting' | 'interrupted' | 'reconnecting'> = 'waiting'): void {
         const current = this.byKey(key);
@@ -636,6 +642,11 @@ export async function runHarnessInSession(sessions: HarnessSessions | undefined,
                 onEvent: (event) => {
                     sessions.observe(descriptor.key, event);
                     request.onEvent?.(event);
+                },
+                onAdmission: (wait) => {
+                    if (wait) sessions.waiting(descriptor.key, wait);
+                    else sessions.working(descriptor.key, options.detail);
+                    request.onAdmission?.(wait);
                 },
             },
             executable,

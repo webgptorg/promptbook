@@ -1,4 +1,5 @@
 import { EXIT, PtbkError, usageError } from '../../common/errors.js';
+import { admissionQueue, describeUse, inferenceCapacity } from '../../inference/admission.js';
 import { activeConsumers } from '../../inference/host.js';
 import { formatBytes } from '../../inference/hardware.js';
 import { runRuntimeAction, type RuntimeActionOutcome } from '../../inference/management.js';
@@ -95,8 +96,11 @@ export async function runtime(context: CommandContext): Promise<number> {
     }
     if (action !== 'status' && action !== 'models' && outcome.status === 'completed') await recheckEngine(project);
     const consumers = outcome.observation ? await activeConsumers(context.env, outcome.observation.resourceKey) : [];
+    // The shared admission of local inference: actual capacity and every engine's running, yielded and waiting uses.
+    const capacity = inferenceCapacity(tool.variant, context.env);
+    const queue = outcome.observation ? await admissionQueue(context.env, outcome.observation.resourceKey) : [];
     if (flag(context, 'json')) {
-        printJson({ ...outcome, dependents: dependentHarnesses(settings.tools, name).map((dependent) => dependent.name), consumers });
+        printJson({ ...outcome, dependents: dependentHarnesses(settings.tools, name).map((dependent) => dependent.name), consumers, admission: { perModel: capacity.perModel, source: capacity.source, uses: queue } });
         return outcome.status === 'completed' ? EXIT.success : outcome.status === 'failed' ? EXIT.failure : EXIT.incomplete;
     }
     const { terminal } = context;
@@ -112,6 +116,13 @@ export async function runtime(context: CommandContext): Promise<number> {
             const dependents = dependentHarnesses(settings.tools, name);
             lines.push(`Connections  ${dependents.length ? dependents.map((dependent) => `${dependent.name}${dependent.isEnabled ? '' : ' (disabled)'}`).join(', ') : 'none (add one with `ptbk tool setup-local`)'}`);
             lines.push(`In use       ${consumers.length ? consumers.map((consumer) => `${consumer.tool} in ${consumer.project} (${consumer.purpose})`).join('; ') : 'not by Promptbook work now (other applications are not known)'}`);
+            lines.push(`Capacity     ${capacity.perModel} request${capacity.perModel === 1 ? '' : 's'} per model at a time (${capacity.source})`);
+            const running = queue.filter((use) => use.state === 'admitted');
+            const yielded = queue.filter((use) => use.state === 'yielded');
+            const waiting = queue.filter((use) => use.state === 'waiting');
+            if (running.length) lines.push(`Running      ${running.map(describeUse).join('; ')}`);
+            if (yielded.length) lines.push(`Yielded      ${yielded.map(describeUse).join('; ')} (waiting for a tool or consultation)`);
+            if (waiting.length) lines.push(`Waiting      ${waiting.map(describeUse).join('; ')}`);
         }
         if (observation.models) {
             lines.push(observation.models.length ? 'Models:' : 'Models: none downloaded');

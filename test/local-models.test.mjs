@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile, rm } from 'node:fs/promises';
+import { readdir, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -11,6 +11,9 @@ import { functionalCheck } from '../dist/harness/preparation.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
 import { HarnessSessions } from '../dist/harness/sessions.js';
 import { activeConsumers, registerConsumer, withHostOperation } from '../dist/inference/host.js';
+import { acquireInference, admissionDecision, admissionDirectory, admissionQueue, inferenceCapacity } from '../dist/inference/admission.js';
+import { ToolBridge } from '../dist/engine/bridge.js';
+import { runHarness } from '../dist/harness/run.js';
 import { recommendLocalModel } from '../dist/inference/catalog.js';
 import { ollamaAdapter } from '../dist/inference/ollama.js';
 import { resolveSettings } from '../dist/project/config.js';
@@ -442,4 +445,151 @@ test('local models: the running engine discovers, prepares in a background job w
     const models = await client.request('local-models', { action: 'runtime', runtime: 'local-ollama', runtimeAction: 'models', via: 'dashboard' }, 60_000);
     assert.equal(models.outcome.status, 'completed');
     assert.deepEqual(models.outcome.models.map((model) => model.id), ['gpt-oss:20b']);
+});
+
+/** One admission request of a fixture use. */
+const use = (env, model = 'gpt-oss:20b', extra = {}) => ({ runtime: 'OLLAMA', resourceKey: 'OLLAMA@loopback:11434', project: '/projects/demo', tool: 'codex-local', model, purpose: 'turn', ...extra });
+
+/** Resolves once a predicate holds (bounded). */
+async function until(predicate, message, timeoutMs = 20_000) {
+    const deadline = Date.now() + timeoutMs;
+    while (!(await predicate())) {
+        if (Date.now() > deadline) throw new Error(`Timed out waiting for ${message}.`);
+        await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+}
+
+test('local models (LM07): admission follows the runtime\'s actual capacity, arrival order and memory, never a global task count', () => {
+    const record = (id, state, requestedAt, model = 'gpt-oss:20b', modelBytes = 13e9) => ({ id, pid: 1, startedAt: '', resourceKey: 'r', project: '/p', tool: 'codex-local', model, modelBytes, purpose: 'turn', requestedAt, state, since: requestedAt });
+    const one = { perModel: 1, source: 'unknown' };
+    const candidate = record('c', 'waiting', '2026-11-16T10:00:05.000Z');
+    assert.equal(admissionDecision([candidate], candidate, one, undefined).admit, true, 'an idle runtime admits at once');
+    const busy = admissionDecision([record('a', 'admitted', '2026-11-16T10:00:00.000Z'), candidate], candidate, one, undefined);
+    assert.equal(busy.admit, false);
+    assert.match(busy.reason, /serves 1 request at a time/);
+    assert.deepEqual(busy.blockers.map((blocker) => blocker.id), ['a']);
+    assert.equal(admissionDecision([record('a', 'admitted', '2026-11-16T10:00:00.000Z'), candidate], candidate, { perModel: 2, source: 'OLLAMA_NUM_PARALLEL=2' }, undefined).admit, true, 'the runtime\'s supported parallelism is used');
+    assert.equal(admissionDecision([record('a', 'yielded', '2026-11-16T10:00:00.000Z'), candidate], candidate, one, undefined).admit, true, 'a parent waiting for its tool or advisor holds no capacity');
+    const queued = admissionDecision([record('w', 'waiting', '2026-11-16T10:00:01.000Z'), candidate], candidate, { perModel: 4, source: '' }, undefined);
+    assert.equal(queued.admit, false, 'no request overtakes an earlier one');
+    assert.match(queued.reason, /1 earlier request/);
+
+    const other = record('c', 'waiting', '2026-11-16T10:00:05.000Z', 'qwen3:8b', 5e9);
+    const running = record('a', 'admitted', '2026-11-16T10:00:00.000Z');
+    assert.equal(admissionDecision([running, other], other, one, 64e9).admit, true, 'another model runs beside a loaded one when both fit');
+    const pressure = admissionDecision([running, other], other, one, 16e9);
+    assert.equal(pressure.admit, false, 'memory pressure is an actual wait, never a silent substitution');
+    assert.match(pressure.reason, /together need about .* more than the .* available for inference/);
+    assert.match(admissionDecision([running, other], other, one, undefined).reason, /is not known/, 'unknown memory is never assumed to fit');
+    assert.match(admissionDecision([running, { ...other, modelBytes: undefined }], { ...other, modelBytes: undefined }, one, 64e9).reason, /is not known/);
+
+    assert.deepEqual(inferenceCapacity('OLLAMA', {}), { perModel: 1, source: 'its parallelism is not observed, so one request per model at a time' }, 'conservative start where capacity is uncertain');
+    assert.equal(inferenceCapacity('OLLAMA', { OLLAMA_NUM_PARALLEL: '4' }).perModel, 4);
+    assert.equal(inferenceCapacity('OLLAMA', { OLLAMA_NUM_PARALLEL: 'many' }).perModel, 1);
+    assert.equal(inferenceCapacity('LM_STUDIO', { OLLAMA_NUM_PARALLEL: '4' }).perModel, 1);
+});
+
+test('local models (LM07): a single-slot runtime queues uses across engines, a long tool call yields to a nested use and the resumed parent goes first', { timeout: 60_000 }, async (t) => {
+    const root = await temporaryDirectory(t);
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), OLLAMA_NUM_PARALLEL: '' };
+    const parent = await acquireInference(env, use(env));
+    assert.equal(parent.state, 'admitted');
+
+    // A second use waits, and the wait names the actual holder.
+    const waits = [];
+    let admitted = false;
+    const second = acquireInference(env, use(env, 'gpt-oss:20b', { tool: 'claude-local', purpose: 'read-only turn' }), { onWait: (wait) => waits.push(wait?.reason) }).then((lease) => ((admitted = true), lease));
+    await until(() => waits.length > 0, 'the second use to report its wait');
+    assert.match(waits[0], /^Waiting for local inference capacity: gpt-oss:20b serves 1 request at a time \(.*\)\. In use: codex-local \(gpt-oss:20b\) in demo \(turn\)\.$/);
+    assert.equal(admitted, false);
+    assert.deepEqual((await admissionQueue(env, 'OLLAMA@loopback:11434')).map((entry) => entry.state), ['admitted', 'waiting']);
+    await parent.release();
+    const next = await second;
+    assert.equal(waits.at(-1), undefined, 'admission after a wait is reported');
+    await next.release();
+
+    // A parent waiting for its nested consultation yields; the advisor runs on the same single slot.
+    const outer = await acquireInference(env, use(env));
+    let later;
+    let laterAdmitted = false;
+    const advice = await outer.during(async () => {
+        const advisor = await acquireInference(env, use(env, 'gpt-oss:20b', { purpose: 'read-only turn' }));
+        assert.equal(outer.state, 'yielded', 'the waiting parent holds no capacity');
+        // Newer work arriving meanwhile waits behind the parent, whose place in the queue is kept.
+        later = acquireInference(env, use(env, 'gpt-oss:20b', { tool: 'newer' })).then((lease) => ((laterAdmitted = true), lease));
+        await until(async () => (await admissionQueue(env, 'OLLAMA@loopback:11434')).some((entry) => entry.tool === 'newer'), 'the newer request to queue');
+        await advisor.release();
+        return 'advice';
+    });
+    assert.equal(advice, 'advice');
+    assert.equal(outer.state, 'admitted', 'the parent reacquired capacity before its result was returned');
+    assert.equal(laterAdmitted, false, 'the resumed parent continues before newer work');
+    await outer.release();
+    await (await later).release();
+    assert.deepEqual(await admissionQueue(env, 'OLLAMA@loopback:11434'), [], 'ended uses leave nothing behind');
+
+    // A crashed engine keeps no capacity; a cancelled request withdraws itself.
+    await writeFile(join(admissionDirectory(env, 'OLLAMA@loopback:11434'), '999999-dead.json'), JSON.stringify({ ...use(env), id: 'dead', pid: 999_999, startedAt: '2026-01-01T00:00:00.000Z', requestedAt: '2026-01-01T00:00:00.000Z', state: 'admitted', since: '2026-01-01T00:00:00.000Z' }));
+    const afterCrash = await acquireInference(env, use(env));
+    const controller = new AbortController();
+    const cancelled = acquireInference(env, use(env), { signal: controller.signal });
+    await until(async () => (await admissionQueue(env, 'OLLAMA@loopback:11434')).length === 2, 'the cancelled request to queue');
+    controller.abort();
+    await assert.rejects(cancelled);
+    assert.equal((await admissionQueue(env, 'OLLAMA@loopback:11434')).length, 1, 'the dead engine\'s record and the withdrawn request are gone');
+    await afterCrash.release();
+});
+
+test('local models (LM07): a turn on a single-slot runtime completes its nested TEAM consultation through the same runtime', { timeout: 120_000 }, async (t) => {
+    const { root, env, pool } = await localPool(t);
+    const instance = pool.instance('codex-local');
+    const inspection = pool.inspectionOf('codex-local');
+    const plugin = harnessPlugin('openai-codex');
+    const localRoute = pool.localRoute(instance, 'gpt-oss:20b');
+    assert.equal(localRoute.model.sizeBytes, LOCAL_MODEL.size, 'the route carries the model size for memory-aware admission');
+    const runEnv = { ...pool.context('codex-local').env, OLLAMA_NUM_PARALLEL: '' };
+    const run = async (prompt, extra = {}) => {
+        const directory = join(root, `turn-${Math.random().toString(36).slice(2)}`);
+        await mkdir(directory, { recursive: true });
+        const promptFile = join(directory, 'prompt.md');
+        await writeFile(promptFile, prompt);
+        return await runHarness(plugin, { projectRoot: root, cwd: directory, prompt, promptFile, model: 'gpt-oss:20b', localRoute, readOnly: true, env: runEnv, timeoutMs: 60_000, allowCredits: false, authentication: inspection.authentication, readableDirectories: [], ...extra }, inspection.executablePath);
+    };
+    const advisorWaits = [];
+    const bridge = await ToolBridge.start([
+        {
+            name: 'consult',
+            description: 'Consult a teammate.',
+            inputSchema: { type: 'object' },
+            handler: async () => {
+                const advice = await run('# Consultation\n\nYou are Developer.', { onAdmission: (wait) => advisorWaits.push(wait) });
+                return { text: advice.finalMessage };
+            },
+        },
+    ]);
+    t.after(() => bridge.close());
+    const result = await run('# Conversation\n\n## Conversation so far\n\n**@User** (now):\nHow should we start? CONSULT_TEAM\n\n## How to answer\n\nReply.\n', { mcp: bridge.launch() });
+    assert.equal(result.outcome, 'completed', result.diagnostic);
+    assert.match(result.finalMessage, /Developer advises: Fixture advice: keep it simple\./, 'the advisor ran on the slot its parent yielded');
+    if (advisorWaits.length) assert.equal(advisorWaits.at(-1), undefined, 'a reported advisor wait ended in admission');
+    assert.deepEqual(await admissionQueue(env, localRoute.resourceKey), [], 'no idle session keeps capacity');
+});
+
+test('local models (LM07): a local-only project answers a chat that consults a teammate through its single local runtime', { timeout: 240_000 }, async (t) => {
+    const beforeRemoval = [];
+    const directory = await temporaryDirectory(t, 'ptbk fixture', beforeRemoval);
+    const harness = await fakeHarness(t, directory);
+    const env = { ...harness.env, OLLAMA_NUM_PARALLEL: '' };
+    const ollama = await fakeOllama(t, { models: [LOCAL_MODEL] });
+    const project = join(directory, 'local project');
+    beforeRemoval.push(() => ptbk(['stop', '--force', '--raw', '--path', project], { cwd: directory, env }));
+    await initRepository(project);
+    const init = await ptbk(['init', '--path', project, '--non-interactive', '--installation', 'global', '--harness', 'local-models', '--local-runtime', 'ollama', '--local-endpoint', ollama.url, '--no-start', '--raw'], { cwd: directory, env });
+    assert.equal(init.code, 0, init.output);
+    const asked = await ptbk(['chat', 'How should we start? CONSULT_TEAM', '--raw'], { cwd: project, env });
+    assert.equal(asked.code, 0, asked.output);
+    assert.match(asked.stdout, /Developer advises: Fixture advice/, asked.output);
+    const runtime = JSON.parse((await ptbk(['tool', 'runtime', 'local-ollama', 'status', '--json'], { cwd: project, env })).stdout);
+    assert.equal(runtime.admission.perModel, 1, 'the runtime status shows the admission capacity it applied');
+    assert.ok(Array.isArray(runtime.admission.uses));
 });

@@ -1,6 +1,7 @@
 import { secretToken } from '../common/ids.js';
 import { ipcAddress, startIpcServer, type IpcServer } from '../common/ipc.js';
 import { engineModule } from '../common/version.js';
+import { duringBridgeCall } from '../inference/admission.js';
 import type { McpServerLaunch } from '../harness/types.js';
 
 /**
@@ -65,7 +66,8 @@ export class ToolBridge {
                 const tool = tools.find((candidate) => candidate.name === message.name);
                 if (!tool) return { text: `Unknown tool ${String(message.name)}.`, isError: true };
                 try {
-                    return await tool.handler(message.arguments ?? {});
+                    // While the turn waits for this tool (or a nested consultation), its local inference capacity is yielded.
+                    return await duringBridgeCall(address, async () => await tool.handler(message.arguments ?? {}));
                 } catch (error) {
                     return { text: error instanceof Error ? error.message : String(error), isError: true };
                 }
