@@ -152,6 +152,20 @@ async function chatExecution(context: ConversationContext, stored: StoredChat, a
 }
 
 /**
+ * Resolves and records a human-led chat's MODEL right after its first User message where no written reply does it: a
+ * first message spoken to a native voice frontend. It is the same resolution as a written reply (a fully specified
+ * choice is reused, otherwise one bounded Router consultation fills the missing constraints) and is recorded before the
+ * first reply message, so the voice frontend never stands in for the chat's backing MODEL.
+ *
+ * @private chats
+ */
+export async function establishChatModel(context: ConversationContext, chatName: string): Promise<{ readonly error?: string }> {
+    const { stored, agent } = await voiceSpeaker(context, chatName);
+    const execution = await chatExecution(context, stored, agent);
+    return 'error' in execution ? { error: execution.error } : {};
+}
+
+/**
  * The execution of a joined participant answering in a chat: the established execution of its task when it asked from
  * one, otherwise its own MODEL on a read-only-capable harness. The chat's MODEL (the main agent's) is not imposed and
  * nothing is recorded in the chat.

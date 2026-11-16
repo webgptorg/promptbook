@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { ensureDirectory, readJsonIfExists, writeFileAtomic, writeJsonAtomic } from '../common/fs.js';
 import { formatAgentReference } from '../book/references.js';
-import { voiceContext, voiceSpeaker, type ConversationContext } from '../chats/conversation.js';
+import { establishChatModel, voiceContext, voiceSpeaker, type ConversationContext } from '../chats/conversation.js';
 import type { ChatMessage } from '../chats/chat-book.js';
 import { VOICE_LEASE_MS, VoiceCall, type VoiceCallView } from '../chats/voice-call.js';
 import { harnessPlugin } from '../harness/registry.js';
@@ -11,6 +11,12 @@ import { VoiceUnavailableError, voiceSupport, type VoiceAvailability } from '../
 import { harnessPluginId } from '../tools/model.js';
 import { appendUsage, chatUsageFile, usageRecords } from './usage.js';
 import { nameKey } from '../tasks/model.js';
+
+/**
+ * Longest wait of a spoken reply for its chat's first MODEL resolution (a Router consultation); after it the reply is
+ * saved anyway and the resolution still records the MODEL.
+ */
+const MODEL_WAIT_MS = 120_000;
 
 /**
  * Availability of voice for one chat: every enabled registered instance, the chosen ready one and the guidance when
@@ -86,6 +92,36 @@ export class VoiceCalls {
     private readonly known = new Map<string, number>();
 
     public constructor(private readonly host: VoiceCallsHost) {}
+
+    /** Pending MODEL resolutions of chats whose first User message was spoken. */
+    private readonly models = new Map<string, Promise<void>>();
+
+    /**
+     * Resolves the chat's MODEL after its first spoken User message, exactly as a written reply would (a native voice
+     * frontend answers instead of the text path that normally does it).
+     */
+    private establishModel(chat: string): void {
+        const key = nameKey(chat);
+        if (this.models.has(key)) return;
+        const pending = establishChatModel(this.host.conversation(), chat)
+            .then((outcome) => {
+                if (outcome.error) this.host.log(`The MODEL of {${chat}} was not resolved after its first spoken message: ${outcome.error}`);
+            })
+            .catch((error: unknown) => this.host.log(`The MODEL of {${chat}} was not resolved after its first spoken message: ${error instanceof Error ? error.message : String(error)}`))
+            .finally(() => {
+                if (this.models.get(key) === pending) this.models.delete(key);
+            });
+        this.models.set(key, pending);
+    }
+
+    /** Waits (bounded) for a pending MODEL resolution, so the first reply follows the recorded MODEL. */
+    private async modelEstablished(chat: string): Promise<void> {
+        const pending = this.models.get(nameKey(chat));
+        if (!pending) return;
+        let timer: NodeJS.Timeout | undefined;
+        await Promise.race([pending, new Promise<void>((resolve) => (timer = setTimeout(resolve, MODEL_WAIT_MS)))]);
+        clearTimeout(timer);
+    }
 
     /** The live (or just ended) call of a chat. */
     public view(chat: string): VoiceCallView | undefined {
@@ -181,9 +217,12 @@ export class VoiceCalls {
                     }
                 },
                 append: async (chat, role, text, id) => {
+                    // Source order of a new chat: first User message, its MODEL, then the first reply.
+                    if (role !== 'user') await this.modelEstablished(chat);
                     const written = await context.chats.append(chat, { sender: role === 'user' ? '@User' : formatAgentReference(speaker.agent.name), text }, { trailers: { 'Chat-Voice': id } });
                     const position = written.chat.messages.length;
                     if (role === 'user') await this.markDispatched(chat, position);
+                    if (role === 'user' && written.chat.messages.filter((message) => message.senderKey === 'user').length === 1) this.establishModel(chat);
                     this.known.set(nameKey(chat), position);
                     return position;
                 },
