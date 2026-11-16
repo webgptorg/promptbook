@@ -734,3 +734,4 @@
 
 - App member-access state now preserves legacy owner credentials while serializing durable approval, removal,
   invitation and role transitions; failed writes cannot silently grant access and ticket/poll secrets stay hashed.
+- Complete dashboard access requests and member management: real passkey joining and consumable engine invitations, step-up protected approvals/roles/removals, persistent heartbeat v2 acknowledgments and verified dashboard revocations. Preserve existing owners, protect the last owner and recheck authority against concurrent revocation.

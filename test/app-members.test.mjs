@@ -89,3 +89,45 @@ test('members: concurrent demotions preserve the last owner and invite secrets a
     assert.equal(accepted.member.role, 'viewer');
     assert.equal((await access.acceptInvite(invite.secret, credential('repeat-key'))).kind, 'invalid');
 });
+
+test('members: a queued role change invalidates a previously authenticated approver', async t => {
+    const directory = await temporaryDirectory(t, 'ptbk stale authority');
+    const access = await AccessStore.open(directory);
+    await access.addMember({displayName:'Owner',role:'owner'});
+    const admin = await access.addMember({displayName:'Admin',role:'admin'});
+    const signed = await access.signIn(admin.id,null,null);
+    const actor = access.authenticate(signed.token,{ip:'127.0.0.1',userAgent:'test'});
+    const joined = await access.requestAccess(ticket('queued-ticket'),credential('queued-key'));
+    const request = access.accessRequests()[0];
+    const demotion = access.updateMember(admin.id,'viewer');
+    await assert.rejects(access.approveAccess(request.id,joined.code,'owner',actor),error=>error.code==='forbidden');
+    await demotion;
+    assert.equal(access.accessRequests().length,1);
+    assert.equal(access.members().length,2);
+});
+
+test('dashboard revocations: stale joins, disabled policy, pending requests, duplicate deliveries and durable acknowledgments', async t => {
+    const directory = await temporaryDirectory(t,'ptbk revocations');
+    const access = await AccessStore.open(directory);
+    await access.addMember({displayName:'Owner',role:'owner'});
+    const joined = await access.requestAccess(ticket('revoked-ticket','person'),credential('revoked-key'));
+    await access.approveAccess(access.accessRequests()[0].id,joined.code,'member');
+    const member = access.members().find(m=>m.dashboardUserId==='person');
+    const revocation = (id,at=new Date().toISOString())=>({revocationId:id,dashboardUserId:'person',issuedAt:at});
+    assert.equal(await access.applyRevocation(revocation('old',new Date(Date.now()-600000).toISOString())),'not-found');
+    assert.equal(access.member(member.id).status,'active');
+    await access.setDashboardRemovals(false);
+    assert.equal(await access.applyRevocation(revocation('disabled')),'refused-disabled');
+    await access.setDashboardRemovals(true);
+    assert.equal(await access.applyRevocation(revocation('fresh')),'revoked');
+    assert.equal(access.passkeys(member.id).length,0);
+    const reopened = await AccessStore.open(directory);
+    assert.equal(await reopened.applyRevocation(revocation('fresh')),'revoked');
+    const waiting = await reopened.requestAccess(ticket('new-ticket','person'),credential('new-key'));
+    await reopened.setDashboardRemovals(false);
+    await reopened.applyRevocation(revocation('pending'));
+    assert.equal((await reopened.joinStatus(waiting.request,null)).kind,'declined');
+    const sent = reopened.acks();
+    await reopened.acknowledge(sent.slice(0,1));
+    assert.equal((await AccessStore.open(directory)).acks().length,sent.length-1);
+});

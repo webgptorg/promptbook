@@ -1,3 +1,4 @@
+import { AccessDenied } from '../web/access.js';
 import { createHash } from 'node:crypto';
 import { stat } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
@@ -17,6 +18,7 @@ import type { AppSecurityFacts } from '../connection.js';
 import { decodeBase64Url, encodeBase64Url } from '../encoding.js';
 import type { AccessStore, Actor, StoredMember, StoredPasskey, StoredSession } from '../web/access.js';
 import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
+import { memberHandlers, memberView, MEMBER_ACTIONS } from './members.js';
 import { walletHandlers } from './wallet.js';
 import { taskHandlers } from './tasks.js';
 
@@ -25,7 +27,7 @@ import { taskHandlers } from './tasks.js';
  *
  * @private App engine API
  */
-export const ADVERTISED_CAPABILITIES: readonly { readonly id: string; readonly version: number }[] = [{ id: 'onboarding', version: 1 }];
+export const ADVERTISED_CAPABILITIES: readonly { readonly id: string; readonly version: number }[] = [{ id: 'onboarding', version: 1 }, { id: 'access-requests', version: 1 }, { id: 'members', version: 1 }];
 
 /**
  * The member ID shown as the creator of what the project itself defines (Books written in the repository).
@@ -320,9 +322,14 @@ export class EngineApi {
         const query = parse('query', route.query, request.query) as Record<string, unknown>;
         const body = route.body ? parse('body', route.body.schema, request.body) : undefined;
         if (errors.length) return fail('validation-failed', { errors: errors.slice(0, 50) });
-        if (route.permission && !actor.permissions.includes(route.permission as never)) return fail('forbidden', { requiredPermission: route.permission });
+        const deny = async (code: string): Promise<Outcome> => {
+            const audit = MEMBER_ACTIONS[route.id];
+            if (audit) await access.recordAudit(audit.action, actor, audit.kind, audit.param ? String(params?.[audit.param] ?? '') : undefined, 'denied', code);
+            return fail(code, code === 'forbidden' && route.permission ? { requiredPermission: route.permission } : {});
+        };
+        if (route.permission && !actor.permissions.includes(route.permission as never)) return await deny('forbidden');
         if (route.capability?.id === 'files' && !actor.permissions.includes('settings.manage')) return fail('forbidden', { requiredPermission: 'settings.manage' });
-        if (route.stepUp && !actor.stepUpFresh) return fail('step-up-required');
+        if (route.stepUp && !actor.stepUpFresh) return await deny('step-up-required');
         let outcome: Outcome;
         try {
             const state = await this.state();
@@ -345,6 +352,7 @@ export class EngineApi {
 
     /** A domain error as a contract problem (never with internal details). */
     private problemOf(error: unknown, route: ContractRoute): Outcome {
+        if (error instanceof AccessDenied) return fail(error.code);
         if (error instanceof PtbkError) {
             const kind = error.details.kind;
             if (route.capability?.id === 'wallet' && this.deps.agenda?.wallet.readiness !== 'ready') return fail('wallet-not-ready');
@@ -609,7 +617,7 @@ export class EngineApi {
 
     /** The members list entry of the contract. */
     private member(member: StoredMember, access: AccessStore): Record<string, unknown> {
-        return { id: member.id, displayName: member.displayName, role: member.role, status: member.status, createdAt: member.createdAt, lastSeenAt: member.lastSeenAt, passkeyCount: access.passkeys(member.id).length, dashboardUserId: null };
+        return memberView(member, access);
     }
 
     /** A passkey as the contract lists it. */
@@ -623,13 +631,13 @@ export class EngineApi {
     }
 
     /** The engine settings the API exposes. */
-    private settings(state: EngineApiState): Record<string, unknown> {
+    private settings(state: EngineApiState, access: AccessStore): Record<string, unknown> {
         const update = this.deps.agenda?.engineUpdate as { readonly isAutoUpdateEnabled?: boolean } | undefined;
         return {
             name: (state.settings.name ?? (this.deps.agenda?.snapshot().project.name ?? 'Pending initialization')).slice(0, 128) || 'Promptbook project',
             defaultAgentVisibility: state.settings.defaultAgentVisibility ?? 'private',
             updatePolicy: { policy: update?.isAutoUpdateEnabled === false ? 'manual' : 'auto', pinnedVersion: null },
-            dashboardRemovals: null,
+            dashboardRemovals: access.dashboardRemovals,
         };
     }
 
@@ -668,6 +676,7 @@ export class EngineApi {
     private readonly handlers: Readonly<Record<string, (context: Context) => Promise<Outcome>>> = {
         ...taskHandlers(includeHistory => this.agenda.taskReadSnapshot(includeHistory), opaqueIdOf, page),
         ...walletHandlers(() => this.agenda.wallet),
+        ...memberHandlers(() => this.deps.hostname(), page),
         getOnboarding: async () => ok(this.deps.onboarding?.state() ?? completedOnboarding),
         answerOnboarding: async ({ body }) => {
             if (!this.deps.onboarding) return fail('onboarding-prompt-stale');
@@ -931,17 +940,17 @@ export class EngineApi {
         revokePasskey: async ({ access, params }) => ((await access.revokePasskey(String(params.passkeyId))) ? ok(null) : fail('not-found')),
         listSessions: async ({ actor, access, query }) => page(access.sessions(typeof query.memberId === 'string' ? query.memberId : undefined).map((session) => this.session(session, actor)), query),
         revokeSession: async ({ access, params }) => ((await access.revokeSessions((session) => session.id === params.sessionId)) ? ok(null) : fail('not-found')),
-        getSettings: async ({ state }) => ok(this.settings(state)),
-        updateSettings: async ({ body, state }) => {
+        getSettings: async ({ state, access }) => ok(this.settings(state, access)),
+        updateSettings: async ({ body, state, access }) => {
             const input = body as { name?: string; defaultAgentVisibility?: AgentVisibility };
             await state.updateSettings({ ...(input.name !== undefined ? { name: input.name } : {}), ...(input.defaultAgentVisibility ? { defaultAgentVisibility: input.defaultAgentVisibility } : {}) });
-            return ok(this.settings(state));
+            return ok(this.settings(state, access));
         },
-        setUpdatePolicy: async ({ body, state }) => {
+        setUpdatePolicy: async ({ body }) => {
             const policy = (body as { policy: string }).policy;
             if (policy === 'pinned') return fail('validation-failed', { errors: [{ path: 'body.policy', message: 'This engine follows its update channel; pinning a version is not supported.' }] });
             await this.agenda.setAutoUpdate(policy === 'auto');
-            return ok(this.settings(state));
+            return ok({ policy, pinnedVersion: null });
         },
         getSecurityOverview: async () => ok(this.security()),
         listActivity: async ({ query }) => page([], query),

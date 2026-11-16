@@ -1,3 +1,5 @@
+import { protocol } from '../vendor/app-platform.js';
+import { decodeBase64Url } from './encoding.js';
 import type { LicenseUsage } from './license-usage.js';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import type { AppCertificateView, AppConnectionView, AppHeartbeatView, AppRelayView } from '../engine/snapshot.js';
@@ -407,6 +409,7 @@ export class AppConnection {
             access,
             engineId: identity.engineId,
             fingerprint: identity.fingerprint,
+            memberKey: registration.memberKey ? decodeBase64Url(registration.memberKey) : undefined,
             api: (request, actor) => web.api(request, actor, access),
             documents: web.documents,
             audit: web.audit,
@@ -441,7 +444,10 @@ export class AppConnection {
                 }),
         );
         for (const link of this.links) link.start();
+        let beating = false;
         const beat = async (): Promise<void> => {
+            if (beating) return;
+            beating = true;
             try {
                 const figures = this.options.figures();
                 const host = await hostFigures(this.options.directory);
@@ -449,14 +455,28 @@ export class AppConnection {
                 const access = this.access;
                 // Members who can sign in: at least one registered passkey (0 until the owner's first passkey).
                 const members = access ? access.members().filter((member) => access.passkeys(member.id).length > 0).length : figures.members;
-                const body = buildHeartbeat({ engineId: identity.engineId, seq, ts: new Date().toISOString(), version, uptimeS: process.uptime(), ...host, ...figures, members });
-                const result = await sendHeartbeat({ identity, dashboardUrl: registration.dashboardUrl, body, env: this.options.env, tls: this.options.tls });
+                const memberKey = registration.memberKey ? decodeBase64Url(registration.memberKey) : undefined;
+                if (access && memberKey) await access.settle();
+                const acknowledgments = access?.acks() ?? [];
+                const input = { engineId: identity.engineId, seq, ts: new Date().toISOString(), version, uptimeS: Math.floor(process.uptime()), ...host, ...figures, members };
+                const v2 = Boolean(access && memberKey);
+                const body = v2 ? protocol.buildHeartbeatV2({ ...input, accessRequests: access!.accessRequests().length, acks: acknowledgments }) : buildHeartbeat(input);
+                const { revocations, ...result } = await sendHeartbeat({ identity, dashboardUrl: registration.dashboardUrl, body, env: this.options.env, tls: this.options.tls, v2 });
                 if (!this.running || this.registration !== registration) return;
+                if (result.outcome === 'accepted' && access && memberKey) {
+                    await access.acknowledge(acknowledgments);
+                    for (const token of revocations ?? []) {
+                        const verified = await protocol.verifyMemberRevocation({ token, memberKey, engineId: identity.engineId });
+                        if (verified.kind === 'accepted') await access.applyRevocation(verified.revocation);
+                    }
+                }
                 this.heartbeat = { ...result, nextAt: new Date(Date.now() + this.heartbeatIntervalMs()).toISOString() };
                 if (result.skewMs !== undefined) this.clockSkew = { seconds: Math.round(result.skewMs / 1000), measuredAt: result.at };
                 if (result.outcome !== 'accepted') this.options.log?.(`The App heartbeat was ${result.outcome === 'refused' ? `refused (HTTP ${String(result.status)}${result.code ? `, ${result.code}` : ''})` : 'not delivered'}.`, 'warning');
             } catch (error) {
                 this.heartbeat = { at: new Date().toISOString(), outcome: 'failed', body: '', message: errorMessage(error) };
+            } finally {
+                beating = false;
             }
             this.options.onChange();
         };

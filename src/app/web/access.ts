@@ -207,6 +207,11 @@ export type Actor = {
     readonly client: { readonly ip: string; readonly userAgent: string };
 };
 
+/** Authorization changed while a write was queued. @private App gateway */
+export class AccessDenied extends Error {
+    public constructor(public readonly code: 'unauthenticated' | 'forbidden' | 'step-up-required') { super(code); }
+}
+
 /**
  * A new random opaque ID (base64url of 16 bytes, which the contract's ID pattern accepts).
  *
@@ -273,7 +278,7 @@ export class AccessStore {
             this.prune(draft);
             const result = operation(draft);
             try {
-                await writePrivateFile(this.directory, ACCESS_FILE, `${JSON.stringify(draft, null, 2)}\n`);
+                if (this.writeFailed || JSON.stringify(draft) !== JSON.stringify(this.state)) await writePrivateFile(this.directory, ACCESS_FILE, `${JSON.stringify(draft, null, 2)}\n`);
             } catch (error) {
                 this.writeFailed = true;
                 throw error;
@@ -286,6 +291,23 @@ export class AccessStore {
         // A failed write is returned to its caller, while the queue stays usable for a deliberate retry.
         this.writes = task.then(() => undefined, () => undefined);
         return task;
+    }
+
+    /** Rechecks current authority inside the write queue; even a racing revocation cannot grant stale authority. */
+    private async authorized<T>(actor: Actor | undefined, permission: Permission, action: string, kind: string | undefined, id: string | undefined, operation: (state: AccessState) => T, stepUp = true): Promise<T> {
+        const result = await this.mutate(state => {
+            if (actor) {
+                const session = state.sessions.find(item => item.id === actor.sessionId && item.memberId === actor.memberId);
+                const member = state.members.find(item => item.id === actor.memberId && item.status === 'active');
+                const code = !session || !member || !this.sessionAlive(session, state) ? 'unauthenticated'
+                    : !this.permissionsOf(member).includes(permission) ? 'forbidden'
+                    : stepUp && (!session.stepUpAt || Date.now() - Date.parse(session.stepUpAt) >= STEP_UP_WINDOW_MS) ? 'step-up-required' : undefined;
+                if (code) { this.auditIn(state, action, actor, kind, id, 'denied', code); return { denied: code } as const; }
+            }
+            return { value: operation(state) };
+        });
+        if ('denied' in result && result.denied) throw new AccessDenied(result.denied);
+        return (result as { value: T }).value;
     }
 
     /** Waits for the last write and propagates its failure. */
@@ -444,7 +466,7 @@ export class AccessStore {
     public async requestAccess(ticket: AccessTicket, credential: NewPasskey): Promise<{ kind: 'waiting'; code: string; request: string } | { kind: 'used' | 'already-member' | 'full' | 'invalid' }> {
         return await this.mutate(state => {
             const status = this.ticketStatusIn(state, ticket); if (status !== 'ok') return { kind: status };
-            if (!this.hasOwner || Date.parse(ticket.expiresAt) <= Date.now() || this.credentialExists(state, credential.credentialId)) return { kind: 'invalid' };
+            if (Date.parse(ticket.expiresAt) <= Date.now() || this.credentialExists(state, credential.credentialId)) return { kind: 'invalid' };
             for (const entry of state.joining) if (entry.dashboardUserId === ticket.dashboardUserId && entry.state === 'pending') this.closeRequest(state, entry);
             const code = String(randomInt(1_000_000)).padStart(6, '0'); const request = newOpaqueId(); const now = Date.now();
             state.spent.push({ id: ticket.ticketId, until: Date.parse(ticket.expiresAt) + protocol.ACCESS_TICKET_MAX_SKEW_MS });
@@ -460,7 +482,7 @@ export class AccessStore {
 
     /** Approves once, with per-request brute-force protection and an atomic member/passkey transition. */
     public async approveAccess(id: string, code: string, role: Role, actor?: Actor): Promise<{ kind: 'approved'; member: StoredMember } | { kind: 'not-found' | 'access-code-mismatch' }> {
-        return await this.mutate(state => {
+        return await this.authorized(actor, 'members.manage', 'access-request.approve', 'access-request', id, state => {
             const entry = state.joining.find(item => item.request.id === id && item.state === 'pending');
             if (!entry || !entry.credential) return { kind: 'not-found' };
             if (!digestsEqual(digest(code), entry.codeDigest)) {
@@ -477,7 +499,7 @@ export class AccessStore {
     }
 
     /** Declines a request, leaving the waiting browser a nonsecret outcome. */
-    public async declineAccess(id: string, actor?: Actor): Promise<boolean> { return await this.mutate(state => { const entry = state.joining.find(item => item.request.id === id && item.state === 'pending'); if (!entry) return false; this.closeRequest(state, entry); this.auditIn(state, 'access-request.decline', actor, 'access-request', id); return true; }); }
+    public async declineAccess(id: string, actor?: Actor): Promise<boolean> { return await this.authorized(actor, 'members.manage', 'access-request.decline', 'access-request', id, state => { const entry = state.joining.find(item => item.request.id === id && item.state === 'pending'); if (!entry) return false; this.closeRequest(state, entry); this.auditIn(state, 'access-request.decline', actor, 'access-request', id); return true; }, false); }
 
     /** The poll credential signs in exactly once, and is never a member/session ID. */
     public async joinStatus(request: string, client: StoredSession['client']): Promise<{ kind: 'waiting' | 'declined' | 'unknown' } | { kind: 'approved'; token: string }> {
@@ -494,7 +516,7 @@ export class AccessStore {
 
     /** Mutating a role uses the same transaction as counting the remaining owners. */
     public async updateMember(id: string, role: Role, actor?: Actor): Promise<{ kind: 'updated'; member: StoredMember } | { kind: 'not-found' | 'last-owner' }> {
-        return await this.mutate(state => { const member = state.members.find(item => item.id === id && item.status === 'active'); if (!member) return { kind: 'not-found' }; if (role !== 'owner' && this.lastOwner(state, member)) return { kind: 'last-owner' }; member.role = role; this.auditIn(state, 'member.update', actor, 'member', id); return { kind: 'updated', member }; });
+        return await this.authorized(actor, 'members.manage', 'member.update', 'member', id, state => { const member = state.members.find(item => item.id === id && item.status === 'active'); if (!member) return { kind: 'not-found' }; if (role !== 'owner' && this.lastOwner(state, member)) return { kind: 'last-owner' }; member.role = role; this.auditIn(state, 'member.update', actor, 'member', id); return { kind: 'updated', member }; });
     }
     /** Whether removing this owner would lock everyone out. */
     private lastOwner(state: AccessState, member: StoredMember): boolean { return member.role === 'owner' && state.members.filter(item => item.status === 'active' && item.role === 'owner').length <= 1; }
@@ -505,9 +527,9 @@ export class AccessStore {
         if (!fromDashboard && member.ticketId) this.ack(state, member.ticketId, 'removed');
     }
     /** Local member removal. */
-    public async removeMember(id: string, actor?: Actor): Promise<{ kind: 'removed' | 'not-found' | 'last-owner' }> { return await this.mutate(state => { const member = state.members.find(item => item.id === id && item.status === 'active'); if (!member) return { kind: 'not-found' }; if (this.lastOwner(state, member)) return { kind: 'last-owner' }; this.disable(state, member, false); this.auditIn(state, 'member.remove', actor, 'member', id); return { kind: 'removed' }; }); }
+    public async removeMember(id: string, actor?: Actor): Promise<{ kind: 'removed' | 'not-found' | 'last-owner' }> { return await this.authorized(actor, 'members.manage', 'member.remove', 'member', id, state => { const member = state.members.find(item => item.id === id && item.status === 'active'); if (!member) return { kind: 'not-found' }; if (this.lastOwner(state, member)) return { kind: 'last-owner' }; this.disable(state, member, false); this.auditIn(state, 'member.remove', actor, 'member', id); return { kind: 'removed' }; }); }
     /** Owner-controlled removal policy, separate from other settings. */
-    public async setDashboardRemovals(enabled: boolean, actor?: Actor): Promise<void> { await this.mutate(state => { state.dashboardRemovals = enabled; this.auditIn(state, 'settings.dashboard-removals', actor); }); }
+    public async setDashboardRemovals(enabled: boolean, actor?: Actor): Promise<void> { await this.authorized(actor, 'settings.manage', 'settings.dashboard-removals', undefined, undefined, state => { state.dashboardRemovals = enabled; this.auditIn(state, 'settings.dashboard-removals', actor); }); }
 
     /** Applies only a protocol-verified revocation; stale memberships and last-owner protection are checked atomically. */
     public async applyRevocation(revocation: { readonly revocationId: string; readonly dashboardUserId: string; readonly issuedAt: string }): Promise<HeartbeatAck['outcome']> {
@@ -537,7 +559,7 @@ export class AccessStore {
     public invites(): readonly Omit<StoredInvite, 'secretDigest'>[] { return this.state.invites.filter(invite => Date.parse(invite.expiresAt) > Date.now()).map(({ secretDigest: _secret, ...invite }) => invite); }
     /** Creates a 512-bit single-use invite understood by the existing join page, returning its secret once. */
     public async createInvite(input: { readonly role: Role; readonly expiresAt: string; readonly createdBy: string }, actor?: Actor): Promise<{ invite: Omit<StoredInvite, 'secretDigest'>; secret: string }> {
-        return await this.mutate(state => {
+        return await this.authorized(actor, 'members.manage', 'invite.create', undefined, undefined, state => {
             if (!(Date.parse(input.expiresAt) > Date.now())) throw new PtbkError('The invitation expiry must be in the future.', { kind: 'usage' });
             const secret = `invite.${encodeBase64Url(randomBytes(64))}`;
             const invite = { id: newOpaqueId(), ...input, createdAt: new Date().toISOString() };
@@ -548,7 +570,7 @@ export class AccessStore {
     /** Checks an invitation without consuming it, so a cancelled passkey prompt can be retried. */
     public inviteValid(secret: string): boolean { return /^invite\.[A-Za-z0-9_-]{86}$/.test(secret) && this.state.invites.some(invite => Date.parse(invite.expiresAt) > Date.now() && digestsEqual(invite.secretDigest, digest(secret))); }
     /** Revokes an unconsumed invitation. */
-    public async revokeInvite(id: string, actor?: Actor): Promise<boolean> { return await this.mutate(state => { const before = state.invites.length; state.invites = state.invites.filter(invite => invite.id !== id); if (before === state.invites.length) return false; this.auditIn(state, 'invite.revoke', actor, 'invite', id); return true; }); }
+    public async revokeInvite(id: string, actor?: Actor): Promise<boolean> { return await this.authorized(actor, 'members.manage', 'invite.revoke', 'invite', id, state => { const before = state.invites.length; state.invites = state.invites.filter(invite => invite.id !== id); if (before === state.invites.length) return false; this.auditIn(state, 'invite.revoke', actor, 'invite', id); return true; }, false); }
     /** The member manager preapproved an invite's role; verified registration atomically consumes that grant. */
     public async acceptInvite(secret: string, credential: NewPasskey): Promise<{ kind: 'invalid' } | { kind: 'approved'; member: StoredMember; request: string }> {
         return await this.mutate(state => {
@@ -561,7 +583,7 @@ export class AccessStore {
         });
     }
 
-    /** Adds a bounded, content-free audit record to the same transaction as the access change. */
+    /** Adds a content-free hash-chained audit record to the same transaction as the access change. */
     private auditIn(state: AccessState, action: string, actor?: Actor, kind?: string, id?: string, outcome: AccessAudit['outcome'] = 'success', code?: string): void {
         const previous = state.audit.at(-1);
         const entry: Omit<AccessAudit, 'hash'> = { id: newOpaqueId(), seq: (previous?.seq ?? 0) + 1, at: new Date().toISOString(), actor: actor ? { kind: 'member', memberId: actor.memberId } : { kind: 'system' }, action, target: kind && id ? { kind, id, name: null } : null, outcome, client: actor?.client ?? null, prevHash: previous?.hash ?? null, details: code ? { code } : null };
