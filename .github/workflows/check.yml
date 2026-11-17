@@ -20,7 +20,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node: ['22', '24']
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 40
+    # A green Windows run of check:full (suite, package tests and VS Code steps) takes 38–41 minutes; 40 cancelled
+    # releases whose every test had passed. The limit still bounds a hung job.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
         with:
