@@ -1,3 +1,5 @@
+import { acquireInference, bindBridgeLease, type InferenceLease } from '../inference/admission.js';
+import { registerConsumer } from '../inference/host.js';
 import { runProcess } from '../common/process.js';
 import { parseQuotaReset } from './quota-reset.js';
 import type { HarnessEvent, HarnessPlugin, HarnessRunRequest, ParserState, UsageObservation } from './types.js';
@@ -92,7 +94,7 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
     let usage: Record<string, number> | undefined;
     let costUsd: number | undefined;
     const observations: UsageObservation[] = [];
-    const startedAt = new Date().toISOString();
+    let startedAt = new Date().toISOString();
     let sessionId: string | undefined;
     const handle = (event: HarnessEvent): void => {
         switch (event.type) {
@@ -123,6 +125,39 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
         request.onEvent?.(event);
     };
     let result;
+    const purpose = request.readOnly ? 'read-only turn' : 'turn';
+    // A local run is an active consumer of the shared runtime service across engines (maintenance checks it); the
+    // record goes away with the run, so idle sessions never hold the runtime.
+    const releaseConsumer = request.localRoute
+        ? await registerConsumer(request.env, { resourceKey: request.localRoute.resourceKey, project: request.projectRoot, tool: request.localRoute.connection, ...(request.model ? { model: request.model } : {}), purpose }).catch(() => undefined)
+        : undefined;
+    // Local inference is admitted against the runtime's actual capacity across engines; the wait is reported, and the
+    // capacity is yielded while this turn waits for a bridged tool or nested consultation.
+    let lease: InferenceLease | undefined;
+    let unbind: (() => void) | undefined;
+    if (request.localRoute) {
+        const signals = [request.signal, request.interruptSignal].filter((signal): signal is AbortSignal => signal !== undefined);
+        try {
+            lease = await acquireInference(
+                request.env,
+                { runtime: request.localRoute.runtime, resourceKey: request.localRoute.resourceKey, project: request.projectRoot, tool: request.localRoute.connection, ...(request.model ? { model: request.model } : {}), ...(request.localRoute.model?.sizeBytes !== undefined ? { modelBytes: request.localRoute.model.sizeBytes } : {}), purpose },
+                {
+                    ...(signals.length ? { signal: AbortSignal.any(signals) } : {}),
+                    onWait: (wait) => {
+                        request.onAdmission?.(wait?.reason);
+                        if (wait) request.onEvent?.({ type: 'activity', text: wait.reason });
+                    },
+                },
+            );
+        } catch (error) {
+            await releaseConsumer?.().catch(() => undefined);
+            await invocation.cleanup?.().catch(() => undefined);
+            if (!signals.some((signal) => signal.aborted)) throw error;
+            return { outcome: 'cancelled', exitCode: null, finalMessage: '', messages: [], observations: [], startedAt, errors: [], diagnostic: `${plugin.displayName} was cancelled while waiting for local inference capacity.`, stdout: '', stderr: '', durationMs: 0 };
+        }
+        startedAt = new Date().toISOString();
+        if (request.mcp?.env.PTBK_BRIDGE_ADDRESS) unbind = bindBridgeLease(request.mcp.env.PTBK_BRIDGE_ADDRESS, lease);
+    }
     try {
         result = await runProcess(executable, invocation.args, {
             cwd: request.cwd,
@@ -140,6 +175,9 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
             onStderrLine: (line) => request.onOutput?.('stderr', line),
         });
     } finally {
+        unbind?.();
+        await lease?.release().catch(() => undefined);
+        await releaseConsumer?.().catch(() => undefined);
         await invocation.cleanup?.().catch(() => undefined);
     }
     if (state.pendingText) {
@@ -167,7 +205,9 @@ export async function runHarness(plugin: HarnessPlugin, request: HarnessRunReque
             const quotaResetAt = parseQuotaReset(failureText);
             return { ...base, outcome: 'quota', diagnostic: `${plugin.displayName} reported a quota/rate limit: ${reason}`, ...(quotaResetAt ? { quotaResetAt } : {}) };
         }
-        if (classified === 'authentication') return { ...base, outcome: 'authentication', diagnostic: `${plugin.displayName} reported missing authentication: ${reason}` };
+        // A credential-free local connection has no login to repair: its refusal is an ordinary failure of that route.
+        if (classified === 'authentication' && !request.localRoute) return { ...base, outcome: 'authentication', diagnostic: `${plugin.displayName} reported missing authentication: ${reason}` };
+        if (request.localRoute) return { ...base, outcome: 'failed', diagnostic: `${plugin.displayName} failed through the local ${request.localRoute.runtime === 'LM_STUDIO' ? 'LM Studio' : 'Ollama'} connection ${request.localRoute.connection}: ${reason}` };
         return { ...base, outcome: 'failed', diagnostic: `${plugin.displayName} failed: ${reason}` };
     }
     return { ...base, outcome: 'completed', diagnostic: `${plugin.displayName} completed its turn.` };

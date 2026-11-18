@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>Computer Control · Promptbook</title>
+    <link rel="stylesheet" href="/assets/computer.css">
+    <script defer src="/assets/computer.js"></script>
+</head>
+<body>
+    <header>
+        <a href="/">← Promptbook</a>
+        <strong>Computer Control</strong>
+        <span id="state" role="status">Connecting…</span>
+        <button id="view" type="button">View desktop</button>
+        <button id="take" type="button">Take control</button>
+        <button id="return" type="button">Return to agents</button>
+        <button id="permissions" type="button">System permissions</button>
+        <button id="stop" type="button" class="danger">Stop desktop</button>
+    </header>
+    <main>
+        <p id="notice">The primary screen of the computer running this engine. Taking control pauses agent input and observation until you return it.</p>
+        <div id="surface"><img id="screen" alt="Live primary desktop of the engine computer" tabindex="0" hidden draggable="false"></div>
+        <form id="typing" hidden><label for="text">Type on the computer</label><input id="text" type="text" autocomplete="off" spellcheck="false"><button type="submit">Type</button></form>
+    </main>
+</body>
+</html>

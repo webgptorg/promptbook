@@ -12,6 +12,7 @@ import type { BrowserDetailView } from '../engine/snapshot.js';
 import type { ControlOutcome } from '../service/actions.js';
 import { createRedactor } from '../common/redact.js';
 import { promptbookAppData } from '../common/app-data.js';
+import { protectDesktop } from '../computer/protection.js';
 import { BrowserRecorder, type ScreencastPort } from './recording.js';
 import { BROWSER_STARTUP_TIMEOUT_MS, BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
 import { TabReservations } from './tab-reservations.js';
@@ -422,8 +423,13 @@ export class ProjectBrowser {
     /** Profile directory of the current connection. */
     private connectedProfile?: string;
     private note?: string;
-    /** Configuration the connection was made with (retained while tasks use it). */
+    /** Configuration the connection was made with. */
     private connectedWith?: BrowserToolRecord;
+    /**
+     * The old configuration revision this instance keeps once the fleet retired it (changed profile, disabled or
+     * removed tool): it serves only the tasks that acquired it and is never offered to a new acquisition.
+     */
+    private retiredWith?: BrowserToolRecord;
     /** A connection in progress (concurrent automatic/manual attempts share it). */
     private connecting?: Promise<CdpConnection>;
     /** Observed health, diagnostics and recovery. */
@@ -517,22 +523,51 @@ export class ProjectBrowser {
         return Boolean(sessionId && this.connection?.pendingFor(sessionId));
     }
 
-    /** Configuration of the next use: the retained one while tasks use the connection, otherwise the saved one. */
+    /**
+     * Configuration of the next use: a retired revision keeps its own; otherwise the saved one (a saved change is never
+     * postponed until tasks release the browser: the fleet retires a connection whose profile no longer matches).
+     */
     private config(): BrowserToolRecord | undefined {
-        if (this.connection && this.sessions.size && this.connectedWith) return this.connectedWith;
-        return this.target()?.tool;
+        return this.retiredWith ?? this.target()?.tool;
     }
 
-    /** Whether active tasks of this engine use this browser. */
+    /** Whether active tasks of this engine have tabs or an attached recorder in this browser. */
     public get inUse(): boolean {
         return this.sessions.size > 0;
     }
 
-    /** Whether the connection still uses a configuration that was changed, disabled or removed meanwhile. */
+    /** Whether a task of this engine acquired this browser through an agent call (it keeps this revision until it ends). */
+    public get held(): boolean {
+        return [...this.sessions.values()].some((session) => session.acquired);
+    }
+
+    /** Scopes of the tasks that acquired this browser. */
+    public get holders(): string[] {
+        return [...this.sessions.values()].filter((session) => session.acquired).map((session) => session.scope);
+    }
+
+    /** Whether this is a retired old revision that only the tasks which acquired it still use. */
     public get retained(): boolean {
-        if (!this.connection || !this.connectedWith) return false;
-        const saved = this.target()?.tool;
-        return !saved || !saved.isEnabled || JSON.stringify(saved) !== JSON.stringify(this.connectedWith);
+        return Boolean(this.retiredWith);
+    }
+
+    /** The configuration revision a retired instance keeps. */
+    public get retainedRecord(): BrowserToolRecord | undefined {
+        return this.retiredWith;
+    }
+
+    /**
+     * Retires this instance: it keeps the configuration it connected with (or would have), serves only the tasks that
+     * acquired it and ends the merely attached sessions of other tasks, which acquire the new revision at their first use.
+     */
+    public async retire(): Promise<void> {
+        this.retiredWith ??= this.connectedWith ?? this.target()?.tool;
+        for (const [scope, session] of [...this.sessions]) {
+            if (session.acquired) continue;
+            this.sessions.delete(scope);
+            await session.release().catch(() => undefined);
+        }
+        this.onChange();
     }
 
     /** Re-reads the shared process's pool record (other engines joining or leaving) for diagnostics. */
@@ -593,15 +628,15 @@ export class ProjectBrowser {
         return {
             name: this.name,
             variant: effective?.variant ?? 'CHROME',
-            isEnabled: saved?.isEnabled ?? false,
+            isEnabled: retained ? false : (saved?.isEnabled ?? false),
             source: effective?.profile.source ?? 'MANAGED_GLOBAL',
             sourceLabel: effective ? describeProfileSource(effective.profile.source, effective.profile.path) : 'not configured',
             profilePath,
             savedProfile: target?.overridden ? 'overridden for this process (command-line flags); the saved tool stays in ptbk.json' : undefined,
             pending: retained
-                ? saved
-                    ? `Active tasks keep using the configuration they acquired; the saved change${savedPath && savedPath !== profilePath ? ` (profile ${savedPath})` : ''} applies once they release the browser.`
-                    : 'This tool was disabled or removed; the active tasks finish with it, no new selection uses it.'
+                ? saved?.isEnabled
+                    ? `Draining: the tasks that acquired this old configuration finish with it; new acquisitions already use the saved configuration${savedPath && savedPath !== profilePath ? ` (profile ${savedPath})` : ''}.`
+                    : 'Draining: this tool was disabled or removed; the tasks that acquired it finish with it, no new selection uses it.'
                 : undefined,
             retained: retained || undefined,
             inUse: this.inUse || undefined,
@@ -789,9 +824,10 @@ export class ProjectBrowser {
 
     /** One connection attempt to the configured profile's shared browser. */
     private async connectOnce(startupDeadline: number): Promise<CdpConnection> {
-        const tool = this.target()?.tool;
+        // A retired revision reconnects only to its own original profile for the tasks that acquired it.
+        const tool = this.retiredWith ?? this.target()?.tool;
         if (!tool) throw new PtbkError(`The browser tool "${this.name}" is not configured.`, { kind: 'configuration', next: ['Add a browser with `ptbk tool add BROWSER …`.'] });
-        if (!tool.isEnabled) throw new PtbkError(`The browser tool "${this.name}" is disabled.`, { kind: 'configuration', next: [`Enable it: ptbk tool enable ${this.name}`] });
+        if (!this.retiredWith && !tool.isEnabled) throw new PtbkError(`The browser tool "${this.name}" is disabled.`, { kind: 'configuration', next: [`Enable it: ptbk tool enable ${this.name}`] });
         const executable = await findBrowserExecutable(tool, this.env);
         if (!executable) throw new PtbkError(`No ${tool.variant === 'CHROME' ? 'Chrome-compatible' : tool.variant} browser is installed for "${this.name}".`, { kind: 'setup', next: [`Install Google Chrome or Chromium, or set its executable: ptbk tool modify ${this.name} --executable <path>`] });
         const source = tool.profile.source;
@@ -894,8 +930,8 @@ export class ProjectBrowser {
     }
 
     /**
-     * After a task: its tabs close (the browser stays connected for others) and a connection that kept a changed,
-     * disabled or removed configuration ends once no task uses it.
+     * After a task: its tabs close (the browser stays connected for others) and a retired revision's connection ends
+     * once no task uses it.
      */
     public async endSession(scope: string): Promise<void> {
         const session = this.sessions.get(scope);
@@ -966,6 +1002,11 @@ export class TaskBrowser {
     private yieldedRecording = false;
     /** This task received the raw DevTools endpoint (tab control states that it cannot be held back). */
     private rawEndpoint = false;
+    /**
+     * An agent call of this task selected the browser (an attached recorder alone is no acquisition): the task keeps
+     * this configuration revision until it ends, while new acquisitions resolve the saved configuration.
+     */
+    public acquired = false;
 
     public constructor(
         private readonly browser: ProjectBrowser,
@@ -973,7 +1014,7 @@ export class TaskBrowser {
         public readonly scope: string,
         private readonly project: Project,
         recordingEnabled: () => boolean,
-        env: NodeJS.ProcessEnv,
+        private readonly env: NodeJS.ProcessEnv,
     ) {
         this.recorder = new BrowserRecorder(project, recordingEnabled, env);
     }
@@ -1392,8 +1433,9 @@ export class TaskBrowser {
             if (!target.focused && target.visible && !target.covered && target.x !== undefined && target.y !== undefined) await this.mouse({ x: target.x, y: target.y }, {});
             if (!(await this.evaluate<boolean>(focusForEntryScript(ref, replace)))) throw staleReference(ref);
         } else if (replace) await this.evaluate<boolean>(focusForEntryScript(undefined, true));
-        if (target.secret) await this.recorder.pause('secret entry into a password/one-time-code field (not recorded)');
+        const unprotectDesktop = target.secret ? await protectDesktop(this.env, 'Protected browser input is in progress.') : undefined;
         try {
+            if (target.secret) await this.recorder.pause('secret entry into a password/one-time-code field (not recorded)');
             if (replace && !text) await this.key(parseKeyPress('Backspace'));
             const lines = target.singleLine ? [text] : text.split(/\r?\n/);
             for (const [index, line] of lines.entries()) {
@@ -1404,7 +1446,7 @@ export class TaskBrowser {
         } finally {
             if (target.secret) {
                 await delay(SUBMIT_SETTLE_MS);
-                await this.recorder.resume();
+                try { await this.recorder.resume(); } finally { await unprotectDesktop?.(); }
             }
         }
         await delay(input.submit ? SUBMIT_SETTLE_MS : TYPE_SETTLE_MS);
@@ -1623,8 +1665,9 @@ export class TaskBrowser {
      * approval elsewhere: neither is a rejection or a signed-in session.
      */
     private async walletSignIn(credentials: SignInCredentials): Promise<SignInAttempt> {
-        await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
+        const unprotectDesktop = await protectDesktop(this.env, 'The Wallet is entering protected credentials.');
         try {
+            await this.recorder.pause('Wallet sign-in (credentials are not recorded)');
             let scan = await this.scanLogin();
             const elsewhere = (current: LoginScan): SignInAttempt | undefined => (originMatches(credentials.origin, current.origin) ? undefined : { result: 'no-form', note: `the page moved to ${current.origin}, which this login does not belong to` });
             /** Fills the form's additional fields the saved ones answer; the labels of required unanswered ones. */
@@ -1682,8 +1725,9 @@ export class TaskBrowser {
             }
             return { result: 'signed-in' };
         } finally {
-            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
-            await this.recorder.resume();
+            const cleared = await this.evaluate<boolean>(clearLoginFieldsScript()).catch(() => false);
+            // Do not reopen whole-desktop access when clearing protected values could not be verified.
+            try { await this.recorder.resume(); } finally { if (cleared) await unprotectDesktop(); }
         }
     }
 
@@ -1693,8 +1737,9 @@ export class TaskBrowser {
      * approval asked for next is a further step.
      */
     private async walletEnterCode(origin: string, code: string): Promise<SignInAttempt> {
-        await this.recorder.pause('Wallet one-time code entry (the code is not recorded)');
+        const unprotectDesktop = await protectDesktop(this.env, 'The Wallet is entering a protected one-time code.');
         try {
+            await this.recorder.pause('Wallet one-time code entry (the code is not recorded)');
             const scan = await this.scanLogin();
             if (!originMatches(origin, scan.origin)) return { result: 'no-form', note: `the page moved to ${scan.origin}` };
             if (!scan.otp) return { result: 'no-form', note: 'no one-time code field is shown' };
@@ -1708,8 +1753,9 @@ export class TaskBrowser {
             if (after.approval) return APPROVAL_ASKED;
             return { result: 'signed-in' };
         } finally {
-            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
-            await this.recorder.resume();
+            const cleared = await this.evaluate<boolean>(clearLoginFieldsScript()).catch(() => false);
+            // Do not reopen whole-desktop access when clearing protected values could not be verified.
+            try { await this.recorder.resume(); } finally { if (cleared) await unprotectDesktop(); }
         }
     }
 
@@ -1719,8 +1765,9 @@ export class TaskBrowser {
      * again means the website did not accept it. Nothing stays readable in the page, also when it was refused.
      */
     private async walletSubmitNewPassword(entry: { readonly origin: string; readonly password: string; readonly current?: string }): Promise<NewPasswordAttempt> {
-        await this.recorder.pause('Wallet password entry (the password is not recorded)');
+        const unprotectDesktop = await protectDesktop(this.env, 'The Wallet is entering a protected password.');
         try {
+            await this.recorder.pause('Wallet password entry (the password is not recorded)');
             const scan = await this.scanLogin();
             const form = await this.evaluate<NewPasswordScan>(newPasswordFormScript());
             if (!originMatches(entry.origin, form.origin)) return { result: 'no-form', note: `the page moved to ${form.origin}` };
@@ -1736,8 +1783,9 @@ export class TaskBrowser {
             if (originMatches(entry.origin, after.origin) && after.path === form.path && after.fresh.length === form.fresh.length) return { result: 'rejected', note: 'the website showed the form again' };
             return { result: 'accepted', ...(next.otp ? { note: 'the site asks for a one-time code next' } : next.approval ? { note: 'the site asks to approve this in its app or on another device' } : {}) };
         } finally {
-            await this.evaluate(clearLoginFieldsScript()).catch(() => undefined);
-            await this.recorder.resume();
+            const cleared = await this.evaluate<boolean>(clearLoginFieldsScript()).catch(() => false);
+            // Do not reopen whole-desktop access when clearing protected values could not be verified.
+            try { await this.recorder.resume(); } finally { if (cleared) await unprotectDesktop(); }
         }
     }
 

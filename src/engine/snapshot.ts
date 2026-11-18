@@ -1,3 +1,4 @@
+import type { LicenseUsage } from '../app/license-usage.js';
 import type { DesktopFilesView } from './desktop-files.js';
 import type { ChatRecheckView } from '../chats/service.js';
 import type { ChatPingView, ChatSummary } from '../chats/store.js';
@@ -309,6 +310,10 @@ export type HarnessView = {
     readonly usable: boolean;
     readonly summary: string;
     readonly version?: string;
+    /** The adapter supports separate native account contexts (`accountProfile`); absent from older engines. */
+    readonly accountProfiles?: boolean;
+    /** Endpoints the adapter can reach besides the official one; absent from older engines. */
+    readonly endpoints?: { readonly local: boolean; readonly custom: boolean };
 };
 
 /**
@@ -377,6 +382,8 @@ export type AppHeartbeatView = {
  * @private shared status view model
  */
 export type AppConnectionView = {
+    /** Content-free local commercial diagnostics, independent of heartbeat v1 and license enforcement. */
+    readonly licenseUsage?: LicenseUsage;
     /**
      * `offline` for a linked project whose engine is not running, `disabled` in runs without an App connection
      * (maintenance), `problem` when it cannot run at all.
@@ -620,7 +627,7 @@ export type BrowserDetailView = {
  */
 export type ToolView = {
     readonly name: string;
-    readonly type: 'BROWSER' | 'HARNESS';
+    readonly type: 'BROWSER' | 'HARNESS' | 'INFERENCE_RUNTIME' | 'COMPUTER_CONTROL';
     readonly variant: string;
     /** Display name of the adapter (e.g. OpenAI Codex). */
     readonly variantLabel: string;
@@ -636,12 +643,46 @@ export type ToolView = {
     readonly recheckAt?: string;
     /** Held by active work right now. */
     readonly inUse: boolean;
-    /** Active work keeps an acquired old configuration of this (changed/disabled/removed) tool. */
+    /**
+     * A separate, current-work-only entry: active work keeps this acquired old configuration revision of a changed,
+     * disabled or removed tool. It is never counted for readiness or offered to new selections, and a saved tool of
+     * the same name is another entry.
+     */
     readonly retained?: boolean;
+    /** The work holding a retained revision (its task or chat). */
+    readonly owner?: string;
+    /** Short identifier of the acquired configuration revision of a retained entry (distinguishes same-name tools). */
+    readonly revision?: string;
     /** Changed only for this invocation (command-line overrides), not saved. */
     readonly overridden?: boolean;
     /** Non-secret configuration fields (an API key appears only as its `${{ env.NAME }}` reference and source). */
     readonly fields: Readonly<Record<string, string>>;
+    /** Observed host resource of an INFERENCE_RUNTIME item (Local models): service, catalog and dependents. */
+    readonly runtime?: RuntimeToolDetail;
+};
+
+/**
+ * Observed state of a local model runtime for the Local models views (read-only observation, never a setting).
+ *
+ * @private shared status view model
+ */
+export type RuntimeToolDetail = {
+    readonly endpoint: string;
+    readonly endpointSource: 'configured' | 'discovered';
+    /** Served on the engine host (a remote endpoint never satisfies local-only MODEL). */
+    readonly onEngineHost: boolean;
+    readonly running: boolean;
+    readonly version?: string;
+    readonly models: ReadonlyArray<{ readonly id: string; readonly installed: boolean; readonly locality: 'local' | 'cloud' | 'unknown'; readonly loaded?: boolean; readonly sizeBytes?: number; readonly quantization?: string; readonly parameterSize?: string; readonly tools: boolean | 'unknown'; readonly vision: boolean | 'unknown' }>;
+    /** Harness connections of this project that use the runtime. */
+    readonly dependents: readonly string[];
+    /** Concurrent requests per model admitted across engines, and where that estimate comes from. */
+    readonly capacity: { readonly perModel: number; readonly source: string };
+    /** Downloads that did not complete (interrupted, cancelled, failed, or still running elsewhere): resumable, never installed. */
+    readonly partialDownloads: ReadonlyArray<{ readonly model: string; readonly state: 'running' | 'interrupted' | 'cancelled' | 'failed'; readonly completedBytes?: number; readonly totalBytes?: number; readonly updatedAt: string; readonly problem?: string }>;
+    /** Host maintenance actions the adapter supports. */
+    readonly actions: readonly string[];
+    readonly checkedAt: string;
 };
 
 /**
@@ -651,10 +692,34 @@ export type ToolView = {
  */
 export type ToolsView = {
     readonly items: readonly ToolView[];
+    /** The engine's current or last local models operation (setup, download, service action) with honest progress. */
+    readonly localJob?: LocalModelsJobView;
     /** What new work waits for (no enabled usable browser/harness), with the concrete action; `automatic` when it only waits for known rechecks (no human action). */
     readonly waiting?: { readonly reason: string; readonly action: string; readonly automatic?: boolean };
     /** Configuration problems of `tools` (collisions, unknown variants, inline secrets) awaiting repair. */
     readonly problems: readonly string[];
+};
+
+/**
+ * One local models operation of the engine host: guided setup or a runtime action. Stages are operation/resource
+ * observations, never engine lifecycle states.
+ *
+ * @private shared status view model
+ */
+export type LocalModelsJobView = {
+    readonly id: string;
+    readonly kind: 'setup' | 'runtime';
+    readonly label: string;
+    /** Setup stage (`discovering`, `installing`, `downloading`, `verifying` …) or the runtime action. */
+    readonly stage: string;
+    readonly state: 'running' | 'completed' | 'failed' | 'cancelled' | 'refused' | 'unsupported';
+    readonly message: string;
+    readonly completedBytes?: number;
+    readonly totalBytes?: number;
+    readonly startedAt: string;
+    readonly endedAt?: string;
+    /** Notes and remaining steps of a finished operation. */
+    readonly notes?: readonly string[];
 };
 
 /**

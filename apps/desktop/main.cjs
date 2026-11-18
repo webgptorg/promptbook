@@ -8,6 +8,11 @@ const { join, resolve, basename, delimiter } = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { ACTIONS, VOICE_INTENT_PATH, localDashboardUrl, terminalArguments, dashboardPage, terminalSize, voiceIntent, editorAsset, desktopPolicy, workspaceState, movedDocument } = require('./model.cjs');
 const { createPromptServer } = require('./prompt-server.cjs');
+const { DesktopUpdates } = require('./updates.cjs');
+
+/** Desktop version and engine versions have independent lifetimes, especially on Windows. */
+const desktopUpdates = new DesktopUpdates({ current: app.getVersion(), platform: process.platform, arch: process.arch, packaged: app.isPackaged,
+    changed: (update) => { for (const entry of windows.values()) emit(entry, { type: 'update', update }); } });
 
 /** macOS packages carry their own CLI runtime and use native application menus. */
 const isMac = process.platform === 'darwin';
@@ -449,11 +454,19 @@ function restoreWindows(options) {
 /** Location of the same product icon used by the installer. */
 function iconPath() { return app.isPackaged ? join(process.resourcesPath, 'icon.ico') : join(__dirname, 'icon.ico'); }
 
-/** macOS expects a small PNG for its menu bar; the app bundle supplies the Dock icon. */
+/** macOS tints the transparent template to match the menu bar, independently of the app's selected theme. */
 function trayIcon() {
     if (!isMac) return iconPath();
     const logo = app.isPackaged ? join(process.resourcesPath, 'tray.png') : join(__dirname, '../../design/logo-blue-transparent-256.png');
-    return nativeImage.createFromPath(logo).resize({ width: 18, height: 18 });
+    const source = nativeImage.createFromPath(logo);
+    const bitmap = source.toBitmap();
+    // Template images use black pixels and the logo's original alpha mask (BGRA).
+    for (let offset = 0; offset < bitmap.length; offset += 4) bitmap.fill(0, offset, offset + 3);
+    const monochrome = nativeImage.createFromBitmap(bitmap, source.getSize());
+    const icon = monochrome.resize({ width: 18, height: 18 });
+    icon.addRepresentation({ scaleFactor: 2, dataURL: monochrome.resize({ width: 36, height: 36 }).toDataURL() });
+    icon.setTemplateImage(true);
+    return icon;
 }
 
 /** Graceful or explicitly forced host-wide quit, using current registry/controller state on every pass. */
@@ -512,6 +525,7 @@ async function refreshTray() {
         ...(problem || host?.problem ? [{ label: 'Discovery unavailable — open to inspect', click: () => createWindow() }] : []),
         { type: 'separator' },
         { label: 'About Promptbook', click: () => app.showAboutPanel() },
+        { label: 'Check for updates…', click: () => { if (!windows.size) createWindow(); void desktopUpdates.check(); } },
         { label: quitInProgress ? 'Stopping engines…' : 'Quit Promptbook and engines…', enabled: !quitInProgress, click: () => void quitAll() },
     ];
     tray.setContextMenu(Menu.buildFromTemplate(items));
@@ -520,6 +534,17 @@ async function refreshTray() {
 }
 
 ipcMain.handle('desktop:observe', async (event) => { owner(event); return { ...await controller('observe'), home: app.getPath('home'), version: app.getVersion() }; });
+ipcMain.handle('desktop:update', (event, action) => {
+    owner(event);
+    if (action === 'check') return desktopUpdates.check();
+    if (action === 'download') {
+        const release = desktopUpdates.state.available;
+        if (!release) throw new Error('No matching desktop installer is known. Check for updates first.');
+        return shell.openExternal(release.url);
+    }
+    if (action !== undefined) throw new Error('Invalid update action.');
+    return desktopUpdates.state;
+});
 ipcMain.handle('desktop:theme', (event, source) => {
     owner(event);
     if (source === undefined) return nativeTheme.themeSource;
@@ -848,6 +873,7 @@ if (!app.requestSingleInstanceLock()) app.exit(0);
 if (process.argv.includes('--quit-client')) app.exit(0);
 app.on('second-instance', (_event, argv) => { if (argv.includes('--quit-client')) { quitting = true; app.quit(); } else if (!argv.includes('--tray')) createWindow(launchOptions(argv)); });
 app.on('window-all-closed', () => {});
+app.on('will-quit', () => desktopUpdates.stop());
 app.on('before-quit', () => { quitting = true; saveWorkspaces(true); for (const entry of windows.values()) for (const id of entry.terminals.keys()) closeTerminal(entry, id); if (bridge?.connected) bridge.disconnect(); if (clipboardDirectory) void clipboardDirectory.then((directory) => rm(directory, { recursive: true, force: true })).catch(() => {}); });
 
 /** Startup initializes only the client adapter and tray; it never calls project Start/Resume. */
@@ -856,6 +882,7 @@ const ready = app.whenReady().then(async () => {
 });
 void app.whenReady().then(async () => {
     loadTheme();
+    desktopUpdates.start();
     loadWorkspaces();
     app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/', copyright: 'Promptbook — your AI, on your machine' });
     tray = new Tray(trayIcon());
@@ -881,6 +908,7 @@ void app.whenReady().then(async () => {
         ] }] : []),
         { label: 'File', submenu: [{ label: 'New window', accelerator: 'CmdOrCtrl+Shift+N', click: () => createWindow() }, { label: 'New project…', click: () => createWindow({ init: true }) }, { type: 'separator' }, { role: 'close' }, { label: 'Quit Promptbook and engines…', click: () => void quitAll() }] },
         { role: 'editMenu' }, { role: 'viewMenu' },
+        { label: 'Updates', submenu: [{ label: 'Check for updates…', click: () => { if (!windows.size) createWindow(); void desktopUpdates.check(); } }] },
         ...(isMac ? [{ role: 'windowMenu' }] : [{ label: 'Help', submenu: [{ label: 'About Promptbook', click: () => app.showAboutPanel() }] }]),
     ]);
     Menu.setApplicationMenu(menu);

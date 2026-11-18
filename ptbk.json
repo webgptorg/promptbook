@@ -1,5 +1,5 @@
 {
-    "promptbookVersion": "0.119.0-89",
+    "promptbookVersion": "0.119.0-99",
     "execution": {
         "check": "npm run check"
     },
@@ -33,6 +33,12 @@
             "name": "claude-code",
             "isEnabled": false,
             "authentication": "NATIVE"
+        },
+        {
+            "type": "COMPUTER_CONTROL",
+            "variant": "NATIVE",
+            "name": "computer-control",
+            "isEnabled": true
         }
     ],
     "initialized": {

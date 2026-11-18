@@ -1,3 +1,4 @@
+import { protocol } from '../vendor/app-platform.js';
 import { statfs } from 'node:fs/promises';
 import { cpus, freemem, loadavg, totalmem } from 'node:os';
 import { encodeBase64Url } from './encoding.js';
@@ -163,6 +164,8 @@ export type HeartbeatResult = {
     /** The exact body sent (numbers only), so the owner sees everything the App learns. */
     readonly body: string;
     readonly message?: string;
+    /** Verified reply shape only; signed revocations are consumed by the connection and never exposed in snapshots. */
+    readonly revocations?: readonly string[];
 };
 
 /**
@@ -176,6 +179,7 @@ export async function sendHeartbeat(input: {
     readonly body: Uint8Array;
     readonly env: NodeJS.ProcessEnv;
     readonly tls?: TestTlsOptions;
+    readonly v2?: boolean;
 }): Promise<HeartbeatResult> {
     const at = new Date().toISOString();
     const text = new TextDecoder().decode(input.body);
@@ -185,12 +189,19 @@ export async function sendHeartbeat(input: {
             method: 'POST',
             headers: { 'content-type': 'application/json', [HEARTBEAT_SIGNATURE_HEADER.toLowerCase()]: await signHeartbeat(input.identity, input.body) },
             body: input.body,
-            maxResponseBytes: 72 * 1024,
+            maxResponseBytes: protocol.HEARTBEAT_REPLY_MAX_BYTES,
             timeoutMs: 20_000,
             env: input.env,
             tls: input.tls,
         });
-        if (response.status >= 200 && response.status < 300) return { at, outcome: 'accepted', status: response.status, body: text };
+        if (response.status >= 200 && response.status < 300) {
+            if (!input.v2) return { at, outcome: 'accepted', status: response.status, body: text };
+            let parsed: unknown;
+            try { parsed = JSON.parse(response.body.toString('utf8')); } catch { /* invalid reply is retried at the next tick */ }
+            const reply = protocol.TolerantHeartbeatReply.safeParse(parsed);
+            if (response.status !== 200 || !reply.success) return { at, outcome: 'failed', status: response.status, body: text, message: 'The dashboard heartbeat reply is invalid.' };
+            return { at, outcome: 'accepted', status: response.status, body: text, revocations: reply.data.revocations };
+        }
         let code: string | undefined;
         let skewMs: number | undefined;
         try {

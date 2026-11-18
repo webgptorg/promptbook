@@ -69,5 +69,14 @@ jobs:
             test -n "$(find ~/.config/systemd/user -name "ptbk-agenda-*.service" -print -quit)"
             test "$(loginctl show-user promptbook --property=Linger --value)" = yes
             ptbk stop --raw
-            ptbk start --resume-service --non-interactive --raw | grep "stopped intentionally"
+            ptbk start --resume-service --non-interactive --raw
+            ptbk status --json | node -e '
+              const assert = require("node:assert/strict");
+              const snapshot = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+              assert.equal(snapshot.service.state, "pause", "OS startup restores deliberately stopped work paused");
+              assert.ok(snapshot.service.pid > 0, "the restored service is running");
+              assert.ok(snapshot.service.pauseReasons.some(reason => reason.kind === "manual"), "manual Resume is required");
+              assert.equal((snapshot.active ?? []).length, 0, "restoration starts no task");
+            '
+            ptbk stop --raw
           SMOKE

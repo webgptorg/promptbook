@@ -19,7 +19,7 @@ export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
  *
  * @private shared tool contract
  */
-export const TOOL_TYPES = ['BROWSER', 'HARNESS'] as const;
+export const TOOL_TYPES = ['BROWSER', 'HARNESS', 'INFERENCE_RUNTIME', 'COMPUTER_CONTROL'] as const;
 
 /**
  * One tool category.
@@ -58,6 +58,21 @@ export const HARNESS_VARIANTS = ['OPENAI_CODEX', 'CLAUDE_CODE', 'GITHUB_COPILOT'
 export type HarnessVariant = (typeof HARNESS_VARIANTS)[number];
 
 /**
+ * Supported inference runtimes (shared host services and model stores presented as **Local models**). A runtime serves
+ * models; it is never a harness or an agent loop of its own.
+ *
+ * @private shared tool contract
+ */
+export const INFERENCE_RUNTIME_VARIANTS = ['OLLAMA', 'LM_STUDIO'] as const;
+
+/**
+ * One inference runtime adapter.
+ *
+ * @private shared tool contract
+ */
+export type InferenceRuntimeVariant = (typeof INFERENCE_RUNTIME_VARIANTS)[number];
+
+/**
  * Where a browser tool's profile comes from.
  *
  * - `MANAGED_GLOBAL`: the dedicated Promptbook profile of this OS user (default)
@@ -77,11 +92,13 @@ export const PROFILE_SOURCES = ['MANAGED_GLOBAL', 'PROJECT', 'USER_EXISTING', 'C
 export type ProfileSource = (typeof PROFILE_SOURCES)[number];
 
 /**
- * How a harness instance authenticates: its native account/subscription context or an explicit API key.
+ * How a harness instance authenticates: its native account/subscription context, an explicit API key, or `NONE` for an
+ * explicitly supported credential-free connection (normally local inference), which never inherits native or cloud
+ * authentication.
  *
  * @private shared tool contract
  */
-export const AUTHENTICATION_MODES = ['NATIVE', 'API_KEY'] as const;
+export const AUTHENTICATION_MODES = ['NATIVE', 'API_KEY', 'NONE'] as const;
 
 /**
  * One authentication mode.
@@ -145,7 +162,7 @@ export type HarnessToolRecord = ToolCommon & {
     readonly type: 'HARNESS';
     readonly variant: HarnessVariant;
     readonly authentication: AuthenticationMode;
-    /** `${{ env.NAME }}` reference only (active for API_KEY, inactive metadata for NATIVE). */
+    /** `${{ env.NAME }}` reference only (active for API_KEY, inactive metadata for NATIVE and NONE). */
     readonly apiKey?: string;
     /** Non-secret reference to a distinct adapter-supported native login context. */
     readonly accountProfile?: string;
@@ -154,6 +171,41 @@ export type HarnessToolRecord = ToolCommon & {
      * secrets. Omitted: the plugin's official endpoint.
      */
     readonly baseUrl?: string;
+    /**
+     * Name of the project's `INFERENCE_RUNTIME` tool serving a managed local connection (`baseUrl: LOCAL`). The harness
+     * adapter translates it to its actual provider/transport configuration per invocation, never globally.
+     */
+    readonly inferenceRuntime?: string;
+};
+
+/**
+ * A project reference to a shared inference runtime on the engine host. Installed versions, model weights, downloads
+ * and active consumers are observed machine state, never saved here.
+ *
+ * @private shared tool contract
+ */
+export type InferenceRuntimeToolRecord = ToolCommon & {
+    readonly type: 'INFERENCE_RUNTIME';
+    readonly variant: InferenceRuntimeVariant;
+    /** Non-secret local service URL; omitted: the adapter discovers its supported local service. */
+    readonly endpoint?: string;
+};
+
+/**
+ * Native desktop adapters; input always targets the engine host's logged-in graphical session.
+ *
+ * @private shared tool contract
+ */
+export const COMPUTER_CONTROL_VARIANTS = ['NATIVE'] as const;
+
+/**
+ * Engine-owned access to the host's primary desktop. Image recording is off; live screenshots are ephemeral.
+ *
+ * @private shared tool contract
+ */
+export type ComputerControlToolRecord = ToolCommon & {
+    readonly type: 'COMPUTER_CONTROL';
+    readonly variant: (typeof COMPUTER_CONTROL_VARIANTS)[number];
 };
 
 /**
@@ -161,7 +213,7 @@ export type HarnessToolRecord = ToolCommon & {
  *
  * @private shared tool contract
  */
-export type ToolRecord = BrowserToolRecord | HarnessToolRecord;
+export type ToolRecord = BrowserToolRecord | HarnessToolRecord | InferenceRuntimeToolRecord | ComputerControlToolRecord;
 
 /**
  * Canonical fields of each tool type, in their saved order (used for tolerant key matching and serialization).
@@ -169,8 +221,10 @@ export type ToolRecord = BrowserToolRecord | HarnessToolRecord;
  * @private shared tool contract
  */
 export const TOOL_FIELDS: Readonly<Record<ToolType, readonly string[]>> = {
+    COMPUTER_CONTROL: ['type', 'variant', 'name', 'description', 'isEnabled'],
     BROWSER: ['type', 'variant', 'name', 'description', 'isEnabled', 'profile', 'isHeadless', 'executable'],
-    HARNESS: ['type', 'variant', 'name', 'description', 'isEnabled', 'authentication', 'apiKey', 'accountProfile', 'baseUrl'],
+    HARNESS: ['type', 'variant', 'name', 'description', 'isEnabled', 'authentication', 'apiKey', 'accountProfile', 'baseUrl', 'inferenceRuntime'],
+    INFERENCE_RUNTIME: ['type', 'variant', 'name', 'description', 'isEnabled', 'endpoint'],
 };
 
 /**
@@ -190,7 +244,7 @@ export function toolRuntime(tool: Pick<HarnessToolRecord, 'baseUrl'>): string {
  * @private shared tool contract
  */
 export function variantsOf(type: ToolType): readonly string[] {
-    return type === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS;
+    return type === 'BROWSER' ? BROWSER_VARIANTS : type === 'COMPUTER_CONTROL' ? COMPUTER_CONTROL_VARIANTS : type === 'INFERENCE_RUNTIME' ? INFERENCE_RUNTIME_VARIANTS : HARNESS_VARIANTS;
 }
 
 /**
@@ -218,7 +272,51 @@ export function harnessVariantOf(pluginId: string): HarnessVariant | undefined {
  * @private shared tool contract
  */
 export function toolTypeLabel(type: ToolType): string {
-    return type === 'BROWSER' ? 'browser' : 'harness';
+    return type === 'BROWSER' ? 'browser' : type === 'COMPUTER_CONTROL' ? 'computer control' : type === 'INFERENCE_RUNTIME' ? 'local model runtime' : 'harness';
+}
+
+/**
+ * Display name of an inference runtime variant.
+ *
+ * @private shared tool contract
+ */
+export function runtimeVariantLabel(variant: InferenceRuntimeVariant): string {
+    return variant === 'OLLAMA' ? 'Ollama' : 'LM Studio';
+}
+
+/**
+ * Harness records that reference a runtime tool by name (enabled or not), in array order.
+ *
+ * @private shared tool contract
+ */
+export function dependentHarnesses(tools: readonly ToolRecord[], runtimeName: string): HarnessToolRecord[] {
+    return tools.filter((tool): tool is HarnessToolRecord => tool.type === 'HARNESS' && tool.inferenceRuntime === runtimeName);
+}
+
+/**
+ * Why a harness record cannot reach its referenced runtime (missing, wrong type or disabled), or `undefined` when the
+ * reference resolves to an enabled runtime record. A harness without a reference has no runtime dependency.
+ *
+ * @private shared tool contract
+ */
+export function runtimeReferenceProblem(tools: readonly ToolRecord[], harness: Pick<HarnessToolRecord, 'inferenceRuntime'>): string | undefined {
+    if (!harness.inferenceRuntime) return undefined;
+    const target = tools.find((tool) => tool.name === harness.inferenceRuntime);
+    if (!target) return `its local model runtime "${harness.inferenceRuntime}" is not configured (removed or renamed); rebind it with --inference-runtime <name>`;
+    if (target.type !== 'INFERENCE_RUNTIME') return `"${harness.inferenceRuntime}" is a ${toolTypeLabel(target.type)} tool, not a local model runtime`;
+    if (!target.isEnabled) return `its local model runtime "${harness.inferenceRuntime}" is disabled`;
+    return undefined;
+}
+
+/**
+ * Whether a harness record can be selected at all: enabled, and its runtime reference (if any) resolves to an enabled
+ * runtime. Readiness of the runtime service itself is observed separately.
+ *
+ * @private shared tool contract
+ */
+export function isEffectivelyEnabled(tools: readonly ToolRecord[], tool: ToolRecord): boolean {
+    if (!tool.isEnabled) return false;
+    return tool.type !== 'HARNESS' || runtimeReferenceProblem(tools, tool) === undefined;
 }
 
 /**

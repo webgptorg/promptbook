@@ -15,6 +15,8 @@
  *                     $FAKE_CODEX_SLOW_MS (default 6 s) before finishing (lifecycle draining)
  *   QUOTA_NATIVE    → a native (ChatGPT) run fails with a usage limit; an API-key run (CODEX_API_KEY) succeeds
  *   QUOTA_RESET     → a native run fails with a usage limit that states its reset ("try again in 2 days 3 hours")
+ *   TECHNICAL_NATIVE → a native run fails technically (a dropped stream, neither quota nor authentication); an API-key
+ *                     run succeeds
  *   LIST_BROWSERS   → after the work (and any SLOW_WORK wait) lists the browser tools through the bridge into
  *                     output/browsers.txt (a tool added meanwhile must be visible to this same task)
  *   CLAIM_SHARED    → claims output/shared.txt through the `claim_files` tool, appends the task name to it and then
@@ -77,6 +79,10 @@ if (args[0] === 'login' && args[1] !== 'status') {
     process.exit(1);
 }
 if (args[0] === 'login' && args[1] === 'status') {
+    if (process.env.FAKE_CODEX_STATUS_ERROR) {
+        process.stderr.write(`${process.env.FAKE_CODEX_STATUS_ERROR}\n`);
+        process.exit(1);
+    }
     if (process.env.FAKE_CODEX_SIGNED_OUT || (authFile && !existsSync(authFile))) {
         process.stderr.write('Not logged in\n');
         process.exit(1);
@@ -117,7 +123,7 @@ if (args[0] === 'resume') {
             buffer = buffer.slice(index + 1);
             const message = JSON.parse(line);
             if (message.method === 'initialize') print({ id: message.id, result: { userAgent: `${message.params?.clientInfo?.name ?? 'client'}/0.166.0 (fake)` } });
-            else if (message.method === 'model/list') print({ id: message.id, result: { data: [{ model: 'fake-model-1' }, { model: 'fake-model-2' }] } });
+            else if (message.method === 'model/list') print({ id: message.id, result: { data: process.env.FAKE_CODEX_MODELS ? JSON.parse(process.env.FAKE_CODEX_MODELS) : [{ model: 'fake-model-1' }, { model: 'fake-model-2' }] } });
             else if (message.method) realtime(message);
         }
     });
@@ -157,8 +163,8 @@ function tomlValue(text) {
     return trimmed;
 }
 
-/** Calls a tool of the ptbk MCP server configured for this turn. */
-async function callTool(name, toolArguments) {
+/** Calls a tool of the ptbk MCP server configured for this turn (`listOnly`: loads the server and lists its tools, as the CLI does at startup). */
+async function callTool(name, toolArguments, { listOnly = false } = {}) {
     const overrides = configOverrides();
     const command = tomlValue(overrides['mcp_servers.ptbk.command']);
     const commandArgs = tomlValue(overrides['mcp_servers.ptbk.args']);
@@ -185,6 +191,10 @@ async function callTool(name, toolArguments) {
     await request(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'fake-codex', version: '1' } });
     const list = await request(2, 'tools/list', {});
     const names = list.result.tools.map((tool) => tool.name);
+    if (listOnly) {
+        child.stdin.end();
+        return names.join(', ');
+    }
     if (!names.includes(name)) throw new Error(`Tool ${name} missing (have ${names.join(', ')})`);
     const response = await request(3, 'tools/call', { name, arguments: toolArguments });
     child.stdin.end();
@@ -203,15 +213,33 @@ async function main() {
     // brief's meaning marker NAME_ME:<title> ($FAKE_CODEX_NAME_FAIL fails it).
     if (prompt.startsWith('# Harness check') || prompt.startsWith('# Project name')) {
         const check = prompt.startsWith('# Harness check');
-        if (process.env.FAKE_CODEX_PREPARATION_LOG) appendFileSync(process.env.FAKE_CODEX_PREPARATION_LOG, `${JSON.stringify({ kind: check ? 'check' : 'name', cwd: process.cwd(), home: process.env.CODEX_HOME ?? null })}\n`);
+        if (process.env.FAKE_CODEX_PREPARATION_LOG) appendFileSync(process.env.FAKE_CODEX_PREPARATION_LOG, `${JSON.stringify({ kind: check ? 'check' : 'name', cwd: process.cwd(), home: process.env.CODEX_HOME ?? null, args, config: configOverrides(), apiKey: Boolean(process.env.OPENAI_API_KEY || process.env.CODEX_API_KEY) })}\n`);
         print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
         print({ type: 'turn.started' });
+        const model = args[args.indexOf('--model') + 1];
+        if ((JSON.parse(process.env.FAKE_CODEX_REJECT_MODELS ?? '[]')).includes(model) || process.env.FAKE_CODEX_CHECK_ERROR) {
+            print({ type: 'turn.failed', error: { message: process.env.FAKE_CODEX_CHECK_ERROR ?? JSON.stringify({ error: { code: 'model_not_found', message: `The '${model}' model is not supported when using Codex with a ChatGPT account.` } }) } });
+            process.exit(1);
+        }
         if (check ? process.env.FAKE_CODEX_CHECK_FAIL : process.env.FAKE_CODEX_NAME_FAIL) {
             print({ type: 'turn.failed', error: { message: check ? 'sandbox: landlock is not supported by this kernel' : 'unexpected provider error' } });
             process.exit(1);
         }
         const title = /NAME_ME:([^\n]+)/.exec(prompt)?.[1]?.trim() ?? 'Fixture Project';
-        const text = check ? 'PONG' : JSON.stringify({ title, folder: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') });
+        // Local capability checks: a scratch file (not written under the read-only sandbox, nor by a model without tool
+        // calls when $FAKE_CODEX_NO_TOOLS is set) and a continued session.
+        const readOnly = args.includes('read-only') || configOverrides().sandbox_mode === '"read-only"';
+        if (prompt.includes('ptbk-check.txt') && !readOnly && !process.env.FAKE_CODEX_NO_TOOLS) writeFileSync(join(process.cwd(), 'ptbk-check.txt'), 'READY\n');
+        const resumed = args[1] === 'resume';
+        // The tool-bridge check: a model with tool calls ($FAKE_CODEX_NO_TOOLS/$FAKE_CODEX_NO_MCP: without) calls the check tool.
+        if (prompt.includes('ptbk_capability_check')) {
+            const unable = process.env.FAKE_CODEX_NO_TOOLS || process.env.FAKE_CODEX_NO_MCP;
+            const code = unable ? (await callTool(undefined, {}, { listOnly: true }), 'I cannot call tools.') : await callTool('ptbk_capability_check', {});
+            print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text: code } });
+            print({ type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 2 } });
+            process.exit(0);
+        }
+        const text = prompt.includes('ptbk-check.txt') ? 'DONE' : prompt.includes('Remember the code word') ? 'OK' : prompt.includes('What was the code word') ? (resumed ? 'ORCHID-42' : 'I do not know.') : check ? 'PONG' : JSON.stringify({ title, folder: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') });
         print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
         print({ type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 2 } });
         process.exit(0);
@@ -238,7 +266,7 @@ async function main() {
     // ptbk removes API keys from a native run's environment, so a present key means an explicit API_KEY instance.
     const api = Boolean(process.env.CODEX_API_KEY);
     const brief = prompt.startsWith('# Project brief');
-    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, changeMarkers: prompt.match(/CHANGE_MARKER_\w+/g) ?? [], reassigned: prompt.includes('## Taking over a reassigned task'), assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined })}\n`);
+    if (process.env.FAKE_CODEX_LOG) appendFileSync(process.env.FAKE_CODEX_LOG, `${JSON.stringify({ reference, title, agent, attempt, resumedThread, changeMarkers: prompt.match(/CHANGE_MARKER_\w+/g) ?? [], reassigned: prompt.includes('## Taking over a reassigned task'), assignment: prompt.includes('## Assignment work'), learning: prompt.includes('## Learning work'), discovery: prompt.includes('## Goal enquiry'), chat, brief, api, apiKey: api ? process.env.CODEX_API_KEY : undefined, config: configOverrides() })}\n`);
     print({ type: 'thread.started', thread_id: resumedThread ?? `fake-${Date.now()}` });
     print({ type: 'turn.started' });
     // Routing work only names the target: its markers apply to the target's own execution.
@@ -248,6 +276,10 @@ async function main() {
         print({ type: 'turn.failed', error: { message: "You've hit your usage limit. Upgrade to Pro, or try again in 2 days 3 hours." } });
         process.exit(1);
     }
+    if (prompt.includes('TECHNICAL_NATIVE') && !api && taskTurn) {
+        print({ type: 'turn.failed', error: { message: 'Fixture technical failure: the response stream disconnected before completion.' } });
+        process.exit(1);
+    }
     if (prompt.includes('QUOTA_NATIVE') && !api && taskTurn) {
         print({ type: 'turn.failed', error: { message: "You've hit your usage limit. Try again later." } });
         process.exit(1);
@@ -255,8 +287,18 @@ async function main() {
     const message = (text) => print({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text } });
     const done = (summary, extra = {}) => message(`${summary}\n\nPTBK_RESULT ${JSON.stringify({ status: 'done', summary, evidence: 'fixture', ...extra })}`);
     if (prompt.startsWith('# Consultation')) {
+        // $FAKE_CODEX_CONSULT_BARRIER: the advisor's turn notes `<barrier>.reached` and waits until the barrier is removed.
+        if (process.env.FAKE_CODEX_CONSULT_BARRIER) {
+            appendFileSync(`${process.env.FAKE_CODEX_CONSULT_BARRIER}.reached`, 'consultation\n');
+            while (existsSync(process.env.FAKE_CODEX_CONSULT_BARRIER)) await new Promise((resolve) => setTimeout(resolve, 100));
+        }
         message('Fixture advice: keep it simple.');
     } else if (brief) {
+        // $FAKE_CODEX_BRIEF_BARRIER: the brief notes `<barrier>.reached` and waits until the barrier is removed.
+        if (process.env.FAKE_CODEX_BRIEF_BARRIER) {
+            appendFileSync(`${process.env.FAKE_CODEX_BRIEF_BARRIER}.reached`, 'brief\n');
+            while (existsSync(process.env.FAKE_CODEX_BRIEF_BARRIER)) await new Promise((resolve) => setTimeout(resolve, 100));
+        }
         const outages = process.env.FAKE_CODEX_LOG ? `${process.env.FAKE_CODEX_LOG}.brief-outages` : undefined;
         const failed = outages && existsSync(outages) ? readFileSync(outages, 'utf8').split('\n').filter(Boolean).length : 0;
         if (outages && failed < Number(process.env.FAKE_CODEX_FAIL_BRIEFS ?? 0)) {

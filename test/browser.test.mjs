@@ -308,6 +308,102 @@ test('shared browser pools: engines share one process per profile, tasks get the
     assert.deepEqual((await readdir(join(root, 'ptbk home', 'browser-pools')).catch(() => [])).filter((name) => name.endsWith('.json')), []);
 });
 
+test('live profile changes: new acquisitions always reach the saved profile while acquired work drains in its own; releasing it spares a replacement and other engines', { skip: await realBrowserSkip(), timeout: 240_000 }, async (t) => {
+    const teardown = [];
+    const root = await temporaryDirectory(t, 'ptbk profile change', teardown);
+    const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home') };
+    const profileA = join(root, 'profile A');
+    const profileB = join(root, 'profile B');
+    await mkdir(profileA, { recursive: true });
+    await mkdir(profileB, { recursive: true });
+    const project = async (name) => {
+        const base = join(root, name);
+        await mkdir(join(base, '.ptbk', 'tmp'), { recursive: true });
+        return { root: base, name, runtime: { root: join(base, '.ptbk'), temporary: join(base, '.ptbk', 'tmp'), browserProfile: join(base, '.ptbk', 'browser', 'profile') } };
+    };
+    const server = createServer((request, response) => {
+        response.setHeader('content-type', 'text/html');
+        response.end(`<title>${request.url}</title><p>Page ${request.url}</p>`);
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const url = (path) => `http://127.0.0.1:${server.address().port}${path}`;
+    const record = (path, extra = {}) => ({ type: 'BROWSER', variant: 'CHROME', name: 'work', isEnabled: true, profile: { source: 'CUSTOM', path }, isHeadless: true, ...extra });
+    // The live configuration a refresh or a saved operation replaces.
+    const settings = { tools: [record(profileA)], overriddenTools: new Set() };
+    const otherSettings = { tools: [record(profileA)], overriddenTools: new Set() };
+    const fleet = new BrowserFleet(await project('alpha'), () => settings, env, () => undefined, 'engine-alpha');
+    const other = new BrowserFleet(await project('beta'), () => otherSettings, env, () => undefined, 'engine-beta');
+    teardown.push(async () => {
+        await fleet.close();
+        await other.close();
+        server.closeAllConnections();
+        server.close();
+    });
+    const pools = new BrowserPools(env);
+    const actual = () => fleet.instance('work')?.profile;
+    const pidOf = async (profile) => (await pools.read(profile))?.pid;
+
+    // An eagerly connected but unused tool changes from A to B: the next acquisition connects to B.
+    await fleet.startEnabled();
+    assert.equal(actual(), profileA);
+    const pidA = await pidOf(profileA);
+    assert.ok(pidA && alive(pidA));
+    settings.tools = [record(profileB)];
+    const first = await fleet.scope('first').acquire();
+    assert.match(await first.open(url('/first')), /Page \/first/);
+    assert.equal(actual(), profileB, 'the cached connection to A is no evidence for B');
+    await waitFor(() => !alive(pidA), { timeoutMs: 20_000, message: 'the unused connection to A to be released' });
+    await fleet.endScope('first');
+
+    // Task A acquires profile A; the tool then changes to B while it works.
+    settings.tools = [record(profileA)];
+    await other.startEnabled();
+    const working = await fleet.scope('task A').acquire();
+    assert.match(await working.open(url('/a')), /Page \/a/);
+    const heldA = await pidOf(profileA);
+    const early = fleet.scope('already running');
+    settings.tools = [record(profileB)];
+    const fresh = await fleet.scope('new task').acquire();
+    assert.match(await fresh.open(url('/b')), /Page \/b/);
+    const late = await early.acquire();
+    assert.match(await late.open(url('/late')), /Page \/late/);
+    assert.equal(actual(), profileB, 'a new task and an already-running task without a prior acquisition both get B');
+    assert.match(await (await fleet.scope('task A').acquire()).open(url('/a-again')), /Page \/a-again/, 'task A keeps working in A');
+    const views = fleet.inspectAll();
+    const draining = views.find((view) => view.retained);
+    assert.ok(draining, JSON.stringify(views));
+    assert.equal(draining.profilePath, profileA, 'the draining entry is the old revision with its own profile');
+    assert.equal(draining.pid, heldA);
+    assert.equal(draining.isEnabled, false);
+    assert.deepEqual(fleet.inUse(), ['work'], 'the saved revision is in use by the new tasks only');
+    assert.deepEqual(fleet.retained().map((use) => [use.record.profile.path, use.scopes]), [[profileA, ['task A']]]);
+    await fleet.endScope('new task');
+    await fleet.endScope('already running');
+
+    // Remove the tool while A drains and add the same name with profile B: releasing A preserves B and the other engine.
+    settings.tools = [];
+    await fleet.reconcile();
+    settings.tools = [record(profileB, { isHeadless: true })];
+    const replacement = await fleet.scope('replacement').acquire();
+    assert.match(await replacement.open(url('/replacement')), /Page \/replacement/);
+    const pidB = await pidOf(profileB);
+    await fleet.endScope('task A');
+    assert.equal(fleet.inspectAll().filter((view) => view.retained).length, 0, 'the released revision is gone');
+    assert.ok(alive(heldA), 'the other engine keeps the process of profile A');
+    assert.equal(Object.keys((await pools.read(profileA)).connections).length, 1, 'only this engine left the pool of A');
+    assert.ok(alive(pidB), 'the replacement keeps its own connection to B');
+    assert.match(await replacement.open(url('/still')), /Page \/still/);
+    await fleet.endScope('replacement');
+
+    // The new profile is unavailable: acquisitions report its failure and never reuse A or B.
+    settings.tools = [record(join(root, 'missing profile'))];
+    const failing = await fleet.scope('failing').acquire();
+    await assert.rejects(failing.open(url('/nowhere')), /does not exist/);
+    assert.notEqual(actual(), profileA);
+    assert.notEqual(actual(), profileB);
+    await fleet.endScope('failing');
+});
+
 test('shared browser pools: a detached browser and its diagnostic pipe do not keep the launching engine alive', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
     const teardown = [];
     const root = await temporaryDirectory(t, 'ptbk detached browser', teardown);

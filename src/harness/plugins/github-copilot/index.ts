@@ -23,10 +23,11 @@ async function readCopilotConfig(env: NodeJS.ProcessEnv): Promise<Record<string,
 async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     const { inspection, executablePath } = await baseInspection(plugin, context);
     if (!executablePath) return inspection;
-    if (context.env.COPILOT_GITHUB_TOKEN || context.env.GH_TOKEN || context.env.GITHUB_TOKEN) return withAuthentication(inspection, true, 'api', plugin.loginHint);
     const configuration = await readCopilotConfig(context.env);
     const users = configuration?.logged_in_users ?? configuration?.loggedInUsers;
     if ((Array.isArray(users) && users.length) || configuration?.last_logged_in_user) return withAuthentication(inspection, true, 'account', plugin.loginHint);
+    // A token is another (possibly different) account's credential; a native instance never sees one (ambient variables).
+    if (context.env.COPILOT_GITHUB_TOKEN || context.env.GH_TOKEN || context.env.GITHUB_TOKEN) return withAuthentication(inspection, true, 'api', plugin.loginHint);
     return withAuthentication(inspection, false, 'none', plugin.loginHint);
 }
 
@@ -81,6 +82,8 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
 export const plugin: HarnessPlugin = {
     id: 'github-copilot',
     variant: 'GITHUB_COPILOT',
+    // These tokens take precedence over the stored `copilot login`, possibly for another account.
+    ambientApiKeyVariables: ['COPILOT_GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN'],
     displayName: 'GitHub Copilot',
     featured: false,
     executable: 'copilot',

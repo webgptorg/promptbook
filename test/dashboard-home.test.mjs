@@ -285,7 +285,7 @@ test('Wallet manual sign-in and Browser tab control: tab ownership and handoff s
 });
 
 test('Usage tile and page: a seven-day summary with grouping-specific labels, visible billing mode and certainty, no price internals', () => {
-    const totals = (change = {}) => ({ units: 3, input: 12000, output: 3400, cachedInput: 0, reasoning: 0, reportedCostUsd: 0, calculated: { apiUsd: 0.42, subscriptionEquivalentUsd: 1.5, priced: 2, estimated: 1, unpriced: 0 }, billing: { subscription: 2, api: 1, unknown: 0 }, coverage: { reported: 2, unavailable: 1, costReported: 0 }, ...change });
+    const totals = (change = {}) => ({ units: 3, input: 12000, output: 3400, cachedInput: 0, reasoning: 0, reportedCostUsd: 0, calculated: { apiUsd: 0.42, subscriptionEquivalentUsd: 1.5, priced: 2, estimated: 1, unpriced: 0 }, billing: { subscription: 2, api: 1, local: 0, unknown: 0 }, coverage: { reported: 2, unavailable: 1, costReported: 0 }, ...change });
     const usage = {
         days: 7,
         from: new Date(Date.now() - 7 * 86400000).toISOString(),

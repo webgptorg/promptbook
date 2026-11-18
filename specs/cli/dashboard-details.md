@@ -28,7 +28,13 @@ Editing exposes the variant's applicable fields, optional description and safe c
 
 All actions call the same [management operations](tool-management.md) as CLI and init. Configuration changes commit immediately; they are not generic temporary dashboard controls. Display applied, committed, pending-persistence, refused and failed outcomes honestly. A live refresh or opening a form never performs a save. Protect stale edit revisions and preserve another client's accepted changes.
 
-For an in-use modify/disable/remove, offer the shared alternatives: save the change while current work finishes with its acquired context, or invoke the existing **whole-engine force stop** and then separately apply/reconfirm the tool change after termination. Do not invent a tool-specific force-stop operation. Removing/disabling the last enabled instance of a type requires the additional specific confirmation about inability to start new work.
+For an in-use modify/disable/remove, offer the shared alternatives: save the change while current work finishes with its acquired context, or invoke the existing **whole-engine force stop** and then separately apply/reconfirm the tool change after termination. Do not invent a tool-specific force-stop operation. Removing/disabling the last required browser/harness, including loss through a runtime dependency, requires the additional specific confirmation about inability to start new work. An optional unused runtime is not another baseline resource requirement.
+
+## Local models page
+
+Within Tools, present **Local models** as a distinct category with **Add local models** available before any runtime exists. Use the same [setup and management](local-models-setup.md) as init/CLI: discover hardware and existing resources, recommend/download/test a suitable combination, then save independent local connections without changing subscription logins or agent Books. Technical harness/runtime choice stays in advanced details. Show real progress, cancellation/retry and per-connection outcomes; a ready hosted route does not turn a failed local setup green.
+
+Runtime detail shows installed/available models, known sizes, loaded/busy/capacity state, actual endpoint/locality, dependent harness connections and shared consumers. Offer supported download/load/unload/removal, service diagnostics and maintenance actions through engine operations. Clearly separate disabling/removing this project's reference from stopping/updating/uninstalling a host service or deleting shared model weights. Revalidate their broader impact and refuse/defer unsafe maintenance. Viewing/refreshing the page neither runs inference nor installs anything. Show actual local/runtime/model attribution in Harnesses/session detail as well.
 
 ## Individual browser page
 

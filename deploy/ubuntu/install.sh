@@ -180,7 +180,11 @@ export PATH="/opt/promptbook/node/bin:$PATH"
 # Resolve the public npm tag once, then install and record that exact version. Without an explicit version, an
 # installed engine is reused: repeating the bootstrap never upgrades it.
 installed_version=''
-if [[ -f /opt/promptbook/installed-version ]]; then installed_version="$(cat /opt/promptbook/installed-version)"; fi
+if [[ -f /opt/promptbook/engine/lib/node_modules/ptbk/package.json ]]; then
+    installed_version="$(node -p 'require("/opt/promptbook/engine/lib/node_modules/ptbk/package.json").version')"
+elif [[ -f /opt/promptbook/installed-version ]]; then
+    installed_version="$(cat /opt/promptbook/installed-version)"
+fi
 if [[ "$requested_version" == latest && -n "$installed_version" ]]; then
     resolved_version="$installed_version"
     printf 'Reusing the installed engine %s. Engine updates use the ordinary update workflow, not this bootstrap.\n' "$resolved_version"
@@ -204,6 +208,9 @@ if ! id "$engine_user" >/dev/null 2>&1; then
     useradd --create-home --home-dir "$engine_home" --shell /bin/bash "$engine_user"
 fi
 chmod 700 "$engine_home"
+# Only this dedicated npm prefix belongs to the engine; Node and the bootstrap stay administrator-owned.
+printf '%s\n' '{"method":"shell","root":"lib/node_modules/ptbk"}' > /opt/promptbook/engine/ptbk-installation.json
+chown -R "$engine_user:$engine_user" /opt/promptbook/engine
 install -d -m 700 -o "$engine_user" -g "$engine_user" \
     "$engine_home/.local" "$engine_home/.local/bin" "$engine_home/.local/share" \
     "$engine_home/.config" "$engine_home/.config/systemd" "$engine_home/.config/systemd/user" \
@@ -233,6 +240,7 @@ fi
 cat > /usr/local/bin/ptbk <<'LAUNCHER'
 #!/bin/sh
 # Promptbook VPS launcher
+export NODE_ENV=production
 export PATH="/opt/promptbook/node/bin:$HOME/.local/bin:$PATH"
 if [ "$(id -un)" = promptbook ]; then
     export XDG_CONFIG_HOME=/var/lib/promptbook/.config

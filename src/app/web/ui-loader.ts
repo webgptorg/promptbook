@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { chmod, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
-import { basename, dirname, join } from 'node:path';
+import { chmod, mkdir, open, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
+import { basename, dirname, isAbsolute, join } from 'node:path';
 import { PtbkError, errorMessage } from '../../common/errors.js';
 import { ENGINE_VERSION } from '../../common/version.js';
 import { HARNESS_TERMINAL_PATH } from '../../onboarding/terminal.js';
@@ -24,11 +24,14 @@ type Protocol = {
     readonly DsseEnvelope: { safeParse: (value: unknown) => { success: boolean; data?: { payloadType: string } } };
     readonly UiBundleManifest: { safeParse: (value: unknown) => { success: boolean; data?: Manifest } };
     readonly ConformanceTrustFile: { parse: (value: unknown) => { trustPolicy: unknown; trustedRoot: unknown } };
+    readonly TrustPolicy: { parse: (value: unknown) => unknown };
+    readonly isStagingPolicy: (policy: unknown) => boolean;
     readonly RELEASE_PAYLOAD_TYPE: string;
     readonly REVOCATION_PAYLOAD_TYPE: string;
     readonly UI_BUNDLE_ENTRY: string;
 };
 type ReleaseTools = {
+    readonly PINNED_TRUSTED_ROOT: unknown;
     readonly readUiArchive: (archive: Uint8Array) => { readonly manifestBytes: Uint8Array; readonly files: ReadonlyMap<string, Uint8Array> };
     readonly createSigstoreProvenanceVerifier: (trustedRoot: unknown) => ProvenanceVerifier;
     readonly checkTrustedRoot: (bytes: Uint8Array) => { readonly kind: 'ok'; readonly root: unknown } | { readonly kind: 'invalid'; readonly reason: string };
@@ -82,6 +85,42 @@ const UI_DIRECTORY = 'ui';
  * @private App UI loader
  */
 export const CONFORMANCE_TRUST_FILE_ENV = 'PTBK_CONFORMANCE_TRUST_FILE';
+
+/** The local release policy, read once before the App connection starts. @private App UI loader */
+export const UI_TRUST_POLICY_FILE_ENV = 'PTBK_UI_TRUST_POLICY_FILE';
+
+/** Maximum bytes read from a release policy file. */
+const MAX_POLICY_BYTES = 64 * 1024;
+
+/** Reads a bounded local policy, reporting only its setting and path on any failure. */
+async function readTrustPolicy(path: string, env: NodeJS.ProcessEnv): Promise<unknown> {
+    if (!isAbsolute(path)) throw new PtbkError(`${UI_TRUST_POLICY_FILE_ENV}: ${path} must be an absolute path.`, { kind: 'configuration' });
+    let policy: unknown;
+    try {
+        const file = await open(path, 'r');
+        try {
+            if (!(await file.stat()).isFile()) throw new Error('not a file');
+            const bytes = Buffer.alloc(MAX_POLICY_BYTES + 1);
+            let length = 0;
+            while (length < bytes.length) {
+                const { bytesRead } = await file.read(bytes, length, bytes.length - length, null);
+                if (!bytesRead) break;
+                length += bytesRead;
+            }
+            if (length > MAX_POLICY_BYTES) throw new Error('too large');
+            policy = P.TrustPolicy.parse(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, length))));
+        } finally {
+            await file.close();
+        }
+    } catch {
+        throw new PtbkError(`${UI_TRUST_POLICY_FILE_ENV}: ${path} is not a valid TrustPolicy (unreadable, invalid or over 64 KiB).`, { kind: 'configuration' });
+    }
+    // Keep the direct process.env access too: bundlers can inline it in a production build.
+    if (P.isStagingPolicy(policy) && (env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production')) {
+        throw new PtbkError(`${UI_TRUST_POLICY_FILE_ENV}: ${path} is a staging trust policy, which must not be used in production`, { kind: 'configuration' });
+    }
+    return policy;
+}
 
 /**
  * The owner's update policy for the UI (`PTBK_UPDATE_POLICY`, `PTBK_PINNED_VERSION`).
@@ -197,8 +236,8 @@ class Unavailable extends Error {}
  * The engine UI loader: it fetches the UI release from the release store (mirror layout v1), decides with the
  * contract's `verifyRelease` (release-key signature, Sigstore provenance of the release workflow, revocation list,
  * delay, no downgrade), downloads and checks the archive, unpacks it safely, checks the manifest and every file, then
- * switches atomically, keeping the previous bundle. Any failure keeps what is served. A release build has no published
- * trust policy yet, so it serves the engine's own page; the conformance build takes the suite's test trust from
+ * switches atomically, keeping the previous bundle. Any failure keeps what is served. Every build can read a local
+ * policy from `PTBK_UI_TRUST_POLICY_FILE`, with the pinned Sigstore root. The conformance build takes test trust from
  * `PTBK_CONFORMANCE_TRUST_FILE`, which a release build refuses.
  *
  * @private App UI loader
@@ -229,7 +268,9 @@ export class UiLoader {
     public static async create(options: { readonly directory: string; readonly env: NodeJS.ProcessEnv; readonly log?: (text: string, level: 'info' | 'warning' | 'error') => void; readonly tls?: TestTlsOptions }): Promise<UiLoader> {
         const { env } = options;
         const trustFile = env[CONFORMANCE_TRUST_FILE_ENV];
-        if (trustFile && !CONFORMANCE_BUILD) throw new PtbkError(`${CONFORMANCE_TRUST_FILE_ENV} is set, but this is a release build of ptbk, which never takes a trust policy from its environment. Unset it.`, { kind: 'configuration' });
+        const policyFile = env[UI_TRUST_POLICY_FILE_ENV];
+        if (policyFile !== undefined && trustFile !== undefined) throw new PtbkError(`${UI_TRUST_POLICY_FILE_ENV}: ${policyFile} cannot be used together with ${CONFORMANCE_TRUST_FILE_ENV}: ${trustFile}.`, { kind: 'configuration' });
+        if (trustFile !== undefined && !CONFORMANCE_BUILD) throw new PtbkError(`${CONFORMANCE_TRUST_FILE_ENV}: ${trustFile} is set, but this is a release build of ptbk, which never accepts conformance trust. Unset it.`, { kind: 'configuration' });
         let releaseUrl: string | undefined;
         if (env.PTBK_UI_RELEASE_URL) {
             let url: URL;
@@ -243,6 +284,9 @@ export class UiLoader {
         }
         const policy = uiUpdatePolicy(env);
         let trust: { policy: unknown; provenance: ProvenanceVerifier } | undefined;
+        if (policyFile !== undefined) {
+            trust = { policy: await readTrustPolicy(policyFile, env), provenance: T.createSigstoreProvenanceVerifier(T.PINNED_TRUSTED_ROOT) };
+        }
         if (trustFile) {
             let parsed: { trustPolicy: unknown; trustedRoot: unknown };
             try {
@@ -589,7 +633,7 @@ export class UiLoader {
      * engine's own paths. `undefined` when no bundle is active (the caller serves the engine page).
      */
     public async serve(request: Request): Promise<Response | undefined> {
-        const bundle = this.state.active;
+        const bundle = this.options.trust ? this.state.active : undefined;
         if (!bundle) return undefined;
         const url = new URL(request.url);
         const path = url.pathname;
@@ -617,7 +661,7 @@ export class UiLoader {
      * page) while no bundle is installed.
      */
     public status(builtinPageSha256: string): Record<string, unknown> {
-        const active = this.state.active;
+        const active = this.options.trust ? this.state.active : undefined;
         return {
             version: active?.version ?? ENGINE_VERSION,
             bundleSha256: active?.sha256 ?? builtinPageSha256,

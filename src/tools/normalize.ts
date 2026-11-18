@@ -2,16 +2,16 @@ import { KEBAB_IDENTIFIER, kebabIdentifier, matchEnum, matchProperty } from '../
 import { parseEnvironmentReference } from './environment.js';
 import {
     AUTHENTICATION_MODES,
-    BROWSER_VARIANTS,
     ENDPOINT_KEYWORDS,
-    HARNESS_VARIANTS,
     PROFILE_SOURCES,
     SUPERSEDED_HARNESS_FIELDS,
     TOOL_FIELDS,
     TOOL_TYPES,
+    variantsOf,
     type AuthenticationMode,
     type BrowserToolRecord,
     type HarnessToolRecord,
+    type InferenceRuntimeToolRecord,
     type ProfileSource,
     type ToolRecord,
     type ToolType,
@@ -162,7 +162,7 @@ export function parseTools(raw: unknown): ParsedTools {
         const type = matchEnum(typeKey ? original[typeKey] : undefined, TOOL_TYPES) as ToolType | undefined;
         const entry = canonicalKeys(original, type ? TOOL_FIELDS[type] : TOOL_FIELDS.HARNESS.concat(TOOL_FIELDS.BROWSER.slice(5)), location, pending, problems);
         const resolvedType = canonicalEnumField(entry, 'type', TOOL_TYPES, location, pending, problems, { required: true, describe: 'tool type' });
-        const variant = resolvedType ? canonicalEnumField(entry, 'variant', resolvedType === 'BROWSER' ? BROWSER_VARIANTS : HARNESS_VARIANTS, location, pending, problems, { required: true, describe: `${resolvedType.toLowerCase()} variant`, retired: resolvedType === 'HARNESS' ? RETIRED_HARNESS_VARIANTS : undefined }) : undefined;
+        const variant = resolvedType ? canonicalEnumField(entry, 'variant', variantsOf(resolvedType), location, pending, problems, { required: true, describe: `${resolvedType.toLowerCase()} variant`, retired: resolvedType === 'HARNESS' ? RETIRED_HARNESS_VARIANTS : undefined }) : undefined;
         let name: string | undefined;
         const rawName = entry.name;
         if (typeof rawName !== 'string' || !rawName.trim()) problems.push({ location: `${location}.name`, message: 'missing tool name', severity: 'error' });
@@ -177,7 +177,7 @@ export function parseTools(raw: unknown): ParsedTools {
         const known = resolvedType ? TOOL_FIELDS[resolvedType] : [];
         for (const key of Object.keys(entry)) {
             if (known.includes(key)) continue;
-            const otherType = resolvedType && TOOL_FIELDS[resolvedType === 'BROWSER' ? 'HARNESS' : 'BROWSER'].includes(key);
+            const otherType = resolvedType && TOOL_TYPES.some((type) => type !== resolvedType && TOOL_FIELDS[type].includes(key));
             if (SECRET_FIELD.test(key) && parseEnvironmentReference(entry[key]) === undefined) {
                 problems.push({ location: `${location}.${key}`, message: 'store credential references (${{ env.NAME }}), never secret values', severity: 'error' });
             } else if (resolvedType === 'HARNESS' && (SUPERSEDED_HARNESS_FIELDS as readonly string[]).includes(key)) {
@@ -193,6 +193,8 @@ export function parseTools(raw: unknown): ParsedTools {
         let record: ToolRecord | undefined;
         if (resolvedType === 'BROWSER' && variant) record = parseBrowserFields(entry, location, pending, problems, { name, isEnabled, variant: variant as BrowserToolRecord['variant'] });
         else if (resolvedType === 'HARNESS' && variant) record = parseHarnessFields(entry, location, pending, problems, { name, isEnabled, variant: variant as HarnessToolRecord['variant'] });
+        else if (resolvedType === 'INFERENCE_RUNTIME' && variant) record = parseRuntimeFields(entry, location, problems, { name, isEnabled, variant: variant as InferenceRuntimeToolRecord['variant'] });
+        else if (resolvedType === 'COMPUTER_CONTROL' && variant && name) record = { type: 'COMPUTER_CONTROL', variant: 'NATIVE', name, isEnabled, ...(typeof entry.description === 'string' ? { description: entry.description } : {}) };
         corrections.push(...pending);
         if (name && record) {
             entry.name = name;
@@ -225,6 +227,16 @@ export function parseTools(raw: unknown): ParsedTools {
         }
         tools.push(candidate.record);
     }
+    // A dangling or mistyped runtime reference keeps its harness record (it is visibly unavailable until rebound),
+    // never silently reconnected to another runtime.
+    tools.forEach((tool) => {
+        if (tool.type !== 'HARNESS' || !tool.inferenceRuntime) return;
+        const target = tools.find((candidate) => candidate.name === tool.inferenceRuntime);
+        const index = raw.findIndex((entry) => entry !== null && typeof entry === 'object' && (entry as Record<string, unknown>).name === tool.name);
+        const location = `ptbk.json › tools[${index}].inferenceRuntime`;
+        if (!target) problems.push({ location, message: `no local model runtime is named "${tool.inferenceRuntime}"; ${tool.name} stays unavailable until it is rebound (ptbk tool modify ${tool.name} --inference-runtime <name>)`, severity: 'warning' });
+        else if (target.type !== 'INFERENCE_RUNTIME') problems.push({ location, message: `"${tool.inferenceRuntime}" is a ${target.type} tool, not an INFERENCE_RUNTIME; ${tool.name} stays unavailable until it is rebound`, severity: 'warning' });
+    });
     return { tools, canonical, corrections, problems };
 }
 
@@ -305,6 +317,30 @@ function parseHarnessFields(entry: Record<string, unknown>, location: string, co
     }
     const baseUrl = parseBaseUrl(entry, location, corrections, problems);
     if (baseUrl === null) valid = false;
+    const inferenceRuntime = entry.inferenceRuntime;
+    if (inferenceRuntime !== undefined) {
+        if (typeof inferenceRuntime !== 'string' || !inferenceRuntime.trim()) {
+            problems.push({ location: `${location}.inferenceRuntime`, message: 'expected the name of an INFERENCE_RUNTIME tool', severity: 'error' });
+            valid = false;
+        } else if (!KEBAB_IDENTIFIER.test(inferenceRuntime)) {
+            const fixed = kebabIdentifier(inferenceRuntime);
+            if (fixed) {
+                corrections.push({ location: `${location}.inferenceRuntime`, from: inferenceRuntime, to: fixed });
+                entry.inferenceRuntime = fixed;
+            } else {
+                problems.push({ location: `${location}.inferenceRuntime`, message: `"${inferenceRuntime}" cannot be a tool name`, severity: 'error' });
+                valid = false;
+            }
+        }
+        if (valid && baseUrl !== 'LOCAL') {
+            problems.push({ location: `${location}.inferenceRuntime`, message: 'a managed local connection uses baseUrl: "LOCAL" together with its inferenceRuntime reference', severity: 'error' });
+            valid = false;
+        }
+    }
+    if (authentication === 'NONE' && (baseUrl === undefined || baseUrl === 'OFFICIAL')) {
+        problems.push({ location: `${location}.authentication`, message: 'NONE (credential-free) needs a local connection (baseUrl "LOCAL" with inferenceRuntime) or an explicit base URL; the official endpoint requires NATIVE or API_KEY', severity: 'error' });
+        valid = false;
+    }
     if (!common.name || !valid || !authentication) return undefined;
     return {
         type: 'HARNESS',
@@ -316,7 +352,50 @@ function parseHarnessFields(entry: Record<string, unknown>, location: string, co
         ...(typeof apiKey === 'string' ? { apiKey } : {}),
         ...(typeof entry.accountProfile === 'string' ? { accountProfile: entry.accountProfile } : {}),
         ...(baseUrl ? { baseUrl } : {}),
+        ...(typeof entry.inferenceRuntime === 'string' ? { inferenceRuntime: entry.inferenceRuntime } : {}),
     };
+}
+
+/**
+ * Typed fields of an inference-runtime record: the common fields and an optional non-secret service URL.
+ */
+function parseRuntimeFields(entry: Record<string, unknown>, location: string, problems: ConfigProblem[], common: { name?: string; isEnabled: boolean; variant: InferenceRuntimeToolRecord['variant'] }): InferenceRuntimeToolRecord | undefined {
+    const endpoint = parseServiceUrl(entry.endpoint, `${location}.endpoint`, problems);
+    if (endpoint === null || !common.name) return undefined;
+    return {
+        type: 'INFERENCE_RUNTIME',
+        variant: common.variant,
+        name: common.name,
+        ...(typeof entry.description === 'string' ? { description: entry.description } : {}),
+        isEnabled: common.isEnabled,
+        ...(endpoint ? { endpoint } : {}),
+    };
+}
+
+/**
+ * Reads an optional http(s) service URL without credentials (`null` when invalid; the value is never echoed when it
+ * contains credentials).
+ *
+ * @private tool normalization
+ */
+export function parseServiceUrl(raw: unknown, location: string, problems: ConfigProblem[]): string | undefined | null {
+    if (raw === undefined) return undefined;
+    if (typeof raw !== 'string' || !raw.trim()) {
+        problems.push({ location, message: 'expected an http(s) service URL', severity: 'error' });
+        return null;
+    }
+    try {
+        const url = new URL(raw.trim());
+        if (!/^https?:$/.test(url.protocol)) throw new Error('not http(s)');
+        if (url.username || url.password) {
+            problems.push({ location, message: 'the service URL must not contain credentials', severity: 'error' });
+            return null;
+        }
+    } catch {
+        problems.push({ location, message: `expected an http(s) service URL (got ${JSON.stringify(raw)})`, severity: 'error' });
+        return null;
+    }
+    return raw.trim().replace(/\/+$/, '');
 }
 
 /**
@@ -373,11 +452,14 @@ export function serializeTool(record: ToolRecord, previous?: Readonly<Record<str
         result.profile = { source: record.profile.source, ...(record.profile.path !== undefined ? { path: record.profile.path } : {}) };
         result.isHeadless = record.isHeadless;
         if (record.executable !== undefined) result.executable = record.executable;
-    } else {
+    } else if (record.type === 'HARNESS') {
         result.authentication = record.authentication;
         if (record.apiKey !== undefined) result.apiKey = record.apiKey;
         if (record.accountProfile !== undefined) result.accountProfile = record.accountProfile;
         if (record.baseUrl !== undefined) result.baseUrl = record.baseUrl;
+        if (record.inferenceRuntime !== undefined) result.inferenceRuntime = record.inferenceRuntime;
+    } else if (record.type === 'INFERENCE_RUNTIME') {
+        if (record.endpoint !== undefined) result.endpoint = record.endpoint;
     }
     for (const [key, value] of Object.entries(previous ?? {})) {
         if (!known.includes(key) && !matchProperty(key, known)) result[key] = value;

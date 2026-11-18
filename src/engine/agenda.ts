@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { Readable } from 'node:stream';
 import type { KeepAwakeView } from '../power/view.js';
 import { AttentionOwner, evidenceFingerprint, type RelevanceVerdict } from './attention-owner.js';
@@ -10,7 +10,7 @@ import { PtbkError, errorMessage } from '../common/errors.js';
 import { formatDuration } from '../common/duration.js';
 import { confinePath, ensureDirectory, pathExists, toProjectRelative } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
-import { creationTimestamp, formatIsoWithOffset, formatShortTime } from '../common/time.js';
+import { creationTimestamp, parseDateTime, formatIsoWithOffset, formatShortTime } from '../common/time.js';
 import { ENGINE_VERSION, detectInstallation } from '../common/version.js';
 import { appendCommitment } from '../book/edit.js';
 import { formatAgentReference, normalizeAgentName, parseReferenceValue, referenceName, toReference } from '../book/references.js';
@@ -42,7 +42,7 @@ import { renderDeclaration } from '../book/write.js';
 import { ChatStore, type ChatSummary, type ChatWrite, type OutstandingRequest } from '../chats/store.js';
 import { ChatCommitBatcher } from '../chats/batcher.js';
 import { awaitsReply, isHumanFacing } from '../chats/chat-book.js';
-import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, openUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
+import { appendUserMessage, chatAgentChoices, chatDetail, createUserChat, openUserChat, resolveChatInvitations, type ChatAgentChoice, type ChatActivity, type ChatDetail, type ChatRecheckView, type ChatRequestView } from '../chats/service.js';
 import { chatOriginOf, chatTaskCommitments, questionAuthor, type ChatTaskCard, type ChatTaskInput } from '../chats/chat-tasks.js';
 import { assessAttentionRelevance, composeProjectBrief, findLoginCode, replyInChat, type ConversationContext, type LiveReply, type RelevanceRequest } from '../chats/conversation.js';
 import type { VoiceCallView } from '../chats/voice-call.js';
@@ -87,7 +87,7 @@ import { EngineUpdater } from './engine-update.js';
 import { SyncCoordinator, type SyncOutcome } from './sync.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
 import { applyToolOperation, type ToolOperationOutcome, type ToolOperationRequest } from '../tools/operations.js';
-import { inspectBrowserTool, toolInventory, type BrowserReadiness } from '../tools/readiness.js';
+import { inspectBrowserTool, isCurrentRevision, toolInventory, toolRevision, type BrowserReadiness, type ComputerReadiness, type RetainedToolUse } from '../tools/readiness.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import type { ComposedSegment } from '../ui/composer.js';
 import { completeWithDefaults, resolveRoute, routeWithDefaults, type RouteResolution, type RoutingContext } from './routing.js';
@@ -113,13 +113,35 @@ import type {
     UsageOverview,
     WaitView,
     LocalApiView,
+    LocalModelsJobView,
 } from './snapshot.js';
+import { describeLocalPlan, discoverLocalSetup, planLocalSetup, prepareLocalSetup, type LocalSetupChoices } from '../inference/setup.js';
+import { runRuntimeAction } from '../inference/management.js';
+import type { RuntimeAction } from '../inference/types.js';
+import type { BrowserToolRecord, HarnessToolRecord, InferenceRuntimeToolRecord, ToolRecord } from '../tools/model.js';
 import { StateStore, isolationBranch, parkedReadiness, type ActiveRecord, type ChatReplyRecheck, type RecheckSchedule, type RecoverySchedule, type ResultRecord, type RoutingSelection } from './state.js';
 import { TaskTrace, sourceRevision } from './task-trace.js';
 import { recordDiagnostic } from './traces.js';
 import { finishWorktree, isIntegrated } from './isolation.js';
 import { FileOwnership, TurnWindows, type FileConflict } from './concurrency.js';
 import { shortHash, shortId, slugify } from '../common/ids.js';
+
+/**
+ * A local models request of any channel (dashboard, API, desktop).
+ *
+ * @private agenda supervisor
+ */
+export type LocalModelsRequest = {
+    readonly action: 'discover' | 'setup' | 'runtime' | 'cancel';
+    readonly choices?: LocalSetupChoices;
+    /** Runtime tool name and action of `runtime`. */
+    readonly runtime?: string;
+    readonly runtimeAction?: RuntimeAction;
+    readonly model?: string;
+    /** Explicit destructive acknowledgement of model removal or stopping a service Promptbook did not start. */
+    readonly acknowledged?: boolean;
+    readonly via: string;
+};
 
 /**
  * Process placement of the agenda: the ongoing engine as a daemon or in a foreground terminal, or an in-process
@@ -162,7 +184,15 @@ export type AgendaOptions = {
     /** Releases a task's own resources (its browser tabs) after each of its executed runs, whatever the outcome. */
     readonly afterWork?: (task: Task) => Promise<void>;
     /** Named browser tools owned by the service: inspections for the dashboard pages and the names held by work. */
-    readonly browsers?: { readonly primary: () => BrowserDetailView | undefined; readonly all: () => BrowserDetailView[]; readonly inUse: () => string[] };
+    readonly browsers?: {
+        readonly primary: () => BrowserDetailView | undefined;
+        readonly all: () => BrowserDetailView[];
+        readonly inUse: () => string[];
+        /** Old browser revisions only the tasks that acquired them still use (their task scope keys). */
+        readonly retained?: () => ReadonlyArray<{ readonly record: BrowserToolRecord; readonly scopes: readonly string[] }>;
+    };
+    /** Last observed native desktop readiness; reads never start a helper or request OS permissions. */
+    readonly computers?: () => ReadonlyMap<string, ComputerReadiness>;
     /** Tabs users control live in this engine's browsers. */
     readonly tabControls?: () => readonly TabControlView[];
     /** Opens a separate, fresh login context of the project browser for a Wallet credential test. */
@@ -417,13 +447,36 @@ type WorkUnit = {
     /** Live view of the work. */
     current?: CurrentWorkView;
     /** Effective routing of the run and its consultation contexts (for the execution panel). */
-    context?: { readonly selection: RoutingSelection; readonly harnessVersion?: string; readonly source: string; consultations: ExecutionContextView[] };
+    context?: {
+        readonly selection: RoutingSelection;
+        readonly harnessVersion?: string;
+        readonly source: string;
+        consultations: ExecutionContextView[];
+        /** The harness configuration revision this run acquired (its identity survives a change or removal). */
+        readonly acquired?: HarnessToolRecord;
+        /**
+         * Set once the saved configuration was observed no longer to be the acquired revision: a same-name tool added
+         * later, even an identical one, is a new revision and never makes this use current again.
+         */
+        detached?: boolean;
+    };
+    /**
+     * Other harness configuration revisions this unit holds now: its consultations' advisors and a chat turn's reply,
+     * keyed by acquisition. Each stays in use (or retained once changed) until released.
+     */
+    readonly uses: Map<string, HarnessUse>;
     /** A pacing/backoff wait inside the run (skippable) or its wait for files. */
     wait?: WaitView;
     /** Since when its failing check waits for other runs' uncommitted files to settle (orders mutual waits). */
     checkWaitingSince?: number;
     waiter?: { readonly skippable: boolean; readonly resolve: (reason: 'elapsed' | 'skipped' | 'cancelled' | 'woken') => void };
 };
+
+/**
+ * One acquired harness configuration revision. `detached` is set once the saved configuration was observed to differ:
+ * a same-name tool added later, even an identical one, is a new revision and never makes this use current again.
+ */
+type HarnessUse = { readonly record: HarnessToolRecord; detached?: boolean };
 
 /**
  * The project supervisor: concurrent background tasks and chat turns in the project's one working tree, within the
@@ -596,7 +649,7 @@ export class Agenda {
             // Task Pause suspends periodic cycles and retries (`pausing` and `pause`); manual and commit boundaries stay.
             paused: () => this.serviceState === 'pausing' || this.serviceState === 'pause',
             ...(Number(options.env.PTBK_SYNC_INTERVAL_MS) > 0 ? { intervalMs: Number(options.env.PTBK_SYNC_INTERVAL_MS) } : {}),
-            integrationBlocker: async (files) => await this.integrationBlocker(files),
+            integrationBlocker: async (files, assessment) => await this.integrationBlocker(files, assessment?.locked === true),
             onConflict: async (conflict) => await this.scheduleSyncConflict(conflict),
             onIntegrated: async () => {
                 await this.refreshContext();
@@ -782,7 +835,7 @@ export class Agenda {
             input.push({ id: request.id, chat: request.chat, relativePath: request.relativePath, at: request.at, text: request.text, later, links: request.links });
         }
         return await assessAttentionRelevance(
-            { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: this.ownedWork.signal, onActivity: (text) => this.log(text), sessions: this.sessions },
+            { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: this.ownedWork.signal, onActivity: (text) => this.log(text), sessions: this.sessions, onHarnessUse: (use) => this.recordHelperUse(`relevance check of ${owner}`, use) },
             { agent: owner, requests: input, digest: this.reportDigest() },
         );
     }
@@ -1759,7 +1812,7 @@ export class Agenda {
         const recheck = this.chatRecheckViews().find((view) => nameKey(view.chat) === nameKey(detail.summary.name));
         const requests = await this.chatRequestViews(detail.summary.name);
         const voice = this.voiceCallsInstance?.view(detail.summary.name);
-        return { ...detail, summary, tasks: await this.chatTaskCards(detail.summary.name, detail.summary.links), ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}), ...(voice ? { voice } : {}) };
+        return { ...detail, summary, tasks: (await this.chatActivitySnapshot([detail.summary])).get(detail.summary.name)?.tasks ?? [], ...(live ? { live } : {}), ...(recheck ? { recheck } : {}), ...(requests.length ? { requests } : {}), ...(voice ? { voice } : {}) };
     }
 
     /**
@@ -1790,43 +1843,60 @@ export class Agenda {
         return [...this.chatRechecks.values()].filter((entry) => entry.timer).map((entry) => ({ chat: entry.name, cause: entry.schedule.cause, nextAt: entry.schedule.nextAt, rounds: entry.schedule.rounds }));
     }
 
-    /**
-     * Live cards of the tasks a chat created (`TASK ORIGIN Chat`) or links: queued, running, waiting, blocked,
-     * completed or failed, observed from the same engine state as the Tasks view (presentation, not new states).
-     */
-    private async chatTaskCards(chat: string, links: readonly string[]): Promise<ChatTaskCard[]> {
-        const inventory = await this.taskInventory().catch(() => this.inventory);
-        const linked = new Set(links.map((link) => parseReferenceValue(link)?.normalized).filter((key): key is string => Boolean(key)));
-        const chatKey = nameKey(chat);
-        const tasks = inventory.filter((item) => linked.has(nameKey(item.title)) || nameKey(chatOriginOf(item.origin) ?? '') === chatKey);
-        const active = this.activeViews();
-        const receipts = (item: TaskInventoryItem): Pick<ChatTaskCard, 'receipts'> => {
-            const lines = item.source ? this.taskControlStore.receiptsOf(item.source).filter(isOutstandingReceipt).map(receiptLine) : [];
-            return lines.length ? { receipts: lines } : {};
-        };
-        return tasks.map((item): ChatTaskCard => {
-            const running = active.find((view) => view.kind !== 'chat' && nameKey(view.taskTitle) === nameKey(item.title));
-            const result = this.recentResults.find((candidate) => nameKey(candidate.title) === nameKey(item.title));
-            if (running) return { ...receipts(item), name: item.title, ref: item.ref, state: running.phase === 'awaiting-user' ? 'waiting' : 'running', detail: `${running.phase}${running.detail ? ` · ${running.detail}` : ''}`, agent: running.agent.name };
-            switch (item.readiness) {
-                case 'cancelled':
-                    return { name: item.title, ref: item.ref, state: 'cancelled', detail: item.reason, agent: item.agent, ...receipts(item) };
-                case 'retired':
-                    return { name: item.title, ref: item.ref, state: 'retired', detail: item.reason, agent: item.agent, ...receipts(item) };
-                case 'done':
-                    return { name: item.title, ref: item.ref, state: 'completed', detail: result?.summary, agent: result?.agent ?? item.agent, commit: result?.commit };
-                case 'awaiting-user':
-                    return { name: item.title, ref: item.ref, state: 'waiting', detail: item.reason, agent: item.agent };
-                case 'failed':
-                    return { name: item.title, ref: item.ref, state: 'failed', detail: item.reason, agent: item.agent };
-                case 'blocked':
-                case 'needs-recovery':
-                case 'incompatible':
-                    return { name: item.title, ref: item.ref, state: 'blocked', detail: item.reason, agent: item.agent };
-                default:
-                    return { name: item.title, ref: item.ref, state: 'queued', detail: item.reason, agent: item.agent, ...receipts(item) };
-            }
-        });
+    /** Reads definitions, inventory and retained results once for every requested chat, including list views. */
+    public async chatActivitySnapshot(summaries: readonly ChatSummary[] = this.chatSummaries, snapshot?: Awaited<ReturnType<Agenda['taskReadSnapshot']>>): Promise<ReadonlyMap<string, ChatActivity>> {
+        const activities = new Map<string, ChatActivity>();
+        if (!summaries.length) return activities;
+        const [tasks, chats] = await Promise.all([snapshot ? Promise.resolve(snapshot) : this.taskReadSnapshot(true), this.chats.list()]);
+        const active = new Map(this.activeViews().filter(view => view.kind !== 'chat').map(view => [nameKey(view.taskTitle), view]));
+        const definitions = new Map(tasks.tasks.map(task => [task.key, task]));
+        const results = new Map<string, ResultRecord>();
+        for (const result of tasks.results) {
+            const key = parseReferenceValue(result.taskRef)?.normalized ?? nameKey(result.taskName ?? result.title);
+            if (!results.has(key) || Date.parse(results.get(key)!.endedAt) < Date.parse(result.endedAt)) results.set(key, result);
+        }
+        const wanted = new Map<string, Set<string>>();
+        const names = new Map(summaries.map(summary => [nameKey(summary.name), summary.name]));
+        for (const summary of summaries) for (const link of summary.links) {
+            const key = parseReferenceValue(link)?.normalized; if (!key) continue;
+            if (!wanted.has(key)) wanted.set(key, new Set()); wanted.get(key)!.add(summary.name);
+        }
+        const cards = new Map(summaries.map(summary => [summary.name, [] as ChatTaskCard[]]));
+        for (const item of tasks.inventory) {
+            const key = parseReferenceValue(item.ref)?.normalized ?? nameKey(item.title);
+            const targets = new Set(wanted.get(key));
+            const origin = names.get(nameKey(chatOriginOf(item.origin) ?? '')); if (origin) targets.add(origin);
+            if (!targets.size) continue;
+            const running = active.get(key); const result = results.get(key); const task = definitions.get(key);
+            const state: ChatTaskCard['state'] = running ? running.phase === 'awaiting-user' ? 'waiting' : 'running'
+                : ({ done: 'completed', cancelled: 'cancelled', retired: 'retired', 'awaiting-user': 'waiting', failed: 'failed', blocked: 'blocked', 'needs-recovery': 'blocked', incompatible: 'blocked' } as Readonly<Record<string, ChatTaskCard['state']>>)[item.readiness] ?? 'queued';
+            const ended = ['completed', 'failed', 'cancelled', 'retired'].includes(state);
+            const creation = / — (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/.exec(item.title)?.[1];
+            const parsed = creation ? parseDateTime(creation, this.timeZone) : undefined;
+            const receipts = item.source ? this.taskControlStore.receiptsOf(item.source).filter(isOutstandingReceipt).map(receiptLine) : [];
+            const card: ChatTaskCard = { name: item.title, ref: item.ref, state, detail: running ? `${running.phase}${running.detail ? ` · ${running.detail}` : ''}` : state === 'completed' ? result?.summary : item.reason,
+                agent: running?.agent.name ?? result?.agent ?? item.agent, commit: state === 'completed' ? result?.commit : undefined,
+                reopened: task?.reopened ?? false, startedAt: running?.startedAt ?? result?.startedAt, endedAt: ended ? result?.endedAt : undefined,
+                ...(parsed?.ok ? { createdAt: new Date(parsed.epochMs).toISOString() } : {}), ...(receipts.length ? { receipts } : {}) };
+            for (const name of targets) cards.get(name)!.push(card);
+        }
+        const rechecks = new Map(this.chatRecheckViews().map(view => [nameKey(view.chat), view]));
+        const stored = new Map(chats.map(chat => [chat.chat.key, chat.chat]));
+        for (const summary of summaries) {
+            const key = nameKey(summary.name); const chat = stored.get(key);
+            const progressDigest = createHash('sha256').update(JSON.stringify(chat?.messages.filter(message => message.phase === 'progress').map(message => [message.at, message.text, message.steps]) ?? [])).digest('hex');
+            activities.set(summary.name, { tasks: cards.get(summary.name)!, live: this.liveReplies.get(summary.name), recheck: rechecks.get(key), progressDigest });
+        }
+        return activities;
+    }
+
+    /** Brings forward an existing automatic recheck; repeated requests never start a second attempt. */
+    public chatRetry(name: string): 'started' | 'running' | 'none' {
+        const entry = this.chatRechecks.get(nameKey(name));
+        if (!entry) return 'none';
+        if (!entry.timer) return 'running';
+        this.startChatRecheck(nameKey(name), 'asked to retry now');
+        return 'started';
     }
 
     /** Agents the user may start a chat with (ordinary first; hidden/core and Expert behind More). */
@@ -2099,6 +2169,7 @@ export class Agenda {
                                 else this.liveReplies.delete(chat);
                                 this.touch();
                             },
+                            onHarnessUse: (use) => this.recordUse(unit, use),
                         },
                         name,
                         options,
@@ -2109,7 +2180,7 @@ export class Agenda {
                     if (error instanceof PtbkError && (error.details.kind === 'not-found' || error.details.kind === 'usage')) throw error;
                     failure = errorMessage(error);
                 } finally {
-                    this.liveReplies.delete(name);
+                    for (const chat of this.liveReplies.keys()) if (nameKey(chat) === key) this.liveReplies.delete(chat);
                     this.finishUnit(unit);
                 }
                 if (failure) await this.chatReplyFailed(name, failure, options.agent);
@@ -2456,7 +2527,7 @@ export class Agenda {
 
     /** Registers an active unit. */
     private registerUnit(input: { readonly id: string; readonly kind: WorkUnit['kind']; readonly label: string; readonly key?: string }): WorkUnit {
-        const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id, interrupt: new AbortController() };
+        const unit: WorkUnit = { ...input, startedAt: Date.now(), owner: input.id, interrupt: new AbortController(), uses: new Map() };
         this.units.set(unit.id, unit);
         if (unit.key) this.claimedKeys.add(unit.key);
         this.touch();
@@ -2803,6 +2874,8 @@ export class Agenda {
                       usable: Boolean(inspection?.usable),
                       summary: inspection?.summary ?? (this.pool.enabled().includes(plugin.id) ? 'Not inspected yet.' : 'Not enabled.'),
                       version: inspection?.version,
+                      accountProfiles: Boolean(plugin.accountHomeVariable),
+                      endpoints: { local: Boolean(plugin.endpoints.local), custom: Boolean(plugin.endpoints.custom) },
                   };
               })
             : [];
@@ -2835,7 +2908,7 @@ export class Agenda {
             browser: this.options.browsers?.primary(),
             browsers: this.options.browsers?.all(),
             ...(this.options.tabControls?.().length ? { tabControls: this.options.tabControls() } : {}),
-            tools: this.settings && this.pool ? toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, inUse: this.toolsInUse(), retained: this.retainedTools() }) : undefined,
+            tools: this.settings && this.pool ? { ...toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers: this.browserReadiness, computers: this.options.computers?.(), inUse: this.toolsInUse(), retained: this.retainedTools() }), ...(this.localJob ? { localJob: this.localJob } : {}) } : undefined,
             sync: this.sync.view(),
             files: this.desktopFiles.view(),
             health: this.health?.view(),
@@ -2948,24 +3021,81 @@ export class Agenda {
         }
     }
 
-    /** Names of tools held by active work (each task's harness instance, active consultations, acquired browsers). */
+    /**
+     * Names of saved tools held by active work: each task's harness instance while the saved configuration still is
+     * the revision it acquired, active consultations and browsers acquired in their current revision. A retained old
+     * revision never makes a changed or same-name replacement tool "in use".
+     */
     private toolsInUse(): Set<string> {
         const names = new Set<string>(this.options.browsers?.inUse() ?? []);
         for (const unit of this.units.values()) {
-            if (unit.current && unit.context?.selection.tool) names.add(unit.context.selection.tool);
-            for (const consultation of unit.context?.consultations ?? []) if (consultation.state === 'active' && consultation.harness.tool) names.add(consultation.harness.tool);
+            if (unit.current && unit.context?.selection.tool && !this.retainsOldRevision(unit)) names.add(unit.context.selection.tool);
+            // Consultations and chat replies hold the revision they acquired, exactly like the task's own instance.
+            for (const use of unit.uses.values()) if (!this.isRetained(use)) names.add(use.record.name);
         }
+        for (const use of this.helperUses.values()) if (!this.isRetained(use)) names.add(use.record.name);
         return names;
     }
 
-    /** Tools whose acquired old configuration active work still uses (changed, disabled or removed meanwhile). */
-    private retainedTools(): Set<string> {
-        const retained = new Set((this.options.browsers?.all() ?? []).filter((browser) => browser.retained && browser.inUse).map((browser) => browser.name));
+    /**
+     * Acquired old configuration revisions active work still uses (changed, disabled, removed or replaced meanwhile),
+     * each with its actual type/variant and owning work; one entry per revision, its owners combined.
+     */
+    private retainedTools(): RetainedToolUse[] {
+        const uses = new Map<string, { record: ToolRecord; owners: string[] }>();
+        const add = (record: ToolRecord, owner: string | undefined): void => {
+            const key = `${record.name}\0${toolRevision(record)}`;
+            const use = uses.get(key) ?? { record, owners: [] };
+            if (owner && !use.owners.includes(owner)) use.owners.push(owner);
+            uses.set(key, use);
+        };
+        const ownerOf = (scope: string): string | undefined => {
+            const unit = [...this.units.values()].find((candidate) => candidate.key === scope || candidate.id === scope);
+            return unit ? (unit.current?.taskTitle ?? unit.label) : undefined;
+        };
+        for (const browser of this.options.browsers?.retained?.() ?? []) for (const scope of browser.scopes.length ? browser.scopes : ['']) add(browser.record, ownerOf(scope));
         for (const unit of this.units.values()) {
-            const tool = unit.current ? unit.context?.selection.tool : undefined;
-            if (tool && !this.settings.tools.some((record) => record.name === tool && record.isEnabled)) retained.add(tool);
+            const owner = unit.kind === 'chat' ? `chat {${unit.label}}` : (unit.current?.taskTitle ?? unit.label);
+            const acquired = unit.current ? unit.context?.acquired : undefined;
+            if (acquired && this.retainsOldRevision(unit)) add(acquired, owner);
+            for (const use of unit.uses.values()) if (this.isRetained(use)) add(use.record, owner);
         }
-        return retained;
+        for (const use of this.helperUses.values()) if (this.isRetained(use)) add(use.record, use.owner);
+        return [...uses.values()].map((use) => ({ name: use.record.name, record: use.record, ...(use.owners.length ? { owner: use.owners.join(', ') } : {}) }));
+    }
+
+    /**
+     * Whether a unit's acquired harness revision is no longer the saved configuration (changed, disabled, removed or
+     * replaced). Once observed, it stays retained: re-adding the name creates a new revision.
+     */
+    private retainsOldRevision(unit: WorkUnit): boolean {
+        const context = unit.context;
+        if (!context?.acquired) return false;
+        if (!context.detached && !isCurrentRevision(context.acquired, this.settings.tools)) context.detached = true;
+        return Boolean(context.detached);
+    }
+
+    /** The same observation for one consultation or chat-reply use: once its saved revision changed, it stays retained. */
+    private isRetained(use: HarnessUse): boolean {
+        if (!use.detached && !isCurrentRevision(use.record, this.settings.tools)) use.detached = true;
+        return Boolean(use.detached);
+    }
+
+    /** Harness revisions held by helper calls that run outside a work unit (relevance checks, one-time code searches). */
+    private readonly helperUses = new Map<string, HarnessUse & { readonly owner: string }>();
+
+    /** Records an acquired or released harness revision of a helper call outside a work unit. */
+    private recordHelperUse(owner: string, use: { readonly id: string; readonly state: 'acquired' | 'started'; readonly record?: HarnessToolRecord } | { readonly id: string; readonly state: 'released' | 'finished' }): void {
+        if ((use.state === 'acquired' || use.state === 'started') && 'record' in use && use.record) this.helperUses.set(use.id, { record: use.record, owner });
+        else this.helperUses.delete(use.id);
+        this.touch();
+    }
+
+    /** Records an acquired or released harness revision of a unit's consultation or chat reply. */
+    private recordUse(unit: WorkUnit, use: { readonly id: string; readonly state: 'acquired' | 'started'; readonly record?: HarnessToolRecord } | { readonly id: string; readonly state: 'released' | 'finished' }): void {
+        if ((use.state === 'acquired' || use.state === 'started') && 'record' in use && use.record) unit.uses.set(use.id, { record: use.record });
+        else unit.uses.delete(use.id);
+        this.touch();
     }
 
     /** Ready/queued work that waits for its agent or for files, counted at the last evaluation. */
@@ -2997,7 +3127,7 @@ export class Agenda {
         const browsers = new Map<string, BrowserReadiness>();
         for (const tool of this.settings.tools) if (tool.type === 'BROWSER' && tool.isEnabled) browsers.set(tool.name, await inspectBrowserTool(this.options.project, tool, this.options.env));
         this.browserReadiness = browsers;
-        this.tools = toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers, inUse: this.toolsInUse(), retained: this.retainedTools() });
+        this.tools = toolInventory({ project: this.options.project, settings: this.settings, env: this.options.env, pool: this.pool, browsers, computers: this.options.computers?.(), inUse: this.toolsInUse(), retained: this.retainedTools() });
         if (!this.tools.waiting) this.clearBlocker('tools');
         this.reviewChatRechecks();
         this.touch();
@@ -3007,6 +3137,8 @@ export class Agenda {
     private async refreshLive(): Promise<void> {
         try {
             this.settings = await this.loadEffectiveSettings();
+            // A saved isAutoSync change takes effect at once: one schedule when on, no timer at all when off.
+            this.sync.refresh();
             await this.refreshTools();
         } catch (error) {
             this.logOnce(`Configuration reload failed: ${errorMessage(error)}`, 'warning');
@@ -3037,6 +3169,7 @@ export class Agenda {
             loaded = await this.loadEffectiveSettings();
         }
         this.settings = loaded;
+        this.sync.refresh();
         this.catalog = await AgentCatalog.load(this.options.project.root, setting<string>(loaded, 'paths.agents'), setting<string>(loaded, 'paths.tasks'));
         await this.refreshTools(initial || this.waitView?.kind === 'tools');
         const gitInfo = await inspectGit(this.options.project.root);
@@ -3605,6 +3738,13 @@ export class Agenda {
         return system ? [...this.inventory, system] : this.inventory;
     }
 
+    /** Read-only task definitions, readiness, graph and retained run evidence for the App's task projection. */
+    public async taskReadSnapshot(includeHistory = false) {
+        const [queue, inventory, active, parked, results] = await Promise.all([this.readQueue(), this.taskInventory(), this.state.readActiveRecords(), this.state.readParked(), includeHistory ? this.state.recentResults(Number.MAX_SAFE_INTEGER) : Promise.resolve([])]);
+        return { tasks: queue.tasks.filter(task => !task.shadowedBy), inventory, active: [...active, ...parked.filter(record => !active.some(running => running.runId === record.runId))], results,
+            books: this.catalog.index.winners(), agents: this.snapshot().agents, timeZone: this.timeZone };
+    }
+
     /** A Book's source with its revision and detected problems (read-only). */
     public async bookSource(input: { readonly reference?: string; readonly path?: string }): Promise<BookSource> {
         return await readBookSource(this.options.project.root, this.catalog, input);
@@ -3767,6 +3907,7 @@ export class Agenda {
             settings: this.settings,
             catalog: this.catalog,
             pool: this.pool,
+            ...(unit.context?.acquired ? { acquiredTool: unit.context.acquired } : {}),
             state: this.state,
             chats: this.chats,
             takenNames: () => this.catalog.index.names(),
@@ -3794,7 +3935,9 @@ export class Agenda {
                         this.updateUnit(unit, { phase, detail: event.detail, agent: agentView(unit.current.agent.name, phase === 'awaiting-user' ? 'waiting-user' : 'working') });
                     } else if (event.type === 'attempt') this.updateUnit(unit, { attempt: event.attempt, attemptBudget: event.budget });
                     else if (event.type === 'model') this.updateUnit(unit, { model: event.model, modelSource: 'reported' });
-                    else if (event.type === 'consultation' && unit.context) {
+                    else if (event.type === 'consultation') {
+                        this.recordUse(unit, event.state === 'started' ? { id: `consultation:${event.id}`, state: 'started', record: event.acquired } : { id: `consultation:${event.id}`, state: 'finished' });
+                        if (!unit.context) return;
                         const consultations = unit.context.consultations;
                         if (event.state === 'started') {
                             consultations.push(executionContextView({ role: 'consultation', agent: event.advisor, by: event.by, harness: event.harness, tool: event.tool, model: event.model, state: 'active' }));
@@ -4282,7 +4425,8 @@ export class Agenda {
             startedAt: new Date().toISOString(),
             target: targetRef ? { ref: targetRef, title: targetRef } : undefined,
         };
-        unit.context = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [] };
+        const acquired = selection.tool ? this.pool.instance(selection.tool) : undefined;
+        unit.context = { selection, harnessVersion: item.route.inspection.version, source: item.task.source.relativePath, consultations: [], ...(acquired ? { acquired } : {}) };
         this.touch();
         const others = this.units.size - 1;
         this.log(`${item.resume ? 'Resuming' : 'Starting'} ${item.kind === 'task' ? '' : `${item.kind} `}"${item.task.title}" with ${selection.agent} on ${harnessName(selection.harness)}${selection.tool ? ` [${selection.tool}]` : ''}${selection.model ? ` (${selection.model})` : ''}${others > 0 ? ` alongside ${others} other active unit${others === 1 ? '' : 's'}` : ''}`);
@@ -4351,6 +4495,10 @@ export class Agenda {
                 this.resumeAfter.set(item.runId, Date.now() + BLOCKER_RECHECK_MS);
                 break;
             }
+            case 'fallback':
+                // The run is routed again at once; the failed connection is marked for a bounded recheck.
+                this.log(`${harnessName(selection.harness)} instance "${outcome.tool}" failed technically (${outcome.reason}); "${item.task.title}" continues with the same-variant fallback "${outcome.fallback}".`, 'warning');
+                break;
             case 'quota': {
                 // An authorized later instance of the same variant serves the retry at once (no wait through this reset).
                 const fallback = this.sameVariantFallback(item, outcome.tool);
@@ -4398,6 +4546,7 @@ export class Agenda {
             case 'awaiting-wallet':
             case 'awaiting-task':
             case 'quota':
+            case 'fallback':
             case 'setup':
             case 'persistence-failed':
                 this.sessions.waiting(key, 'reason' in outcome && outcome.reason ? outcome.reason : 'Waiting for what it needs before it continues.');
@@ -4436,7 +4585,8 @@ export class Agenda {
      */
     private sameVariantFallback(item: WorkItem, failed: string | undefined): ReturnType<HarnessPool['select']> {
         if (!failed) return undefined;
-        return this.pool.select(item.route.selection.harness, { runtime: item.route.selection.runtime, except: failed });
+        // The same eligibility as a technical fallback: endpoint, model and explicit account constraints are preserved.
+        return this.pool.fallbackFor({ ...item.route.selection, tool: failed });
     }
 
     /**
@@ -4812,7 +4962,7 @@ export class Agenda {
             const author = await this.catalog.resolve(REPORT_AUTHOR);
             const agent = author.kind === 'agent' ? formatAgentReference(author.definition.name) : REPORT_AUTHOR;
             const composed = await composeProjectBrief(
-                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]), onActivity: (text) => this.log(text) },
+                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([this.ownedWork.signal, unit.interrupt.signal]), onActivity: (text) => this.log(text), onHarnessUse: (use) => this.recordUse(unit, use) },
                 { agent, digest: this.reportDigest(), previous: this.reportView.brief, reportPath: join(this.options.project.root, REPORT_FILE) },
             );
             if (!composed.text) {
@@ -4842,7 +4992,7 @@ export class Agenda {
         const session = codeTools();
         try {
             return await findLoginCode(
-                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([request.signal, this.ownedWork.signal]), onActivity: (text) => this.log(text) },
+                { project: this.options.project, settings: this.settings, catalog: this.catalog, pool: this.pool, env: this.options.env, signal: AbortSignal.any([request.signal, this.ownedWork.signal]), onActivity: (text) => this.log(text), onHarnessUse: (use) => this.recordHelperUse(`Fixer's one-time code search for ${request.origin}`, use) },
                 { agent: formatAgentReference('Fixer'), origin: request.origin, account: request.account, tools: session.tools },
             );
         } finally {
@@ -5158,16 +5308,18 @@ export class Agenda {
     /**
      * Why integrating remote changes now would be unsafe: a running check or result commit (its validated content must
      * not change underneath it), or incoming files that active work owns or that have uncommitted local edits (never
-     * overwritten, stashed or reset). Other concurrent work does not prevent integration.
+     * overwritten, stashed or reset). Other concurrent work does not prevent integration. With `locked` it is the
+     * recheck under the Git lock: accepted desktop changes are not flushed there (that commit needs the same lock), so
+     * they count as the uncommitted edits they are.
      */
-    private async integrationBlocker(incomingFiles: readonly string[]): Promise<string | undefined> {
+    private async integrationBlocker(incomingFiles: readonly string[], locked = false): Promise<string | undefined> {
         const validating = [...this.units.values()].find((unit) => unit.current && ['checking', 'finalizing', 'committing'].includes(unit.current.phase));
         if (validating) return `"${validating.label}" is validating or committing its result; integration happens after it`;
         if (!this.repositoryRoot) return 'the project is not in a Git working tree';
         const base = toProjectRelative(this.repositoryRoot, this.options.project.root);
         const incoming = incomingFiles.map((file) => (base && base !== '.' && file.startsWith(`${base}/`) ? file.slice(base.length + 1) : file));
         // Accepted desktop changes of incoming files are committed first, so integration never overwrites them.
-        await this.desktopFiles.flushPaths(incoming.map((file) => join(this.options.project.root, file))).catch(() => undefined);
+        if (!locked) await this.desktopFiles.flushPaths(incoming.map((file) => join(this.options.project.root, file))).catch(() => undefined);
         const dirty = await captureSnapshot({ project: this.options.project, repositoryRoot: this.repositoryRoot });
         const owned = incoming.filter((file) => this.ownership.ownerOf(file));
         if (owned.length) return `active work owns incoming files (${owned.slice(0, 5).join(', ')}); integration happens once it releases them`;
@@ -5287,6 +5439,99 @@ export class Agenda {
         await this.refreshTools(true);
         this.wake();
         return this.tools;
+    }
+
+    /** The current or last local models operation. */
+    private localJob?: LocalModelsJobView;
+
+    /** Cancels the running local models operation. */
+    private localJobController?: AbortController;
+
+    /**
+     * Local models of this engine host through the shared setup state machine and runtime operations (the same code as
+     * `ptbk tool setup-local` and `ptbk tool runtime`): `discover` plans read-only, `setup` prepares an accepted plan in
+     * the background and saves its records in one scoped commit, `runtime` runs a runtime action (maintenance in the
+     * background), `cancel` stops the running operation. Host prerequisites never create a project commit.
+     */
+    public async localModels(request: LocalModelsRequest): Promise<unknown> {
+        const env = this.options.env;
+        const tools = this.settings.tools;
+        switch (request.action) {
+            case 'discover': {
+                const discovery = await discoverLocalSetup(env, tools, { ...(request.choices?.endpoint ? { endpoint: request.choices.endpoint } : {}), ...(request.choices?.runtime ? { runtime: request.choices.runtime } : {}) });
+                const plan = planLocalSetup(discovery, tools, request.choices ?? {});
+                return { hardware: discovery.hardware, runtimes: discovery.runtimes.map((entry) => ({ variant: entry.variant, displayName: entry.displayName, summary: entry.observation.summary, running: entry.observation.running, problem: entry.observation.problem, installable: Boolean(entry.installation) })), harnesses: discovery.harnesses, plan, description: describeLocalPlan(plan) };
+            }
+            case 'cancel':
+                this.localJobController?.abort();
+                return { job: this.localJob };
+            case 'runtime': {
+                const tool = tools.find((candidate): candidate is InferenceRuntimeToolRecord => candidate.type === 'INFERENCE_RUNTIME' && candidate.name === request.runtime);
+                if (!tool) throw new PtbkError(`No local model runtime is named "${request.runtime ?? ''}".`, { kind: 'not-found', effect: 'Nothing was changed.' });
+                const action = request.runtimeAction ?? 'status';
+                const runtimeRequest = { runtime: tool.name, action, ...(request.model ? { model: request.model } : {}), ...(request.acknowledged ? { acknowledged: true } : {}) };
+                if (action === 'status' || action === 'models' || action === 'update' || action === 'uninstall') return { outcome: await runRuntimeAction({ tool, env, project: this.options.project.root }, runtimeRequest) };
+                return { job: this.startLocalJob('runtime', `${action}${request.model ? ` ${request.model}` : ''} on ${tool.name}`, action, async (signal, progress) => {
+                    const outcome = await runRuntimeAction({ tool, env, project: this.options.project.root, signal, onProgress: (item) => progress({ stage: action, message: item.message ?? item.stage, ...(item.completedBytes !== undefined ? { completedBytes: item.completedBytes } : {}), ...(item.totalBytes !== undefined ? { totalBytes: item.totalBytes } : {}) }), onWait: (holder) => progress({ stage: action, message: `Waiting for ${holder.label} (another Promptbook engine)…` }) }, runtimeRequest);
+                    return { state: outcome.status, message: outcome.summary, notes: [...outcome.notes, ...outcome.next] };
+                }) };
+            }
+            case 'setup': {
+                const choices = request.choices ?? {};
+                return { job: this.startLocalJob('setup', 'Add local models', 'discovering', async (signal, progress) => {
+                    const discovery = await discoverLocalSetup(env, this.settings.tools, { ...(choices.endpoint ? { endpoint: choices.endpoint } : {}), ...(choices.runtime ? { runtime: choices.runtime } : {}), signal });
+                    const plan = planLocalSetup(discovery, this.settings.tools, choices);
+                    const result = await prepareLocalSetup(env, plan, { accepted: true, project: this.options.project.root, signal, onProgress: (item) => progress(item) });
+                    const notes = [...result.completed, ...result.pending];
+                    if (result.status !== 'ready') return { state: result.status === 'cancelled' ? 'cancelled' : 'failed', message: result.summary, notes };
+                    if (result.operation) {
+                        const saved = await this.toolOperation({ operation: result.operation, acknowledgements: { force: false, confirmLastOfType: false }, via: request.via });
+                        if (saved.status === 'needs-acknowledgement') return { state: 'failed', message: saved.summary, notes };
+                        notes.unshift(saved.summary);
+                    }
+                    return { state: 'completed', message: result.summary, notes };
+                }) };
+            }
+            default:
+                throw new PtbkError(`Unknown local models action "${String((request as { action?: unknown }).action)}".`, { kind: 'usage' });
+        }
+    }
+
+    /**
+     * Runs one background local models operation (one at a time per engine; host-wide maintenance is also serialized
+     * across engines by the runtime operations themselves). Its progress is part of the tools view.
+     */
+    private startLocalJob(kind: LocalModelsJobView['kind'], label: string, stage: string, work: (signal: AbortSignal, progress: (item: { readonly stage: string; readonly message: string; readonly completedBytes?: number; readonly totalBytes?: number }) => void) => Promise<{ readonly state: LocalModelsJobView['state']; readonly message: string; readonly notes?: readonly string[] }>): LocalModelsJobView {
+        if (this.localJob?.state === 'running') throw new PtbkError(`A local models operation is running: ${this.localJob.label}.`, { kind: 'conflict', effect: 'Nothing was started.', next: ['Wait for it, or cancel it first.'] });
+        const controller = new AbortController();
+        this.localJobController = controller;
+        const id = randomUUID();
+        let lastTouch = 0;
+        this.localJob = { id, kind, label, stage, state: 'running', message: `${label}…`, startedAt: new Date().toISOString() };
+        this.touch();
+        const progress = (item: { readonly stage: string; readonly message: string; readonly completedBytes?: number; readonly totalBytes?: number }): void => {
+            if (this.localJob?.id !== id) return;
+            this.localJob = { ...this.localJob, stage: item.stage, message: item.message, ...(item.completedBytes !== undefined ? { completedBytes: item.completedBytes } : {}), ...(item.totalBytes !== undefined ? { totalBytes: item.totalBytes } : {}) };
+            // Download progress is frequent: viewers see it about once a second.
+            if (Date.now() - lastTouch > 1000) {
+                lastTouch = Date.now();
+                this.touch();
+            }
+        };
+        void (async () => {
+            let ended: { readonly state: LocalModelsJobView['state']; readonly message: string; readonly notes?: readonly string[] };
+            try {
+                ended = await work(controller.signal, progress);
+            } catch (error) {
+                ended = { state: controller.signal.aborted ? 'cancelled' : 'failed', message: (error as Error).message };
+            }
+            if (this.localJob?.id === id) this.localJob = { ...this.localJob, state: ended.state, stage: ended.state, message: ended.message, endedAt: new Date().toISOString(), ...(ended.notes?.length ? { notes: ended.notes } : {}) };
+            if (this.localJobController === controller) this.localJobController = undefined;
+            this.log(`${label}: ${ended.message}`, ended.state === 'completed' ? 'info' : 'warning');
+            await this.refreshTools(true).catch(() => undefined);
+            this.wake();
+        })();
+        return this.localJob;
     }
 
     /**

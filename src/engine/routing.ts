@@ -143,9 +143,14 @@ export async function routeConcrete(agent: EffectiveAgent, row: ModelRow, contex
             return { kind: 'incompatible', reason: `${field}=${wanted} is required, but the declared ${field} of ${row.model} is ${metadata[field] ?? 'unknown'} (unknown metadata never satisfies a restriction).` };
         }
     }
-    if (await context.pool.rejectsModel(plugin.id, row.model)) {
-        const known = await context.pool.models(plugin.id);
-        return { kind: 'incompatible', reason: `Model ${row.model} is not offered by ${plugin.displayName} (known: ${known.slice(0, 8).join(', ')}${known.length > 8 ? ', …' : ''}).` };
+    if (await context.pool.rejectsModel(options.tool ?? plugin.id, row.model, row.runtime)) {
+        const known = await context.pool.models(options.tool ?? plugin.id);
+        const runtimeName = (options.tool ? [context.pool.instance(options.tool)] : context.pool.instancesFor(plugin.id, row.runtime)).find((instance) => instance?.inferenceRuntime)?.inferenceRuntime;
+        return {
+            kind: 'incompatible',
+            reason: `Model ${row.model} is not offered by ${plugin.displayName}${endpointLabel(row.runtime)} (known: ${known.slice(0, 8).join(', ')}${known.length > 8 ? ', …' : ''}).`,
+            ...(runtimeName ? { next: `Download it on the engine host first (ptbk tool runtime ${runtimeName} download ${row.model}), or choose an installed model.` } : {}),
+        };
     }
     if (options.tool) {
         const instance = context.pool.instance(options.tool);
@@ -161,13 +166,38 @@ export async function routeConcrete(agent: EffectiveAgent, row: ModelRow, contex
             next: `Add or enable one (ptbk tool add HARNESS --variant ${plugin.variant} --name ${plugin.id}), or change the MODEL requirement.`,
         };
     }
-    const tool = options.tool ? context.pool.select(plugin.id, { tool: options.tool }) : context.pool.select(plugin.id, { runtime: row.runtime });
+    // runtime=local is a hard constraint: the actual model must execute on the engine host through a runtime that
+    // serves it locally. A cloud-backed or unknown-locality model never satisfies it; a stopped service, a model not
+    // downloaded yet or a disabled runtime is an honest resource wait, never a hosted fallback.
+    let tool: ReturnType<HarnessPool['select']>;
+    if (row.runtime === 'local') {
+        const states = instances.map((instance) => ({ instance, locality: context.pool.modelLocality(instance.name, row.model!) }));
+        const local = states.filter((state) => state.locality === 'local');
+        if (!local.length) {
+            if (states.length && states.every((state) => state.locality === 'cloud' || state.locality === 'unknown')) {
+                return {
+                    kind: 'incompatible',
+                    reason: `MODEL ${formatModelRow(row)} requires local execution, but ${row.model} is ${states.some((state) => state.locality === 'cloud') ? 'served from the cloud through the local runtime' : 'not verifiably executed on the engine host'} (${states.map((state) => state.instance.name).join(', ')}).`,
+                    next: 'Choose a model whose weights are downloaded on the engine host (`ptbk tool runtime <name> models`), or change the MODEL requirement.',
+                };
+            }
+            const down = states.find((state) => state.locality === 'service-down');
+            const runtimeName = (down ?? states[0])?.instance.inferenceRuntime;
+            return {
+                kind: 'blocked',
+                reason: down ? `The local model runtime ${runtimeName} is not running, so ${row.model} cannot run locally now.` : `${row.model} is not available on the local model runtime${runtimeName ? ` ${runtimeName}` : ''} now${states.length ? '' : ' (no usable local connection)'}.`,
+                next: runtimeName ? (down ? `ptbk tool runtime ${runtimeName} start` : `ptbk tool runtime ${runtimeName} download ${row.model}`) : 'ptbk tool setup-local',
+            };
+        }
+        tool = options.tool ? context.pool.select(plugin.id, { tool: options.tool }) : local.map((state) => state.instance).find((instance) => context.pool.inspectionOf(instance.name)?.usable);
+    } else tool = options.tool ? context.pool.select(plugin.id, { tool: options.tool }) : context.pool.select(plugin.id, { runtime: row.runtime, model: row.model });
     if (!tool) {
         const states = instances.map((instance) => `${instance.name}: ${context.pool.inspectionOf(instance.name)?.summary ?? 'not inspected yet'}`);
         return { kind: 'blocked', reason: `${plugin.displayName} is not usable now (${states.join('; ')}).`, next: instances.map((instance) => context.pool.inspectionOf(instance.name)?.nextAction).find(Boolean) };
     }
     const inspection = context.pool.inspectionOf(tool.name) ?? context.pool.inspection(plugin.id)!;
     const sameVariant = context.pool.instancesFor(plugin.id, row.runtime).length > 1;
+    const local = context.pool.localRoute(tool, row.model);
     const selection: RoutingSelection = {
         agent: agent.name,
         harness: plugin.id,
@@ -176,7 +206,9 @@ export async function routeConcrete(agent: EffectiveAgent, row: ModelRow, contex
         thinkingLevel: row.thinking,
         runtime: toolRuntime(tool),
         baseUrl: context.pool.baseUrl(tool),
-        sources: { ...options.sources, ...(sameVariant ? { tool: `first usable ${plugin.displayName} instance${endpointLabel(row.runtime)} in ptbk.json tools order` } : options.tool ? { tool: `explicit instance (${options.tool})` } : {}) },
+        ...(local ? { localRoute: local, locality: local.model?.locality ?? 'unknown' } : {}),
+        // An explicitly named instance is an account constraint (no fallback); otherwise tools order chose it.
+        sources: { ...options.sources, ...(options.tool ? { tool: `explicit instance (${options.tool})` } : sameVariant ? { tool: `first usable ${plugin.displayName} instance${endpointLabel(row.runtime)} in ptbk.json tools order` } : {}) },
     };
     return { kind: 'routable', agent, selection, plugin, inspection };
 }
@@ -205,24 +237,32 @@ export async function completeWithDefaults(
             const instances = context.pool.instancesFor(id, row.runtime);
             if (!instances.length) continue;
             anyInstance = true;
-            const tool = context.pool.select(id, { runtime: row.runtime }) ?? (options.includeUnusable ? instances[0] : undefined);
-            if (!tool) {
+            // Every usable connection is a candidate with its own catalog (local and hosted connections of one harness
+            // are both selectable); ordered fallback applies among equivalent connections afterwards.
+            const usable = instances.filter((instance) => context.pool.inspectionOf(instance.name)?.usable);
+            const connections = usable.length ? usable : options.includeUnusable ? instances.slice(0, 1) : [];
+            if (!connections.length) {
                 reasons.push(`${plugin.displayName} is not usable now`);
                 continue;
             }
-            const defaults = await context.pool.defaults(tool.name);
-            const candidates = row.model ? [row.model] : [...new Set([defaults.model, ...(await context.pool.models(tool.name))].filter((model): model is string => Boolean(model)))];
-            const model = candidates.find((candidate) => {
-                const metadata = modelMetadata(candidate);
-                return rowAllows({ provider: row.provider, origin: row.origin }, { harness: plugin.variant, model: candidate, runtime: toolRuntime(tool), ...metadata }) && selectorsMatch(options.selectors ?? [], options.agentName ?? '', id, candidate);
-            });
-            if (!model) {
-                reasons.push(`no ${plugin.displayName} model satisfies ${formatModelRow(row)}`);
-                continue;
+            for (const tool of connections) {
+                const defaults = await context.pool.defaults(tool.name);
+                const candidates = row.model ? [row.model] : [...new Set([defaults.model, ...(await context.pool.models(tool.name))].filter((model): model is string => Boolean(model)))];
+                const model = candidates.find((candidate) => {
+                    const metadata = modelMetadata(candidate);
+                    // A hard local restriction accepts only models verified to execute on the engine host.
+                    if (row.runtime === 'local' && context.pool.modelLocality(tool.name, candidate) !== 'local') return false;
+                    return rowAllows({ provider: row.provider, origin: row.origin }, { harness: plugin.variant, model: candidate, runtime: toolRuntime(tool), ...metadata }) && selectorsMatch(options.selectors ?? [], options.agentName ?? '', id, candidate);
+                });
+                if (!model) {
+                    reasons.push(`no ${plugin.displayName} model${toolRuntime(tool) === 'local' ? ` on ${tool.name}` : ''} satisfies ${formatModelRow(row)}`);
+                    continue;
+                }
+                const thinkingLevels = tool.inferenceRuntime ? (defaults.thinkingLevel ? plugin.thinkingLevels : []) : plugin.thinkingLevels;
+                const thinking = thinkingLevels.length ? (row.thinking ?? defaults.thinkingLevel) : undefined;
+                const completed = intersectRows(row, { harness: plugin.variant, model, ...(thinking ? { thinking } : {}), runtime: toolRuntime(tool) });
+                if (completed) return { row: completed };
             }
-            const thinking = plugin.thinkingLevels.length ? (row.thinking ?? defaults.thinkingLevel) : undefined;
-            const completed = intersectRows(row, { harness: plugin.variant, model, ...(thinking ? { thinking } : {}), runtime: toolRuntime(tool) });
-            if (completed) return { row: completed };
         }
     }
     if (!anyInstance) return { reason: `No enabled harness tool can serve ${describeModel(constraint)}.`, impossible: true };

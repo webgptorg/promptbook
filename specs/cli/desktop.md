@@ -3,6 +3,7 @@
 Windows and macOS share the same [Promptbook wordmark and robot artwork](../../design/README.md).
 The header follows the application's selected appearance. The empty project view uses
 the homepage robot as a supporting illustration.
+The macOS menu-bar icon uses a monochrome native template with Retina resolution, so the system renders it white on a dark menu bar and black on a light menu bar, independently of the application's selected appearance.
 
 [Main specification](../_main.md) · [Windows installer](windows-installer.md) · [Global dashboard](global-dashboard.md) · [Initialization](initialization.md) · [Harness sessions](harness-sessions.md)
 
@@ -13,6 +14,10 @@ Specifications define behavior; the project engine implements it; the CLI and te
 Ship Windows and macOS desktop clients from one Electron, xterm.js and native PTY implementation. Platform code handles packaging, startup integration, icons and locating the standalone CLI runtime. This is local control on the computer running the engines, separate from the future remote customer App.
 
 Preserve the existing per-project supervisors, engine ownership, discovery registry and OS-startup rules. Do not introduce a global engine or a new always-running engine supervisor. Shared refactoring is permitted when observable CLI/engine semantics are preserved. Clients never own scheduling, Git transactions, credentials or project state.
+
+## Release discovery
+
+The desktop client independently discovers newer GitHub Releases under the shared [release-channel and update-offer contract](updates.md#discovery-and-offers-across-installation-methods). **Check for updates** is available in the window and application/tray menus. A nonmodal banner offers the matching Windows EXE or macOS architecture's DMG; downloads open in the user's browser, and unsigned experimental builds are labelled. Background discovery continues with only the tray open. It never installs or restarts automatically. Distinguish the client version from its running engines; the macOS bundle is updated as one installer-owned unit, while the Windows npm engine retains its own updater.
 
 ## Tray and lifetime
 
@@ -61,6 +66,8 @@ The editor buffers drafts locally and saves through engine operations with revis
 ## One initializer, two presentations
 
 With no known projects, opening the application starts the first-project wizard. New project invokes the same intent-first initialization state machine and domain operations as `ptbk init`, with clickable choices, text fields and file attachments. There is no second initializer or project format. The CLI keeps its terminal presentation. Shared prompts may expose a private authenticated presentation transport; options, validation, Back, cancellation, review, deferred writes, login verification, Git, setup commits and the single background start remain owned by normal init.
+
+The same multi-selection includes **Local models**, alone or with hosted harnesses; later Tools → Local models reuses [the shared setup/management flow](local-models-setup.md). Runtime installation, model downloads and readiness are engine operations and remain fully usable from the CLI without Electron or a runtime GUI. Display progress/limitations and real engine-host scope without duplicating installer/provider logic in the renderer.
 
 Native sign-in and any terminal-only interactions remain available in the embedded terminal without restarting the wizard. Switching presentation must not submit an answer, lose a draft or duplicate initialization. Cancel is the normal init cancellation, not an engine stop. Show incomplete/failed setup truthfully and keep its diagnostics/retry path. On successful completion, attach the graphical dashboard to the exact project reported by the shared initializer; never infer it from another concurrently registered project or start another engine.
 

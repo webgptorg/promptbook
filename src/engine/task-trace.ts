@@ -3,7 +3,7 @@ import { appendFile, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { errorMessage } from '../common/errors.js';
 import { ensureDirectory, pathExists, toProjectRelative } from '../common/fs.js';
-import { createRedactor } from '../common/redact.js';
+import { createRedactor, TraceSanitizer } from '../common/redact.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import type { Project } from '../project/workspace.js';
 import { legacyTraceDirectoryOf, traceDirectoryOf } from '../tasks/identity.js';
@@ -75,6 +75,7 @@ export class TaskTrace {
     public problem?: string;
     private queue: Promise<void> = Promise.resolve();
     private readonly redact: (text: string) => string;
+    private readonly privacy = new TraceSanitizer();
     private readonly truncated = new Set<string>();
     private readonly sizes = new Map<string, number>();
 
@@ -149,7 +150,7 @@ export class TaskTrace {
      * Appends a task event (`local` events happen after the result commit and stay out of it).
      */
     public async event(name: string, data: Readonly<Record<string, unknown>> = {}, options: { local?: boolean } = {}): Promise<void> {
-        const line = JSON.stringify({ at: new Date().toISOString(), event: name, ...data });
+        const line = JSON.stringify(this.privacy.value({ at: new Date().toISOString(), event: name, ...data }));
         await this.append(options.local ? TRACE_FILES.localEvents : TRACE_FILES.events, `${this.redact(line)}\n`, MAX_EVENT_LOG_BYTES);
     }
 
@@ -165,14 +166,16 @@ export class TaskTrace {
      * Appends readable text to the harness log.
      */
     public async text(text: string): Promise<void> {
-        await this.append(TRACE_FILES.harness, this.redact(text.endsWith('\n') ? text : `${text}\n`), MAX_HARNESS_LOG_BYTES);
+        const safe = this.privacy.text(text.endsWith('\n') ? text : `${text}\n`);
+        await this.append(TRACE_FILES.harness, this.redact(safe), MAX_HARNESS_LOG_BYTES);
     }
 
     /**
      * Appends one line of harness output in readable form (JSON events become indented key/value text).
      */
     public output(stream: 'stdout' | 'stderr', line: string): void {
-        void this.text(stream === 'stderr' ? `[stderr] ${line}` : readableHarnessLine(line));
+        const safe = readableHarnessLine(line, this.privacy);
+        void this.text(stream === 'stderr' ? `[stderr] ${safe}` : safe);
     }
 
     /** Waits until queued writes are on disk (before staging a commit). */
@@ -242,20 +245,21 @@ export function traceHeader(task: { readonly title: string; readonly source: str
 }
 
 /**
- * Renders one line of harness output: JSON events as indented readable text (losslessly), other text verbatim.
+ * Renders one line of harness output as readable technical evidence. Content-bearing browser/desktop payloads and
+ * media bytes are intentionally omitted before rendering; ordinary output remains readable.
  *
  * @private task traces
  */
-export function readableHarnessLine(line: string): string {
+export function readableHarnessLine(line: string, privacy = new TraceSanitizer()): string {
     const trimmed = line.trim();
-    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return line;
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return privacy.text(line);
     let value: unknown;
     try {
-        value = JSON.parse(trimmed);
+        value = privacy.value(JSON.parse(trimmed));
     } catch {
-        return line;
+        return privacy.text(line);
     }
-    if (value === null || typeof value !== 'object' || Array.isArray(value)) return line;
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return JSON.stringify(value);
     const record = value as Record<string, unknown>;
     const types = [record.type, (record.item as Record<string, unknown> | undefined)?.type, (record.msg as Record<string, unknown> | undefined)?.type].filter((part): part is string => typeof part === 'string');
     const body = readableValue(value, 1);
@@ -276,9 +280,7 @@ function readableValue(value: unknown, depth: number): string {
         if (!value.length) return '[]';
         return `\n${value.map((item) => `${indent}- ${readableValue(item, depth + 1).replace(/^\n\s*/, '')}`).join('\n')}`;
     }
-    const record = value as Record<string, unknown>;
-    // Images returned to the model (browser screenshots) are evidence for the model, not readable log text.
-    const entries = Object.entries(record).map(([key, item]): [string, unknown] => (record.type === 'image' && key === 'data' && typeof item === 'string' ? [key, `[image data, ${item.length} base64 characters omitted]`] : [key, item]));
+    const entries = Object.entries(value as Record<string, unknown>);
     if (!entries.length) return '{}';
     return `\n${entries.map(([key, item]) => `${indent}${key}: ${readableValue(item, depth + 1)}`).join('\n')}`;
 }

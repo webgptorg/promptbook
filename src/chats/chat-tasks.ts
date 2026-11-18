@@ -96,6 +96,11 @@ export type ChatTaskCard = {
     readonly commit?: string;
     /** It was reopened after an earlier completion or cancellation. */
     readonly reopened?: boolean;
+    /** Actual run timestamps, when retained. */
+    readonly startedAt?: string;
+    readonly endedAt?: string;
+    /** Creation time from a generated task name, for an origin-only link. */
+    readonly createdAt?: string;
     /** Instruction receipts still outstanding, in plain words. */
     readonly receipts?: readonly string[];
 };

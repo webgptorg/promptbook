@@ -1,12 +1,39 @@
-import type { HarnessToolRecord, HarnessVariant, ThinkingLevel } from '../tools/model.js';
+import type { RuntimeProtocol } from '../inference/types.js';
+import type { HarnessToolRecord, HarnessVariant, InferenceRuntimeVariant, ThinkingLevel } from '../tools/model.js';
 import type { HarnessVoiceSupport } from './voice.js';
 
 /**
- * How a harness is authenticated.
+ * How a harness is authenticated: a native account, an API key, nothing usable (`none`), a credential-free local
+ * runtime connection (`local`, never billed by a model provider) or not known.
  *
  * @private harness plugin contract
  */
-export type AuthenticationKind = 'account' | 'api' | 'none' | 'unknown';
+export type AuthenticationKind = 'account' | 'api' | 'none' | 'local' | 'unknown';
+
+/**
+ * A managed local connection of one invocation: the harness reaches a runtime on the engine host through this
+ * protocol URL, configured for this invocation only (never the CLI's global provider, model or login).
+ *
+ * @private harness plugin contract
+ */
+export type LocalRoute = {
+    readonly runtime: InferenceRuntimeVariant;
+    /** The project's runtime tool name. */
+    readonly runtimeTool: string;
+    /** The harness connection (tool) name. */
+    readonly connection: string;
+    /** Actual service identity across loopback aliases (shared-consumer accounting). */
+    readonly resourceKey: string;
+    readonly protocol: RuntimeProtocol;
+    /** Endpoint the harness transport needs (e.g. the runtime's OpenAI-compatible `/v1`). */
+    readonly protocolUrl: string;
+    /** Non-secret token some clients require for a credential-free route (invocation-scoped protocol data). */
+    readonly compatibilityToken: string;
+    /** Runtime version where observed (evidence of the actual binding). */
+    readonly runtimeVersion?: string;
+    /** The routed model's identity in that runtime (digest/quantization where exposed). */
+    readonly model?: { readonly id: string; readonly digest?: string; readonly quantization?: string; readonly locality?: 'local' | 'cloud' | 'unknown'; readonly sizeBytes?: number };
+};
 
 /**
  * Observed readiness of one globally installed harness (never obtained through a model call).
@@ -197,6 +224,8 @@ export type HarnessRunRequest = {
     readonly thinkingLevel?: ThinkingLevel;
     /** Base URL of a local or custom endpoint selected through the tool (undefined = the official endpoint). */
     readonly baseUrl?: string;
+    /** Managed local runtime connection of this invocation (credential-free; never inherits cloud authentication). */
+    readonly localRoute?: LocalRoute;
     /** Enforce read-only execution. */
     readonly readOnly: boolean;
     /** ptbk MCP bridge to load. */
@@ -223,6 +252,8 @@ export type HarnessRunRequest = {
     readonly onOutput?: (stream: 'stdout' | 'stderr', line: string) => void;
     /** Silence after which the harness is considered stalled (unattended operation; 0 disables). */
     readonly stallTimeoutMs?: number;
+    /** A local run waits for runtime capacity (its reason), or was admitted after waiting (`undefined`). */
+    readonly onAdmission?: (wait: string | undefined) => void;
 };
 
 /**
@@ -232,7 +263,7 @@ export type HarnessRunRequest = {
  */
 export type HarnessEvent =
     | { readonly type: 'message'; readonly text: string }
-    | { readonly type: 'activity'; readonly text: string }
+    | { readonly type: 'activity'; readonly text: string; readonly tool?: string; readonly detail?: string }
     /** The reply text streamed so far (cumulative), where the harness streams it before the complete message. */
     | { readonly type: 'partial'; readonly text: string }
     /** Files the harness reports it changed (authorship evidence for per-file ownership). */
@@ -289,6 +320,11 @@ export type HarnessEndpoints = {
     readonly local?: string;
     /** Whether an explicit custom base URL is supported. */
     readonly custom: boolean;
+    /**
+     * Managed local connections through inference runtimes: the protocol this harness speaks and the runtimes (with
+     * their minimum versions) whose endpoints it is verified with. Absent: no managed local connection.
+     */
+    readonly localConnection?: { readonly protocol: RuntimeProtocol; readonly runtimes: Readonly<Partial<Record<InferenceRuntimeVariant, string>>> };
 };
 
 /**
@@ -329,8 +365,30 @@ export type HarnessPlugin = {
         /** Isolates a wizard-created connection from the CLI's existing subscription settings. */
         readonly profile?: { readonly home: string; readonly omit?: readonly string[] };
     };
-    /** Ambient variables that would silently switch a native instance to API billing (removed for `NATIVE`). */
+    /**
+     * Every environment variable the adapter or its CLI accepts that could select an authentication/billing route:
+     * API keys with their aliases and alternate provider keys, endpoint overrides and mode selectors. All are removed
+     * from every instance's invocation-scoped environment before the selected mode applies its own values.
+     */
     readonly ambientApiKeyVariables?: readonly string[];
+    /**
+     * Native credential variables (for example a subscription token): kept for `NATIVE`, which uses that account
+     * context, and removed for `API_KEY` and `NONE`.
+     */
+    readonly nativeCredentialVariables?: readonly string[];
+    /**
+     * The CLI fills variables absent from its process environment from a `.env` file of its (trusted) working directory
+     * or home, but keeps variables that are present even when empty. Removed route and credential variables are then
+     * passed empty, so a project's `.env` cannot reinstate a route the selected mode excluded.
+     */
+    readonly fillsFromWorkspaceDotEnv?: boolean;
+    /** Values that make the CLI use the selected mode (for example a native-login selector), per mode. */
+    readonly modeEnvironment?: { readonly NATIVE?: Readonly<Record<string, string>>; readonly API_KEY?: Readonly<Record<string, string>>; readonly NONE?: Readonly<Record<string, string>> };
+    /**
+     * Isolated configuration home of every `API_KEY` instance, so a stored native login or saved provider selection of
+     * the user's own CLI configuration can never substitute for the configured key.
+     */
+    readonly apiKeyProfile?: { readonly home: string; readonly omit?: readonly string[] };
     /** Variable selecting a separate native account/configuration home (`accountProfile`; absent: unsupported). */
     readonly accountHomeVariable?: string;
     /** Display name. */

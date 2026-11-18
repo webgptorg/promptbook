@@ -8,6 +8,8 @@ A **task** is durable work; a **chat** is a conversation, never a disguised task
 
 Track a stable engine session handle and provider-native identifier(s), the responsible agent, actual task/occurrence or chat/turn, source revision, named tool, harness/version, model/effort, account/authentication and billing context. These technical handles are not new AGENT/TASK/CHAT entity IDs. Reconnection may replace processes without creating a new logical session; a real replacement session is recorded with its predecessor and reason. Retain ended-session evidence without presenting it as live.
 
+For local inference, retain the resolved provider/protocol endpoint, runtime reference/version, actual model identity/version or digest/quantization where exposed, and verified locality. Resume/reconnect must reapply that connection, not the CLI's current global defaults or whichever catalog was most recently refreshed. Reject an incompatible/missing binding and use ordinary recovery; no silent subscription/API substitution or context transfer between local and hosted sessions. Model updates/alias changes require capability revalidation and an honest continuation/replacement outcome rather than claiming the old loaded model persisted.
+
 Distinguish opening, idle/ready, working, interrupt requested, interrupted/checkpointed, waiting/blocked, reconnecting, ended and failed/unknown observations, using actual adapter evidence. User-control mode and engine lifecycle are separate dimensions. An idle open session need not run a model or incur periodic inference just to remain open.
 
 ## One adapter contract
@@ -15,6 +17,8 @@ Distinguish opening, idle/ready, working, interrupt requested, interrupted/check
 Extend the existing plugin contract, not a second provider system. It covers create/open, inspect/list, continue with another input, stream actual events/output/usage, interrupt at a supported boundary, checkpoint/resume/reconnect, close and discover supported native attachment. Declare capabilities independently by installed version, selected transport and authentication context. Availability of output streaming does not establish continuing input, steering, read-only attachment or safe detach.
 
 The engine automatically launches/supervises the required local runtime, acquires private endpoints/credentials, restores connections and cleans up owned resources. No routine user-managed port/server step is required. Keep transport details within the adapter; App Server is one Codex integration, not the name of the generic abstraction. Connection recovery cannot duplicate a turn or repeat an uncertain external effect.
+
+Session transport processes are distinct from shared [inference services/model stores](inference-runtimes.md). Session close/interrupt targets only its owned request/transport and releases its inference capacity; it does not kill Ollama/LM Studio or evict a model another engine is using. Idle session context is not a reservation of model execution capacity. Nested tool/TEAM waits release or yield admission safely under the runtime contract.
 
 Adapters must distinguish a received control input from a processed one under [task control](task-control.md). Unsupported live steering uses supported interrupt/continue or deferred delivery, with an honest pending state; it cannot silently drop the change or start a second executor. Shared runtimes must interrupt/close only the targeted owned work, preserving unrelated sessions/chats. Health, file ownership, permissions, traces and lifecycle remain authoritative.
 

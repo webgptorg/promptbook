@@ -1,3 +1,4 @@
+import { replyStep, stepOfEvent, type ReplyStep } from './reply-steps.js';
 import type { TaskControlOperation, TaskControlOrigin, TaskControlOutcome, TaskStatusView } from '../engine/task-control.js';
 import { rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -21,7 +22,7 @@ import { parseAgentReport } from '../engine/result.js';
 import { hasThinking, readOnlyRoute, routeConcrete, type RouteResolution, type RoutingContext } from '../engine/routing.js';
 import type { RoutingSelection } from '../engine/state.js';
 import { harnessPlugin } from '../harness/registry.js';
-import { harnessPluginId, harnessVariantOf } from '../tools/model.js';
+import { harnessPluginId, harnessVariantOf, type HarnessToolRecord } from '../tools/model.js';
 import { teamTools } from '../engine/team.js';
 import { appendUsage, chatUsageFile, usageRecords, walletTestUsageFile } from '../engine/usage.js';
 import { parseTaskPurpose } from '../tasks/purpose.js';
@@ -84,6 +85,11 @@ export type ConversationContext = {
     readonly establishedExecution?: (chat: string) => Promise<RoutingSelection | undefined>;
     /** Live progress of a reply being written (undefined once it ended), shared with every client of the chat. */
     readonly onLive?: (chat: string, live: LiveReply | undefined) => void;
+    /**
+     * A harness configuration revision this chat's work acquired (the reply's own instance or a consultation's) and its
+     * release: the engine counts exactly that revision as in use, or retained after a change, until it is released.
+     */
+    readonly onHarnessUse?: (use: { readonly id: string; readonly state: 'acquired'; readonly record: HarnessToolRecord } | { readonly id: string; readonly state: 'released' }) => void;
     readonly onActivity?: (text: string) => void;
 };
 
@@ -146,6 +152,20 @@ async function chatExecution(context: ConversationContext, stored: StoredChat, a
 }
 
 /**
+ * Resolves and records a human-led chat's MODEL right after its first User message where no written reply does it: a
+ * first message spoken to a native voice frontend. It is the same resolution as a written reply (a fully specified
+ * choice is reused, otherwise one bounded Router consultation fills the missing constraints) and is recorded before the
+ * first reply message, so the voice frontend never stands in for the chat's backing MODEL.
+ *
+ * @private chats
+ */
+export async function establishChatModel(context: ConversationContext, chatName: string): Promise<{ readonly error?: string }> {
+    const { stored, agent } = await voiceSpeaker(context, chatName);
+    const execution = await chatExecution(context, stored, agent);
+    return 'error' in execution ? { error: execution.error } : {};
+}
+
+/**
  * The execution of a joined participant answering in a chat: the established execution of its task when it asked from
  * one, otherwise its own MODEL on a read-only-capable harness. The chat's MODEL (the main agent's) is not imposed and
  * nothing is recorded in the chat.
@@ -186,6 +206,9 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${routerAgentDefinition.name} is routing {${stored.chat.name}}`);
     const instance = context.pool.instance(routerRoute.selection.tool!)!;
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `routing:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -218,10 +241,12 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
                 model: routerRoute.selection.model,
                 thinkingLevel: routerRoute.selection.thinkingLevel,
                 baseUrl: routerRoute.selection.baseUrl,
+                localRoute: routerRoute.selection.localRoute,
             },
             routerRoute.inspection.executablePath ?? routerRoute.plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await rm(promptFile, { force: true });
     }
     const usageFile = chatUsageFile(context.project, stored.path);
@@ -234,6 +259,7 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
             tool: instance.name,
             model: result.model ?? routerRoute.selection.model,
             authentication: routerRoute.inspection.authentication,
+            connection: routerRoute.selection,
             outcome: result.outcome,
             attribution: { agent: routerAgentDefinition.name, owner: routerAgentDefinition.name, initiator: 'engine', work: { kind: 'chat-routing', chat: stored.chat.name, source: stored.relativePath } },
         }),
@@ -426,6 +452,8 @@ export function chatTools(context: ConversationContext, stored: StoredChat, agen
                     signal: controller.signal,
                     onUserChat: () => undefined,
                     onActivity: (text) => context.onActivity?.(`${agent.name} in {${chat.name}}: ${text}`),
+                    onConsultation: (consultation) =>
+                        context.onHarnessUse?.(consultation.state === 'started' && consultation.acquired ? { id: `consultation:${consultation.id}`, state: 'acquired', record: consultation.acquired } : { id: `consultation:${consultation.id}`, state: 'released' }),
                     usage: { file: usageFile, parent: { kind: 'chat', name: chat.name } },
                 },
                 { includeUser: false },
@@ -546,6 +574,9 @@ export async function replyInChat(context: ConversationContext, chatName: string
     if (!mainReference) throw new PtbkError(`The chat "${chat.name}" has no agent participant.`, { kind: 'configuration' });
     const addressed = options.agent ? chatAgents(chat).find((member) => parseReferenceValue(member)?.normalized === parseReferenceValue(options.agent!)?.normalized) : undefined;
     const agentReference = addressed ?? mainReference;
+    const turnStartedAt = Date.now();
+    context.onLive?.(chat.name, { sender: agentReference, startedAt: new Date(turnStartedAt).toISOString(), activity: [], steps: [] });
+    try {
     const isMain = agentReference === mainReference;
     // A follow-up turn answers user messages that arrived while the previous reply was being written; a turn that was
     // interrupted or failed left only unfinished progress, so its user message still gets a reply.
@@ -594,7 +625,10 @@ export async function replyInChat(context: ConversationContext, chatName: string
     const promptFile = join(directory, `chat-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is replying in {${chat.name}}`);
-    const progress = new ReplyProgress(context, chat.name, formatAgentReference(agent.name));
+    const progress = new ReplyProgress(context, chat.name, formatAgentReference(agent.name), turnStartedAt, bridge ? text => text.split(bridge.secret).join('[REDACTED]') : text => text);
+    // The reply holds this exact configuration revision until its turn ends.
+    const useId = `reply:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -629,6 +663,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 model: route.selection.model,
                 thinkingLevel: route.selection.thinkingLevel,
                 baseUrl: route.selection.baseUrl,
+                localRoute: route.selection.localRoute,
                 onEvent: (event) => progress.event(event),
             },
             inspection.executablePath ?? plugin.executable,
@@ -637,6 +672,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
         await progress.unfinished(errorMessage(error));
         throw error;
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await bridge?.close();
         await rm(promptFile, { force: true });
     }
@@ -649,6 +685,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
             tool: instance.name,
             model: result.model ?? route.selection.model,
             authentication: inspection.authentication,
+            connection: route.selection,
             outcome: result.outcome,
             attribution: { agent: agent.name, owner: parseReferenceValue(mainReference)?.name ?? mainReference, initiator: 'User', work: { kind: 'chat', chat: chat.name, source: stored.relativePath } },
         }),
@@ -674,6 +711,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
         await context.scheduleLearning?.({ chat: chat.name, agent: agent.name, note: learning }).catch(() => undefined);
     }
     return { reply, createdTasks: created, learning, consultations, seen: chat.messages.length };
+    } finally { context.onLive?.(chat.name, undefined); }
 }
 
 /**
@@ -690,7 +728,7 @@ export type BriefComposition = { readonly text?: string; readonly error?: string
  *
  * @private chats
  */
-export async function composeProjectBrief(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>, input: { readonly agent: string; readonly digest: string; readonly previous?: { readonly text: string; readonly at: string }; readonly reportPath: string }): Promise<BriefComposition> {
+export async function composeProjectBrief(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions' | 'onHarnessUse'>, input: { readonly agent: string; readonly digest: string; readonly previous?: { readonly text: string; readonly at: string }; readonly reportPath: string }): Promise<BriefComposition> {
     const agent = await resolveEffectiveAgent(context.catalog, input.agent);
     const errors = agent.diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
     if (errors.length) return { error: `${input.agent} cannot write the brief: ${errors.map((diagnostic) => diagnostic.message).join(' ')}` };
@@ -722,6 +760,9 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
     const promptFile = join(directory, `brief-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is writing the project brief`);
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `brief:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -754,10 +795,12 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
                 model: route.selection.model,
                 thinkingLevel: route.selection.thinkingLevel,
                 baseUrl: route.selection.baseUrl,
+                localRoute: route.selection.localRoute,
             },
             route.inspection.executablePath ?? plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await rm(promptFile, { force: true });
     }
     await appendUsage(
@@ -769,6 +812,7 @@ export async function composeProjectBrief(context: Pick<ConversationContext, 'pr
             tool: instance.name,
             model: result.model ?? route.selection.model,
             authentication: route.inspection.authentication,
+            connection: route.selection,
             outcome: result.outcome,
             attribution: { agent: agent.name, owner: agent.name, initiator: 'engine', work: { kind: 'chat', chat: 'Report', source: input.reportPath } },
         }),
@@ -812,7 +856,7 @@ export type RelevanceRequest = {
  * @private chats
  */
 export async function assessAttentionRelevance(
-    context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>,
+    context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions' | 'onHarnessUse'>,
     input: { readonly agent: string; readonly requests: readonly RelevanceRequest[]; readonly digest?: string },
 ): Promise<{ readonly verdicts: ReadonlyArray<{ readonly id: string; readonly needed: boolean; readonly reason?: string }> } | { readonly unavailable: string }> {
     const agent = await resolveEffectiveAgent(context.catalog, formatAgentReference(input.agent));
@@ -854,6 +898,9 @@ export async function assessAttentionRelevance(
     const promptFile = join(directory, `relevance-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} is checking whether its requests to the owner are still needed`);
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `relevance:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -886,10 +933,12 @@ export async function assessAttentionRelevance(
                 model: route.selection.model,
                 thinkingLevel: route.selection.thinkingLevel,
                 baseUrl: route.selection.baseUrl,
+                localRoute: route.selection.localRoute,
             },
             route.inspection.executablePath ?? plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await rm(promptFile, { force: true });
     }
     const first = input.requests[0]!;
@@ -902,6 +951,7 @@ export async function assessAttentionRelevance(
             tool: instance.name,
             model: result.model ?? route.selection.model,
             authentication: route.inspection.authentication,
+            connection: route.selection,
             outcome: result.outcome,
             attribution: { agent: agent.name, owner: agent.name, initiator: 'engine', work: { kind: 'chat', chat: first.chat, source: first.relativePath } },
         }),
@@ -953,7 +1003,7 @@ const LOGIN_CODE_TIMEOUT_MS = 3 * 60_000;
  *
  * @private chats
  */
-export async function findLoginCode(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions'>, input: { readonly agent: string; readonly origin: string; readonly account: string; readonly tools: readonly BridgeTool[] }): Promise<string | undefined> {
+export async function findLoginCode(context: Pick<ConversationContext, 'project' | 'settings' | 'catalog' | 'pool' | 'env' | 'signal' | 'onActivity' | 'sessions' | 'onHarnessUse'>, input: { readonly agent: string; readonly origin: string; readonly account: string; readonly tools: readonly BridgeTool[] }): Promise<string | undefined> {
     const agent = await resolveEffectiveAgent(context.catalog, input.agent);
     if (agent.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) return undefined;
     const route = await readOnlyRoute(agent, undefined, { catalog: context.catalog, pool: context.pool, settings: context.settings });
@@ -987,6 +1037,9 @@ export async function findLoginCode(context: Pick<ConversationContext, 'project'
     const promptFile = join(directory, `login-code-${shortId()}.md`);
     await writeFile(promptFile, prompt);
     context.onActivity?.(`${agent.name} looks for the one-time code of a Wallet test of ${input.origin}`);
+    // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
+    const useId = `login-code:${shortId(8)}`;
+    context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
     let result;
     try {
         result = await runHarnessInSession(
@@ -1021,10 +1074,12 @@ export async function findLoginCode(context: Pick<ConversationContext, 'project'
                 model: route.selection.model,
                 thinkingLevel: route.selection.thinkingLevel,
                 baseUrl: route.selection.baseUrl,
+                localRoute: route.selection.localRoute,
             },
             route.inspection.executablePath ?? plugin.executable,
         );
     } finally {
+        context.onHarnessUse?.({ id: useId, state: 'released' });
         await bridge.close();
         await rm(promptFile, { force: true });
     }
@@ -1038,6 +1093,7 @@ export async function findLoginCode(context: Pick<ConversationContext, 'project'
             tool: instance.name,
             model: result.model ?? route.selection.model,
             authentication: route.inspection.authentication,
+            connection: route.selection,
             outcome: result.outcome,
             attribution: { agent: agent.name, owner: agent.name, initiator: 'User', work: { kind: 'wallet-test' } },
         }),
@@ -1058,6 +1114,8 @@ export type LiveReply = {
     readonly startedAt: string;
     /** Latest progress lines (bounded). */
     readonly activity: readonly string[];
+    /** Latest structured activity (at most twenty steps). */
+    readonly steps: readonly ReplyStep[];
     /** The reply text streamed so far, where the harness streams it. */
     readonly text?: string;
 };
@@ -1083,7 +1141,7 @@ const PROGRESS_LINES = 40;
  * final reply is then marked `final`; an interrupted turn keeps its progress marked unfinished.
  */
 class ReplyProgress {
-    private readonly startedAt = Date.now();
+    private readonly steps: ReplyStep[] = [];
     private readonly at: string;
     private readonly lines: string[] = [];
     private text = '';
@@ -1096,20 +1154,29 @@ class ReplyProgress {
         private readonly context: ConversationContext,
         private readonly chat: string,
         private readonly sender: string,
+        private readonly startedAt: number,
+        private readonly redact: (text: string) => string,
     ) {
         this.at = context.chats.now();
     }
 
     /** Takes one harness event. */
     public event(event: HarnessEvent): void {
-        if (event.type === 'activity') this.lines.push(event.text.replace(/\s+/g, ' ').slice(0, 200));
-        else if (event.type === 'reasoning') this.lines.push(`thinking: ${event.text.replace(/\s+/g, ' ').slice(0, 300)}`);
-        else if (event.type === 'partial') this.text = event.text;
-        else return;
+        const step = stepOfEvent(event, this.redact);
+        if (step) { this.steps.push(step); if (this.steps.length > 200) this.steps.splice(0, this.steps.length - 200); }
+        if (event.type === 'activity') this.lines.push(this.redact(event.text).replace(/\s+/g, ' ').slice(0, 200));
+        else if (event.type === 'reasoning') this.lines.push(`thinking: ${this.redact(event.text).replace(/\s+/g, ' ').slice(0, 300)}`);
+        else if (event.type === 'partial') this.text = this.redact(event.text);
+        else if (!step) return;
         if (this.lines.length > PROGRESS_LINES) this.lines.splice(0, this.lines.length - PROGRESS_LINES);
         this.dirty = true;
-        this.context.onLive?.(this.chat, { sender: this.sender, startedAt: new Date(this.startedAt).toISOString(), activity: this.lines.slice(-8), ...(this.text ? { text: this.text } : {}) });
+        this.publishLive();
         this.schedule();
+    }
+
+    /** Also wakes API readers after a progress save that changed no message count. */
+    private publishLive(): void {
+        this.context.onLive?.(this.chat, { sender: this.sender, startedAt: new Date(this.startedAt).toISOString(), activity: this.lines.slice(-8), steps: this.steps.slice(-20), ...(this.text ? { text: this.text } : {}) });
     }
 
     /** Arms the next durable save. */
@@ -1132,8 +1199,7 @@ class ReplyProgress {
     private async save(note?: string): Promise<void> {
         if (!this.dirty && !note) return;
         this.dirty = false;
-        await this.context.chats.upsertProgress(this.chat, { sender: this.sender, at: this.at, text: this.render(note) }).catch(() => undefined);
-        this.saved = true;
+        await this.context.chats.upsertProgress(this.chat, { sender: this.sender, at: this.at, text: this.render(note), steps: this.steps }).then(() => { this.saved = true; this.publishLive(); }, () => { this.dirty = true; });
     }
 
     /** Ends the turn: saves the complete progress when any was saved, and says whether the final reply closes it. */
@@ -1147,10 +1213,12 @@ class ReplyProgress {
 
     /** Ends an interrupted or failed turn: its progress stays, explicitly marked unfinished. */
     public async unfinished(reason: string): Promise<void> {
+        this.steps.push(replyStep({ kind: 'note', tool: null, text: reason, level: 'error' }, this.redact));
+        if (this.steps.length > 200) this.steps.splice(0, this.steps.length - 200);
         clearTimeout(this.timer);
         this.timer = undefined;
         await this.writing;
-        if (this.saved || this.text || this.lines.length) await this.save(`(unfinished reply: ${reason})`);
+        await this.save(`(unfinished reply: ${this.redact(reason)})`);
         this.context.onLive?.(this.chat, undefined);
     }
 }

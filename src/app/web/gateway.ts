@@ -1,10 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { errorMessage } from '../../common/errors.js';
-import { GATEWAY_ASSETS, GATEWAY_ASSET_PATH, api, isSafeNextPath, pickGatewayLanguage, renderGatewayPage, webauthn } from '../../vendor/app-platform.js';
+import { GATEWAY_ASSETS, GATEWAY_ASSET_PATH, api, isSafeNextPath, pickGatewayLanguage, renderGatewayPage, protocol, webauthn } from '../../vendor/app-platform.js';
 import { decodeBase64Url, encodeBase64Url } from '../encoding.js';
 import type { EngineFingerprint } from '../identity.js';
-import type { AccessStore, Actor, StoredPasskey } from './access.js';
+import type { AccessStore, AccessTicket, Actor, NewPasskey, StoredPasskey } from './access.js';
 import { SESSION_ABSOLUTE_TIMEOUT_MS } from './access.js';
 import type { SecureConnectionInfo } from './tls.js';
 
@@ -79,7 +78,7 @@ type GatewayFiles = { readonly pages: Readonly<Record<string, string>>; readonly
 async function loadGatewayFiles(): Promise<GatewayFiles> {
     const directory = new URL('../../vendor/gateway-pages/', import.meta.url);
     const pages: Record<string, string> = {};
-    for (const name of ['setup.html', 'sign-in.html', 'step-up.html']) pages[name] = await readFile(fileURLToPath(new URL(name, directory)), 'utf8');
+    for (const name of ['setup.html', 'sign-in.html', 'step-up.html', 'join.html']) pages[name] = await readFile(fileURLToPath(new URL(name, directory)), 'utf8');
     const assets = new Map<string, { bytes: Buffer; type: string }>();
     for (const [name, type] of Object.entries(GATEWAY_ASSETS)) assets.set(name, { bytes: await readFile(fileURLToPath(new URL(name, directory))), type });
     return { pages, assets };
@@ -161,6 +160,8 @@ export type GatewayOptions = {
     readonly access: AccessStore;
     readonly engineId: string;
     readonly fingerprint: EngineFingerprint;
+    /** Dashboard verification key pinned at registration, never fetched from a ticket. */
+    readonly memberKey?: Uint8Array;
     /** The engine API behind the gateway (only signed-in requests reach it). */
     readonly api: (request: Request, actor: Actor) => Promise<Response>;
     /** Documents and UI files for a signed-in member (the UI bundle or the plain engine page). */
@@ -172,7 +173,7 @@ export type GatewayOptions = {
 /**
  * One pending WebAuthn challenge.
  */
-type Challenge = { readonly purpose: 'setup' | 'sign-in' | 'step-up'; readonly expiresAt: number; readonly rpId: string; readonly sessionId?: string; readonly userId?: string };
+type Challenge = { readonly purpose: 'setup' | 'sign-in' | 'step-up' | 'join'; readonly binding?: string; readonly expiresAt: number; readonly rpId: string; readonly sessionId?: string; readonly userId?: string };
 
 /**
  * The engine's gateway, the only listener behind its TLS server: it rejects cross-site requests with Fetch Metadata
@@ -195,8 +196,8 @@ export class Gateway {
         let response: Response;
         try {
             response = await this.route(request, connection);
-        } catch (error) {
-            this.options.log?.(`The engine gateway failed a request: ${errorMessage(error)}`, 'error');
+        } catch {
+            this.options.log?.('The engine gateway failed a request.', 'error');
             response = contractProblem('internal-error');
         }
         return withSecurityHeaders(response);
@@ -230,6 +231,15 @@ export class Gateway {
         if (path === `${SETUP_PATH}/verify` && request.method === 'POST') return this.limited(client) ?? (await this.setupVerify(request, connection, client));
         if (path === `${SIGN_IN_PATH}/options` && request.method === 'POST') return this.limited(client) ?? (await this.signInOptions(connection));
         if (path === `${SIGN_IN_PATH}/verify` && request.method === 'POST') return this.limited(client) ?? (await this.signInVerify(request, connection, client));
+        if ([api.JOIN_PATH, api.JOIN_OPTIONS_PATH, api.JOIN_VERIFY_PATH, api.JOIN_STATUS_PATH].includes(path)) {
+            if (url.search) return problem(400, 'invalid-request');
+            const limited = this.limited(client); if (limited) return limited;
+            if (path === api.JOIN_PATH && request.method === 'GET') return await this.page('join.html', request, connection);
+            if (request.method !== 'POST') return contractProblem('not-found');
+            if (path === api.JOIN_OPTIONS_PATH) return await this.joinOptions(request, connection);
+            if (path === api.JOIN_VERIFY_PATH) return await this.joinVerify(request, connection);
+            if (path === api.JOIN_STATUS_PATH) return await this.joinStatus(request, client);
+        }
         if (path === SIGN_OUT_PATH && request.method === 'POST') {
             if (!actor) return contractProblem('unauthenticated', {});
             await this.options.access.revokeSessions((session) => session.id === actor.sessionId);
@@ -301,8 +311,18 @@ export class Gateway {
     /** Reads a bounded JSON object body. */
     private async jsonBody(request: Request): Promise<Readonly<Record<string, unknown>> | undefined> {
         if (request.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() !== 'application/json') return undefined;
-        const text = await request.text();
-        if (text.length > CEREMONY_BODY_MAX_BYTES) return undefined;
+        if (!request.body) return undefined;
+        const reader = request.body.getReader();
+        const chunks: Uint8Array[] = []; let size = 0;
+        try {
+            for (;;) {
+                const { done, value } = await reader.read(); if (done) break;
+                size += value.byteLength;
+                if (size > CEREMONY_BODY_MAX_BYTES) { await reader.cancel(); return undefined; }
+                chunks.push(value);
+            }
+        } finally { reader.releaseLock(); }
+        const text = Buffer.concat(chunks).toString('utf8');
         try {
             const value: unknown = JSON.parse(text);
             return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
@@ -320,7 +340,7 @@ export class Gateway {
     }
 
     /** Takes (consumes) a challenge of a purpose, from the response's client data. */
-    private take(response: unknown, purpose: Challenge['purpose'], rpId: string, sessionId?: string): string | undefined {
+    private take(response: unknown, purpose: Challenge['purpose'], rpId: string, sessionId?: string, binding?: string): string | undefined {
         const clientData = (response as { response?: { clientDataJSON?: unknown } } | undefined)?.response?.clientDataJSON;
         if (typeof clientData !== 'string') return undefined;
         let challenge: unknown;
@@ -332,8 +352,81 @@ export class Gateway {
         if (typeof challenge !== 'string') return undefined;
         const entry = this.challenges.get(challenge);
         this.challenges.delete(challenge);
-        if (!entry || entry.purpose !== purpose || entry.rpId !== rpId || entry.expiresAt <= Date.now() || (sessionId !== undefined && entry.sessionId !== sessionId)) return undefined;
+        if (!entry || entry.purpose !== purpose || entry.rpId !== rpId || entry.expiresAt <= Date.now() || (sessionId !== undefined && entry.sessionId !== sessionId) || (binding !== undefined && entry.binding !== binding)) return undefined;
         return challenge;
+    }
+
+    /** Strict join JSON: the ticket and poll token are never accepted in a URL or an extra field. */
+    private async joinBody(request: Request, fields: readonly string[]): Promise<Readonly<Record<string, unknown>> | undefined> {
+        const body = await this.jsonBody(request);
+        if (!body || Object.keys(body).some(key => !fields.includes(key)) || fields.some(key => !(key in body))) return undefined;
+        if ('ticket' in body && (typeof body.ticket !== 'string' || body.ticket.length > protocol.SIGNED_MEMBER_MESSAGE_MAX_LENGTH)) return undefined;
+        if ('request' in body && (typeof body.request !== 'string' || body.request.length > 64)) return undefined;
+        return body;
+    }
+
+    /** Maps only fixed refusal codes to the shared page's states. */
+    private joinRefusal(kind: string): Response {
+        const codes: Record<string, [number, string]> = { invalid: [403, 'ticketInvalid'], expired: [403, 'ticketExpired'], used: [409, 'ticketUsed'], 'already-member': [409, 'alreadyMember'], full: [409, 'tooManyRequests'] };
+        const [status, key] = codes[kind] ?? codes.invalid!;
+        return problem(status, api.JOIN_PROBLEM[key]!);
+    }
+
+    /** Verifies a dashboard ticket with the contract, or resolves an engine's own single-use invitation. */
+    private async checkJoin(token: string): Promise<{ ticket?: AccessTicket; invite?: string; binding: string; displayName: string } | Response> {
+        if (token.startsWith('invite.')) return this.options.access.inviteValid(token) ? { invite: token, binding: token, displayName: 'Invited member' } : this.joinRefusal('invalid');
+        if (!this.options.memberKey) return this.joinRefusal('invalid');
+        const verified = await protocol.verifyAccessTicket({ token, memberKey: this.options.memberKey, engineId: this.options.engineId, now: new Date().toISOString() });
+        if (verified.kind !== 'accepted') return this.joinRefusal(verified.kind === 'expired' || verified.kind === 'not-yet-valid' ? 'expired' : 'invalid');
+        const status = this.options.access.ticketStatus(verified.ticket);
+        return status === 'ok' ? { ticket: verified.ticket, binding: verified.ticket.ticketId, displayName: verified.ticket.displayName } : this.joinRefusal(status);
+    }
+
+    /** Starts a challenge bound to this exact ticket, purpose and relying party. */
+    private async joinOptions(request: Request, connection: SecureConnectionInfo): Promise<Response> {
+        const body = await this.joinBody(request, ['ticket']);
+        if (!body) return problem(400, 'invalid-request');
+        const checked = await this.checkJoin(body.ticket as string); if (checked instanceof Response) return checked;
+        const userID = crypto.getRandomValues(new Uint8Array(16));
+        const options = await webauthn.generateRegistrationOptions({ rpName: 'Promptbook engine', rpID: connection.hostname, userName: checked.displayName, userDisplayName: checked.displayName, userID, attestationType: 'none', authenticatorSelection: { residentKey: 'required', userVerification: 'required' }, supportedAlgorithmIDs: [-8, -7, -257], timeout: CHALLENGE_LIFETIME_MS });
+        this.remember(options.challenge, { purpose: 'join', binding: checked.binding, expiresAt: Date.now() + CHALLENGE_LIFETIME_MS, rpId: connection.hostname });
+        return Response.json({ options }, { headers: { 'cache-control': 'no-store' } });
+    }
+
+    /** Verifies WebAuthn before consuming a ticket; the store repeats one-use and capacity checks atomically. */
+    private async joinVerify(request: Request, connection: SecureConnectionInfo): Promise<Response> {
+        const body = await this.joinBody(request, ['ticket', 'response']);
+        if (!body) return problem(400, 'invalid-request');
+        const checked = await this.checkJoin(body.ticket as string); if (checked instanceof Response) return checked;
+        const challenge = this.take(body.response, 'join', connection.hostname, undefined, checked.binding);
+        if (!challenge) return problem(400, api.JOIN_PROBLEM.passkeyNotVerified!);
+        let verification: Awaited<ReturnType<typeof webauthn.verifyRegistrationResponse>>;
+        try { verification = await webauthn.verifyRegistrationResponse({ response: body.response, expectedChallenge: challenge, expectedOrigin: `https://${request.headers.get('host') ?? connection.hostname}`, expectedRPID: connection.hostname, requireUserVerification: true }); }
+        catch { return problem(400, api.JOIN_PROBLEM.passkeyNotVerified!); }
+        const info = verification.registrationInfo;
+        if (!verification.verified || !info) return problem(400, api.JOIN_PROBLEM.passkeyNotVerified!);
+        const attachment = (body.response as { authenticatorAttachment?: unknown })?.authenticatorAttachment;
+        const credential: NewPasskey = { credentialId: info.credential.id, name: 'Passkey', publicKey: encodeBase64Url(info.credential.publicKey), counter: info.credential.counter, transports: [...(info.credential.transports ?? [])], attachment: attachment === 'platform' || attachment === 'cross-platform' ? attachment : null, backedUp: info.credentialBackedUp, rpId: connection.hostname };
+        if (checked.invite) {
+            const accepted = await this.options.access.acceptInvite(checked.invite, credential);
+            return accepted.kind === 'approved' ? Response.json({ code: '000000', request: accepted.request }, { status: 201, headers: { 'cache-control': 'no-store' } }) : this.joinRefusal('invalid');
+        }
+        const result = await this.options.access.requestAccess(checked.ticket!, credential);
+        return result.kind === 'waiting' ? Response.json({ code: result.code, request: result.request }, { status: 201, headers: { 'cache-control': 'no-store' } }) : this.joinRefusal(result.kind);
+    }
+
+    /** Long-polls only a private random request token; approval consumes it and issues an ordinary session. */
+    private async joinStatus(request: Request, client: Actor['client']): Promise<Response> {
+        const body = await this.joinBody(request, ['request']);
+        if (!body) return problem(400, 'invalid-request');
+        const until = Date.now() + 10_000;
+        let result = await this.options.access.joinStatus(body.request as string, client);
+        while (result.kind === 'waiting' && Date.now() < until && !request.signal.aborted) {
+            await new Promise<void>(resolve => { const done = (): void => { clearTimeout(timer); request.signal.removeEventListener('abort', done); resolve(); }; const timer = setTimeout(done, 1000); request.signal.addEventListener('abort', done, { once: true }); });
+            result = await this.options.access.joinStatus(body.request as string, client);
+        }
+        if (result.kind === 'unknown') return problem(404, api.JOIN_PROBLEM.requestUnknown!);
+        return result.kind === 'approved' ? Response.json({ state: 'approved', next: '/' }, { headers: { 'set-cookie': sessionCookie(result.token), 'cache-control': 'no-store' } }) : Response.json({ state: result.kind }, { headers: { 'cache-control': 'no-store' } });
     }
 
     /** `POST /setup/options {secret}`: registration options for the owner's first passkey (secret not consumed). */

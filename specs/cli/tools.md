@@ -1,14 +1,14 @@
 # Unified project tools
 
-[Main specification](../_main.md) · [Configuration](configuration.md) · [Tool management](tool-management.md) · [Live tool use](tool-runtime.md)
+[Main specification](../_main.md) · [Configuration](configuration.md) · [Tool management](tool-management.md) · [Live tool use](tool-runtime.md) · [Computer Control](computer-control.md)
 
-`ptbk.json.tools` is an ordered JSON array of pluggable project resources. Its initial types are **`BROWSER`** and **`HARNESS`**. They share the same external configuration/management model; their internal adapters may differ. There is no longer a singleton browser setting separate from the harness inventory.
+`ptbk.json.tools` is an ordered JSON array of pluggable project resources. Its types are **`BROWSER`**, **`HARNESS`**, **`INFERENCE_RUNTIME`** and **`COMPUTER_CONTROL`**. They share the same external configuration/management model; their internal adapters may differ. There is no longer a singleton browser setting separate from the harness inventory. **Local models** presents inference runtimes as a separate resource category within Tools.
 
 ## Common fields and identity
 
 Every tool has required `type`, `variant` and `name`, optional free-text `description`, and `isEnabled` (default true). `type` identifies the category, `variant` the fixed implementation, and `name` an arbitrary user-editable identifier unique across the entire project's tools array. Names are kebab-case; type/variant and other fixed enum values are SCREAMING_SNAKE_CASE. Properties are camelCase and boolean properties begin with `is`; see [naming and tolerant normalization](../coding-standards/naming.md).
 
-`isEnabled: false` retains configuration and credentials but removes that instance from new selections. Enable/disable are the normal reversible actions; removal permanently removes the configuration record, not the browser profile or native account data. Only actual use retained under [in-use rules](tool-runtime.md) may continue after disabling/removal. Supported, configured, enabled, installed, usable and currently used are different states.
+`isEnabled: false` retains configuration and credentials but removes that instance from new selections. Enable/disable are the normal reversible actions; removal permanently removes the configuration record, not browser profiles, native account data, inference software or model weights. Browser/harness and dependent runtime use retained under [in-use rules](tool-runtime.md) may continue after an acknowledged change. Computer Control is immediately revocable: disable/remove stops its observation and inputs, including already acquired use. Supported, configured, enabled, installed, usable and currently used are different states.
 
 Each type/variant has its own typed settings and validation under the [shared domain contract](../coding-standards/shared-logic.md). Do not accept arbitrary incompatible fields as though they worked. Unknown variants or ambiguous names use automatic repair, not silent selection of a different tool.
 
@@ -20,11 +20,19 @@ A normal init creates one browser using the existing simple profile/mode choices
 
 Wallet is a project sub-engine rather than an entry in `tools[]`. Browser records connect to a [shared process pool per profile](browser.md); website passwords are mediated through [Wallet](wallet.md), independently of the harness authentication below.
 
+## Computer Control records
+
+`COMPUTER_CONTROL` has one variant, `NATIVE`, and only the common fields. It operates the primary monitor of the engine host's logged-in graphical session, independently of whether the engine was launched through npm/CLI or Desktop Console. It does not select a browser profile, a harness account or another computer. Support is Windows 10/11 and macOS on Apple Silicon; unsupported hosts and missing OS permissions remain honestly unavailable.
+
+New initialization adds an enabled `computer-control` tool without another required question. The versioned `0.119.0-97` migration adds it once to existing projects, preserving an existing desktop record, including disabled records. A collision gets a distinct deterministic name; after the project version advances, intentional removal is never undone by reinitialization or later startup. Configuration does not silently grant native OS permissions or start capture.
+
+The tool is a fallback for work that suitable purpose-built/browser tools cannot perform. Its availability is independent of the selected harness; MCP-capable harnesses receive the same shared tools. An unavailable optional desktop does not block unrelated browser/terminal work. Human priority, explicit takeover, session-wide emergency stop, shared-session coordination and recording are defined in [Computer Control](computer-control.md). Saved `computer.isRecordingEnabled` defaults to false and opts into ignored local screenshots only, never Git or desktop video.
+
 ## Harness records
 
 Initial canonical variants cover the existing integrations: `OPENAI_CODEX`, `CLAUDE_CODE`, `GITHUB_COPILOT`, `OPENCODE`, `GEMINI` and `QWEN_CODE`. A configured harness grants its actual supported execution capabilities through that connection. Tool setup describes how to connect, authenticate and reach an endpoint; it does not define per-instance model/thinking defaults or model/effort allowlists. Model/thinking defaults belong to the plugin's code, and selection requirements belong to [MODEL](../book-language/commitments/model.md).
 
-`authentication` distinguishes `NATIVE` (reuse the chosen native/global installation's account/subscription context) from `API_KEY`. Native instances may specify a non-secret `accountProfile` reference to their distinct supported login context. API instances require `apiKey`, containing only an [environment reference](environment.md). A reference retained on a NATIVE record is inactive metadata; its presence does not trigger API billing. Global executable installation and authentication mode are separate concepts: using an API key does not require a project-local duplicate of the CLI.
+`authentication` distinguishes `NATIVE` (reuse the chosen native/global installation's account/subscription context), `API_KEY` and `NONE` (an explicitly supported connection without provider credentials, normally local inference). Native instances may specify a non-secret `accountProfile` reference to their distinct supported login context. API instances require `apiKey`, containing only an [environment reference](environment.md). A reference retained on a NATIVE or NONE record is inactive metadata; its presence does not trigger API billing. NONE never inherits native/cloud authentication. Global executable installation and authentication mode are separate concepts: using an API key or local inference does not require a project-local duplicate of the CLI.
 
 Multiple native subscriptions require genuinely separate adapter-supported authentication contexts. Two records pointing to the same account store are not two independent subscriptions. Do not change a shared global login, overwrite another account's credentials or claim isolation that the adapter cannot provide. Unsupported multi-account isolation is an actionable capability limitation. API credentials are scoped to the selected invocation and must not leak between instances.
 
@@ -57,6 +65,27 @@ An illustrative configuration fragment (other project settings omitted):
       "isEnabled": true,
       "authentication": "API_KEY",
       "apiKey": "${{ env.COMPANY_OPENAI_API_KEY }}"
+    },
+    {
+      "type": "INFERENCE_RUNTIME",
+      "variant": "OLLAMA",
+      "name": "local-ollama",
+      "isEnabled": true
+    },
+    {
+      "type": "HARNESS",
+      "variant": "OPENAI_CODEX",
+      "name": "codex-local",
+      "isEnabled": true,
+      "authentication": "NONE",
+      "baseUrl": "LOCAL",
+      "inferenceRuntime": "local-ollama"
+    },
+    {
+      "type": "COMPUTER_CONTROL",
+      "variant": "NATIVE",
+      "name": "computer-control",
+      "isEnabled": true
     }
   ]
 }
@@ -66,18 +95,24 @@ An actual initialized configuration also contains its `promptbookVersion`; this 
 
 ## Harness endpoints
 
-A harness tool can set its supported `baseUrl` connection target. Setup accepts the default choice, `official`, `local` or an explicit base URL; persist a concrete connection choice (`official`, `local` or the URL) without secrets. An omitted/default connection choice uses the plugin's official endpoint. `official` is fixed by the plugin/provider and cannot be redefined by a tool's custom URL. In MODEL, `runtime=default` uses this tool's configured endpoint, falling back to official when absent; it is not a self-referential `baseUrl: "default"` setting. `local` refers to model execution on the engine's host, not the device displaying a dashboard. The adapter declares whether local/custom endpoints are supported and how its local service is reached; do not invent a working endpoint for an unsupported variant.
+A harness tool can set its supported `baseUrl` connection target. Setup accepts the default choice, `official`, `local` or an explicit base URL; persist a concrete connection choice (`OFFICIAL`, `LOCAL` or the URL) without secrets. An omitted/default connection choice uses the plugin's official endpoint. `official` is fixed by the plugin/provider and cannot be redefined by a tool's custom URL. In MODEL, `runtime=default` uses this tool's configured endpoint, falling back to official when absent; it is not a self-referential `baseUrl: "default"` setting. `local` refers to model execution on the engine's host, not the device displaying a dashboard. The adapter declares whether local/custom endpoints are supported and how its local service is reached; do not invent a working endpoint for an unsupported variant.
 
 The engine itself always runs in one environment for one project. These choices identify model execution endpoints, not a fleet of engines called notebook/server. A client interface does not relocate inference. [MODEL](../book-language/commitments/model.md) constrains the desired endpoint independently of connection details; only compatible tools can satisfy it. Resolve `default` to the actual official/local/explicit endpoint before recording a concrete Router decision.
 
 Same-variant fallback must also satisfy the resolved endpoint: two accounts aimed at different services are not interchangeable for `runtime=official`, `runtime=local` or an explicit URL. Show the actual endpoint category/URL with secrets redacted. There is no per-tool filter of allowed model IDs or thinking levels in this change.
 
+Canonical saved endpoint keywords are `OFFICIAL` and `LOCAL`; lowercase choices in UI/CLI and MODEL are normalized at their respective boundaries. A managed local harness additionally references `inferenceRuntime`. Its runtime's service URL is translated to the protocol endpoint actually required by that harness, not blindly copied as an API base URL. Local and subscription connections of one variant coexist without changing global harness configuration. See [inference runtimes](inference-runtimes.md).
+
+## Inference runtime records
+
+`INFERENCE_RUNTIME` variants initially include `OLLAMA` and `LM_STUDIO`. Common fields plus optional `endpoint` describe a project reference to the engine host's service. Installed versions, executable/model paths, weights, downloads and active consumers belong to shared machine resources, not ptbk.json. Harness `inferenceRuntime` references are validated and updated together on rename. Removing a project reference does not delete the service or its models. Runtime availability alone does not supply a harness or prove that a model can execute tasks; see [the runtime contract](inference-runtimes.md).
+
 ## Selection and availability
 
-Agents can use different suitable variants during authorized work, for example combining Claude Code and Codex. Global array position does not require one variant to fail before another variant can be chosen. Within the **same harness variant**, eligible enabled instances form a priority/fallback chain in array order: use the first usable instance, moving to the next only when an earlier one cannot serve the request, such as exhausted quota or a technical failure. Do not load-balance equally usable same-variant accounts arbitrarily.
+Agents can use different suitable variants and inference routes during authorized work, for example combining Claude Code and Codex or local and hosted models. First construct valid model/endpoint combinations from connection-scoped catalogs, then let Router select a combination. Within the **same harness variant and compatible resolved combination/endpoint**, eligible enabled instances form a priority/fallback chain in array order: use the first usable instance, moving to the next only when an earlier one cannot serve the request, such as exhausted quota or a technical failure. Do not load-balance equally usable same-variant accounts arbitrarily. An earlier healthy subscription is not a prerequisite failure before Router may choose a distinct local model; neither route becomes an implicit fallback for incompatible requirements.
 
 This supports two subscriptions, subscription then paid API, and multiple API keys ordered company/second company/personal. Explicitly enabling/configuring a paid fallback supplies that route's authorization, subject to task and project spending constraints; merely discovering a key does not. Never override an explicit provider/model/account requirement. After an earlier instance recovers, prefer it on a later selection without interrupting work already using a fallback. Avoid repeated failing probes or hidden paid test calls.
 
 For browsers, use task intent, names/descriptions, profile permissions and known sessions to choose the appropriate instance. Try an explicitly configured alternative when the first lacks the needed login/capability; do not post or pay from a different account merely because it is logged in. Keep actual account identity and effects attributable. Browser selection is not the same rule as same-variant harness quota pooling.
 
-Before every task and whenever availability changes, verify at least one enabled usable browser and harness, plus the task's actual constraints. Missing resources mean the engine is **running but waiting for tools**, not stopped or technically paused. Continue refreshing while idle and resume eligible work when tools become available. See [live runtime behavior](tool-runtime.md).
+Before every task and whenever availability changes, verify at least one enabled usable browser and harness, plus the task's actual constraints. Computer Control and inference runtimes are optional capabilities, not extra baseline resource requirements for unrelated work. A local harness also requires its usable referenced runtime/model route. Missing required resources mean the engine is **running but waiting for tools**, not stopped or technically paused. Continue refreshing while idle and resume eligible work when tools become available. See [live runtime behavior](tool-runtime.md).

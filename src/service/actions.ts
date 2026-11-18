@@ -2,7 +2,9 @@ import type { ComposedSegment } from '../ui/composer.js';
 import { readFile } from 'node:fs/promises';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import { parseSettingValue, SETTING_SPEC_BY_KEY } from '../project/config.js';
-import type { Agenda } from '../engine/agenda.js';
+import type { Agenda, LocalModelsRequest } from '../engine/agenda.js';
+import { RUNTIME_ACTIONS, type RuntimeAction } from '../inference/types.js';
+import { HARNESS_VARIANTS, INFERENCE_RUNTIME_VARIANTS, type HarnessVariant, type InferenceRuntimeVariant } from '../tools/model.js';
 import { formatBytes } from '../engine/health.js';
 import { defaultChatAgent } from '../chats/service.js';
 import type { ToolOperation, ToolOperationOutcome } from '../tools/operations.js';
@@ -24,6 +26,11 @@ export type ControlAction =
     | 'restart'
     | 'stop-now'
     | 'cancel-stop'
+    | 'computer-status'
+    | 'computer-permissions'
+    | 'computer-pause'
+    | 'computer-resume'
+    | 'computer-stop'
     | 'browser-recheck'
     | 'browser-retry'
     | 'browser-restart'
@@ -56,6 +63,11 @@ export const CONTROL_ACTIONS: ReadonlySet<string> = new Set<ControlAction>([
     'restart',
     'stop-now',
     'cancel-stop',
+    'computer-status',
+    'computer-permissions',
+    'computer-pause',
+    'computer-resume',
+    'computer-stop',
     'browser-recheck',
     'browser-retry',
     'browser-restart',
@@ -100,12 +112,37 @@ export type BrowserControls = {
 };
 
 /**
+ * Engine-owned desktop controls, shared by local owner clients and authenticated App access.
+ *
+ * @private shared runtime controls
+ */
+export type ComputerControls = {
+    readonly status: () => Promise<Record<string, unknown>>;
+    readonly requestPermissions: () => Promise<Record<string, unknown>>;
+    readonly pause: () => Promise<Record<string, unknown>>;
+    readonly resume: () => Promise<Record<string, unknown>>;
+    readonly stop: () => Promise<Record<string, unknown>>;
+};
+
+/**
  * Applies one runtime control action and reports its actual outcome (accepted/pending versus completed).
  *
  * @private shared runtime controls
  */
-export async function applyControlAction(agenda: Agenda, action: string, params: Readonly<Record<string, unknown>> = {}, browser?: BrowserControls): Promise<ControlOutcome> {
+export async function applyControlAction(agenda: Agenda, action: string, params: Readonly<Record<string, unknown>> = {}, browser?: BrowserControls, computer?: ComputerControls): Promise<ControlOutcome> {
     switch (action) {
+        case 'computer-status':
+        case 'computer-permissions':
+        case 'computer-pause':
+        case 'computer-resume':
+        case 'computer-stop': {
+            if (!computer) return { action, outcome: 'This process has no Computer Control.', applied: false };
+            const data = action === 'computer-status' ? await computer.status()
+                : action === 'computer-permissions' ? await computer.requestPermissions()
+                : action === 'computer-pause' ? await computer.pause()
+                : action === 'computer-resume' ? await computer.resume() : await computer.stop();
+            return { action, outcome: action === 'computer-status' ? 'Computer Control status.' : action === 'computer-permissions' ? 'System permission setup requested.' : action === 'computer-pause' ? 'Computer Control paused, including agent observation.' : action === 'computer-resume' ? 'Computer Control resumed.' : 'Computer Control stopped across this desktop session.', applied: action !== 'computer-status', data };
+        }
         case 'task-status':
             return { action, outcome: 'Task state.', applied: false, data: await agenda.taskStatus(String(params.query ?? '')) };
         case 'task-change': {
@@ -283,18 +320,58 @@ export async function applySettings(agenda: Agenda, params: Readonly<Record<stri
  *
  * @private shared runtime controls
  */
-export async function applyToolAction(agenda: Agenda, params: Readonly<Record<string, unknown>>, via: string): Promise<ToolOperationOutcome> {
+export async function applyToolAction(agenda: Agenda, params: Readonly<Record<string, unknown>>, via: string, stopComputer?: () => Promise<unknown>): Promise<ToolOperationOutcome> {
     const operation = params.operation as ToolOperation | undefined;
-    const kinds = ['add', 'modify', 'enable', 'disable', 'remove', 'move'];
+    const kinds = ['add', 'add-together', 'modify', 'enable', 'disable', 'remove', 'move'];
     if (!operation || typeof operation !== 'object' || !kinds.includes(String((operation as { kind?: unknown }).kind))) throw new PtbkError(`A tool operation needs a kind (${kinds.join(', ')}).`, { kind: 'usage' });
-    if (operation.kind === 'add' ? !operation.tool || typeof operation.tool !== 'object' : typeof (operation as { name?: unknown }).name !== 'string') throw new PtbkError('The tool operation is missing its tool (add) or name.', { kind: 'usage' });
+    if (operation.kind === 'add-together') {
+        if (!Array.isArray(operation.tools) || !operation.tools.length || operation.tools.some((tool) => !tool || typeof tool !== 'object') || typeof operation.summary !== 'string') throw new PtbkError('Adding tools together needs the tools and a summary.', { kind: 'usage' });
+    } else if (operation.kind === 'add' ? !operation.tool || typeof operation.tool !== 'object' : typeof (operation as { name?: unknown }).name !== 'string') throw new PtbkError('The tool operation is missing its tool (add) or name.', { kind: 'usage' });
     const acknowledgements = (params.acknowledgements ?? {}) as Record<string, unknown>;
     const secret = params.secret as { variable?: unknown; value?: unknown } | undefined;
     if (secret !== undefined && (typeof secret.variable !== 'string' || typeof secret.value !== 'string' || !secret.value)) throw new PtbkError('A secret needs its variable name and a nonempty value.', { kind: 'usage' });
+    // Desktop revocation is immediate, before configuration/Git persistence can block or fail. A failed save does
+    // not restore automatic control: only a later explicit owner resume can undo this durable stop.
+    if ((operation.kind === 'disable' || operation.kind === 'remove') && agenda.effectiveSettings.tools.some((tool) => tool.name === operation.name && tool.type === 'COMPUTER_CONTROL')) await stopComputer?.();
     return await agenda.toolOperation({
         operation,
         acknowledgements: { force: acknowledgements.force === true, confirmLastOfType: acknowledgements.confirmLastOfType === true },
         secret: secret ? { variable: String(secret.variable), value: String(secret.value) } : undefined,
+        via,
+    });
+}
+
+/**
+ * Validates a local models request from any channel and runs it through the engine's shared setup and runtime
+ * operations (the same implementation as `ptbk tool setup-local` and `ptbk tool runtime`).
+ *
+ * @private shared runtime controls
+ */
+export async function applyLocalModelsAction(agenda: Agenda, params: Readonly<Record<string, unknown>>, via: string): Promise<unknown> {
+    const action = String(params.action ?? '');
+    if (!['discover', 'setup', 'runtime', 'cancel'].includes(action)) throw new PtbkError(`Unknown local models action "${action}" (discover, setup, runtime or cancel).`, { kind: 'usage' });
+    const text = (key: string): string | undefined => (typeof params[key] === 'string' && params[key] ? (params[key] as string) : undefined);
+    const raw = (params.choices ?? {}) as Record<string, unknown>;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new PtbkError('Local setup choices must be an object.', { kind: 'usage' });
+    const choice = (key: string): string | undefined => (typeof raw[key] === 'string' && raw[key] ? (raw[key] as string) : undefined);
+    const runtime = choice('runtime')?.toUpperCase().replace(/[\s-]+/g, '_');
+    if (runtime && !INFERENCE_RUNTIME_VARIANTS.includes(runtime as InferenceRuntimeVariant)) throw new PtbkError(`Unknown local model runtime "${choice('runtime')}" (${INFERENCE_RUNTIME_VARIANTS.join(', ')}).`, { kind: 'usage' });
+    const harness = choice('harness')?.toUpperCase().replace(/[\s-]+/g, '_');
+    if (harness && !HARNESS_VARIANTS.includes(harness as HarnessVariant)) throw new PtbkError(`Unknown harness variant "${choice('harness')}".`, { kind: 'usage' });
+    const runtimeAction = text('runtimeAction');
+    if (action === 'runtime' && (!text('runtime') || !RUNTIME_ACTIONS.includes((runtimeAction ?? 'status') as RuntimeAction))) throw new PtbkError(`A runtime action needs the runtime name and one of ${RUNTIME_ACTIONS.join(', ')}.`, { kind: 'usage' });
+    return await agenda.localModels({
+        action: action as LocalModelsRequest['action'],
+        choices: {
+            ...(runtime ? { runtime: runtime as InferenceRuntimeVariant } : {}),
+            ...(harness ? { harness: harness as HarnessVariant } : {}),
+            ...(choice('model') ? { model: choice('model')! } : {}),
+            ...(choice('endpoint') ? { endpoint: choice('endpoint')! } : {}),
+        },
+        ...(text('runtime') ? { runtime: text('runtime')! } : {}),
+        ...(runtimeAction ? { runtimeAction: runtimeAction as RuntimeAction } : {}),
+        ...(text('model') ? { model: text('model')! } : {}),
+        ...(params.acknowledged === true ? { acknowledged: true } : {}),
         via,
     });
 }

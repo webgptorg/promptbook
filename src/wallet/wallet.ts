@@ -1366,15 +1366,17 @@ export class WalletSubEngine {
      * Saves (adds or updates) a login from protected owner input. The password is write-only: it is encrypted at once
      * and never returned. Pending requests for that website are resolved, so waiting work resumes.
      */
-    public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string; readonly fields?: readonly LoginField[] }): Promise<WalletOutcome & { readonly id?: string }> {
-        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; id: string; settled: number }> => {
+    public async save(input: { readonly origin: string; readonly username: string; readonly password: string; readonly label?: string; readonly id?: string; readonly action?: string; readonly fields?: readonly LoginField[] }): Promise<WalletOutcome & { readonly id?: string; readonly resolvedRequestIds?: readonly string[] }> {
+        const result = await this.mutex.run(async (): Promise<{ outcome: WalletOutcome; id: string; settled: number; resolvedRequestIds: string[] }> => {
             const key = this.requireReady();
             const action = input.action ? this.actions.find((candidate) => candidate.id === input.action) : undefined;
             const origin = normalizeOrigin(input.origin || action?.origin || '');
             const username = input.username.trim();
             if (!username) throw new PtbkError('Enter the username (or email) of the login.', { kind: 'usage', effect: 'Nothing was saved.' });
             if (!input.password) throw new PtbkError('Enter the password of the login.', { kind: 'usage', effect: 'Nothing was saved.' });
-            const existing = (input.id ? this.records.find((record) => record.id === input.id) : undefined) ?? this.records.find((record) => originMatches(record.origin, origin) && this.usernameOf(record)?.toLowerCase() === username.toLowerCase());
+            const selected = input.id ? this.records.find((record) => record.id === input.id) : undefined;
+            if (input.id && !selected) throw new PtbkError('No saved login has that id.', { kind: 'not-found' });
+            const existing = selected ?? this.records.find((record) => originMatches(record.origin, origin) && this.usernameOf(record)?.toLowerCase() === username.toLowerCase());
             // Additional fields of an updated login stay unless the owner changed or removed them.
             const fields = mergeLoginFields(existing ? this.fieldsOf(existing) : [], input.fields ?? []);
             const now = new Date().toISOString();
@@ -1390,9 +1392,11 @@ export class WalletSubEngine {
             this.records = existing ? this.records.map((candidate) => (candidate.id === existing.id ? record : candidate)) : [...this.records, record];
             await this.writeRecords();
             let settled = 0;
+            const resolvedRequestIds: string[] = [];
             // A one-time code request stays: a saved password does not answer it.
             for (const pending of this.actions.filter((candidate) => candidate.state === 'pending' && candidate.problem !== 'code' && (candidate.id === input.action || originMatches(candidate.origin, origin)))) {
                 this.settle(pending.id, 'resolved', record.id);
+                resolvedRequestIds.push(pending.id);
                 settled++;
             }
             if (settled) await this.writeActions();
@@ -1400,11 +1404,12 @@ export class WalletSubEngine {
                 id: record.id,
                 outcome: { action: 'wallet-save', applied: true, outcome: `${existing ? 'Updated' : 'Saved'} the login "${record.account}" for ${origin}.${settled ? ` ${settled === 1 ? 'The waiting request was' : `${settled} waiting requests were`} resolved; the work resumes.` : ''}` },
                 settled,
+                resolvedRequestIds,
             };
         });
         this.options.log(`Wallet: ${result.outcome.outcome}`);
         if (result.settled) this.options.onSettled?.();
-        return { ...this.remember(result.outcome), id: result.id };
+        return { ...this.remember(result.outcome), id: result.id, resolvedRequestIds: result.resolvedRequestIds };
     }
 
     /**
@@ -2264,6 +2269,13 @@ export class WalletSubEngine {
                 return { origin: record.origin, label: record.account, ...(username ? { username } : {}), ...(origin && !originMatches(record.origin, origin) ? { related: true } : {}) };
             });
         return { state: 'ready', accounts };
+    }
+
+    /** The selected record's nonsecret username, already shared by account discovery; no password or field value. */
+    public recordUsername(id: string): string | undefined {
+        if (this.readiness !== 'ready') return undefined;
+        const record = this.records.find((candidate) => candidate.id === id);
+        return record ? this.usernameOf(record) : undefined;
     }
 
     /** The nonsecret view for snapshots, pages and the API. */

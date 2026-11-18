@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile } from 'node:fs/promises';
 import { connect } from 'node:net';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -365,6 +365,16 @@ test('voice call: a terminal that stops renewing its lease ends the call in boun
 });
 
 /** Sends one control request to the project's engine. */
+/** The Book of a chat (found by its `CHAT` declaration under the project's chats). */
+async function chatBook(project, name) {
+    for (const entry of await readdir(join(project, 'chats'), { recursive: true })) {
+        if (!entry.endsWith('.book')) continue;
+        const source = await readFile(join(project, 'chats', entry), 'utf8');
+        if (source.startsWith(`CHAT ${name}\n`)) return source;
+    }
+    throw new Error(`No Book of the chat ${name}.`);
+}
+
 async function control(project, method, params = {}) {
     const record = await readProcessRecord(projectAt(project));
     return await new ControlClient(projectAt(project), record).request(method, params, 60_000);
@@ -512,6 +522,13 @@ test('engine: voice before the first message of a new chat shares one creation w
     page.sendText({ type: 'output', state: 'idle' });
     await waitFor(async () => (await control(project, 'chat-get', { name })).voice.spoken.every((entry) => entry.recording === 'saved'), { message: 'both recordings bound' });
     assert.equal(await turns(), before, 'the native voice path answered; no text reply ran');
+    // A spoken first message resolves the chat's MODEL like a typed one: first User message, MODEL, first reply.
+    const book = await chatBook(project, name);
+    const lines = book.split('\n');
+    const firstUser = lines.findIndex((line) => line.startsWith('CHAT MESSAGE @User '));
+    const model = lines.findIndex((line) => /^MODEL harness=\S+ model=\S+/.test(line));
+    const firstReply = lines.findIndex((line) => line.startsWith('CHAT MESSAGE @') && !line.startsWith('CHAT MESSAGE @User '));
+    assert.ok(firstUser >= 0 && model > firstUser && firstReply > model, `the MODEL sits between the first spoken message and the first reply:\n${book}`);
     // A first send from the same view (late, or retried) lands in the same Book as a typed message, once.
     const typed = await control(project, 'chat-create', { text: 'TYPED_IN_THE_SAME_VIEW', requestKey: 'view-1', via: 'test' });
     assert.equal(typed.name, name, 'voice start and first send share one creation');

@@ -65,6 +65,8 @@ function fieldOptions(context: CommandContext): Omit<ToolDraft, 'type' | 'varian
         ...(option<string>(context, 'api-key-env') !== undefined ? { apiKeyEnv: option<string>(context, 'api-key-env') } : {}),
         ...(option<string>(context, 'account-profile') !== undefined ? { accountProfile: option<string>(context, 'account-profile') } : {}),
         ...(option<string>(context, 'base-url') !== undefined ? { baseUrl: option<string>(context, 'base-url') } : {}),
+        ...(option<string>(context, 'inference-runtime') !== undefined ? { inferenceRuntime: option<string>(context, 'inference-runtime') } : {}),
+        ...(option<string>(context, 'endpoint') !== undefined ? { endpoint: option<string>(context, 'endpoint') } : {}),
     };
 }
 
@@ -80,10 +82,10 @@ function operationOf(context: CommandContext): ToolOperation {
     };
     switch (sub) {
         case 'add': {
-            if (!first) throw usageError('ptbk tool add needs the tool type (BROWSER or HARNESS).', context.path.join(' '));
+            if (!first) throw usageError('ptbk tool add needs the tool type (BROWSER, HARNESS, INFERENCE_RUNTIME or COMPUTER_CONTROL).', context.path.join(' '));
             const variant = option<string>(context, 'variant');
             const toolName = option<string>(context, 'name') ?? second;
-            if (!variant) throw usageError('ptbk tool add needs --variant (e.g. CHROME or OPENAI_CODEX).', context.path.join(' '));
+            if (!variant) throw usageError('ptbk tool add needs --variant (e.g. CHROME, OPENAI_CODEX, OLLAMA or NATIVE).', context.path.join(' '));
             if (!toolName) throw usageError('ptbk tool add needs --name (a kebab-case identifier such as work-browser).', context.path.join(' '));
             const { variant: _variant, ...fields } = fieldOptions(context);
             void _variant;
@@ -95,7 +97,10 @@ function operationOf(context: CommandContext): ToolOperation {
                 ...fields,
                 ...(flag(context, 'clear-description') ? { description: null } : {}),
                 ...(/^default$/i.test(option<string>(context, 'base-url') ?? '') ? { baseUrl: null } : {}),
+                ...(/^default$/i.test(option<string>(context, 'endpoint') ?? '') ? { endpoint: null } : {}),
+                ...(/^none$/i.test(option<string>(context, 'inference-runtime') ?? '') ? { inferenceRuntime: null } : {}),
                 ...(flag(context, 'clear-executable') ? { executable: null } : {}),
+                ...(flag(context, 'clear-account-profile') ? { accountProfile: null } : {}),
             };
             const rename = option<string>(context, 'rename');
             if (!Object.keys(changes).length && !rename && !flag(context, 'api-key-stdin')) throw usageError('Nothing to modify: give the fields to change (see `ptbk tool modify --help`).', context.path.join(' '));
@@ -138,7 +143,9 @@ function row(context: CommandContext, item: ToolView): string {
     const { style } = context.terminal;
     const marks = symbols(context.terminal.unicode);
     const mark = item.state === 'usable' ? style.success(marks.ok) : item.state === 'disabled' ? style.muted('–') : item.state === 'unknown' ? style.muted('?') : style.warning(marks.warn);
-    const flags = [item.isEnabled ? 'enabled' : 'disabled', item.inUse ? 'in use' : '', item.retained ? 'retained by current work' : '', item.overridden ? 'overridden for this invocation' : ''].filter(Boolean).join(', ');
+    // A retained old revision is runtime state of current work, not a saved (numbered, manageable) tool.
+    if (item.retained) return `    ${style.warning(marks.warn)} ${style.bold(item.name)} ${style.muted(`${item.type} ${item.variant}`)} · ${style.warning(`draining: old configuration, current work only${item.owner ? ` (${item.owner})` : ''}`)}\n      ${item.summary}`;
+    const flags = [item.isEnabled ? 'enabled' : 'disabled', item.inUse ? 'in use' : '', item.overridden ? 'overridden for this invocation' : ''].filter(Boolean).join(', ');
     return `${String(item.order).padStart(2)}. ${mark} ${style.bold(item.name)} ${style.muted(`${item.type} ${item.variant}`)} · ${flags}${item.description ? style.muted(` · ${item.description}`) : ''}\n      ${item.summary}${item.nextAction && item.state !== 'usable' ? style.muted(` → ${item.nextAction}`) : ''}`;
 }
 
@@ -173,21 +180,32 @@ export async function show(context: CommandContext): Promise<number> {
     const name = context.positionals[0];
     if (!name) throw usageError('ptbk tool show needs the tool name.', 'tool show');
     const { view, live, current } = await inventory(context, project);
-    const item = view.items.find((candidate) => candidate.name === name);
+    // The saved tool of the name; a retained old revision only when nothing of that name is saved any more.
+    const item = view.items.find((candidate) => candidate.name === name && !candidate.retained) ?? view.items.find((candidate) => candidate.name === name);
+    const draining = view.items.filter((candidate) => candidate.name === name && candidate.retained && candidate !== item);
     if (!item) throw new PtbkError(`No tool is named "${name}".`, { kind: 'not-found', next: [view.items.length ? `Configured tools: ${view.items.map((candidate) => candidate.name).join(', ')}.` : 'Add one with `ptbk tool add`.'] });
     if (flag(context, 'json')) {
         printJson(item);
         return EXIT.success;
     }
-    const lines = [
-        `${item.name} — ${item.variantLabel} (${item.type} ${item.variant}), position ${item.order}`,
-        ...(item.description ? [`Description  ${item.description}`] : []),
-        `Enabled      ${item.isEnabled ? 'yes' : 'no (configuration and credentials are kept)'}`,
-        `State        ${item.state} — ${item.summary}`,
-        ...(item.nextAction && item.state !== 'usable' ? [`Next action  ${item.nextAction}`] : []),
-        `In use       ${item.inUse ? `yes${current?.tool === item.name ? ` (by "${current.taskTitle}")` : ''}` : live ? 'no' : 'no engine is running'}${item.retained ? ' · the current work keeps its acquired configuration' : ''}`,
-        ...Object.entries(item.fields).map(([key, value]) => `${key.padEnd(FIELD_LABEL_WIDTH)} ${value}`),
-    ];
+    const lines = item.retained
+        ? [
+              `${item.name} — ${item.variantLabel} (${item.type} ${item.variant}), retained revision ${item.revision ?? ''}`.trimEnd(),
+              ...(item.description ? [`Description  ${item.description}`] : []),
+              `State        draining — ${item.summary}`,
+              ...(item.owner ? [`Held by      ${item.owner}`] : []),
+              ...Object.entries(item.fields).map(([key, value]) => `${key.padEnd(FIELD_LABEL_WIDTH)} ${value}`),
+          ]
+        : [
+              `${item.name} — ${item.variantLabel} (${item.type} ${item.variant}), position ${item.order}`,
+              ...(item.description ? [`Description  ${item.description}`] : []),
+              `Enabled      ${item.isEnabled ? 'yes' : 'no (configuration and credentials are kept)'}`,
+              `State        ${item.state} — ${item.summary}`,
+              ...(item.nextAction && item.state !== 'usable' ? [`Next action  ${item.nextAction}`] : []),
+              `In use       ${item.inUse ? `yes${current?.tool === item.name ? ` (by "${current.taskTitle}")` : ''}` : live ? 'no' : 'no engine is running'}`,
+              ...Object.entries(item.fields).map(([key, value]) => `${key.padEnd(FIELD_LABEL_WIDTH)} ${value}`),
+          ];
+    for (const old of draining) lines.push(`Draining     an old ${old.type} ${old.variant} configuration of this name (revision ${old.revision ?? '?'}) is kept only by ${old.owner ? `"${old.owner}"` : 'current work'}; it is separate from the saved tool.`);
     context.terminal.write(`${lines.join('\n')}\n`);
     return EXIT.success;
 }
@@ -276,6 +294,18 @@ async function setUpHarness(context: CommandContext, project: Project, operation
     if (!tool || !plugin) return;
     const { terminal } = context;
     const marks = symbols(terminal.unicode);
+    if (tool.authentication === 'NONE' || tool.inferenceRuntime) {
+        // A credential-free connection has no sign-in: its readiness is the installation plus its runtime and models.
+        const pool = new HarnessPool(project.root, settings, persistentServiceEnvironment(context.env));
+        await pool.refresh([name], true);
+        const inspection = pool.inspectionOf(name);
+        if (inspection?.usable) {
+            terminal.write(`${terminal.style.success(marks.ok)} ${name}: ${inspection.summary}\n`);
+            const lookup = await lookupService(project);
+            if (lookup.state === 'running' && lookup.engine.compatible) await lookup.client.request('tool-recheck').catch(() => undefined);
+        } else terminal.write(`${terminal.style.warning(marks.warn)} ${name}: ${inspection?.summary ?? 'not inspected'}${inspection?.nextAction ? terminal.style.muted(` → ${inspection.nextAction}`) : ''}\n`);
+        return;
+    }
     // The instance as this terminal and as the background service (after detachment or reboot) see it.
     const pools = [new HarnessPool(project.root, settings, context.env), new HarnessPool(project.root, settings, persistentServiceEnvironment(context.env))];
     await Promise.all(pools.map(async (pool) => await pool.reloadCredentials()));
@@ -318,9 +348,11 @@ async function existingReference(context: CommandContext, project: Project, name
 }
 
 /**
- * Executes a request with the right owner.
+ * Executes a saved tool operation with the right owner: the running engine, or the shared implementation here.
+ *
+ * @private tool commands
  */
-async function execute(context: CommandContext, project: Project, request: ToolOperationRequest): Promise<ToolOperationOutcome> {
+export async function execute(context: CommandContext, project: Project, request: ToolOperationRequest): Promise<ToolOperationOutcome> {
     const lookup = await lookupService(project);
     if (lookup.state === 'running') {
         if (!lookup.engine.compatible) {
@@ -351,7 +383,7 @@ async function execute(context: CommandContext, project: Project, request: ToolO
             onChange: () => undefined,
             log: (text, level) => level !== 'info' && context.terminal.write(`${text}\n`),
         });
-        sync = { before: async () => void (await coordinator.request('boundary')), after: async () => void (await coordinator.request('post-commit')) };
+        sync = { before: async () => void (await coordinator.request('pre-commit')), after: async () => void (await coordinator.request('post-commit')) };
     }
     return await applyToolOperation(project, request, { env: context.env, sync, timeZone: setting<string>(settings, 'timezone') });
 }

@@ -34,7 +34,7 @@ import { chatOriginOf } from '../chats/chat-tasks.js';
 import { parseAgentReport, type AgentReport } from './result.js';
 import type { RouteResolution } from './routing.js';
 import type { ActiveRecord, ResultRecord, RoutingSelection, StateStore, WorkKind } from './state.js';
-import { teamTools, type ConsultationBudget } from './team.js';
+import { teamTools, type ConsultationBudget, type ConsultationEvent } from './team.js';
 import { TaskTrace, traceHeader } from './task-trace.js';
 import { appendUsage, taskUsageFile, usageRecords } from './usage.js';
 import { recordDiagnostic } from './traces.js';
@@ -56,7 +56,7 @@ export type ExecutionEvent =
     | { readonly type: 'attempt'; readonly attempt: number; readonly budget: number }
     | { readonly type: 'activity'; readonly text: string; readonly level?: 'info' | 'warning' | 'error' }
     | { readonly type: 'model'; readonly model: string }
-    | { readonly type: 'consultation'; readonly advisor: string; readonly by: string; readonly harness: string; readonly tool?: string; readonly model?: string; readonly state: 'started' | 'finished' };
+    | ({ readonly type: 'consultation' } & ConsultationEvent);
 
 /**
  * Waiting reported to the supervisor (skippable pacing/backoff waits only).
@@ -127,6 +127,11 @@ export type ExecutionEnvironment = {
     readonly settings: EffectiveSettings;
     readonly catalog: AgentCatalog;
     readonly pool: HarnessPool;
+    /**
+     * The harness instance this run acquired (its configuration revision): it serves every attempt of the run even if
+     * the saved tool is changed, disabled, removed or replaced by a same-name tool meanwhile.
+     */
+    readonly acquiredTool?: HarnessToolRecord;
     readonly state: StateStore;
     /** The project's chats (human-facing questions are committed per message). */
     readonly chats: ChatStore;
@@ -232,6 +237,11 @@ export type ExecutionOutcome =
     | { readonly kind: 'failed'; readonly reason: string; readonly trace?: string }
     | { readonly kind: 'setup'; readonly reason: string; readonly next?: string; readonly tool?: string }
     | { readonly kind: 'quota'; readonly reason: string; readonly retryAfterMs: number; readonly tool?: string }
+    /**
+     * A technical invocation failure of `tool` while the eligible same-variant `fallback` is ready: the continuation is
+     * routed again (same checkpoint, effects and combined technical budget) instead of repeating the failed route.
+     */
+    | { readonly kind: 'fallback'; readonly reason: string; readonly tool: string; readonly fallback: string }
     | { readonly kind: 'interrupted' }
     | { readonly kind: 'persistence-failed'; readonly reason: string }
     /** Not started: a file the run must change is owned by other active work (the supervisor claims it again later). */
@@ -480,7 +490,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
     const chats = taskChats(environment.chats, { name: task.title, key: task.key }, { takenNames: environment.takenNames, onCreated: (path) => hooks.own?.([path]), designated: record.originChat ?? chatOriginOf(task.origin) });
     let lastResult: HarnessRunResult | undefined;
     let lastReport: AgentReport | undefined;
-    let retainedInstance: HarnessToolRecord | undefined;
+    let retainedInstance: HarnessToolRecord | undefined = environment.acquiredTool;
     const contextFile = setting<string | null>(settings, 'paths.context');
     const context = contextFile ? await readTextIfExists(resolve(project.root, contextFile)) : undefined;
 
@@ -655,7 +665,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                 tasksDirectory: toProjectRelative(project.root, environment.tasksDirectory),
                 context: context !== undefined && contextFile ? { name: contextFile, content: context } : undefined,
                 check: check ?? undefined,
-                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), prerequisite: tools.some((tool) => tool.name === 'create_prerequisite_task'), browser: tools.some((tool) => tool.name.startsWith('browser_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login'), actions: tools.some((tool) => tool.name === 'record_external_action') },
+                tools: { team: tools.some((tool) => tool.name === 'consult'), askUser: tools.some((tool) => tool.name === 'ask_user'), prerequisite: tools.some((tool) => tool.name === 'create_prerequisite_task'), browser: tools.some((tool) => tool.name.startsWith('browser_')), computer: tools.some((tool) => tool.name.startsWith('computer_')), claimFiles: tools.some((tool) => tool.name === 'claim_files'), wallet: tools.some((tool) => tool.name === 'wallet_login'), actions: tools.some((tool) => tool.name === 'record_external_action') },
                 actions: tools.some((tool) => tool.name === 'record_external_action') ? await hooks.actionContext?.() : undefined,
                 feedback: record.feedback,
                 attempt,
@@ -669,8 +679,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const promptFile = join(promptDirectory, `prompt-${record.runId}-${attempt}.md`);
             await writeFile(promptFile, prompt);
             const harnessLabel = `${plugin.displayName} ${item.route.inspection.version ?? ''}${selection.tool ? ` · tool ${selection.tool}` : ''}`.trim();
-            // The acquired instance (retained for this attempt even if its saved configuration changes meanwhile).
-            const instance = selection.tool ? (environment.pool.instance(selection.tool) ?? retainedInstance) : undefined;
+            // The acquired instance: the run keeps its revision even if the saved tool changes or a same-name tool replaces it.
+            const instance = selection.tool ? (retainedInstance ?? environment.pool.instance(selection.tool)) : undefined;
             if (instance) retainedInstance = instance;
             /** Capture before awaiting: live edits govern later selections, never this dispatched use or its failure. */
             const acquiredContext = instance ? { projectRoot: project.root, tool: instance, env: environment.pool.environment(instance) } : undefined;
@@ -725,6 +735,8 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                         promptFile,
                         model: selection.model,
                         thinkingLevel: selection.thinkingLevel,
+                        baseUrl: selection.baseUrl,
+                        localRoute: selection.localRoute,
                         readOnly: false,
                         mcp: bridge?.launch(),
                         env: acquiredContext?.env ?? environment.env,
@@ -769,6 +781,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                     tool: selection.tool,
                     model: lastResult.model ?? selection.model,
                     authentication: item.route.inspection.authentication,
+                    connection: selection,
                     outcome: lastResult.outcome,
                     attribution: {
                         agent: agent.name,
@@ -849,6 +862,16 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             if (lastResult.outcome !== 'completed') {
                 const technical = record.technicalRetries + 1;
                 if (technical > technicalBudget) return await fail(`${lastResult.diagnostic} (technical retries exhausted)`);
+                // A ready, compatible same-variant instance serves the continuation before this route is repeated; the
+                // switch consumes the same technical budget and the failure is recorded against the acquired connection.
+                const fallback = selection.tool && !environment.signal.aborted ? environment.pool.fallbackFor(selection) : undefined;
+                if (fallback && selection.tool) {
+                    environment.pool.markTechnical(selection.tool, lastResult.diagnostic, acquiredContext);
+                    await save({ technicalRetries: technical, attempt: attempt - 1, feedback: `The previous run ended with a technical failure (${lastResult.diagnostic}). Continue the task.` });
+                    hooks.emit({ type: 'activity', text: `${lastResult.diagnostic} — continuing with the same-variant fallback ${fallback.name} (technical retry ${technical}/${technicalBudget})`, level: 'warning' });
+                    await trace.event('technical-fallback', { runId: record.runId, retry: technical, budget: technicalBudget, diagnostic: lastResult.diagnostic, tool: selection.tool, fallback: fallback.name });
+                    return { kind: 'fallback', reason: lastResult.diagnostic, tool: selection.tool, fallback: fallback.name };
+                }
                 await save({ technicalRetries: technical, attempt: attempt - 1, feedback: `The previous run ended with a technical failure (${lastResult.diagnostic}). Continue the task.` });
                 hooks.emit({ type: 'activity', text: `${lastResult.diagnostic} — technical retry ${technical}/${technicalBudget}`, level: 'warning' });
                 await trace.event('technical-retry', { runId: record.runId, retry: technical, budget: technicalBudget, diagnostic: lastResult.diagnostic });

@@ -1,8 +1,8 @@
 import { mkdir, open, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { errorMessage } from '../common/errors.js';
-import { ensureDirectory } from '../common/fs.js';
 import { runProcess, which } from '../common/process.js';
+import { createRedactor, sanitizeTraceValue } from '../common/redact.js';
 import type { Project } from '../project/workspace.js';
 import { TRACE_FILES, type TaskTrace } from '../engine/task-trace.js';
 
@@ -38,7 +38,7 @@ export type RecordingSegment = {
     readonly endedAt: string;
     /** Number of captured frames. */
     readonly frames: number;
-    /** Pages visited in order. */
+    /** Page origins visited in order; paths/query/fragments can contain credentials or private content. */
     readonly pages: readonly string[];
     /** Intentional or accidental gaps (secret entry, human sign-in, capture failure, size bound). */
     readonly gaps: ReadonlyArray<{ readonly at: string; readonly reason: string }>;
@@ -187,7 +187,7 @@ export async function writeMotionJpegMovie(path: string, frames: ReadonlyArray<{
     const tkhd = atom('tkhd', u32(0x0000000f, 0, 0, 1, 0, total, 0, 0), u16(0, 0, 0, 0), MATRIX, u32(size.width << 16, size.height << 16));
     const mvhd = atom('mvhd', u32(0, 0, 0, 1000, total, 0x00010000), u16(0x0100), Buffer.alloc(10), MATRIX, u32(0, 0, 0, 0, 0, 0, 2));
     const moov = atom('moov', mvhd, atom('trak', tkhd, mdia));
-    const handle = await open(path, 'w');
+    const handle = await open(path, 'w', 0o600);
     try {
         await handle.write(ftyp);
         await handle.write(mdatHeader);
@@ -209,10 +209,11 @@ export type ScreencastPort = {
 };
 
 /**
- * Records the project browser for the task that currently owns it, into `traces/<task-file-basename>/video/`.
+ * Records an explicitly enabled project browser into ignored `traces/<task-file-basename>/local/video/`.
  *
  * Only the project browser's page is captured (never the desktop or other browsers); human sign-in and secret entry
- * are excluded and listed as gaps. Failures degrade to an honest status and never stop the task.
+ * are excluded and listed as gaps. This is not a general image redactor: other page content can remain sensitive,
+ * so images never enter versioned traces. Failures degrade to an honest status and never stop the task.
  *
  * @private browser recording
  */
@@ -233,6 +234,7 @@ export class BrowserRecorder {
     private used = false;
     private reported = false;
     private writeQueue: Promise<void> = Promise.resolve();
+    private captureGeneration = 0;
 
     public constructor(
         private readonly project: Project,
@@ -257,7 +259,7 @@ export class BrowserRecorder {
     public async begin(port: ScreencastPort, url?: string): Promise<void> {
         if (!this.trace || !this.label) return;
         this.used = true;
-        if (url && this.pages[this.pages.length - 1] !== url) this.pages.push(url);
+        if (url) this.visited(url);
         if (this.recording || this.paused) return;
         if (!this.enabled()) {
             await this.writeStatus({ state: 'disabled', segments: [], note: 'traces.isVideoRecordingEnabled is false; no new browser video is recorded (text traces continue).' });
@@ -265,18 +267,20 @@ export class BrowserRecorder {
         }
         try {
             this.port = port;
-            this.frameDirectory = await ensureDirectory(join(this.project.runtime.temporary, 'recordings', `${this.trace.key.replace(/\//g, '-')}-${this.label}-${++this.segments}`));
+            this.frameDirectory = join(this.project.runtime.temporary, 'recordings', `${this.trace.key.replace(/\//g, '-')}-${this.label}-${++this.segments}`);
+            await mkdir(this.frameDirectory, { recursive: true, mode: 0o700 });
             this.frames = [];
             this.bytes = 0;
             this.startedAt = Date.now();
             this.unsubscribe = port.onFrame((frame) => {
                 void port.send('Page.screencastFrameAck', { sessionId: frame.sessionId }).catch(() => undefined);
                 if (this.paused) return;
-                this.writeQueue = this.writeQueue.then(() => this.store(frame.data));
+                const generation = this.captureGeneration;
+                this.writeQueue = this.writeQueue.then(() => this.store(frame.data, generation));
             });
             await port.send('Page.startScreencast', SCREENCAST);
             this.recording = true;
-            await this.trace.event('recording-started', { label: this.label, url });
+            await this.trace.event('recording-started', { label: this.label, origin: this.pages.at(-1), storage: 'ignored-local' });
         } catch (error) {
             this.unsubscribe?.();
             this.recording = false;
@@ -284,9 +288,16 @@ export class BrowserRecorder {
         }
     }
 
-    /** Records a visited page (page transitions are listed with the segment). */
+    /** Records only the visited origin: private paths, URL credentials and query/fragment values are not metadata. */
     public visited(url: string): void {
-        if (url && this.pages[this.pages.length - 1] !== url) this.pages.push(url);
+        let safe: string;
+        try {
+            const parsed = new URL(url);
+            safe = parsed.origin === 'null' ? parsed.protocol : parsed.origin;
+        } catch {
+            safe = '[unavailable origin]';
+        }
+        if (safe && this.pages[this.pages.length - 1] !== safe) this.pages.push(safe);
     }
 
     /** Continues capture in the page the agent switched to (the port now addresses that tab). */
@@ -299,8 +310,11 @@ export class BrowserRecorder {
     public async pause(reason: string): Promise<void> {
         if (!this.recording || this.paused) return;
         this.paused = true;
+        this.captureGeneration++;
         this.gaps.push({ at: new Date().toISOString(), reason });
         await this.port?.send('Page.stopScreencast').catch(() => undefined);
+        // Resolve pending writes before the caller enters a secret. Frames queued before pause cannot arrive later.
+        await this.writeQueue;
     }
 
     /** Resumes capture after a pause. */
@@ -344,10 +358,12 @@ export class BrowserRecorder {
                 if (raw > MAX_FRAME_HOLD_MS) shortened++;
                 return { file: frame.file, durationMs: Math.min(raw, MAX_FRAME_HOLD_MS) };
             });
-            const directory = await ensureDirectory(join(trace.directory, TRACE_FILES.videoDirectory));
+            const localVideo = join('local', TRACE_FILES.videoDirectory);
+            const directory = join(trace.directory, localVideo);
+            await mkdir(directory, { recursive: true, mode: 0o700 });
             const movie = join(directory, `${label}.mov`);
             await writeMotionJpegMovie(movie, timed, size);
-            let file = `${TRACE_FILES.videoDirectory}/${label}.mov`;
+            let file = `local/${TRACE_FILES.videoDirectory}/${label}.mov`;
             let format: RecordingSegment['format'] = 'mov (Motion JPEG)';
             const ffmpeg = await which('ffmpeg', this.env);
             if (ffmpeg) {
@@ -359,7 +375,7 @@ export class BrowserRecorder {
                 if (result.exitCode !== 0) result = await encode([]);
                 if (result.exitCode === 0) {
                     await rm(movie, { force: true });
-                    file = `${TRACE_FILES.videoDirectory}/${label}.mp4`;
+                    file = `local/${TRACE_FILES.videoDirectory}/${label}.mp4`;
                     format = 'mp4 (H.264)';
                 } else await rm(mp4, { force: true });
             }
@@ -371,6 +387,7 @@ export class BrowserRecorder {
         } finally {
             if (this.frameDirectory) await rm(this.frameDirectory, { recursive: true, force: true }).catch(() => undefined);
             this.frames = [];
+            this.paused = false;
         }
     }
 
@@ -391,8 +408,8 @@ export class BrowserRecorder {
     }
 
     /** Stores one frame on disk (bounded). */
-    private async store(data: string): Promise<void> {
-        if (!this.frameDirectory) return;
+    private async store(data: string, generation: number): Promise<void> {
+        if (!this.frameDirectory || this.paused || generation !== this.captureGeneration) return;
         const buffer = Buffer.from(data, 'base64');
         if (this.bytes + buffer.length > MAX_SEGMENT_BYTES) {
             if (!this.gaps.some((gap) => gap.reason.startsWith('size bound'))) this.gaps.push({ at: new Date().toISOString(), reason: `size bound of ${MAX_SEGMENT_BYTES / 1024 / 1024} MB reached; later frames were not recorded` });
@@ -400,7 +417,7 @@ export class BrowserRecorder {
         }
         const file = join(this.frameDirectory, `frame-${String(this.frames.length + 1).padStart(7, '0')}.jpg`);
         try {
-            await writeFile(file, buffer);
+            await writeFile(file, buffer, { mode: 0o600 });
             this.frames.push({ file, at: Date.now(), bytes: buffer.length });
             this.bytes += buffer.length;
         } catch (error) {
@@ -425,7 +442,8 @@ export class BrowserRecorder {
         if (!trace) return;
         try {
             await mkdir(trace.directory, { recursive: true });
-            await writeFile(join(trace.directory, TRACE_FILES.video), `${JSON.stringify(status, null, 2)}\n`);
+            const safe = createRedactor()(JSON.stringify(sanitizeTraceValue(status), null, 2));
+            await writeFile(join(trace.directory, TRACE_FILES.video), `${safe}\n`);
         } catch {
             // The status is optional evidence; the event log keeps the outcome.
         }

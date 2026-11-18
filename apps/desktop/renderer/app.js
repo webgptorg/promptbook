@@ -46,6 +46,21 @@ function notice(message, error = false) {
     layout();
 }
 
+/** A persistent app-level offer remains visible while switching projects, without interrupting work. */
+function showUpdate(update) {
+    const panel = $('desktop-update');
+    const release = update.available;
+    panel.hidden = update.status === 'idle';
+    const message = update.status === 'checking' ? 'Checking for desktop updates…'
+        : update.status === 'unknown' ? `Desktop update availability is unknown: ${update.problem}`
+        : release ? `Promptbook desktop ${release.version} is available${update.channel === 'prerelease' ? ' (prerelease channel)' : ''}.`
+        : `Promptbook desktop ${update.current}: no newer installer in the ${update.channel} channel.`;
+    panel.replaceChildren(element('span', {}, message), ...(release ? [element('button', { onclick: () => void api.update('download').catch((error) => notice(error.message, true)) }, 'Download installer'),
+        element('small', {}, `${release.unsigned ? 'Unsigned experimental macOS build. ' : ''}Install at a suitable time; running tasks are not restarted.`)] : []));
+    $('check-update').disabled = update.status === 'checking';
+    requestAnimationFrame(layout);
+}
+
 /** Keeps the appearance selector in sync with the app-wide preference. */
 function showTheme(source) {
     for (const button of themeButtons) {
@@ -613,6 +628,7 @@ api.onEvent((event) => {
     if (event.type === 'launch') { launch = event; if (event.previous?.length) showPrevious(event.previous); if (observed) void applyLaunch(); }
     else if (event.type === 'open-project') void openProject(event.root);
     else if (event.type === 'theme') showTheme(event.source);
+    else if (event.type === 'update') showUpdate(event.update);
     else if (event.type === 'error') { api.hideDashboard(); notice(event.message, true); }
     else if (event.type === 'feature') featureEvent(event);
     else if (event.type === 'voice-intent') void voiceIntent(event);
@@ -630,6 +646,8 @@ for (const button of themeButtons) {
     };
 }
 void api.theme().then(showTheme).catch((error) => notice(error.message, true));
+void api.update().then(showUpdate).catch((error) => notice(error.message, true));
+$('check-update').onclick = () => void api.update('check').then(showUpdate).catch((error) => notice(error.message, true));
 $('overview').onclick = () => { show('overview'); renderOverview(); };
 $('new-project').onclick = () => void newProject();
 $('new-app-setup').onclick = () => void openTerminal('setup');

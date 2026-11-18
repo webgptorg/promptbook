@@ -18,6 +18,7 @@ import { liveSnapshot, renderServiceResult } from '../service-view.js';
 import { hostSource } from '../sources.js';
 import { initializeProject } from './init.js';
 import { ownerSignals } from '../lifecycle.js';
+import { automaticOwnerSetup } from './connect.js';
 
 /**
  * Explains readiness problems with concrete repair actions.
@@ -113,6 +114,7 @@ async function runForeground(context: CommandContext, project: Project, override
         let outcome: string;
         try {
             const agenda = host.runAgenda();
+            await automaticOwnerSetup(context, project);
             if (live) {
                 // The owning view stays until the engine ends (Q/Ctrl+C request a graceful stop inside it).
                 await runDashboard(terminal, hostSource(host));
@@ -156,7 +158,8 @@ export default async function start(context: CommandContext): Promise<number> {
     const tasksDirectory = saved ? saved.tasksDirectory : tasksOverride(context);
     const existing = await lookupService(project);
     if (existing.state === 'running') {
-        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'daemon', 'dashboard', 'saved-launch', 'paused'].includes(name));
+        await automaticOwnerSetup(context, project);
+        const ignored = [...context.explicit].filter((name) => !['path', 'raw', 'no-ui', 'interactive', 'non-interactive', 'terminal-title', 'daemon', 'dashboard', 'saved-launch', 'paused', 'open'].includes(name));
         // A paused start only applies to an absent engine: the live owner keeps its state.
         const pausedNote = flag(context, 'paused') ? `; --paused applies only when no service runs, so its ${existing.record.mode} state was kept (\`ptbk pause\` pauses it)` : '';
         if (wantsDashboardHandoff(context)) {
@@ -188,6 +191,7 @@ export default async function start(context: CommandContext): Promise<number> {
     const persistent = setting<boolean>(settings, 'service.isPersistent');
     const paused = flag(context, 'paused');
     const result = await launchDaemon(project, { cli: overrides, cliHarnesses, cliBrowser, tasksDirectory, persistent, env: context.env, paused: paused ? 'start-paused' : undefined });
+    await automaticOwnerSetup(context, project);
     const persistence = result.persistence ? ` ${result.persistence.note}` : persistent ? '' : ' Restart persistence is disabled (--no-persist).';
     const pausedStart = paused && result.started;
     const title = result.started ? (pausedStart ? 'Started paused' : 'Started') : 'Already running';

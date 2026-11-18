@@ -2,7 +2,9 @@
 
 [Main specification](../_main.md) · [Tools](tools.md) · [Runtime changes](tool-runtime.md) · [Shared logic and DRY](../coding-standards/shared-logic.md)
 
-Initialization, CLI commands and dashboard management use one implementation of tool operations, types, validation, environment editing and persistence. Init exposes only the existing simple browser/harness setup and generates sensible instance names. Later management exposes the full registry without requiring reinitialization or engine restart.
+Initialization, CLI commands and dashboard management use one implementation of tool operations, types, validation, environment editing and persistence. Init keeps the simple browser/harness setup and adds the enabled native desktop tool by default, with sensible instance names and no additional required choice. Later management exposes the full registry without requiring reinitialization or engine restart.
+
+The simple **Add local models** operation prepares runtime/model/harness prerequisites through the same [local setup](local-models-setup.md) used by init. It saves named runtime/harness connections together without modifying native subscription routes or agent Books. Advanced resource edits remain available through ordinary typed tool operations.
 
 ## Command surface
 
@@ -18,6 +20,8 @@ Use `ptbk tool` as a project-scoped command family, with discoverable scoped hel
 | `ptbk tool disable <name>` | Persist `isEnabled: false`, retaining configuration and credentials. |
 | `ptbk tool remove <name>` | Remove the configuration record, with conservative credential-retirement rules. `delete` is an equivalent explicit destructive label/alias. |
 | `ptbk tool move <name> --before <other>` or `--after <other>` | Persist ordering without recreating credentials or changing identity. |
+| `ptbk tool setup-local` | Shared guided local setup, adding/reusing the runtime and compatible credential-free harness connection. |
+| `ptbk tool runtime <name> <action>` | Runtime-scoped inspection/model/service management, with the actual shared-host scope described below. |
 
 Examples:
 
@@ -25,12 +29,15 @@ Examples:
 ptbk tool add BROWSER --variant CHROME --name work-browser --profile-source PROJECT --is-headless true
 ptbk tool add BROWSER --variant CHROME --name personal-browser --profile-source USER_EXISTING --is-headless false
 ptbk tool add HARNESS --variant OPENAI_CODEX --name company-api --authentication API_KEY --api-key-env COMPANY_OPENAI_API_KEY
+ptbk tool add COMPUTER_CONTROL --variant NATIVE --name computer-control
 ptbk tool modify work-browser --is-headless false
 ptbk tool disable company-api
 ptbk tool enable company-api
 ```
 
 `--profile-path` supplies a CUSTOM path. `--account-profile` selects an adapter-supported native context. `--api-key-env NAME` writes the canonical `${{ env.NAME }}` reference, not the key. Supplying a new key uses concealed input or explicit `--api-key-stdin` with the same safe `.env` editor; never accept a literal secret as an ordinary argv option. Enum flag input is tolerant but saved values are canonical. Do not silently ignore unsupported type/variant options.
+
+Advanced local setup accepts a runtime `--endpoint` on an `INFERENCE_RUNTIME` record and `--inference-runtime <name>`, `--base-url LOCAL`, `--authentication NONE` on a compatible harness record. The guided path generates these associations; users need not type them. Validate references and preserve them atomically on rename. A bare record-add does not claim software/model installation or tested readiness.
 
 Browser runtime restart/kill/test-GitHub-tab actions are defined separately in [browser controls](browser.md). They affect the actual shared profile pool, not configuration removal, and show their all-connected-engine scope.
 
@@ -40,16 +47,32 @@ Every successful state-changing management operation persists and commits its ow
 
 Enable and disable are primary actions in all interfaces. Permanent removal is visibly secondary and destructive to configuration, not to profile contents, native account stores or environment history. Do not add routine confirmations to every safe change.
 
-Disabling/removing the **last enabled instance of either type** requires a specific confirmation explaining that the engine can remain running but cannot effectively start ordinary new work until another browser/harness is enabled or added. Recompute counts when applying the operation. An interactive management view asks; a noninteractive CLI reports the warning and requires explicit `--yes` acceptance. This confirmation is separate from acknowledging in-use work. It must not technically stop or pause the service, and it must not be auto-undone by Fixer.
+Disabling/removing the **last enabled browser or harness instance** requires a specific confirmation explaining that the engine can remain running but cannot effectively start ordinary new work until another browser/harness is enabled or added. Recompute counts when applying the operation. An interactive management view asks; a noninteractive CLI reports the warning and requires explicit `--yes` acceptance. This confirmation is separate from acknowledging in-use work. It must not technically stop or pause the service, and it must not be auto-undone by Fixer.
+
+Apply the equivalent warning when disabling/removing a runtime reference would make the last otherwise usable harness unavailable. Show affected dependent connections and check the actual remaining eligible routes, rather than treating INFERENCE_RUNTIME as a mandatory baseline type for hosted-only projects. Removing the last optional runtime with a working hosted route does not claim the whole engine loses its harness. Reference removal never cascades into deleting dependent harness configuration, models or a shared service.
 
 ## Tool currently in use
 
-If modify/disable/remove affects a tool held by active work, CLI rejects the operation without writes unless `--force` (alias `-F`) is supplied. It prints two concrete alternatives:
+For browser/harness tools, if modify/disable/remove affects a tool held by active work, CLI rejects the operation without writes unless `--force` (alias `-F`) is supplied. It prints two concrete alternatives:
 
 1. Repeat the **same tool command** with `--force`: commit the configuration change now, but allow the work already using the old tool/configuration to finish. This is not a process kill.
 2. Run the separate **`ptbk stop --force`** (or `-F`) to stop the entire engine, then repeat the original tool command without `--force` after confirmed termination. Stop itself neither changes nor removes tools.
 
 There is no `--force-stop` flag on tool commands. Dashboard confirmation offers the same meanings: save while current work finishes, or invoke the existing global service force-stop control. After stopping, apply/reconfirm the intended configuration operation separately and recheck that it is no longer in use. Never disguise stopping the whole service as deleting one tool. If both last-of-type and in-use protections apply, both acknowledgements are required; `--yes` does not imply `--force`, and `--force` does not waive the last-of-type warning.
+
+## Local runtime and model operations
+
+`ptbk tool runtime <name> status` and `models` inspect the named runtime and its catalog without inference or mutation. Adapter-supported `download <model-id>`, `load <model-id>`, `unload <model-id>`, `remove-model <model-id>`, `start`, `stop`, `restart`, `update` and `uninstall` operate the actual shared host resource. Expose only supported actions in scoped help and report unsupported ones honestly. Noninteractive setup supplies runtime/model/download choices equivalent to the guided journey; it does not require an interactive installer or hidden consent.
+
+Use the [shared runtime lifecycle/capacity rules](inference-runtimes.md#shared-capacity-and-lifecycle), revalidate consumers at execution and distinguish project enablement from service/model state. In-use changes to a project reference follow the retained-use acknowledgement; disabling/removing it never stops the service or deletes weights. Destructive model removal/uninstall identifies the actual host target and requires its explicit destructive acknowledgement (`--yes` noninteractively), without bypassing ownership or active-use refusal. Restart/update/unload cannot disrupt another active consumer merely because the requesting project's tool command has `--force`.
+
+Host-only lifecycle, weights and download operations create no project Git commit; saved tool/Book changes retain their separate mandatory scoped persistence. Report accepted/running/completed/failed/cancelled and remaining partial preparation honestly. Reference rename updates dependent harness references atomically; removal preserves dependent records with useful unavailable diagnostics, never implicit cascade or global uninstallation.
+
+## Immediately revocable Computer Control
+
+Disabling/removing `COMPUTER_CONTROL` stops desktop inputs and agent observation without waiting for the retained-use or last-of-type confirmations. Already acquired desktop access does not continue under `--force`. The live engine revokes access before waiting for the configuration/Git transaction; failed persistence must not restart revoked inputs. Disabling a tool still preserves its record, and removal still deletes only configuration. A modification to an in-use desktop record retains the common modification acknowledgement.
+
+Desktop permission setup, pause, resume and emergency stop use the same engine operations from native controls, Console and App. Console tool detail exposes 1 permissions, 2 pause, 3 resume, 4 stop and 5 status; the graphical Tools view links the authenticated desktop viewer. An explicit pause/takeover stops automatic observation as well as input until explicit resume; a brief physical interruption uses automatic return after inactivity. These controls neither add per-action authorization prompts nor claim to undo already completed external effects. See [Computer Control](computer-control.md).
 
 ## Concurrency and dashboard parity
 
@@ -57,6 +80,23 @@ A second terminal may add a tool while an engine/task is running. Commit just th
 
 The dashboard shows a compact tools overview and a keyboard-accessible detail/management view using its existing drill-down pattern. It supports the same operations, fields, diagnostics, confirmations and outcomes as CLI, not a separate implementation. API/transport adapters reuse those operations and return redacted state. See [dashboard details](dashboard-details.md).
 
+Parity applies to the maintained terminal dashboard and shared graphical Tools forms used by packaged clients; deprecation of the [standalone browser entry](dashboard.md#standalone-entry-deprecation) does not remove these management capabilities. Advanced fields may be grouped, but must be reachable on both add and modify without hand-editing JSON or leaving for a different interface:
+
+| Applicable record | Required field access |
+| --- | --- |
+| Every supported tool | Name, description, enabled state and ordering through the shared operations. |
+| Tool variants supported within its current type | Select `variant` when adding **and when modifying**; validate the resulting record with the same typed rules as CLI. Changing type is not implied. |
+| Browser | `profile.source`, applicable `profile.path`, `isHeadless`, and optional `executable`, including clearing the executable override. |
+| Native harness | Adapter-supported `accountProfile`, including selecting a distinct native account context and clearing an override. |
+| API harness | Symbolic key reference and concealed/write-only key replacement under the shared environment rules. |
+| Harness connection | Supported endpoint/authentication and inference-runtime fields from the same domain schema as CLI. |
+
+Opening and saving a form preserves fields the user did not change. Clearing an optional override is explicit; changing a variant validates compatibility without silently discarding account/profile settings or selecting another account. Unsupported adapter capabilities produce the shared diagnostic rather than a field that appears to work. Secret values are never prefilled or returned for display, and reading a form performs no mutation.
+
 ## Acceptance outcomes
 
 Manage a stopped and running project through CLI and dashboard and verify equivalent scoped commits. Add a browser from a second terminal during a task and use it before task completion. Exercise both in-use alternatives, their exact commands, no mutation on refusal, and separate last-of-type confirmation. Disable/re-enable preserves credentials; removing a shared key's consumer leaves the key active. No-op operations do not commit; failed commits never claim success or sweep task changes into tool history.
+
+Through each maintained management interface, add and modify a native harness with a distinct supported `accountProfile`, add/change/clear a browser `executable`, and change an existing tool to another supported variant of the same type. Inspect the saved canonical record and effective selected account/profile, not just a success message. An unchanged save preserves advanced settings and creates no commit; invalid variant/field combinations and cancellation leave configuration and secrets unchanged. Verify the ordinary in-use acknowledgement when a field change affects acquired work.
+
+Desktop acceptance also covers disable/remove during real input without `--force`/`--yes`, immediate revocation before delayed persistence, no retained desktop use and truthful status/permission guidance on unsupported or unauthorized hosts.

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable */
-// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 309a41252d370572f6e68b0d41f0c971f6ecc14a. Do not edit; regenerate.
+// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 9ac96b129d47e91b5db2a76689849f6a87751051. Do not edit; regenerate.
 // Licenses: see THIRD_PARTY_LICENSES.md next to this file.
 import { createRequire } from "node:module";
 var __create = Object.create;
@@ -20890,6 +20890,7 @@ __export(exports_src, {
   AddWalletRecordBody: () => AddWalletRecordBody,
   Agent: () => Agent,
   AgentId: () => AgentId,
+  AgentIllustrationId: () => AgentIllustrationId,
   AgentListQuery: () => AgentListQuery,
   AgentOrigin: () => AgentOrigin,
   AgentPage: () => AgentPage,
@@ -20929,6 +20930,7 @@ __export(exports_src, {
   CERTIFICATE_STATUSES: () => CERTIFICATE_STATUSES,
   CHAT_ROUTES: () => CHAT_ROUTES,
   CHAT_STATUSES: () => CHAT_STATUSES,
+  CHAT_TASK_STATES: () => CHAT_TASK_STATES,
   CapabilityId: () => CapabilityId,
   CapabilityRef: () => CapabilityRef,
   Chat: () => Chat,
@@ -20943,7 +20945,10 @@ __export(exports_src, {
   ChatParams: () => ChatParams,
   ChatQuestion: () => ChatQuestion,
   ChatReader: () => ChatReader,
+  ChatRecheck: () => ChatRecheck,
   ChatStatus: () => ChatStatus,
+  ChatTask: () => ChatTask,
+  ChatWorking: () => ChatWorking,
   ClientInfo: () => ClientInfo,
   CommitHash: () => CommitHash,
   ConnectCalendarBody: () => ConnectCalendarBody,
@@ -21043,6 +21048,7 @@ __export(exports_src, {
   LIVE_CHANNEL_SUBPROTOCOL: () => LIVE_CHANNEL_SUBPROTOCOL,
   LIVE_ROUTES: () => LIVE_ROUTES,
   LIVE_SESSION_ATTACH_MS: () => LIVE_SESSION_ATTACH_MS,
+  LinkedEntry: () => LinkedEntry,
   LiveAudioFormat: () => LiveAudioFormat,
   LiveAudioParams: () => LiveAudioParams,
   LiveAudioSession: () => LiveAudioSession,
@@ -21054,6 +21060,8 @@ __export(exports_src, {
   MAX_BOOK_SOURCE_LENGTH: () => MAX_BOOK_SOURCE_LENGTH,
   MAX_BROWSER_TAB_SESSION_MS: () => MAX_BROWSER_TAB_SESSION_MS,
   MAX_CHAT_PREVIEW_LENGTH: () => MAX_CHAT_PREVIEW_LENGTH,
+  MAX_CHAT_STATE_TEXT_LENGTH: () => MAX_CHAT_STATE_TEXT_LENGTH,
+  MAX_CHAT_TASKS: () => MAX_CHAT_TASKS,
   MAX_CURSOR_LENGTH: () => MAX_CURSOR_LENGTH,
   MAX_FILE_BYTES: () => MAX_FILE_BYTES,
   MAX_INTERVAL_SECONDS: () => MAX_INTERVAL_SECONDS,
@@ -21065,6 +21073,8 @@ __export(exports_src, {
   MAX_PAGE_LIMIT: () => MAX_PAGE_LIMIT,
   MAX_PARTICIPANT_NAME_LENGTH: () => MAX_PARTICIPANT_NAME_LENGTH,
   MAX_PENDING_ACCESS_REQUESTS: () => MAX_PENDING_ACCESS_REQUESTS,
+  MAX_REPLY_STEPS: () => MAX_REPLY_STEPS,
+  MAX_REPLY_STEP_TEXT_LENGTH: () => MAX_REPLY_STEP_TEXT_LENGTH,
   MAX_RUN_PREVIEW_LENGTH: () => MAX_RUN_PREVIEW_LENGTH,
   MAX_RUN_TEXT_BYTES: () => MAX_RUN_TEXT_BYTES,
   MAX_SEEN_MESSAGES: () => MAX_SEEN_MESSAGES,
@@ -21080,8 +21090,10 @@ __export(exports_src, {
   MAX_WALLET_RECORDS: () => MAX_WALLET_RECORDS,
   MAX_WALLET_REQUESTS: () => MAX_WALLET_REQUESTS,
   MAX_WALLET_USERNAME_LENGTH: () => MAX_WALLET_USERNAME_LENGTH,
+  MAX_WORKING_STEPS: () => MAX_WORKING_STEPS,
   MEMBER_ROUTES: () => MEMBER_ROUTES,
   MEMBER_STATUSES: () => MEMBER_STATUSES,
+  MESSAGE_PHASES: () => MESSAGE_PHASES,
   MESSAGE_STATUSES: () => MESSAGE_STATUSES,
   ME_ROUTES: () => ME_ROUTES,
   MIN_INTERVAL_SECONDS: () => MIN_INTERVAL_SECONDS,
@@ -21138,6 +21150,8 @@ __export(exports_src, {
   ProblemDetails: () => ProblemDetails,
   ProjectChange: () => ProjectChange,
   RECURRENCE_KINDS: () => RECURRENCE_KINDS,
+  REPLY_STEP_KINDS: () => REPLY_STEP_KINDS,
+  REPLY_STEP_LEVELS: () => REPLY_STEP_LEVELS,
   RESERVED_CAPABILITIES: () => RESERVED_CAPABILITIES,
   ROLES: () => ROLES,
   RUN_ROUTES: () => RUN_ROUTES,
@@ -21146,7 +21160,9 @@ __export(exports_src, {
   RUN_STATUSES: () => RUN_STATUSES,
   Recurrence: () => Recurrence,
   RekorEntryUuid: () => RekorEntryUuid,
+  ReplyStep: () => ReplyStep,
   ReplyStreamEvent: () => ReplyStreamEvent,
+  ReplyStreamEventReader: () => ReplyStreamEventReader,
   RepositoryName: () => RepositoryName,
   RequestKey: () => RequestKey,
   Revision: () => Revision,
@@ -21445,6 +21461,7 @@ __export(exports_src2, {
   PROBLEM_DETAILS_MAX_BYTES: () => PROBLEM_DETAILS_MAX_BYTES,
   PROPOSED_MEMBER_ROLES: () => PROPOSED_MEMBER_ROLES,
   ProblemDetails: () => ProblemDetails2,
+  ProductionTrustPolicy: () => ProductionTrustPolicy,
   REGISTER_PATH: () => REGISTER_PATH,
   REGISTER_REQUEST_MAX_BYTES: () => REGISTER_REQUEST_MAX_BYTES,
   REGISTER_RESPONSE_MAX_BYTES: () => REGISTER_RESPONSE_MAX_BYTES,
@@ -21470,8 +21487,10 @@ __export(exports_src2, {
   SECURITY_THRESHOLD: () => SECURITY_THRESHOLD,
   SIGNED_MEMBER_MESSAGE_MAX_LENGTH: () => SIGNED_MEMBER_MESSAGE_MAX_LENGTH,
   SIGNING_CONTEXT: () => SIGNING_CONTEXT,
+  STAGING_MIN_DELAY_MS: () => STAGING_MIN_DELAY_MS,
   Sha256Hex: () => Sha256Hex2,
   SignedRelease: () => SignedRelease,
+  StagingTrustPolicy: () => StagingTrustPolicy,
   StreamId: () => StreamId,
   TUNNEL_CLOSE_CODE: () => TUNNEL_CLOSE_CODE,
   TUNNEL_FEATURES: () => TUNNEL_FEATURES,
@@ -21536,6 +21555,7 @@ __export(exports_src2, {
   generateLinkCode: () => generateLinkCode,
   heartbeatPath: () => heartbeatPath,
   importEd25519PrivateKey: () => importEd25519PrivateKey,
+  isStagingPolicy: () => isStagingPolicy,
   negotiateTunnel: () => negotiateTunnel,
   pae: () => pae,
   parseClientHello: () => parseClientHello,
@@ -28301,6 +28321,7 @@ var PROBLEM_STATUS = {
   "last-passkey": 409,
   "last-owner": 409,
   "reply-finished": 409,
+  "nothing-to-retry": 409,
   "chatter-missing": 409,
   "request-key-reused": 409,
   cancelled: 409,
@@ -28515,12 +28536,14 @@ var AGENT_ORIGINS = ["content", "core", "system"];
 var AgentOrigin = _enum(AGENT_ORIGINS);
 var HexColor = string2().regex(/^#[0-9a-fA-F]{6}$/);
 var BookSource = string2().max(MAX_BOOK_SOURCE_LENGTH);
+var AgentIllustrationId = string2().regex(/^[a-z][a-z0-9-]{0,47}$/);
 var AgentProfile = strictObject({
   fullname: string2().max(256),
   description: string2().max(4096),
   avatarUrl: string2().max(2048).nullable(),
   color: HexColor.nullable(),
-  initialMessage: string2().max(4096).nullable()
+  initialMessage: string2().max(4096).nullable(),
+  illustration: AgentIllustrationId.nullable().optional()
 });
 var Agent = strictObject({
   id: AgentId,
@@ -28538,7 +28561,11 @@ var Agent = strictObject({
 });
 var AgentPage = pageOf(Agent);
 var ReadAgentOrigin = string2().max(64).optional().transform((value) => AGENT_ORIGINS.find((origin) => origin === value) ?? "content");
-var AgentReader = toTolerant(Agent.extend({ origin: ReadAgentOrigin }));
+var ReadAgentIllustration = unknown().optional().transform((value) => AgentIllustrationId.safeParse(value).success ? value : null);
+var AgentReader = toTolerant(Agent.extend({
+  origin: ReadAgentOrigin,
+  profile: AgentProfile.extend({ illustration: ReadAgentIllustration })
+}));
 var AgentPageReader = object({ items: array(AgentReader), nextCursor: Cursor.nullable() });
 var AGENT_SORTS = ["name", "-name", "updatedAt", "-updatedAt", "createdAt", "-createdAt"];
 var AGENT_DELETED_FILTERS = ["exclude", "include", "only"];
@@ -28813,6 +28840,7 @@ var AUDIT_ACTIONS = [
   "chat.create",
   "chat.message.send",
   "chat.reply.cancel",
+  "chat.reply.retry",
   "member.update",
   "member.remove",
   "invite.create",
@@ -30780,6 +30808,62 @@ var questionFields = {
   seen: boolean2()
 };
 var ChatQuestion = strictObject({ ...questionFields, author: ParticipantRef });
+var MAX_REPLY_STEP_TEXT_LENGTH = 500;
+var MAX_REPLY_STEPS = 200;
+var MAX_WORKING_STEPS = 20;
+var REPLY_STEP_KINDS = ["reasoning", "tool", "note"];
+var REPLY_STEP_LEVELS = ["info", "warning", "error"];
+var replyStepFields = {
+  tool: string2().min(1).max(128).nullable(),
+  text: string2().max(MAX_REPLY_STEP_TEXT_LENGTH)
+};
+var ReplyStep = strictObject({ kind: _enum(REPLY_STEP_KINDS), ...replyStepFields, level: _enum(REPLY_STEP_LEVELS) }).refine((step) => step.kind === "tool" === (step.tool !== null), {
+  message: "a tool step names its tool and no other step does",
+  path: ["tool"]
+});
+var ReplyStepReader = object({
+  kind: openEnum(REPLY_STEP_KINDS),
+  ...replyStepFields,
+  level: openEnum(REPLY_STEP_LEVELS)
+});
+var workingFields = {
+  startedAt: Timestamp,
+  messageId: MessageId.nullable()
+};
+var ChatWorking = strictObject({
+  ...workingFields,
+  author: ParticipantRef,
+  steps: array(ReplyStep).max(MAX_WORKING_STEPS)
+});
+var CHAT_TASK_STATES = [
+  "queued",
+  "running",
+  "waiting",
+  "blocked",
+  "completed",
+  "failed",
+  "cancelled",
+  "retired"
+];
+var MAX_CHAT_TASKS = 100;
+var MAX_CHAT_STATE_TEXT_LENGTH = 500;
+var TaskName2 = string2().min(1).max(512);
+var chatTaskFields = {
+  name: TaskName2,
+  taskId: TaskId.nullable(),
+  detail: string2().max(MAX_CHAT_STATE_TEXT_LENGTH).nullable(),
+  agentId: AgentId.nullable(),
+  commit: string2().regex(/^[0-9a-f]{7,64}$/).nullable(),
+  reopened: boolean2(),
+  startedAt: Timestamp.nullable(),
+  endedAt: Timestamp.nullable()
+};
+var ChatTask = strictObject({ ...chatTaskFields, state: _enum(CHAT_TASK_STATES) });
+var ChatRecheck = strictObject({
+  cause: string2().min(1).max(MAX_CHAT_STATE_TEXT_LENGTH),
+  nextAt: Timestamp,
+  rounds: int().min(1)
+});
 var chatFields = {
   id: ChatId,
   title: string2().max(256),
@@ -30794,14 +30878,24 @@ var Chat = strictObject({
   ...chatFields,
   status: ChatStatus,
   members: array(Participant),
-  questions: array(ChatQuestion)
+  questions: array(ChatQuestion),
+  working: array(ChatWorking),
+  tasks: array(ChatTask).max(MAX_CHAT_TASKS),
+  recheck: ChatRecheck.nullable()
 });
 var ChatPage = pageOf(Chat);
 var ChatReader = toTolerant(object({
   ...chatFields,
   status: openEnum(CHAT_STATUSES),
   members: array(ParticipantReader),
-  questions: array(object({ ...questionFields, author: ParticipantRefReader }))
+  questions: array(object({ ...questionFields, author: ParticipantRefReader })),
+  working: array(object({
+    ...workingFields,
+    author: ParticipantRefReader,
+    steps: array(ReplyStepReader).max(MAX_WORKING_STEPS)
+  })).default([]),
+  tasks: array(object({ ...chatTaskFields, state: openEnum(CHAT_TASK_STATES) })).max(MAX_CHAT_TASKS).default([]),
+  recheck: ChatRecheck.nullable().default(null)
 }));
 var ChatPageReader = object({ items: array(ChatReader), nextCursor: Cursor.nullable() });
 var RequestKey = string2().regex(/^[A-Za-z0-9_-]{8,128}$/);
@@ -30811,6 +30905,7 @@ var CreateChatBody = strictObject({
   requestKey: RequestKey.optional()
 });
 var MESSAGE_STATUSES = ["streaming", "completed", "failed", "cancelled"];
+var MESSAGE_PHASES = ["progress", "final"];
 var messageFields = {
   type: literal("message"),
   id: MessageId,
@@ -30823,26 +30918,32 @@ var messageFields = {
 };
 var Message = strictObject({
   ...messageFields,
-  author: ParticipantRef
+  author: ParticipantRef,
+  phase: _enum(MESSAGE_PHASES).nullable(),
+  steps: array(ReplyStep).max(MAX_REPLY_STEPS)
 });
 var eventFields = { id: string2().min(1).max(512), chatId: ChatId, createdAt: Timestamp };
 var JoinedEntry = strictObject({ type: literal("joined"), ...eventFields, participant: Participant });
 var TitledEntry = strictObject({ type: literal("titled"), ...eventFields, title: string2().max(256) });
 var StatusEntry = strictObject({ type: literal("status"), ...eventFields, status: ChatStatus });
-var ChatEntry = discriminatedUnion("type", [Message, JoinedEntry, TitledEntry, StatusEntry]);
+var LinkedEntry = strictObject({ type: literal("linked"), ...eventFields, task: TaskName2 });
+var ChatEntry = discriminatedUnion("type", [Message, JoinedEntry, TitledEntry, StatusEntry, LinkedEntry]);
 var ChatEntryPage = pageOf(ChatEntry);
 var MessageReader = object({
   ...messageFields,
   status: openEnum(MESSAGE_STATUSES),
-  author: ParticipantRefReader
+  author: ParticipantRefReader,
+  phase: openEnum(MESSAGE_PHASES).nullable().default(null),
+  steps: array(ReplyStepReader).max(MAX_REPLY_STEPS).default([])
 });
 var tolerantEntry = toTolerant(discriminatedUnion("type", [
   MessageReader,
   object({ type: literal("joined"), ...eventFields, participant: ParticipantReader }),
   object({ type: literal("titled"), ...eventFields, title: string2().max(256) }),
-  object({ type: literal("status"), ...eventFields, status: openEnum(CHAT_STATUSES) })
+  object({ type: literal("status"), ...eventFields, status: openEnum(CHAT_STATUSES) }),
+  object({ type: literal("linked"), ...eventFields, task: TaskName2 })
 ]));
-var KNOWN_ENTRY_TYPES = new Set(["message", "joined", "titled", "status"]);
+var KNOWN_ENTRY_TYPES = new Set(["message", "joined", "titled", "status", "linked"]);
 var ChatEntryPageReader = object({
   items: array(unknown()).transform((items, ctx) => {
     const read = [];
@@ -30880,6 +30981,11 @@ var ReplyStreamEvent = discriminatedUnion("type", [
   strictObject({ type: literal("completed"), message: Message }),
   strictObject({ type: literal("failed"), problem: ProblemDetails })
 ]);
+var ReplyStreamEventReader = toTolerant(discriminatedUnion("type", [
+  object({ type: literal("delta"), seq: int().min(1), text: string2() }),
+  object({ type: literal("completed"), message: MessageReader }),
+  object({ type: literal("failed"), problem: ProblemDetails })
+]));
 var ChatListQuery = PageQuery.extend({
   agentId: AgentId.optional(),
   q: string2().min(1).max(256).optional()
@@ -30976,7 +31082,7 @@ var CHAT_ROUTES = {
     summary: "Stream a message's text as server-sent events while its author writes it; resumes after `Last-Event-ID`",
     permission: "chats.read",
     params: ChatMessageParams,
-    responses: { 200: { kind: "sse", event: ReplyStreamEvent } }
+    responses: { 200: { kind: "sse", event: ReplyStreamEvent, read: ReplyStreamEventReader } }
   }),
   cancelChatReply: defineRoute({
     id: "cancelChatReply",
@@ -30985,8 +31091,19 @@ var CHAT_ROUTES = {
     summary: "Stop a reply in progress (idempotent); its stream then ends with `failed` and code `cancelled`",
     permission: "chats.write",
     params: ChatMessageParams,
-    responses: { 200: { kind: "json", schema: Message } },
+    responses: { 200: { kind: "json", schema: Message, read: toTolerant(MessageReader) } },
     problems: ["reply-finished"]
+  }),
+  retryChatReply: defineRoute({
+    id: "retryChatReply",
+    method: "POST",
+    path: "/chats/{chatId}/retry",
+    summary: "Attempt the thread's failed reply now instead of at its `recheck.nextAt`",
+    description: "Idempotent while the attempt runs. 409 `nothing-to-retry` when the thread has no `recheck`.",
+    permission: "chats.write",
+    params: ChatParams,
+    responses: { 200: oneChat },
+    problems: ["nothing-to-retry"]
   })
 };
 
@@ -31521,7 +31638,8 @@ function createEngineApiClient(transport) {
       markRead: (chatId, signal) => call(ENGINE_API_ROUTES.markChatRead, { params: { chatId } }, signal),
       markSeen: (chatId, body, signal) => call(ENGINE_API_ROUTES.markChatSeen, { params: { chatId }, body }, signal),
       streamReply: (chatId, messageId, options, signal) => call(ENGINE_API_ROUTES.streamChatReply, { params: { chatId, messageId }, ...streamRequest(options) }, signal),
-      cancelReply: (chatId, messageId, signal) => call(ENGINE_API_ROUTES.cancelChatReply, { params: { chatId, messageId } }, signal)
+      cancelReply: (chatId, messageId, signal) => call(ENGINE_API_ROUTES.cancelChatReply, { params: { chatId, messageId } }, signal),
+      retry: (chatId, signal) => call(ENGINE_API_ROUTES.retryChatReply, { params: { chatId } }, signal)
     },
     members: {
       list: (query, signal) => call(ENGINE_API_ROUTES.listMembers, { query }, signal),
@@ -36387,17 +36505,16 @@ var DEFAULT_REVOCATION_RULE = Object.freeze({
   signers: "release-or-maintainer",
   threshold: 1
 });
-var TrustPolicy = strictObject({
+var STAGING_MIN_DELAY_MS = 60 * 1000;
+var stagingDelay = (productionMs) => int().min(STAGING_MIN_DELAY_MS).max(productionMs);
+var policyFields = {
   releaseKeys: array(KeyRef).min(1).max(MAX_RELEASE_KEYS),
   maintainerKeys: array(KeyRef).length(MAINTAINER_KEY_COUNT),
   securityThreshold: literal(SECURITY_THRESHOLD),
   workflowIdentity: WorkflowIdentity,
-  revocationRule: RevocationRule,
-  delays: strictObject({
-    regularMs: literal(RELEASE_DELAYS.regularMs),
-    securityMs: literal(RELEASE_DELAYS.securityMs)
-  })
-}).superRefine((policy, context) => {
+  revocationRule: RevocationRule
+};
+function checkKeys(policy, context) {
   const release = policy.releaseKeys.map(({ publicKey }) => publicKey);
   const maintainers = policy.maintainerKeys.map(({ publicKey }) => publicKey);
   if (new Set(release).size !== release.length) {
@@ -36420,7 +36537,34 @@ var TrustPolicy = strictObject({
       message: "revocation threshold exceeds the keys allowed to sign"
     });
   }
+}
+var ProductionTrustPolicy = strictObject({
+  ...policyFields,
+  delays: strictObject({
+    regularMs: literal(RELEASE_DELAYS.regularMs),
+    securityMs: literal(RELEASE_DELAYS.securityMs)
+  })
+}).superRefine(checkKeys);
+var StagingTrustPolicy = strictObject({
+  ...policyFields,
+  profile: literal("staging"),
+  delays: strictObject({
+    regularMs: stagingDelay(RELEASE_DELAYS.regularMs),
+    securityMs: stagingDelay(RELEASE_DELAYS.securityMs)
+  })
+}).superRefine(checkKeys).superRefine(({ delays }, context) => {
+  if (delays.securityMs > delays.regularMs) {
+    context.addIssue({
+      code: "custom",
+      path: ["delays", "securityMs"],
+      message: "a security release may not wait longer than a regular one"
+    });
+  }
 });
+var TrustPolicy = union([ProductionTrustPolicy, StagingTrustPolicy]);
+function isStagingPolicy(policy) {
+  return "profile" in policy;
+}
 function revocationSigners(policy) {
   switch (policy.revocationRule.signers) {
     case "release":
@@ -36476,7 +36620,7 @@ function checkCertificateClaims(claims, expected) {
 var CONFORMANCE_TRUST_FILE_ENV = "PTBK_CONFORMANCE_TRUST_FILE";
 var ConformanceTrustFile = strictObject({
   v: literal(1),
-  trustPolicy: TrustPolicy,
+  trustPolicy: ProductionTrustPolicy,
   trustedRoot: record(string2(), unknown())
 });
 // ../../../packages/protocol/src/release/fake-provenance-verifier.ts

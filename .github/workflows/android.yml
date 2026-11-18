@@ -29,6 +29,8 @@ jobs:
       - run: sdkmanager --install 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
       - run: npm ci
       - name: Assemble the downloadable ARM64 preview
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           version=$(node -p 'require("./package.json").version')
           bash apps/android/build-apk.sh "$PWD/apps/android/release/Promptbook-$version-android-arm64-preview.apk"
@@ -39,6 +41,7 @@ jobs:
           if-no-files-found: error
       - name: Assemble the emulator build
         env:
+          GH_TOKEN: ${{ github.token }}
           PTBK_ANDROID_ABI: x86_64
           PTBK_ANDROID_TEST: '1'
         run: bash apps/android/build-apk.sh "$RUNNER_TEMP/promptbook-emulator.apk"

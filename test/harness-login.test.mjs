@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { instanceEnvironment } from '../dist/engine/harnesses.js';
 import { harnessLoginMethods, loginHarness, loginLocation, serviceReadinessProblem } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
+import { discoveryEnvironment, persistentServiceEnvironment, restoreDiscoveryEnvironment } from '../dist/service/records.js';
 import { fakeHarness, temporaryDirectory } from './helpers.mjs';
 
 /** The fake Codex CLI with file-backed native sign-in; no provider, browser or real account is used. */
@@ -128,6 +129,58 @@ test('Claude Code uses its native subscription login with a pasted return code, 
     assert.doesNotMatch([...remote.args, ...local.args].join(' '), /--console|device/);
 });
 
+test('Claude native login remains visible to service checks and restored services with the same Keychain account and store', { skip: process.platform === 'win32' }, async (t) => {
+    const root = await temporaryDirectory(t);
+    const bin = join(root, 'bin');
+    await mkdir(bin);
+    // Model the macOS Keychain lookup by OS account and literal store selector, without reading any real credentials.
+    await writeFile(join(bin, 'claude'), `#!${process.execPath}
+const { readFileSync, writeFileSync } = require('node:fs');
+const { join } = require('node:path');
+const args = process.argv.slice(2).join(' ');
+if (args === '--version') { console.log('2.1.327'); process.exit(0); }
+const file = join(process.env.HOME, 'fixture-keychain.json');
+const identity = { account: process.env.USER ?? 'unknown', store: process.env.CLAUDE_SECURESTORAGE_CONFIG_DIR ?? process.env.CLAUDE_CONFIG_DIR ?? '' };
+if (args === 'auth login') { writeFileSync(file, JSON.stringify(identity)); process.exit(0); }
+if (args === 'auth status --json') {
+    let saved;
+    try { saved = JSON.parse(readFileSync(file, 'utf8')); } catch {}
+    const loggedIn = Boolean(saved && saved.account === identity.account && saved.store === identity.store);
+    console.log(JSON.stringify({ loggedIn, authMethod: loggedIn ? 'claude.ai' : 'none' }));
+    process.exit(loggedIn ? 0 : 1);
+}
+process.exit(1);
+`);
+    await chmod(join(bin, 'claude'), 0o755);
+    const plugin = harnessPlugin('claude-code');
+    const tool = { type: 'HARNESS', variant: 'CLAUDE_CODE', name: 'claude', isEnabled: true, authentication: 'NATIVE' };
+    const method = { id: 'native', label: 'Native fixture login', args: ['auth', 'login'], remote: true, instructions: 'Fixture only.', terminal: 'relay' };
+    for (const [label, selectors] of [
+        ['default store', {}],
+        ['separate config', { CLAUDE_CONFIG_DIR: join(root, 'config') }],
+        ['separate credential store', { CLAUDE_CONFIG_DIR: join(root, 'config'), CLAUDE_SECURESTORAGE_CONFIG_DIR: join(root, 'credentials') }],
+        ['explicit default credential store', { CLAUDE_CONFIG_DIR: join(root, 'config'), CLAUDE_SECURESTORAGE_CONFIG_DIR: '' }],
+    ]) {
+        const base = {
+            PATH: `${bin}${delimiter}${process.env.PATH ?? ''}`, HOME: root, USER: 'fixture-user', LOGNAME: 'fixture-user',
+            ANTHROPIC_API_KEY: 'fixture-secret-api-key', CLAUDE_CODE_OAUTH_TOKEN: 'fixture-secret-oauth-token', ...selectors,
+        };
+        const context = { projectRoot: root, env: instanceEnvironment(plugin, tool, undefined, base), tool };
+        const service = { ...context, env: instanceEnvironment(plugin, tool, undefined, persistentServiceEnvironment(base)) };
+        const login = await loginHarness(plugin, context, method, { location: 'local', service, write: relay().write });
+        assert.equal(login.outcome, 'authenticated', `${label}: ${login.diagnostic}`);
+        assert.equal(service.env.USER, base.USER);
+        assert.equal(service.env.LOGNAME, base.LOGNAME);
+        assert.equal(Object.hasOwn(service.env, 'CLAUDE_SECURESTORAGE_CONFIG_DIR'), Object.hasOwn(selectors, 'CLAUDE_SECURESTORAGE_CONFIG_DIR'), label);
+        const saved = JSON.parse(JSON.stringify(discoveryEnvironment(base)));
+        assert.doesNotMatch(JSON.stringify(saved), /fixture-secret/, 'restart metadata holds locations, never credentials');
+        const restored = { ...context, env: instanceEnvironment(plugin, tool, undefined, restoreDiscoveryEnvironment(saved, process.execPath, {})) };
+        assert.equal(await serviceReadinessProblem(plugin, restored), undefined, label);
+        assert.ok(await serviceReadinessProblem(plugin, { ...restored, env: { ...restored.env, USER: 'another-user' } }), 'another OS account must remain signed out');
+        assert.ok(await serviceReadinessProblem(plugin, { ...restored, env: { ...restored.env, CLAUDE_SECURESTORAGE_CONFIG_DIR: join(root, 'another-store') } }), 'another credential store must remain signed out');
+    }
+});
+
 test('native terminal methods keep each harness’s documented environment and invocation', async () => {
     const opencode = harnessPlugin('opencode');
     const [method] = await harnessLoginMethods(opencode, { projectRoot: process.cwd(), env: process.env }, 'remote');
@@ -141,16 +194,22 @@ test('native terminal methods keep each harness’s documented environment and i
     assert.deepEqual(qwen.args, ['--approval-mode', 'plan']);
 });
 
-test('Gemini isolates the wizard-created API connection while existing explicit instances keep their profile', () => {
+test('Gemini API_KEY instances always use the configured key in an isolated profile; route selectors never leak', () => {
     const plugin = harnessPlugin('gemini');
     const tool = { type: 'HARNESS', variant: 'GEMINI', name: 'gemini', isEnabled: true, authentication: 'API_KEY' };
-    const base = { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true' };
+    const base = { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true', GOOGLE_API_KEY: 'ambient-google-key' };
     const credential = { name: 'LEGACY_GEMINI_KEY', source: '.env', value: 'fixture-key' };
-    const legacy = instanceEnvironment(plugin, tool, credential, base);
-    assert.equal(legacy.GEMINI_CLI_HOME, base.GEMINI_CLI_HOME);
-    assert.equal(legacy.GOOGLE_GENAI_USE_VERTEXAI, 'true');
-    const prepared = instanceEnvironment(plugin, tool, { ...credential, name: plugin.setupApiKey.reference }, base);
-    assert.equal(prepared.GEMINI_CLI_HOME, join('/engine', 'harness-accounts', 'gemini', 'api-key'));
-    assert.equal(prepared.GOOGLE_GENAI_USE_VERTEXAI, undefined);
-    assert.equal(prepared.GEMINI_API_KEY, credential.value);
+    for (const selected of [credential, { ...credential, name: plugin.setupApiKey.reference }]) {
+        const env = instanceEnvironment(plugin, tool, selected, base);
+        assert.equal(env.GEMINI_CLI_HOME, join('/engine', 'harness-accounts', 'gemini', 'api-key'), 'the user’s saved Google-login selection cannot replace the key');
+        assert.equal(env.GOOGLE_GENAI_USE_VERTEXAI, '', 'an ambient Vertex selector never redirects the key (passed empty, so a project .env cannot reinstate it)');
+        assert.equal(env.GOOGLE_API_KEY, '');
+        assert.equal(env.GEMINI_API_KEY, credential.value);
+    }
+    const native = instanceEnvironment(plugin, { ...tool, authentication: 'NATIVE' }, undefined, base);
+    assert.equal(native.GEMINI_CLI_HOME, base.GEMINI_CLI_HOME, 'a native instance keeps the user’s own Gemini profile');
+    assert.equal(native.GOOGLE_GENAI_USE_GCA, 'true', 'and selects the Google login explicitly');
+    assert.equal(native.GOOGLE_GENAI_USE_VERTEXAI, '');
+    assert.equal(native.GOOGLE_API_KEY, '');
+    assert.deepEqual(base, { PTBK_HOME: '/engine', GEMINI_CLI_HOME: '/my-gemini-profile', GOOGLE_GENAI_USE_VERTEXAI: 'true', GOOGLE_API_KEY: 'ambient-google-key' }, 'the shared environment is unchanged');
 });

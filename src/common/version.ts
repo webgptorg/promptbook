@@ -44,10 +44,11 @@ export const ENGINE_VERSION: string = readEngineManifest().version;
  * - `global`: inside the npm global prefix
  * - `npx`: inside the transient npx cache
  * - `development`: a source checkout (no `node_modules` boundary)
+ * - `bundled`: an engine owned by a desktop application bundle (never overwritten through npm)
  *
  * @private internal engine identity
  */
-export type InstallationScope = 'local' | 'global' | 'npx' | 'development';
+export type InstallationScope = 'local' | 'global' | 'npx' | 'development' | 'bundled';
 
 /**
  * Description of the invoked installation.
@@ -91,6 +92,15 @@ export function detectInstallation(root: string = ENGINE_ROOT, version: string =
     const normalized = resolve(root);
     const lower = normalized.toLowerCase();
     if (lower.includes(`${sep}_npx${sep}`)) return { root: normalized, version, scope: 'npx' };
+    // Distribution-owned markers sit outside the npm package, so replacing it does not erase its identity.
+    for (const prefix of [dirname(normalized), dirname(dirname(dirname(normalized)))]) {
+        try {
+            const marker = JSON.parse(readFileSync(join(prefix, 'ptbk-installation.json'), 'utf8')) as { method?: string; root?: string };
+            if (typeof marker.root !== 'string' || resolve(prefix, marker.root) !== normalized) continue;
+            if (marker.method === 'desktop-bundle') return { root: normalized, version, scope: 'bundled' };
+            if (marker.method === 'shell' && normalized === join(prefix, 'lib', 'node_modules', 'ptbk')) return { root: normalized, version, scope: 'global' };
+        } catch { /* Ordinary npm installations do not need distribution metadata. */ }
+    }
     if (globalModuleDirectories().some((directory) => lower.startsWith(directory + sep))) {
         return { root: normalized, version, scope: 'global' };
     }

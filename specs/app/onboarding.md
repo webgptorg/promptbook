@@ -12,7 +12,7 @@ ptbk connect --onboarding <engine-id> --link '<pairing-url>'
 ptbk connect --onboarding <engine-id> --setup-link
 ~~~
 
-A single invocation can start the service, pair it and print the owner setup link.
+A single invocation can start the service, pair it and show the owner setup link. In an interactive terminal the paired initializer shows it automatically, with a QR, and opens it on the local desktop. `--setup-link` also requests explicit JSON output for automation; `--no-open` keeps it in the terminal.
 
 ~~~sh
 ptbk init --prepare-only --link '<pairing-url>' --setup-link

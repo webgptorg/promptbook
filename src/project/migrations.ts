@@ -2,7 +2,7 @@ import { canonicalEnumValue, matchEnum, matchProperty } from '../common/naming.j
 import { compareVersions } from '../common/semver.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import { environmentReference } from '../tools/environment.js';
-import { HARNESS_VARIANTS, THINKING_LEVELS, harnessPluginId, harnessVariantOf, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from '../tools/model.js';
+import { HARNESS_VARIANTS, THINKING_LEVELS, harnessPluginId, harnessVariantOf, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from '../tools/model.js';
 import { parseTools, serializeTool, type ConfigProblem } from '../tools/normalize.js';
 
 /**
@@ -360,11 +360,75 @@ const SHARED_WORK_LIMIT_MIGRATION: ConfigurationMigration = {
 };
 
 /**
+ * Adds the native desktop tool once. Subsequent removal is intentional because the saved version advances past this
+ * step; interrupted migration is idempotent and existing disabled/native records are never overwritten.
+ */
+const COMPUTER_CONTROL_MIGRATION: ConfigurationMigration = {
+    target: '0.119.0-97',
+    title: 'Native computer control and private opt-in visual traces',
+    migrate: (raw) => {
+        const notes: string[] = [];
+        const problems: ConfigProblem[] = [];
+        if (raw.tools !== undefined && !Array.isArray(raw.tools)) {
+            problems.push({ location: 'ptbk.json › tools', message: 'expected an ordered array; repair it before adding computer control', severity: 'error' });
+            return { notes, problems };
+        }
+        const tools = Array.isArray(raw.tools) ? [...raw.tools] : [];
+        const existing = parseTools(tools);
+        // Tolerant recognition also protects a disabled entry with an unrelated invalid field from replacement.
+        if (!existing.tools.some((tool) => tool.type === 'COMPUTER_CONTROL') && !tools.some((tool) => {
+            if (!tool || typeof tool !== 'object' || Array.isArray(tool)) return false;
+            const entry = tool as Record<string, unknown>;
+            const key = Object.keys(entry).find((key) => matchProperty(key, ['type']) === 'type');
+            return key !== undefined && matchEnum(entry[key], ['COMPUTER_CONTROL']) !== undefined;
+        })) {
+            const names = new Set([...existing.tools.map((tool) => tool.name), ...tools.flatMap((tool) => tool && typeof tool === 'object' && typeof (tool as Record<string, unknown>).name === 'string' ? [(tool as Record<string, unknown>).name as string] : [])]);
+            let name = 'computer-control';
+            for (let suffix = 2; names.has(name); suffix++) name = `computer-control-${suffix}`;
+            tools.push(serializeTool({ type: 'COMPUTER_CONTROL', variant: 'NATIVE', name, isEnabled: true }));
+            raw.tools = tools;
+            notes.push(`added enabled native desktop tool ${name}; OS permissions are inspected separately`);
+        }
+        if (raw.traces === undefined) raw.traces = {};
+        if (raw.traces && typeof raw.traces === 'object' && !Array.isArray(raw.traces)) {
+            const traces = raw.traces as Record<string, unknown>;
+            if (traces.isVideoRecordingEnabled === undefined) { traces.isVideoRecordingEnabled = false; notes.push('visual recording defaults to off'); }
+            if (traces.isVideoIgnored === undefined) traces.isVideoIgnored = true;
+        }
+        return { notes, problems };
+    },
+};
+
+/**
+ * Local inference schema expansion (`INFERENCE_RUNTIME`, harness `inferenceRuntime`, `authentication: NONE`): purely
+ * additive, so nothing is rewritten. Existing endpoints, authentication, logins, disabled records, names, order and
+ * MODEL stay as they are, and no local setup happens. A legacy `baseUrl: LOCAL` without a runtime association cannot be
+ * bound by guessing; it is preserved with an actionable diagnostic (the explicit setup or a modify binds it).
+ */
+const LOCAL_INFERENCE_MIGRATION: ConfigurationMigration = {
+    target: '0.119.0-104',
+    title: 'Local model runtimes and credential-free harness connections (additive; no automatic local setup)',
+    migrate: (raw) => {
+        const problems: ConfigProblem[] = [];
+        if (!Array.isArray(raw.tools)) return { notes: [], problems };
+        const legacy = parseTools(raw.tools).tools.filter((tool) => tool.type === 'HARNESS' && toolRuntime(tool) === 'local' && !tool.inferenceRuntime);
+        for (const tool of legacy) {
+            problems.push({
+                location: `ptbk.json › tools "${tool.name}"`,
+                message: `baseUrl LOCAL has no local model runtime, so ${tool.name} stays unusable until it is bound: run \`ptbk tool setup-local\`, or \`ptbk tool modify ${tool.name} --inference-runtime <runtime> --authentication NONE\` (nothing was guessed or installed)`,
+                severity: 'warning',
+            });
+        }
+        return { notes: legacy.length ? [`kept ${legacy.map((tool) => tool.name).join(', ')} unchanged (legacy LOCAL endpoint without a runtime binding)`] : [], problems };
+    },
+};
+
+/**
  * Every registered configuration migration (sparse: most releases have none).
  *
  * @private configuration migrations
  */
-export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION, SHARED_WORK_LIMIT_MIGRATION];
+export const CONFIGURATION_MIGRATIONS: readonly ConfigurationMigration[] = [UNIFIED_TOOLS_MIGRATION, ROUTER_MODEL_MIGRATION, LOCAL_DASHBOARD_MIGRATION, SHARED_WORK_LIMIT_MIGRATION, COMPUTER_CONTROL_MIGRATION, LOCAL_INFERENCE_MIGRATION];
 
 /**
  * Compares the saved configuration version with the running engine and selects the applicable ordered steps

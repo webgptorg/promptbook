@@ -1,3 +1,6 @@
+import { protocol } from '../vendor/app-platform.js';
+import { decodeBase64Url } from './encoding.js';
+import type { LicenseUsage } from './license-usage.js';
 import { PtbkError, errorMessage } from '../common/errors.js';
 import type { AppCertificateView, AppConnectionView, AppHeartbeatView, AppRelayView } from '../engine/snapshot.js';
 import { HEARTBEAT_INTERVAL_MS, buildHeartbeat, hostFigures, nextHeartbeatSeq, sendHeartbeat, type HeartbeatUpdateState } from './heartbeat.js';
@@ -46,6 +49,8 @@ export async function storedAppView(directory: string, env: NodeJS.ProcessEnv): 
 export type AppEngineFigures = {
     /** Project agents (not deleted). */
     readonly agents: number;
+    /** Local diagnostics only; not appended to the strict heartbeat wire payload. */
+    readonly licenseUsage?: LicenseUsage;
     /** People who can sign in to this engine through the App (0 until App sign-in exists). */
     readonly members: number;
     readonly update: HeartbeatUpdateState;
@@ -404,6 +409,7 @@ export class AppConnection {
             access,
             engineId: identity.engineId,
             fingerprint: identity.fingerprint,
+            memberKey: registration.memberKey ? decodeBase64Url(registration.memberKey) : undefined,
             api: (request, actor) => web.api(request, actor, access),
             documents: web.documents,
             audit: web.audit,
@@ -438,7 +444,10 @@ export class AppConnection {
                 }),
         );
         for (const link of this.links) link.start();
+        let beating = false;
         const beat = async (): Promise<void> => {
+            if (beating) return;
+            beating = true;
             try {
                 const figures = this.options.figures();
                 const host = await hostFigures(this.options.directory);
@@ -446,14 +455,28 @@ export class AppConnection {
                 const access = this.access;
                 // Members who can sign in: at least one registered passkey (0 until the owner's first passkey).
                 const members = access ? access.members().filter((member) => access.passkeys(member.id).length > 0).length : figures.members;
-                const body = buildHeartbeat({ engineId: identity.engineId, seq, ts: new Date().toISOString(), version, uptimeS: process.uptime(), ...host, ...figures, members });
-                const result = await sendHeartbeat({ identity, dashboardUrl: registration.dashboardUrl, body, env: this.options.env, tls: this.options.tls });
+                const memberKey = registration.memberKey ? decodeBase64Url(registration.memberKey) : undefined;
+                if (access && memberKey) await access.settle();
+                const acknowledgments = access?.acks() ?? [];
+                const input = { engineId: identity.engineId, seq, ts: new Date().toISOString(), version, uptimeS: Math.floor(process.uptime()), ...host, ...figures, members };
+                const v2 = Boolean(access && memberKey);
+                const body = v2 ? protocol.buildHeartbeatV2({ ...input, accessRequests: access!.accessRequests().length, acks: acknowledgments }) : buildHeartbeat(input);
+                const { revocations, ...result } = await sendHeartbeat({ identity, dashboardUrl: registration.dashboardUrl, body, env: this.options.env, tls: this.options.tls, v2 });
                 if (!this.running || this.registration !== registration) return;
+                if (result.outcome === 'accepted' && access && memberKey) {
+                    await access.acknowledge(acknowledgments);
+                    for (const token of revocations ?? []) {
+                        const verified = await protocol.verifyMemberRevocation({ token, memberKey, engineId: identity.engineId });
+                        if (verified.kind === 'accepted') await access.applyRevocation(verified.revocation);
+                    }
+                }
                 this.heartbeat = { ...result, nextAt: new Date(Date.now() + this.heartbeatIntervalMs()).toISOString() };
                 if (result.skewMs !== undefined) this.clockSkew = { seconds: Math.round(result.skewMs / 1000), measuredAt: result.at };
                 if (result.outcome !== 'accepted') this.options.log?.(`The App heartbeat was ${result.outcome === 'refused' ? `refused (HTTP ${String(result.status)}${result.code ? `, ${result.code}` : ''})` : 'not delivered'}.`, 'warning');
             } catch (error) {
                 this.heartbeat = { at: new Date().toISOString(), outcome: 'failed', body: '', message: errorMessage(error) };
+            } finally {
+                beating = false;
             }
             this.options.onChange();
         };
@@ -501,6 +524,7 @@ export class AppConnection {
     /** The App page's view of this connection (no secrets: no key, signature or link code). */
     public view(): AppConnectionView {
         const identity = this.identity;
+        const figures = this.options.figures();
         const registration = this.registration;
         const relays = this.links.map((link) => link.view());
         const connected = relays.filter((relay) => relay.state === 'connected').length;
@@ -508,6 +532,7 @@ export class AppConnection {
         const state: AppConnectionView['state'] = this.problem ? 'problem' : this.registrationRefusal ? 'refused' : this.registering ? 'connecting' : !registration ? 'unlinked' : connected ? 'linked' : refusal || this.heartbeat?.code === 'engine-suspended' ? 'refused' : 'connecting';
         return {
             state,
+            ...(figures.licenseUsage ? { licenseUsage: figures.licenseUsage } : {}),
             dashboardUrl: registration?.dashboardUrl ?? this.dashboardUrl,
             ...(identity ? { engineId: identity.engineId, fingerprint: identity.fingerprint.formatted } : {}),
             ...(registration ? { hostname: registration.hostname, url: `https://${registration.hostname}/`, linkedAt: registration.registeredAt } : {}),

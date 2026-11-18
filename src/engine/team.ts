@@ -16,6 +16,7 @@ import { renderAgentInstructions } from './prompt.js';
 import type { TaskChats } from '../chats/task-chats.js';
 import { validateChoices } from '../chats/chat-book.js';
 import type { TaskTrace } from './task-trace.js';
+import type { HarnessToolRecord } from '../tools/model.js';
 import { appendUsage, usageRecords } from './usage.js';
 import { errorMessage } from '../common/errors.js';
 
@@ -53,7 +54,7 @@ export type TeamContext = {
     /** Budget of the task, or of the originating chat turn. */
     readonly budget: ConsultationBudget;
     /** Reports an advisor's execution context (shown separately from the consulting agent's own run). */
-    readonly onConsultation?: (consultation: { readonly advisor: string; readonly by: string; readonly harness: string; readonly tool?: string; readonly model?: string; readonly state: 'started' | 'finished' }) => void;
+    readonly onConsultation?: (consultation: ConsultationEvent) => void;
     /** Whether the user may be asked. */
     readonly questionsAllowed: boolean;
     /** Cancellation. */
@@ -91,6 +92,23 @@ async function askUser(context: TeamContext, question: string, choices: unknown,
 }
 
 /**
+ * Start or end of one consultation. `id` pairs them; `acquired` is the harness configuration revision the advisor
+ * acquired, so the work that holds it keeps that exact revision in use (or retained) until the consultation ends.
+ *
+ * @private TEAM consultations
+ */
+export type ConsultationEvent = {
+    readonly id: string;
+    readonly advisor: string;
+    readonly by: string;
+    readonly harness: string;
+    readonly tool?: string;
+    readonly model?: string;
+    readonly acquired?: HarnessToolRecord;
+    readonly state: 'started' | 'finished';
+};
+
+/**
  * Runs a read-only consultation of another agent and returns its answer.
  */
 async function consultAgent(context: TeamContext, reference: string, question: string): Promise<ToolResult> {
@@ -126,7 +144,8 @@ async function consultAgent(context: TeamContext, reference: string, question: s
     await writeFile(promptFile, prompt);
     await context.trace?.section(`Consultation · ${context.agentName} asks ${advisor.name} (depth ${context.depth + 1})`, [`Harness: ${plugin.displayName} ${instanceInspection?.version ?? ''} · tool ${instance.name}`.trim(), `Question:\n${question}`]);
     await context.trace?.event('consultation-started', { advisor: advisor.name, by: context.agentName, depth: context.depth + 1, harness: harnessId, tool: instance.name, model: route.selection.model ?? null, thinking: route.selection.thinkingLevel ?? null });
-    context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, tool: instance.name, model: route.selection.model, state: 'started' });
+    const consultationId = shortId(8);
+    context.onConsultation?.({ id: consultationId, advisor: advisor.name, by: context.agentName, harness: harnessId, tool: instance.name, model: route.selection.model, acquired: instance, state: 'started' });
     const controller = new AbortController();
     const abort = (): void => controller.abort();
     context.signal.addEventListener('abort', abort, { once: true });
@@ -158,6 +177,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                 model: route.selection.model,
                 thinkingLevel: route.selection.thinkingLevel,
                 baseUrl: route.selection.baseUrl,
+                localRoute: route.selection.localRoute,
                 timeoutMs: setting<number>(context.settings, 'team.timeout'),
                 signal: controller.signal,
                 interruptSignal: context.interruptSignal,
@@ -184,6 +204,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
                     tool: instance.name,
                     model: result.model ?? route.selection.model,
                     authentication: instanceInspection?.authentication ?? 'unknown',
+                    connection: route.selection,
                     outcome: result.outcome,
                     attribution: {
                         agent: advisor.name,
@@ -206,7 +227,7 @@ async function consultAgent(context: TeamContext, reference: string, question: s
         if (chat) await context.trace?.event('consultation-chat', { chat });
         return { text: bounded };
     } finally {
-        context.onConsultation?.({ advisor: advisor.name, by: context.agentName, harness: harnessId, state: 'finished' });
+        context.onConsultation?.({ id: consultationId, advisor: advisor.name, by: context.agentName, harness: harnessId, tool: instance.name, state: 'finished' });
         context.signal.removeEventListener('abort', abort);
         await bridge.close();
         await rm(promptFile, { force: true });

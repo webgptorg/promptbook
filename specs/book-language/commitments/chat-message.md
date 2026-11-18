@@ -15,3 +15,5 @@ A message timestamp identifies a turn's time, **not** an entity ID or part of th
 Active invite/address prefixes `+@Name` and `+{Full Name}` are interpreted once on newly accepted nonliteral message content under [chats](../../cli/chats.md#references-versus-invitation). The underlying reference remains passive without plus. Literal/quoted/code/example text and history replay never trigger invitations; recovery deduplicates accepted actions and preserves actual authorship.
 
 An agent genuinely requesting human input uses `+@User`/`+{User}`; structured task/TEAM/question helpers save their attributed question through that same operation. A new explicit User ping creates one attention occurrence even if the human is already a member. Actual active viewing can mark the occurrence seen across clients without changing message content, CHAT STATUS or the unresolved question. See [attention policy](../../cli/notifications.md).
+
+Structured tool/reasoning activity is retained by [CHAT MESSAGE STEPS](chat-message-steps.md), independently of the readable progress body.

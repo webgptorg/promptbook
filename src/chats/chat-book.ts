@@ -1,3 +1,4 @@
+import { legacyReplySteps, parseReplySteps, type ReplyStep } from './reply-steps.js';
 import { modelOfDocument, renderModelLines, type ModelConstraint } from '../book/model.js';
 import { commitmentsOf, parseBook, type BookDiagnostic, type BookDocument } from '../book/parse.js';
 import { formatAgentReference, invalidReferenceMessage, normalizeAgentName, parseReferenceValue } from '../book/references.js';
@@ -37,6 +38,8 @@ export type ChatMessage = {
      * that ends a turn which had progress. An ordinary message has no phase.
      */
     readonly phase?: ChatMessagePhase;
+    /** Structured activity, retained with a progress message. */
+    readonly steps?: readonly ReplyStep[];
     /**
      * Recorded speech of this same utterance (`CHAT MESSAGE AUDIO` right after the body), in order: another
      * representation of the message, never another message, attachment or request.
@@ -69,6 +72,8 @@ export type ChatBook = {
     readonly status: ChatStatus;
     /** Directed references to other Books (`{Task name}`). */
     readonly links: readonly string[];
+    /** LINK positions, counted as messages preceding each commitment. */
+    readonly linkPositions?: readonly { readonly reference: string; readonly afterMessage: number }[];
     /** Messages in source order. */
     readonly messages: readonly ChatMessage[];
     /**
@@ -130,9 +135,9 @@ function needsEscape(line: string): boolean {
  *
  * @private chats
  */
-export function renderChatMessage(message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>): string[] {
+export function renderChatMessage(message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase' | 'steps'>): string[] {
     const body = message.text.replace(/\r\n?/g, '\n').split('\n').map((line) => (needsEscape(line) ? `\\${line}` : line));
-    return [`CHAT MESSAGE ${message.sender} ${message.at}${message.phase ? ` ${message.phase}` : ''}`, ...body, ...(message.choices ?? []).map((choice) => `${CHOICE_PREFIX}${choice.replace(/\s*\n\s*/g, ' ')}`), ''];
+    return [`CHAT MESSAGE ${message.sender} ${message.at}${message.phase ? ` ${message.phase}` : ''}`, ...body, ...(message.choices ?? []).map((choice) => `${CHOICE_PREFIX}${choice.replace(/\s*\n\s*/g, ' ')}`), '', ...(message.phase === 'progress' && message.steps ? [`CHAT MESSAGE STEPS ${JSON.stringify(message.steps.slice(-200))}`, ''] : [])];
 }
 
 /**
@@ -154,7 +159,7 @@ export function renderChatBook(chat: { name: string; members: readonly string[];
  *
  * @private chats
  */
-export function appendChatMessage(source: string, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>, status?: ChatStatus): string {
+export function appendChatMessage(source: string, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase' | 'steps'>, status?: ChatStatus): string {
     const base = source.endsWith('\n') ? source : `${source}\n`;
     const text = `${base}${renderChatMessage(message).join('\n')}\n`;
     return status ? setChatStatus(text, status) : text;
@@ -166,14 +171,16 @@ export function appendChatMessage(source: string, message: Pick<ChatMessage, 'se
  *
  * @private chats
  */
-export function replaceChatMessage(source: string, index: number, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>): string {
+export function replaceChatMessage(source: string, index: number, message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase' | 'steps'>): string {
     const document = parseBook(source);
     const target = commitmentsOf(document, 'CHAT MESSAGE')[index];
     if (!target) throw new Error(`No message ${index + 1} to replace.`);
     const lines = source.split('\n');
+    const metadata = document.commitments[document.commitments.indexOf(target) + 1];
+    const endLine = metadata?.keyword === 'CHAT MESSAGE STEPS' ? metadata.endLine : target.endLine;
     const rendered = renderChatMessage(message);
-    if (target.endLine >= lines.length) return `${lines.slice(0, target.startLine).join('\n')}${target.startLine ? '\n' : ''}${rendered.join('\n')}\n`;
-    return [...lines.slice(0, target.startLine), ...rendered, ...lines.slice(target.endLine)].join('\n');
+    if (endLine >= lines.length) return `${lines.slice(0, target.startLine).join('\n')}${target.startLine ? '\n' : ''}${rendered.join('\n')}\n`;
+    return [...lines.slice(0, target.startLine), ...rendered, ...lines.slice(endLine)].join('\n');
 }
 
 /**
@@ -256,6 +263,10 @@ export function parseChatBook(source: string): ChatBook {
     // Recorded speech binds to the exact message before its group; orphan or malformed bindings are diagnosed.
     const audio = messageAudioGroups(document);
     diagnostics.push(...audio.diagnostics);
+    for (const metadata of commitmentsOf(document, 'CHAT MESSAGE STEPS')) {
+        const previous = document.commitments[document.commitments.indexOf(metadata) - 1];
+        if (previous?.keyword !== 'CHAT MESSAGE' || metadata.continuation) diagnostics.push({ line: metadata.startLine + 1, message: 'CHAT MESSAGE STEPS must be one JSON line directly after its message.', severity: 'warning' });
+    }
     const messages: ChatMessage[] = [];
     for (const commitment of messageCommitments) {
         const header = /^(\{[^{}]+\}|@\S+)\s+(\S+)(?:\s+(progress|final))?$/.exec(commitment.value.trim());
@@ -273,7 +284,11 @@ export function parseChatBook(source: string): ChatBook {
         const sender = header[1]!;
         const phase = header[3] as ChatMessagePhase | undefined;
         const recorded = audio.groups.get(commitment);
-        messages.push({ sender, senderKey: parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender), at: header[2]!, text, choices: choices.length ? choices : undefined, ...(phase ? { phase } : {}), ...(recorded?.length ? { audio: recorded } : {}) });
+        const metadata = document.commitments[document.commitments.indexOf(commitment) + 1];
+        const savedSteps = metadata?.keyword === 'CHAT MESSAGE STEPS' ? parseReplySteps(metadata.value) : undefined;
+        if (metadata?.keyword === 'CHAT MESSAGE STEPS' && !savedSteps) diagnostics.push({ line: metadata.startLine + 1, message: 'CHAT MESSAGE STEPS needs a valid single-line array of reply steps.', severity: 'warning' });
+        const steps = phase === 'progress' ? savedSteps ?? legacyReplySteps(text) : undefined;
+        messages.push({ sender, senderKey: parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender), at: header[2]!, text, choices: choices.length ? choices : undefined, ...(phase ? { phase } : {}), ...(steps ? { steps } : {}), ...(recorded?.length ? { audio: recorded } : {}) });
     }
     // The latest valid title wins; earlier ones stay in the Book as its history.
     const titles = commitmentsOf(document, 'CHAT TITLE').map((commitment) => commitment.value.split('\n')[0]!.trim());
@@ -286,6 +301,7 @@ export function parseChatBook(source: string): ChatBook {
         members,
         status,
         links: commitmentsOf(document, 'LINK').map((commitment) => commitment.value.trim()),
+        linkPositions: commitmentsOf(document, 'LINK').map(commitment => ({ reference: commitment.value.trim(), afterMessage: messageCommitments.filter(message => message.startLine < commitment.startLine).length })),
         messages,
         model: modelResult.constraint,
         diagnostics,
@@ -372,7 +388,7 @@ export function memberReference(name: string): string {
  * @private chats
  */
 export type ThreadItem =
-    | { readonly kind: 'message'; readonly message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'> }
+    | { readonly kind: 'message'; readonly message: Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase' | 'steps'> }
     | { readonly kind: 'thinking'; readonly sender: string; readonly elapsedMs?: number; readonly messages: ReadonlyArray<Pick<ChatMessage, 'sender' | 'at' | 'text' | 'phase'>> };
 
 /**
@@ -382,7 +398,7 @@ export type ThreadItem =
  *
  * @private chats
  */
-export function collapseThinking(messages: ReadonlyArray<Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase'>>): ThreadItem[] {
+export function collapseThinking(messages: ReadonlyArray<Pick<ChatMessage, 'sender' | 'at' | 'text' | 'choices' | 'phase' | 'steps'>>): ThreadItem[] {
     const key = (sender: string): string => parseReferenceValue(sender)?.normalized ?? normalizeAgentName(sender);
     const groups = new Map<number, number[]>();
     const collapsed = new Set<number>();

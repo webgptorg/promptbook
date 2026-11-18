@@ -53,7 +53,7 @@ test('usage views: self and inclusive agent views overlap while the project tota
     assert.equal(inclusive.rows.find((row) => row.label === 'Lawyer').input, 500, 'the consultant keeps its own consumption');
     assert.equal(inclusive.total.input, 1500, 'the project total counts every consumption once');
     assert.deepEqual(inclusive.total.coverage, { reported: 2, unavailable: 1, costReported: 0 }, 'unavailable usage is visible, not zero');
-    assert.deepEqual(inclusive.total.billing, { subscription: 1, api: 2, unknown: 0 });
+    assert.deepEqual(inclusive.total.billing, { subscription: 1, api: 2, local: 0, unknown: 0 });
     assert.deepEqual(summarizeUsage(records, { grouping: 'harness', now }).rows.map((row) => row.label).sort(), ['claude-code (claude-code)', 'openai-codex (openai-codex)']);
 });
 

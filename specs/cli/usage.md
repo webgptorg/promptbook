@@ -15,11 +15,13 @@ Retain available provider-native usage fields together with normalized values an
 - observation time and actual consumption time/interval, with timezone/offset and time precision;
 - input/output tokens and separately exposed cached input, cache writes, reasoning or other provider categories, retaining units and category semantics;
 - actual model/version, harness variant and named tool instance, including tools that themselves incur model usage;
-- nonsecret account context and billing mode: subscription, metered API or unknown;
+- nonsecret account context and billing mode: subscription, metered API, local inference or unknown;
 - source Book/revision, occurrence, attempt and consultation/work correlation;
 - whether a value is provider-reported, derived, estimated, unavailable or incomplete.
 
 Unknown is not zero. Do not invent categories/models a provider did not report or assume reasoning/cache counts are additional to totals when they are included already. Preserve whether observations are incremental events or cumulative snapshots, their scope and safe correlation, so stream updates plus a final total do not charge the same work twice. Redact secret fields before storage; preserving raw usage does not authorize storing credentials or hidden reasoning.
+
+Local inference records its actual harness connection, runtime/model/version/quantization where exposed, locality and available consumption. A local runtime serving a hosted model retains that hosted route's real billing classification. Verified non-billed local inference has no model-provider API charge; that does not make missing token data zero or estimate electricity/hardware costs. Mixed local/subscription/API totals retain their distinct coverage and attribution.
 
 Raw records are durable evidence, not a replaceable cache. Usage Git inclusion follows `traces.isCommitted` by default and the same explicit no-commit policy as other traces. Rebuildable indexes and aggregates may live in ignored `.ptbk/` cache. Retain raw records when recalculating costs or changing views.
 

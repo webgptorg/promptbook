@@ -99,7 +99,7 @@ export type TaskPromptInput = {
     /** Project check command. */
     readonly check?: string;
     /** Whether the ptbk MCP tools are available. */
-    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly claimFiles?: boolean; readonly wallet?: boolean; readonly actions?: boolean; readonly prerequisite?: boolean };
+    readonly tools: { readonly team: boolean; readonly askUser: boolean; readonly browser: boolean; readonly computer?: boolean; readonly claimFiles?: boolean; readonly wallet?: boolean; readonly actions?: boolean; readonly prerequisite?: boolean };
     /** External actions this task already recorded or left unresolved (reconcile before repeating). */
     readonly actions?: string;
     /** Feedback from the previous attempt (repair). */
@@ -219,6 +219,11 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
                 'If a website is already signed in, keep using that session (check that it is the right account). `wallet_accounts` lists the saved logins as nonsecret metadata (service, label, username or email), so choose the account from context instead of asking. When a site requires signing in, open its login page and call `wallet_login`: the project Wallet signs in with a saved login without showing it to you (also pointing you to a stored login of a related service domain such as accounts.google.com), or asks the owner for it through its protected interface. Never ask for usernames or passwords in a chat, never type or read them yourself, and when `wallet_login` reports a waiting request, end your turn with status waiting-for-user. A one-time code you get yourself from an email or channel you can already read; only otherwise call `wallet_login` with `requestCode` so the owner enters it in the Wallet (never in a chat). When authorized work needs a new account, or a password change or reset (for example through an emailed reset link when no password is saved), fill the form\'s other fields and call `wallet_create_login` as the last step: the Wallet generates the password, enters and submits it and keeps it, without asking the owner; never invent or type a password yourself. `wallet_correct_login` corrects a saved login\'s username or label.',
             );
         }
+    }
+    if (input.tools.computer) {
+        rules.push(
+            'Use `computer_*` only as a fallback for native applications, system dialogs and operations the project `browser_*` tools cannot perform. It controls the real primary desktop of the engine host, including the shared system cursor and keyboard focus; there is no guaranteed independent cursor. Prefer the dedicated browser/profile for websites. Start with `computer_screenshot` or `computer_accessibility` and pass the returned frame to every input; observe again after human activity, an interrupted operation or changed window. The human always has priority: short physical activity temporarily interrupts input, while explicit takeover/pause stops both agent input and observation until the owner returns control. Never resume an explicit pause yourself or bypass a disabled tool or protected Wallet/tab. Release the desktop with `computer_release` when the related work is finished. The ordinary external-action tools still record each logical effect outside the project, including meaningful local document, application and system-setting changes, independently of which technical tool performed it. Do not persist screenshots, clipboard contents or private inputs in files or reports.',
+        );
     }
     if (input.tools.actions) {
         rules.push(

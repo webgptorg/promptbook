@@ -1,4 +1,5 @@
 import type { CommandContext } from './context.js';
+import { RUNTIME_ACTIONS } from '../inference/types.js';
 import {
     BROWSER_OPTIONS,
     COMMIT_OPTIONS,
@@ -28,6 +29,7 @@ const START_OPTIONS: OptionGroup = {
     options: [
         { name: 'daemon', type: 'boolean', description: 'Run in the background, independent of this terminal (default).' },
         { name: 'foreground', type: 'boolean', description: 'Keep the service attached to this terminal (live dashboard, or plain events with --raw).' },
+        { name: 'open', type: 'boolean', negatable: true, negatedOnly: true, description: 'Print the owner setup link and QR without opening a local browser.' },
         { name: 'dashboard', type: 'boolean', negatable: true, negatedOnly: true, description: 'Report once and return instead of opening the project dashboard afterwards (the default in an interactive terminal; raw/noninteractive output never opens it).' },
         { name: 'persist', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not restart automatically after crashes or reboots (state stays durable).' },
         { name: 'harness-updates', type: 'boolean', negatable: true, negatedOnly: true, description: 'Do not update enabled harnesses automatically for this run.' },
@@ -43,7 +45,7 @@ const START_OPTIONS: OptionGroup = {
 const TOOL_IDENTITY_OPTIONS: OptionGroup = {
     title: 'Identity',
     options: [
-        { name: 'variant', type: 'string', valueName: '<variant>', description: 'Adapter: CHROME, CHROMIUM, EDGE; or OPENAI_CODEX, CLAUDE_CODE, GITHUB_COPILOT, OPENCODE, GEMINI, QWEN_CODE.' },
+        { name: 'variant', type: 'string', valueName: '<variant>', description: 'Adapter: CHROME, CHROMIUM, EDGE; OPENAI_CODEX, CLAUDE_CODE, GITHUB_COPILOT, OPENCODE, GEMINI, QWEN_CODE; or OLLAMA, LM_STUDIO (local model runtimes).' },
         { name: 'name', type: 'string', valueName: '<name>', description: 'Unique kebab-case tool name, e.g. work-browser or codex-company.' },
         { name: 'description', type: 'string', valueName: '<text>', description: 'Optional free text (helps agents choose the right browser/account).' },
     ],
@@ -68,7 +70,7 @@ const TOOL_BROWSER_OPTIONS: OptionGroup = {
 const TOOL_HARNESS_OPTIONS: OptionGroup = {
     title: 'Harness fields',
     options: [
-        { name: 'authentication', type: 'string', valueName: '<mode>', description: 'NATIVE (the installation’s own login/subscription, default) or API_KEY.' },
+        { name: 'authentication', type: 'string', valueName: '<mode>', description: 'NATIVE (the installation’s own login/subscription, default), API_KEY, or NONE (a credential-free local connection; needs --base-url local).' },
         { name: 'api-key-env', type: 'string', valueName: '<NAME>', description: 'Environment variable holding the key; saved as ${{ env.NAME }} (never the key).' },
         { name: 'api-key-stdin', type: 'boolean', description: 'Read a new key from standard input (hidden when typed) into the ignored .env, with a timestamped comment.' },
         { name: 'account-profile', type: 'string', valueName: '<name>', description: 'Separate native login context (where the adapter supports it).' },
@@ -79,7 +81,16 @@ const TOOL_HARNESS_OPTIONS: OptionGroup = {
             description: 'Model execution endpoint: default (the official one), official, local (inference on the engine\'s host) or an explicit base URL, where the adapter supports it. Models and thinking levels are not tool settings: plugins own the defaults and MODEL in Books states requirements.',
             defaultText: 'default',
         },
+        { name: 'inference-runtime', type: 'string', valueName: '<runtime>', description: 'The INFERENCE_RUNTIME tool a local connection uses (with --base-url local and --authentication NONE); `none` on modify removes the binding. `ptbk tool setup-local` sets this up for you.' },
     ],
+};
+
+/**
+ * Local model runtime fields.
+ */
+const TOOL_RUNTIME_OPTIONS: OptionGroup = {
+    title: 'Local model runtime fields',
+    options: [{ name: 'endpoint', type: 'string', valueName: '<url>', description: 'Service URL of an INFERENCE_RUNTIME (omitted: the runtime\'s own local address, e.g. Ollama at http://127.0.0.1:11434); `default` on modify removes it.' }],
 };
 
 /**
@@ -130,6 +141,7 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                     { name: 'link', type: 'string', valueName: '<url>', description: 'With --prepare-only, pair with the App using its one-time pairing URL.' },
                     { name: 'link-stdin', type: 'boolean', description: 'With --prepare-only, read the pairing URL from standard input.' },
                     { name: 'setup-link', type: 'boolean', description: 'With pairing, wait for the engine address and print the owner setup link.' },
+                    { name: 'open', type: 'boolean', negatable: true, negatedOnly: true, description: 'Print the owner setup link and QR without opening a local browser.' },
                     { name: 'wait', type: 'boolean', negatable: true, negatedOnly: true, description: 'With --setup-link, report readiness without waiting.' },
                     JSON_OPTION,
                 ],
@@ -150,7 +162,10 @@ Without a terminal (or with --non-interactive), supply decisions with flags: mis
                 title: 'Installation and harnesses',
                 options: [
                     { name: 'installation', type: 'enum', values: ['local', 'global'], valueName: '<scope>', description: "Use the global CLI (preferred) or install ptbk in the project's dependencies (exact running version).", defaultText: 'global (asked interactively)' },
-                    { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Select a harness (repeatable): openai-codex, claude-code, github-copilot, opencode, gemini, qwen-code. Each becomes a native harness tool; more instances/accounts are added later with `ptbk tool add`.' },
+                    { name: 'harness', type: 'string', valueName: '<id>', repeatable: true, description: 'Select a harness (repeatable): openai-codex, claude-code, github-copilot, opencode, gemini, qwen-code, or local-models (a model on this computer through a credential-free connection: the runtime is installed/started and the model downloaded as needed). Each harness becomes a native harness tool; more instances/accounts are added later with `ptbk tool add`.' },
+                    { name: 'local-runtime', type: 'string', valueName: '<runtime>', description: 'Local models: OLLAMA (installed when missing) or LM_STUDIO (existing installation).', defaultText: 'a running runtime with local models, else OLLAMA' },
+                    { name: 'local-model', type: 'string', valueName: '<id>', description: 'Local models: the runtime model identifier.', defaultText: 'the recommendation for this computer' },
+                    { name: 'local-endpoint', type: 'string', valueName: '<url>', description: 'Local models: a non-default service URL of the runtime.' },
                     { name: 'no-harness', type: 'boolean', description: 'Explicitly select no harness (no model work can run and Router gets no initial MODEL; the agenda waits for tools).' },
                     { name: 'install-harnesses', type: 'boolean', description: 'Authorize global installation of missing selected harness CLIs (unattended).' },
                     { name: 'update-harnesses', type: 'enum', values: ['keep', 'update'], valueName: '<decision>', description: 'Outdated selected harnesses: keep current versions or update them.', defaultText: 'asked interactively; keep when unattended' },
@@ -390,6 +405,7 @@ Browsers open the engine at its own address (https://<engine ID>.<engine domain>
                 options: [
                     { name: 'setup-link', type: 'boolean', description: 'Print a fresh one-time owner setup link of the engine’s address (interactive terminal only, or with --json); it waits until the address works.' },
                     { name: 'reset-owner', type: 'boolean', description: 'End every passkey and session of this engine, then print a new setup link (agents and data stay).' },
+                    { name: 'open', type: 'boolean', negatable: true, negatedOnly: true, description: 'Print the owner setup link and QR without opening a local browser.' },
                     { name: 'wait', type: 'boolean', negatable: true, description: 'With --setup-link: wait up to 10 minutes for the address to work (--no-wait says what is missing and exits 3).' },
                     { name: 'yes', type: 'boolean', description: 'With --reset-owner: skip typing the start of the engine ID.' },
                 ],
@@ -470,16 +486,19 @@ On a MacBook, --closed-lid also keeps it awake with the lid closed and no extern
     {
         name: 'tool',
         category: 'Maintain',
-        summary: 'Manage the named browser and harness tools of the project (saved and committed immediately).',
+        summary: 'Manage the named browser, harness and local model tools of the project (saved and committed immediately).',
         description: `Tools are ordered named project resources in ptbk.json "tools": BROWSER profiles and HARNESS instances (each harness variant can have several instances: the first usable one serves work, later ones are fallbacks, e.g. a second subscription or a paid API account). Every change is saved and committed at once as its own "ptbk: " commit, also while a task runs (the running engine uses a newly added tool at the task's next selection). Enable/disable is the normal reversible change; remove deletes only the configuration record, never browser profiles, native logins or .env history.
 
-API keys are stored as references (\${{ env.NAME }}); a new key goes into the ignored .env through --api-key-stdin (hidden input), never as a command-line argument.`,
+API keys are stored as references (\${{ env.NAME }}); a new key goes into the ignored .env through --api-key-stdin (hidden input), never as a command-line argument.
+
+Local models: \`ptbk tool setup-local\` prepares a local model runtime (Ollama, or an existing LM Studio), a suitable model and a credential-free harness connection, and saves them together. \`ptbk tool runtime <name> …\` inspects and maintains that shared runtime on this computer (outside project Git).`,
         optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk tool list', description: 'The ordered inventory with enabled, usable and in-use state.' },
             { command: 'ptbk tool add BROWSER --variant CHROME --name work-browser --profile-source PROJECT --is-headless true', description: 'A second, isolated browser profile.' },
             { command: 'ptbk tool add HARNESS --variant OPENAI_CODEX --name company-api --authentication API_KEY --api-key-env COMPANY_OPENAI_API_KEY', description: 'A paid API fallback after the native Codex subscription.' },
             { command: 'ptbk tool disable company-api', description: 'Stop selecting it (configuration and key are kept).' },
+            { command: 'ptbk tool setup-local', description: 'Add local models (runtime, model and a credential-free connection).' },
         ],
         subcommands: [
             {
@@ -504,14 +523,16 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
             {
                 name: 'add',
                 category: 'Maintain',
-                summary: 'Add a named BROWSER or HARNESS tool.',
+                summary: 'Add a named BROWSER, HARNESS, INFERENCE_RUNTIME or COMPUTER_CONTROL tool.',
                 description: 'Creates a typed named instance with its variant-specific options and commits it immediately. Enum values are accepted in any case/separator spelling and saved canonically (CHROME, OPENAI_CODEX, MANAGED_GLOBAL, API_KEY …). A harness is then checked as this terminal and the background service see it; a native one that is not signed in is offered the same sign-in as init (in its own account context, over SSH on another device), interactively only.',
-                arguments: [{ name: 'type', description: 'BROWSER or HARNESS.', required: true }],
-                optionGroups: [TOOL_IDENTITY_OPTIONS, TOOL_BROWSER_OPTIONS, TOOL_HARNESS_OPTIONS, TOOL_ORDER_OPTIONS, TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                arguments: [{ name: 'type', description: 'BROWSER, HARNESS, INFERENCE_RUNTIME or COMPUTER_CONTROL.', required: true }],
+                optionGroups: [TOOL_IDENTITY_OPTIONS, TOOL_BROWSER_OPTIONS, TOOL_HARNESS_OPTIONS, TOOL_RUNTIME_OPTIONS, TOOL_ORDER_OPTIONS, TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
                 examples: [
                     { command: 'ptbk tool add BROWSER --variant CHROME --name personal-browser --profile-source USER_EXISTING --is-headless false', description: 'Your own Chrome profile as an explicitly authorized browser.' },
                     { command: 'ptbk tool add HARNESS --variant CLAUDE_CODE --name claude-code', description: 'A native Claude Code instance.' },
                     { command: 'printf %s "$KEY" | ptbk tool add HARNESS --variant OPENAI_CODEX --name company-api --authentication API_KEY --api-key-env COMPANY_OPENAI_API_KEY --api-key-stdin', description: 'Store a new key in .env without it entering the command line.' },
+                    { command: 'ptbk tool add INFERENCE_RUNTIME --variant OLLAMA --name local-ollama', description: 'Reference the Ollama service on this computer (it does not install anything).' },
+                    { command: 'ptbk tool add HARNESS --variant OPENAI_CODEX --name codex-local --authentication NONE --base-url local --inference-runtime local-ollama', description: 'A credential-free Codex connection to it (ptbk tool setup-local does both and checks them).' },
                 ],
                 run: lazy(() => import('./commands/tool.js')),
             },
@@ -524,7 +545,8 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
                 optionGroups: [
                     { title: 'Identity', options: [{ name: 'rename', type: 'string', valueName: '<new-name>', description: 'New kebab-case name.' }, TOOL_IDENTITY_OPTIONS.options[0]!, TOOL_IDENTITY_OPTIONS.options[2]!, { name: 'clear-description', type: 'boolean', description: 'Remove the description.' }] },
                     { ...TOOL_BROWSER_OPTIONS, options: [...TOOL_BROWSER_OPTIONS.options, { name: 'clear-executable', type: 'boolean', description: 'Use the default executable discovery again.' }] },
-                    TOOL_HARNESS_OPTIONS,
+                    { ...TOOL_HARNESS_OPTIONS, options: [...TOOL_HARNESS_OPTIONS.options, { name: 'clear-account-profile', type: 'boolean', description: 'Use the default native login context again (removes accountProfile).' }] },
+                    TOOL_RUNTIME_OPTIONS,
                     TOOL_SAFETY_OPTIONS,
                     PROJECT_OPTIONS,
                     PRESENTATION_OPTIONS,
@@ -542,7 +564,7 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
                 description:
                     name === 'enable'
                         ? 'Persists isEnabled: true and commits it; the running engine can use the tool at once, also in the current task. A native harness that is not signed in is offered its sign-in in an interactive terminal; enabling an already enabled tool changes nothing and only checks it again.'
-                        : 'Persists isEnabled: false and commits it. Disabling the last enabled browser or harness needs --yes: the engine keeps running but waits for tools. If active work uses the tool, --force saves the change while that work finishes with it.',
+                        : 'Persists isEnabled: false and commits it. Disabling the last enabled browser or harness needs --yes: the engine keeps running but waits for tools. If active work uses the browser or harness, --force saves the change while that work finishes with it. Computer control disable/remove stops desktop inputs and observation immediately.',
                 arguments: [{ name: 'name', description: 'Tool name.', required: true }],
                 optionGroups: [TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
                 examples: [...(name === 'enable' ? [{ command: 'ptbk tool enable codex-company', description: 'Check a native harness again and sign it in when its login is missing.' }] : []), { command: `ptbk tool ${name} company-api`, description: name === 'enable' ? 'Use the API fallback again.' : 'Pause using the API fallback.' }],
@@ -558,6 +580,54 @@ API keys are stored as references (\${{ env.NAME }}); a new key goes into the ig
                 optionGroups: [TOOL_SAFETY_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
                 examples: [{ command: 'ptbk tool remove old-browser', description: 'Remove a browser record (its profile stays).' }],
                 run: lazy(() => import('./commands/tool.js')),
+            },
+            {
+                name: 'setup-local',
+                category: 'Maintain',
+                summary: 'Add local models: runtime, a suitable model and a credential-free harness connection.',
+                description:
+                    'The shared guided local setup of init: discovers this computer (memory, GPU, disk, installed runtimes and harnesses), recommends a verified model that fits, installs a missing Ollama with your consent, starts it, downloads the model with progress (shared on this computer), checks real answers through the exact local route (plus a scratch file, enforced read-only and session continuation) and saves the runtime and connection together in one commit. Existing records, logins and agent MODEL requirements are not changed. Noninteractive use needs --yes when something must be installed, started or downloaded.',
+                optionGroups: [
+                    {
+                        title: 'Choices',
+                        options: [
+                            { name: 'runtime', type: 'string', valueName: '<runtime>', description: 'OLLAMA (installed automatically when missing) or LM_STUDIO (an existing installation).', defaultText: 'a running runtime with local models, else OLLAMA' },
+                            { name: 'model', type: 'string', valueName: '<id>', description: 'The runtime model identifier (default: the recommendation for this computer).' },
+                            { name: 'harness', type: 'string', valueName: '<variant>', description: 'The harness of the connection.', defaultText: 'OPENAI_CODEX' },
+                            { name: 'endpoint', type: 'string', valueName: '<url>', description: 'A non-default service URL of the runtime.' },
+                            { name: 'yes', type: 'boolean', description: 'Accept the stated installation, start and download steps (required noninteractively).' },
+                            { name: 'quick', type: 'boolean', description: 'Check only a real answer (skip the scratch-file, read-only, continuation and MCP checks).' },
+                            { name: 'recheck', type: 'boolean', description: 'Repeat the capability checks even when this exact harness, runtime and model combination was already verified.' },
+                            JSON_OPTION,
+                        ],
+                    },
+                    PROJECT_OPTIONS,
+                    PRESENTATION_OPTIONS,
+                ],
+                examples: [
+                    { command: 'ptbk tool setup-local', description: 'Guided: recommendation, consent, download with progress, checks.' },
+                    { command: 'ptbk tool setup-local --runtime OLLAMA --model gpt-oss:20b --yes --json', description: 'Noninteractive with explicit choices and a structured outcome.' },
+                ],
+                run: lazy(() => import('./commands/tool-local.js').then((module) => ({ default: module.setupLocal }))),
+            },
+            {
+                name: 'runtime',
+                category: 'Maintain',
+                summary: 'Inspect or maintain a local model runtime on this computer (no project commit).',
+                description:
+                    'status and models only read. download, load, unload, remove-model, start, stop and restart act on the shared service and model store of this computer, are serialized with other Promptbook engines and refuse while Promptbook work uses the service or model. remove-model needs --yes; a service that Promptbook did not start is not stopped (its own controls are shown). update and uninstall show the manual steps: Promptbook does not maintain shared installations itself. Disabling or removing the project’s runtime tool never stops the service or deletes models.',
+                arguments: [
+                    { name: 'name', description: 'INFERENCE_RUNTIME tool name.', required: true },
+                    { name: 'action', description: `${RUNTIME_ACTIONS.join(', ')} (default: status).` },
+                    { name: 'model', description: 'Model identifier of download, load, unload and remove-model.' },
+                ],
+                optionGroups: [{ title: 'Confirmations', options: [{ name: 'yes', type: 'boolean', description: 'Confirm deleting model weights from this computer, or stopping an LM Studio server Promptbook did not start.' }, JSON_OPTION] }, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+                examples: [
+                    { command: 'ptbk tool runtime local-ollama', description: 'Service state, version, models, connections and active use.' },
+                    { command: 'ptbk tool runtime local-ollama download gpt-oss:20b', description: 'Download a model with progress (reused when already present).' },
+                    { command: 'ptbk tool runtime local-ollama remove-model gpt-oss:120b --yes', description: 'Delete a model’s weights from this computer.' },
+                ],
+                run: lazy(() => import('./commands/tool-local.js').then((module) => ({ default: module.runtime }))),
             },
             {
                 name: 'move',

@@ -1,5 +1,5 @@
 import { open, readFile, realpath, rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 import { ensureDirectory, isPathInside } from '../common/fs.js';
 import { isProcessAlive, runProcess, which, type ProcessResult } from '../common/process.js';
@@ -86,17 +86,44 @@ async function npmGlobalRoot(context: HarnessContext): Promise<string | undefine
 }
 
 /**
- * Whether an executable is installed through the npm global prefix.
+ * Finds the prefix owning the installed npm package, including an older Node/version-manager prefix. A neighboring
+ * executable is not an npm installation merely because it is below the same /usr or home directory.
  */
-async function isNpmGlobalInstallation(context: HarnessContext, executablePath: string): Promise<boolean> {
-    const root = await npmGlobalRoot(context);
-    if (!root) return false;
+async function npmInstallationPrefix(plugin: HarnessPlugin, context: HarnessContext, executablePath: string): Promise<string | undefined> {
+    if (!plugin.npmPackage) return undefined;
     try {
         const real = await realpath(executablePath);
-        return isPathInside(await realpath(root), real) || isPathInside(join(root, '..', '..'), executablePath);
+        const roots = new Set<string>();
+        const active = await npmGlobalRoot(context);
+        if (active) roots.add(active);
+        for (let path = dirname(real); dirname(path) !== path; path = dirname(path)) {
+            if (basename(path) === 'node_modules' && (basename(dirname(path)) === 'lib' || process.platform === 'win32')) roots.add(path);
+        }
+        for (const root of roots) {
+            const prefix = process.platform === 'win32' ? dirname(root) : dirname(dirname(root));
+            const packagePath = join(root, plugin.npmPackage);
+            const manifest = await readFile(join(packagePath, 'package.json'), 'utf8').then((text) => JSON.parse(text) as { name?: string }).catch(() => undefined);
+            if (manifest?.name !== plugin.npmPackage) continue;
+            const owned = isPathInside(await realpath(packagePath), real);
+            const shim = process.platform === 'win32' && dirname(executablePath) === prefix && [plugin.executable, `${plugin.executable}.cmd`, `${plugin.executable}.exe`].includes(basename(executablePath));
+            if (owned || shim) return prefix;
+        }
     } catch {
-        return false;
+        // An inaccessible or removed package cannot be safely identified as the owner.
     }
+    return undefined;
+}
+
+/** Finds Homebrew only for an executable actually resolved inside its Codex cask. */
+async function codexHomebrewUpdater(plugin: HarnessPlugin, context: HarnessContext, executablePath: string): Promise<string | undefined> {
+    if (plugin.id !== 'openai-codex') return undefined;
+    const real = await realpath(executablePath).catch(() => '');
+    const marker = real.indexOf('/Caskroom/codex/');
+    if (marker < 0) return undefined;
+    const brew = await which(join(real.slice(0, marker), 'bin', 'brew'), context.env);
+    if (!brew) return undefined;
+    const installed = await runProcess(brew, ['list', '--cask', '--versions', 'codex'], { cwd: context.projectRoot, env: context.env, timeoutMs: 20_000 });
+    return installed.exitCode === 0 && installed.stdout.trim() ? brew : undefined;
 }
 
 /**
@@ -256,6 +283,7 @@ export async function serviceReadinessProblem(plugin: HarnessPlugin, service: Ha
     const inspection = await plugin.inspect(service);
     if (!inspection.installed) return { summary: `the background service cannot find \`${plugin.executable}\` with its saved PATH`, nextAction: 'Install it for this user or fix PATH, then check again.' };
     if (inspection.authenticated === false) return { summary: `the background service's environment does not see this sign-in (${inspection.summary})`, nextAction: 'Sign in as this user with the account settings the service uses, then check again.' };
+    if (!inspection.usable) return { summary: `the background service cannot verify readiness (${inspection.summary})`, nextAction: inspection.nextAction ?? 'Check the account-store permissions and configuration as the engine user, then check again.' };
     return undefined;
 }
 
@@ -289,13 +317,19 @@ export async function updateHarness(plugin: HarnessPlugin, inspection: HarnessIn
     const executablePath = inspection.executablePath;
     const locked = await withMachineLock(`harness-${plugin.id}`, async (): Promise<MaintenanceResult> => {
         let command: [string, string[]];
-        if (plugin.npmPackage && (await isNpmGlobalInstallation(context, executablePath))) command = ['npm', ['install', '--global', `${plugin.npmPackage}@latest`]];
+        const prefix = await npmInstallationPrefix(plugin, context, executablePath);
+        const brew = prefix ? undefined : await codexHomebrewUpdater(plugin, context, executablePath);
+        if (prefix) command = ['npm', ['install', '--global', '--prefix', prefix, `${plugin.npmPackage}@latest`]];
+        else if (brew) command = [brew, ['upgrade', '--cask', 'codex']];
         else if (plugin.selfUpdateArgs) command = [executablePath, [...plugin.selfUpdateArgs]];
-        else return { id: plugin.id, outcome: 'unsupported', diagnostic: `${plugin.displayName} at ${executablePath} was not installed through npm and has no native updater.` };
+        else return { id: plugin.id, outcome: 'unsupported', diagnostic: `${plugin.displayName} at ${executablePath} has no recognized updater. Update this executable through its original installer (${plugin.homepage}), then check again. Installing another copy elsewhere on PATH will not update this one.` };
         const result = await runProcess(command[0], command[1], { cwd: context.projectRoot, env: context.env, timeoutMs: 10 * 60_000, onStdoutLine: onOutput, onStderrLine: onOutput });
         const after = await plugin.inspect(context);
         if (result.exitCode !== 0) {
             return { id: plugin.id, outcome: 'failed', diagnostic: `Update failed: ${(result.spawnError ?? result.stderr.trim().split('\n').slice(-3).join(' ')) || `exit ${String(result.exitCode)}`}`, version: after.version };
+        }
+        if (!after.installed || !after.version || (inspection.version && compareVersions(after.version, inspection.version) === -1)) {
+            return { id: plugin.id, outcome: 'failed', diagnostic: `The updater finished, but the installed version could not be verified: ${after.summary}`, version: after.version };
         }
         if (after.version && inspection.version && after.version === inspection.version) {
             return { id: plugin.id, outcome: 'current', diagnostic: `${plugin.displayName} remains at ${after.version}.`, version: after.version };

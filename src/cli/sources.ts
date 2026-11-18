@@ -20,6 +20,7 @@ export function controlSource(client: ControlClient): DashboardSource {
         action: (name, params) => client.request<{ outcome: string; applied?: boolean }>(name, { ...(params ?? {}) }, name === 'app-link' ? 90_000 : 30_000),
         chats: controlChatSource((method, params) => client.request(method, params ?? {}), 'terminal'),
         tool: (request) => client.request<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>, 120_000),
+        localModels: (params) => client.request('local-models', { ...params }, 120_000),
         wallet: (method, params) => client.request(method, { ...(params ?? {}) }, 120_000),
         inventory: () => client.request<TaskInventoryItem[]>('task-inventory'),
         books: {
@@ -44,6 +45,7 @@ export function hostSource(host: ServiceHost): DashboardSource {
         action: (name, params) => host.control<{ outcome: string; applied?: boolean }>(name, params ?? {}),
         chats: controlChatSource((method, params) => host.control(method, params ?? {}), 'terminal'),
         tool: (request) => host.control<ToolOperationOutcome>('tool-operation', request as unknown as Record<string, unknown>),
+        localModels: (params) => host.control('local-models', { ...params }),
         wallet: (method, params) => host.control(method, params ?? {}),
         inventory: () => host.control<TaskInventoryItem[]>('task-inventory'),
         books: {

@@ -40,6 +40,8 @@
       "feature-preload.cjs",
       "workspace-preload.cjs",
       "model.cjs",
+      "updates.cjs",
+      "update-policy.cjs",
       "prompt-server.cjs",
       "bridge.mjs",
       "renderer/**",

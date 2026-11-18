@@ -34,6 +34,7 @@ import type { ActionLinks, ActionSummary } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { appDetailLines } from './app-connection.js';
 import { keepAwakeLines } from './keep-awake.js';
+import { localJobLine, runtimeDetailLines, runtimeItems } from './local-models-page.js';
 
 /**
  * A commit as the History detail page shows it: the original message and its verified provenance links.
@@ -141,7 +142,8 @@ export type DashboardPage =
     | { readonly kind: 'health'; scroll: number; cache?: CachePreview; swap?: SwapPlan }
     | { readonly kind: 'wallet'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tools'; scroll: number; focus: number; selected?: string }
-    | { readonly kind: 'tool'; scroll: number; readonly name: string }
+    | { readonly kind: 'tool'; scroll: number; readonly name: string; /** A retained revision's entry (absent: the saved tool). */ readonly revision?: string }
+    | { readonly kind: 'local-models'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'agents'; scroll: number; focus: number; selected?: string; detail: boolean; sort: TeamSortField }
     | { readonly kind: 'chats'; scroll: number; focus: number; selected?: string }
     | { readonly kind: 'tasks'; scroll: number; focus: number; selected?: string; sort: TaskSortField; descending: boolean; filter: TaskFilter; detail: boolean; showSupporting: boolean }
@@ -569,7 +571,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 ...(snapshot.errors.length ? ['', style.bold('Recent errors'), ...snapshot.errors.slice(-5).flatMap((error) => [`${style.muted(time(error.at))} ${style.error(error.summary)}`, ...(error.next ? [style.muted(`      next: ${error.next}`)] : [])])] : []),
             ];
             const update = snapshot.update;
-            const updateKeys = update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'}${update.isSupported ? ' · C check for a release now' : ''} · ` : '';
+            const updateKeys = update ? `A turn automatic updates ${update.policy.isAutoUpdateEnabled ? 'off' : 'on'} · C check for a release now · ` : '';
             const awake = snapshot.keepAwake;
             const powerKeys = awake ? `K keep awake: ${awake.mode === 'off' ? 'two hours' : awake.mode === 'limited' ? 'always' : 'off'}${awake.lid.capability !== 'unavailable' ? ` · L closed lid ${awake.closedLid ? 'off' : 'on'}` : ''} · ` : '';
             return { title: 'System', context: 'Engine identity, lifecycle, every active pause reason, manual controls, automatic updates and keep awake', body, legend: `${actions.map((action) => `${action.key} ${action.label}`).join(' · ')}${actions.length ? ' · ' : ''}${updateKeys}${powerKeys}↑↓ scroll · ${back}` };
@@ -703,14 +705,37 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 context: `${items.length} named tool${items.length === 1 ? '' : 's'} · saved changes are committed immediately and apply to new work at once`,
                 body,
                 anchor: page.focus,
-                legend: `↑↓ choose · Enter details · Space enable/disable · N add · M modify · [ ] move · D remove · ${back}`,
+                legend: `↑↓ choose · Enter details · Space enable/disable · N add · L local models · M modify · [ ] move · D remove · ${back}`,
+            };
+        }
+        case 'local-models': {
+            const runtimes = runtimeItems(snapshot);
+            const body: string[] = [];
+            const job = snapshot.tools?.localJob;
+            if (job) body.push(localJobLine(job, style), ...(job.state !== 'running' ? (job.notes ?? []).map((note) => style.muted(`  ${note}`)) : []), '');
+            let anchor = 0;
+            if (!runtimes.length) body.push(style.muted('No local model runtime is configured yet.'), 'Press A to add local models: a model that fits this computer, downloaded and checked, with a credential-free connection.');
+            for (const [index, item] of runtimes.entries()) {
+                if (index === page.focus) anchor = body.length;
+                const [head, ...rest] = runtimeDetailLines(item, style);
+                body.push(`${pointer(index === page.focus)} ${head}`, ...rest, '');
+            }
+            body.push(style.muted('Disabling or removing a runtime tool changes only this project; stopping a service or deleting models acts on the shared engine host (other projects and apps may use them).'));
+            return {
+                title: 'Tools › Local models',
+                context: 'Models on the engine host through credential-free connections · operations run in the engine and continue in the background',
+                body,
+                anchor,
+                legend: `A add local models · ↑↓ choose · D download · L load · U unload · X remove model · S start · T stop · R restart${job?.state === 'running' ? ' · C cancel' : ''} · ${back}`,
             };
         }
         case 'tool': {
-            const item = toolsOf(snapshot).find((candidate) => candidate.name === page.name);
+            const item = toolsOf(snapshot).find((candidate) => candidate.name === page.name && candidate.revision === page.revision);
             if (!item) return { title: `Tools › ${page.name}`, context: 'This tool is no longer configured.', body: [style.muted('It was removed (possibly from another client).')], legend: back };
-            const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name) ?? (snapshot.browser?.name === item.name ? snapshot.browser : undefined) : undefined;
-            const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : [])];
+            const browser = item.type === 'BROWSER' ? (snapshot.browsers ?? []).find((candidate) => candidate.name === item.name && Boolean(candidate.retained) === Boolean(item.retained)) ?? (snapshot.browser?.name === item.name && !item.retained ? snapshot.browser : undefined) : undefined;
+            const runtime = item.type === 'INFERENCE_RUNTIME' ? runtimeItems(snapshot).find((candidate) => candidate.name === item.name) : undefined;
+            const body = [...toolDetailLines(item, style), ...(item.type === 'BROWSER' ? ['', style.bold('Browser'), ...browserDetailLines(browser, style, { keys: true })] : []), ...(runtime ? ['', style.bold('Local model runtime'), ...runtimeDetailLines(runtime, style).slice(1), style.muted('Models and service actions: L opens Tools › Local models.')] : [])];
+            if (item.type === 'COMPUTER_CONTROL') body.push('', '1 request native OS permissions · 2 pause input and observation · 3 resume · 4 stop session-wide · 5 check status', 'Human input always takes priority. A manual pause stays paused until you resume it.');
             const controls = item.type === 'BROWSER' ? (snapshot.tabControls ?? []).filter((control) => control.browser === item.name) : [];
             if (controls.length) {
                 body.push('', style.bold('Tabs you control'));
@@ -721,7 +746,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             }
             const live = controls.some((control) => !controlOver(control));
             const tabKeys = item.type === 'BROWSER' && context.tabControl ? ` · 6 take control of a tab${live ? ' · H return control to agent · V reopen viewer · E end use' : ''}` : '';
-            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart · 4 kill · 5 test GitHub tab' : ''}${tabKeys} · ${back}` };
+            return { title: `Tools › ${item.name}`, context: `${item.variantLabel} · ${item.type} ${item.variant}`, body, legend: `Space enable/disable · M modify · D remove${item.type === 'BROWSER' ? ' · 1 recheck · 2 retry · 3 restart · 4 kill · 5 test GitHub tab' : item.type === 'COMPUTER_CONTROL' ? ' · 1 permissions · 2 pause · 3 resume · 4 stop · 5 status' : ''}${tabKeys} · ${back}` };
         }
         case 'agents': {
             const items = teamOrder(snapshot, page.sort, context.inventory);
@@ -1004,11 +1029,12 @@ export function engineUpdateLines(update: NonNullable<ServiceSnapshot['update']>
     const lines = [
         style.bold('Engine updates'),
         `${style.muted('Automatic ')} ${update.policy.isAutoUpdateEnabled ? style.success('on') : style.warning('off')}${style.muted(` · updates.isAutoUpdateEnabled (${update.policy.source})`)}`,
-        `${style.muted('Allowed   ')} ${update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `stable minor/patch releases within major ${major}${/-/.test(update.current) ? `; this prerelease advances to its stable release` : ''}`}`,
+        `${style.muted('Allowed   ')} ${update.policy.versionRange ? `updates.versionRange ${update.policy.versionRange}` : `${/-/.test(update.current.split('+')[0]!) ? 'stable and prerelease' : 'stable minor/patch'} releases within major ${major}`}`,
         `${style.muted('Running   ')} ptbk ${update.current} ${style.muted(`(${update.installation.scope} installation)`)}`,
         `${style.muted('Latest    ')} ${update.latest ?? style.muted(update.lookupProblem ? `unknown (${update.lookupProblem})` : 'not looked up yet')}${update.checkedAt ? style.muted(` · checked ${time(update.checkedAt)}`) : ''}${update.nextLookupAt ? style.muted(` · next ${time(update.nextLookupAt)}`) : ''}`,
         `${style.muted('Status    ')} ${update.phase === 'failed' || update.phase === 'recovering' ? style.warning(update.reason) : update.phase === 'unsupported' ? style.muted(update.reason) : update.reason}`,
     ];
+    if (update.available) lines.push(style.accent(`Available: ptbk ${update.current} → ${update.available}${!update.isSupported ? '; update this installation using its installer' : update.policy.isAutoUpdateEnabled ? '; waiting for a safe idle moment' : '; A enables automatic installation when idle'}.`));
     if (update.lastOutcome) lines.push(`${style.muted('Last      ')} ${update.lastOutcome.outcome === 'verified' ? style.success('verified') : style.warning('failed')} ${update.lastOutcome.from} → ${update.lastOutcome.to}${style.muted(` · ${time(update.lastOutcome.at)} · ${update.lastOutcome.detail}`)}`);
     if (update.target) lines.push(style.muted('  A pending update is a low-priority system task in Tasks; ordinary work goes first and a manual pause or stop holds it.'));
     return lines;
@@ -1048,6 +1074,8 @@ export function pageItemKeys(page: DashboardPage, context: Pick<PageContext, 'sn
     switch (page.kind) {
         case 'tools':
             return toolsOf(context.snapshot).map((item) => item.name);
+        case 'local-models':
+            return runtimeItems(context.snapshot).map((item) => item.name);
         case 'agents':
             return teamOrder(context.snapshot, page.sort, context.inventory).map((agent) => agent.key);
         case 'chats':

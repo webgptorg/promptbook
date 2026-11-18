@@ -72,6 +72,13 @@ async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvoc
         const configuration = { mcpServers: { ptbk: { type: 'stdio', command: request.mcp.command, args: request.mcp.args, env: request.mcp.env } } };
         args.push('--mcp-config', JSON.stringify(configuration));
     }
+    if (request.localRoute) {
+        // Credential-free local connection of this invocation: the runtime's Anthropic-compatible endpoint with its
+        // non-secret compatibility token; the subscription login and any ambient key are never sent there.
+        const env: NodeJS.ProcessEnv = { ...request.env, ANTHROPIC_BASE_URL: request.localRoute.protocolUrl, ANTHROPIC_AUTH_TOKEN: request.localRoute.compatibilityToken, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1' };
+        for (const name of ['ANTHROPIC_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN']) delete env[name];
+        return { args, input: request.prompt, env };
+    }
     return { args, input: request.prompt, env: request.baseUrl ? { ...request.env, ANTHROPIC_BASE_URL: request.baseUrl } : request.env };
 }
 
@@ -84,7 +91,10 @@ export const plugin: HarnessPlugin = {
     id: 'claude-code',
     variant: 'CLAUDE_CODE',
     apiKeyVariable: 'ANTHROPIC_API_KEY',
-    ambientApiKeyVariables: ['ANTHROPIC_API_KEY'],
+    // Keys, bearer tokens, endpoint overrides and the Bedrock/Vertex/Foundry selectors all choose another billing route.
+    ambientApiKeyVariables: ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY', 'ANTHROPIC_BEDROCK_BASE_URL', 'ANTHROPIC_VERTEX_BASE_URL', 'ANTHROPIC_FOUNDRY_API_KEY', 'ANTHROPIC_FOUNDRY_BASE_URL'],
+    // A long-lived subscription token is the native account context: kept for NATIVE only.
+    nativeCredentialVariables: ['CLAUDE_CODE_OAUTH_TOKEN'],
     accountHomeVariable: 'CLAUDE_CONFIG_DIR',
     displayName: 'Claude Code',
     featured: true,
@@ -96,7 +106,7 @@ export const plugin: HarnessPlugin = {
     defaultModel: 'sonnet',
     defaultThinkingLevel: 'medium',
     modelCatalog: 'partial',
-    endpoints: { official: 'https://api.anthropic.com', custom: true },
+    endpoints: { official: 'https://api.anthropic.com', custom: true, localConnection: { protocol: 'anthropic', runtimes: { OLLAMA: '0.14.0' } } },
     capabilities: { mcp: true, readOnly: true },
     priceList: { providers: [{ catalog: 'anthropic' }] },
     loginArgs: ['auth', 'login'],

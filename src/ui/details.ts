@@ -201,6 +201,7 @@ export function sessionRowLine(session: HarnessSessionRecord, style?: Style): st
 function billingLabel(session: HarnessSessionRecord): string {
     if (session.authentication === 'account') return `native account${session.account ? ` (${session.account})` : ''}, its plan pays`;
     if (session.authentication === 'api') return 'API key, billed through it';
+    if (session.authentication === 'local') return 'credential-free local connection, no provider billing for local models';
     if (session.authentication === 'none') return 'no authentication';
     return 'unknown';
 }
@@ -223,6 +224,7 @@ export function sessionDetailLines(session: HarnessSessionRecord, style?: Style,
         ...(session.endReason ? [`${muted('Ended    ')} ${session.endReason}`] : []),
         `${muted('Tool     ')} ${session.tool ?? 'no named tool'} ${muted(`· ${session.harnessName}${session.harnessVersion ? ` ${session.harnessVersion}` : ''}`)}`,
         `${muted('Billing  ')} ${billingLabel(session)}`,
+        ...(session.connection ? [`${muted('Local    ')} ${session.connection.model ?? 'model'} on ${session.connection.runtime}${muted(` · ${session.connection.endpoint}${session.connection.digest ? ` · ${session.connection.digest.slice(0, 12)}` : ''}${session.connection.quantization ? ` · ${session.connection.quantization}` : ''} · ${session.connection.locality === 'local' ? 'runs on the engine host' : `locality ${session.connection.locality ?? 'unknown'}`}`)}`] : []),
         `${muted('Model    ')} ${session.model ? `${session.model} ${muted('(reported)')}` : session.requestedModel ? `${session.requestedModel} ${muted('(requested)')}` : 'harness default'}${session.thinkingLevel ? muted(` · thinking ${session.thinkingLevel}`) : ''}`,
         `${muted('Turns    ')} ${session.turns}${session.lastOutcome ? muted(` · latest ${session.lastOutcome}`) : ''}${muted(` · opened ${at(session.openedAt)}`)}`,
         `${muted('Usage    ')} ${session.usage && Object.keys(session.usage).length ? `${Object.entries(session.usage).map(([field, value]) => `${field} ${value}`).join(' · ')} ${muted('(latest turn, as the provider reported it)')}` : 'unknown for the latest turn'}${session.costUsd !== undefined ? ` · $${session.costUsd.toFixed(4)}` : ''}`,
@@ -313,13 +315,14 @@ export function toolsCompactLines(tools: ToolsView | undefined, style?: Style): 
     const ok = style?.success ?? ((text: string) => text);
     if (!tools) return [muted('Tool information is not available from this service.')];
     const lines: string[] = [];
-    for (const type of ['HARNESS', 'BROWSER'] as const) {
-        const items = tools.items.filter((item) => item.type === type);
+    for (const type of ['HARNESS', 'BROWSER', 'COMPUTER_CONTROL'] as const) {
+        const items = tools.items.filter((item) => item.type === type && !item.retained);
         const usable = items.filter((item) => item.state === 'usable');
-        const label = type === 'HARNESS' ? 'Harnesses' : 'Browsers ';
+        const label = type === 'HARNESS' ? 'Harnesses' : type === 'COMPUTER_CONTROL' ? 'Desktop  ' : 'Browsers ';
         const names = items.map((item) => `${item.state === 'usable' ? ok(item.name) : item.state === 'disabled' ? muted(item.name) : warn(item.name)}${item.inUse ? '*' : ''}`).join(' ');
         lines.push(`${label} ${usable.length}/${items.length} usable${items.length ? `  ${names}` : muted('  none configured')}`);
     }
+    for (const item of tools.items.filter((entry) => entry.retained)) lines.push(warn(`Draining ${item.name} (${item.type} ${item.variant}): old configuration, current work only${item.owner ? ` (${item.owner})` : ''}`));
     if (tools.waiting) lines.push(warn(`New work waits for tools: ${tools.waiting.reason}`), `  ${tools.waiting.action}`);
     for (const problem of tools.problems.slice(0, 2)) lines.push(warn(`Problem: ${problem}`));
     if (tools.items.some((item) => item.inUse)) lines.push(muted('* in use by current work'));
@@ -336,7 +339,8 @@ export function toolRow(item: ToolView, style?: Style): string {
     const warn = style?.warning ?? ((text: string) => text);
     const ok = style?.success ?? ((text: string) => text);
     const state = item.state === 'usable' ? ok('usable') : item.state === 'disabled' ? muted('disabled') : item.state === 'unknown' ? muted('not inspected') : warn('unavailable');
-    return `${String(item.order).padStart(2)}. ${item.name} ${muted(`${item.type} ${item.variant}`)} · ${state}${item.inUse ? ' · in use' : ''}${item.retained ? warn(' · retained by current work') : ''}${item.overridden ? muted(' · overridden') : ''}`;
+    if (item.retained) return `    ${item.name} ${muted(`${item.type} ${item.variant}`)} · ${warn(`draining: old configuration, current work only${item.owner ? ` (${item.owner})` : ''}`)}`;
+    return `${String(item.order).padStart(2)}. ${item.name} ${muted(`${item.type} ${item.variant}`)} · ${state}${item.inUse ? ' · in use' : ''}${item.overridden ? muted(' · overridden') : ''}`;
 }
 
 /**
@@ -347,13 +351,23 @@ export function toolRow(item: ToolView, style?: Style): string {
 export function toolDetailLines(item: ToolView, style?: Style): string[] {
     const muted = style?.muted ?? ((text: string) => text);
     const warn = style?.warning ?? ((text: string) => text);
+    if (item.retained) {
+        return [
+            `${item.name} — ${item.variantLabel} ${muted(`(${item.type} ${item.variant}, retained revision ${item.revision ?? ''})`.replace(' )', ')'))}`,
+            ...(item.description ? [muted(item.description)] : []),
+            warn(`Draining — old configuration, current work only. ${item.summary}`),
+            ...(item.owner ? [`Held by  ${item.owner}`] : []),
+            muted('Not saved in ptbk.json: it is never selected by new work or counted as an available tool, and a saved tool of the same name is separate.'),
+            ...Object.entries(item.fields).map(([key, value]) => `${key.padEnd(8)} ${value}`),
+        ];
+    }
     return [
         `${item.name} — ${item.variantLabel} ${muted(`(${item.type} ${item.variant}, position ${item.order})`)}`,
         ...(item.description ? [muted(item.description)] : []),
         `Enabled  ${item.isEnabled ? 'yes' : 'no (configuration and credentials are kept)'}`,
         `State    ${item.state} — ${item.summary}`,
         ...(item.nextAction && item.state !== 'usable' ? [warn(`Action   ${item.nextAction}`)] : []),
-        ...(item.inUse ? [`In use   yes${item.retained ? ' — the current work keeps the configuration it acquired' : ''}`] : []),
+        ...(item.inUse ? ['In use   yes'] : []),
         ...Object.entries(item.fields).map(([key, value]) => `${key.padEnd(8)} ${value}`),
     ];
 }

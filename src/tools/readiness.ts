@@ -1,12 +1,34 @@
 import { pathExists } from '../common/fs.js';
+import { shortHash } from '../common/ids.js';
 import { browserProfileDirectory, findBrowserExecutable, profileOwner } from '../browser/browser.js';
-import type { EffectiveSettings } from '../project/config.js';
+import { setting, type EffectiveSettings } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessPool } from '../engine/harnesses.js';
 import type { ToolsView, ToolView } from '../engine/snapshot.js';
 import { harnessPlugin } from '../harness/registry.js';
 import { describeCredentialSource } from './environment.js';
-import { describeProfileSource, harnessPluginId, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
+import { inferenceCapacity } from '../inference/admission.js';
+import { runtimeAdapter } from '../inference/registry.js';
+import { dependentHarnesses, describeProfileSource, harnessPluginId, runtimeVariantLabel, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type ToolRecord } from './model.js';
+
+/**
+ * Native desktop readiness without requiring a windowed Console. Undefined usability means permission checks have
+ * not run yet; unsupported hosts are unavailable and never block unrelated browser/terminal work.
+ *
+ * @private tool readiness
+ */
+export type ComputerReadiness = { readonly usable?: boolean; readonly summary: string; readonly nextAction?: string };
+
+/**
+ * Read-only platform check, deliberately not spawning a helper or displaying an OS permission prompt.
+ *
+ * @private tool readiness
+ */
+export function inspectComputerPlatform(platform: NodeJS.Platform = process.platform, architecture: string = process.arch): ComputerReadiness {
+    if (platform === 'darwin' && architecture === 'arm64') return { summary: 'macOS Apple Silicon supported; screen capture and Accessibility permissions have not been checked.', nextAction: 'In Console, open Tools › this desktop tool and press 1 to request permissions; grant Screen Recording and Accessibility to the native helper. The App desktop viewer offers the same setup.' };
+    if (platform === 'win32') return { summary: 'Windows desktop supported; the logged-in graphical session has not been checked.', nextAction: 'In Console, open Tools › this desktop tool and press 5 to check the logged-in Windows desktop session.' };
+    return { usable: false, summary: 'Native computer control requires Windows 10/11 or macOS on Apple Silicon with a logged-in graphical session.', nextAction: 'Run this engine in a supported desktop session; browser and terminal work can continue here.' };
+}
 
 /**
  * Observed readiness of one browser tool (never launches it).
@@ -38,7 +60,7 @@ export async function inspectBrowserTool(project: Project, tool: BrowserToolReco
  *
  * @private tool readiness
  */
-export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.ProcessEnv, pool?: HarnessPool): Record<string, string> {
+export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.ProcessEnv, pool?: HarnessPool, settings?: EffectiveSettings): Record<string, string> {
     if (tool.type === 'BROWSER') {
         return {
             profile: `${tool.profile.source}${tool.profile.path ? ` ${tool.profile.path}` : ''}`,
@@ -47,12 +69,26 @@ export function toolFields(project: Project, tool: ToolRecord, env: NodeJS.Proce
             ...(tool.executable ? { executable: tool.executable } : {}),
         };
     }
+    if (tool.type === 'COMPUTER_CONTROL') return { session: 'engine host, primary monitor', recording: settings && setting<boolean>(settings, 'computer.isRecordingEnabled') ? 'on (private local desktop screenshots; never Git)' : 'off (live screenshots only)', permissions: 'system Accessibility and screen capture permissions may be required' };
+    if (tool.type === 'INFERENCE_RUNTIME') {
+        const observation = pool?.runtimes.observation(tool.name);
+        const dependents = dependentHarnesses(settings?.tools ?? [], tool.name).map((dependent) => dependent.name);
+        return {
+            endpoint: observation ? `${observation.endpoint} (${observation.endpointSource}${observation.onEngineHost ? ', engine host' : ', NOT on the engine host: never local-only'})` : (tool.endpoint ?? `${runtimeAdapter(tool.variant).defaultEndpoint} (discovered)`),
+            ...(observation?.version ? { version: observation.version } : {}),
+            connections: dependents.length ? dependents.join(', ') : 'none (add one with `ptbk tool setup-local`)',
+            scope: 'shared host service and model store; removing this record never uninstalls software or deletes models',
+        };
+    }
     const credential = pool?.credential(tool);
     return {
         authentication: tool.authentication,
-        ...(tool.apiKey ? { apiKey: `${tool.apiKey}${tool.authentication === 'API_KEY' ? (credential ? ` (${describeCredentialSource(credential)})` : '') : ' (inactive metadata: NATIVE authentication)'}` } : {}),
+        ...(tool.apiKey ? { apiKey: `${tool.apiKey}${tool.authentication === 'API_KEY' ? (credential ? ` (${describeCredentialSource(credential)})` : '') : ` (inactive metadata: ${tool.authentication} authentication)`}` } : {}),
         ...(tool.accountProfile ? { accountProfile: tool.accountProfile } : {}),
         endpoint: describeEndpoint(tool),
+        // The saved choice itself (absent: the default), so management forms preserve an explicit one.
+        ...(tool.baseUrl ? { baseUrl: tool.baseUrl } : {}),
+        ...(tool.inferenceRuntime ? { inferenceRuntime: tool.inferenceRuntime } : {}),
     };
 }
 
@@ -66,7 +102,8 @@ export function describeEndpoint(tool: HarnessToolRecord): string {
     const plugin = harnessPlugin(harnessPluginId(tool.variant));
     const runtime = toolRuntime(tool);
     if (runtime === 'official') return `official${plugin ? ` (${plugin.endpoints.official})` : ''}`;
-    if (runtime === 'local') return `local on the engine's host${plugin?.endpoints.local ? ` (${plugin.endpoints.local})` : ' (unsupported by this harness)'}`;
+    if (runtime === 'local' && tool.inferenceRuntime) return `local on the engine's host through the runtime ${tool.inferenceRuntime}${plugin?.endpoints.localConnection ? '' : ' (unsupported by this harness)'}`;
+    if (runtime === 'local') return `local on the engine's host${plugin?.endpoints.local ? ` (${plugin.endpoints.local}; no runtime binding)` : ' (unsupported by this harness)'}`;
     return `custom ${runtime}`;
 }
 
@@ -76,6 +113,8 @@ export function describeEndpoint(tool: HarnessToolRecord): string {
  * @private tool readiness
  */
 export function variantLabel(tool: Pick<ToolRecord, 'type' | 'variant'>): string {
+    if (tool.type === 'COMPUTER_CONTROL') return 'Native desktop';
+    if (tool.type === 'INFERENCE_RUNTIME') return runtimeVariantLabel(tool.variant as 'OLLAMA' | 'LM_STUDIO');
     if (tool.type === 'HARNESS') return harnessPlugin(harnessPluginId(tool.variant as HarnessToolRecord['variant']))?.displayName ?? tool.variant;
     return tool.variant === 'CHROME' ? 'Chrome' : tool.variant === 'CHROMIUM' ? 'Chromium' : 'Microsoft Edge';
 }
@@ -93,11 +132,46 @@ export type ToolInventoryInput = {
     readonly pool: HarnessPool;
     /** Browser readiness by name (already inspected). */
     readonly browsers: ReadonlyMap<string, BrowserReadiness>;
+    /** Live native helper status by name; absent means permissions have not been inspected, never assumed. */
+    readonly computers?: ReadonlyMap<string, ComputerReadiness>;
     /** Names held by active work. */
     readonly inUse?: ReadonlySet<string>;
-    /** Names whose acquired old configuration is still used (changed, disabled or removed). */
-    readonly retained?: ReadonlySet<string>;
+    /** Acquired old configuration revisions active work still uses (changed, disabled or removed meanwhile). */
+    readonly retained?: readonly RetainedToolUse[];
 };
+
+/**
+ * One acquired configuration revision that active work still uses after its tool was changed, disabled or removed.
+ * It is captured when the work acquires the tool, so removal from `ptbk.json` cannot erase its identity.
+ *
+ * @private tool readiness
+ */
+export type RetainedToolUse = {
+    readonly name: string;
+    /** The acquired record (non-secret: an API key is only its `${{ env.NAME }}` reference). */
+    readonly record: ToolRecord;
+    /** The work holding it (task title or chat). */
+    readonly owner?: string;
+};
+
+/**
+ * Short identifier of a tool's configuration revision (the same record always yields the same revision).
+ *
+ * @private tool readiness
+ */
+export function toolRevision(tool: ToolRecord): string {
+    return shortHash(JSON.stringify(tool), 8);
+}
+
+/**
+ * Whether a saved configuration still governs an acquired revision: the same name, enabled and unchanged.
+ *
+ * @private tool readiness
+ */
+export function isCurrentRevision(acquired: ToolRecord, saved: readonly ToolRecord[]): boolean {
+    const record = saved.find((tool) => tool.name === acquired.name);
+    return Boolean(record?.isEnabled) && JSON.stringify(record) === JSON.stringify(acquired);
+}
 
 /**
  * The repair of a native harness instance that is not signed in: the shared attended sign-in in that instance's own
@@ -137,6 +211,16 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
                 : tool.authentication === 'NATIVE' && inspection?.installed && inspection.authenticated === false
                   ? nativeSignInAction(tool, inspection.nextAction)
                   : inspection?.nextAction;
+        } else if (tool.type === 'INFERENCE_RUNTIME') {
+            const observation = pool.runtimes.observation(tool.name);
+            state = !observation ? 'unknown' : observation.running && observation.problem !== 'no-models' && observation.problem !== 'error' ? 'usable' : 'unavailable';
+            summary = observation?.summary ?? 'Not inspected yet.';
+            nextAction = observation?.nextAction;
+        } else if (tool.type === 'COMPUTER_CONTROL') {
+            const readiness = input.computers?.get(tool.name) ?? inspectComputerPlatform();
+            state = readiness.usable === undefined ? 'unknown' : readiness.usable ? 'usable' : 'unavailable';
+            summary = readiness.summary;
+            nextAction = readiness.nextAction;
         } else {
             const readiness = input.browsers.get(tool.name);
             state = !readiness ? 'unknown' : readiness.usable ? 'usable' : 'unavailable';
@@ -156,17 +240,69 @@ export function toolInventory(input: ToolInventoryInput): ToolsView {
             ...(nextAction ? { nextAction } : {}),
             ...(recheckAt ? { recheckAt: new Date(recheckAt).toISOString() } : {}),
             inUse: Boolean(input.inUse?.has(tool.name)),
-            ...(input.retained?.has(tool.name) ? { retained: true } : {}),
             ...(settings.overriddenTools.has(tool.name) ? { overridden: true } : {}),
-            fields: toolFields(project, tool, env, pool),
+            fields: toolFields(project, tool, env, pool, settings),
+            ...(tool.type === 'INFERENCE_RUNTIME' ? { runtime: runtimeDetail(tool.name, tool.variant, settings, pool, env) } : {}),
         };
     });
-    for (const name of input.retained ?? []) {
-        if (items.some((item) => item.name === name)) continue;
-        items.push({ name, type: 'BROWSER', variant: 'CHROME', variantLabel: 'browser', order: items.length + 1, isEnabled: false, state: 'disabled', summary: 'Removed from ptbk.json; the current task finishes with it.', inUse: true, retained: true, fields: {} });
+    // Retained revisions are separate entries with their acquired identity, after every saved tool.
+    const seen = new Set<string>();
+    for (const use of input.retained ?? []) {
+        const revision = toolRevision(use.record);
+        if (seen.has(`${use.name}\0${revision}`)) continue;
+        seen.add(`${use.name}\0${revision}`);
+        const saved = settings.tools.find((tool) => tool.name === use.name);
+        const status = !saved ? 'Removed from ptbk.json' : saved.type !== use.record.type ? `Replaced in ptbk.json by a ${saved.type} tool of the same name` : !saved.isEnabled ? 'Disabled in ptbk.json' : 'Changed in ptbk.json';
+        items.push({
+            name: use.name,
+            type: use.record.type,
+            variant: use.record.variant,
+            variantLabel: variantLabel(use.record),
+            ...(use.record.description ? { description: use.record.description } : {}),
+            order: items.length + 1,
+            isEnabled: false,
+            state: 'disabled',
+            summary: `${status}; current work only: ${use.owner ? `"${use.owner}"` : 'the active work'} finishes with this acquired configuration, no new work selects it.`,
+            inUse: true,
+            retained: true,
+            ...(use.owner ? { owner: use.owner } : {}),
+            revision,
+            fields: toolFields(project, use.record, env, undefined, settings),
+        });
     }
     const problems = settings.diagnostics.filter((diagnostic) => diagnostic.location.includes('tools')).map((diagnostic) => `${diagnostic.location}: ${diagnostic.message}`);
     return { items, waiting: baselineWait(items), problems };
+}
+
+/**
+ * Observed detail of one runtime record for the Local models views (empty catalog while not observed).
+ */
+function runtimeDetail(name: string, variant: 'OLLAMA' | 'LM_STUDIO', settings: EffectiveSettings, pool: HarnessPool, env: NodeJS.ProcessEnv): NonNullable<ToolView['runtime']> {
+    const observation = pool.runtimes.observation(name);
+    const adapter = runtimeAdapter(variant);
+    return {
+        endpoint: observation?.endpoint ?? adapter.defaultEndpoint,
+        endpointSource: observation?.endpointSource ?? 'discovered',
+        onEngineHost: observation?.onEngineHost ?? false,
+        running: observation?.running ?? false,
+        ...(observation?.version ? { version: observation.version } : {}),
+        models: (observation?.models ?? []).map((model) => ({
+            id: model.id,
+            installed: model.installed,
+            locality: model.locality,
+            ...(model.loaded !== undefined ? { loaded: model.loaded } : {}),
+            ...(model.sizeBytes !== undefined ? { sizeBytes: model.sizeBytes } : {}),
+            ...(model.quantization ? { quantization: model.quantization } : {}),
+            ...(model.parameterSize ? { parameterSize: model.parameterSize } : {}),
+            tools: model.tools,
+            vision: model.vision,
+        })),
+        dependents: dependentHarnesses(settings.tools, name).map((tool) => tool.name),
+        capacity: inferenceCapacity(variant, env),
+        partialDownloads: pool.runtimes.partialDownloads(name).map((download) => ({ model: download.model, state: download.state, ...(download.completedBytes !== undefined ? { completedBytes: download.completedBytes } : {}), ...(download.totalBytes !== undefined ? { totalBytes: download.totalBytes } : {}), updatedAt: download.updatedAt, ...(download.problem ? { problem: download.problem } : {}) })),
+        actions: adapter.actions,
+        checkedAt: new Date(observation?.checkedAt ?? Date.now()).toISOString(),
+    };
 }
 
 /**
@@ -209,6 +345,7 @@ export function baselineWait(items: readonly ToolView[]): ToolsView['waiting'] {
  */
 export async function inspectInventory(project: Project, settings: EffectiveSettings, env: NodeJS.ProcessEnv, pool: HarnessPool): Promise<ToolsView> {
     await pool.refresh(pool.allInstances().filter((tool) => tool.isEnabled).map((tool) => tool.name), true);
+    await pool.runtimes.refresh(undefined, true);
     const browsers = new Map<string, BrowserReadiness>();
     for (const tool of settings.tools) if (tool.type === 'BROWSER' && tool.isEnabled) browsers.set(tool.name, await inspectBrowserTool(project, tool, env));
     return toolInventory({ project, settings, env, pool, browsers });

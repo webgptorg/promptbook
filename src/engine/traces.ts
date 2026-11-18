@@ -1,7 +1,7 @@
 import { appendFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ensureDirectory, toProjectRelative } from '../common/fs.js';
-import { createRedactor } from '../common/redact.js';
+import { createRedactor, sanitizeTraceValue } from '../common/redact.js';
 import { ENGINE_VERSION } from '../common/version.js';
 import type { Project } from '../project/workspace.js';
 import { rotateServiceLog } from '../service/records.js';
@@ -18,7 +18,7 @@ export async function recordDiagnostic(project: Project, entry: { phase: string;
         await ensureDirectory(project.runtime.logs);
         const path = join(project.runtime.logs, 'diagnostics.jsonl');
         rotateServiceLog(path);
-        const line = JSON.stringify({ at: new Date().toISOString(), engineVersion: ENGINE_VERSION, ...entry });
+        const line = JSON.stringify(sanitizeTraceValue({ at: new Date().toISOString(), engineVersion: ENGINE_VERSION, ...entry }));
         await appendFile(path, `${redactor(line)}\n`);
         return toProjectRelative(project.root, path);
     } catch {

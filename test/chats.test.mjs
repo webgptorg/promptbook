@@ -260,7 +260,14 @@ test('live replies: progress streams to every client, input is accepted meanwhil
     const created = await call('api/chats', { agent: '@Developer', text: 'Look at the docs SLOW_REPLY' });
     assert.equal(created.status, 200, JSON.stringify(created.data));
     const path = `api/chats/${encodeURIComponent(created.data.name)}`;
-    const live = await waitFor(async () => (await call(path)).data.live, { timeoutMs: 60_000, message: 'live progress of the reply' });
+    // The working state is announced before routing (still without activity); wait for the harness's own progress.
+    const live = await waitFor(
+        async () => {
+            const current = (await call(path)).data.live;
+            return current?.activity.some((line) => line.includes('ls docs')) && current.activity.some((line) => line.includes('Checking the documentation first')) ? current : undefined;
+        },
+        { timeoutMs: 60_000, message: 'live progress of the reply' },
+    );
     assert.equal(live.sender, '@Developer');
     assert.ok(live.activity.some((line) => line.includes('ls docs')), JSON.stringify(live));
     assert.ok(live.activity.some((line) => line.includes('Checking the documentation first')), 'reasoning summaries the harness exposes are shown');

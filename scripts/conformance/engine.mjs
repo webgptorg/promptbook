@@ -18,7 +18,8 @@ import { fileURLToPath } from 'node:url';
  * connection, not agent work.
  */
 const root = fileURLToPath(new URL('../..', import.meta.url));
-const bin = join(root, 'dist-conformance', 'ptbk.js');
+const production = process.argv[2] === '--production';
+const bin = production ? join(root, 'bin', 'ptbk.js') : join(root, 'dist-conformance', 'ptbk.js');
 const dataDir = process.env.PTBK_DATA_DIR;
 if (!dataDir) {
     process.stderr.write('PTBK_DATA_DIR is required (the launch contract).\n');

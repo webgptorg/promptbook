@@ -181,7 +181,7 @@ export function compactCount(value: number): string {
  * @private terminal dashboard home
  */
 export function billingMix(totals: UsageTotals): string {
-    const parts = [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : ''].filter(Boolean);
+    const parts = [totals.billing.subscription ? `${totals.billing.subscription} subscription` : '', totals.billing.api ? `${totals.billing.api} API` : '', totals.billing.local ? `${totals.billing.local} local (no provider billing)` : '', totals.billing.unknown ? `${totals.billing.unknown} unknown billing` : ''].filter(Boolean);
     return parts.join(' · ') || 'no runs';
 }
 
@@ -295,15 +295,17 @@ export function tileLines(snapshot: ServiceSnapshot, tile: HomeTile, terminal: T
         case 'tools': {
             const tools = snapshot.tools;
             if (!tools) return [style.muted('Not reported by this engine.')];
-            const summary = (type: 'HARNESS' | 'BROWSER', label: string): string => {
-                const items = tools.items.filter((item) => item.type === type);
+            const summary = (type: 'HARNESS' | 'BROWSER' | 'COMPUTER_CONTROL' | 'INFERENCE_RUNTIME', label: string): string => {
+                // Retained old revisions serve only the work that acquired them: never counted as available tools.
+                const items = tools.items.filter((item) => item.type === type && !item.retained);
                 const usable = items.filter((item) => item.state === 'usable').length;
                 const text = `${label} ${usable}/${items.length}`;
                 return items.length && usable === 0 ? style.warning(text) : text;
             };
-            const inUse = tools.items.filter((item) => item.inUse).map((item) => item.name);
+            const inUse = tools.items.filter((item) => item.inUse).map((item) => (item.retained ? `${item.name} (old configuration, current work only)` : item.name));
             return [
-                `${summary('HARNESS', 'Harnesses')} ${style.muted(marks.dot)} ${summary('BROWSER', 'Browsers')}`,
+                `${summary('HARNESS', 'Harnesses')} ${style.muted(marks.dot)} ${summary('BROWSER', 'Browsers')} ${style.muted(marks.dot)} ${summary('COMPUTER_CONTROL', 'Desktop')}${tools.items.some((item) => item.type === 'INFERENCE_RUNTIME') ? ` ${style.muted(marks.dot)} ${summary('INFERENCE_RUNTIME', 'Local models')}` : ''}`,
+                ...(tools.localJob?.state === 'running' ? [style.muted(`${tools.localJob.label}: ${tools.localJob.stage}`)] : []),
                 ...(tools.waiting ? [style.warning(`new work waits: ${tools.waiting.reason}`)] : []),
                 ...tools.problems.slice(0, 1).map((problem) => style.warning(problem)),
                 ...(inUse.length ? [style.muted(`in use: ${inUse.join(', ')}`)] : []),
@@ -473,7 +475,8 @@ export function renderHome(snapshot: ServiceSnapshot, terminal: TerminalProfile,
     } else {
         lines.push(...wrap('The terminal is too small for the dashboard. Enlarge it, or press O for plain output.', width - 1).map((line) => style.warning(` ${line}`)));
     }
-    const footer = `${view.controlNote ? `${view.controlNote}  ` : ''}${view.feedback ? `${view.legend}   ${style.accent(marks.arrow)} ${view.feedback}` : view.legend}`;
+    const updateNotice = snapshot.update?.available ? `ptbk ${snapshot.update.available} available · System → Engine updates` : '';
+    const footer = `${updateNotice ? `${updateNotice}  ` : ''}${view.controlNote ? `${view.controlNote}  ` : ''}${view.feedback ? `${view.legend}   ${style.accent(marks.arrow)} ${view.feedback}` : view.legend}`;
     while (lines.length < height - 1) lines.push('');
     lines.length = Math.min(lines.length, height - 1);
     lines.push(truncate(style.muted(footer), width));

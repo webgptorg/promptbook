@@ -1,4 +1,5 @@
 import { runProcess } from '../../../common/process.js';
+import { createRedactor } from '../../../common/redact.js';
 import { stripAnsi } from '../../../ui/ansi.js';
 import { baseInspection, helpText, numericUsage, observedSessionSupport, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginFailure, LoginLocation, ParserState } from '../../types.js';
@@ -17,6 +18,11 @@ function withoutApiKeys(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
     for (const name of API_KEY_VARIABLES) delete copy[name];
     return copy;
 }
+
+/**
+ * Name of the invocation-scoped model provider of a managed local connection (never written to Codex's config).
+ */
+const LOCAL_PROVIDER = 'ptbk_local';
 
 /**
  * Formats a TOML string literal (JSON string syntax is valid TOML basic-string syntax).
@@ -47,8 +53,10 @@ async function listCodexModels(context: HarnessContext): Promise<string[]> {
                 send({ jsonrpc: '2.0', method: 'initialized' });
                 send({ jsonrpc: '2.0', id: 2, method: 'model/list', params: { limit: 100 } });
             } else if (message?.id === 2) {
-                const data = (message.result as { data?: Array<{ model?: string; id?: string; hidden?: boolean }> } | undefined)?.data ?? [];
-                for (const entry of data) if (!entry.hidden && (entry.model || entry.id)) models.push((entry.model ?? entry.id)!);
+                const data = (message.result as { data?: Array<{ model?: string; id?: string; hidden?: boolean; isDefault?: boolean }> } | undefined)?.data ?? [];
+                // Catalog order is not an entitlement check. Prefer the installed client's recommended default;
+                // setup still verifies it with a real turn before retaining it for naming and Router.
+                for (const entry of [...data].sort((a, b) => Number(Boolean(b.isDefault)) - Number(Boolean(a.isDefault)))) if (!entry.hidden && (entry.model || entry.id)) models.push((entry.model ?? entry.id)!);
                 controls?.end();
             }
         },
@@ -74,7 +82,13 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
             nextAction: `Sign in with ChatGPT (\`codex login\`), or add an explicit API tool: ptbk tool add HARNESS --variant OPENAI_CODEX --name codex-api --authentication API_KEY --api-key-env OPENAI_API_KEY`,
         };
     }
-    return withAuthentication(inspection, false, 'none', plugin.loginHint, 'Installed but not logged in.');
+    if (/\bnot (?:logged|signed) in\b/i.test(status.output)) return withAuthentication(inspection, false, 'none', plugin.loginHint, 'Installed but not logged in.');
+    return {
+        ...inspection,
+        summary: `Could not read Codex login status: ${createRedactor([], context.env)(stripAnsi(status.output)).slice(0, 500) || `exit ${String(status.exitCode)}`}`,
+        problem: 'error',
+        nextAction: 'Run `codex login status` as the engine user and check its account-store permissions and configuration.',
+    };
 }
 
 /**
@@ -143,17 +157,33 @@ function classifyLogin(output: string): LoginFailure | undefined {
 async function buildInvocation(request: HarnessRunRequest): Promise<HarnessInvocation> {
     const context = { projectRoot: request.projectRoot, env: request.env };
     const execHelp = await helpText(context, 'codex', ['exec', '--help']);
-    const api = request.authentication === 'api';
+    const local = request.localRoute;
+    const api = !local && request.authentication === 'api';
     const env: NodeJS.ProcessEnv = api ? { ...request.env, CODEX_API_KEY: request.env.CODEX_API_KEY ?? request.env.OPENAI_API_KEY } : withoutApiKeys(request.env);
-    // A local or custom endpoint selected through the tool (the official endpoint needs no override).
-    if (request.baseUrl) env.OPENAI_BASE_URL = request.baseUrl;
+    // A local or custom endpoint selected through the tool (the official endpoint needs no override). A managed local
+    // connection is configured below as this invocation's own provider instead.
+    if (request.baseUrl && !local) env.OPENAI_BASE_URL = request.baseUrl;
     // `exec resume` keeps the same options through configuration: it has no --sandbox or --color of its own.
     const resume = request.resumeSessionId;
     const args = resume ? ['exec', 'resume', '--json', '--skip-git-repo-check', '-c', `sandbox_mode=${toml(request.readOnly ? 'read-only' : 'workspace-write')}`] : ['exec', '--json', '--color', 'never', '--skip-git-repo-check', '--sandbox', request.readOnly ? 'read-only' : 'workspace-write'];
-    args.push('-c', 'approval_policy="never"', '-c', `forced_login_method=${toml(api ? 'api' : 'chatgpt')}`);
+    args.push('-c', 'approval_policy="never"');
+    if (local) {
+        // This invocation's own credential-free provider: the global default provider, model and ChatGPT login stay
+        // untouched, and no ambient key or subscription authentication is sent to the local runtime.
+        args.push(
+            '-c',
+            `model_provider=${toml(LOCAL_PROVIDER)}`,
+            '-c',
+            `model_providers.${LOCAL_PROVIDER}.name=${toml(`${local.runtime === 'LM_STUDIO' ? 'LM Studio' : 'Ollama'} (Promptbook connection ${local.connection})`)}`,
+            '-c',
+            `model_providers.${LOCAL_PROVIDER}.base_url=${toml(local.protocolUrl)}`,
+            '-c',
+            `model_providers.${LOCAL_PROVIDER}.wire_api="responses"`,
+        );
+    } else args.push('-c', `forced_login_method=${toml(api ? 'api' : 'chatgpt')}`);
     if (!request.readOnly) args.push('-c', 'sandbox_workspace_write.network_access=true');
     for (const directory of request.readableDirectories) if (execHelp.includes('--add-dir') && !request.readOnly && !resume) args.push('--add-dir', directory);
-    if (!api && !request.allowCredits && !resume) {
+    if (!api && !local && !request.allowCredits && !resume) {
         // Apply a native credit restriction only when the installed CLI actually supports one.
         if (execHelp.includes('--no-credits')) args.push('--no-credits');
         else if (execHelp.includes('--disable-credits')) args.push('--disable-credits');
@@ -206,22 +236,22 @@ function parseLine(line: string, state: ParserState): HarnessEvent[] {
                 if (completed && typeof item.text === 'string') events.push({ type: 'reasoning', text: item.text });
                 break;
             case 'command_execution':
-                if (!completed && typeof item.command === 'string') events.push({ type: 'activity', text: `$ ${item.command.replace(/\s+/g, ' ').slice(0, 160)}` });
+                if (!completed && typeof item.command === 'string') events.push({ type: 'activity', tool: 'shell', detail: item.command, text: `$ ${item.command.replace(/\s+/g, ' ').slice(0, 160)}` });
                 else if (completed && typeof item.exit_code === 'number' && item.exit_code !== 0) events.push({ type: 'activity', text: `command exited with ${item.exit_code}` });
                 break;
             case 'file_change': {
                 const changes = Array.isArray(item.changes) ? (item.changes as Array<{ path?: string; kind?: string }>) : [];
                 if (completed && changes.length) {
-                    events.push({ type: 'activity', text: `edited ${changes.map((change) => change.path).join(', ').slice(0, 160)}` });
+                    events.push({ type: 'activity', tool: 'apply_patch', detail: changes.map(change => change.path).filter(Boolean).join(', '), text: `edited ${changes.map((change) => change.path).join(', ').slice(0, 160)}` });
                     events.push({ type: 'files', paths: changes.map((change) => change.path).filter((path): path is string => typeof path === 'string' && path !== '') });
                 }
                 break;
             }
             case 'mcp_tool_call':
-                if (!completed) events.push({ type: 'activity', text: `${String(item.server)}.${String(item.tool)} ${summarizeToolInput(item.arguments)}`.trim() });
+                if (!completed) events.push({ type: 'activity', tool: `mcp__${String(item.server)}__${String(item.tool)}`, detail: summarizeToolInput(item.arguments), text: `${String(item.server)}.${String(item.tool)} ${summarizeToolInput(item.arguments)}`.trim() });
                 break;
             case 'web_search':
-                if (!completed) events.push({ type: 'activity', text: `web search ${String(item.query ?? '')}`.trim() });
+                if (!completed) events.push({ type: 'activity', tool: 'web_search', detail: String(item.query ?? ''), text: `web search ${String(item.query ?? '')}`.trim() });
                 break;
             case 'error':
                 if (typeof item.message === 'string') events.push({ type: 'error', text: item.message });
@@ -262,7 +292,7 @@ export const plugin: HarnessPlugin = {
     defaultModel: 'gpt-5-codex',
     defaultThinkingLevel: 'medium',
     modelCatalog: 'complete',
-    endpoints: { official: 'https://api.openai.com/v1', local: 'http://localhost:11434/v1', custom: true },
+    endpoints: { official: 'https://api.openai.com/v1', local: 'http://localhost:11434/v1', custom: true, localConnection: { protocol: 'openai', runtimes: { OLLAMA: '0.13.4', LM_STUDIO: '0.3.29' } } },
     capabilities: { mcp: true, readOnly: true },
     priceList: { providers: [{ catalog: 'openai' }] },
     loginArgs: ['login'],

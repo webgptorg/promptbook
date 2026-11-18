@@ -48,6 +48,7 @@ import type { UsageSummary } from '../engine/usage.js';
 import type { ActionLinks } from '../engine/action-log.js';
 import type { FileView, FolderView } from '../project/files.js';
 import { addToolForm, modifyToolForm, type ToolForm } from './tool-forms.js';
+import { addLocalModelsForm, chooseRuntimeModel, runtimeItems, type LocalDiscoveryView } from './local-models-page.js';
 import { recoveryWordLines, walletCodeForm, walletFieldForm, walletImportFlow, walletLoginForm, walletRestoreForm } from './wallet-forms.js';
 import type { WalletImportPreview } from '../wallet/wallet.js';
 import type { ToolOperationOutcome, ToolOperationRequest } from '../tools/operations.js';
@@ -80,6 +81,8 @@ export type DashboardSource = {
     readonly chats: ChatSource;
     /** Saved tool management through the engine's shared operation (committed immediately). */
     readonly tool: (request: ToolOperationRequest) => Promise<ToolOperationOutcome>;
+    /** Local models of the engine host: discovery, accepted setup and runtime actions (`local-models`). */
+    readonly localModels: (params: Readonly<Record<string, unknown>>) => Promise<unknown>;
     /** The engine's Wallet operations (secrets are write-only; only setup returns the 12 words, to this owner view). */
     readonly wallet: (method: string, params?: Readonly<Record<string, unknown>>) => Promise<unknown>;
     /** The complete task inventory (every state). */
@@ -1360,7 +1363,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         keepSelection(page, context);
         const keys = pageItemKeys(page, context);
         const count = keys.length;
-        const list = ['harnesses', 'tools', 'wallet', 'agents', 'chats', 'tasks', 'usage', 'actions', 'history', 'files'].includes(page.kind);
+        const list = ['harnesses', 'tools', 'local-models', 'wallet', 'agents', 'chats', 'tasks', 'usage', 'actions', 'history', 'files'].includes(page.kind);
         const room = Math.max(1, terminal.rows() - 5);
         if (event.type === 'key') {
             if (event.name === 'escape') {
@@ -1382,7 +1385,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             } else if (event.name === 'enter') {
                 if (page.kind === 'tools') {
                     const tool = toolsOf(snapshot)[page.focus];
-                    if (tool) openPage({ kind: 'tool', scroll: 0, name: tool.name });
+                    if (tool) openPage({ kind: 'tool', scroll: 0, name: tool.name, ...(tool.revision ? { revision: tool.revision } : {}) });
                     return;
                 }
                 if (page.kind === 'chats') {
@@ -1464,13 +1467,13 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     keepAwakeKey('mode');
                 } else if (key === 'l' && snapshot.keepAwake && snapshot.keepAwake.lid.capability !== 'unavailable') {
                     keepAwakeKey('lid');
-                } else if (key === 'c' && update.isSupported) {
+                } else if (key === 'c') {
                     notify('Looking up engine releases…');
                     void source
                         .action('update-check')
                         .then((value) => {
                             const view = value as unknown as NonNullable<ServiceSnapshot['update']>;
-                            notify(view.target ? `ptbk ${view.target} is available; it installs when the engine has free hands.` : view.reason);
+                            notify(view.available ? `ptbk ${view.available} is available. ${view.reason}` : view.reason);
                         })
                         .catch((error: unknown) => notify(`Failed: ${errorMessage(error)}`));
                 }
@@ -1592,18 +1595,62 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                 draw();
                 return;
             }
+            case 'local-models': {
+                const runtimes = runtimeItems(snapshot);
+                const focused = runtimes[page.focus];
+                const runtimeAction = async (action: string, model?: string, acknowledged?: boolean): Promise<void> => {
+                    try {
+                        const result = (await source.localModels({ action: 'runtime', runtime: focused!.name, runtimeAction: action, ...(model ? { model } : {}), ...(acknowledged ? { acknowledged: true } : {}), via: 'dashboard' })) as { job?: { label: string }; outcome?: { summary: string } };
+                        notify(result.job ? `Started: ${result.job.label} (progress on this page)` : (result.outcome?.summary ?? 'Done.'));
+                    } catch (error) {
+                        notify(`Not started: ${errorMessage(error)}`);
+                    }
+                };
+                if (key === 'a') {
+                    void (async () => {
+                        const choices = await outside(async () => await addLocalModelsForm(terminal, async (selection) => (await source.localModels({ action: 'discover', choices: selection, via: 'dashboard' })) as LocalDiscoveryView));
+                        if (!choices) return;
+                        try {
+                            await source.localModels({ action: 'setup', choices, via: 'dashboard' });
+                            notify('Started: Add local models (progress on this page; hosted work continues meanwhile).');
+                        } catch (error) {
+                            notify(`Not started: ${errorMessage(error)}`);
+                        }
+                    })();
+                } else if (key === 'c') void source.localModels({ action: 'cancel', via: 'dashboard' }).then(() => notify('Cancelling the local models operation…'), (error: unknown) => notify(`Not cancelled: ${errorMessage(error)}`));
+                else if (!focused && ['d', 'l', 'u', 'x', 's', 't', 'r'].includes(key)) notify('No local model runtime yet: press A to add local models.');
+                else if (focused && (key === 'd' || key === 'l' || key === 'u' || key === 'x')) {
+                    const action = key === 'd' ? 'download' : key === 'l' ? 'load' : key === 'u' ? 'unload' : 'remove-model';
+                    void (async () => {
+                        const model = await outside(async () => await chooseRuntimeModel(terminal, focused, action, { allowNew: action === 'download' }));
+                        if (!model) return;
+                        if (action === 'remove-model') confirmThen(`Delete the weights of ${model} from ${focused.variantLabel} on the engine host? Every project and application on that computer loses it (refused while Promptbook work uses it).`, async () => await runtimeAction(action, model, true));
+                        else await runtimeAction(action, model);
+                    })();
+                } else if (focused && key === 's') void runtimeAction('start');
+                else if (focused && (key === 't' || key === 'r')) confirmThen(`${key === 't' ? 'Stop' : 'Restart'} ${focused.variantLabel} on the engine host? Other projects on that computer lose it meanwhile (refused while Promptbook work uses it; a service Promptbook did not start is not stopped).`, async () => await runtimeAction(key === 't' ? 'stop' : 'restart'));
+                draw();
+                return;
+            }
             case 'tools':
             case 'tool': {
                 const items = toolsOf(snapshot);
-                const focused = page.kind === 'tool' ? items.find((item) => item.name === page.name) : items[page.focus];
+                const focused = page.kind === 'tool' ? items.find((item) => item.name === page.name && item.revision === page.revision) : items[page.focus];
+                // A retained revision is current-work-only runtime state, not a saved tool: management targets the saved one.
+                if (focused?.retained && (text === ' ' || text === '[' || text === ']' || key === 'm' || key === 'd')) {
+                    notify(`This is the old configuration "${focused.name}" that ${focused.owner ? `"${focused.owner}"` : 'current work'} keeps until it finishes; it is not saved in ptbk.json and cannot be managed.`);
+                    draw();
+                    return;
+                }
                 if (text === ' ' && focused) void runTool({ operation: { kind: focused.isEnabled ? 'disable' : 'enable', name: focused.name } });
                 else if (page.kind === 'tools' && (text === '[' || text === ']') && focused) {
                     const neighbour = items[page.focus + (text === '[' ? -1 : 1)];
-                    if (!neighbour) notify('It is already at that end of the list.');
+                    if (!neighbour || neighbour.retained) notify('It is already at that end of the list.');
                     else {
                         void runTool({ operation: { kind: 'move', name: focused.name, ...(text === '[' ? { before: neighbour.name } : { after: neighbour.name }) } });
                     }
                 } else if (key === 'n' && page.kind === 'tools') void openForm(() => addToolForm(terminal));
+                else if (key === 'l') openPage({ kind: 'local-models', scroll: 0, focus: 0 });
                 else if (key === 'm' && focused) void openForm(() => modifyToolForm(terminal, focused));
                 else if (key === 'd' && focused) confirmThen(`Permanently remove the configuration of "${focused.name}"? (Disable keeps it; profiles, native logins and .env history are never deleted.)`, () => runTool({ operation: { kind: 'remove', name: focused.name } }));
                 else if (text === '6' && focused) {
@@ -1614,7 +1661,10 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
                     if (key === 'e') confirmThen('End your use of the controlled tab without handing it back? The tab closes and no agent takes it over.', async () => await tabLifecycle(control, 'end'));
                     else void tabLifecycle(control, key === 'h' ? 'handback' : 'reopen');
                 } else if (['1', '2', '3', '4', '5'].includes(text) && focused) {
-                    if (focused.type !== 'BROWSER') notify('Browser recovery applies to browser tools.');
+                    if (focused.type === 'COMPUTER_CONTROL') {
+                        const action = text === '1' ? 'computer-permissions' : text === '2' ? 'computer-pause' : text === '3' ? 'computer-resume' : text === '4' ? 'computer-stop' : 'computer-status';
+                        void runAction(action);
+                    } else if (focused.type !== 'BROWSER') notify('Browser recovery applies to browser tools.');
                     else if (text === '3' || text === '4') {
                         // Restart and kill act on the profile's shared process: every connected engine is affected.
                         const browser = (snapshot.browsers ?? []).find((item) => item.name === focused.name);

@@ -2,7 +2,7 @@
 
 [Main specification](../_main.md) · [Tools](tools.md) · [Shared domain logic](../coding-standards/shared-logic.md)
 
-Harness integrations form an extensible internal plugin system. Each integration supplies the same harness contract to Promptbook, used by wizard, runtime and update workflows rather than provider-specific copies of business logic. Browsers are a different tool type, not pretend LLM harnesses; both categories participate in the same external named-tool configuration and management model. Adding an adapter must not require redesigning those common experiences.
+Harness integrations form an extensible internal plugin system. Each integration supplies the same harness contract to Promptbook, used by wizard, runtime and update workflows rather than provider-specific copies of business logic. Browsers and [inference runtimes](inference-runtimes.md) are different tool types, not pretend LLM harnesses; all categories participate in the same external named-tool configuration and management model. Adding an adapter must not require redesigning those common experiences.
 
 ## Common adapter contract
 
@@ -11,6 +11,10 @@ Expose a stable canonical variant, display name and featured status; installatio
 Authentication accepts attended local/remote context and the selected instance's effective service-user environment. Declare supported installed-version login methods and expose their transient URL/code instructions, required native terminal interaction and actual waiting/success/cancel/expiry/denial/unsupported outcomes through the shared setup flow. Recheck readiness in that environment after login. Keep provider commands/parsing in the adapter rather than duplicate them in init, an installer or dashboard; follow [remote authentication](harness-authentication.md), including protected output and noninteractive behavior.
 
 The plugin code supplies its default model and thinking level, supported model/effort combinations, model manufacturer/origin metadata where known, the immutable official endpoint and support for local/custom base URLs. Use this common capability description for MODEL matching, Router context, setup and actual execution. Defaults are properties of the plugin implementation, not user-configurable defaults on each named tool. Native provider limitations remain real capabilities; do not add Promptbook model/effort allowlists to tool setup. Unknown metadata stays unknown.
+
+Resolve catalog, defaults and capabilities in the context of the selected connection, installed harness/runtime versions and discovered model. Default/recommendation logic stays in plugin code while a local model's actual ID comes from its runtime; never force the official provider's default or validate a local model against that provider's catalog. Describe compatible local transports, NONE authentication, effective locality and model/tool/MCP/read-only/vision limitations explicitly. Version-specific evidence for a supported combination is shared by setup, Router and execution. Do not advertise every model as compatible with every harness.
+
+For a new native setup with an automatically selected model, a catalog is a source of candidates, not proof of account entitlement. Prefer the installed client's recommended default when the coded default is absent. If the real check rejects a model as unavailable, setup may test another discovered model in the same account and endpoint, with at most three candidates. Authentication, quota, transport and sandbox failures do not trigger model retries. Explicit models, API-key setup and local connections keep their selected model. Retain the successfully verified model for project naming and the initial Router MODEL, even when the CLI reports no separate model event. A model-access error does not request another native login.
 
 Execution accepts the project directory, selected named tool and its scoped authentication context, effective instructions and supported model/effort options, and runs in supported noninteractive/autonomous mode. Never leak an API key or native account selection between simultaneous clients or retained uses. Promptbook need not reproduce every feature of a harness's own UI. Return actual activity, result, cancellation, failures and exposed diagnostics/usage; setup/execution details stay with the adapter.
 
@@ -24,6 +28,8 @@ Readiness and variant-specific parsing feed the shared tool domain layer. Init, 
 
 Default integration catalogs show a small curated featured set, initially OpenAI Codex and Claude Code, plus **More**. All other supported variants remain reachable through bounded/searchable navigation even with hundreds of adapters. Default entries show names, not model/configuration dumps; reveal details on request and preserve selections.
 
+The simple setup picker additionally offers **Local models** as a separate resource category, not a harness plugin variant or a request for cloud login. It composes a runtime adapter with an existing verified harness integration under [shared local setup](local-models-setup.md).
+
 Featured status is presentation, not installation, enablement or paid-use authorization. The configured-tool inventory is different from the adapter catalog: it must distinguish several named instances of the same variant, their order, enabled state, availability and current uses. An active nonfeatured variant remains visible. See [harnesses](harnesses.md), [updates](harness-updates.md), [tool management](tool-management.md) and [help](help.md).
 
 ## Usage and current price lists
@@ -35,6 +41,8 @@ Each adapter can retrieve its current price list and retain independent timestam
 ## Real functional check
 
 Every harness adapter supplies a minimal actual request/response check through the shared setup contract. Executable discovery, version parsing and native-auth status alone are not proof of usable inference. Run with the selected instance's real service-user authentication and supported noninteractive execution/runtime/sandbox setup so relevant execution failures are detected, not hidden by a different test path. Return verified response/success or a concrete redacted cause, plus honest available usage.
+
+For advertised complete local setup, additionally verify the bounded disposable tool/MCP/read-only/session path in [local setup verification](local-models-setup.md#bounded-functional-verification). A PONG-only test cannot establish chat, TEAM or task capability. These checks use the selected local route and no cloud login; they are preparatory fixture checks, not inline execution of the new project's bootstrap task.
 
 Initialization tests every selected harness; at least one must pass, additional failures remain visible without blocking a working selection. Zero passes returns to harness configuration. The check and later project-name generation are separate preparatory calls outside a not-yet-created project, with accepted small usage excluded from project totals under [init](initialization.md#draft-confirmation-and-project-creation). Use a temporary non-project context without creating/touching the destination. Reuse this adapter operation in supported setup/test entry points, not provider-specific initializer copies.
 

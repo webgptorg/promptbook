@@ -22,7 +22,7 @@ import type { PreparedApiHarness } from '../../onboarding/credentials.js';
 import { editDotEnv } from '../../tools/environment.js';
 import { applyToolOperationsToConfig, type ToolDraft, type ToolOperation } from '../../tools/operations.js';
 import { inspectBrowserTool } from '../../tools/readiness.js';
-import { describeProfileSource, harnessPluginId, harnessVariantOf, toolRuntime, type BrowserToolRecord, type HarnessToolRecord } from '../../tools/model.js';
+import { describeProfileSource, harnessPluginId, harnessVariantOf, INFERENCE_RUNTIME_VARIANTS, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type InferenceRuntimeVariant, type ToolRecord } from '../../tools/model.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
 import { clearSetupDraft, readSetupDraft, saveSetupDraft } from '../../project/draft.js';
 import { commitPaths, inspectGit } from '../../project/git.js';
@@ -47,6 +47,7 @@ import { prepareCoreAgents } from '../../project/core-templates.js';
 import { canonicalPath, projectAt, type Project } from '../../project/workspace.js';
 import { HARNESS_PLUGINS, harnessPlugin } from '../../harness/registry.js';
 import { functionalCheck, proposeProjectName, type FunctionalCheck, type PreparatoryCall } from '../../harness/preparation.js';
+import { describeLocalPlan, discoverLocalSetup, localPreparatoryCall, planLocalSetup, prepareLocalSetup, type LocalSetupPlan, type LocalSetupResult } from '../../inference/setup.js';
 import { handOverCreated, intendedUser, missingDirectories, sharedProjectsRoot } from '../../common/user-home.js';
 import { kebabIdentifier } from '../../common/naming.js';
 import { WalletSubEngine, type WalletImportPreview, type WalletVerification } from '../../wallet/wallet.js';
@@ -276,6 +277,19 @@ function projectFolderProblem(value: string): string | undefined {
 const DEFAULT_HARNESS = 'openai-codex';
 
 /**
+ * The Local models choice of the harness selection: a resource/setup category (runtime, model and a credential-free
+ * harness connection), not another harness variant.
+ */
+const LOCAL_MODELS = 'local-models';
+
+/**
+ * The label of one harness selection (a harness plugin, or the Local models choice).
+ */
+function selectionLabel(id: string): string {
+    return id === LOCAL_MODELS ? 'Local models' : (harnessPlugin(id)?.displayName ?? id);
+}
+
+/**
  * A neutral editable title of a project whose brief is blank (no purpose is invented).
  */
 const NEUTRAL_TITLE = 'My project';
@@ -342,7 +356,7 @@ export async function initializeProject(context: CommandContext, options: { proj
     const selfUpdate = option<string>(context, 'self-update');
     // Checked in the background while the user describes the project (bounded, best-effort).
     const updateCheck: Promise<UpdateCheck | undefined> =
-        !options.fromStart && (interactive || selfUpdate === 'yes') && selfUpdate !== 'no' ? checkForEngineUpdate().catch(() => undefined) : Promise.resolve(undefined);
+        !options.fromStart && (interactive || selfUpdate === 'yes') && selfUpdate !== 'no' ? checkForEngineUpdate(6000, context.env).catch(() => undefined) : Promise.resolve(undefined);
 
     const state: {
         intent?: IntentInput;
@@ -385,6 +399,8 @@ export async function initializeProject(context: CommandContext, options: { proj
         folderChosen?: boolean;
         /** Whether the destination folder is a new child named by the wizard (editable in the final review). */
         folderEditable: boolean;
+        /** The Local models choice: its plan and the outcome of its preparation (a ready one is reused after Back). */
+        local?: { plan: LocalSetupPlan; result?: LocalSetupResult };
     } = { purposeRecorded: false, root: option<string>(context, 'subfolder') ? resolve(base, option<string>(context, 'subfolder')!) : base, inspections: new Map(), newProject: false, checks: new Map(), folderEditable: false };
     const shown = new Set<StepId>();
 
@@ -432,6 +448,11 @@ export async function initializeProject(context: CommandContext, options: { proj
             if (!check?.newer || !check.latest) {
                 if (check?.unknownReason && interactive) notes.push(`Update check skipped: ${check.unknownReason}`);
                 else if (check?.incompatible && interactive) notes.push(`Update not offered: ${check.incompatible}.`);
+                steps.set('update', false);
+                return;
+            }
+            if (check.installation.scope === 'bundled') {
+                notes.push(`Promptbook ${check.latest} is available. Use Check for updates in the desktop app to download its installer.`);
                 steps.set('update', false);
                 return;
             }
@@ -628,7 +649,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         // 5. Harnesses: selection, global installation, native login and updates.
         harnesses: async () => {
             const harnessFlags = option<string[]>(context, 'harness');
-            for (const id of harnessFlags ?? []) if (!harnessPlugin(id)) throw usageError(`Unknown harness "${id}". Supported: ${HARNESS_PLUGINS.map((plugin) => plugin.id).join(', ')}.`, 'init');
+            for (const id of harnessFlags ?? []) if (id !== LOCAL_MODELS && !harnessPlugin(id)) throw usageError(`Unknown harness "${id}". Supported: ${HARNESS_PLUGINS.map((plugin) => plugin.id).join(', ')} or ${LOCAL_MODELS}.`, 'init');
             const configBefore = (await pathExists(projectAt(state.root).configPath)) ? await loadSettings(projectAt(state.root), { env: context.env }) : undefined;
             const configured = configBefore ? enabledHarnesses(configBefore) : [];
             state.inspections = new Map();
@@ -653,12 +674,18 @@ export async function initializeProject(context: CommandContext, options: { proj
                         await selectMany(terminal, {
                             frame: frame('harnesses', failed.length ? 'no selected harness works yet — fix one or choose another' : 'pick the coding agents that will do the work', failed.length ? 'blocked' : 'working'),
                             question: `Which harnesses should run this project? (installed globally, shared with other projects; usable ones are preselected, otherwise OpenAI Codex${state.newProject ? '; each is tested with a real request' : ''})`,
-                            choices: HARNESS_PLUGINS.map((plugin) => {
-                                const check = state.checks.get(plugin.id);
-                                // A failed real check stays visible with its concrete cause.
-                                const description = check ? `${check.ok ? marks.ok : marks.fail} ${check.summary}` : plugin.featured ? undefined : plugin.npmPackage;
-                                return { value: plugin.id, label: plugin.displayName, featured: plugin.featured || state.selected!.includes(plugin.id) || Boolean(check), description };
-                            }),
+                            choices: [
+                                ...HARNESS_PLUGINS.map((plugin) => {
+                                    const check = state.checks.get(plugin.id);
+                                    // A failed real check stays visible with its concrete cause.
+                                    const description = check ? `${check.ok ? marks.ok : marks.fail} ${check.summary}` : plugin.featured ? undefined : plugin.npmPackage;
+                                    return { value: plugin.id, label: plugin.displayName, featured: plugin.featured || state.selected!.includes(plugin.id) || Boolean(check), description };
+                                }),
+                                (() => {
+                                    const check = state.checks.get(LOCAL_MODELS);
+                                    return { value: LOCAL_MODELS, label: 'Local models', featured: true, description: check ? `${check.ok ? marks.ok : marks.fail} ${check.summary}` : 'Models on this computer (no cloud login; downloads a model)' };
+                                })(),
+                            ],
                             initial: state.selected,
                             ...(state.newProject ? { minimum: 1 } : {}),
                             noneLabel: state.newProject ? 'None selected (a new project needs at least one working harness)' : 'None selected (setup stays incomplete)',
@@ -669,11 +696,18 @@ export async function initializeProject(context: CommandContext, options: { proj
                     );
                 }
                 try {
-                    await setUpHarnesses(selected);
+                    // Local models are prepared separately (their own runtime, model and credential-free connection);
+                    // selecting them never implies the harness's hosted subscription route.
+                    const hosted = selected.filter((id) => id !== LOCAL_MODELS);
+                    await setUpHarnesses(hosted);
+                    selected = selected.filter((id) => id === LOCAL_MODELS || hosted.includes(id));
+                    if (selected.includes(LOCAL_MODELS)) await setUpLocalModels(configBefore?.tools ?? []);
+                    else state.local = undefined;
                     state.selected = selected;
                     // A new project needs at least one selected harness that answers a real request; additional failures
                     // stay visible but do not block. Without a working one, the user stays in harness configuration.
-                    if (state.newProject && selected.length && !(await checkHarnesses(selected))) {
+                    const hostedWorks = hosted.length ? await checkHarnesses(hosted) : false;
+                    if (state.newProject && selected.length && !hostedWorks && !state.checks.get(LOCAL_MODELS)?.ok) {
                         if (interactive && !harnessFlags) {
                             state.selected = selected;
                             continue;
@@ -681,7 +715,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                         throw new PtbkError('No selected harness passed its real functional check.', {
                             kind: 'setup',
                             project: state.root,
-                            reason: selected.map((id) => `${harnessPlugin(id)!.displayName}: ${state.checks.get(id)?.summary ?? 'not checked'}`).join('\n'),
+                            reason: selected.map((id) => `${selectionLabel(id)}: ${state.checks.get(id)?.summary ?? 'not checked'}`).join('\n'),
                             effect: 'Nothing was created or changed in the destination.',
                             next: ['Fix the reported cause (sign in, install or repair the harness) or select another harness, then run `ptbk init` again.'],
                         });
@@ -690,8 +724,8 @@ export async function initializeProject(context: CommandContext, options: { proj
                         const check = state.checks.get(id);
                         return check ? ` ${check.ok ? marks.ok : `${marks.fail} (${check.summary})`}` : '';
                     };
-                    answers.set('harnesses', `Harnesses: ${selected.length ? selected.map((id) => `${harnessPlugin(id)!.displayName}${checkMark(id)}`).join(', ') : 'none'}`);
-                    if (!shown.has('harnesses') && selected.every((id) => state.inspections.get(id)?.usable)) steps.set('harnesses', false);
+                    answers.set('harnesses', `Harnesses: ${selected.length ? selected.map((id) => `${selectionLabel(id)}${checkMark(id)}`).join(', ') : 'none'}`);
+                    if (!shown.has('harnesses') && selected.every((id) => (id === LOCAL_MODELS ? state.checks.get(id)?.ok : state.inspections.get(id)?.usable))) steps.set('harnesses', false);
                     return;
                 } catch (error) {
                     if (error instanceof WizardBack && !harnessFlags && !configured.length && interactive) continue;
@@ -756,7 +790,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             const current = {
                 commit: saved('traces.isCommitted') ?? flagged.commit ?? state.traces?.commit ?? false,
                 ignoreVideos: saved('traces.isVideoIgnored') ?? flagged.ignoreVideos ?? state.traces?.ignoreVideos ?? true,
-                recordVideo: saved('traces.isVideoRecordingEnabled') ?? flagged.recordVideo ?? state.traces?.recordVideo ?? true,
+                recordVideo: saved('traces.isVideoRecordingEnabled') ?? flagged.recordVideo ?? state.traces?.recordVideo ?? false,
             };
             const complete = saved('traces.isCommitted') !== undefined && saved('traces.isVideoIgnored') !== undefined && saved('traces.isVideoRecordingEnabled') !== undefined;
             const decided = Object.values(flagged).every((value) => value !== undefined);
@@ -770,21 +804,21 @@ export async function initializeProject(context: CommandContext, options: { proj
                 await toggleList(terminal, {
                     frame: frame('traces', 'every task keeps its own audit trail'),
                     question: 'Traces: how should task evidence be kept?',
-                    intro: 'Each task records its harness output, events and (when enabled) browser video in traces/<task-file-basename>/, linked to its commits by the Task-Name trailer. Traces can contain project data and page content; sign-in steps are not recorded.',
+                    intro: 'Each task keeps a technical trace linked to commits by the Task-Name trailer. Optional browser video stays private in the ignored local trace directory; screen images are never committed. Traces may contain project data.',
                     toggles: [
                         { key: 'commit', label: 'Commit traces to Git', description: 'include each task’s traces in its result commit (shared with everyone who can read the repository); otherwise traces stay local and the whole traces/ folder is ignored' },
-                        { key: 'ignoreVideos', label: 'Ignore trace videos in Git', description: 'keep browser videos local even when traces are committed (videos are large and may show sensitive pages)' },
-                        { key: 'recordVideo', label: 'Record browser videos', description: 'record what agents do in the project browser, per task and attempt (independent of Git; text traces are always kept)' },
+                        { key: 'ignoreVideos', label: 'Ignore legacy trace videos in Git', description: 'also exclude older recordings outside the private local directory; new recordings always stay local' },
+                        { key: 'recordVideo', label: 'Record browser videos locally', description: 'opt in to private recordings; never committed (text traces continue)'  },
                     ],
                     initial: current,
                     effect: (values) => [
-                        `Effective: ${values.commit ? `task logs are committed${values.ignoreVideos ? '; videos stay local (ignored)' : '; videos are committed too'}` : 'traces stay local — the whole traces/ folder is ignored, videos included'}.`,
+                        `Effective: ${values.commit ? 'technical task logs are committed' : 'task traces stay local'}. New recordings always stay in the private ignored local directory.`,
                         values.recordVideo ? 'Browser activity is recorded for tasks that use the project browser.' : 'No browser video is recorded (text traces continue).',
                         ...(!values.commit && !values.ignoreVideos ? ['Note: "Ignore trace videos" has no effect while traces are not committed; the choice is kept for later.'] : []),
                     ],
                 }),
             );
-            answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? `recorded${state.traces.commit && !state.traces.ignoreVideos ? ' and committed' : ' locally'}` : 'off'}`);
+            answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? 'recorded locally' : 'off'}`);
         },
         // 8. Optional Wallet setup, default No; an existing vault is never recreated. Its words and an optional import
         // selection stay in this draft's memory; the Wallet is created only after the final confirmation.
@@ -1102,13 +1136,20 @@ export async function initializeProject(context: CommandContext, options: { proj
 
     /** The preparatory call context of the selected instance in the engine's effective environment. */
     const preparatoryCall = async (id: string): Promise<PreparatoryCall> => {
+        if (id === LOCAL_MODELS) {
+            // The prepared local route and model, never a hosted default of the same harness.
+            const prepared = await localPreparatoryCall(context.env, state.local!.plan, await nearestExisting(state.root));
+            if (!prepared.call) throw new Error(prepared.summary);
+            return prepared.call;
+        }
         const plugin = harnessPlugin(id)!;
         const tool = setupTool(plugin);
         const env = instanceEnvironment(plugin, tool, apiHarnesses?.get(id)?.credential, context.env);
         const api = tool.authentication === 'API_KEY' ? plugin.setupApiKey : undefined;
         const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: await nearestExisting(state.root), env, tool }).catch(() => []) : [];
         const row = pluginDefaultRow(plugin, catalog);
-        return { plugin, inspection: state.inspections.get(id)!, env, model: api?.model ?? row.model, thinkingLevel: api?.thinkingLevel ?? row.thinking, baseUrl: tool.baseUrl };
+        const checked = state.checks.get(id);
+        return { plugin, inspection: state.inspections.get(id)!, env, model: checked?.ok ? checked.model : api?.model ?? row.model, ...(tool.authentication === 'NATIVE' ? { modelCandidates: catalog } : {}), thinkingLevel: api?.thinkingLevel ?? row.thinking, baseUrl: tool.baseUrl };
     };
 
     /**
@@ -1130,8 +1171,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             // An existing or explicitly named folder keeps its own name as the neutral title.
             if (!brief.trim() || !namer) proposal = { title: state.folderEditable ? NEUTRAL_TITLE : basename(state.root), folder: brief.trim() ? projectFolderName(state.intent?.segments) : 'my-project' };
             else {
-                const plugin = harnessPlugin(namer)!;
-                say(style.muted(`Naming the project with ${plugin.displayName}${marks.ellipsis}`));
+                say(style.muted(`Naming the project with ${selectionLabel(namer)}${marks.ellipsis}`));
                 try {
                     proposal = await proposeProjectName(await preparatoryCall(namer), brief);
                 } catch (error) {
@@ -1173,6 +1213,71 @@ export async function initializeProject(context: CommandContext, options: { proj
         steps.set('traces', !(tracesSaved || tracesFlagged));
         steps.set('wallet', !(await pathExists(join(destination.runtime.root, 'encryption', 'project.json'))));
         steps.set('sync', !(typeof raw.isAutoSync === 'boolean' || flag(context, 'auto-sync') !== undefined || flag(context, 'auto-pull') || flag(context, 'auto-push')));
+    };
+
+    /**
+     * Prepares the Local models choice through the shared local setup (the same journey as `ptbk tool setup-local`):
+     * discover, recommend, install/start/download with consent and progress, and verify through the exact local route.
+     * Host prerequisites happen before the final confirmation and are not undone by cancelling init; project records
+     * are written only by the final setup transaction. A ready preparation is reused after Back.
+     */
+    const setUpLocalModels = async (tools: readonly ToolRecord[]): Promise<void> => {
+        if (state.local?.result?.status === 'ready') return;
+        const runtimeFlag = option<string>(context, 'local-runtime')?.trim().toUpperCase().replace(/[\s-]+/g, '_');
+        if (runtimeFlag && !INFERENCE_RUNTIME_VARIANTS.includes(runtimeFlag as InferenceRuntimeVariant)) throw usageError(`--local-runtime expects ${INFERENCE_RUNTIME_VARIANTS.join(' or ')}.`, 'init');
+        const choices = { ...(runtimeFlag ? { runtime: runtimeFlag as InferenceRuntimeVariant } : {}), ...(option<string>(context, 'local-model') ? { model: option<string>(context, 'local-model')! } : {}), ...(option<string>(context, 'local-endpoint') ? { endpoint: option<string>(context, 'local-endpoint')! } : {}) };
+        say(style.muted(`Discovering local model support on this computer${marks.ellipsis}`));
+        const discover = async (): Promise<LocalSetupPlan> => planLocalSetup(await discoverLocalSetup(context.env, tools, { ...(choices.endpoint ? { endpoint: choices.endpoint } : {}), ...(choices.runtime ? { runtime: choices.runtime } : {}) }), tools, choices);
+        let plan = await discover();
+        // The local connection needs the harness executable (shared, global), not its hosted login.
+        const plugin = harnessPlugin(harnessPluginId(plan.harness))!;
+        if (!(await plugin.inspect({ projectRoot: await nearestExisting(state.root), env: context.env }).catch(() => undefined))?.installed) {
+            let install = flag(context, 'install-harnesses') !== false;
+            if (interactive && flag(context, 'install-harnesses') === undefined) {
+                shown.add('harnesses');
+                install = answered(await confirm(terminal, { frame: frame('harnesses', 'Local models need a harness'), question: `Local models run through ${plugin.displayName}, which is not installed. Install it globally${plugin.npmPackage ? ` (npm install --global ${plugin.npmPackage})` : ''}? No cloud login is needed for local use.`, defaultYes: true }));
+            }
+            if (install) {
+                say(`Installing ${plugin.displayName}${marks.ellipsis}`);
+                const result = await installHarness(plugin, { projectRoot: await nearestExisting(state.root), env: context.env }, (line) => terminal.pretty && terminal.write(style.muted(`    ${line}\n`)));
+                say(`${result.outcome === 'installed' ? style.success(marks.ok) : style.error(marks.fail)} ${result.diagnostic}`);
+                if (result.outcome === 'installed') changed.push(`Installed ${plugin.displayName} globally`);
+                plan = await discover();
+            }
+        }
+        for (const line of describeLocalPlan(plan)) say(`  ${line}`);
+        for (const note of plan.notes) say(style.muted(`  ${note}`));
+        const failed = (summary: string, result?: LocalSetupResult): void => {
+            state.local = { plan, ...(result ? { result } : {}) };
+            state.checks.set(LOCAL_MODELS, result?.check ?? { ok: false, summary, durationMs: 0 });
+            say(`${style.error(marks.fail)} Local models: ${summary}`);
+        };
+        if (plan.problems.length) return failed(plan.problems.join(' '));
+        // Noninteractively, selecting local models (--harness local-models) is the decision to prepare them.
+        if (interactive && (plan.steps.install || plan.steps.start || plan.steps.download)) {
+            shown.add('harnesses');
+            const accepted = answered(await confirm(terminal, { frame: frame('harnesses', 'Local models'), question: 'Prepare local models as described? (shared on this computer; cancelling init does not undo it)', defaultYes: true }));
+            if (!accepted) return failed('Not prepared (declined).');
+        }
+        let lastStage = '';
+        let lastPercent = -5;
+        const result = await prepareLocalSetup(context.env, plan, {
+            accepted: true,
+            interactive,
+            onProgress: (progress) => {
+                const percent = progress.totalBytes ? Math.floor(((progress.completedBytes ?? 0) / progress.totalBytes) * 100) : undefined;
+                if (progress.stage !== lastStage) say(style.muted(`${marks.arrow} ${progress.message}`));
+                else if (percent !== undefined && percent >= lastPercent + 5) say(style.muted(`    ${percent}%`));
+                if (percent !== undefined && percent >= lastPercent + 5) lastPercent = percent;
+                lastStage = progress.stage;
+            },
+        });
+        for (const step of result.completed) say(style.muted(`  ${marks.ok} ${step}`));
+        for (const capability of result.capabilities) say(style.muted(`  ${capability.outcome === 'supported' ? marks.ok : capability.outcome === 'failed' ? marks.warn : '?'} ${capability.name}: ${capability.summary}`));
+        if (result.status !== 'ready') return failed(result.summary, result);
+        state.local = { plan, result };
+        state.checks.set(LOCAL_MODELS, result.check!);
+        say(`${style.success(marks.ok)} Local models: ${result.summary}`);
     };
 
     /**
@@ -1296,7 +1401,17 @@ export async function initializeProject(context: CommandContext, options: { proj
             say(`Updating ${item.plugin.displayName}…`);
             const result = await updateHarness(item.plugin, item.inspection, context2);
             say(`${result.outcome === 'updated' || result.outcome === 'current' ? style.success(marks.ok) : style.warning(marks.warn)} ${result.diagnostic}`);
-            if (result.outcome === 'updated') changed.push(result.diagnostic);
+            if (result.outcome === 'updated') {
+                changed.push(result.diagnostic);
+                state.checks.delete(item.plugin.id);
+            }
+            // Updating may change both capabilities and native account discovery. Keep the next functional check
+            // bound to the executable and service context that will actually run the project.
+            const tool = setupTool(item.plugin);
+            const credential = apiHarnesses?.get(item.plugin.id)?.credential;
+            const inspection = await item.plugin.inspect({ projectRoot, env: instanceEnvironment(item.plugin, tool, credential, context.env), tool });
+            const problem = await serviceProblemOf(item.plugin, inspection, { projectRoot, env: instanceEnvironment(item.plugin, tool, credential, persistentServiceEnvironment(context.env)), tool });
+            state.inspections.set(item.plugin.id, problem ? { ...inspection, usable: false, summary: problem.summary, problem: 'error', nextAction: problem.nextAction } : inspection);
         }
         for (const item of outdated.filter((candidate) => !toUpdate.includes(candidate))) alreadyReady.push(`${item.plugin.displayName} kept at ${item.current}`);
     };
@@ -1362,7 +1477,14 @@ export async function initializeProject(context: CommandContext, options: { proj
         const local = await inspectLocalInstallation(root);
         if (local.usable) alreadyReady.push(`ptbk ${local.installedVersion} installed locally (${local.declaredIn})`);
     }
-    const selected = state.selected ?? [];
+    const selected = (state.selected ?? []).filter((id) => id !== LOCAL_MODELS);
+    if (state.local) {
+        const result = state.local.result;
+        if (result?.status === 'ready') alreadyReady.push(`Local models: ${result.summary}`);
+        else notes.push(`Local models were not prepared: ${result?.summary ?? state.checks.get(LOCAL_MODELS)?.summary ?? 'not checked'} → \`ptbk tool setup-local\` adds them later`);
+        if (result?.completed.length) notes.push(`Prepared on this computer (shared, kept): ${result.completed.join(' ')}`);
+        if (result?.status === 'ready') notes.push(...result.pending);
+    }
     for (const id of selected) {
         const plugin = harnessPlugin(id)!;
         const inspection = state.inspections.get(id);
@@ -1373,11 +1495,11 @@ export async function initializeProject(context: CommandContext, options: { proj
         else if (inspection?.usable) alreadyReady.push(`${plugin.displayName}: ${inspection.summary}`);
         else unresolved.push(`${plugin.displayName}: ${inspection?.summary ?? 'not inspected'}${inspection?.nextAction ? ` → ${inspection.nextAction}` : ''}`);
     }
-    if (!embeddedHarness && !selected.length && !(configBefore && enabledHarnesses(configBefore).length)) notes.push('No harness is selected: the agenda runs but waits for tools until one is added (`ptbk tool add HARNESS …`).');
+    if (!embeddedHarness && !selected.length && state.local?.result?.status !== 'ready' && !(configBefore && enabledHarnesses(configBefore).length)) notes.push('No harness is selected: the agenda runs but waits for tools until one is added (`ptbk tool add HARNESS …`).');
 
     const tasksDirectory = configBefore ? setting<string>(configBefore, 'paths.tasks') : 'tasks';
     const agentsDirectory = configBefore ? setting<string>(configBefore, 'paths.agents') : 'agents';
-    const tracePolicy = state.traces ?? { commit: false, ignoreVideos: true, recordVideo: true };
+    const tracePolicy = state.traces ?? { commit: false, ignoreVideos: true, recordVideo: false };
     const createdManifest = installation === 'local' && !(await pathExists(join(root, 'package.json')));
     // Runtime state and local secrets stay ignored independently of every trace choice.
     const ignore = await ensureRuntimeIgnore(root, [...(createdManifest || (await pathExists(join(root, 'node_modules'))) ? ['node_modules/'] : []), '.env']);
@@ -1399,6 +1521,10 @@ export async function initializeProject(context: CommandContext, options: { proj
     // Router starts directly runnable: the first selected harness that passed its real check, with its plugin's coded
     // defaults.
     const routerModel = async (): Promise<string | undefined> => {
+        // The first working selection in selection order; a prepared local route gives a hard-local concrete MODEL.
+        const firstWorking = (state.selected ?? []).find((candidate) => state.checks.get(candidate)?.ok);
+        const localPlan = state.local?.result?.status === 'ready' ? state.local.plan : undefined;
+        if (firstWorking === LOCAL_MODELS && localPlan?.model) return formatModelRow({ harness: localPlan.harness, model: localPlan.model, ...(localPlan.combination?.defaultThinkingLevel ? { thinking: localPlan.combination.defaultThinkingLevel } : {}), runtime: 'local' });
         const id = selected.find((candidate) => state.checks.get(candidate)?.ok)
             ?? selected.find((candidate) => state.inspections.get(candidate)?.usable)
             ?? selected[0]
@@ -1408,9 +1534,12 @@ export async function initializeProject(context: CommandContext, options: { proj
         if (!plugin) return undefined;
         const prepared = apiHarnesses?.get(plugin.id);
         const api = prepared ? plugin.setupApiKey : undefined;
-        const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
+        const tool = setupTool(plugin);
+        const env = instanceEnvironment(plugin, tool, prepared?.credential, context.env);
+        const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env, tool }).catch(() => []) : [];
         const row = pluginDefaultRow(plugin, catalog, prepared ? toolRuntime(prepared.tool) : 'official');
-        return formatModelRow({ ...row, model: api?.model ?? row.model, thinking: api?.thinkingLevel ?? row.thinking });
+        const checked = state.checks.get(plugin.id);
+        return formatModelRow({ ...row, model: checked?.ok ? checked.model ?? row.model : api?.model ?? row.model, thinking: api?.thinkingLevel ?? row.thinking });
     };
     // The same core preparation as start: missing roles are created, clean template updates applied; conflicts stay
     // for the engine's ordinary Fixer work (init makes no project model calls).
@@ -1537,6 +1666,16 @@ export async function initializeProject(context: CommandContext, options: { proj
             operations.push({ kind: 'add', tool: prepared ? { ...prepared.tool, name, apiKeyEnv: prepared.credential.name } : { type: 'HARNESS', variant, name, authentication: 'NATIVE' } });
         } else if (!instances.some((tool) => tool.isEnabled)) operations.push({ kind: 'enable', name: instances[0]!.name });
     }
+    // Local models: the runtime and its credential-free connection prepared and verified in the harness step.
+    if (state.local?.result?.status === 'ready') for (const draft of state.local.plan.drafts) if (!typedTools.some((tool) => tool.name === draft.name)) operations.push({ kind: 'add', tool: draft });
+    // Only a new configuration gets the default desktop record here. Existing configurations use the versioned
+    // migration, so rerunning init cannot resurrect a deliberately removed or disabled desktop tool.
+    if (!file.exists && !typedTools.some((tool) => tool.type === 'COMPUTER_CONTROL')) {
+        const taken = new Set(existingTools.flatMap((tool) => tool && typeof tool === 'object' && typeof (tool as Record<string, unknown>).name === 'string' ? [(tool as Record<string, unknown>).name as string] : []));
+        let name = 'computer-control';
+        for (let suffix = 2; taken.has(name); suffix++) name = `computer-control-${suffix}`;
+        operations.push({ kind: 'add', tool: { type: 'COMPUTER_CONTROL', variant: 'NATIVE', name } });
+    }
     const configured = operations.length ? applyToolOperationsToConfig({ ...raw, tools: existingTools }, operations) : canonicalizeConfig(raw).raw;
     const effectiveInstallation = installation === 'existing' ? (marker.installation ?? 'local') : installation;
     if (firstTask || !marker.engineVersion || marker.installation !== effectiveInstallation) {
@@ -1547,7 +1686,11 @@ export async function initializeProject(context: CommandContext, options: { proj
         await writeFileAtomic(project.configPath, text);
         createdPaths.push(project.configPath);
     }
-    for (const operation of operations) changed.push(operation.kind === 'add' ? `Tool ${operation.tool.name} (${operation.tool.type} ${operation.tool.variant})` : `Tool ${operation.name}: ${operation.kind}`);
+    for (const operation of operations) {
+        if (operation.kind === 'add') changed.push(`Tool ${operation.tool.name} (${operation.tool.type} ${operation.tool.variant})`);
+        else if (operation.kind === 'add-together') for (const tool of operation.tools) changed.push(`Tool ${tool.name} (${tool.type} ${tool.variant})`);
+        else changed.push(`Tool ${operation.name}: ${operation.kind}`);
+    }
     for (const path of createdPaths) {
         const label = toProjectRelative(root, path);
         if (!changed.includes(label)) changed.push(label);
@@ -1793,7 +1936,7 @@ export default async function init(context: CommandContext): Promise<number> {
         return EXIT.success;
     }
     if (flag(context, 'prepare-only')) {
-        const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'setup-link', 'json', 'persist', 'wait', 'non-interactive', 'interactive', 'raw', 'no-ui', 'terminal-title']);
+        const allowed = new Set(['prepare-only', 'link', 'link-stdin', 'setup-link', 'open', 'json', 'persist', 'wait', 'non-interactive', 'interactive', 'raw', 'no-ui', 'terminal-title']);
         if ([...context.explicit].some((name) => !allowed.has(name))) throw usageError('With --prepare-only, project decisions come from onboarding after the engine starts.', 'init');
         const { prepareOnboarding } = await import('./onboarding.js');
         return await prepareOnboarding(context);

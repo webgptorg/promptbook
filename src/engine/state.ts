@@ -1,3 +1,4 @@
+import type { LocalRoute } from '../harness/types.js';
 import type { HarnessSessionRecord } from '../harness/sessions.js';
 import type { ProgressiveSchedule } from './progressive-waiting.js';
 import { appendFile, readFile, rm } from 'node:fs/promises';
@@ -57,6 +58,10 @@ export type RoutingSelection = {
     readonly runtime?: string;
     /** Base URL the harness is pointed at (local/custom endpoints only). */
     readonly baseUrl?: string;
+    /** Managed local connection of the serving tool: its runtime binding, applied per invocation. */
+    readonly localRoute?: LocalRoute;
+    /** Verified execution locality of the selected model through that connection. */
+    readonly locality?: 'local' | 'cloud' | 'unknown';
     /** Where each value came from (task/agent/chat MODEL, CLI requirement, plugin default, tool order). */
     readonly sources?: Readonly<Partial<Record<'agent' | 'harness' | 'tool' | 'model' | 'thinkingLevel' | 'runtime', string>>>;
 };
