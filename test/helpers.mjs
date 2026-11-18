@@ -253,10 +253,23 @@ export async function drive(project, env, until, { args = [], timeoutMs = 90_000
     child.stderr.setEncoding('utf8').on('data', (chunk) => (stderr += chunk));
     const exited = new Promise((resolve) => child.on('close', (code) => resolve(code)));
     let failure;
+    // The observed repository is changing under the engine: on Windows a `git log` racing a commit's ref update can
+    // briefly see an unborn branch, so a failed observation means "not yet" and only its last cause is reported.
+    let observationError;
+    const observe = async () => {
+        try {
+            const result = await until({ output: `${stdout}\n${stderr}` });
+            observationError = undefined;
+            return result || undefined;
+        } catch (error) {
+            observationError = error;
+            return undefined;
+        }
+    };
     try {
-        await waitFor(async () => (await until({ output: `${stdout}\n${stderr}` })) || undefined, { timeoutMs, message });
+        await waitFor(observe, { timeoutMs, message });
     } catch (error) {
-        failure = error;
+        failure = observationError ? new Error(`${error.message} Last observation failed: ${observationError.message}`) : error;
     }
     await ptbk(['stop', '--raw', '--timeout', '2m'], { cwd: project, env });
     let timer;
