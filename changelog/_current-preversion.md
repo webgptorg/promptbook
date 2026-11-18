@@ -1,5 +1,7 @@
 # Unreleased
 
+- Fix Claude Code sign-in being reported as unavailable to the background service on macOS. Service readiness checks and restarts now preserve `USER`, `LOGNAME` and the exact native credential-store selector, including an explicitly empty selector. Authentication continues through Claude Code's own store; no OAuth tokens or API keys enter restart metadata.
+
 - The Android APK build authenticates its GitHub API requests (Termux recipe history for the bundled GPL sources) with the workflow token, both when publishing and in the Android check. Anonymous requests share the hosted runner's 60-requests-per-hour limit and had failed releases with HTTP 403.
 
 - Repeated local model setup reuses earlier capability evidence for the identical combination: the same harness version, runtime service and version, model digest and quantization, and thinking level. The real answer is still checked every time, but the scratch-file, read-only, continuation and MCP turns are not repeated, and their outcomes say when they were verified. Only evidence where every check passed is kept, outside the project on this computer. A new harness or runtime version or a changed model invalidates it, as does an unknown version or digest. `ptbk tool setup-local --recheck` repeats the checks anyway.

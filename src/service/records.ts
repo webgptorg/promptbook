@@ -168,6 +168,9 @@ const PRESERVED_VARIABLES = [
     'Path',
     'PATHEXT',
     'HOME',
+    // Claude Code's macOS Keychain lookup uses the OS account as well as HOME.
+    'USER',
+    'LOGNAME',
     'USERPROFILE',
     'APPDATA',
     'LOCALAPPDATA',
@@ -178,6 +181,7 @@ const PRESERVED_VARIABLES = [
     'XDG_RUNTIME_DIR',
     'CODEX_HOME',
     'CLAUDE_CONFIG_DIR',
+    'CLAUDE_SECURESTORAGE_CONFIG_DIR',
     'NVM_DIR',
     'NVM_BIN',
     'VOLTA_HOME',
@@ -208,7 +212,8 @@ const PRESERVED_VARIABLES = [
  */
 export function discoveryEnvironment(env: NodeJS.ProcessEnv = process.env): Record<string, string> {
     const result: Record<string, string> = {};
-    for (const name of PRESERVED_VARIABLES) if (env[name]) result[name] = env[name]!;
+    // Preserve explicit empty selectors too: Claude's secure-storage override uses '' to select the default store.
+    for (const name of PRESERVED_VARIABLES) if (env[name] !== undefined) result[name] = env[name]!;
     const pathKey = process.platform === 'win32' && result.Path && !result.PATH ? 'Path' : 'PATH';
     const entries = (result[pathKey] ?? '').split(delimiter).filter(Boolean);
     const nodeBin = dirname(process.execPath);
