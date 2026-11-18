@@ -16,6 +16,20 @@ const TRANSIENT_FILE_ERRORS = new Set(['EPERM', 'EBUSY', 'EACCES', 'ENOTEMPTY'])
 const ATOMIC_RENAME_ATTEMPTS = 12;
 
 /**
+ * Time budget of an asynchronous atomic replacement during transient sharing failures.
+ *
+ * A Windows rename onto a file fails while any reader has it open. Readers that poll a large file back to back (for
+ * example dashboards reading a streaming chat reply) leave only short gaps, so a busy machine needs more than a fixed
+ * number of quick attempts.
+ */
+const ATOMIC_RENAME_BUDGET_MS = 10_000;
+
+/**
+ * Longest pause between two asynchronous rename attempts.
+ */
+const ATOMIC_RENAME_MAX_DELAY_MS = 200;
+
+/**
  * Checks whether a path exists (following symlinks).
  *
  * @private shared filesystem helper
@@ -86,8 +100,9 @@ export async function ensureDirectory(path: string): Promise<string> {
 /**
  * Atomically replaces a file: the content is written to a sibling temporary file and renamed.
  *
- * Transient Windows sharing failures are retried a bounded number of times; the destination is never deleted
- * to force the replacement.
+ * Transient Windows sharing failures are retried within a bounded time, with jittered pauses so the rename does not
+ * keep colliding with a reader that reopens the file at a steady pace; the destination is never deleted to force the
+ * replacement.
  *
  * @private shared filesystem helper
  */
@@ -95,6 +110,7 @@ export async function writeFileAtomic(path: string, content: string | Uint8Array
     await ensureDirectory(dirname(path));
     const temporary = `${path}.${randomBytes(6).toString('hex')}.tmp`;
     await writeFile(temporary, content, options.mode === undefined ? undefined : { mode: options.mode });
+    const deadline = Date.now() + ATOMIC_RENAME_BUDGET_MS;
     for (let attempt = 1; ; attempt++) {
         try {
             await rename(temporary, path);
@@ -102,11 +118,11 @@ export async function writeFileAtomic(path: string, content: string | Uint8Array
             return;
         } catch (error) {
             const code = (error as NodeJS.ErrnoException).code ?? '';
-            if (!TRANSIENT_FILE_ERRORS.has(code) || attempt >= ATOMIC_RENAME_ATTEMPTS) {
+            if (!TRANSIENT_FILE_ERRORS.has(code) || Date.now() >= deadline) {
                 await rm(temporary, { force: true }).catch(() => undefined);
                 throw error;
             }
-            await sleep(25 * attempt);
+            await sleep(Math.min(ATOMIC_RENAME_MAX_DELAY_MS, 10 * attempt) * (0.5 + Math.random()));
         }
     }
 }

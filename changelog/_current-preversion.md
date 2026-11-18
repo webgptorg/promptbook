@@ -1,5 +1,7 @@
 # Unreleased
 
+- Fix a chat or other atomically saved file failing to save on Windows with `EPERM: operation not permitted, rename` while another reader keeps reopening it, for example a dashboard following a long streaming reply. The replacement now keeps retrying for up to 10 seconds with jittered pauses, instead of giving up after about 1.6 seconds of evenly spaced attempts that kept colliding with the reader.
+
 - Make the release checks consistent. `npm test` and `npm run test:browser` now retry each failed test file once, alone, before failing. Their integration tests drive real processes, Git, PTYs and browsers on shared hosted runners, and each release ran about 15 such jobs twice: once for the pushed commit and once to validate the tag. One missed timing budget anywhere (a different test each time) failed the publication. A file that fails again on its retry still fails the check. A file that passes only on its retry is reported as a flaky-test warning on the run, so it stays visible and can be fixed.
 
 - Restore the `test:browser` npm script and the Monaco check of `test:vscode`. A merge of a stale local branch had dropped both from `package.json`, so every release since 0.119.0-115 failed in the native-browser check with "Missing script". A new check verifies that every `npm run` in the GitHub workflows names an existing script, and that every script or test file an npm script starts exists.
