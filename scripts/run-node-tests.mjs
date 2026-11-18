@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** Repository root: every test file path is relative to it. */
@@ -58,4 +58,12 @@ export async function runNodeTests(files, { args = [], env = process.env } = {})
         process.stdout.write(process.env.GITHUB_ACTIONS === 'true' ? `::warning file=${file},title=Flaky test file::${message}\n` : `Warning: ${message}\n`);
     }
     return 0;
+}
+
+// Command line: `node scripts/run-node-tests.mjs [--node-test-option...] <file relative to the repository root>...`
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+    const argv = process.argv.slice(2);
+    const files = argv.filter((arg) => !arg.startsWith('--'));
+    if (!files.length) throw new Error('Pass the test files to run, relative to the repository root.');
+    process.exitCode = await runNodeTests(files, { args: argv.filter((arg) => arg.startsWith('--')) });
 }

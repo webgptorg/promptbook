@@ -12,7 +12,7 @@
     "package:windows": "npm run build && node package-windows.mjs",
     "package:macos": "npm run build && node package-macos.mjs",
     "postinstall": "electron-builder install-app-deps",
-    "test:e2e": "node --test test/e2e.mjs"
+    "test:e2e": "node ../../scripts/run-node-tests.mjs apps/desktop/test/e2e.mjs"
   },
   "dependencies": {
     "@xterm/addon-fit": "0.11.0",
