@@ -15,6 +15,10 @@ import sys
 TERMUX = 'https://packages.termux.dev/apt/termux-main'
 KEYRING_REF = '2c48b8990c9ef52071ad76b12ae82b3ab94b6f89'
 TERMUX_API = 'https://api.github.com/repos/termux/termux-packages'
+# Checksum-verified upstream sources are tried on each mirror in turn: one unreachable mirror (mirrors.kernel.org
+# timed out and reset connections from hosted runners for hours) must not fail a release.
+KERNEL_MIRRORS = ('https://cdn.kernel.org/pub', 'https://mirrors.kernel.org/pub')
+GNU_MIRRORS = ('https://ftp.gnu.org/gnu', 'https://mirrors.kernel.org/gnu')
 KEYRING_URL = f'https://raw.githubusercontent.com/termux/termux-packages/{KEYRING_REF}/packages/termux-keyring'
 PREFIX = 'data/data/com.termux/files/usr'
 SYSTEM_LIBRARIES = {'libandroid.so', 'libc.so', 'libdl.so', 'liblog.so', 'libm.so'}
@@ -44,11 +48,22 @@ def download(url, output, expected=None):
     token = os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')
     authenticated = bool(token) and url.startswith('https://api.github.com/')
     subprocess.run(['curl', '--fail', '--silent', '--show-error', '--location', '--retry', '5', '--retry-all-errors', '--retry-delay', '5',
-                    '--max-time', '120', *(['--header', '@-'] if authenticated else []), url, '-o', output],
+                    '--connect-timeout', '20', '--max-time', '120', *(['--header', '@-'] if authenticated else []), url, '-o', output],
                    check=True, input=f'Authorization: Bearer {token}\n'.encode() if authenticated else None)
     if expected and sha256(output.read_bytes()).hexdigest() != expected:
         raise ValueError(f'The checksum of {url} differs from the signed index.')
     return output
+
+
+def download_mirrored(mirrors, path, output, expected):
+    """Download a checksum-verified file from the first mirror that serves it."""
+    for index, mirror in enumerate(mirrors):
+        try:
+            return download(f'{mirror}/{path}', output, expected)
+        except subprocess.CalledProcessError:
+            if index == len(mirrors) - 1:
+                raise
+            print(f'{mirror} did not serve {path}; trying the next mirror.', file=sys.stderr)
 
 
 def repository_index(work, arch):
@@ -160,19 +175,18 @@ def include_source(work, licenses, package, version):
         digest = re.search(r'^TERMUX_PKG_SHA256=([0-9a-f]{64})', recipe, re.M)[1]
         if package == 'git':
             source = f'git-{upstream[1]}.tar.xz'
-            download(f'https://mirrors.kernel.org/pub/software/scm/git/{source}', licenses / source, digest)
+            download_mirrored(KERNEL_MIRRORS, f'software/scm/git/{source}', licenses / source, digest)
         else:
             main_version, patch_number = upstream[1].rsplit('.', 1)
             source = f'{package}-{main_version}.tar.gz'
-            root = f'https://mirrors.kernel.org/gnu/{package}'
-            download(f'{root}/{source}', licenses / source, digest)
+            download_mirrored(GNU_MIRRORS, f'{package}/{source}', licenses / source, digest)
             patch_prefix = f'{package}{main_version.replace(".", "")}'
             checksums = dict(re.findall(r'PATCH_CHECKSUMS\[(\d{3})\]=([0-9a-f]{64})', recipe))
             def patch_source(number):
                 index = f'{number:03d}'
                 filename = f'{patch_prefix}-{index}'
-                download(f'{root}/{package}-{main_version}-patches/{filename}', licenses / filename, checksums[index])
-            with ThreadPoolExecutor(max_workers=8) as pool:
+                download_mirrored(GNU_MIRRORS, f'{package}/{package}-{main_version}-patches/{filename}', licenses / filename, checksums[index])
+            with ThreadPoolExecutor(max_workers=4) as pool:
                 list(pool.map(patch_source, range(1, int(patch_number) + 1)))
         files = json.loads(download(f'{TERMUX_API}/contents/{recipe_path}?ref={ref}',
                                     work / f'{package}-recipe-files.json').read_text())
