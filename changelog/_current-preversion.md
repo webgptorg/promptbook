@@ -1,5 +1,7 @@
 # Unreleased
 
+- Publishing the same release again no longer fails. When npm already serves the exact version, `npm run release:publish` verifies it instead of publishing again, which npm refuses. A re-run or a dispatch of the same tag can now complete the release assets that wait for the npm publication, such as the Windows installer.
+
 - Fix a chat or other atomically saved file failing to save on Windows with `EPERM: operation not permitted, rename` while another reader keeps reopening it, for example a dashboard following a long streaming reply. The replacement now keeps retrying for up to 10 seconds with jittered pauses, instead of giving up after about 1.6 seconds of evenly spaced attempts that kept colliding with the reader.
 
 - Make the release checks consistent. `npm test` and `npm run test:browser` now retry each failed test file once, alone, before failing. Their integration tests drive real processes, Git, PTYs and browsers on shared hosted runners, and each release ran about 15 such jobs twice: once for the pushed commit and once to validate the tag. One missed timing budget anywhere (a different test each time) failed the publication. A file that fails again on its retry still fails the check. A file that passes only on its retry is reported as a flaky-test warning on the run, so it stays visible and can be fixed.

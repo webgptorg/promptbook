@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { isAlreadyPublished } from '../scripts/verify-published.mjs';
 import { ROOT } from './helpers.mjs';
 
 /** Reads the `scripts` of the package.json in `directory` (relative to the repository root). */
@@ -34,4 +35,14 @@ test('every script and test file that a root npm script starts with node exists'
             assert.ok(existsSync(join(ROOT, file)), `npm script "${name}" references the missing file ${file}`);
         }
     }
+});
+
+test('a repeated release publication recognizes the exact version npm already serves and is never confused by other errors', async () => {
+    const release = { version: '1.2.3-4', tag: 'latest' };
+    const served = { version: '1.2.3-4', 'dist.tarball': 'https://registry.npmjs.org/ptbk/-/ptbk-1.2.3-4.tgz', 'dist.integrity': 'sha512-AAAA', 'dist-tags': {} };
+    const npmError = (code) => Object.assign(new Error(`npm error code ${code}`), { stderr: `npm error code ${code}` });
+    assert.equal(await isAlreadyPublished(release, { readMetadata: async () => served }), true);
+    assert.equal(await isAlreadyPublished(release, { readMetadata: async () => { throw npmError('E404'); } }), false);
+    await assert.rejects(isAlreadyPublished(release, { readMetadata: async () => { throw npmError('E401'); } }), /E401/, 'an authentication failure is not "not published"');
+    await assert.rejects(isAlreadyPublished(release, { readMetadata: async () => ({ ...served, 'dist.tarball': 'https://example.test/other.tgz' }) }), /tarball/, 'a different artifact is never accepted as this release');
 });

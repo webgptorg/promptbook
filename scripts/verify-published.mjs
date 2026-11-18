@@ -40,6 +40,20 @@ async function readPublishedMetadata(release) {
     return JSON.parse(stdout);
 }
 
+/**
+ * Tells whether npm already serves this exact release, so a repeated publication (a re-run or a dispatch that completes
+ * the release assets) verifies it instead of failing on npm's refusal to overwrite a version.
+ */
+export async function isAlreadyPublished(release, { readMetadata = readPublishedMetadata } = {}) {
+    try {
+        assertPublishedArtifact(release, await readMetadata(release));
+        return true;
+    } catch (error) {
+        if (['E404', 'ETARGET', 'ENOVERSIONS'].includes(registryErrorCode(error))) return false;
+        throw error;
+    }
+}
+
 /** Execute npm without relying on platform shell shims or interpolating registry values. */
 function executeNpm(args, options) {
     if (!npmCli) throw new Error('Run registry verification with npm run release:verify.');
