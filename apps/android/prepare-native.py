@@ -36,12 +36,14 @@ def download(url, output, expected=None):
 
     GitHub API requests are authenticated with the workflow token when one is available: anonymous requests share
     the hosted runner's small per-IP rate limit and fail with HTTP 403. The token goes through stdin, not argv.
+    Every failure is retried, including refused or reset connections and TLS handshake errors (curl exit 35), which
+    plain --retry does not repeat and which had failed releases on a mirror hiccup.
     """
     if expected and output.is_file() and sha256(output.read_bytes()).hexdigest() == expected:
         return output
     token = os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')
     authenticated = bool(token) and url.startswith('https://api.github.com/')
-    subprocess.run(['curl', '--fail', '--silent', '--show-error', '--location', '--retry', '3',
+    subprocess.run(['curl', '--fail', '--silent', '--show-error', '--location', '--retry', '5', '--retry-all-errors', '--retry-delay', '5',
                     '--max-time', '120', *(['--header', '@-'] if authenticated else []), url, '-o', output],
                    check=True, input=f'Authorization: Bearer {token}\n'.encode() if authenticated else None)
     if expected and sha256(output.read_bytes()).hexdigest() != expected:

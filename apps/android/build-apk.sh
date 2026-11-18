@@ -48,7 +48,7 @@ rm -f "$payload/package-lock.json" "$payload/node_modules/.package-lock.json"
 cp apps/android/engine.mjs "$payload/"
 
 gemini="$build/gemini-cli.tgz"
-curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 5 --max-time 120 \
     'https://registry.npmjs.org/@google/gemini-cli/-/gemini-cli-0.67.0.tgz' -o "$gemini"
 integrity=$(openssl dgst -sha512 -binary "$gemini" | openssl base64 -A)
 test "$integrity" = 'lDJfCcYem6/6QZdwZFiGfOu1ZxJJ+j4wsr4HlmcYBfqUHTDXLKDv1MPUXYL2Ok1ygdfMve0F5KrW/ORNZRSHIg=='

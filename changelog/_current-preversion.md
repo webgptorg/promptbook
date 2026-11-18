@@ -1,5 +1,7 @@
 # Unreleased
 
+- The Android APK build now retries every failed download (up to 5 times, 5 seconds apart), including refused or reset connections and TLS handshake errors. curl's plain `--retry` repeats only timeouts and some HTTP errors, so one TLS error from a source mirror (curl exit 35) had failed the release's APK.
+
 - Publishing the same release again no longer fails. When npm already serves the exact version, `npm run release:publish` verifies it instead of publishing again, which npm refuses. A re-run or a dispatch of the same tag can now complete the release assets that wait for the npm publication, such as the Windows installer.
 
 - Fix a chat or other atomically saved file failing to save on Windows with `EPERM: operation not permitted, rename` while another reader keeps reopening it, for example a dashboard following a long streaming reply. The replacement now keeps retrying for up to 10 seconds with jittered pauses, instead of giving up after about 1.6 seconds of evenly spaced attempts that kept colliding with the reader.
