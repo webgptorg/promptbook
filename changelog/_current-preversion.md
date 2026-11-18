@@ -1,5 +1,7 @@
 # Unreleased
 
+- Restore the `test:browser` npm script and the Monaco check of `test:vscode`. A merge of a stale local branch had dropped both from `package.json`, so every release since 0.119.0-115 failed in the native-browser check with "Missing script". A new check verifies that every `npm run` in the GitHub workflows names an existing script, and that every script or test file an npm script starts exists.
+
 - Fix native Codex initialization when a catalog model is unavailable to the signed-in ChatGPT account: verify bounded same-account alternatives and retain the working model for naming and Router. Preserve OS account/temp discovery in the service, and distinguish account-store probe errors from a signed-out account. Update npm harnesses in their owning prefix after Node changes, support the registered Codex Homebrew cask, and recheck the installed version and service readiness after maintenance.
 
 - Fix Claude Code sign-in being reported as unavailable to the background service on macOS. Service readiness checks and restarts now preserve `USER`, `LOGNAME` and the exact native credential-store selector, including an explicitly empty selector. Authentication continues through Claude Code's own store; no OAuth tokens or API keys enter restart metadata.

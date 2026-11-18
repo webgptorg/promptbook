@@ -25,6 +25,7 @@
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "test": "npm run build && node scripts/test.mjs",
         "test:package": "npm run build && node scripts/test-package.mjs",
+        "test:browser": "npm run build && node scripts/test-browser.mjs",
         "check": "npm run check:light",
         "check:light": "npm run typecheck",
         "check:full": "npm run typecheck && npm run typecheck:vscode && npm test && npm run test:vscode && npm run test:package && npm run package:vscode",
@@ -44,7 +45,7 @@
         "build:vscode": "node scripts/build-vscode.mjs",
         "build:conformance": "node scripts/build.mjs && node scripts/build-conformance.mjs",
         "typecheck:vscode": "tsc -p extensions/vscode/tsconfig.json",
-        "test:vscode": "npm run build:vscode && node --test extensions/vscode/test/language.test.mjs extensions/vscode/test/package.test.mjs",
+        "test:vscode": "npm run build:vscode && node --test extensions/vscode/test/language.test.mjs extensions/vscode/test/monaco.test.mjs extensions/vscode/test/package.test.mjs",
         "package:vscode": "npm run build:vscode && node scripts/package-vscode.mjs",
         "release:vscode": "node scripts/publish-vscode.mjs"
     },
