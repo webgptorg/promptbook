@@ -79,6 +79,10 @@ if (args[0] === 'login' && args[1] !== 'status') {
     process.exit(1);
 }
 if (args[0] === 'login' && args[1] === 'status') {
+    if (process.env.FAKE_CODEX_STATUS_ERROR) {
+        process.stderr.write(`${process.env.FAKE_CODEX_STATUS_ERROR}\n`);
+        process.exit(1);
+    }
     if (process.env.FAKE_CODEX_SIGNED_OUT || (authFile && !existsSync(authFile))) {
         process.stderr.write('Not logged in\n');
         process.exit(1);
@@ -119,7 +123,7 @@ if (args[0] === 'resume') {
             buffer = buffer.slice(index + 1);
             const message = JSON.parse(line);
             if (message.method === 'initialize') print({ id: message.id, result: { userAgent: `${message.params?.clientInfo?.name ?? 'client'}/0.166.0 (fake)` } });
-            else if (message.method === 'model/list') print({ id: message.id, result: { data: [{ model: 'fake-model-1' }, { model: 'fake-model-2' }] } });
+            else if (message.method === 'model/list') print({ id: message.id, result: { data: process.env.FAKE_CODEX_MODELS ? JSON.parse(process.env.FAKE_CODEX_MODELS) : [{ model: 'fake-model-1' }, { model: 'fake-model-2' }] } });
             else if (message.method) realtime(message);
         }
     });
@@ -212,6 +216,11 @@ async function main() {
         if (process.env.FAKE_CODEX_PREPARATION_LOG) appendFileSync(process.env.FAKE_CODEX_PREPARATION_LOG, `${JSON.stringify({ kind: check ? 'check' : 'name', cwd: process.cwd(), home: process.env.CODEX_HOME ?? null, args, config: configOverrides(), apiKey: Boolean(process.env.OPENAI_API_KEY || process.env.CODEX_API_KEY) })}\n`);
         print({ type: 'thread.started', thread_id: `fake-${Date.now()}` });
         print({ type: 'turn.started' });
+        const model = args[args.indexOf('--model') + 1];
+        if ((JSON.parse(process.env.FAKE_CODEX_REJECT_MODELS ?? '[]')).includes(model) || process.env.FAKE_CODEX_CHECK_ERROR) {
+            print({ type: 'turn.failed', error: { message: process.env.FAKE_CODEX_CHECK_ERROR ?? JSON.stringify({ error: { code: 'model_not_found', message: `The '${model}' model is not supported when using Codex with a ChatGPT account.` } }) } });
+            process.exit(1);
+        }
         if (check ? process.env.FAKE_CODEX_CHECK_FAIL : process.env.FAKE_CODEX_NAME_FAIL) {
             print({ type: 'turn.failed', error: { message: check ? 'sandbox: landlock is not supported by this kernel' : 'unexpected provider error' } });
             process.exit(1);

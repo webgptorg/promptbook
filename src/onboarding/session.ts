@@ -65,7 +65,8 @@ async function verifyHarness(plugin: HarnessPlugin, context: HarnessContext, ins
     const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels(context).catch(() => []) : [];
     const row = pluginDefaultRow(plugin, catalog);
     const call = { plugin, inspection, env: context.env, signal: context.signal, baseUrl: context.tool?.baseUrl, model: api?.model ?? row.model, thinkingLevel: api?.thinkingLevel ?? row.thinking };
-    return (await functionalCheck({ ...call, timeoutMs })).ok ? call : undefined;
+    const check = await functionalCheck({ ...call, timeoutMs, ...(context.tool?.authentication === 'NATIVE' ? { modelCandidates: catalog } : {}) });
+    return check.ok ? { ...call, model: check.model ?? call.model } : undefined;
 }
 
 /**

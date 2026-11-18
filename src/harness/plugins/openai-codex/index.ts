@@ -1,4 +1,5 @@
 import { runProcess } from '../../../common/process.js';
+import { createRedactor } from '../../../common/redact.js';
 import { stripAnsi } from '../../../ui/ansi.js';
 import { baseInspection, helpText, numericUsage, observedSessionSupport, parseJsonLine, probe, summarizeToolInput, withAuthentication } from '../../shared.js';
 import type { HarnessContext, HarnessEvent, HarnessInspection, HarnessInvocation, HarnessLoginMethod, HarnessPlugin, HarnessRunRequest, LoginFailure, LoginLocation, ParserState } from '../../types.js';
@@ -52,8 +53,10 @@ async function listCodexModels(context: HarnessContext): Promise<string[]> {
                 send({ jsonrpc: '2.0', method: 'initialized' });
                 send({ jsonrpc: '2.0', id: 2, method: 'model/list', params: { limit: 100 } });
             } else if (message?.id === 2) {
-                const data = (message.result as { data?: Array<{ model?: string; id?: string; hidden?: boolean }> } | undefined)?.data ?? [];
-                for (const entry of data) if (!entry.hidden && (entry.model || entry.id)) models.push((entry.model ?? entry.id)!);
+                const data = (message.result as { data?: Array<{ model?: string; id?: string; hidden?: boolean; isDefault?: boolean }> } | undefined)?.data ?? [];
+                // Catalog order is not an entitlement check. Prefer the installed client's recommended default;
+                // setup still verifies it with a real turn before retaining it for naming and Router.
+                for (const entry of [...data].sort((a, b) => Number(Boolean(b.isDefault)) - Number(Boolean(a.isDefault)))) if (!entry.hidden && (entry.model || entry.id)) models.push((entry.model ?? entry.id)!);
                 controls?.end();
             }
         },
@@ -79,7 +82,13 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
             nextAction: `Sign in with ChatGPT (\`codex login\`), or add an explicit API tool: ptbk tool add HARNESS --variant OPENAI_CODEX --name codex-api --authentication API_KEY --api-key-env OPENAI_API_KEY`,
         };
     }
-    return withAuthentication(inspection, false, 'none', plugin.loginHint, 'Installed but not logged in.');
+    if (/\bnot (?:logged|signed) in\b/i.test(status.output)) return withAuthentication(inspection, false, 'none', plugin.loginHint, 'Installed but not logged in.');
+    return {
+        ...inspection,
+        summary: `Could not read Codex login status: ${createRedactor([], context.env)(stripAnsi(status.output)).slice(0, 500) || `exit ${String(status.exitCode)}`}`,
+        problem: 'error',
+        nextAction: 'Run `codex login status` as the engine user and check its account-store permissions and configuration.',
+    };
 }
 
 /**

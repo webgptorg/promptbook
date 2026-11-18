@@ -57,6 +57,8 @@ Distinguish waiting, actual native success, cancellation, expiry, denial, unsupp
 
 After login, recheck the selected instance through its real non-inference readiness mechanism in the service's effective environment. A printed URL, entered code, created file or launcher exit alone is insufficient. Authentication is separate from quota, model entitlement and paid API access. Continue ordinary init/start/dashboard once essential setup is complete. Runtime uses supported autonomous execution without another hidden login; later access loss follows ordinary live-tool waits and attended repair.
 
+Keep the service's non-secret OS account identity and temporary-directory discovery context along with native account-home paths. Do not persist bearer tokens or API credentials to simulate that context. A failed login-status probe (for example an unreadable account store or invalid CLI configuration) is an unavailable diagnostic state, not evidence that the account is signed out; show its redacted cause and account-store repair instead of repeating sign-in.
+
 ## Acceptance scenarios
 
 - Signed-out Codex over SSH without a display offers device login completable on another device. A disabled policy has an honest supported recovery; an ambient API key never changes native billing.

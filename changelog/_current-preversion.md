@@ -1,5 +1,7 @@
 # Unreleased
 
+- Fix native Codex initialization when a catalog model is unavailable to the signed-in ChatGPT account: verify bounded same-account alternatives and retain the working model for naming and Router. Preserve OS account/temp discovery in the service, and distinguish account-store probe errors from a signed-out account. Update npm harnesses in their owning prefix after Node changes, support the registered Codex Homebrew cask, and recheck the installed version and service readiness after maintenance.
+
 - Fix Claude Code sign-in being reported as unavailable to the background service on macOS. Service readiness checks and restarts now preserve `USER`, `LOGNAME` and the exact native credential-store selector, including an explicitly empty selector. Authentication continues through Claude Code's own store; no OAuth tokens or API keys enter restart metadata.
 
 - The Android APK build authenticates its GitHub API requests (Termux recipe history for the bundled GPL sources) with the workflow token, both when publishing and in the Android check. Anonymous requests share the hosted runner's 60-requests-per-hour limit and had failed releases with HTTP 403.

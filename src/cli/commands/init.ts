@@ -1148,7 +1148,8 @@ export async function initializeProject(context: CommandContext, options: { proj
         const api = tool.authentication === 'API_KEY' ? plugin.setupApiKey : undefined;
         const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: await nearestExisting(state.root), env, tool }).catch(() => []) : [];
         const row = pluginDefaultRow(plugin, catalog);
-        return { plugin, inspection: state.inspections.get(id)!, env, model: api?.model ?? row.model, thinkingLevel: api?.thinkingLevel ?? row.thinking, baseUrl: tool.baseUrl };
+        const checked = state.checks.get(id);
+        return { plugin, inspection: state.inspections.get(id)!, env, model: checked?.ok ? checked.model : api?.model ?? row.model, ...(tool.authentication === 'NATIVE' ? { modelCandidates: catalog } : {}), thinkingLevel: api?.thinkingLevel ?? row.thinking, baseUrl: tool.baseUrl };
     };
 
     /**
@@ -1400,7 +1401,17 @@ export async function initializeProject(context: CommandContext, options: { proj
             say(`Updating ${item.plugin.displayName}…`);
             const result = await updateHarness(item.plugin, item.inspection, context2);
             say(`${result.outcome === 'updated' || result.outcome === 'current' ? style.success(marks.ok) : style.warning(marks.warn)} ${result.diagnostic}`);
-            if (result.outcome === 'updated') changed.push(result.diagnostic);
+            if (result.outcome === 'updated') {
+                changed.push(result.diagnostic);
+                state.checks.delete(item.plugin.id);
+            }
+            // Updating may change both capabilities and native account discovery. Keep the next functional check
+            // bound to the executable and service context that will actually run the project.
+            const tool = setupTool(item.plugin);
+            const credential = apiHarnesses?.get(item.plugin.id)?.credential;
+            const inspection = await item.plugin.inspect({ projectRoot, env: instanceEnvironment(item.plugin, tool, credential, context.env), tool });
+            const problem = await serviceProblemOf(item.plugin, inspection, { projectRoot, env: instanceEnvironment(item.plugin, tool, credential, persistentServiceEnvironment(context.env)), tool });
+            state.inspections.set(item.plugin.id, problem ? { ...inspection, usable: false, summary: problem.summary, problem: 'error', nextAction: problem.nextAction } : inspection);
         }
         for (const item of outdated.filter((candidate) => !toUpdate.includes(candidate))) alreadyReady.push(`${item.plugin.displayName} kept at ${item.current}`);
     };
@@ -1523,9 +1534,12 @@ export async function initializeProject(context: CommandContext, options: { proj
         if (!plugin) return undefined;
         const prepared = apiHarnesses?.get(plugin.id);
         const api = prepared ? plugin.setupApiKey : undefined;
-        const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env: context.env }).catch(() => []) : [];
+        const tool = setupTool(plugin);
+        const env = instanceEnvironment(plugin, tool, prepared?.credential, context.env);
+        const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels({ projectRoot: root, env, tool }).catch(() => []) : [];
         const row = pluginDefaultRow(plugin, catalog, prepared ? toolRuntime(prepared.tool) : 'official');
-        return formatModelRow({ ...row, model: api?.model ?? row.model, thinking: api?.thinkingLevel ?? row.thinking });
+        const checked = state.checks.get(plugin.id);
+        return formatModelRow({ ...row, model: checked?.ok ? checked.model ?? row.model : api?.model ?? row.model, thinking: api?.thinkingLevel ?? row.thinking });
     };
     // The same core preparation as start: missing roles are created, clean template updates applied; conflicts stay
     // for the engine's ordinary Fixer work (init makes no project model calls).

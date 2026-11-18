@@ -24,6 +24,8 @@ export type PreparatoryCall = {
     readonly env: NodeJS.ProcessEnv;
     /** The model and thinking level to use (the plugin's coded defaults when omitted). */
     readonly model?: string;
+    /** Automatically chosen native setup models; only a model-access rejection may try another (at most three). */
+    readonly modelCandidates?: readonly string[];
     readonly thinkingLevel?: ThinkingLevel;
     readonly baseUrl?: string;
     /** A managed local connection: its runtime route is used and no hosted default is ever inserted. */
@@ -96,16 +98,28 @@ async function preparatoryRun(call: PreparatoryCall, prompt: string, options: { 
  */
 export async function functionalCheck(call: PreparatoryCall): Promise<FunctionalCheck> {
     const started = Date.now();
-    const result = await preparatoryRun(call, '# Harness check\n\nThis is a connectivity check. Do not use any tools or read any files. Reply with exactly the word PONG.\n').catch((error: unknown) => error as Error);
-    if (result instanceof Error) return { ok: false, summary: redact(`${call.plugin.displayName} could not be checked: ${result.message}`), durationMs: Date.now() - started };
-    const seconds = `${(result.durationMs / 1000).toFixed(1)} s`;
-    const ok = result.outcome === 'completed' && /\bPONG\b/i.test(result.finalMessage);
-    const summary = ok
-        ? `Answered a real request in ${seconds}${result.model ? ` (${result.model})` : ''}`
-        : result.outcome === 'completed'
-          ? `Completed without the expected answer (${JSON.stringify(result.finalMessage.trim().slice(0, 80) || '(empty)')})`
-          : result.diagnostic;
-    return { ok, summary: redact(summary), ...(result.model ? { model: result.model } : {}), ...(result.usage ? { usage: result.usage } : {}), durationMs: result.durationMs };
+    const candidates = call.inspection.authentication === 'account' && !call.localRoute && call.modelCandidates?.length
+        ? [...new Set([call.model ?? call.plugin.defaultModel, ...call.modelCandidates])].slice(0, 3)
+        : [call.model];
+    for (const [index, model] of candidates.entries()) {
+        const result = await preparatoryRun({ ...call, model }, '# Harness check\n\nThis is a connectivity check. Do not use any tools or read any files. Reply with exactly the word PONG.\n').catch((error: unknown) => error as Error);
+        if (result instanceof Error) return { ok: false, summary: redact(`${call.plugin.displayName} could not be checked: ${result.message}`), durationMs: Date.now() - started };
+        const unavailable = result.outcome === 'failed' && /\bmodel_not_found\b|\bmodel\b[^\r\n]{0,160}\b(?:not (?:supported|available|found)|does not exist|do not have access)\b/i.test(result.diagnostic);
+        if (unavailable && index + 1 < candidates.length && !call.signal?.aborted) continue;
+        const durationMs = Date.now() - started;
+        const selected = result.model ?? model ?? (call.localRoute ? undefined : call.plugin.defaultModel);
+        const seconds = `${(durationMs / 1000).toFixed(1)} s`;
+        const ok = result.outcome === 'completed' && /\bPONG\b/i.test(result.finalMessage);
+        const summary = ok
+            ? `Answered a real request in ${seconds}${selected ? ` (${selected})` : ''}${index ? '; selected an available model after a model-access rejection' : ''}`
+            : unavailable && call.inspection.authentication === 'account'
+              ? `Signed in, but the setup model is unavailable for this account. Update ${call.plugin.displayName} or select an available model; signing in again is not required. ${result.diagnostic}`
+              : result.outcome === 'completed'
+                ? `Completed without the expected answer (${JSON.stringify(result.finalMessage.trim().slice(0, 80) || '(empty)')})`
+                : result.diagnostic;
+        return { ok, summary: redact(summary), ...(selected ? { model: selected } : {}), ...(result.usage ? { usage: result.usage } : {}), durationMs };
+    }
+    throw new Error('A functional check requires at least one model candidate.');
 }
 
 /**

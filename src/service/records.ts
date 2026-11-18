@@ -171,6 +171,12 @@ const PRESERVED_VARIABLES = [
     // Claude Code's macOS Keychain lookup uses the OS account as well as HOME.
     'USER',
     'LOGNAME',
+    'TMPDIR',
+    'TEMP',
+    'TMP',
+    'SystemRoot',
+    'ComSpec',
+    'COMSPEC',
     'USERPROFILE',
     'APPDATA',
     'LOCALAPPDATA',
