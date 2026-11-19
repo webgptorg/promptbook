@@ -21,7 +21,7 @@ const CHECK_WORKFLOW = 'check.yml';
  * @returns `{ passed, failed, runId }`: `runId` is the reused run (its artifacts, like the Windows installer candidate,
  * belong to the validated commit) or `undefined`
  */
-export async function awaitCommitCheck({ listRuns, rerunFailedJobs, sleep = delay, now = Date.now, log = () => {}, appearanceTimeoutMs = 3 * 60_000, completionTimeoutMs = 90 * 60_000, pollMs = 30_000 }) {
+export async function awaitCommitCheck({ listRuns, rerunFailedJobs, sleep = delay, now = Date.now, log = () => {}, appearanceTimeoutMs = 3 * 60_000, completionTimeoutMs = 90 * 60_000, pollMs = 15_000 }) {
     const start = now();
     const unusable = { passed: false, failed: false, runId: undefined };
     let replaced;
@@ -47,7 +47,7 @@ export async function awaitCommitCheck({ listRuns, rerunFailedJobs, sleep = dela
             return unusable;
         }
         if (run) log(`Waiting for check run ${run.html_url} (${run.status})...`);
-        await sleep(run ? pollMs : Math.min(pollMs, 15_000));
+        await sleep(pollMs);
     }
     if (run.conclusion === 'failure') {
         log(`Check run ${run.html_url} failed again: this commit cannot be released.`);

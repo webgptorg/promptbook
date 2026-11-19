@@ -165,9 +165,11 @@ jobs:
         shell: pwsh
         run: node scripts/publish-desktop-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
   macos-desktop:
-    # The DMG embeds the exact tagged engine, so building it does not wait for registry propagation.
-    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
-    needs: [commit-check, validate, computer-native]
+    # The DMG embeds the exact tagged engine, so building it does not wait for registry propagation. Building, signing,
+    # notarizing and verifying it (10-15 minutes on scarce macOS runners) runs alongside the validation; only
+    # `macos-desktop-release` publishes it, after the validation passed.
+    if: github.repository == 'webgptorg/promptbook'
+    needs: computer-native
     strategy:
       fail-fast: false
       matrix:
@@ -176,12 +178,10 @@ jobs:
           - { os: macos-15-intel, arch: x64 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
-    permissions:
-      contents: write
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      # Read-only here: packaging matches check.yml's environment (electron-builder detects token-based publishers).
       GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -208,11 +208,50 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      - name: Verify and publish the downloadable DMG and checksum
+      - name: Verify the downloadable DMG
         run: |
           dmg=(apps/desktop/release/Promptbook-*-macos-${{ matrix.arch }}*.dmg)
           bash apps/desktop/test/macos-dmg.sh "${dmg[0]}"
-          node scripts/publish-desktop-installer.mjs "${dmg[0]}"
+          mkdir -p "$RUNNER_TEMP/dmg" && cp "${dmg[0]}" "$RUNNER_TEMP/dmg/"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: macos-release-dmg-${{ matrix.arch }}
+          path: ${{ runner.temp }}/dmg/*.dmg
+          if-no-files-found: error
+          retention-days: 7
+  macos-desktop-release:
+    # Publishes the DMGs verified by `macos-desktop` once the release commit is validated; no macOS runner needed. One
+    # architecture failing still publishes the other, and this job then fails so the incomplete release is visible.
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && contains(fromJSON('["success", "failure"]'), needs.macos-desktop.result) && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    needs: [commit-check, validate, macos-desktop]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - uses: actions/download-artifact@v6
+        with:
+          pattern: macos-release-dmg-*
+          path: dist-dmg
+          merge-multiple: true
+      - name: Publish the downloadable DMGs and checksums
+        run: |
+          shopt -s nullglob
+          dmgs=(dist-dmg/*.dmg)
+          for dmg in "${dmgs[@]}"; do node scripts/publish-desktop-installer.mjs "$dmg"; done
+          if [[ ${#dmgs[@]} -ne 2 ]]; then echo "::error::Expected the arm64 and x64 DMGs, got ${#dmgs[@]}."; exit 1; fi
   android-apk:
     # Android embeds the exact tagged engine and shares the existing release asset publisher.
     if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
