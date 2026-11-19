@@ -1,5 +1,7 @@
 # Unreleased
 
+- Verify paired setup against published 0.119.0-117 and cover retries before/after completion, separate engine drafts, unsafe/occupied/symlink destinations and real permission failures in private test homes.
+
 - Fix the Windows installer report-dialog check that intermittently blocked releases. Before the first dialog, the fixture runs the bootstrap in Windows PowerShell 5.1, and a cold start on a fresh runner alone took all 20 seconds the check waited. The first dialog now gets 120 seconds; the later dialogs, which open right after a button, keep 20.
 
 - The Android APK build no longer depends on a single mirror for the bundled GPL sources. The Git, Bash and other upstream sources it ships are tried on `cdn.kernel.org` or `ftp.gnu.org` first, then on `mirrors.kernel.org`, and every file is still checked against the Termux recipe's SHA-256. Every download now retries every failure (up to 5 times, 5 seconds apart), including refused or reset connections and TLS handshake errors, with a 20-second connect timeout. Before this, `mirrors.kernel.org` timed out and reset connections from GitHub's hosted runners, so the APK of 0.119.0-116 failed even when re-run.
@@ -11,6 +13,7 @@
 - Make the release checks consistent. `npm test`, `npm run test:browser` and the desktop end-to-end checks (`npm --prefix apps/desktop run test:e2e`, also run on the packaged macOS DMG) now retry each failed test file once, alone, before failing. Their integration tests drive real processes, Git, PTYs and browsers on shared hosted runners, and each release ran about 15 such jobs twice: once for the pushed commit and once to validate the tag. One missed timing budget anywhere (a different test each time) failed the publication. A file that fails again on its retry still fails the check. A file that passes only on its retry is reported as a flaky-test warning on the run, so it stays visible and can be fixed.
 
 - Restore the `test:browser` npm script and the Monaco check of `test:vscode`. A merge of a stale local branch had dropped both from `package.json`, so every release since 0.119.0-115 failed in the native-browser check with "Missing script". A new check verifies that every `npm run` in the GitHub workflows names an existing script, and that every script or test file an npm script starts exists.
+- Document version-checked App installation blocks for Bash/zsh and PowerShell, paired AI/EXE continuation, and the independent signed UI configuration/readiness check. Keep ordinary local init and existing-engine connect available.
 
 - Fix native Codex initialization when a catalog model is unavailable to the signed-in ChatGPT account: verify bounded same-account alternatives and retain the working model for naming and Router. Preserve OS account/temp discovery in the service, and distinguish account-store probe errors from a signed-out account. Update npm harnesses in their owning prefix after Node changes, support the registered Codex Homebrew cask, and recheck the installed version and service readiness after maintenance.
 

@@ -4,6 +4,32 @@ The engine can run before it has a project. A pending initialization has an engi
 
 ## Start and pair
 
+### Engine-first setup
+
+The App installer uses a published, exact engine version. As checked on 19 November 2026, `0.119.0-117` is available in npm and has matching Windows EXE and macOS DMG assets. This is a prerelease, not a stable release. Later source revisions are not automatically available to installers. A complete production walkthrough, including native provider sign-in and the approved UI bundle, remains a separate release check.
+
+For Bash/zsh, the copied block installs the package and verifies the actual CLI on PATH before initializing. A failed install or an unexpected version stops the chain:
+
+~~~sh
+npm install --global ptbk@0.119.0-117 &&
+{ ptbk_installed_version=$(ptbk --version) && [ "$ptbk_installed_version" = '0.119.0-117' ] || { echo 'Open a new terminal: ptbk version mismatch.' >&2; false; }; } &&
+ptbk init --prepare-only --link '<pairing-url-from-app>'
+~~~
+
+PowerShell, including Windows PowerShell 5.1, requires explicit native exit-code checks instead of Bash chaining:
+
+~~~powershell
+npm install --global ptbk@0.119.0-117
+if (-not $? -or $LASTEXITCODE -ne 0) { throw 'Promptbook installation failed.' }
+$ptbkInstalledVersion = ptbk --version
+if (-not $? -or $LASTEXITCODE -ne 0 -or $ptbkInstalledVersion -ne '0.119.0-117') { throw 'Open a new terminal: ptbk version mismatch.' }
+ptbk init --prepare-only --link '<pairing-url-from-app>'
+~~~
+
+Neither block depends on the shell's working directory. Do not add `mkdir`, `cd`, `--path`, an agenda or a second interactive initializer to this path. The commands retain quotes around the URL fragment. The URL is an issuance-time pairing capability; do not put a real value in committed examples or reports. A pasted command can remain in shell history, including when its handoff to sudo uses stdin.
+
+App also offers a localized AI prompt for this computer or an existing Ubuntu VPS, retaining the exact pairing context and verified release. The prompt defers agenda/harness decisions to `onboarding@1`. The Windows EXE has no pairing deep link: finish it, close an unsolicited standalone project wizard, then run the checked PowerShell block from App in a new terminal. Repeating it resumes the corresponding draft or reports the completed project. Ordinary `ptbk init` and `ptbk connect` remain separate supported commands.
+
 Run the ordinary initializer when you want to choose a project location from a terminal. To start the engine first, use the following commands.
 
 ~~~sh
@@ -35,3 +61,9 @@ The final confirmation builds the project in private staging with the ordinary i
 Use `ptbk onboarding --id <engine-id>` to continue on the host. With `--json`, it returns the same prompt shape as App. `--answer-file -` accepts a JSON reply on stdin and `--attach <path>` supplies a file ID for a brief reply. Use the current `promptId` for each reply. A stale reply has no effect. **Continue later** keeps accepted answers and files.
 
 See [App connection](connection.md) and [native harness sign-in](../cli/harness-authentication.md).
+
+## Signed UI readiness
+
+Engine version, relay reachability and UI version are independent facts. The loader requires an approved local `PTBK_UI_TRUST_POLICY_FILE` and the matching HTTPS release mirror `PTBK_UI_RELEASE_URL`; an optional `PTBK_UPDATE_POLICY`/`PTBK_PINNED_VERSION` controls installation. A release build refuses a conformance trust file. It does not download or serve even a cached bundle without a trust policy. Pending initialization uses the engine-owned authenticated onboarding page, then hands over to the approved UI if available.
+
+Inspect the authenticated `GET /api/v1/security` response's `ui.version`, `ui.bundleSha256`, `ui.releaseLogIndex` and `ui.lastUpdateCheck`. A null release-log index with no accepted update indicates the built-in page, even if its version matches another engine. Verify the approved mirror/policy, manifest/API range, signature threshold, delay and revocations; never repair this by accepting unsigned code. Do not call the installation fully verified solely because the engine is online.
