@@ -14,15 +14,43 @@ concurrency:
   group: npm-ptbk-publish
   cancel-in-progress: false
 jobs:
-  validate:
+  commit-check:
+    # The release commit is pushed with its tag, so the branch push already runs check.yml on this exact commit.
+    # Its passing run is reused. A failed one gets one re-run of its failed jobs (failing again fails the release); with
+    # no run, a cancelled or a hung one, `validate` checks the tag here (scripts/await-commit-check.mjs).
     if: github.repository == 'webgptorg/promptbook'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    permissions:
+      actions: write
+      contents: read
+    outputs:
+      passed: ${{ steps.await.outputs.passed }}
+      run-id: ${{ steps.await.outputs.run-id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - id: await
+        run: node scripts/await-commit-check.mjs "$(git rev-parse HEAD)"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+  validate:
+    needs: commit-check
+    if: github.repository == 'webgptorg/promptbook' && needs.commit-check.outputs.passed != 'true'
     uses: ./.github/workflows/check.yml
     with:
       ref: refs/tags/${{ inputs.tag || github.ref_name }}
   computer-native:
     # The engine's npm package also owns native desktop control: end users must not need Xcode or Electron.
+    # It only compiles, so it runs alongside the validation; nothing is published before that passes.
     if: github.repository == 'webgptorg/promptbook'
-    needs: validate
     runs-on: macos-15
     timeout-minutes: 10
     steps:
@@ -43,8 +71,9 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
   publish:
-    if: github.repository == 'webgptorg/promptbook'
-    needs: [validate, computer-native]
+    # `validate` is skipped when the branch check is reused: `!cancelled()` keeps a skipped need from skipping this job.
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    needs: [commit-check, validate, computer-native]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -77,11 +106,14 @@ jobs:
   windows-installer:
     # The matching Windows installer is an additional output of the same release; npm publication stays separate. A
     # missing, corrupt or mismatched installer makes the release incomplete (this job fails) without republishing npm.
-    if: github.repository == 'webgptorg/promptbook'
-    needs: publish
+    # check.yml already built and tested this installer from the exact release commit (desktop payload, Inno Setup,
+    # compiled-installer runs): that validated candidate is published instead of being rebuilt here.
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.publish.result == 'success' }}
+    needs: [commit-check, publish]
     runs-on: windows-latest
-    timeout-minutes: 40
+    timeout-minutes: 20
     permissions:
+      actions: read
       contents: write
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
@@ -101,29 +133,14 @@ jobs:
         run: |
           node scripts/validate-release.mjs $env:RELEASE_TAG
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          $numeric = ($version -replace '-.*$', '') + '.' + (($version -replace '^[^-]*-?', '') -replace '\D', '' | ForEach-Object { if ($_) { $_ } else { '0' } })
           "PTBK_VERSION=$version" >> $env:GITHUB_ENV
-          "PTBK_NUMERIC_VERSION=$numeric" >> $env:GITHUB_ENV
-      - name: Build the matching optional desktop payload
-        shell: pwsh
-        run: |
-          npm ci
-          npm ci --prefix apps/desktop
-          if ($LASTEXITCODE -ne 0) { throw "Desktop dependency installation failed" }
-          npm --prefix apps/desktop test
-          if ($LASTEXITCODE -ne 0) { throw "Desktop controller tests failed" }
-          npm --prefix apps/desktop run package:windows
-          if ($LASTEXITCODE -ne 0) { throw "Desktop packaging failed" }
-          if ($LASTEXITCODE -ne 0) { throw "Desktop packaging exited with $LASTEXITCODE" }
-      - name: Build the installer from the release tag
-        shell: pwsh
-        run: |
-          choco install innosetup --no-progress -y | Out-Null
-          $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $iscc) { throw 'The Inno Setup compiler (ISCC.exe) was not found after its installation.' }
-          & ./installer/windows/prepare-artwork.ps1
-          & $iscc.FullName "/DVersion=$env:PTBK_VERSION" "/DNumericVersion=$env:PTBK_NUMERIC_VERSION" installer\windows\promptbook.iss
-          if ($LASTEXITCODE -ne 0) { throw "ISCC exited with $LASTEXITCODE" }
+      - name: Download the installer candidate validated for this commit
+        uses: actions/download-artifact@v6
+        with:
+          name: windows-desktop-installer-candidate
+          path: dist-installer
+          run-id: ${{ needs.commit-check.outputs.run-id || github.run_id }}
+          github-token: ${{ github.token }}
       - name: The bootstrap installs and reports the exact published ptbk version
         shell: powershell
         run: |
@@ -149,8 +166,8 @@ jobs:
         run: node scripts/publish-desktop-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
   macos-desktop:
     # The DMG embeds the exact tagged engine, so building it does not wait for registry propagation.
-    if: github.repository == 'webgptorg/promptbook'
-    needs: [validate, computer-native]
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    needs: [commit-check, validate, computer-native]
     strategy:
       fail-fast: false
       matrix:
@@ -198,8 +215,8 @@ jobs:
           node scripts/publish-desktop-installer.mjs "${dmg[0]}"
   android-apk:
     # Android embeds the exact tagged engine and shares the existing release asset publisher.
-    if: github.repository == 'webgptorg/promptbook'
-    needs: validate
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    needs: [commit-check, validate]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
@@ -246,8 +263,8 @@ jobs:
   vscode-extension:
     # The extension is built from source and needs neither npm nor the installer.
     # Both asset publishers tolerate concurrent creation of the matching GitHub Release.
-    if: github.repository == 'webgptorg/promptbook'
-    needs: validate
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    needs: [commit-check, validate]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

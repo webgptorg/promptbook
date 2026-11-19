@@ -1,5 +1,7 @@
 # Unreleased
 
+- Faster publication: a release no longer runs the whole check a second time. The release commit is pushed with its tag, so the branch push already checks that exact commit; the publication now waits for that run and reuses it. A failed branch run gets one re-run of its failed jobs (failing again fails the release); only with no usable branch run (none, cancelled or hung) does the publication check the tag itself, as before. The Windows installer that this check built and tested from the same commit is published instead of being rebuilt, and the macOS helper compiles while the check runs. Before this, every release ran about 15 check jobs twice at once, which also queued the macOS runners. `check.yml` now checks out the exact pushed commit: given the branch name, a run could test a newer commit pushed seconds later.
+
 - Faster checks and releases: the test suite now runs in 4 parallel shards on Windows and 2 on macOS, split by measured file durations (`scripts/test-durations.json`). Unsplit, the Windows suite alone took 25-40 minutes and was the critical path of every check and publication. `PTBK_TEST_SHARD=<index>/<count> npm test` runs one shard; unset, `npm test` still runs every file.
 
 - After `ptbk init --prepare-only --link`, confirm that pairing precedes project setup and point to first access in the browser. Keep the terminal wizard as an alternative and explain that closing the terminal preserves the running engine and draft.
