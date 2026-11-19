@@ -221,8 +221,9 @@ jobs:
           retention-days: 7
   macos-desktop-release:
     # Publishes the DMGs verified by `macos-desktop` once the release commit is validated; no macOS runner needed. One
-    # architecture failing still publishes the other, and this job then fails so the incomplete release is visible.
-    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && contains(fromJSON('["success", "failure"]'), needs.macos-desktop.result) && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    # architecture failing, or cancelled because GitHub found no macOS arm64 runner (0.119.0-122), still publishes the
+    # other, and this job then fails so the incomplete release is visible.
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && contains(fromJSON('["success", "failure", "cancelled"]'), needs.macos-desktop.result) && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
     needs: [commit-check, validate, macos-desktop]
     runs-on: ubuntu-latest
     timeout-minutes: 15
