@@ -35,8 +35,8 @@ $resultFile = Join-Path $WorkDirectory 'result.ini'
 if ($LASTEXITCODE -ne 4) { throw "Expected folder refusal before prerequisites, got $LASTEXITCODE" }
 $global:LASTEXITCODE = 0
 
-function Wait-Dialog {
-    $deadline = [DateTime]::UtcNow.AddSeconds(20)
+function Wait-Dialog([int] $Seconds = 20) {
+    $deadline = [DateTime]::UtcNow.AddSeconds($Seconds)
     do {
         $window = [InstallerDialogNative]::FindReportWindow()
         if ($window -ne [IntPtr]::Zero) { return $window }
@@ -90,7 +90,9 @@ function Read-CopiedReport([IntPtr] $Window, [string] $Expected) {
 
 $process = Start-Process -FilePath $Executable -ArgumentList @('/SP-', ('/LOG="' + (Join-Path $WorkDirectory 'setup.log') + '"'), ('/FixtureRoot="' + $WorkDirectory + '"'), ('/Bootstrap="' + $Bootstrap + '"')) -WindowStyle Normal -PassThru
 try {
-    $window = Wait-Dialog
+    # The first dialog follows the fixture's own Windows PowerShell 5.1 run of the bootstrap: a cold start on a fresh
+    # runner alone took the whole former 20 seconds. The later dialogs open immediately after a button.
+    $window = Wait-Dialog 120
     $first = Read-CopiedReport $window 'Exit code: 4'
     if (-not $first.Contains($env:USERPROFILE)) { throw 'Unicode project context was lost in clipboard output.' }
     if (-not $first.Contains('PATH ')) { throw 'The copied report omitted bootstrap path diagnostics.' }
