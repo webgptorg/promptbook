@@ -75,7 +75,8 @@ jobs:
     if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
     needs: [commit-check, validate, computer-native]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Covers npm's registry processing after the upload, which `release:publish` waits for (up to 35 minutes).
+    timeout-minutes: 50
     permissions:
       contents: read
       id-token: write

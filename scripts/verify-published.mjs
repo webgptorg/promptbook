@@ -15,8 +15,11 @@ const registry = 'https://registry.npmjs.org/';
 const registryArguments = ['--registry', registry, '--prefer-online', '--fetch-retries=0', '--fetch-timeout=15000'];
 /** npm run exposes its JavaScript entry point so registry commands also work on Windows. */
 const npmCli = process.env.npm_execpath;
-/** npm publication can return successfully before the public registry serves the release. */
-const propagationTimeout = 10 * 60_000;
+/**
+ * npm publication can return successfully before the public registry serves the release: usually ~5 minutes, but
+ * 0.119.0-123 took 18 minutes ("Your package is being processed"), so a 10-minute deadline failed a good release.
+ */
+const propagationTimeout = 35 * 60_000;
 /** Fresh registry reads are spaced out while npm finishes processing the artifact. */
 const propagationInterval = 10_000;
 

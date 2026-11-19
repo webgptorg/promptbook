@@ -1,5 +1,8 @@
 # Unreleased
 
+- The publication waits up to 35 minutes, instead of 10, for npm to serve a just-uploaded version. npm usually needs about 5 minutes, but 0.119.0-123 took 18 ("Your package is being processed"), so the release failed and the Windows installer was not published, although the package itself was fine.
+- When GitHub cannot provide a runner for one of the two macOS DMGs (0.119.0-122 waited three times for a macOS arm64 runner), the other DMG is still published; the release stays marked as failed so the missing one is visible.
+
 - The signed macOS DMGs of a release are built, notarized and verified while the release commit is still being checked, and only published to the GitHub Release after it passes. In 0.119.0-121 they started after the check and finished 15 minutes after it, mostly waiting for a macOS runner.
 
 - Shorter checks on scarce runners: the check of 0.119.0-121 waited up to 27 minutes for macOS runners and its first Windows shard ran 6 minutes longer than the others. macOS is now checked on Node.js 24 only (Linux and Windows still check 22 and 24), and the real-browser tests run in the first test shard instead of four separate jobs. The separate VS Code extension job, which repeated what `check:full` already runs, is removed. Windows uses 5 test shards, and `PTBK_TEST_SHARD_HEAD_START` gives the first shard fewer test files for its additional work.
