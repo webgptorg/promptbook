@@ -1,5 +1,7 @@
 # Unreleased
 
+- Faster checks and releases: the test suite now runs in 4 parallel shards on Windows and 2 on macOS, split by measured file durations (`scripts/test-durations.json`). Unsplit, the Windows suite alone took 25-40 minutes and was the critical path of every check and publication. `PTBK_TEST_SHARD=<index>/<count> npm test` runs one shard; unset, `npm test` still runs every file.
+
 - After `ptbk init --prepare-only --link`, confirm that pairing precedes project setup and point to first access in the browser. Keep the terminal wizard as an alternative and explain that closing the terminal preserves the running engine and draft.
 
 - The paired-installation draft test no longer writes into the real user home on Windows. Its sandbox replaced only `HOME`, while Windows reads the home from `USERPROFILE`, so each run left drafts and a `finished-agenda` folder under the real shared projects folder and failed on the next run.

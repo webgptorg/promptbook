@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { selectTestShard } from '../scripts/test.mjs';
 import { isAlreadyPublished } from '../scripts/verify-published.mjs';
 import { ROOT } from './helpers.mjs';
 
@@ -45,4 +46,16 @@ test('a repeated release publication recognizes the exact version npm already se
     assert.equal(await isAlreadyPublished(release, { readMetadata: async () => { throw npmError('E404'); } }), false);
     await assert.rejects(isAlreadyPublished(release, { readMetadata: async () => { throw npmError('E401'); } }), /E401/, 'an authentication failure is not "not published"');
     await assert.rejects(isAlreadyPublished(release, { readMetadata: async () => ({ ...served, 'dist.tarball': 'https://example.test/other.tgz' }) }), /tarball/, 'a different artifact is never accepted as this release');
+});
+
+test('the sharded test suite runs every test file exactly once, in shards of similar duration', async () => {
+    const files = (await readdir(join(ROOT, 'test'))).filter((name) => name.endsWith('.test.mjs')).sort().map((name) => `test/${name}`);
+    const durations = JSON.parse(await readFile(join(ROOT, 'scripts', 'test-durations.json'), 'utf8'));
+    for (const file of Object.keys(durations)) assert.ok(files.includes(file), `scripts/test-durations.json lists the missing test file ${file}`);
+    for (const count of [1, 2, 4]) {
+        const shards = Array.from({ length: count }, (_, index) => selectTestShard(files, { index: index + 1, count, durations }));
+        assert.deepEqual(shards.flat().sort(), files, `${count} shards together run every file once`);
+        const totals = shards.map((shard) => shard.reduce((sum, file) => sum + (durations[file] ?? 0), 0));
+        assert.ok(Math.max(...totals) - Math.min(...totals) <= Math.max(...Object.values(durations)), `${count} shards are balanced: ${totals}`);
+    }
 });
