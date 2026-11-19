@@ -9,15 +9,20 @@ import { OnboardingSession } from '../dist/onboarding/session.js';
 import { OnboardingUploads } from '../dist/onboarding/uploads.js';
 import { temporaryDirectory } from './helpers.mjs';
 
-/** Private OS-home sandbox; node:test runs this file in its own process. */
+/**
+ * Private OS-home sandbox; node:test runs this file in its own process. `os.homedir()` reads `HOME` on POSIX and
+ * `USERPROFILE` on Windows, so both are replaced: otherwise the drafts and project folders land in the real home.
+ */
 async function sandbox(t) {
     const home = await temporaryDirectory(t, 'paired installer draft');
-    const previous = process.env.HOME;
-    process.env.HOME = home;
-    t.after(() => {
-        if (previous === undefined) delete process.env.HOME;
-        else process.env.HOME = previous;
-    });
+    for (const name of ['HOME', 'USERPROFILE']) {
+        const previous = process.env[name];
+        process.env[name] = home;
+        t.after(() => {
+            if (previous === undefined) delete process.env[name];
+            else process.env[name] = previous;
+        });
+    }
     return home;
 }
 
