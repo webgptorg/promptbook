@@ -59,6 +59,11 @@ test('the sharded test suite runs every test file exactly once, in shards of sim
         const totals = shards.map((shard) => shard.reduce((sum, file) => sum + (durations[file] ?? 0), 0));
         assert.ok(Math.max(...totals) - Math.min(...totals) <= Math.max(...Object.values(durations)), `${count} shards are balanced: ${totals}`);
     }
+    const headStart = 300;
+    const withHeadStart = Array.from({ length: 5 }, (_, index) => selectTestShard(files, { index: index + 1, count: 5, durations, headStart }));
+    assert.deepEqual(withHeadStart.flat().sort(), files, 'a head start keeps every file in exactly one shard');
+    const testSeconds = withHeadStart.map((shard) => shard.reduce((sum, file) => sum + (durations[file] ?? 0), 0));
+    assert.ok(testSeconds[0] < Math.min(...testSeconds.slice(1)), `the first shard, which does other work too, gets fewer tests: ${testSeconds}`);
 });
 
 test('a publication reuses only a passing check run of its exact commit, re-runs a failed one once, and otherwise validates the tag itself', async () => {
