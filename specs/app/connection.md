@@ -6,6 +6,11 @@ A project engine connects to the **Promptbook App**: the account dashboard at `a
 
 The wire contract is the platform's engine-integration guide and its contract packages (`@ptbk/protocol`, `@ptbk/engine-api`, `@ptbk/conformance`) in `webgptorg/app`. On wire details the contract code wins over this page. This page defines how Reborn maps that contract onto projects, what is implemented and how it is presented. The engine implements the contract natively, using a generated bundle of the platform packages, which are not published. The platform's golden vectors pin every signed and framed byte.
 
+
+## Engine-first setup
+
+For a new App engine, use the version-checked installation block from App, then `ptbk init --prepare-only --link '<pairing-url>'` rather than initializing a project in the current directory. The engine prepares its private draft, connects, and prints its separate owner setup link. The owner creates a passkey and completes the agenda on the engine origin. See [App onboarding](onboarding.md#engine-first-setup) for shell-specific commands, EXE/AI continuation and signed UI readiness. Existing-project `ptbk connect` remains available without stopping or starting the agenda.
+
 ## Four interfaces, one engine
 
 | Interface | Role | Authority |
