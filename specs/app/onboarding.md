@@ -6,23 +6,23 @@ The engine can run before it has a project. A pending initialization has an engi
 
 ### Engine-first setup
 
-The App installer uses a published, exact engine version. As checked on 18 November 2026, `0.119.0-114` is available in npm and has matching Windows EXE and macOS DMG assets. This is a prerelease, not a stable release. Later source revisions are not automatically available to installers. A complete production walkthrough, including native provider sign-in and the approved UI bundle, remains a separate release check.
+The App installer uses a published, exact engine version. As checked on 19 November 2026, `0.119.0-117` is available in npm and has matching Windows EXE and macOS DMG assets. This is a prerelease, not a stable release. Later source revisions are not automatically available to installers. A complete production walkthrough, including native provider sign-in and the approved UI bundle, remains a separate release check.
 
 For Bash/zsh, the copied block installs the package and verifies the actual CLI on PATH before initializing. A failed install or an unexpected version stops the chain:
 
 ~~~sh
-npm install --global ptbk@0.119.0-114 &&
-{ ptbk_installed_version=$(ptbk --version) && [ "$ptbk_installed_version" = '0.119.0-114' ] || { echo 'Open a new terminal: ptbk version mismatch.' >&2; false; }; } &&
+npm install --global ptbk@0.119.0-117 &&
+{ ptbk_installed_version=$(ptbk --version) && [ "$ptbk_installed_version" = '0.119.0-117' ] || { echo 'Open a new terminal: ptbk version mismatch.' >&2; false; }; } &&
 ptbk init --prepare-only --link '<pairing-url-from-app>'
 ~~~
 
 PowerShell, including Windows PowerShell 5.1, requires explicit native exit-code checks instead of Bash chaining:
 
 ~~~powershell
-npm install --global ptbk@0.119.0-114
+npm install --global ptbk@0.119.0-117
 if (-not $? -or $LASTEXITCODE -ne 0) { throw 'Promptbook installation failed.' }
 $ptbkInstalledVersion = ptbk --version
-if (-not $? -or $LASTEXITCODE -ne 0 -or $ptbkInstalledVersion -ne '0.119.0-114') { throw 'Open a new terminal: ptbk version mismatch.' }
+if (-not $? -or $LASTEXITCODE -ne 0 -or $ptbkInstalledVersion -ne '0.119.0-117') { throw 'Open a new terminal: ptbk version mismatch.' }
 ptbk init --prepare-only --link '<pairing-url-from-app>'
 ~~~
 
