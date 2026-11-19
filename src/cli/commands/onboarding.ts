@@ -245,8 +245,11 @@ export async function prepareOnboarding(context: CommandContext): Promise<number
     if (result) await automaticOwnerSetup(context, project);
     if (json) printJson({ engineId: draft.engineId, outcome: result?.outcome ?? 'pending', app: result && 'app' in result ? result.app : undefined, persistence });
     else context.terminal.write('Pending initialization ' + draft.engineId + ' is running.\n' +
-        (result ? 'Owner access: ptbk connect --onboarding ' + draft.engineId + ' --setup-link\n' : '') +
-        'Continue locally: ptbk onboarding --id ' + draft.engineId + '\n');
+        (result ? 'Connected to the App before project setup.\n' +
+            'Continue setup in your browser. For first access, use the link shown above or request it with:\n' +
+            'ptbk connect --onboarding ' + draft.engineId + ' --setup-link\n' : '') +
+        (result ? 'To continue in this terminal instead: ' : 'Continue locally: ') + 'ptbk onboarding --id ' + draft.engineId + '\n' +
+        'You can close this terminal; the engine keeps running and saves your setup.\n');
     return EXIT.success;
 }
 

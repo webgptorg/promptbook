@@ -1,5 +1,7 @@
 # Unreleased
 
+- After `ptbk init --prepare-only --link`, confirm that pairing precedes project setup and point to first access in the browser. Keep the terminal wizard as an alternative and explain that closing the terminal preserves the running engine and draft.
+
 - The paired-installation draft test no longer writes into the real user home on Windows. Its sandbox replaced only `HOME`, while Windows reads the home from `USERPROFILE`, so each run left drafts and a `finished-agenda` folder under the real shared projects folder and failed on the next run.
 
 - Verify paired setup against published 0.119.0-117 and cover retries before/after completion, separate engine drafts, unsafe/occupied/symlink destinations and real permission failures in private test homes.
