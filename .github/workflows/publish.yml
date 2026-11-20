@@ -200,6 +200,8 @@ jobs:
           name: computer-native-macos-arm64
           path: .ptbk/computer-native/macos-arm64/
       - run: npm run build
+        env:
+          PTBK_BUILD_PROFILE: staging
       - run: npm ci --prefix apps/desktop
       - name: Package the matching macOS application
         run: npm --prefix apps/desktop run package:macos -- --release

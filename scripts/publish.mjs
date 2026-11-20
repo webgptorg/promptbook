@@ -17,7 +17,7 @@ if (!npmCli) throw new Error('Run publication through npm run release:publish in
 
 /** Publishes the release with npm's JavaScript entry point (also on Windows) and verifies the public result. */
 async function publish() {
-    const child = spawn(process.execPath, [npmCli, 'publish', '--access', 'public', '--tag', release.tag, ...options], { cwd: fileURLToPath(new URL('..', import.meta.url)), stdio: 'inherit', shell: false });
+    const child = spawn(process.execPath, [npmCli, 'publish', '--access', 'public', '--tag', release.tag, ...options], { cwd: fileURLToPath(new URL('..', import.meta.url)), env: { ...process.env, PTBK_BUILD_PROFILE: 'staging' }, stdio: 'inherit', shell: false });
     const code = await new Promise((resolve, reject) => { child.once('error', reject); child.once('exit', code => resolve(code ?? 1)); });
     process.exitCode = code;
     if (code !== 0) return;

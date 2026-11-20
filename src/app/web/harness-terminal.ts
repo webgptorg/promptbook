@@ -50,10 +50,6 @@ export async function harnessTerminalPage(request: Request, actor: Actor, sessio
         const command = await commandBody(request);
         if (!command) return new Response(null, { status: 400, headers });
         try {
-            if (command.action === 'api-key' && Object.keys(command).length === 3) {
-                await session.useApiKey(command.promptId, command.value);
-                return Response.json(null, { headers });
-            }
             if (command.action === 'fallback' && Object.keys(command).length === 2) {
                 session.useTerminal(command.promptId);
                 return Response.json(null, { headers });
@@ -65,6 +61,7 @@ export async function harnessTerminalPage(request: Request, actor: Actor, sessio
         }
     }
     if (request.method !== 'GET' && request.method !== 'HEAD') return contractProblem('not-found');
+    if (url.pathname === path && request.method === 'GET') await session.prepareTerminal();
     if (url.pathname === path + '/options') {
         const options = session.signInOptions();
         return options ? (request.method === 'HEAD' ? new Response(null, { headers }) : Response.json(options, { headers })) : contractProblem('not-found');
@@ -77,9 +74,6 @@ export async function harnessTerminalPage(request: Request, actor: Actor, sessio
             `<title>Native sign-in · Promptbook</title><link rel="stylesheet" href="${path}/xterm.css"><script defer src="${path}/xterm.js"></script>` +
             `<script type="module" data-terminal nonce="${nonce}" src="${path}/harness-terminal-browser.js"></script></head>` +
             '<body><main><h1>Harness sign-in</h1>' +
-            (options.apiKey ? '<form id="key" hidden><p><a id="provider" target="_blank" rel="noopener noreferrer">Get an API key</a></p>' +
-                '<label><span id="key-label">API key</span> <input type="password" autocomplete="off" maxlength="512" required></label> ' +
-                '<button type="submit">Check API key</button><p>Promptbook verifies the key with one request on your provider account.</p></form>' : '') +
             '<p id="instructions"></p><button id="open" type="button" disabled>Open sign-in terminal</button> ' +
             '<a href="/">Return to setup</a><p role="status"></p><div id="terminal"></div></main></body></html>';
         return withTerminalStyleNonce(new Response(request.method === 'HEAD' ? null : html, { headers: { ...headers, 'content-type': 'text/html; charset=utf-8' } }), nonce);

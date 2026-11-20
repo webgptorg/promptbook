@@ -1,4 +1,5 @@
 import type { AppPairingOutcome } from '../../app/connection.js';
+import { uiTrustDescription } from '../../app/build.js';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { basename, resolve } from 'node:path';
@@ -51,7 +52,7 @@ async function interact(context: CommandContext, project: Project, client: Contr
                 { value: 'terminal', label: 'Open native sign-in terminal' }, { value: 'check', label: 'Check sign-in' },
                 { value: 'back', label: 'Choose harnesses' }, { value: 'later', label: 'Continue later' },
             ] });
-            if (choice === CANCELLED || choice === 'later') { await client.request('onboarding-defer'); return undefined; }
+            if (choice === CANCELLED || choice === 'later') return undefined;
             try {
                 if (choice === 'key' && signIn.apiKey) {
                     const key = signIn.apiKey;
@@ -81,8 +82,16 @@ async function interact(context: CommandContext, project: Project, client: Contr
             continue;
         }
         if (prompt.kind === 'harness-login') {
+            if (prompt.method === 'return-code') {
+                terminal.write(prompt.url + '\n');
+                const reply = terminal.prompts ? await terminal.prompts({ kind: 'secret', frame, question: 'Code returned by the provider' }) : undefined;
+                if (reply && reply.action !== 'answer') return undefined;
+                const code = reply && typeof reply.value === 'string' ? reply.value : await readConcealed(terminal, 'Code returned by the provider');
+                await submit(client, { promptId: prompt.id, action: 'answer', answer: { kind: 'harness-login', returnCode: code } });
+                continue;
+            }
             const result = await watchLogin(context, client, prompt);
-            if (result === 'leave') { await client.request('onboarding-defer'); return undefined; }
+            if (result === 'leave') return undefined;
             try {
                 if (result === 'back') await submit(client, { promptId: prompt.id, action: 'back' });
                 if (result === 'terminal') await client.request('onboarding-use-terminal', { promptId: prompt.id });
@@ -112,6 +121,17 @@ async function interact(context: CommandContext, project: Project, client: Contr
             const choices = prompt.choices.map((choice) => ({ value: choice.id, label: choice.label, description: choice.description ?? undefined, disabled: choice.disabled }));
             const values = await selectMany(terminal, { frame, question: prompt.question, choices, initial: prompt.initial, minimum: 1 });
             answer = values === CANCELLED ? CANCELLED : { kind: 'choice', choiceIds: [...values] };
+        } else if (prompt.kind === 'secret') {
+            const value = terminal.prompts ? await terminal.prompts({ kind: 'secret', frame, question: prompt.label, hint: prompt.helpUrl ?? undefined }) : undefined;
+            answer = value ? value.action === 'answer' && typeof value.value === 'string' ? { kind: 'secret', value: value.value } : CANCELLED
+                : { kind: 'secret', value: await readConcealed(terminal, prompt.label) };
+        } else if (prompt.kind === 'upload') {
+            const value = await inputLine(terminal, { frame, question: 'Path of a file to attach' });
+            if (value === CANCELLED) answer = CANCELLED;
+            else {
+                const file = await client.request<OnboardingFile | null>('onboarding-upload', { path: resolve(context.cwd, value) });
+                answer = { kind: 'upload', fileIds: file ? [file.id] : [] };
+            }
         } else {
             const value = await confirm(terminal, { frame, question: prompt.question, defaultYes: false, yesLabel: prompt.confirmLabel, noLabel: prompt.declineLabel });
             answer = value === CANCELLED ? CANCELLED : { kind: 'confirm', confirmed: value };
@@ -120,7 +140,6 @@ async function interact(context: CommandContext, project: Project, client: Contr
             if (answer !== CANCELLED) await submit(client, { promptId: prompt.id, action: 'answer', answer });
             else if (prompt.canGoBack && !wasInterrupted()) await submit(client, { promptId: prompt.id, action: 'back' });
             else {
-                await client.request('onboarding-defer');
                 return undefined;
             }
         } catch (error) {
@@ -234,7 +253,7 @@ export async function prepareOnboarding(context: CommandContext): Promise<number
     const { lookup, persistence } = await launchOnboarding(project, context.env, flag(context, 'persist'));
     let result: AppPairingOutcome | undefined;
     if (link) {
-        result = await lookup.client.request<AppPairingOutcome>('app-link', { link }, 90_000);
+        result = await lookup.client.request<AppPairingOutcome>('app-link', { link }, 8 * 60_000);
         if (result.outcome === 'refused') {
             if (json) printJson({ engineId: draft.engineId, ...result });
             else context.terminal.write(result.message + '\nEngine ' + draft.engineId + ' is still waiting. Use ptbk connect --onboarding ' + draft.engineId + ' --link <url>.\n');
@@ -243,6 +262,7 @@ export async function prepareOnboarding(context: CommandContext): Promise<number
     }
     if (wantOwner) return await ownerAccess(context, project, json || !context.terminal.interactive);
     if (result) await automaticOwnerSetup(context, project);
+    if (!json && uiTrustDescription(context.env)) context.terminal.write(uiTrustDescription(context.env)! + '\n');
     if (json) printJson({ engineId: draft.engineId, outcome: result?.outcome ?? 'pending', app: result && 'app' in result ? result.app : undefined, persistence });
     else context.terminal.write('Pending initialization ' + draft.engineId + ' is running.\n' +
         (result ? 'Connected to the App before project setup.\n' +

@@ -7,7 +7,7 @@ import { EngineApi } from '../dist/app/api/engine-api.js';
 import { loadEngineIdentity } from '../dist/app/identity.js';
 import { parseAppLink, readRegistration, storeRegistration } from '../dist/app/registration.js';
 import { appSettings } from '../dist/app/settings.js';
-import { onboardingPage } from '../dist/app/web/onboarding-page.js';
+import { onboardingDocuments, onboardingPage } from '../dist/app/web/onboarding-page.js';
 import { AccessStore } from '../dist/app/web/access.js';
 import { Gateway, SESSION_COOKIE_NAME } from '../dist/app/web/gateway.js';
 import { harnessTerminalPage } from '../dist/app/web/harness-terminal.js';
@@ -19,6 +19,7 @@ import { readOnboarding, saveOnboarding } from '../dist/onboarding/draft.js';
 import { OnboardingSession } from '../dist/onboarding/session.js';
 import { readPreparedApiHarness } from '../dist/onboarding/credentials.js';
 import { OnboardingUploads } from '../dist/onboarding/uploads.js';
+import { api } from '../dist/vendor/app-platform.js';
 import { projectAt } from '../dist/project/workspace.js';
 import { lookupService } from '../dist/service/control.js';
 import { launchDaemon, stopService } from '../dist/service/launcher.js';
@@ -42,6 +43,55 @@ async function pending(t, cleanup = []) {
 function answer(state, value) {
     return { promptId: state.prompt.id, action: 'answer', answer: value };
 }
+
+test('pending setup serves the signed UI through the gateway and uses the built-in page only without a bundle', async t => {
+    const { project, draft } = await pending(t);
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), {}, async () => assert.fail('not confirmed'));
+    const cookie = 'a'.repeat(22);
+    let approved = true;
+    const ui = { serve: async () => approved ? new Response('<title>Platform setup</title>') : undefined };
+    const gateway = new Gateway({ access: { authenticate: token => token === cookie ? { role: 'owner', sessionId: 'test' } : undefined },
+        documents: (request, actor) => onboardingDocuments(request, actor, session, ui, draft.engineId) });
+    const request = authenticated => new Request('https://engine.example.test/', { headers: { host: 'engine.example.test', accept: 'text/html', ...(authenticated ? { cookie: SESSION_COOKIE_NAME + '=' + cookie } : {}) } });
+    const connection = { hostname: 'engine.example.test', clientIp: '127.0.0.1' };
+    const anonymous = await gateway.handle(request(false), connection);
+    assert.equal(anonymous.status, 303);
+    assert.match(anonymous.headers.get('location'), /sign-in/);
+    assert.match(await (await gateway.handle(request(true), connection)).text(), /Platform setup/);
+    approved = false;
+    assert.match(await (await gateway.handle(request(true), connection)).text(), /Loading project initialization/);
+});
+
+test('an additional harness failure remains visible with the real completed check and review details', async t => {
+    const { home, project, draft } = await pending(t);
+    const fixture = await fakeHarness(t, home);
+    const plugin = harnessPlugin('claude-code');
+    const inspect = plugin.inspect;
+    plugin.inspect = async () => { throw new Error('PRIVATE_PROVIDER_DIAGNOSTIC'); };
+    t.after(() => { plugin.inspect = inspect; });
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), fixture.env, async () => assert.fail('not confirmed'));
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['openai-codex', 'claude-code'] }));
+    await waitFor(() => session.state().prompt?.title === 'Project name');
+    const state = session.state();
+    assert.equal(state.activity.find(item => item.id === 'openai-codex-check').status, 'done');
+    const failed = state.activity.find(item => item.id === 'claude-code-check');
+    assert.equal(failed.status, 'failed');
+    assert.ok(failed.detail);
+    assert.doesNotMatch(JSON.stringify(state), /PRIVATE_PROVIDER_DIAGNOSTIC/);
+    await session.answer(answer(state, { kind: 'text', text: 'Browser project', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'text', text: 'browser-project', fileIds: [] }));
+    const review = session.state();
+    assert.equal(review.canDefer, false);
+    assert.deepEqual(review.prompt.details.map(item => item.label), ['Project', 'Folder', 'AI tools']);
+    assert.equal(review.prompt.details[0].text, 'Browser project');
+    assert.equal(review.prompt.details[1].text, 'browser-project');
+    assert.equal(review.activity.find(item => item.id === failed.id).status, 'failed');
+    api.ENGINE_API_ROUTES.getOnboarding.responses[200].schema.parse(review);
+    const restored = new OnboardingSession(project, await readOnboarding(project), session.uploads, fixture.env, async () => assert.fail('not confirmed'));
+    assert.deepEqual(restored.state(), review);
+});
 
 test('an HTTPS pairing URL supplies the dashboard and its origin survives a fresh process', async (t) => {
     const { project, identity } = await pending(t);
@@ -78,11 +128,24 @@ test('onboarding API keeps uploads and answers private, rejects stale clients, a
     const access = await AccessStore.open(project.runtime.app);
     const engine = new EngineApi({ onboarding: session, projectRoot: project.root, stateDirectory: project.runtime.app, engineId: () => draft.engineId,
         hostname: () => draft.engineId + '.engines.example.test', dashboardUrl: () => null, security: () => undefined, ui: () => ({}) });
-    const owner = { memberId: 'owner', role: 'owner', permissions: ['settings.manage', 'files.read', 'files.write'] };
+    const owner = { memberId: 'owner', role: 'owner', permissions: ['settings.manage', 'files.read', 'files.write', 'agents.read'] };
     const outsider = { memberId: 'guest', role: 'member', permissions: ['files.read', 'files.write'] };
     const call = (route, init, actor = owner) => engine.handle(new Request('https://engine.example.test/api/v1' + route, init), actor, access);
     const before = await (await call('/onboarding')).json();
     assert.equal(before.prompt.kind, 'text');
+    assert.equal(before.canDefer, false);
+    assert.deepEqual(before.activity, []);
+    assert.deepEqual(before.prompt.details, []);
+    assert.deepEqual(before.prompt.alternatives, []);
+    api.ENGINE_API_ROUTES.getOnboarding.responses[200].schema.parse(before);
+    const abort = new AbortController();
+    const events = await call('/events', { signal: abort.signal });
+    assert.equal(events.status, 200);
+    const reader = events.body.getReader();
+    const reading = reader.read();
+    abort.abort();
+    assert.equal((await reading).done, true, 'the pre-project event subscription closes cleanly');
+    await reader.cancel();
     const body = new FormData();
     body.append('file', new Blob(['example attachment'], { type: 'text/plain' }), 'brief.txt');
     body.append('name', 'brief.txt');
@@ -100,10 +163,13 @@ test('onboarding API keeps uploads and answers private, rejects stale clients, a
     const competing = await Promise.all([call('/onboarding/answer', post), call('/onboarding/answer', post)]);
     assert.deepEqual(competing.map((result) => result.status).sort(), [200, 409]);
     assert.equal((await call('/files/' + file.id, { method: 'DELETE' })).status, 403);
-    await call('/onboarding/defer', { method: 'POST' });
+    const deferred = await call('/onboarding/defer', { method: 'POST' });
+    assert.equal(deferred.status, 409);
+    assert.equal((await deferred.json()).code, 'onboarding-not-deferrable');
     const saved = await readOnboarding(project);
     const reattached = new OnboardingSession(project, saved, uploads, {}, async () => assert.fail('not confirmed'));
-    assert.equal(reattached.state().deferred, true);
+    assert.equal(reattached.state().deferred, false);
+    assert.equal(reattached.state().canDefer, false);
     assert.equal(reattached.state().prompt.kind, 'choice');
     assert.deepEqual(saved.fileIds, [file.id]);
     assert.equal(saved.intent, 'Keep this verbatim.');
@@ -129,11 +195,11 @@ test('the daemon waits without a project, restores a draft, then publishes one a
     await writeFile(filePath, 'A private attachment.');
     const uploaded = await client.request('onboarding-upload', { path: filePath });
     await client.request('onboarding-answer', answer(await state(), { kind: 'text', text: 'Create a newsletter.', fileIds: [uploaded.id] }));
-    await client.request('onboarding-defer');
+    await assert.rejects(client.request('onboarding-defer'), /Finish creating/);
     await client.request('stop');
     await waitFor(async () => (await lookupService(project)).state === 'stopped', { timeoutMs: 10_000 });
     const second = (await run()).lookup.client;
-    assert.equal((await state(second)).deferred, true);
+    assert.equal((await state(second)).deferred, false);
     await second.request('onboarding-answer', answer(await state(second), { kind: 'choice', choiceIds: ['openai-codex'] }));
     await waitFor(async () => (await state(second)).prompt?.title === 'Project name', { timeoutMs: 15_000 });
     const name = await state(second);
@@ -175,7 +241,7 @@ test('the pending engine ships a same-origin onboarding script', async () => {
     assert.doesNotMatch(await script.text(), /innerHTML|eval\(/);
 });
 
-test('the owner can complete Claude Code sign-in in a real, private native terminal', { skip: process.platform === 'win32' }, async (t) => {
+for (const mode of ['return-code', 'terminal']) test('the owner can complete Claude Code sign-in with ' + mode, { skip: process.platform === 'win32' }, async (t) => {
     const { home, project, draft } = await pending(t);
     const bin = join(home, 'fake bin');
     await mkdir(bin);
@@ -191,6 +257,7 @@ case "$*" in
   'auth login --claudeai')
     test -t 0 && test -t 1 || exit 1
     stty -echo
+    printf 'Open https://claude.ai/oauth/authorize?state=fixture-state\\n'
     printf 'Paste code at the native prompt: '
     IFS= read -r code
     test "$code" = '${code}' && touch "$TEST_CLAUDE_STATE" ;;
@@ -204,12 +271,25 @@ esac
     t.after(() => session.stop());
     await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
     await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['claude-code'] }));
+    await waitFor(() => session.state().prompt?.kind === 'harness-login', { timeoutMs: 6000, intervalMs: 40 });
+    if (mode === 'return-code') {
+        const waiting = session.state();
+        assert.equal(waiting.prompt.method, 'return-code');
+        assert.match(waiting.prompt.url, /^https:\/\/claude\.ai\/oauth\/authorize/);
+        await assert.rejects(session.answer(answer(waiting, { kind: 'harness-login', returnCode: 'code\nextra-input' })), /one line/);
+        await session.answer(answer(waiting, { kind: 'harness-login', returnCode: code }));
+        await assert.rejects(session.answer(answer(waiting, { kind: 'harness-login', returnCode: code })), /changed/);
+        await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 6000, intervalMs: 40 });
+        assert.doesNotMatch(JSON.stringify(await readOnboarding(project)), new RegExp(code + '|fixture-state'));
+        return;
+    }
+    await session.prepareTerminal();
     await waitFor(() => session.view().nativeLogin, { timeoutMs: 6000, intervalMs: 40 });
     const waiting = session.state();
     const hostname = 'engine.example.test';
     const path = '/_ptbk/harness-terminal';
     assert.equal(session.signInOptions().apiKey, undefined);
-    const inactive = await harnessTerminalPage(new Request(`https://${hostname}${path}`), { role: 'owner' }, { signInOptions: () => undefined });
+    const inactive = await harnessTerminalPage(new Request(`https://${hostname}${path}`), { role: 'owner' }, { signInOptions: () => undefined, prepareTerminal: async () => {} });
     assert.equal(inactive.status, 404);
     const cookies = { owner: 'a'.repeat(22), outsider: 'b'.repeat(22), second: 'c'.repeat(22) };
     const actors = {
@@ -308,20 +388,43 @@ test('the three API-key forms reject stale and invalid keys and keep accepted ke
             const path = '/_ptbk/harness-terminal';
             const owner = { role: 'owner', sessionId: 'first' };
             const page = await harnessTerminalPage(new Request('https://' + hostname + path), owner, session);
-            assert.match(await page.text(), /type="password"/);
-            const send = async (promptId, value, actor = owner) => await harnessTerminalPage(new Request('https://' + hostname + path, {
-                method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'api-key', promptId, value }),
-            }), actor, session);
-            assert.equal((await send(options.promptId, key, { role: 'member' })).status, 403);
-            assert.equal((await send(randomUUID(), key)).status, 409);
-            assert.equal((await send(options.promptId, 'fixture-invalid-key')).status, 422);
+            assert.doesNotMatch(await page.text(), /type="password"/);
+            const deprecated = await harnessTerminalPage(new Request('https://' + hostname + path, {
+                method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'api-key', promptId: options.promptId, value: key }),
+            }), owner, session);
+            assert.equal(deprecated.status, 400);
+            const access = await AccessStore.open(project.runtime.app);
+            const engine = new EngineApi({ onboarding: session, projectRoot: project.root, stateDirectory: project.runtime.app,
+                engineId: () => draft.engineId, hostname: () => hostname, dashboardUrl: () => null, security: () => undefined, ui: () => ({}) });
+            const actor = { ...owner, memberId: 'owner', permissions: ['settings.manage'] };
+            const keyPrompt = async () => {
+                const state = session.state();
+                return await session.answer({ promptId: state.prompt.id, action: 'alternative', alternativeId: 'api-key' });
+            };
+            let secret = await keyPrompt();
+            api.ENGINE_API_ROUTES.getOnboarding.responses[200].schema.parse(secret);
+            assert.equal(secret.prompt.kind, 'secret');
+            assert.equal(secret.prompt.helpUrl, variant.setupApiKey.url);
+            assert.equal(secret.prompt.initial, undefined);
+            await session.answer({ promptId: secret.prompt.id, action: 'back' });
+            await assert.rejects(session.answer(answer(secret, { kind: 'secret', value: key })), /changed/);
+            secret = await keyPrompt();
+            const submitKey = (promptId, value, subject = actor) => engine.handle(new Request('https://' + hostname + '/api/v1/onboarding/answer', {
+                method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptId, action: 'answer', answer: { kind: 'secret', value } }),
+            }), subject, access);
+            assert.equal((await submitKey(secret.prompt.id, key, { ...actor, role: 'member', permissions: [] })).status, 403);
+            assert.equal((await submitKey(randomUUID(), key)).status, 409);
+            assert.equal((await submitKey(secret.prompt.id, 'fixture-invalid-key')).status, 200);
+            await waitFor(() => session.state().prompt?.kind === 'secret' && session.state().prompt.error, { timeoutMs: 6000, intervalMs: 40 });
+            assert(!JSON.stringify(session.state()).includes('fixture-invalid-key'));
             assert.equal(await readPreparedApiHarness(project.root, variant), undefined);
-            assert.equal((await send(options.promptId, key)).status, 200);
+            secret = session.state();
+            assert.equal((await submitKey(secret.prompt.id, key)).status, 200);
             await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 6000, intervalMs: 40 });
             assert(!JSON.stringify(await readOnboarding(project)).includes(key));
             assert(!JSON.stringify(session.view()).includes(key));
             assert.equal((await readPreparedApiHarness(project.root, variant)).credential.value, key);
-            assert.equal((await send(options.promptId, key)).status, 409);
+            assert.equal((await submitKey(secret.prompt.id, key)).status, 409);
         });
     }
 });

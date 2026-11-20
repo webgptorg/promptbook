@@ -786,7 +786,7 @@ export type ServiceSnapshot = {
     /** Observation time (ISO). */
     readonly observedAt: string;
     readonly project: { readonly name: string; readonly path: string };
-    readonly engine: { readonly version: string; readonly installation: string; readonly scope: string };
+    readonly engine: { readonly version: string; readonly installation: string; readonly scope: string; readonly uiTrust?: string };
     readonly service: {
         /** Placement (`run` is reported only by older engines that still had a finite run). */
     readonly mode: 'daemon' | 'foreground' | 'maintenance' | 'run';

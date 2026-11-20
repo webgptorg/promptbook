@@ -30,6 +30,36 @@
     --ptbk-graphite-950: #111113;
     --ptbk-graphite-975: #0c0c0e;
 
+    /*
+     * The Promptbook brand kit (ptbk.io/brand): ink blue and its soft surface. Light uses the kit's values; the kit gives
+     * none for dark, so the dark steps are the same hue lifted until they hold AA on graphite.
+     */
+    --ptbk-ink-50: #eef4fb;
+    --ptbk-ink-100: #dde7f5;
+    --ptbk-ink-200: #c4d5ef;
+    --ptbk-ink-300: #a3bde8;
+    --ptbk-ink-400: #7d9fd9;
+    --ptbk-ink-600: #2e5592;
+    --ptbk-ink-700: #17386c;
+    --ptbk-ink-900: #1f2f4d;
+    --ptbk-ink-975: #1b1f27;
+
+    /* The kit's artwork colours, used only by the brand mark and the robot, which are never recoloured. */
+    --ptbk-brand-blue: #17386c;
+    --ptbk-brand-ink: #111318;
+    --ptbk-brand-white: #ffffff;
+    --ptbk-robot-shell-1: #dbe6f7;
+    --ptbk-robot-shell-2: #eff4fd;
+    --ptbk-robot-shell-3: #dfebff;
+    --ptbk-robot-shell-4: #afc8ee;
+    --ptbk-robot-shell-5: #9eb5d9;
+    --ptbk-robot-shell-6: #edf3ff;
+    --ptbk-robot-shell-7: #e3edfc;
+    --ptbk-robot-shell-8: #c4d3ee;
+    --ptbk-robot-shell-9: #eef3ff;
+    --ptbk-robot-steel: #426ba4;
+    --ptbk-robot-sky: #83a8da;
+
     --ptbk-cyan-50: #ecfdff;
     --ptbk-cyan-100: #cff8fc;
     --ptbk-cyan-200: #a3eef8;
@@ -94,6 +124,7 @@
     --ptbk-orange-300: #f8b878;
 
     --ptbk-font-text: 'Inter Variable', 'Inter Fallback', ui-sans-serif, system-ui, sans-serif;
+    --ptbk-font-heading: 'Exo 2 Variable', 'Exo 2 Fallback', ui-sans-serif, system-ui, sans-serif;
     --ptbk-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono Fallback', ui-monospace, monospace;
 
     --ptbk-font-size-2xs: 0.75rem;
@@ -112,7 +143,7 @@
     --ptbk-line-height-xl: 1.75rem;
     --ptbk-line-height-2xl: 2rem;
     --ptbk-line-height-3xl: 2.25rem;
-    --ptbk-tracking-display: -0.02em;
+    --ptbk-tracking-display: -0.025em;
     --ptbk-tracking-heading: -0.011em;
     --ptbk-weight-display: 600;
 
@@ -158,17 +189,17 @@
     --color-selected: color-mix(in oklab, var(--color-text) 8%, transparent);
 
     /*
-     * Soft buttons: the main action is a slightly stronger wash of the text colour, a destructive one a wash of the
-     * danger colour; hover and press deepen them. Washes, so they sit on any surface (U-17 rev 1: no inverted fills).
+     * Soft buttons: the main action is a wash of the brand's ink blue, a destructive one a wash of the danger colour;
+     * hover and press deepen them. Washes, so they sit on any surface (U-17 rev 1: no inverted fills).
      */
-    --color-wash-strong: color-mix(in oklab, var(--color-text) 7%, transparent);
-    --color-wash-strong-hover: color-mix(in oklab, var(--color-text) 10%, transparent);
-    --color-wash-strong-active: color-mix(in oklab, var(--color-text) 14%, transparent);
+    --color-wash-strong: color-mix(in oklab, var(--color-brand) 9%, transparent);
+    --color-wash-strong-hover: color-mix(in oklab, var(--color-brand) 13%, transparent);
+    --color-wash-strong-active: color-mix(in oklab, var(--color-brand) 18%, transparent);
     --color-danger-wash: color-mix(in oklab, var(--color-danger) 8%, transparent);
     --color-danger-wash-hover: color-mix(in oklab, var(--color-danger) 12%, transparent);
     --color-danger-wash-active: color-mix(in oklab, var(--color-danger) 16%, transparent);
     --color-danger-hairline: color-mix(in oklab, var(--color-danger) 28%, transparent);
-    --color-neutral-soft: var(--ptbk-graphite-100);
+    --color-neutral-soft: var(--ptbk-ink-50);
     --color-scrim: var(--ptbk-scrim);
 
     --color-text: var(--ptbk-graphite-900);
@@ -191,10 +222,29 @@
     --color-accent-text: var(--color-text);
     --color-accent-soft: var(--color-neutral-soft);
 
-    --color-focus: var(--ptbk-cyan-600);
-    --color-link: var(--ptbk-cyan-700);
-    --color-link-hover: var(--ptbk-cyan-800);
-    --color-selection: var(--ptbk-teal-100);
+    /* The brand kit's artwork colours (logo and robot), the same in both themes: artwork is never recoloured. */
+    --artwork-blue: var(--ptbk-brand-blue);
+    --artwork-ink: var(--ptbk-brand-ink);
+    --artwork-white: var(--ptbk-brand-white);
+    --artwork-robot-shell-1: var(--ptbk-robot-shell-1);
+    --artwork-robot-shell-2: var(--ptbk-robot-shell-2);
+    --artwork-robot-shell-3: var(--ptbk-robot-shell-3);
+    --artwork-robot-shell-4: var(--ptbk-robot-shell-4);
+    --artwork-robot-shell-5: var(--ptbk-robot-shell-5);
+    --artwork-robot-shell-6: var(--ptbk-robot-shell-6);
+    --artwork-robot-shell-7: var(--ptbk-robot-shell-7);
+    --artwork-robot-shell-8: var(--ptbk-robot-shell-8);
+    --artwork-robot-shell-9: var(--ptbk-robot-shell-9);
+    --artwork-robot-steel: var(--ptbk-robot-steel);
+    --artwork-robot-sky: var(--ptbk-robot-sky);
+
+    /* The brand's ink blue. */
+    --color-brand: var(--ptbk-ink-700);
+    --color-brand-soft: var(--ptbk-ink-50);
+    --color-focus: var(--ptbk-ink-700);
+    --color-link: var(--ptbk-ink-700);
+    --color-link-hover: var(--ptbk-ink-600);
+    --color-selection: var(--ptbk-ink-100);
     --color-live: var(--ptbk-mint-600);
 
     --color-success: var(--ptbk-green-700);
@@ -236,8 +286,8 @@
     /* A soft surface is a faint wash of its tint (`--tint`, e.g. an agent's colour): no border, no shadow. */
     --soft-surface-wash: 5%;
 
-    /* Inter everywhere (U-17); headings are its heavier, tighter cuts rather than a second family. */
-    --font-display: var(--ptbk-font-text);
+    /* Inter for text; the brand kit's Exo 2 only for titles and headings (h1–h3, `font-display`). */
+    --font-display: var(--ptbk-font-heading);
     --font-sans: var(--ptbk-font-text);
     --font-mono: var(--ptbk-font-mono);
     --heading-weight: var(--ptbk-weight-display);
@@ -301,17 +351,17 @@
         --color-selected: color-mix(in oklab, var(--color-text) 8%, transparent);
 
         /*
-         * Soft buttons: the main action is a slightly stronger wash of the text colour, a destructive one a wash of the
-         * danger colour; hover and press deepen them. Washes, so they sit on any surface (U-17 rev 1: no inverted fills).
+         * Soft buttons: the main action is a wash of the brand's ink blue, a destructive one a wash of the danger colour;
+         * hover and press deepen them. Washes, so they sit on any surface (U-17 rev 1: no inverted fills).
          */
-        --color-wash-strong: color-mix(in oklab, var(--color-text) 7%, transparent);
-        --color-wash-strong-hover: color-mix(in oklab, var(--color-text) 10%, transparent);
-        --color-wash-strong-active: color-mix(in oklab, var(--color-text) 14%, transparent);
+        --color-wash-strong: color-mix(in oklab, var(--color-brand) 9%, transparent);
+        --color-wash-strong-hover: color-mix(in oklab, var(--color-brand) 13%, transparent);
+        --color-wash-strong-active: color-mix(in oklab, var(--color-brand) 18%, transparent);
         --color-danger-wash: color-mix(in oklab, var(--color-danger) 8%, transparent);
         --color-danger-wash-hover: color-mix(in oklab, var(--color-danger) 12%, transparent);
         --color-danger-wash-active: color-mix(in oklab, var(--color-danger) 16%, transparent);
         --color-danger-hairline: color-mix(in oklab, var(--color-danger) 28%, transparent);
-        --color-neutral-soft: var(--ptbk-graphite-825);
+        --color-neutral-soft: var(--ptbk-ink-975);
         --color-scrim: var(--ptbk-scrim-dark);
 
         --color-text: var(--ptbk-graphite-100);
@@ -325,10 +375,12 @@
         --color-primary-hover: var(--ptbk-graphite-0);
         --color-on-primary: var(--ptbk-graphite-950);
 
-        --color-focus: var(--ptbk-teal-400);
-        --color-link: var(--ptbk-teal-300);
-        --color-link-hover: var(--ptbk-teal-100);
-        --color-selection: var(--ptbk-teal-900);
+        --color-brand: var(--ptbk-ink-400);
+        --color-brand-soft: var(--ptbk-ink-975);
+        --color-focus: var(--ptbk-ink-400);
+        --color-link: var(--ptbk-ink-300);
+        --color-link-hover: var(--ptbk-ink-200);
+        --color-selection: var(--ptbk-ink-900);
         --color-live: var(--ptbk-mint-450);
 
         --color-success: var(--ptbk-green-350);
@@ -369,6 +421,7 @@
     }
 }
 
+/* Motion explains state; under reduced motion it becomes a short fade, and seals, morphs and breathing stop. */
 @media (prefers-reduced-motion: reduce) {
     :root {
         --motion-enter: var(--ptbk-duration-100);
@@ -422,18 +475,34 @@ body {
     margin-bottom: calc(var(--spacing) * 4);
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: calc(var(--spacing) * 2);
     color: var(--color-text-muted);
     font-size: var(--text-sm);
 }
 
+/* The brand kit's lockup: its published colours in light, its all-white artwork in dark, never stretched. */
 .wordmark {
-    color: var(--color-text);
-    font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: 0.01em;
+    display: block;
+    width: 10rem;
+    height: auto;
+    margin-block: calc(var(--spacing) * 2);
+}
+
+.wordmark .brand-blue {
+    fill: var(--artwork-blue);
+}
+
+.wordmark .brand-ink {
+    fill: var(--artwork-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+    .wordmark .brand-blue,
+    .wordmark .brand-ink {
+        fill: var(--artwork-white);
+    }
 }
 
 .masthead-host {
@@ -448,9 +517,8 @@ body {
     max-width: 30rem;
     padding: calc(var(--spacing) * 8);
     background: var(--color-raised);
-    border: 1px solid var(--color-divider);
+    border: 1px solid var(--color-hairline);
     border-radius: var(--radius-surface);
-    box-shadow: var(--shadow-raised);
 }
 
 @media (max-width: 30rem) {
@@ -470,7 +538,8 @@ h1 {
     margin: 0 0 calc(var(--spacing) * 3);
     font-family: var(--font-display);
     font-size: var(--text-2xl);
-    font-weight: 600;
+    font-weight: var(--heading-weight);
+    letter-spacing: var(--tracking-display);
     line-height: var(--text-2xl--line-height);
     text-wrap: balance;
     overflow-wrap: anywhere;
@@ -510,8 +579,12 @@ code {
 }
 
 a {
-    color: var(--color-accent-text);
+    color: var(--color-link);
     text-underline-offset: 0.15em;
+}
+
+a:hover {
+    color: var(--color-link-hover);
 }
 
 a:focus-visible,
@@ -530,25 +603,62 @@ button:focus-visible {
     justify-content: center;
     min-height: 2.75rem;
     padding: 0 calc(var(--spacing) * 5);
-    border: 0;
+    border: 1px solid var(--color-divider);
     border-radius: var(--radius-control);
-    background: var(--color-accent);
-    color: var(--color-on-accent);
+    background: var(--color-wash-strong);
+    color: var(--color-text);
     font: inherit;
-    font-weight: 600;
+    font-weight: 500;
     text-decoration: none;
     cursor: pointer;
     transition: background-color var(--motion-state) var(--ease-standard);
 }
 
 .button:hover {
-    background: var(--color-accent-hover);
+    background: var(--color-wash-strong-hover);
+}
+
+.button:active {
+    background: var(--color-wash-strong-active);
 }
 
 @media (max-width: 30rem) {
     .button {
         width: 100%;
     }
+}
+
+/* Sign-in's ways forward for someone without a passkey here: below the action, quiet, never a second button. */
+.ways {
+    margin-top: calc(var(--spacing) * 8);
+    padding-top: calc(var(--spacing) * 6);
+    border-top: 1px solid var(--color-hairline);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+}
+
+.ways h2 {
+    margin: 0 0 calc(var(--spacing) * 3);
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: var(--text-base--line-height);
+}
+
+.ways ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--color-text-muted);
+}
+
+.ways li + li {
+    margin-top: calc(var(--spacing) * 3);
+}
+
+.ways strong {
+    display: block;
+    color: var(--color-text);
+    font-weight: 500;
 }
 
 .facts {
@@ -558,6 +668,7 @@ button:focus-visible {
     grid-template-columns: auto minmax(0, 1fr);
     gap: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
     align-items: center;
+    border: 1px solid var(--color-hairline);
     border-radius: var(--radius-control);
     background: var(--color-sunken);
 }
@@ -577,12 +688,20 @@ button:focus-visible {
 
 /* The join code is read aloud to whoever approves: large, spaced and in digits that cannot be mistaken. */
 .join-code {
-    margin-block: calc(var(--spacing) * 4);
+    margin-block: calc(var(--spacing) * 6) calc(var(--spacing) * 2);
     font-family: var(--font-mono);
-    font-size: 2.25rem;
+    font-size: clamp(2.5rem, 12vw, 3.5rem);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    line-height: 1.1;
+    letter-spacing: 0.08em;
     font-variant-numeric: tabular-nums;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.join-code-hint {
+    margin-bottom: calc(var(--spacing) * 6);
+    color: var(--color-text-muted);
     text-align: center;
 }
 

@@ -7,8 +7,6 @@ declare const Terminal: typeof import('@xterm/xterm').Terminal;
 
 const status = document.querySelector('[role="status"]')!;
 const open = document.querySelector<HTMLButtonElement>('#open')!;
-const form = document.querySelector<HTMLFormElement>('#key');
-const verifyKey = form?.querySelector('button');
 const container = document.getElementById('terminal')!;
 
 /** Installs xterm's fixed generated styles under the engine's per-document CSP nonce. */
@@ -90,31 +88,9 @@ async function setup(): Promise<void> {
     open.disabled = false;
     open.onclick = () => {
         open.disabled = true;
-        if (verifyKey) verifyKey.disabled = true;
         status.textContent = '';
         void connect(options.promptId).catch((error: unknown) => { status.textContent = (error as Error).message; }).finally(() => {
             open.disabled = false;
-            if (verifyKey) verifyKey.disabled = false;
-        });
-    };
-    if (!options.apiKey || !form || !verifyKey) return;
-    const keyInput = form.querySelector('input')!;
-    document.querySelector<HTMLAnchorElement>('#provider')!.href = options.apiKey.url;
-    document.getElementById('key-label')!.textContent = options.apiKey.label;
-    form.hidden = false;
-    form.onsubmit = (event) => {
-        event.preventDefault();
-        const value = keyInput.value.trim();
-        keyInput.value = '';
-        open.disabled = true;
-        verifyKey.disabled = true;
-        status.textContent = 'Checking API key…';
-        void post({ action: 'api-key', promptId: options.promptId, value }).then((result) => {
-            if (result.ok) location.assign('/');
-            else status.textContent = result.status === 409 ? 'The sign-in step has changed. Return to setup.' : 'The provider key could not be verified. Check the key and try again.';
-        }, () => { status.textContent = 'The engine did not respond. Return to setup to check its state.'; }).finally(() => {
-            open.disabled = false;
-            verifyKey.disabled = false;
         });
     };
 }

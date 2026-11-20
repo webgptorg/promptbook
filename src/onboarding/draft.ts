@@ -8,6 +8,7 @@ import { PtbkError } from '../common/errors.js';
 import { intendedUser, sharedProjectsRoot } from '../common/user-home.js';
 import { canonicalPath, projectAt, runtimePaths, type Project } from '../project/workspace.js';
 import { acquireProjectLock } from '../service/records.js';
+import type { OnboardingActivity } from './contract.js';
 
 /** The persisted transition, independent of any running client. @private onboarding */
 export type DraftStep = 'intent' | 'harnesses' | 'prepare' | 'title' | 'folder' | 'review' | 'create' | 'publish' | 'published' | 'done';
@@ -26,6 +27,7 @@ export type OnboardingDraft = {
     readonly harnesses?: readonly string[];
     readonly title?: string;
     readonly folder?: string;
+    readonly activity?: readonly OnboardingActivity[];
 };
 
 /** The engine's private staging area, on the same filesystem as the resulting project. @private onboarding */

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable */
-// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 9ac96b129d47e91b5db2a76689849f6a87751051. Do not edit; regenerate.
+// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 60958c0b9290d89875087460d5b2333d2442d620. Do not edit; regenerate.
 // Licenses: see THIRD_PARTY_LICENSES.md next to this file.
 import { createRequire } from "node:module";
 var __create = Object.create;
@@ -21068,8 +21068,12 @@ __export(exports_src, {
   MAX_MESSAGE_CHOICES: () => MAX_MESSAGE_CHOICES,
   MAX_MESSAGE_CHOICE_LENGTH: () => MAX_MESSAGE_CHOICE_LENGTH,
   MAX_MESSAGE_LENGTH: () => MAX_MESSAGE_LENGTH,
+  MAX_ONBOARDING_ACTIVITY: () => MAX_ONBOARDING_ACTIVITY,
+  MAX_ONBOARDING_ALTERNATIVES: () => MAX_ONBOARDING_ALTERNATIVES,
   MAX_ONBOARDING_CHOICES: () => MAX_ONBOARDING_CHOICES,
+  MAX_ONBOARDING_DETAILS: () => MAX_ONBOARDING_DETAILS,
   MAX_ONBOARDING_FILES: () => MAX_ONBOARDING_FILES,
+  MAX_ONBOARDING_SECRET_LENGTH: () => MAX_ONBOARDING_SECRET_LENGTH,
   MAX_PAGE_LIMIT: () => MAX_PAGE_LIMIT,
   MAX_PARTICIPANT_NAME_LENGTH: () => MAX_PARTICIPANT_NAME_LENGTH,
   MAX_PENDING_ACCESS_REQUESTS: () => MAX_PENDING_ACCESS_REQUESTS,
@@ -21109,18 +21113,25 @@ __export(exports_src, {
   Money: () => Money,
   OCCURRENCE_REASONS: () => OCCURRENCE_REASONS,
   OCCURRENCE_STATES: () => OCCURRENCE_STATES,
+  ONBOARDING_ACTIVITY_STATUSES: () => ONBOARDING_ACTIVITY_STATUSES,
+  ONBOARDING_PROMPT_KINDS: () => ONBOARDING_PROMPT_KINDS,
   ONBOARDING_ROUTES: () => ONBOARDING_ROUTES,
   ONBOARDING_STATUSES: () => ONBOARDING_STATUSES,
   OWNER_PERMISSIONS: () => OWNER_PERMISSIONS,
   OccurrenceState: () => OccurrenceState,
+  OnboardingActivity: () => OnboardingActivity,
+  OnboardingAlternative: () => OnboardingAlternative,
   OnboardingAnswer: () => OnboardingAnswer,
   OnboardingChoice: () => OnboardingChoice,
   OnboardingChoicePrompt: () => OnboardingChoicePrompt,
   OnboardingConfirmPrompt: () => OnboardingConfirmPrompt,
+  OnboardingDetail: () => OnboardingDetail,
   OnboardingHarnessLoginPrompt: () => OnboardingHarnessLoginPrompt,
   OnboardingPrompt: () => OnboardingPrompt,
   OnboardingPromptId: () => OnboardingPromptId,
+  OnboardingSecretPrompt: () => OnboardingSecretPrompt,
   OnboardingState: () => OnboardingState,
+  OnboardingStateReader: () => OnboardingStateReader,
   OnboardingTextPrompt: () => OnboardingTextPrompt,
   OnboardingUploadPrompt: () => OnboardingUploadPrompt,
   OpaqueId: () => OpaqueId,
@@ -21488,6 +21499,7 @@ __export(exports_src2, {
   SIGNED_MEMBER_MESSAGE_MAX_LENGTH: () => SIGNED_MEMBER_MESSAGE_MAX_LENGTH,
   SIGNING_CONTEXT: () => SIGNING_CONTEXT,
   STAGING_MIN_DELAY_MS: () => STAGING_MIN_DELAY_MS,
+  SetupState: () => SetupState,
   Sha256Hex: () => Sha256Hex2,
   SignedRelease: () => SignedRelease,
   StagingTrustPolicy: () => StagingTrustPolicy,
@@ -28330,6 +28342,7 @@ var PROBLEM_STATUS = {
   "trigger-ended": 409,
   "file-infected": 409,
   "onboarding-prompt-stale": 409,
+  "onboarding-not-deferrable": 409,
   "payload-too-large": 413,
   "unsupported-media-type": 415,
   "invalid-book": 422,
@@ -28357,7 +28370,8 @@ function createProblem(code, extras = {}) {
     ...extras.detail === undefined ? {} : { detail: extras.detail },
     ...extras.errors === undefined ? {} : { errors: [...extras.errors] },
     ...extras.requiredPermission === undefined ? {} : { requiredPermission: extras.requiredPermission },
-    ...extras.diagnostics === undefined ? {} : { diagnostics: [...extras.diagnostics] }
+    ...extras.diagnostics === undefined ? {} : { diagnostics: [...extras.diagnostics] },
+    ...extras.attemptsRemaining === undefined ? {} : { attemptsRemaining: extras.attemptsRemaining }
   };
 }
 // ../../../packages/engine-api/src/common.ts
@@ -28431,7 +28445,8 @@ var ProblemDetails = strictObject({
   code: ProblemCode,
   errors: array(strictObject({ path: string2().max(1024), message: string2().max(1024) })).optional(),
   requiredPermission: Permission.optional(),
-  diagnostics: array(Diagnostic).optional()
+  diagnostics: array(Diagnostic).optional(),
+  attemptsRemaining: int().min(0).max(1000).optional()
 });
 var ClientInfo = strictObject({
   ip: union([ipv42(), ipv62()]),
@@ -30078,7 +30093,7 @@ var ACCESS_REQUEST_ROUTES = {
     method: "POST",
     path: "/access-requests/{accessRequestId}/approve",
     summary: "Approve an access request with the code the person reads out; they become a member",
-    description: "The member gets the role in the body, the passkey registered with the request and the ticket’s " + "`dashboardUserId`. A wrong code is 422 `access-code-mismatch` and leaves the request pending, except " + "the fifth wrong code for a request, which also deletes it.",
+    description: "The member gets the role in the body, the passkey registered with the request and the ticket’s " + "`dashboardUserId`. A wrong code is 422 `access-code-mismatch` and leaves the request pending, except " + "the fifth wrong code for a request, which also deletes it. The problem carries `attemptsRemaining`, " + "the wrong codes the request still survives (0: this one deleted it).",
     permission: "members.manage",
     capability: capability5,
     params: AccessRequestParams,
@@ -30181,16 +30196,31 @@ var LIVE_ROUTES = {
 // ../../../packages/engine-api/src/capabilities/onboarding.ts
 var MAX_ONBOARDING_FILES = 20;
 var MAX_ONBOARDING_CHOICES = 32;
+var MAX_ONBOARDING_DETAILS = 16;
+var MAX_ONBOARDING_ALTERNATIVES = 4;
+var MAX_ONBOARDING_ACTIVITY = 16;
+var MAX_ONBOARDING_SECRET_LENGTH = 4096;
 var ShortText = string2().min(1).max(256);
 var LongText = string2().max(2048);
+var HttpsUrl = url({ protocol: /^https$/ }).max(2048);
 var OnboardingPromptId = OpaqueId;
+var OnboardingDetail = strictObject({ label: ShortText, text: LongText.min(1) });
+var EnginePath = string2().max(512).regex(/^\/(?![/\\])[^\s\\]*$/);
+var OnboardingAlternative = strictObject({
+  id: OpaqueId,
+  label: ShortText,
+  description: LongText.nullable(),
+  href: EnginePath.nullable()
+});
 var promptBase = {
   id: OnboardingPromptId,
   title: ShortText,
   question: LongText.min(1),
   hint: LongText.nullable(),
   error: LongText.nullable(),
-  canGoBack: boolean2()
+  canGoBack: boolean2(),
+  details: array(OnboardingDetail).max(MAX_ONBOARDING_DETAILS).default([]),
+  alternatives: array(OnboardingAlternative).max(MAX_ONBOARDING_ALTERNATIVES).default([])
 };
 var OnboardingChoice = strictObject({
   id: OpaqueId,
@@ -30226,6 +30256,13 @@ var OnboardingUploadPrompt = strictObject({
   required: boolean2(),
   maxFiles: int().min(1).max(MAX_ONBOARDING_FILES)
 });
+var OnboardingSecretPrompt = strictObject({
+  ...promptBase,
+  kind: literal("secret"),
+  label: ShortText,
+  placeholder: string2().max(256).nullable(),
+  helpUrl: HttpsUrl.nullable()
+});
 var HARNESS_LOGIN_METHODS = ["device-code", "return-code"];
 var HARNESS_LOGIN_STATUSES = [
   "waiting",
@@ -30241,7 +30278,7 @@ var OnboardingHarnessLoginPrompt = strictObject({
   kind: literal("harness-login"),
   harness: ShortText,
   method: _enum(HARNESS_LOGIN_METHODS),
-  url: url({ protocol: /^https$/ }).max(2048),
+  url: HttpsUrl,
   userCode: string2().min(4).max(64).nullable(),
   status: _enum(HARNESS_LOGIN_STATUSES),
   diagnostic: LongText.nullable(),
@@ -30252,15 +30289,49 @@ var OnboardingPrompt = discriminatedUnion("kind", [
   OnboardingChoicePrompt,
   OnboardingConfirmPrompt,
   OnboardingUploadPrompt,
+  OnboardingSecretPrompt,
   OnboardingHarnessLoginPrompt
 ]);
+var ONBOARDING_PROMPT_KINDS = [
+  "text",
+  "choice",
+  "confirm",
+  "upload",
+  "secret",
+  "harness-login"
+];
+var UnsupportedPromptReader = object({
+  id: OnboardingPromptId,
+  kind: string2().min(1).max(64).refine((kind) => !ONBOARDING_PROMPT_KINDS.includes(kind)),
+  title: ShortText,
+  question: LongText.min(1)
+}).transform(({ id, kind, title, question }) => ({
+  kind: "unsupported",
+  engineKind: kind,
+  id,
+  title,
+  question
+}));
+var ONBOARDING_ACTIVITY_STATUSES = ["running", "done", "failed", "skipped"];
+var OnboardingActivity = strictObject({
+  id: OpaqueId,
+  label: ShortText,
+  status: _enum(ONBOARDING_ACTIVITY_STATUSES),
+  detail: LongText.nullable()
+});
 var ONBOARDING_STATUSES = ["pending", "working", "completed"];
-var OnboardingState = strictObject({
+var stateShape = {
   status: _enum(ONBOARDING_STATUSES),
   deferred: boolean2(),
+  canDefer: boolean2().default(true),
   progress: strictObject({ step: int().min(1), of: int().min(1) }).nullable(),
+  activity: array(OnboardingActivity).max(MAX_ONBOARDING_ACTIVITY).default([])
+};
+var OnboardingState = strictObject({
+  ...stateShape,
   prompt: OnboardingPrompt.nullable()
 });
+var OnboardingStateReader = toTolerant(strictObject({ ...stateShape, prompt: union([OnboardingPrompt, UnsupportedPromptReader]).nullable() }));
 var OnboardingAnswer = discriminatedUnion("kind", [
   strictObject({
     kind: literal("text"),
@@ -30270,11 +30341,13 @@ var OnboardingAnswer = discriminatedUnion("kind", [
   strictObject({ kind: literal("choice"), choiceIds: array(OpaqueId).max(MAX_ONBOARDING_CHOICES) }),
   strictObject({ kind: literal("confirm"), confirmed: boolean2() }),
   strictObject({ kind: literal("upload"), fileIds: array(FileId).max(MAX_ONBOARDING_FILES) }),
+  strictObject({ kind: literal("secret"), value: string2().min(1).max(MAX_ONBOARDING_SECRET_LENGTH) }),
   strictObject({ kind: literal("harness-login"), returnCode: string2().min(1).max(512).nullable() })
 ]);
 var AnswerOnboardingBody = discriminatedUnion("action", [
   strictObject({ promptId: OnboardingPromptId, action: literal("answer"), answer: OnboardingAnswer }),
-  strictObject({ promptId: OnboardingPromptId, action: literal("back") })
+  strictObject({ promptId: OnboardingPromptId, action: literal("back") }),
+  strictObject({ promptId: OnboardingPromptId, action: literal("alternative"), alternativeId: OpaqueId })
 ]);
 var capability6 = KNOWN_CAPABILITIES.onboarding;
 var ONBOARDING_ROUTES = {
@@ -30286,18 +30359,18 @@ var ONBOARDING_ROUTES = {
     description: "Poll while `status` is `working` or a harness login is `waiting` or `verifying`.",
     permission: "settings.manage",
     capability: capability6,
-    responses: { 200: { kind: "json", schema: OnboardingState } }
+    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } }
   }),
   answerOnboarding: defineRoute({
     id: "answerOnboarding",
     method: "POST",
     path: "/onboarding/answer",
     summary: "Answer the current prompt, or go back one; the engine decides what comes next",
-    description: "A `promptId` that is not the current prompt is 409 `onboarding-prompt-stale` and changes nothing. An " + "answer of another kind than the prompt is 400 `validation-failed`. A returned login code is never " + "logged or audited.",
+    description: "A `promptId` that is not the current prompt is 409 `onboarding-prompt-stale` and changes nothing. An " + "answer of another kind than the prompt, or an `alternativeId` the prompt does not offer without " + "`href`, is 400 `validation-failed`. A returned login code or a secret is never logged or audited.",
     permission: "settings.manage",
     capability: capability6,
     body: { kind: "json", schema: AnswerOnboardingBody },
-    responses: { 200: { kind: "json", schema: OnboardingState } },
+    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
     problems: ["onboarding-prompt-stale"]
   }),
   deferOnboarding: defineRoute({
@@ -30305,10 +30378,11 @@ var ONBOARDING_ROUTES = {
     method: "POST",
     path: "/onboarding/defer",
     summary: '"Skip for now": keep the setup pending, and let the engine set itself up through its built-in agents',
-    description: "Idempotent. Onboarding stays reachable; answering a prompt later continues where it stopped.",
+    description: "Idempotent. Onboarding stays reachable; answering a prompt later continues where it stopped. 409 " + "`onboarding-not-deferrable` while `canDefer` is false.",
     permission: "settings.manage",
     capability: capability6,
-    responses: { 200: { kind: "json", schema: OnboardingState } }
+    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
+    problems: ["onboarding-not-deferrable"]
   })
 };
 
@@ -35516,6 +35590,7 @@ var Percent = int().min(0).max(100).multipleOf(10);
 var Count = int().min(0).max(MAX_HEARTBEAT_COUNT);
 var CpuLoad = _enum(["low", "medium", "high"]);
 var UpdateState = _enum(["none", "available", "pending", "installing"]);
+var SetupState = _enum(["pending", "done"]);
 var heartbeatShape = {
   engineId: EngineId2,
   seq: int().min(0),
@@ -35527,7 +35602,8 @@ var heartbeatShape = {
   cpuLoad: CpuLoad,
   update: UpdateState,
   agents: Count,
-  members: Count
+  members: Count,
+  setup: SetupState.optional()
 };
 var Heartbeat = strictObject({ v: literal(1), ...heartbeatShape });
 var MAX_HEARTBEAT_ACKS = 32;
@@ -35589,7 +35665,8 @@ function heartbeatFields(input) {
     cpuLoad: input.cpuLoad,
     update: input.update,
     agents: input.agents,
-    members: input.members
+    members: input.members,
+    ...input.setup === undefined ? {} : { setup: input.setup }
   };
 }
 async function heartbeatInput(body) {

@@ -8,4 +8,8 @@ export function assertPublishContext(env = process.env) {
     }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) assertPublishContext();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    assertPublishContext();
+    // Until the production key ceremony, every npm publication must seal the staging profile during prepack.
+    if (process.env.PTBK_BUILD_PROFILE !== 'staging') throw new Error('Publish the staging build through npm run release:publish.');
+}

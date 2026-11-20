@@ -1,5 +1,9 @@
 # Unreleased
 
+- Serve the platform's signed setup UI before project creation, following App contracts at `60958c0b`. Published npm and native package candidates use an immutable staging profile with the exact hash-checked staging policy, default UI store and engine domain. Initial paired setup approves only the first verified bundle without its delay; later updates retain normal delays and get an eligibility recheck. Production still refuses staging trust and published builds refuse conformance trust.
+
+- Complete the browser setup contract: secret API-key prompts with real provider verification, Claude Code's native returned-code sign-in, device-code flows and an owner-only native terminal fallback; report actual install/check activity, review details and pending/done setup heartbeats. Before project creation, closing a client preserves its draft while explicit deferral is refused. API keys no longer pass through the terminal page or appear in the draft/readback.
+
 - The publication waits up to 35 minutes, instead of 10, for npm to serve a just-uploaded version. npm usually needs about 5 minutes, but 0.119.0-123 took 18 ("Your package is being processed"), so the release failed and the Windows installer was not published, although the package itself was fine.
 - When GitHub cannot provide a runner for one of the two macOS DMGs (0.119.0-122 waited three times for a macOS arm64 runner), the other DMG is still published; the release stays marked as failed so the missing one is visible.
 

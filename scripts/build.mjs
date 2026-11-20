@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { buildComputerHelper, verifyComputerHelper } from './build-computer-helper.mjs';
+import { writeAppBuild } from './build-app-profile.mjs';
 
 /**
  * Builds the single publishable `ptbk` package:
@@ -23,6 +24,7 @@ try {
     process.exit(1);
 }
 await copyFile(join(root, 'src', 'package.json'), join(dist, 'package.json'));
+await writeAppBuild(new URL('../dist/', import.meta.url), process.env.PTBK_BUILD_PROFILE ?? 'development');
 // Computer Control belongs to the engine, including npm/CLI installs; native sources never depend on Electron.
 await cp(join(root, 'src', 'computer', 'native'), join(dist, 'computer', 'native'), { recursive: true });
 // Native macOS builds compile locally; the Linux npm publisher receives the same tagged artifact from its macOS job.

@@ -10,7 +10,7 @@ import { HARNESS_PLUGINS, harnessPlugin } from '../harness/registry.js';
 import type { HarnessContext, HarnessInspection, HarnessLoginMethod, HarnessPlugin } from '../harness/types.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessToolRecord } from '../tools/model.js';
-import { completedOnboarding, onboardingReply, type OnboardingPrompt, type OnboardingState } from './contract.js';
+import { completedOnboarding, onboardingReply, type OnboardingPrompt, type OnboardingState, type OnboardingActivity } from './contract.js';
 import { discardPreparedApiKey, prepareApiHarness, readPreparedApiHarness, savePreparedApiKey, type PreparedApiHarness } from './credentials.js';
 import { onboardingTarget, onboardingTargetExists, saveOnboarding, validOnboardingFolder, type OnboardingDraft } from './draft.js';
 import { HARNESS_TERMINAL_PATH, HarnessLoginTerminal, type TerminalFrame } from './terminal.js';
@@ -39,7 +39,7 @@ export type HarnessSignInOptions = {
 
 /** Live sign-in state. The draft holds only the surrounding setup step. */
 type NativeLogin = {
-    readonly options: HarnessSignInOptions;
+    options: HarnessSignInOptions;
     readonly plugin: HarnessPlugin;
     readonly context: HarnessContext;
     readonly terminal: HarnessLoginTerminal;
@@ -49,6 +49,7 @@ type NativeLogin = {
 
 /** Plain text safe to offer to any of the wizard clients. */
 function label(text: string): string {
+    // eslint-disable-next-line no-control-regex -- Prompt labels cannot carry terminal control characters.
     return text.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 2000);
 }
 
@@ -82,6 +83,10 @@ export class OnboardingSession {
     private login?: OnboardingPrompt;
     private nativeLogin?: NativeLogin;
     private deviceLogin?: AbortController;
+    private terminalRequested = false;
+    private secretJob?: Promise<void>;
+    private secretReturn?: OnboardingPrompt;
+    private returnCode?: { readonly promptId: string; readonly submit: (code: string) => Promise<void> };
     private stopped = false;
     private defaults: readonly string[] = ['openai-codex'];
 
@@ -98,8 +103,9 @@ export class OnboardingSession {
     /** Reads an authenticated client's current prompt without changing the draft. */
     public state(): OnboardingState {
         if (this.draft.step === 'done') return completedOnboarding;
-        const prompt = this.login ?? this.prompt();
-        return { status: prompt ? 'pending' : 'working', deferred: this.draft.deferred, progress: null, prompt: prompt ?? null };
+        const prompt = this.nativeLogin?.checking ? undefined : this.login ?? this.prompt();
+        return { status: prompt ? 'pending' : 'working', deferred: false, canDefer: false, activity: this.draft.activity ?? [], progress: null,
+            prompt: prompt ? { ...prompt, details: prompt.details ?? [], alternatives: prompt.alternatives ?? [] } : null };
     }
 
     /** The non-secret local summary of this service. */
@@ -116,7 +122,17 @@ export class OnboardingSession {
     /** Switches a running device-code sign-in to the same adapter's native terminal. */
     public useTerminal(promptId: unknown): void {
         if (!this.deviceLogin || this.login?.id !== promptId) throw new PtbkError('The sign-in step has changed.', { kind: 'conflict' });
+        this.terminalRequested = true;
         this.deviceLogin.abort();
+    }
+
+    /** Opening the explicit fallback link switches a presented login to the engine's private native terminal. */
+    public async prepareTerminal(): Promise<void> {
+        if (!this.deviceLogin) return;
+        this.useTerminal(this.login?.id);
+        const deadline = Date.now() + 10_000;
+        while (!this.nativeLogin && this.deviceLogin && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 40));
+        while (!this.nativeLogin && this.draft.step === 'prepare' && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 40));
     }
 
     /** Forwards only the current wizard's native login terminal. */
@@ -130,10 +146,11 @@ export class OnboardingSession {
     /** Validates and retains an explicitly entered provider key only after it answers a real request. */
     public async useApiKey(promptId: unknown, value: unknown): Promise<void> {
         const login = this.nativeLogin;
-        if (!login || login.options.promptId !== promptId || login.context.signal?.aborted || login.checking) {
+        const currentId = this.login?.kind === 'secret' ? this.login.id : login?.options.promptId;
+        if (!login || currentId !== promptId || login.context.signal?.aborted || login.checking) {
             throw new PtbkError('The sign-in step has changed or is being checked.', { kind: 'conflict' });
         }
-        if (!login.options.apiKey || typeof value !== 'string' || !/^[!-~]{1,512}$/.test(value)) {
+        if (!login.options.apiKey || typeof value !== 'string' || !/^[!-~]{1,4096}$/.test(value)) {
             throw new PtbkError('Enter a valid provider API key.', { kind: 'usage' });
         }
         login.checking = true;
@@ -200,6 +217,7 @@ export class OnboardingSession {
 
     /** Defers presentation without discarding the draft or starting an agenda. */
     public async defer(): Promise<OnboardingState> {
+        if (!this.state().canDefer) throw new PtbkError('Finish creating the project before skipping setup. You can close the page and continue later.', { kind: 'conflict' });
         return await this.exclusive(async () => {
             this.nativeLogin?.terminal.close();
             if (this.draft.step !== 'done' && !this.draft.deferred) await this.save({ deferred: true });
@@ -215,7 +233,23 @@ export class OnboardingSession {
         return await this.exclusive(async () => {
             const prompt = this.state().prompt;
             if (!prompt || reply.promptId !== prompt.id) throw new PtbkError('The onboarding prompt has changed.', { kind: 'conflict' });
+            if (reply.action === 'alternative') {
+                const alternative = prompt.alternatives?.find(item => item.id === reply.alternativeId && item.href === null);
+                const key = this.nativeLogin?.options.apiKey;
+                if (!alternative || alternative.id !== 'api-key' || !key) throw new PtbkError('Choose an offered action for this prompt.', { kind: 'usage' });
+                this.secretReturn = prompt;
+                this.login = { id: randomUUID(), kind: 'secret', title: key.label, question: 'Enter your provider API key.', label: key.label,
+                    helpUrl: key.url, placeholder: null, hint: 'The engine verifies the key without putting it in the setup draft or history.', error: null, canGoBack: true };
+                return this.state();
+            }
             if (reply.action === 'back') {
+                if (prompt.kind === 'secret' && this.secretReturn && this.nativeLogin) {
+                    const id = randomUUID();
+                    this.login = { ...this.secretReturn, id };
+                    this.nativeLogin.options = { ...this.nativeLogin.options, promptId: id };
+                    this.secretReturn = undefined;
+                    return this.state();
+                }
                 if (!prompt.canGoBack) throw new PtbkError('There is no earlier prompt.', { kind: 'usage' });
                 const back = { harnesses: 'intent', prepare: 'harnesses', title: 'harnesses', folder: 'title', review: 'folder' } as const;
                 const previous = back[this.draft.step as keyof typeof back];
@@ -227,6 +261,17 @@ export class OnboardingSession {
             }
             if (reply.answer.kind !== prompt.kind) throw new PtbkError('The reply is for a different kind of prompt.', { kind: 'usage' });
             switch (reply.answer.kind) {
+                case 'secret': {
+                    const value = reply.answer.value;
+                    this.secretJob = this.useApiKey(prompt.id, value).catch(async () => {
+                        await this.exclusive(async () => {
+                            if (this.login?.id === prompt.id && this.nativeLogin && !this.nativeLogin.context.signal?.aborted) {
+                                this.login = { ...prompt, id: randomUUID(), error: 'The provider did not accept the key or could not answer its verification request. Check the key and try again.' };
+                            }
+                        });
+                    }).finally(() => { this.secretJob = undefined; });
+                    return this.state();
+                }
                 case 'text': {
                     if (this.draft.step === 'intent') {
                         const ids = [...new Set([...this.attachedIds(), ...reply.answer.fileIds])];
@@ -262,7 +307,9 @@ export class OnboardingSession {
                         const login = this.nativeLogin;
                         if (!reply.answer.confirmed) {
                             login.terminal.close();
-                            await this.save({ deferred: true });
+                            this.job?.abort.abort();
+                            this.login = undefined;
+                            await this.next('harnesses');
                         } else if (!login.checking) {
                             login.checking = true;
                             try {
@@ -283,6 +330,13 @@ export class OnboardingSession {
                     }
                     break;
                 case 'harness-login':
+                    if (prompt.kind === 'harness-login' && prompt.method === 'return-code' && reply.answer.returnCode !== null) {
+                        if (!this.returnCode || this.returnCode.promptId !== prompt.id || !/^[!-~]{1,512}$/.test(reply.answer.returnCode)) throw new PtbkError('Enter the code shown by the provider, on one line.', { kind: 'usage' });
+                        await this.returnCode.submit(reply.answer.returnCode);
+                        this.returnCode = undefined;
+                        this.login = { ...prompt, id: randomUUID(), status: 'verifying' };
+                        return this.state();
+                    }
                     if (reply.answer.returnCode !== null) throw new PtbkError('Enter the device code on the provider’s page.', { kind: 'usage' });
                     this.job?.abort.abort();
                     this.login = undefined;
@@ -301,6 +355,7 @@ export class OnboardingSession {
         this.stopped = true;
         if (this.draft.step === 'prepare') this.job?.abort.abort();
         await this.job?.done;
+        await this.secretJob;
         await this.tail;
     }
 
@@ -315,9 +370,14 @@ export class OnboardingSession {
         const options = { promptId, harness: plugin.displayName, instructions: method.instructions,
             ...(keyLabel && url ? { apiKey: { label: keyLabel, url } } : {}) };
         this.nativeLogin = { terminal, finish, options, context, plugin, checking: false };
+        this.terminalRequested = false;
         this.login = { id: promptId, title: plugin.displayName + ' sign-in', kind: 'confirm', canGoBack: true, error: diagnostic ?? null,
             question: options.apiKey ? 'Connect a provider API key or sign in in the native terminal.' : 'Sign in in the native terminal.',
-            confirmLabel: 'Check sign-in', declineLabel: 'Continue later',
+            confirmLabel: 'Check sign-in', declineLabel: 'Choose AI tools',
+            alternatives: [
+                ...(options.apiKey ? [{ id: 'api-key', label: 'Use an API key instead', description: null, href: null }] : []),
+                { id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH },
+            ],
             hint: 'Open the sign-in page on this engine at ' + HARNESS_TERMINAL_PATH };
         const cancel = (): void => finish();
         signal.addEventListener('abort', cancel, { once: true });
@@ -329,6 +389,7 @@ export class OnboardingSession {
             signal.removeEventListener('abort', cancel);
             terminal.close();
             this.nativeLogin = undefined;
+            this.secretReturn = undefined;
             this.login = undefined;
         }
     }
@@ -342,10 +403,60 @@ export class OnboardingSession {
                 if (signal.aborted || abort.signal.aborted) return;
                 this.login = { id: randomUUID(), title: plugin.displayName + ' sign-in', kind: 'harness-login', canGoBack: true,
                     harness: plugin.displayName, method: 'device-code', status: 'waiting', diagnostic: null, hint: null, error: null,
-                    question: 'Open the provider’s sign-in page and enter the one-time code there.', ...challenge };
+                    question: 'Open the provider’s sign-in page and enter the one-time code there.', ...challenge,
+                    alternatives: [{ id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH }] };
             });
             return abort.signal.aborted ? undefined : failure?.diagnostic;
         } finally {
+            this.deviceLogin = undefined;
+            this.login = undefined;
+        }
+    }
+
+    /** Presents Claude's native returned-code flow while its real CLI owns all authorization state. */
+    private async returnCodeSignIn(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal): Promise<string | undefined> {
+        const abort = new AbortController();
+        this.deviceLogin = abort;
+        const combined = AbortSignal.any([signal, abort.signal]);
+        const terminal = new HarnessLoginTerminal(plugin, { ...context, signal: combined }, method);
+        const id = randomUUID();
+        const owner = 'presented:' + id;
+        let output = '';
+        let offset = 0;
+        let presented = false;
+        const startedAt = Date.now();
+        const expiresAt = new Date(startedAt + 8 * 60_000).toISOString();
+        try {
+            await terminal.command(owner, { id, action: 'start', cols: 200, rows: 24 });
+            while (!combined.aborted && Date.now() - startedAt < 8 * 60_000) {
+                const frame = await terminal.command(owner, { id, action: 'read', offset });
+                if (!frame) break;
+                offset = frame.offset;
+                if (!presented) {
+                    output = (output + frame.output).slice(-16_384);
+                    const challenge = method.returnChallenge?.(output);
+                    if (challenge) {
+                        presented = true;
+                        output = '';
+                        const promptId = randomUUID();
+                        this.returnCode = { promptId, submit: async code => { await terminal.command(owner, { id, action: 'write', data: code + '\r' }); } };
+                        this.login = { id: promptId, kind: 'harness-login', title: plugin.displayName + ' sign-in', canGoBack: true,
+                            question: 'Open the provider sign-in page, sign in, then paste its returned code here.', hint: null, error: null,
+                            harness: plugin.displayName, method: 'return-code', url: challenge.url, userCode: null, status: 'waiting', diagnostic: null, expiresAt,
+                            alternatives: [{ id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH }] };
+                    }
+                }
+                if (frame.done) return undefined;
+                if (!presented && Date.now() - startedAt > 25_000) return 'The native CLI did not provide a supported authorization link. Use its sign-in terminal.';
+                await new Promise(resolve => setTimeout(resolve, 125));
+            }
+            return combined.aborted ? undefined : 'The provider sign-in expired. Start again for a fresh code.';
+        } catch {
+            signal.throwIfAborted();
+            return 'The native authorization flow could not continue. Use its sign-in terminal.';
+        } finally {
+            terminal.close();
+            this.returnCode = undefined;
             this.deviceLogin = undefined;
             this.login = undefined;
         }
@@ -361,6 +472,16 @@ export class OnboardingSession {
         const draft = { ...this.draft, ...patch };
         await saveOnboarding(this.staging, draft);
         this.draft = draft;
+    }
+
+    /** Persists measured work outcomes, without credentials, OAuth output or model content. */
+    private async noteActivity(id: string, label: string, status: OnboardingActivity['status'], detail: string | null = null): Promise<void> {
+        await this.exclusive(async () => {
+            const previous = this.draft.activity ?? [];
+            const entry = { id, label, status, detail };
+            const activity = previous.some(item => item.id === id) ? previous.map(item => item.id === id ? entry : item) : [...previous, entry];
+            await this.save({ activity: activity.slice(-16) });
+        });
     }
 
     /** An accepted reply is never replayed when a second client sends the same prompt ID. */
@@ -390,7 +511,9 @@ export class OnboardingSession {
             case 'review':
                 return { ...base, kind: 'confirm', title: 'Create and start', question: 'Create ' + title + ' in ' + folder + ' and start its agenda?',
                     hint: 'The engine will save the brief and attachments in the project and create the first task for Expert.',
-                    confirmLabel: 'Create and start', declineLabel: 'Review folder' };
+                    confirmLabel: 'Create and start', declineLabel: 'Review folder',
+                    details: [{ label: 'Project', text: title ?? 'My project' }, { label: 'Folder', text: folder ?? 'my-project' },
+                        { label: 'AI tools', text: (harnesses ?? []).map(id => harnessPlugin(id)?.displayName ?? id).join(', ') || 'None' }] };
             case 'publish':
             case 'published':
                 return error ? { ...base, canGoBack: false, kind: 'confirm', title: 'Finish setup', question: 'Retry finishing the project setup?', confirmLabel: 'Retry', declineLabel: 'Later' } : undefined;
@@ -434,39 +557,52 @@ export class OnboardingSession {
         for (const id of this.draft.harnesses ?? []) {
             signal.throwIfAborted();
             const plugin = harnessPlugin(id)!;
-            const native = harnessContext(plugin, this.staging.root, this.env, signal);
-            const api = await readPreparedApiHarness(this.staging.root, plugin);
-            const context = api ? harnessContext(plugin, this.staging.root, this.env, signal, api) : native;
-            let inspection = await plugin.inspect(context);
-            if (!inspection.installed && plugin.npmPackage) {
-                await installHarness(plugin, native);
-                inspection = await plugin.inspect(context);
-            }
-            let call = await verifyHarness(plugin, context, inspection);
-            if (!call && inspection.installed && (inspection.authenticated !== true || api)) {
-                const methods = await harnessLoginMethods(plugin, native, 'remote');
-                const device = methods.find((method) => method.deviceChallenge);
-                let diagnostic: string | undefined;
-                if (device && !api) {
-                    diagnostic = await this.deviceSignIn(plugin, native, device, signal);
-                    signal.throwIfAborted();
-                    call = await verifyHarness(plugin, native, await plugin.inspect(native));
+            await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'running');
+            try {
+                const native = harnessContext(plugin, this.staging.root, this.env, signal);
+                const api = await readPreparedApiHarness(this.staging.root, plugin);
+                const context = api ? harnessContext(plugin, this.staging.root, this.env, signal, api) : native;
+                let inspection = await plugin.inspect(context);
+                if (!inspection.installed && plugin.npmPackage) {
+                    await this.noteActivity(id + '-install', 'Install ' + plugin.displayName, 'running');
+                    await installHarness(plugin, native);
+                    await this.noteActivity(id + '-install', 'Install ' + plugin.displayName, 'done');
+                    inspection = await plugin.inspect(context);
+                }
+                let call = await verifyHarness(plugin, context, inspection);
+                if (!call && inspection.installed && (inspection.authenticated !== true || api)) {
+                    const methods = await harnessLoginMethods(plugin, native, 'remote');
+                    const device = methods.find((method) => method.deviceChallenge || method.returnChallenge);
+                    let diagnostic: string | undefined;
+                    if (device && !api) {
+                        diagnostic = device.returnChallenge ? await this.returnCodeSignIn(plugin, native, device, signal) : await this.deviceSignIn(plugin, native, device, signal);
+                        signal.throwIfAborted();
+                        call = this.terminalRequested ? undefined : await verifyHarness(plugin, native, await plugin.inspect(native));
+                    }
+                    if (!call) {
+                        const terminal = methods.find((method) => method.remote && !method.deviceChallenge) ?? methods[0] ?? {
+                            id: 'native', label: 'Native sign-in', args: [], remote: false, terminal: 'inherit' as const,
+                            instructions: plugin.loginHint,
+                        };
+                        call = await this.waitForNativeLogin(plugin, native, terminal, signal, diagnostic);
+                    }
                 }
                 if (!call) {
-                    const terminal = methods.find((method) => method.remote && !method.deviceChallenge) ?? methods[0] ?? {
-                        id: 'native', label: 'Native sign-in', args: [], remote: false, terminal: 'inherit' as const,
-                        instructions: plugin.loginHint,
-                    };
-                    call = await this.waitForNativeLogin(plugin, native, terminal, signal, diagnostic);
+                    problems.push(plugin.displayName + ': the engine could not verify a real response.');
+                    await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'failed', 'The engine could not verify a real provider response.');
+                    continue;
                 }
-            }
-            if (!call) {
-                problems.push(plugin.displayName + ': the engine could not verify a real response.');
-                continue;
-            }
-            ready = true;
-            if (!name && !this.draft.title && this.draft.intent?.trim()) {
-                name = await proposeProjectName(call, this.draft.intent).catch(() => undefined);
+                await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'done');
+                ready = true;
+                if (!name && !this.draft.title && this.draft.intent?.trim()) {
+                    name = await proposeProjectName(call, this.draft.intent).catch(() => undefined);
+                }
+            } catch {
+                signal.throwIfAborted();
+                const installing = this.draft.activity?.find(item => item.id === id + '-install');
+                if (installing?.status === 'running') await this.noteActivity(installing.id, installing.label, 'failed', 'The installation did not complete. Retry or check the engine host.');
+                await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'failed', 'The tool could not be prepared and verified.');
+                problems.push(plugin.displayName + ': preparation did not complete.');
             }
         }
         if (signal.aborted) return;

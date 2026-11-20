@@ -54,6 +54,8 @@ export type AppEngineFigures = {
     /** People who can sign in to this engine through the App (0 until App sign-in exists). */
     readonly members: number;
     readonly update: HeartbeatUpdateState;
+    /** The platform receives only this lifecycle enum, never onboarding answers. */
+    readonly setup?: 'pending' | 'done';
 };
 
 /**
