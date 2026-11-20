@@ -624,7 +624,12 @@ export class EngineApi {
 
     /** Live changes as `agent.status`, `agent.changed` and `chat.changed` events until the client leaves. */
     private async *eventStream(signal: AbortSignal): AsyncGenerator<StreamItem> {
-        const agenda = this.agenda;
+        const agenda = this.deps.agenda;
+        if (!agenda) {
+            // The setup shell may subscribe before a project exists. There are no project events yet.
+            while (!signal.aborted) await pause(EVENTS_WAIT_MS, signal);
+            return;
+        }
         let since = agenda.currentRevision;
         let previous = await this.eventDigest();
         const lastStepEmit = new Map<string, number>();
@@ -736,7 +741,10 @@ export class EngineApi {
                 throw error;
             }
         },
-        deferOnboarding: async () => ok(await this.deps.onboarding?.defer() ?? completedOnboarding),
+        deferOnboarding: async () => {
+            if (this.deps.onboarding && !this.deps.onboarding.state().canDefer) return fail('onboarding-not-deferrable');
+            return ok(await this.deps.onboarding?.defer() ?? completedOnboarding);
+        },
         getFileUploadPolicy: async ({ query }) => query.purpose === 'upload'
             ? ok({ purpose: 'upload', maxBytes: MAX_ONBOARDING_UPLOAD_BYTES, accept: [] })
             : fail('unsupported-media-type'),

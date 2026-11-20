@@ -95,6 +95,7 @@ export function renderStatusRaw(snapshot: ServiceSnapshot, options: StatusViewOp
     lines.push(`Project: ${snapshot.project.name} (${snapshot.project.path})`);
     lines.push(`Brief: ${briefLine(snapshot)}`);
     lines.push(`Engine: ptbk ${snapshot.engine.version} (${snapshot.engine.scope} installation)`);
+    if (snapshot.engine.uiTrust) lines.push(snapshot.engine.uiTrust);
     lines.push(
         `Service: ${snapshot.service.mode}, ${snapshot.service.state}${snapshot.service.state !== 'stopped' ? `, PID ${snapshot.service.pid}` : ''}, ${snapshot.service.commitMode === 'commit' ? 'automatic commits' : 'NO-COMMIT mode (results stay uncommitted)'}${snapshot.service.persistent === null ? '' : snapshot.service.persistent ? ', persistent' : ', not persistent'}`,
     );
@@ -189,6 +190,7 @@ export function renderStatusPretty(snapshot: ServiceSnapshot, terminal: Terminal
         `${style.bold(snapshot.project.name)}  ${style.muted(snapshot.project.path)}`,
         `${stateTone(snapshot.service.state)} · ${snapshot.service.commitMode === 'commit' ? 'commits automatically' : style.warning('NO-COMMIT mode: results stay uncommitted')}${snapshot.service.persistent === null ? '' : snapshot.service.persistent ? ' · persistent' : style.warning(' · not persistent')}${style.muted(` · snapshot at ${formatShortTime(Date.parse(snapshot.observedAt))}`)}`,
     ];
+    if (snapshot.engine.uiTrust) headerLines.push(snapshot.engine.uiTrust);
     if (options.outcome) {
         output.push(...renderPanel({ title: options.outcome.title, lines: options.outcome.message ? wrap(options.outcome.message, total - 4) : [], width: total, tone: options.outcome.tone, unicode, style }));
     }

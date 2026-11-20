@@ -60,6 +60,7 @@ export type HeartbeatInput = {
     readonly update: HeartbeatUpdateState;
     readonly agents: number;
     readonly members: number;
+    readonly setup?: 'pending' | 'done';
 };
 
 /**
@@ -96,6 +97,7 @@ export function buildHeartbeat(input: HeartbeatInput): Uint8Array {
         update: input.update,
         agents: count(input.agents),
         members: count(input.members),
+        ...(input.setup !== undefined ? { setup: input.setup } : {}),
     });
     const bytes = new TextEncoder().encode(body);
     if (bytes.length > HEARTBEAT_MAX_BODY_BYTES) throw new RangeError('The heartbeat body exceeds its size limit.');

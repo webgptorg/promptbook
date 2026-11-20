@@ -1,6 +1,6 @@
 {
     "source": "https://github.com/webgptorg/app",
-    "commit": "9ac96b129d47e91b5db2a76689849f6a87751051",
+    "commit": "60958c0b9290d89875087460d5b2333d2442d620",
     "generatedBy": "scripts/vendor-app-platform.mjs",
     "bundler": "bun 1.4.4",
     "workspaces": [

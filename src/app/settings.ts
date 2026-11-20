@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { PtbkError } from '../common/errors.js';
 import { parseHostname } from './identity.js';
 import { TUNNEL_PATH } from './tunnel/handshake.js';
+import { APP_BUILD_PROFILE } from './build.js';
 
 /**
  * The App dashboard origin when `PTBK_DASHBOARD_URL` is not set.
@@ -110,7 +111,7 @@ export function appSettings(env: NodeJS.ProcessEnv = process.env): AppSettings {
         throw new PtbkError('NODE_TLS_REJECT_UNAUTHORIZED=0 switches off certificate verification, which the App connection refuses. Trust an inspecting proxy with NODE_EXTRA_CA_CERTS instead.', { kind: 'configuration' });
     }
     const dashboardUrl = env.PTBK_DASHBOARD_URL ? parseOrigin(env.PTBK_DASHBOARD_URL, 'PTBK_DASHBOARD_URL') : DEFAULT_DASHBOARD_URL;
-    let engineDomain: string | undefined;
+    let engineDomain: string | undefined = APP_BUILD_PROFILE === 'staging' ? 'engines.ptbk.link' : undefined;
     if (env.PTBK_ENGINE_DOMAIN) {
         engineDomain = parseHostname(env.PTBK_ENGINE_DOMAIN);
         if (!engineDomain) throw new PtbkError('PTBK_ENGINE_DOMAIN must be a hostname such as engines.example.com.', { kind: 'configuration' });

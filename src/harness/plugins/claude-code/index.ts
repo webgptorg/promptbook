@@ -29,6 +29,20 @@ async function listModels(context: HarnessContext): Promise<string[]> {
     return [...new Set([...section.matchAll(/'([a-z][a-z0-9.-]*)'/g)].map((match) => match[1]!))];
 }
 
+/** Presents only Claude's native OAuth authorization URL; arbitrary CLI links remain in the terminal. */
+function returnChallenge(output: string): { url: string } | undefined {
+    // eslint-disable-next-line no-control-regex -- Remove ANSI CSI before extracting the native CLI's link.
+    const plain = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '');
+    // eslint-disable-next-line no-control-regex -- A presented URL must never contain terminal control characters.
+    for (const candidate of plain.match(/https:\/\/[^\s<>"\u0000-\u001f]+(?=[\s<>"])/g) ?? []) {
+        try {
+            const url = new URL(candidate);
+            if (candidate.length <= 2048 && ['https://claude.ai', 'https://console.anthropic.com'].includes(url.origin) && url.pathname === '/oauth/authorize' && !url.username && !url.password) return { url: url.href };
+        } catch { /* Native output can contain incomplete or unrelated links. */ }
+    }
+    return undefined;
+}
+
 /**
  * Native subscription sign-in of the installed Claude Code (`claude auth login`, never the API-billing `--console`
  * login): its link can be opened on another device, and a return code is pasted at its own terminal prompt. Versions
@@ -47,6 +61,7 @@ async function loginMethods(context: HarnessContext, location: LoginLocation): P
             label: remote ? 'Sign in on another device with Claude Code’s link and code (claude auth login)' : 'Sign in with your Claude account in the browser (claude auth login)',
             args: help.includes('--claudeai') ? ['auth', 'login', '--claudeai'] : ['auth', 'login'],
             remote: true,
+            returnChallenge,
             instructions: remote ? `Claude Code signs in with your Claude subscription.${away}` : 'Claude Code opens the sign-in page in your browser; finish it there and return to this terminal (if it asks for a code, paste it here).',
             terminal: 'inherit',
         },

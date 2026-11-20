@@ -77,6 +77,29 @@ function controls(prompt: OnboardingPrompt): HTMLElement[] {
     const answer = async (value: Extract<OnboardingReply, { action: 'answer' }>['answer']): Promise<void> =>
         await submit({ promptId: prompt.id, action: 'answer', answer: value });
     switch (prompt.kind) {
+        case 'secret': {
+            const input = element('input');
+            input.type = 'password';
+            input.autocomplete = 'off';
+            input.maxLength = 4096;
+            input.setAttribute('aria-label', prompt.label);
+            const help = element('a', 'Get an API key');
+            help.href = prompt.helpUrl ?? '#';
+            help.target = '_blank';
+            help.rel = 'noopener noreferrer';
+            return [...(prompt.helpUrl ? [help] : []), input, button('Verify', async () => {
+                const value = input.value;
+                input.value = '';
+                await answer({ kind: 'secret', value });
+            })];
+        }
+        case 'upload': {
+            const files = element('input');
+            files.type = 'file';
+            files.multiple = prompt.maxFiles > 1;
+            files.setAttribute('aria-label', prompt.question);
+            return [files, button('Continue', async () => answer({ kind: 'upload', fileIds: await upload(files.files) }))];
+        }
         case 'text': {
             const input = element(prompt.multiline ? 'textarea' : 'input');
             input.setAttribute('aria-label', prompt.question);
@@ -117,6 +140,18 @@ function controls(prompt: OnboardingPrompt): HTMLElement[] {
             link.href = prompt.url;
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
+            if (prompt.method === 'return-code') {
+                const input = element('input');
+                input.type = 'password';
+                input.autocomplete = 'off';
+                input.maxLength = 512;
+                input.setAttribute('aria-label', 'Code returned by the provider');
+                return [link, input, button('Verify sign-in', async () => {
+                    const returnCode = input.value;
+                    input.value = '';
+                    await answer({ kind: 'harness-login', returnCode });
+                })];
+            }
             return [link, element('p', prompt.userCode ? 'One-time code ' + prompt.userCode : ''), element('p', 'Waiting for sign-in…'),
                 button('Use native terminal', async () => {
                     const response = await fetch(signInPath, {
@@ -150,15 +185,25 @@ function render(state: OnboardingState): void {
     } else {
         const prompt = state.prompt;
         title.textContent = prompt.title;
+        const facts = (prompt.details ?? []).map(detail => element('p', detail.label + ': ' + detail.text));
+        const alternatives = (prompt.alternatives ?? []).map(alternative => {
+            if (!alternative.href) return button(alternative.label, async () => submit({ promptId: prompt.id, action: 'alternative', alternativeId: alternative.id }));
+            const link = element('a', alternative.label);
+            link.href = alternative.href;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            return link;
+        });
         main.replaceChildren(title, element('p', prompt.question), ...(prompt.hint ? [element('p', prompt.hint)] : []),
-            ...(prompt.error ? [element('p', prompt.error)] : []), error, ...controls(prompt),
+            ...facts, ...(prompt.error ? [element('p', prompt.error)] : []), error, ...controls(prompt), ...alternatives,
             ...(prompt.canGoBack ? [button('Back', async () => submit({ promptId: prompt.id, action: 'back' }))] : []),
-            button('Continue later', async () => {
+            ...(state.canDefer ? [button('Continue later', async () => {
                 resumeDeferred = false;
                 render(await call<OnboardingState>('/onboarding/defer', { method: 'POST' }));
-            }));
+            })] : []));
         if (prompt.kind === 'harness-login') poll = window.setTimeout(() => { void refresh(); }, 1000);
     }
+    for (const activity of state.activity) main.append(element('p', activity.label + ': ' + activity.status + (activity.detail ? ' - ' + activity.detail : '')));
 }
 
 void refresh();

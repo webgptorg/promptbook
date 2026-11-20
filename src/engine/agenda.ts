@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { uiTrustDescription } from '../app/build.js';
 import type { Readable } from 'node:stream';
 import type { KeepAwakeView } from '../power/view.js';
 import { AttentionOwner, evidenceFingerprint, type RelevanceVerdict } from './attention-owner.js';
@@ -2883,7 +2884,7 @@ export class Agenda {
             revision: this.revision,
             observedAt: new Date().toISOString(),
             project: { name: this.options.project.name, path: this.options.project.root },
-            engine: { version: ENGINE_VERSION, installation: installation.root, scope: installation.scope },
+            engine: { version: ENGINE_VERSION, installation: installation.root, scope: installation.scope, uiTrust: uiTrustDescription(process.env) },
             service: {
                 mode: this.options.mode,
                 state: this.serviceState,

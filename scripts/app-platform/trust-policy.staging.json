@@ -1,0 +1,18 @@
+{
+  "profile": "staging",
+  "releaseKeys": [{ "publicKey": "2yvEnNV41TFH_fqDTZusRBwNtJA7AyAw6OPgO5aYTkM" }],
+  "maintainerKeys": [
+    { "publicKey": "AilxSNi4YxKfx2kapjgBMVVRsoIcPx5K46EMhUqFpiM" },
+    { "publicKey": "Fk_UTKnmDGRNUzozi9dXd0kEYH8t-lTpewW3uPtvVMk" },
+    { "publicKey": "sYYJPhNz8V1NN4F4ljFrgv_bdkvZxZuKT2DcU7Jh5yw" }
+  ],
+  "securityThreshold": 2,
+  "workflowIdentity": {
+    "issuer": "https://token.actions.githubusercontent.com",
+    "repository": "webgptorg/app",
+    "repositoryId": "1411959168",
+    "workflowPath": ".github/workflows/ui-release.yml"
+  },
+  "revocationRule": { "signers": "release-or-maintainer", "threshold": 1 },
+  "delays": { "regularMs": 300000, "securityMs": 300000 }
+}

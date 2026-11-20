@@ -1,4 +1,14 @@
 import { readFile } from 'node:fs/promises';
+import type { OnboardingSession } from '../../onboarding/session.js';
+import type { Actor } from './access.js';
+import { engineHomePage } from './documents.js';
+import { harnessTerminalPage } from './harness-terminal.js';
+import type { UiLoader } from './ui-loader.js';
+
+/** Serves the platform's verified UI first, behind the caller's passkey gateway. @private App web origin */
+export async function onboardingDocuments(request: Request, actor: Actor, session: OnboardingSession, ui: Pick<UiLoader, 'serve'>, engineId: string): Promise<Response> {
+    return (await harnessTerminalPage(request, actor, session)) ?? (await ui.serve(request)) ?? (await onboardingPage(request)) ?? engineHomePage(request, actor, { name: 'Pending initialization', engineId });
+}
 
 /**
  * Minimal first-run page shipped with the engine. It uses the signed UI's authenticated API contract

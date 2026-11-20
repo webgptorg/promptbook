@@ -5,7 +5,7 @@ import { PtbkError, errorMessage } from '../../common/errors.js';
 import { ENGINE_VERSION } from '../../common/version.js';
 import { HARNESS_TERMINAL_PATH } from '../../onboarding/terminal.js';
 import { api, protocol, releaseTools } from '../../vendor/app-platform.js';
-import { CONFORMANCE_BUILD } from '../build.js';
+import { APP_BUILD_PROFILE, BUILTIN_STAGING_POLICY, CONFORMANCE_BUILD, uiTrustDescription } from '../build.js';
 import { createPrivateFile, ensurePrivateDirectory, readPrivateFile, writePrivateFile } from '../files.js';
 import { httpsRequest, type TestTlsOptions } from '../net.js';
 
@@ -116,7 +116,7 @@ async function readTrustPolicy(path: string, env: NodeJS.ProcessEnv): Promise<un
         throw new PtbkError(`${UI_TRUST_POLICY_FILE_ENV}: ${path} is not a valid TrustPolicy (unreadable, invalid or over 64 KiB).`, { kind: 'configuration' });
     }
     // Keep the direct process.env access too: bundlers can inline it in a production build.
-    if (P.isStagingPolicy(policy) && (env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production')) {
+    if (P.isStagingPolicy(policy) && APP_BUILD_PROFILE !== 'staging' && (APP_BUILD_PROFILE === 'production' || env.NODE_ENV === 'production' || process.env.NODE_ENV === 'production')) {
         throw new PtbkError(`${UI_TRUST_POLICY_FILE_ENV}: ${path} is a staging trust policy, which must not be used in production`, { kind: 'configuration' });
     }
     return policy;
@@ -143,7 +143,7 @@ const BUNDLE_DIRECTORY = /^[0-9A-Za-z.+-]+-[0-9a-f]{12}$/;
  * The persisted loader state: which bundle is active and which is kept as the previous one, when each release payload
  * was first seen, and the latest accepted revocation list.
  */
-type LoaderState = { v: 1; active?: InstalledBundle; previous?: InstalledBundle; firstSeen: Record<string, string>; lastAcceptedRevocationIssuedAt?: string };
+type LoaderState = { v: 1; active?: InstalledBundle; previous?: InstalledBundle; firstSeen: Record<string, string>; lastAcceptedRevocationIssuedAt?: string; initialBundleInstalled?: true };
 
 /**
  * The outcome of the last check, as `GET /security` → `ui.lastUpdateCheck` shows it.
@@ -246,6 +246,7 @@ export class UiLoader {
     private state: LoaderState = { v: 1, firstSeen: {} };
     private lastCheck?: UiUpdateCheckView;
     private timer?: NodeJS.Timeout;
+    private delayTimer?: NodeJS.Timeout;
     private running?: Promise<void>;
     private readonly abort = new AbortController();
 
@@ -272,10 +273,11 @@ export class UiLoader {
         if (policyFile !== undefined && trustFile !== undefined) throw new PtbkError(`${UI_TRUST_POLICY_FILE_ENV}: ${policyFile} cannot be used together with ${CONFORMANCE_TRUST_FILE_ENV}: ${trustFile}.`, { kind: 'configuration' });
         if (trustFile !== undefined && !CONFORMANCE_BUILD) throw new PtbkError(`${CONFORMANCE_TRUST_FILE_ENV}: ${trustFile} is set, but this is a release build of ptbk, which never accepts conformance trust. Unset it.`, { kind: 'configuration' });
         let releaseUrl: string | undefined;
-        if (env.PTBK_UI_RELEASE_URL) {
+        const configuredReleaseUrl = env.PTBK_UI_RELEASE_URL || (APP_BUILD_PROFILE === 'staging' ? 'https://ui.ptbk.link/' : undefined);
+        if (configuredReleaseUrl) {
             let url: URL;
             try {
-                url = new URL(env.PTBK_UI_RELEASE_URL);
+                url = new URL(configuredReleaseUrl);
             } catch {
                 throw new PtbkError('PTBK_UI_RELEASE_URL must be an https:// URL whose path ends in /.', { kind: 'configuration' });
             }
@@ -286,6 +288,11 @@ export class UiLoader {
         let trust: { policy: unknown; provenance: ProvenanceVerifier } | undefined;
         if (policyFile !== undefined) {
             trust = { policy: await readTrustPolicy(policyFile, env), provenance: T.createSigstoreProvenanceVerifier(T.PINNED_TRUSTED_ROOT) };
+        } else if (APP_BUILD_PROFILE === 'staging') {
+            if (!BUILTIN_STAGING_POLICY) throw new PtbkError('The staging build has no embedded UI trust policy.', { kind: 'configuration' });
+            const embedded = P.TrustPolicy.parse(JSON.parse(BUILTIN_STAGING_POLICY));
+            if (!P.isStagingPolicy(embedded)) throw new PtbkError('The embedded UI policy is not a staging policy.', { kind: 'configuration' });
+            trust = { policy: embedded, provenance: T.createSigstoreProvenanceVerifier(T.PINNED_TRUSTED_ROOT) };
         }
         if (trustFile) {
             let parsed: { trustPolicy: unknown; trustedRoot: unknown };
@@ -301,6 +308,8 @@ export class UiLoader {
             trust = { policy: parsed.trustPolicy, provenance: T.createSigstoreProvenanceVerifier(root.root) };
             options.log?.('This is the conformance build of ptbk: the UI loader trusts the conformance suite’s test keys.', 'warning');
         }
+        const description = uiTrustDescription(env);
+        if (description) options.log?.(description, 'info');
         return new UiLoader({ ...options, policy, ...(releaseUrl ? { releaseUrl } : {}), ...(trust ? { trust } : {}) });
     }
 
@@ -314,6 +323,7 @@ export class UiLoader {
                 const parsed = JSON.parse(text) as LoaderState;
                 if (parsed.v !== 1 || typeof parsed.firstSeen !== 'object') throw new Error('format');
                 this.state = parsed;
+                if (parsed.active || parsed.previous) this.state.initialBundleInstalled = true;
             } catch {
                 this.options.log?.('The UI loader state was unreadable and starts empty: release delays restart and rollback protection resets.', 'error');
             }
@@ -329,6 +339,7 @@ export class UiLoader {
             this.state.active = this.state.previous;
             delete this.state.previous;
         }
+        if (this.state.active || this.state.previous) this.state.initialBundleInstalled = true;
         await this.save();
         // Leftovers of an interrupted install and bundles no longer kept are removed.
         const kept = new Set([this.state.active?.directory, this.state.previous?.directory]);
@@ -345,6 +356,7 @@ export class UiLoader {
     /** Stops checking (a check in flight is aborted). */
     public async stop(): Promise<void> {
         clearInterval(this.timer);
+        clearTimeout(this.delayTimer);
         this.abort.abort();
         await this.running;
     }
@@ -408,9 +420,22 @@ export class UiLoader {
 
     /** Runs one check at a time; under `manual`, this is the owner's approval (it skips only the delay). */
     public async check(): Promise<void> {
+        await this.runCheck(false);
+    }
+
+    /** The explicit pairing command approves one first install, with every check except the delay. */
+    public async approveInitialBundle(): Promise<void> {
+        await this.running;
+        if (this.state.initialBundleInstalled || this.state.active || this.state.previous) return;
+        await this.runCheck(true);
+    }
+
+    /** Serializes automatic and installer checks, so a background delay check cannot consume manual approval. */
+    private async runCheck(approveInitial: boolean): Promise<void> {
         if (!this.enabled) return;
         if (this.running) return await this.running;
-        this.running = this.checkOnce().finally(() => {
+        clearTimeout(this.delayTimer);
+        this.running = this.checkOnce(approveInitial).finally(() => {
             this.running = undefined;
         });
         await this.running;
@@ -423,7 +448,7 @@ export class UiLoader {
     }
 
     /** One update check (the mock engine's `checkForUiUpdate`, ported). */
-    private async checkOnce(): Promise<void> {
+    private async checkOnce(approveInitial: boolean): Promise<void> {
         const signal = this.abort.signal;
         try {
             const policy = this.options.policy;
@@ -460,7 +485,7 @@ export class UiLoader {
             };
             const decide = async (): Promise<Verdict> =>
                 await P.verifyRelease(
-                    { release, revocations, lastAcceptedRevocationIssuedAt: this.state.lastAcceptedRevocationIssuedAt ? new Date(this.state.lastAcceptedRevocationIssuedAt) : null, policy: this.options.trust!.policy, mode: policy.kind === 'auto' ? 'auto' : 'manual', installedVersion: this.state.active?.version ?? null, firstSeenAt, signal },
+                    { release, revocations, lastAcceptedRevocationIssuedAt: this.state.lastAcceptedRevocationIssuedAt ? new Date(this.state.lastAcceptedRevocationIssuedAt) : null, policy: this.options.trust!.policy, mode: approveInitial && !this.state.initialBundleInstalled ? 'manual' : policy.kind === 'auto' ? 'auto' : 'manual', installedVersion: this.state.active?.version ?? null, firstSeenAt, signal },
                     { provenance, clock: { now: () => new Date() } },
                 );
             let verdict = await decide();
@@ -528,6 +553,10 @@ export class UiLoader {
             }
             case 'delay-not-elapsed':
                 this.record('refused', version, { reason: 'delay-not-elapsed', ...(verdict.eligibleAt ? { eligibleAt: new Date(verdict.eligibleAt) } : {}) });
+                if (verdict.eligibleAt && this.options.policy.kind !== 'manual') {
+                    const delay = Math.max(1, new Date(verdict.eligibleAt).getTime() - Date.now()) + randomBytes(2).readUInt16BE() % 5001;
+                    this.delayTimer = setTimeout(() => void this.check(), Math.min(delay, 2_147_483_647)).unref();
+                }
                 return false;
             default:
                 this.record('refused', version, { reason: verdict.kind });
@@ -574,6 +603,7 @@ export class UiLoader {
             if (dropped && dropped.directory !== bundle.directory) await this.remove(this.bundlePath(dropped));
         }
         this.state.active = bundle;
+        this.state.initialBundleInstalled = true;
         await this.save();
         this.record('installed', entry.version);
         this.options.log?.(`The engine UI ${entry.version} is verified and served (release log index ${String(logIndex)}).`, 'info');

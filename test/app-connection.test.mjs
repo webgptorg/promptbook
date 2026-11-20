@@ -19,6 +19,7 @@ import { projectAt } from '../dist/project/workspace.js';
 import { launchDaemon, stopService } from '../dist/service/launcher.js';
 import { appDetailLines, appPlainLines, appSummaryLine, appTileLines } from '../dist/ui/app-connection.js';
 import { createStyle, stripAnsi } from '../dist/ui/ansi.js';
+import { protocol } from '../dist/vendor/app-platform.js';
 import { fakeHarness, initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
 /** Golden vectors of the App contract (copied from webgptorg/app, see the fixture README). */
@@ -52,6 +53,19 @@ async function identityFromSeed(seedHex, publicKeyHex) {
 
 /** A link code in the contract's alphabet. */
 const linkCode = (letter) => `${letter.repeat(25)}a`;
+
+test('signed heartbeat bodies carry only the pending/done setup enum in v1 and v2', () => {
+    const base = { engineId: signed.key.engineId, seq: 1, ts: '2026-11-20T10:00:00Z', version: '1.0.0', uptimeS: 0,
+        diskPct: 10, ramPct: 20, cpuLoad: 'low', update: 'none', agents: 0, members: 0 };
+    for (const setup of ['pending', 'done']) {
+        const v1 = JSON.parse(new TextDecoder().decode(buildHeartbeat({ ...base, setup })));
+        assert.equal(protocol.Heartbeat.parse(v1).setup, setup);
+        const v2 = JSON.parse(new TextDecoder().decode(protocol.buildHeartbeatV2({ ...base, setup, accessRequests: 0, acks: [] })));
+        assert.equal(protocol.HeartbeatV2.parse(v2).setup, setup);
+        assert.deepEqual(Object.keys(v1).filter(key => !Object.hasOwn(base, key)), ['v', 'setup']);
+    }
+    assert.equal(Object.hasOwn(JSON.parse(new TextDecoder().decode(buildHeartbeat(base))), 'setup'), false);
+});
 
 test('golden vectors: registration and heartbeat signatures, engine ID and fingerprint', async () => {
     const { key, registration, heartbeat } = signed;

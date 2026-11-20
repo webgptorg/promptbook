@@ -161,6 +161,8 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Pack the exact package candidate
+        env:
+          PTBK_BUILD_PROFILE: staging
         shell: pwsh
         run: |
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version

@@ -12,6 +12,7 @@ import { renderStatus } from '../ui/status-view.js';
 import { flag, type CommandContext } from './context.js';
 import { printJson } from './common.js';
 import { storedAppView } from '../app/connection.js';
+import { uiTrustDescription } from '../app/build.js';
 
 /**
  * Builds the snapshot of a project whose service is not running (chats and history are still readable).
@@ -27,7 +28,7 @@ export async function stoppedSnapshot(project: Project): Promise<ServiceSnapshot
         revision: 0,
         observedAt: new Date().toISOString(),
         project: { name: project.name, path: project.root },
-        engine: { version: ENGINE_VERSION, installation: installation.root, scope: installation.scope },
+        engine: { version: ENGINE_VERSION, installation: installation.root, scope: installation.scope, uiTrust: uiTrustDescription(process.env) },
         service: {
             mode: 'daemon',
             state: 'stopped',

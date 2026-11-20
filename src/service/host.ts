@@ -329,7 +329,7 @@ export class ServiceHost {
         const snapshot: ServiceSnapshot = this.agenda.snapshot();
         const update = snapshot.update;
         const state = !update ? 'none' : update.phase === 'installing' || update.phase === 'restarting' ? 'installing' : update.target ? 'pending' : update.latest && update.latest !== update.current ? 'available' : 'none';
-        return { agents: snapshot.agents.length, members: 0, update: state, licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
+        return { agents: snapshot.agents.length, members: 0, update: state, setup: 'done', licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
     }
 
     /**
