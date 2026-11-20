@@ -40,6 +40,14 @@ const START_OPTIONS: OptionGroup = {
 };
 
 /**
+ * Explicit host-wide scope of the otherwise project-local lifecycle commands.
+ */
+const LIFECYCLE_SCOPE_OPTIONS: OptionGroup = {
+    title: 'Scope',
+    options: [{ name: 'global', type: 'boolean', description: 'Apply to every active project of this OS user, from any directory; report each result and return without opening dashboards. Stopped projects stay stopped. Conflicts with --path and --tasks.' }],
+};
+
+/**
  * Identity options of a tool.
  */
 const TOOL_IDENTITY_OPTIONS: OptionGroup = {
@@ -255,9 +263,10 @@ With \`--paused\` an absent service starts with a manual pause active before any
         category: 'Run the agenda',
         summary: 'Interrupt task work at its nearest safe point and start no task; chats stay available.',
         description: 'Adds the manual pause reason — the shared engine pause (the same operation as P in the dashboards and the browser/API controls). Pause reasons compose: the Health sub-engine may add its own (low disk or memory), and background work resumes only when none remains. While a task runs, the service is `pausing`: no next background task, follow-up, Router assignment, Teacher, Fixer or discovery work starts, no open task continues automatically, and active task work is interrupted at its nearest safe point, keeping its checkpoint and its agent\'s reservation. A part that cannot be interrupted settles visibly and is never force-killed. `ptbk resume` continues it from its checkpoint. With no task running it pauses immediately. Chat (including its first-message routing and TEAM consultations), task authoring, inspection and controls keep working; tasks created meanwhile stay pending until resume. Replacing a pending stop/restart with pause asks for confirmation; without a terminal it reports the conflict (run `ptbk resume`, then `ptbk pause`). Runtime-only: no commit.',
-        optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        optionGroups: [LIFECYCLE_SCOPE_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
         examples: [
             { command: 'ptbk pause', description: 'Interrupt task work at its nearest safe point and keep chats available.' },
+            { command: 'ptbk pause --global', description: 'Pause every active project on this computer.' },
             { command: 'ptbk resume', description: 'Continue (or cancel the pending pause).' },
         ],
         run: lazy(() => import('./commands/pause.js')),
@@ -267,8 +276,11 @@ With \`--paused\` an absent service starts with a manual pause active before any
         category: 'Run the agenda',
         summary: 'Remove the manual pause, or cancel a pending pause/stop/restart.',
         description: 'Removes the manual pause reason, or cancels a pending pause, stop or restart (including its planned replacement), without interrupting or replaying the current task. The service returns to `running` only when no other pause reason remains: a Health pause (low disk or memory) resolves automatically, a soft one can be overridden for its incident on the dashboard Health page, and the result then says `Still paused`. Once shutdown has actually begun, cancellation is reported as too late. Cancelling a pending stop leaves no permanent-stop setting behind. Runtime-only: no commit.',
-        optionGroups: [PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-        examples: [{ command: 'ptbk resume', description: 'Run again / cancel a pending stop.' }],
+        optionGroups: [LIFECYCLE_SCOPE_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        examples: [
+            { command: 'ptbk resume', description: 'Run again / cancel a pending stop.' },
+            { command: 'ptbk resume --global', description: 'Resume every active project; independent Health pauses remain.' },
+        ],
         run: lazy(() => import('./commands/resume.js')),
     },
     {
@@ -285,11 +297,14 @@ With \`--paused\` an absent service starts with a manual pause active before any
                     { name: 'after-task', type: 'boolean', hidden: true, description: 'Compatibility: graceful stop is now the default.' },
                 ],
             },
+            LIFECYCLE_SCOPE_OPTIONS,
             PROJECT_OPTIONS,
             PRESENTATION_OPTIONS,
         ],
         examples: [
             { command: 'ptbk stop', description: 'Let the current task finish, then stop.' },
+            { command: 'ptbk stop --global', description: 'Gracefully stop every active project.' },
+            { command: 'ptbk stop --global --force', description: 'Immediately stop every active project and its owned execution.' },
             { command: 'ptbk stop -F', description: 'Stop now; interrupted work resumes on the next start.' },
             { command: 'ptbk resume', description: 'Cancel a pending stop.' },
         ],
@@ -300,8 +315,11 @@ With \`--paused\` an absent service starts with a manual pause active before any
         category: 'Run the agenda',
         summary: 'Gracefully restart the service: settle owned work, release the project, start exactly one replacement.',
         description: 'The shared engine restart: the service settles like a graceful stop (`stopping` with restart intent), releases ownership, and exactly one replacement starts for the same project with the same effective configuration and installation (a daemon\'s supervisor, or the owning foreground terminal — never turned into a daemon). Newly given flags replace a daemon\'s saved launch overrides. A failed replacement start is reported as a failure; `ptbk resume` cancels a pending restart. Restart is not an intentional permanent stop and never installs an engine update. With no service running it starts the daemon. In an interactive terminal the replacement\'s dashboard opens afterwards (`--no-dashboard` reports once instead).',
-        optionGroups: [{ title: 'Restart', options: [{ name: 'timeout', type: 'duration', valueName: '<duration>', description: 'How long to wait for the current task to settle and the replacement to start.', defaultText: '3m' }] }, START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
-        examples: [{ command: 'ptbk restart', description: 'Restart with the same settings.' }],
+        optionGroups: [{ title: 'Restart', options: [{ name: 'timeout', type: 'duration', valueName: '<duration>', description: 'How long to wait for the current task to settle and the replacement to start.', defaultText: '3m' }] }, LIFECYCLE_SCOPE_OPTIONS, START_OPTIONS, SERVER_OPTIONS, BROWSER_OPTIONS, EXECUTION_POLICY_OPTIONS, COMMIT_OPTIONS, PROJECT_OPTIONS, PRESENTATION_OPTIONS],
+        examples: [
+            { command: 'ptbk restart', description: 'Restart the current project with the same settings.' },
+            { command: 'ptbk restart --global', description: 'Restart every active project with its own saved settings; stopped projects stay stopped.' },
+        ],
         run: lazy(() => import('./commands/restart.js')),
     },
     {

@@ -1,7 +1,8 @@
 import { EXIT, PtbkError } from '../../common/errors.js';
 import { confirm } from '../../ui/prompts.js';
 import { selectedProject } from '../common.js';
-import type { CommandContext } from '../context.js';
+import { flag, type CommandContext } from '../context.js';
+import { runGlobalLifecycle } from '../global-lifecycle.js';
 import { renderLifecycleOutcome, requireRunningService, type EngineOutcome } from '../lifecycle.js';
 
 /**
@@ -11,6 +12,7 @@ import { renderLifecycleOutcome, requireRunningService, type EngineOutcome } fro
  * @private command
  */
 export default async function pause(context: CommandContext): Promise<number> {
+    if (flag(context, 'global')) return await runGlobalLifecycle(context, pause);
     const project = await selectedProject(context);
     const lookup = await requireRunningService(project, 'pause');
     let result: EngineOutcome;

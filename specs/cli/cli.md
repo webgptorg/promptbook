@@ -10,10 +10,10 @@ The root command is `ptbk`. Bare interactive invocation offers the context-depen
 | --- | --- |
 | `init`, `initialize` | Preserve intent, prepare missing support/core roles/simple tools, ask optional sync, save ordinary Expert bootstrap and start the agenda. No check-command question. |
 | `start` | Start/reuse the ongoing daemon and, in ordinary interactive use, automatically open its project dashboard; explicit foreground, `--paused` and `--no-dashboard` modes are available. |
-| `pause` | Stop new claims, drain current work and remain alive in pause. |
-| `resume` | Resume or cancel pending pause/stop/restart and return to running. |
-| `stop` | Graceful drain/stop; `--force` or `-F` immediately terminates owned execution. |
-| `restart` | Gracefully stop/start one replacement and, in ordinary interactive use, automatically open its dashboard. |
+| `pause [--global]` | Stop new claims, drain current work and remain alive in pause. |
+| `resume [--global]` | Resume or cancel pending pause/stop/restart and return to running. |
+| `stop [--global]` | Graceful drain/stop; `--force` or `-F` immediately terminates owned execution. |
+| `restart [--global]` | Gracefully stop/start one replacement; the local interactive variant automatically opens its dashboard. |
 | `dashboard` | Continuously observe/control an existing project, without owning or starting it. |
 | `dashboard --global` | Host-wide known-project table including stopped entries, individual/bulk lifecycle controls and stopped-entry removal. |
 | `panic` | Confirmed host-wide force stop of accessible active engines and owned execution; `--yes` skips confirmation. No soft/pause variants. |
@@ -40,7 +40,9 @@ The root command is `ptbk`. Bare interactive invocation offers the context-depen
 
 ## Project selection and lifecycle
 
-`--path` selects the project and `--tasks` its task source. Global dashboard and [panic](panic.md) are explicit directory-independent operations and diagnose conflicting project selection; neither initializes the launch directory or creates a global engine. Discovery spans installations/versions. The [global dashboard](global-dashboard.md) retains stopped projects, offers individual/bulk lifecycle controls and removes only stopped registry entries. Panic is the confirmed emergency force-stop shortcut.
+`--path` selects the project and `--tasks` its task source. `restart`, `stop`, `pause` and `resume` act on that project (CWD by default). Each accepts `--global` to apply the same operation independently to every discovered active project of this OS user across installations/versions, from any directory. Global lifecycle commands reject `--path`/`--tasks`, never initialize the launch directory, never open a dashboard and leave stopped/missing projects alone. Restart keeps each project's own saved launch settings unless explicit launch overrides are supplied; it does not start a target that stopped or changed owner after discovery. Stop retains `--force`/`-F` and `--timeout`; restart also retains `--timeout` (per target). Every target gets an outcome; failures/unreachable owners do not prevent other attempts. Exit 0 means every attempt succeeded, 3 means at least one stop/restart is still pending, and 1 means a target failed or discovery was incomplete. Empty discovery succeeds without changes. Global pause reports conflicting pending shutdowns without hidden prompts; resume preserves independent pause reasons.
+
+Global dashboard and [panic](panic.md) are also explicit directory-independent operations and diagnose conflicting project selection; neither initializes the launch directory or creates a global engine. The [global dashboard](global-dashboard.md) retains stopped projects, offers individual/bulk lifecycle controls and removes only stopped registry entries. Panic is the confirmed emergency force-stop shortcut.
 
 Lifecycle commands use the [shared four-state machine](service-lifecycle.md): running, pausing, pause, stopping. `ptbk stop --force` and `-F` immediately terminate all execution owned by the selected engine, not another state or a hard pause. `ptbk panic` applies the same contract across accessible local engines, with confirmation or explicit `--yes`; it rejects `--soft` and `--pause`. Resume cancels pending pause/stop without replaying current work. Stop-to-pause replacement confirms intent; noninteractive callers can explicitly cancel/resume first. Repeated graceful stop does not escalate.
 

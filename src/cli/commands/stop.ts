@@ -4,6 +4,7 @@ import { stopService } from '../../service/launcher.js';
 import { readLaunchMetadata } from '../../service/records.js';
 import { selectedProject } from '../common.js';
 import { flag, option, type CommandContext } from '../context.js';
+import { runGlobalLifecycle } from '../global-lifecycle.js';
 import { liveSnapshot, renderServiceResult, stoppedSnapshot } from '../service-view.js';
 
 /**
@@ -15,6 +16,7 @@ import { liveSnapshot, renderServiceResult, stoppedSnapshot } from '../service-v
  * @private command
  */
 export default async function stop(context: CommandContext): Promise<number> {
+    if (flag(context, 'global')) return await runGlobalLifecycle(context, stop);
     const project = await selectedProject(context);
     const force = flag(context, 'force') === true;
     const result = await stopService(project, { force, timeoutMs: option<number>(context, 'timeout') });

@@ -4,8 +4,9 @@ import { launchDaemon, restartService, stopService } from '../../service/launche
 import { registerPersistence, unregisterPersistence } from '../../service/persistence.js';
 import { readLaunchMetadata } from '../../service/records.js';
 import { browserOverrides, selectedProject, settingOverrides, tasksOverride, validateCombinations } from '../common.js';
-import { option, type CommandContext } from '../context.js';
+import { flag, option, type CommandContext } from '../context.js';
 import { attachDashboard, wantsDashboardHandoff } from '../dashboard-handoff.js';
+import { runGlobalLifecycle } from '../global-lifecycle.js';
 import { liveSnapshot, renderServiceResult } from '../service-view.js';
 
 /**
@@ -20,10 +21,12 @@ function launchChanges(context: CommandContext): string[] {
  * ownership, then exactly one replacement starts with the same project, effective configuration and installation.
  * Newly given flags replace the saved launch overrides of a daemon. Nothing running: starts the daemon. An ordinary
  * interactive terminal then opens the replacement's dashboard.
+ * An expected instance from global discovery prevents starting a stopped or replaced target.
  *
  * @private command
  */
-export default async function restart(context: CommandContext): Promise<number> {
+export default async function restart(context: CommandContext, expectedInstanceId?: string): Promise<number> {
+    if (flag(context, 'global')) return await runGlobalLifecycle(context, restart);
     validateCombinations(context);
     const project = await selectedProject(context);
     const previous = await readLaunchMetadata(project);
@@ -33,6 +36,9 @@ export default async function restart(context: CommandContext): Promise<number> 
     const persistent = overrides['service.isPersistent'] !== false;
     const tasksDirectory = tasksOverride(context) ?? previous?.tasksDirectory;
     const lookup = await lookupService(project);
+    if (expectedInstanceId && (lookup.state !== 'running' || lookup.record.instanceId !== expectedInstanceId)) {
+        throw new PtbkError('The discovered engine stopped, changed owner or no longer answers; it was not restarted.', { kind: 'conflict', project: project.root, next: ['Inspect it with `ptbk dashboard --global` and retry.'] });
+    }
     if (lookup.state === 'unreachable') {
         throw new PtbkError('The recorded ptbk service does not answer, so it was not restarted.', { kind: 'conflict', project: project.root, reason: lookup.reason, effect: 'Nothing was stopped or started.', next: ['Run `ptbk status` again shortly.'] });
     }
