@@ -1,5 +1,6 @@
 import { selectedProject } from '../common.js';
-import type { CommandContext } from '../context.js';
+import { flag, type CommandContext } from '../context.js';
+import { runGlobalLifecycle } from '../global-lifecycle.js';
 import { renderLifecycleOutcome, requireRunningService, type EngineOutcome } from '../lifecycle.js';
 
 /**
@@ -19,6 +20,7 @@ function resumeTitle(result: EngineOutcome): string {
  * @private command
  */
 export default async function resume(context: CommandContext): Promise<number> {
+    if (flag(context, 'global')) return await runGlobalLifecycle(context, resume);
     const project = await selectedProject(context);
     const lookup = await requireRunningService(project, 'resume');
     const result = await lookup.client.request<EngineOutcome>('resume');
