@@ -11,8 +11,7 @@ async function fixture(t, ready = true) {
     const root = await temporaryDirectory(t, 'app wallet');
     const logs = [];
     const wallet = new WalletSubEngine({ project: { root, runtime: { root: join(root, '.ptbk') } }, env: { ...process.env, PTBK_HOME: join(root, 'home'), PTBK_HOST_UNLOCK: 'insecure-test-file' }, onChange: () => undefined, log: (text) => logs.push(text) });
-    await wallet.initialize();
-    if (ready) { await wallet.beginSetup(); await wallet.confirmSetup(); }
+    await wallet.initialize({ provisionIfEmpty: ready });
     const api = new EngineApi({ agenda: { wallet, snapshot: () => ({ project: { name: 'Wallet test' } }) }, projectRoot: root, stateDirectory: join(root, 'app'), engineId: () => null, hostname: () => 'engine.test', dashboardUrl: () => null, security: () => undefined, ui: () => ({}) });
     const actor = { memberId: 'owner', displayName: 'Owner', role: 'owner', permissions: [...ALL_PERMISSIONS], stepUpFresh: true };
     const call = async (path, method = 'GET', body, overrides = {}) => {

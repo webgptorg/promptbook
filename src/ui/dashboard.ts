@@ -1132,7 +1132,13 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
             return;
         }
         if (key === 's') {
-            if (unset) void walletSetup();
+            if (wallet.recoveryPending) void runWallet('wallet-recovery-words').then((value) => {
+                const result = value as { words?: readonly string[]; receipt?: string } | undefined;
+                if (result?.words && result.receipt) confirmThen('Did you write down the 12 words for recovery?',
+                    async () => void (await runWallet('wallet-recovery-confirm', { receipt: result.receipt })),
+                    [...recoveryWordLines(result.words, true), '', style.muted('Y confirms your copy · N leaves the words available for later.')]);
+            });
+            else if (unset) void walletSetup();
             else notify(wallet.state === 'ready' ? 'The Wallet is already set up.' : 'This project already has a Wallet: restore it with R.');
         } else if (key === 'r') {
             if (wallet.state === 'locked' || wallet.state === 'unavailable')

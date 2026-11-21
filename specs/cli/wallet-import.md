@@ -20,7 +20,7 @@ Use shared revision-safe Wallet writes with recoverable batch application. Unloc
 
 ## Init and dashboard parity
 
-Wallet offers Import credentials/source selection. After init's optional Set up Wallet now Yes (or reused setup), offer exactly this import and individual/all/none selection. Wallet No skips it; choosing no import is valid. Reinit preserves existing data/decisions. Reset can reuse the same import afterwards.
+Wallet offers Import credentials/source selection. When the owner chooses to write down recovery words during init, offer exactly this import and individual/all/none selection. Deferring the words skips this optional import; choosing no import is valid. Reinit preserves existing data/decisions. Reset can reuse the same import afterwards.
 
 Correctly completed attended initialization with required selected integrations/access must suffice for continuing work, without mandatory later dashboard configuration. Show skipped/unsupported/missing access honestly and never require importing the entire vault. Preview/import alone does not claim verified login or launch the agenda early; selected add/update verification reuses the shared credential test and new-project init retains its in-memory draft boundary.
 

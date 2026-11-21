@@ -17,11 +17,11 @@ const RECOVERY_WORD_COLUMN = 18;
  *
  * @private dashboard Wallet forms
  */
-export function recoveryWordLines(words: readonly string[]): string[] {
+export function recoveryWordLines(words: readonly string[], pending = false): string[] {
     const columns = [0, 4, 8].map((start) => words.slice(start, start + 4).map((word, index) => `${String(start + index + 1).padStart(2)}. ${word}`.padEnd(RECOVERY_WORD_COLUMN)));
     return [
         'Write these 12 words for recovery on paper, in order, and keep them safe.',
-        'With the project folder they restore its saved logins on another computer; they are shown only now.',
+        pending ? 'With the encrypted project data these words restore saved logins on another computer. You can view them here until you confirm.' : 'With the project folder they restore its saved logins on another computer; they are shown only now.',
         '',
         ...[0, 1, 2, 3].map((row) => `   ${columns.map((column) => column[row] ?? '').join('')}`),
     ];

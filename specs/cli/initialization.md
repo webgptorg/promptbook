@@ -52,9 +52,9 @@ Write the actual running engine version into a new `promptbookVersion`. Existing
 
 Collect/reuse the three Traces choices: `traces.isCommitted`, `traces.isVideoIgnored` and `traces.isVideoRecordingEnabled`. Their defaults, dependencies and effective ignore rules live in [trace configuration](trace-configuration.md). Trace directories use literal task source basenames, independently of logical names.
 
-## Optional Wallet setup
+## Wallet and optional recovery setup
 
-Offer **Set up Wallet now?**, default **No**. No leaves Wallet/encryption available for later setup from its dashboard or first protected use. Yes calls the exact same shared Wallet/encryption initialization operation, including protected presentation of the 12 recovery words. Do not duplicate logic in the wizard or recreate an existing vault. Noninteractive use supplies the equivalent decision without hidden prompts. After chosen/reused setup, offer the shared optional [Bitwarden import](wallet-import.md) with individual/all/none selection. Wallet No skips import; no import is valid. Preserve existing items and shared duplicate/conflict handling. Complete selected routine credential/readiness setup now rather than require a later dashboard visit. Noninteractive input retains protected boundaries, never ordinary secret arguments/chat. See [Wallet](wallet.md) and [project encryption](project-encryption.md).
+Create a usable encrypted Wallet after the final project confirmation. In attended setup the owner may write down its 12 words immediately and select an optional [Bitwarden import](wallet-import.md). Deferring recovery is the default, including paired and unattended creation. In that case the local Wallet page offers the original words until the owner confirms them. Reinitializing a project preserves its existing Wallet and logins. See [project encryption](project-encryption.md).
 
 ## No check-command question
 

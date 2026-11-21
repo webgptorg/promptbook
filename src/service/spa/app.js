@@ -3050,6 +3050,10 @@
         if (wallet.state === 'empty' || wallet.state === 'setup') actions.append(h('button', { className: 'primary', onclick: walletSetup }, 'Set up the Wallet'));
         if (wallet.state === 'locked' || wallet.state === 'unavailable') actions.append(h('button', { className: 'primary', onclick: walletRestore }, 'Restore with 12 words for recovery'));
         if (wallet.state === 'ready') actions.append(h('button', { className: 'primary', onclick: () => walletLoginDialog({}) }, 'Add a login'));
+        if (wallet.recoveryPending) {
+            status.append(h('p', {}, 'Recovery words have not been confirmed. Save them to restore this Wallet on another computer.'));
+            actions.append(h('button', { onclick: walletPendingWords }, 'Save recovery words'));
+        }
         const management = wallet.management || {};
         if (management.canImport) actions.append(h('button', { onclick: walletImport }, 'Import from Bitwarden'));
         if (management.canRotate) actions.append(h('button', { onclick: walletRotate }, 'Generate new 12 words'));
@@ -4137,13 +4141,19 @@
     }
 
     /** Shows new 12 words in a dialog; `confirm` applies them, closing otherwise runs `cancel` (nothing changes). */
-    function walletWordsDialog(title, text, words, confirmLabel, confirm, cancel) {
+    function walletWordsDialog(title, text, words, confirmLabel, confirm, cancel, params) {
         let confirmed = false;
         const list = h('ol', { className: 'recovery-words' }, words.map((word) => h('li', {}, word)));
-        const dialog = walletDialog(title, h('p', {}, text), list, h('div', { className: 'row' }, h('button', { className: 'primary', onclick: async () => ((confirmed = true), list.remove(), dialog.close(), await walletCall(confirm)) }, confirmLabel), h('button', { onclick: () => dialog.close() }, 'Cancel')));
+        const dialog = walletDialog(title, h('p', {}, text), list, h('div', { className: 'row' }, h('button', { className: 'primary', onclick: async () => ((confirmed = true), list.remove(), dialog.close(), await walletCall(confirm, params)) }, confirmLabel), h('button', { onclick: () => dialog.close() }, 'Cancel')));
         dialog.addEventListener('close', () => {
-            if (!confirmed) void walletCall(cancel);
+            if (!confirmed && cancel) void walletCall(cancel);
         });
+    }
+
+    /** Shows the original words in a protected owner dialog. Closing it leaves recovery pending. */
+    async function walletPendingWords() {
+        const result = await walletCall('wallet-recovery-words');
+        if (result?.words && result.receipt) walletWordsDialog('12 words for recovery', 'Write the words down in order. Keep them safe along with a separate backup of the encrypted project. You can view them here until you confirm.', result.words, 'I wrote them down', 'wallet-recovery-confirm', undefined, { receipt: result.receipt });
     }
 
     /** New 12 words while this computer's key works: every saved login is re-encrypted and kept. */

@@ -926,7 +926,7 @@ export class Agenda {
         await this.refreshChats();
         await this.restoreOwnership();
         // Automatic unlock through this host's protected secret: no words or master password at startup.
-        await this.wallet.initialize().catch((error: unknown) => this.log(`The Wallet could not be loaded: ${errorMessage(error)}`, 'warning'));
+        await this.wallet.initialize({ provisionIfEmpty: true }).catch((error: unknown) => this.log(`The Wallet could not be loaded: ${errorMessage(error)}`, 'warning'));
         // Results finished before an interruption still reach their chat (once).
         if (this.options.mode !== 'maintenance') for (const result of results.slice(0, 50)) await this.deliverChatOutcome(result).catch(() => undefined);
         if (this.options.mode !== 'maintenance') {

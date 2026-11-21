@@ -616,6 +616,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                 `${style.muted('State     ')} ${wallet.state === 'ready' ? style.success(wallet.summary) : wallet.state === 'unavailable' ? style.error(wallet.summary) : style.warning(wallet.summary)}`,
                 ...(wallet.facility ? [`${style.muted('Unlock    ')} automatic on this computer (${wallet.facility})`] : []),
                 ...(wallet.problem ? [style.warning(wallet.problem)] : []),
+                ...(wallet.recoveryPending ? ['Recovery words have not been confirmed. Press S to write them down.'] : []),
                 '',
                 style.bold(`Login requests waiting (${wallet.pending.length})`),
             ];
@@ -681,6 +682,7 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
                       : wallet.state === 'ready'
                         ? [
                               ...(manual?.offer ? [] : ['N add login']),
+                              ...(wallet.recoveryPending ? ['S save recovery words'] : []),
                               'I import from Bitwarden',
                               'G new 12 words',
                               ...(focused
