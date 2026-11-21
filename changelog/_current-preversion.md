@@ -1,5 +1,7 @@
 # Unreleased
 
+- Add `npm run link:global` for contributors: it builds the checkout and links the global `ptbk` command to it, so `ptbk` on PATH runs the repository's current state. Self-update recognizes the link as a source checkout and never overwrites it. The script refuses to replace a global installation that live engines still run from (`-- --force` overrides), and it reports when another `ptbk` comes first on PATH.
+
 - Add `--global` to `ptbk restart`, `stop`, `pause` and `resume`. Without it they control the selected project; with it they control every discovered active project from any directory, report independent outcomes and leave stopped projects alone. Global restart preserves each project's launch settings and never opens dashboards; stop keeps graceful/force and per-project timeout behavior.
 
 - Serve the platform's signed setup UI before project creation, following App contracts at `60958c0b`. Published npm and native package candidates use an immutable staging profile with the exact hash-checked staging policy, default UI store and engine domain. Initial paired setup approves only the first verified bundle without its delay; later updates retain normal delays and get an eligibility recheck. Production still refuses staging trust and published builds refuse conformance trust.
