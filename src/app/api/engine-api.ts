@@ -1,5 +1,5 @@
 import { legacyReplySteps, replyStep } from '../../chats/reply-steps.js';
-import { AccessDenied } from '../web/access.js';
+import { AccessDenied, DESKTOP_OWNER } from '../web/access.js';
 import { createHash } from 'node:crypto';
 import { stat } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
@@ -800,13 +800,13 @@ export class EngineApi {
             return revoked ? ok(null) : fail('not-found');
         },
         revokeMyOtherSessions: async ({ actor, access }) => ok({ revoked: await access.revokeSessions((session) => session.memberId === actor.memberId && session.id !== actor.sessionId) }),
-        getEngine: async ({ state }) =>
+        getEngine: async ({ state, actor }) =>
             ok({
                 name: (state.settings.name ?? (this.deps.agenda?.snapshot().project.name ?? 'Pending initialization')).slice(0, 128) || 'Promptbook project',
                 engineId: this.deps.engineId() ?? null,
-                hostname: this.deps.hostname() ?? 'engine.invalid',
-                dashboardUrl: this.deps.dashboardUrl() ?? null,
-                mode: 'tunnel',
+                hostname: actor === DESKTOP_OWNER ? 'desktop.localhost' : this.deps.hostname() ?? 'engine.invalid',
+                dashboardUrl: actor === DESKTOP_OWNER ? 'https://projects.localhost/' : this.deps.dashboardUrl() ?? null,
+                mode: actor === DESKTOP_OWNER ? 'local' : 'tunnel',
                 capabilities: this.capabilities,
             }),
         listAgents: async ({ query, state }) => {

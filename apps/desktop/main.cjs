@@ -1,131 +1,28 @@
 'use strict';
-const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, nativeTheme, protocol, screen, session, shell } = require('electron');
+const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, session, shell } = require('electron');
 const { fork } = require('node:child_process');
-const { readFileSync, readdirSync, renameSync, writeFileSync } = require('node:fs');
 const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
-const { randomBytes, randomUUID } = require('node:crypto');
+const { createHash, randomUUID } = require('node:crypto');
 const { join, resolve, basename, delimiter } = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { ACTIONS, VOICE_INTENT_PATH, localDashboardUrl, terminalArguments, dashboardPage, terminalSize, voiceIntent, editorAsset, desktopPolicy, workspaceState, movedDocument } = require('./model.cjs');
+const { terminalArguments, terminalSize } = require('./model.cjs');
 const { createPromptServer } = require('./prompt-server.cjs');
 const { DesktopUpdates } = require('./updates.cjs');
+const { PROJECT_ORIGIN, PROJECTS_ORIGIN, loadAppBundle } = require('./app-protocol.cjs');
 
-/** Desktop version and engine versions have independent lifetimes, especially on Windows. */
-const desktopUpdates = new DesktopUpdates({ current: app.getVersion(), platform: process.platform, arch: process.arch, packaged: app.isPackaged,
-    changed: (update) => { for (const entry of windows.values()) emit(entry, { type: 'update', update }); } });
-
-/** macOS packages carry their own CLI runtime and use native application menus. */
-const isMac = process.platform === 'darwin';
-
-/** Supported appearance preferences, including a live system default. */
-const themeSources = new Set(['system', 'light', 'dark']);
-
-/**
- * Embedded feature views (a live tab viewer, a voice media page) load their document from this privileged secure
- * scheme of their own in-memory session; nothing else is served there.
- */
-const FEATURE_URL = 'ptbk-feature://surface/';
-/** The workspace editor (Monaco with the Book adapter) reaches a window's project dashboard from its own private scheme. */
-protocol.registerSchemesAsPrivileged([{ scheme: 'ptbk-feature', privileges: { standard: true, secure: true } }, { scheme: 'ptbk-editor', privileges: { standard: true, secure: true, corsEnabled: true } }]);
-
-/** The built workspace editor's directory and files (an unbuilt checkout has none, and dashboards keep a plain editor). */
-const editorDirectory = join(__dirname, 'renderer', 'vendor', 'editor');
-const editorFiles = (() => { try { return new Set(readdirSync(editorDirectory)); } catch { return new Set(); } })();
-/** The dashboard origin each project session currently serves the editor to. */
-const editorOrigins = new WeakMap();
-
-/** Live feature views by id: the owning window, the kind and their embedded view. */
-const features = new Map();
-
-/** Messages of the CLI controller about features not registered here yet (a feature's first output). */
-const earlyFeatureOutput = new Map();
-
-/** Features whose view was removed; their late output is dropped. */
-const closedFeatures = new Set();
-
-/** The tray controller owns client windows and attachments, never the engines. */
+/** The isolated, persistent session for each local project. Two windows can attach to the same engine. */
+const projects = new Map();
 const windows = new Map();
 const pending = new Map();
+const isMac = process.platform === 'darwin';
 const shellUrl = pathToFileURL(join(__dirname, 'renderer', 'index.html')).href;
-let tray;
-let bridge;
-let runtime;
+const desktopUpdates = new DesktopUpdates({ current: app.getVersion(), platform: process.platform, arch: process.arch, packaged: app.isPackaged,
+    changed: (update) => { for (const entry of windows.values()) emit(entry, { type: 'update', update }); } });
+let tray, bridge, runtime, clipboardDirectory, bundle;
 let requestId = 0;
-let quitting = false;
 let refreshingTray = false;
 let quitInProgress = false;
-let clipboardDirectory;
-
-/**
- * Desktop workspaces kept for a restart, in the app profile outside all projects: each window's placement, project,
- * dashboard workspaces (tabs, unsaved drafts with their base revision, editor positions) and the context of its live
- * sessions; plus drafts of closed windows, offered again when their project opens.
- */
-let workspaces = { windows: {}, recovered: {} };
-let workspacesTimer;
-
-/** Location of the persisted workspaces. */
-function workspacesFile() {
-    return join(app.getPath('userData'), 'workspaces.json');
-}
-
-/** Reads the persisted workspaces (a missing or damaged file starts empty). */
-function loadWorkspaces() {
-    try {
-        const value = JSON.parse(readFileSync(workspacesFile(), 'utf8'));
-        if (value && typeof value.windows === 'object' && typeof value.recovered === 'object') workspaces = value;
-    } catch {
-        // Restoration is a convenience; it never blocks the desktop app.
-    }
-}
-
-/** Writes the workspaces atomically, shortly after the last change (and at once when quitting). */
-function saveWorkspaces(now = false) {
-    clearTimeout(workspacesTimer);
-    const write = () => {
-        try {
-            const file = workspacesFile();
-            writeFileSync(`${file}.tmp`, JSON.stringify(workspaces), { mode: 0o600 });
-            renameSync(`${file}.tmp`, file);
-        } catch {}
-    };
-    if (now) write();
-    else workspacesTimer = setTimeout(write, 500);
-}
-
-/** The persisted record of a window, created on first use. */
-function windowRecord(entry) {
-    return (workspaces.windows[entry.slot] ||= { projects: {}, sessions: [] });
-}
-
-/** Moves the unsaved drafts of a closing window to the recovery pool of their project. */
-function recoverDrafts(entry) {
-    for (const [root, state] of Object.entries(windowRecord(entry).projects || {})) {
-        for (const [key, document] of Object.entries(state.documents || {})) {
-            if (!document.draft) continue;
-            const tab = state.tabs.find((item) => item.key === key);
-            (workspaces.recovered[root] ||= {})[key] = { tab, draft: document.draft };
-        }
-    }
-}
-
-/** Documents handed between windows, by id: the source view, the document, and the target once known. */
-const moves = new Map();
-
-/** Stores the client preference in the app profile, outside all projects. */
-function themeFile() {
-    return join(app.getPath('userData'), 'appearance');
-}
-
-/** Old profiles and invalid settings fall back to the operating system. */
-function loadTheme() {
-    try {
-        const source = readFileSync(themeFile(), 'utf8').trim();
-        if (themeSources.has(source)) nativeTheme.themeSource = source;
-    } catch {
-        // A preference file is optional and must not block the desktop app.
-    }
-}
+let quitting = false;
 
 /** Adds the usual user tool locations to the environment inherited from Finder. */
 function bundledRuntime() {
@@ -173,7 +70,6 @@ async function startBridge() {
     let diagnostic = '';
     bridge.stderr.on('data', (chunk) => { diagnostic = (diagnostic + chunk).slice(-4000); });
     bridge.on('message', (message) => {
-        if (message && typeof message.feature === 'string') { featureOutput(message); return; }
         const entry = pending.get(message.id);
         if (!entry) return;
         pending.delete(message.id);
@@ -205,108 +101,6 @@ async function controller(method, params = {}) {
     });
 }
 
-/** Posts ordered, reply-less input of a feature view to the CLI controller. */
-function bridgeSend(message) {
-    if (bridge?.connected) bridge.send(message);
-}
-
-/** Output of a feature: page messages go to its own view only; state and views go to its owning window's shell. */
-function featureOutput(message) {
-    const feature = features.get(message.feature);
-    if (!feature) {
-        if (closedFeatures.has(message.feature)) return;
-        const queue = earlyFeatureOutput.get(message.feature) || [];
-        if (queue.length < 200) queue.push(message);
-        earlyFeatureOutput.set(message.feature, queue);
-        return;
-    }
-    const out = message.out;
-    if (out && (out.kind === 'message' || out.kind === 'binary')) {
-        if (feature.view && !feature.view.webContents.isDestroyed()) feature.view.webContents.send('feature:in', out.kind === 'binary' ? { kind: 'binary', data: Buffer.from(String(out.data), 'base64') } : { kind: 'message', data: String(out.data) });
-    } else if (out && out.kind === 'state') {
-        emit(feature.entry, { type: 'feature', feature: feature.id, kind: feature.kind, state: out.state, reason: out.reason });
-        // The feature ended on its own (handed back, ended, lost, or the call ended): its view goes away.
-        if (out.state === 'closed') removeFeatureView(feature);
-    }
-    if (message.view) emit(feature.entry, { type: 'feature', feature: feature.id, kind: feature.kind, view: message.view });
-}
-
-/** Removes a feature's embedded view (the feature itself is closed separately). */
-function removeFeatureView(feature) {
-    features.delete(feature.id);
-    closedFeatures.add(feature.id);
-    earlyFeatureOutput.delete(feature.id);
-    const view = feature.view;
-    feature.view = undefined;
-    if (!view) return;
-    try { feature.entry.window.contentView.removeChildView(view); } catch {}
-    if (!view.webContents.isDestroyed()) view.webContents.close();
-}
-
-/** Closes a feature from this app: the view closes and the controller ends it under its own rules. */
-function closeFeature(feature, reason) {
-    if (!features.has(feature.id)) return;
-    bridgeSend({ featureIn: feature.id, in: { kind: 'closed', reason } });
-    void controller('feature-close', { feature: feature.id, reason }).catch(() => {});
-    emit(feature.entry, { type: 'feature', feature: feature.id, kind: feature.kind, state: 'closed', reason });
-    removeFeatureView(feature);
-}
-
-/**
- * Permissions of an embedded feature view, only while it is live: the voice page may use the microphone (audio only,
- * subject to the operating system's consent); the tab viewer may use the clipboard for the user's explicit copy and
- * paste. Everything else, and every other view, stays denied.
- */
-function featurePermission(feature, contents, permission, details) {
-    if (!features.has(feature.id) || !feature.view || contents !== feature.view.webContents) return false;
-    if (feature.kind === 'voice') return permission === 'media' && (details?.mediaTypes ? details.mediaTypes.every((type) => type === 'audio') : details?.mediaType !== 'video');
-    if (feature.kind === 'tab') return permission === 'clipboard-read' || permission === 'clipboard-sanitized-write';
-    return false;
-}
-
-/** Clamps a feature view to the owning window (zero size hides it). */
-function setFeatureBounds(feature, bounds) {
-    if (!feature.view || !bounds) return;
-    const [width, height] = feature.entry.window.getContentSize();
-    const x = Math.max(0, Math.min(width, Math.round(Number(bounds.x) || 0)));
-    const y = Math.max(0, Math.min(height, Math.round(Number(bounds.y) || 0)));
-    feature.view.setBounds({ x, y, width: Math.max(0, Math.min(width - x, Math.round(Number(bounds.width) || 0))), height: Math.max(0, Math.min(height - y, Math.round(Number(bounds.height) || 0))) });
-}
-
-/**
- * Presents a feature in place: a sandboxed view with context isolation, no Node, its own in-memory session and only the
- * narrow feature preload. Its document comes from the CLI controller with a restrictive content security policy.
- */
-async function showFeature(entry, kind, root, result, bounds) {
-    const partition = `desktop-feature-${entry.window.id}-${result.feature}`;
-    const featureSession = session.fromPartition(partition);
-    // A restarted controller numbers its features again: the partition's previous document handler is replaced.
-    if (featureSession.protocol.isProtocolHandled('ptbk-feature')) featureSession.protocol.unhandle('ptbk-feature');
-    featureSession.protocol.handle('ptbk-feature', (request) => request.url === FEATURE_URL
-        ? new Response(result.document, { headers: { 'content-type': 'text/html; charset=utf-8', 'content-security-policy': result.policy, 'permissions-policy': result.permissions, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff' } })
-        : new Response('', { status: 404 }));
-    // A live view keeps streaming and speaking while it is out of sight (zero size behind the dashboard).
-    const view = new WebContentsView({ webPreferences: { preload: join(__dirname, 'feature-preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, partition, spellcheck: false, backgroundThrottling: false } });
-    const feature = { id: result.feature, entry, kind, root, control: result.control?.id, view };
-    features.set(feature.id, feature);
-    protect(view.webContents, entry.window, (url) => url === FEATURE_URL);
-    featureSession.setPermissionRequestHandler((contents, permission, callback, details) => callback(featurePermission(feature, contents, permission, details)));
-    featureSession.setPermissionCheckHandler((contents, permission, _origin, details) => featurePermission(feature, contents, permission, details));
-    view.webContents.on('render-process-gone', () => closeFeature(feature, 'The view stopped unexpectedly.'));
-    entry.window.contentView.addChildView(view);
-    setFeatureBounds(feature, bounds);
-    for (const message of earlyFeatureOutput.get(feature.id) || []) featureOutput(message);
-    earlyFeatureOutput.delete(feature.id);
-    await view.webContents.loadURL(FEATURE_URL);
-}
-
-/** The live feature of a shell-owned window, or a refusal. */
-function ownedFeature(entry, id) {
-    const feature = features.get(id);
-    if (!feature || feature.entry !== entry) throw new Error('This live view is no longer open.');
-    return feature;
-}
-
 /** Only the packaged shell's main frame may invoke desktop capabilities. */
 function owner(event) {
     const entry = [...windows.values()].find((item) => item.window.webContents === event.sender);
@@ -328,63 +122,6 @@ async function externalLink(url, window) {
     if (result.response === 0) await shell.openExternal(parsed.href);
 }
 
-/**
- * Prevents arbitrary navigation, browser permissions and popups in both shell and unprivileged project views. A popup
- * the view's `intercept` recognizes (a voice intent of its chat) is handled by the shell and never opened.
- */
-function protect(contents, window, allowed, intercept) {
-    contents.session.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
-    contents.session.setPermissionCheckHandler(() => false);
-    contents.setWindowOpenHandler(({ url }) => { if (!intercept?.(url)) void externalLink(url, window); return { action: 'deny' }; });
-    contents.on('will-navigate', (event, url) => { if (!allowed(url)) { event.preventDefault(); void externalLink(url, window); } });
-    contents.on('will-redirect', (event, url) => { if (!allowed(url)) event.preventDefault(); });
-    contents.on('will-attach-webview', (event) => event.preventDefault());
-}
-
-/** Destroys only a graphical project attachment, leaving its HTTP server and engine alone. */
-function hideDashboard(entry) {
-    if (!entry.view) return;
-    // The chat view owning this window's voice call closes with the dashboard: the call ends (chat and work continue).
-    for (const feature of [...features.values()]) if (feature.entry === entry && feature.kind === 'voice') closeFeature(feature, 'The chat view closed, so the voice call ended. The chat and its work continue.');
-    entry.window.contentView.removeChildView(entry.view);
-    entry.view.webContents.close();
-    entry.view = undefined;
-}
-
-/**
- * Makes the workspace editor available to a window's project dashboard: its files from the private `ptbk-editor:`
- * scheme, and the dashboard document's own policy extended only by the editor's needs (no other origin, no inline
- * script). Engine API responses and every other request are left as they are.
- */
-function prepareEditor(projectSession, origin) {
-    // A window's project session keeps its handler; the allowed origin follows its current dashboard.
-    editorOrigins.set(projectSession, origin);
-    if (!projectSession.protocol.isProtocolHandled('ptbk-editor')) {
-        projectSession.protocol.handle('ptbk-editor', async (request) => {
-            const asset = editorAsset(request.url, editorFiles);
-            if (!asset) return new Response('', { status: 404 });
-            // Static editor files only; fonts are CORS requests of the dashboard's origin.
-            return new Response(await readFile(join(editorDirectory, asset.name)), { headers: { 'content-type': asset.type, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'access-control-allow-origin': editorOrigins.get(projectSession) } });
-        });
-    }
-    projectSession.webRequest.onHeadersReceived({ urls: [`${origin}/*`] }, (details, callback) => {
-        if (details.resourceType !== 'mainFrame' || !editorFiles.has('editor.js')) return callback({});
-        const headers = { ...details.responseHeaders };
-        const name = Object.keys(headers).find((key) => key.toLowerCase() === 'content-security-policy');
-        if (name) headers[name] = headers[name].map(desktopPolicy);
-        callback({ responseHeaders: headers });
-    });
-}
-
-/** Clamps a native embedded view to the owning window. */
-function setBounds(entry, bounds) {
-    if (!entry.view || !bounds) return;
-    const [width, height] = entry.window.getContentSize();
-    const x = Math.max(0, Math.min(width, Math.round(Number(bounds.x) || 0)));
-    const y = Math.max(0, Math.min(height, Math.round(Number(bounds.y) || 0)));
-    entry.view.setBounds({ x, y, width: Math.max(0, Math.min(width - x, Math.round(Number(bounds.width) || 0))), height: Math.max(0, Math.min(height - y, Math.round(Number(bounds.height) || 0))) });
-}
-
 /** Ends a client-owned PTY and pending prompts; it never sends an engine stop. */
 function closeTerminal(entry, id) {
     const terminal = entry.terminals.get(id);
@@ -394,61 +131,116 @@ function closeTerminal(entry, id) {
     entry.terminals.delete(id);
 }
 
-/** Restored bounds when they are still on a connected display (a removed monitor falls back to the default place). */
-function visibleBounds(bounds) {
-    if (!bounds || ![bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite)) return undefined;
-    const area = screen.getDisplayMatching(bounds).workArea;
-    const overlap = Math.min(bounds.x + bounds.width, area.x + area.width) - Math.max(bounds.x, area.x) >= 100 && Math.min(bounds.y + bounds.height, area.y + area.height) - Math.max(bounds.y, area.y) >= 100;
-    return overlap ? { x: Math.round(bounds.x), y: Math.round(bounds.y), width: Math.max(800, Math.round(bounds.width)), height: Math.max(600, Math.round(bounds.height)) } : undefined;
-}
-
-/** Opens an independent local view; the process/tray survives the last closed window. */
-function createWindow(options = {}) {
-    const { slot = randomUUID(), bounds, maximized, previous, ...launch } = options;
-    const window = new BrowserWindow({ width: 1280, height: 850, ...visibleBounds(bounds), minWidth: 800, minHeight: 600, title: 'Promptbook', ...(!isMac && { icon: iconPath() }), show: false,
-        webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false } });
-    const entry = { window, slot, terminals: new Map(), view: undefined, root: launch.root, page: undefined, moves: [] };
-    windows.set(window.id, entry);
-    windowRecord(entry);
-    // The window's placement and project are kept for a restart.
-    let placement;
-    const place = () => {
-        clearTimeout(placement);
-        placement = setTimeout(() => {
-            if (window.isDestroyed()) return;
-            Object.assign(windowRecord(entry), { bounds: window.getNormalBounds(), maximized: window.isMaximized(), root: entry.root });
-            saveWorkspaces();
-        }, 300);
-    };
-    for (const event of ['move', 'resize', 'maximize', 'unmaximize']) window.on(event, place);
-    place();
-    protect(window.webContents, window, (url) => url.split('#')[0] === shellUrl);
-    window.once('ready-to-show', () => { if (maximized) window.maximize(); window.show(); });
-    window.webContents.once('did-finish-load', () => emit(entry, { type: 'launch', ...launch, ...(previous?.length ? { previous } : {}) }));
-    window.on('close', () => {
-        hideDashboard(entry);
-        for (const id of entry.terminals.keys()) closeTerminal(entry, id);
-        // Its voice calls end; its tab viewers detach and their tabs stay protected for the user.
-        for (const feature of [...features.values()]) if (feature.entry === entry) closeFeature(feature, 'The window was closed.');
-        // Moves into or out of this window fail; a document still owned by another window stays there.
-        for (const [id, move] of [...moves]) if (move.target === entry || move.source === entry) failMove(id, 'The window was closed.');
-        // A window closed on its own is not restored; its unsaved drafts are offered again with their project.
-        if (!quitting) {
-            recoverDrafts(entry);
-            delete workspaces.windows[entry.slot];
-            saveWorkspaces();
+/** A sandbox that can reach only its own project's bundled UI and private engine pipe. */
+function projectSession(root) {
+    let binding = projects.get(root);
+    if (binding) return binding;
+    const partition = 'persist:ptbk-ui-' + createHash('sha256').update(root).digest('hex');
+    const isolated = session.fromPartition(partition, { cache: false });
+    binding = { session: isolated, endpoint: undefined };
+    isolated.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
+    isolated.setPermissionCheckHandler(() => false);
+    isolated.protocol.handle('https', async (request) => {
+        try {
+            bundle ||= loadAppBundle(join(__dirname, 'engine-ui'));
+            return await (await bundle)(request, binding.endpoint);
+        } catch {
+            return new Response('The project connection is unavailable.', { status: 503 });
         }
     });
-    window.on('closed', () => { clearTimeout(placement); windows.delete(window.id); });
-    void window.loadURL(shellUrl);
-    return entry;
+    isolated.webRequest.onBeforeRequest((details, callback) => {
+        const url = new URL(details.url);
+        callback({ cancel: url.origin !== PROJECT_ORIGIN && url.protocol !== 'data:' });
+    });
+    projects.set(root, binding);
+    return binding;
 }
 
-/** Opens the windows open at the last quit, with their placement, project and workspaces (or one new window). */
-function restoreWindows(options) {
-    const saved = Object.entries(workspaces.windows).filter(([, record]) => record && typeof record === 'object');
-    if (!saved.length || options.init || options.root) return void createWindow(options);
-    for (const [slot, record] of saved) createWindow({ slot, bounds: record.bounds, maximized: record.maximized, root: typeof record.root === 'string' ? record.root : undefined, skipInit: true, previous: Array.isArray(record.sessions) ? record.sessions : [] });
+/** Teardown only this client. In-flight connections are cancelled by closing its WebContents. */
+function hideDashboard(entry) {
+    entry.generation++;
+    if (entry.view) {
+        entry.window.contentView.removeChildView(entry.view);
+        entry.view.webContents.close();
+        entry.view = undefined;
+    }
+    entry.instance = undefined;
+}
+
+/** Full-window project UI, including on resize and after leaving the launcher. */
+function resizeProject(entry) {
+    if (!entry.view) return;
+    const [width, height] = entry.window.getContentSize();
+    entry.view.setBounds({ x: 0, y: 0, width, height });
+}
+
+/** A local navigation back to the project list, including the upstream switcher's All projects/Add project links. */
+function showLauncher(entry, action = 'projects') {
+    hideDashboard(entry);
+    emit(entry, { type: 'launcher', action, root: entry.root });
+}
+
+/** Verify the project on every attachment. A later selection always wins over an earlier, slower connection. */
+async function openProject(entry, root) {
+    hideDashboard(entry);
+    const generation = entry.generation;
+    const endpoint = await controller('app-connect', { root });
+    if (entry.window.isDestroyed() || entry.generation !== generation) return;
+    bundle ||= loadAppBundle(join(__dirname, 'engine-ui'));
+    await bundle;
+    if (entry.window.isDestroyed() || entry.generation !== generation) return;
+    const binding = projectSession(root);
+    binding.endpoint = endpoint;
+    const view = new WebContentsView({ webPreferences: { session: binding.session, sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false } });
+    entry.view = view;
+    entry.root = root;
+    entry.instance = endpoint.instanceId;
+    const content = view.webContents;
+    const navigate = (target, popup) => {
+        const url = new URL(target);
+        if (url.origin === PROJECTS_ORIGIN) {
+            setImmediate(() => { if (entry.view === view) showLauncher(entry, url.pathname === '/engines/new' ? 'init' : 'projects'); });
+        } else if (url.origin === PROJECT_ORIGIN && url.pathname === '/auth/sign-in') {
+            setImmediate(() => { if (entry.view === view) showLauncher(entry); });
+        } else if (url.origin === PROJECT_ORIGIN) {
+            if (popup) void content.loadURL(url.href).catch(() => {});
+            return true;
+        } else {
+            void externalLink(url.href, entry.window);
+        }
+        return false;
+    };
+    content.on('will-navigate', (event) => { if (!navigate(event.url, false)) event.preventDefault(); });
+    content.on('will-redirect', (event) => { if (new URL(event.url).origin !== PROJECT_ORIGIN) event.preventDefault(); });
+    content.setWindowOpenHandler(({ url }) => { setImmediate(() => { if (!content.isDestroyed()) navigate(url, true); }); return { action: 'deny' }; });
+    content.on('will-attach-webview', (event) => event.preventDefault());
+    entry.window.contentView.addChildView(view);
+    resizeProject(entry);
+    try {
+        await content.loadURL(PROJECT_ORIGIN + '/');
+        if (!content.isDestroyed()) content.focus();
+    } catch (error) {
+        if (entry.generation !== generation) return;
+        hideDashboard(entry);
+        throw error;
+    }
+}
+
+/** The trusted local project chooser and optional CLI wizard stay outside the project page. */
+function createWindow(launch = {}) {
+    const window = new BrowserWindow({ width: 1280, height: 850, minWidth: 720, minHeight: 520, title: 'Promptbook', show: false,
+        ...(!isMac && { icon: iconPath() }), webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+    const entry = { window, terminals: new Map(), generation: 0, root: launch.root };
+    windows.set(window.id, entry);
+    window.webContents.on('will-navigate', (event) => { if (event.url !== shellUrl) event.preventDefault(); });
+    window.webContents.setWindowOpenHandler(({ url }) => { void externalLink(url, window); return { action: 'deny' }; });
+    window.once('ready-to-show', () => window.show());
+    window.on('resize', () => resizeProject(entry));
+    window.webContents.once('did-finish-load', () => emit(entry, { type: 'launch', ...launch }));
+    window.on('close', () => { hideDashboard(entry); for (const id of entry.terminals.keys()) closeTerminal(entry, id); });
+    window.on('closed', () => windows.delete(window.id));
+    void window.loadURL(shellUrl);
+    return entry;
 }
 
 /** Location of the same product icon used by the installer. */
@@ -503,7 +295,6 @@ async function quitAll() {
         }
         const final = await controller('observe');
         if (final.problem || final.rows.some((row) => ['live', 'unreachable'].includes(row.status))) throw new Error('An engine is now live or unverified. Review the tray before quitting again.');
-        quitting = true;
         app.quit();
     } catch (error) { await dialog.showMessageBox({ type: 'error', message: 'Promptbook remains open', detail: error.message }); }
     finally { quitInProgress = false; void refreshTray(); }
@@ -517,7 +308,7 @@ async function refreshTray() {
     let problem;
     try { host = await controller('observe'); } catch (error) { problem = error.message; }
     const items = [
-        { label: 'Open Promptbook', click: () => (windows.size ? createWindow() : restoreWindows({})) },
+        { label: 'Open Promptbook', click: () => { const window = [...windows.values()][0]?.window; if (window) window.show(); else createWindow(); } },
         { label: 'New window', click: () => createWindow() },
         { label: 'New project…', click: () => createWindow({ init: true }) },
         { type: 'separator' },
@@ -528,6 +319,15 @@ async function refreshTray() {
         { label: 'Check for updates…', click: () => { if (!windows.size) createWindow(); void desktopUpdates.check(); } },
         { label: quitInProgress ? 'Stopping engines…' : 'Quit Promptbook and engines…', enabled: !quitInProgress, click: () => void quitAll() },
     ];
+    for (const entry of windows.values()) {
+        if (!entry.view || !host || host.problem) continue;
+        const row = host.rows.find((item) => item.projectRoot === entry.root);
+        if (row?.status !== 'live' || row.engine?.instanceId !== entry.instance) {
+            if (row?.status === 'live') {
+                void openProject(entry, entry.root).catch((error) => { showLauncher(entry); emit(entry, { type: 'error', message: error.message }); });
+            } else showLauncher(entry);
+        }
+    }
     tray.setContextMenu(Menu.buildFromTemplate(items));
     tray.setToolTip(`Promptbook — ${host?.rows.filter((row) => row.status === 'live').length || 0} engine(s)`);
     refreshingTray = false;
@@ -545,256 +345,8 @@ ipcMain.handle('desktop:update', (event, action) => {
     if (action !== undefined) throw new Error('Invalid update action.');
     return desktopUpdates.state;
 });
-ipcMain.handle('desktop:theme', (event, source) => {
-    owner(event);
-    if (source === undefined) return nativeTheme.themeSource;
-    if (!themeSources.has(source)) throw new Error('Invalid appearance setting.');
-    if (source !== nativeTheme.themeSource) {
-        // Serialize the small atomic write across all client windows before changing the live theme.
-        const file = themeFile();
-        const temporary = `${file}.tmp`;
-        writeFileSync(temporary, `${source}\n`, { mode: 0o600 });
-        renameSync(temporary, file);
-        nativeTheme.themeSource = source;
-        for (const entry of windows.values()) emit(entry, { type: 'theme', source });
-    }
-    return source;
-});
-ipcMain.handle('desktop:action', async (event, { action, roots }) => {
-    const entry = owner(event);
-    if (!ACTIONS.has(action) || !Array.isArray(roots) || !roots.length || roots.length > 1000 || roots.some((root) => typeof root !== 'string')) throw new Error('Invalid project action.');
-    if (action === 'force-stop' || action === 'remove') {
-        const response = await dialog.showMessageBox(entry.window, { type: 'warning', message: action === 'remove' ? 'Forget the selected stopped projects?' : 'Force stop the selected engines?', detail: action === 'remove' ? 'Project files stay. Only verified stopped entries can be forgotten.' : 'Active work may remain unfinished; this interrupts all work owned by these engines.', buttons: ['Cancel', action === 'remove' ? 'Forget' : 'Force stop'], defaultId: 0, cancelId: 0 });
-        if (response.response !== 1) return [];
-    }
-    const results = [];
-    for (const root of [...new Set(roots)]) results.push(await controller('action', { action, root }));
-    void refreshTray();
-    return results;
-});
-ipcMain.handle('desktop:dashboard', async (event, { root, bounds }) => {
-    const entry = owner(event);
-    const result = await controller('dashboard', { root });
-    const url = new URL(localDashboardUrl(result.url));
-    url.searchParams.set('view', 'desktop');
-    // This view's voice intent token: only its own chat view's intents reach this window's shell.
-    const intent = randomBytes(16).toString('hex');
-    url.searchParams.set('intent', intent);
-    hideDashboard(entry);
-    const view = new WebContentsView({ webPreferences: { preload: join(__dirname, 'workspace-preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, partition: `desktop-project-${entry.window.id}` } });
-    prepareEditor(view.webContents.session, url.origin);
-    entry.view = view;
-    entry.root = root;
-    entry.origin = url.origin;
-    windowRecord(entry).root = root;
-    saveWorkspaces();
-    entry.page = undefined;
-    entry.window.contentView.addChildView(view);
-    setBounds(entry, bounds);
-    // Voice starts and is controlled from the open chat: its intent is a denied popup of a fixed path carrying this
-    // view's token. The shell owns the microphone and media view; the dashboard stays unprivileged.
-    protect(view.webContents, entry.window, (target) => { try { return new URL(target).origin === url.origin; } catch { return false; } }, (target) => {
-        let path;
-        try { path = new URL(target).pathname; } catch { return false; }
-        if (path !== VOICE_INTENT_PATH) return false;
-        const request = entry.view === view ? voiceIntent(target, url.origin, intent) : undefined;
-        if (request) emit(entry, { type: 'voice-intent', root, ...request });
-        return true;
-    });
-    view.webContents.on('did-navigate-in-page', (_event, target) => {
-        entry.page = dashboardPage(target);
-        emit(entry, { type: 'page', page: entry.page });
-    });
-    view.webContents.on('render-process-gone', () => emit(entry, { type: 'error', message: 'The graphical view closed. Reopen the project or use its CLI dashboard.' }));
-    view.webContents.on('did-fail-load', (_event, _code, description) => { hideDashboard(entry); emit(entry, { type: 'error', message: `The graphical dashboard could not load: ${description}. Open its CLI dashboard.` }); });
-    await view.webContents.loadURL(url.href);
-    return { root, instanceId: result.instanceId };
-});
-ipcMain.on('desktop:bounds', (event, bounds) => { try { setBounds(owner(event), bounds); } catch {} });
-ipcMain.handle('desktop:feature-context', async (event, root) => {
-    owner(event);
-    if (typeof root !== 'string') throw new Error('Select a project first.');
-    return await controller('feature-context', { root });
-});
-ipcMain.handle('desktop:feature-open', async (event, request) => {
-    const entry = owner(event);
-    const kind = request?.kind;
-    if (!['tab', 'voice'].includes(kind) || typeof request.root !== 'string') throw new Error('Invalid live view request.');
-    const params = {};
-    for (const key of ['request', 'browser', 'target', 'url', 'chat', 'id']) if (typeof request[key] === 'string' && request[key] && request[key].length <= 4096) params[key] = request[key];
-    if (kind === 'voice' && [...features.values()].some((feature) => feature.entry === entry && feature.kind === 'voice')) throw new Error('Voice is already live in this window. End it first.');
-    const method = kind === 'voice' ? 'voice-open' : params.id ? 'tab-reopen' : 'tab-open';
-    // The window is the voice call's controlling client (its media grant stays with this window's view).
-    const result = await controller(method, { root: request.root, ...params, ...(kind === 'voice' ? { client: `desktop-${process.pid}-${entry.window.id}` } : {}) });
-    for (const feature of [...features.values()]) if (kind === 'tab' && result.control && feature.control === result.control.id && feature.id !== result.feature) removeFeatureView(feature);
-    closedFeatures.delete(result.feature);
-    try {
-        await showFeature(entry, kind, request.root, result, request.bounds);
-    } catch (error) {
-        const feature = features.get(result.feature);
-        if (feature) closeFeature(feature, 'The live view could not open.');
-        else void controller('feature-close', { feature: result.feature, reason: 'The live view could not open.' }).catch(() => {});
-        throw error;
-    }
-    return { feature: result.feature, control: result.control };
-});
-ipcMain.handle('desktop:feature-close', (event, id, reason) => { closeFeature(ownedFeature(owner(event), id), typeof reason === 'string' && reason.length <= 300 ? reason : 'The view was closed.'); });
-ipcMain.on('desktop:feature-bounds', (event, { feature, bounds } = {}) => { try { setFeatureBounds(ownedFeature(owner(event), feature), bounds); } catch {} });
-ipcMain.handle('desktop:tab-tabs', async (event, { root, browser } = {}) => {
-    owner(event);
-    if (typeof root !== 'string') throw new Error('Select a project first.');
-    return await controller('tab-tabs', { root, ...(typeof browser === 'string' ? { browser } : {}) });
-});
-ipcMain.handle('desktop:tab-action', async (event, { root, id, action, offer, answer } = {}) => {
-    owner(event);
-    if (typeof root !== 'string' || typeof id !== 'string' || !['handback', 'end', 'offer'].includes(action)) throw new Error('Invalid tab control action.');
-    if (action === 'offer' && (typeof offer !== 'string' || !['yes', 'no'].includes(answer))) throw new Error('Answer the save offer with Yes or No.');
-    return await controller('tab-action', { root, id, action, ...(action === 'offer' ? { offer, answer } : {}) });
-});
-ipcMain.handle('desktop:voice-control', async (event, { root, chat, action } = {}) => {
-    owner(event);
-    if (typeof root !== 'string' || typeof chat !== 'string') throw new Error('Choose the chat first.');
-    return await controller('voice-control', { root, chat, action });
-});
-/** Messages of an embedded feature view: accepted only from that live view's own main frame, then relayed in order. */
-ipcMain.on('feature:out', (event, payload) => {
-    const feature = [...features.values()].find((item) => item.view && item.view.webContents === event.sender);
-    if (!feature || event.senderFrame !== event.sender.mainFrame || event.senderFrame.url !== FEATURE_URL) return;
-    if (payload?.kind === 'hello') bridgeSend({ featureIn: feature.id, in: { kind: 'hello' } });
-    else if (payload?.kind === 'message' && typeof payload.data === 'string' && payload.data.length <= 1024 * 1024) bridgeSend({ featureIn: feature.id, in: { kind: 'message', data: payload.data } });
-    else if (payload?.kind === 'binary' && payload.data instanceof Uint8Array && payload.data.length <= 1024 * 1024) bridgeSend({ featureIn: feature.id, in: { kind: 'binary', data: Buffer.from(payload.data).toString('base64') } });
-});
-/** The window whose current project dashboard sent a workspace call: only that view's main frame at its own origin. */
-function workspaceOwner(event) {
-    const entry = [...windows.values()].find((item) => item.view && item.view.webContents === event.sender);
-    let origin;
-    try { origin = new URL(event.senderFrame?.url).origin; } catch {}
-    if (!entry || event.senderFrame !== event.sender.mainFrame || origin !== entry.origin) throw new Error('Untrusted workspace sender.');
-    return entry;
-}
-
-/** Sends a workspace event to a window's current project dashboard. */
-function workspaceEvent(entry, value) {
-    if (entry?.view && !entry.view.webContents.isDestroyed()) entry.view.webContents.send('workspace:event', value);
-}
-
-/** Ends a move without a transfer: the source keeps (and may again use) its document. */
-function failMove(id, reason) {
-    const move = moves.get(id);
-    if (!move) return;
-    moves.delete(id);
-    clearTimeout(move.timer);
-    if (move.target) move.target.moves = move.target.moves.filter((item) => item !== id);
-    if (!move.source.window.isDestroyed() && move.source.view?.webContents === move.sourceContents) workspaceEvent(move.source, { type: 'move-failed', id, reason });
-}
-
-/** Registers a document leaving its window; it fails unless a target confirms ownership in time. */
-function startMove(source, document, target, id = randomUUID()) {
-    const move = { id, source, sourceContents: source.view.webContents, root: source.root, document, target: undefined, timer: undefined };
-    moves.set(id, move);
-    move.timer = setTimeout(() => failMove(id, 'The other window did not take the document.'), target ? 30000 : 60000);
-    if (target) deliverMove(move, target);
-    return move;
-}
-
-/** Hands a move to its target window: its dashboard of the same project receives it (opening that project first). */
-function deliverMove(move, target) {
-    move.target = target;
-    target.moves.push(move.id);
-    target.window.show();
-    target.window.focus();
-    if (target.view && target.root === move.root) workspaceEvent(target, { type: 'incoming', id: move.id, document: move.document });
-    else emit(target, { type: 'open-project', root: move.root });
-}
-
-ipcMain.handle('workspace:restore', (event) => {
-    const entry = workspaceOwner(event);
-    const state = windowRecord(entry).projects?.[entry.root] || null;
-    // Drafts of closed windows are offered once, in the next dashboard of their project.
-    const recovered = workspaces.recovered[entry.root] || {};
-    delete workspaces.recovered[entry.root];
-    saveWorkspaces();
-    const incoming = entry.moves.map((id) => moves.get(id)).filter((move) => move && move.root === entry.root).map((move) => ({ id: move.id, document: move.document }));
-    return { state, recovered, incoming, editor: editorFiles.has('editor.js') };
-});
-ipcMain.on('workspace:save', (event, value) => {
-    try {
-        const entry = workspaceOwner(event);
-        (windowRecord(entry).projects ||= {})[entry.root] = workspaceState(value);
-        saveWorkspaces();
-    } catch {}
-});
-ipcMain.handle('workspace:locate', (event, key) => {
-    const entry = workspaceOwner(event);
-    // Reopening a document focuses its existing editor, also in another window of the same project.
-    for (const other of windows.values()) {
-        if (other === entry || other.root !== entry.root || !other.view) continue;
-        const state = windowRecord(other).projects?.[entry.root];
-        if (!state?.tabs.some((tab) => tab.key === key)) continue;
-        other.window.show();
-        other.window.focus();
-        workspaceEvent(other, { type: 'activate', key });
-        return true;
-    }
-    return false;
-});
-ipcMain.handle('workspace:move', (event, { document, target } = {}) => {
-    const source = workspaceOwner(event);
-    const moved = movedDocument(document);
-    if (!moved) throw new Error('This document cannot be moved.');
-    let destination;
-    if (target === 'new') destination = createWindow({ root: source.root, skipInit: true });
-    else if (target === 'main') {
-        destination = [...windows.values()][0];
-        if (destination === source) throw new Error('This is already the main window.');
-    } else throw new Error('Choose where to move the document.');
-    return { id: startMove(source, moved, destination).id };
-});
-ipcMain.handle('workspace:offer', (event, document, token) => {
-    const source = workspaceOwner(event);
-    const moved = movedDocument(document);
-    if (!moved) throw new Error('This document cannot be moved.');
-    if (typeof token !== 'string' || !/^drag-[\w-]{16,80}$/.test(token) || moves.has(token)) throw new Error('Invalid drag.');
-    // A dragged tab: another window of the same project claims it by the drag's own id when it is dropped on its tab strip.
-    return { id: startMove(source, moved, undefined, token).id };
-});
-ipcMain.handle('workspace:claim', (event, id) => {
-    const target = workspaceOwner(event);
-    const move = moves.get(id);
-    if (!move || move.target || move.source === target || move.root !== target.root) throw new Error('This document cannot be docked here.');
-    move.target = target;
-    target.moves.push(move.id);
-    return { id: move.id, document: move.document };
-});
-ipcMain.handle('workspace:accept', (event, id) => {
-    const target = workspaceOwner(event);
-    const move = moves.get(id);
-    if (!move || move.target !== target) throw new Error('This move is no longer pending.');
-    moves.delete(id);
-    clearTimeout(move.timer);
-    target.moves = target.moves.filter((item) => item !== id);
-    // The target owns the document now: the source closes its tab.
-    if (move.source.view?.webContents === move.sourceContents) workspaceEvent(move.source, { type: 'moved', id });
-});
-ipcMain.on('workspace:reject', (event, { id, reason } = {}) => {
-    try {
-        const target = workspaceOwner(event);
-        const move = moves.get(id);
-        if (move && (move.target === target || move.source === target)) failMove(id, typeof reason === 'string' && reason ? reason.slice(0, 300) : 'The document was not moved.');
-    } catch {}
-});
-ipcMain.on('desktop:sessions', (event, sessions) => {
-    try {
-        const entry = owner(event);
-        // Only the context of live sessions is kept: reconnecting them is always an explicit action after a restart.
-        windowRecord(entry).sessions = (Array.isArray(sessions) ? sessions.slice(0, 8) : []).filter((item) => item && ['dashboard', 'global'].includes(item.kind)).map((item) => ({
-            kind: item.kind, ...(typeof item.root === 'string' ? { root: item.root } : {}), ...(typeof item.page === 'string' && item.page.length < 40 ? { page: item.page } : {}), title: String(item.title || '').slice(0, 120),
-        }));
-        saveWorkspaces();
-    } catch {}
-});
-ipcMain.on('desktop:hide-dashboard', (event) => { try { hideDashboard(owner(event)); } catch {} });
-ipcMain.handle('desktop:new-window', (event, root) => { owner(event); createWindow({ root: typeof root === 'string' ? root : undefined }); });
+ipcMain.handle('desktop:dashboard', async (event, root) => openProject(owner(event), root));
+ipcMain.handle('desktop:start', async (event, root) => { owner(event); return controller('action', { root, action: 'start' }); });
 ipcMain.handle('desktop:directory', async (event) => { const entry = owner(event); const result = await dialog.showOpenDialog(entry.window, { properties: ['openDirectory', 'createDirectory'] }); return result.canceled ? undefined : result.filePaths[0]; });
 ipcMain.handle('desktop:attachments', async (event) => {
     const entry = owner(event);
@@ -816,7 +368,7 @@ ipcMain.handle('desktop:terminal', async (event, options) => {
     const entry = owner(event);
     await ready;
     if (entry.terminals.size >= 8) throw new Error('Close an existing terminal before opening another.');
-    const args = terminalArguments(options.kind, options.root, options.page || (options.kind === 'dashboard' ? entry.page : undefined));
+    const args = terminalArguments(options.kind, options.root, options.page);
     if (options.kind === 'dashboard') {
         const host = await controller('observe');
         if (!host.rows.some((row) => row.projectRoot === options.root && row.status === 'live')) throw new Error('The selected project has no verified running engine.');
@@ -869,55 +421,52 @@ function launchOptions(argv) {
 }
 
 app.setName('Promptbook');
-if (!app.requestSingleInstanceLock()) app.exit(0);
-if (process.argv.includes('--quit-client')) app.exit(0);
-app.on('second-instance', (_event, argv) => { if (argv.includes('--quit-client')) { quitting = true; app.quit(); } else if (!argv.includes('--tray')) createWindow(launchOptions(argv)); });
+if (!app.requestSingleInstanceLock() || process.argv.includes('--quit-client')) app.exit(0);
+app.on('second-instance', (_event, argv) => { if (argv.includes('--quit-client')) app.quit(); else if (!argv.includes('--tray')) createWindow(launchOptions(argv)); });
 app.on('window-all-closed', () => {});
-app.on('will-quit', () => desktopUpdates.stop());
-app.on('before-quit', () => { quitting = true; saveWorkspaces(true); for (const entry of windows.values()) for (const id of entry.terminals.keys()) closeTerminal(entry, id); if (bridge?.connected) bridge.disconnect(); if (clipboardDirectory) void clipboardDirectory.then((directory) => rm(directory, { recursive: true, force: true })).catch(() => {}); });
-
-/** Startup initializes only the client adapter and tray; it never calls project Start/Resume. */
-const ready = app.whenReady().then(async () => {
-    await startBridge();
+app.on('before-quit', () => {
+    quitting = true;
+    desktopUpdates.stop();
+    if (bridge?.connected) bridge.disconnect();
+    if (clipboardDirectory) void clipboardDirectory.then((directory) => rm(directory, { recursive: true, force: true })).catch(() => {});
 });
+const ready = app.whenReady().then(startBridge);
+void ready.catch(() => {});
+
+/** Native menus remain available while the entire window belongs to the manGoweb app. */
+function launcher(action) {
+    const entry = [...windows.values()].find((item) => item.window.isFocused()) || [...windows.values()][0];
+    if (entry) { entry.window.show(); showLauncher(entry, action); }
+    else createWindow({ action });
+}
+
 void app.whenReady().then(async () => {
-    loadTheme();
     desktopUpdates.start();
-    loadWorkspaces();
-    app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/', copyright: 'Promptbook — your AI, on your machine' });
+    app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/' });
     tray = new Tray(trayIcon());
-    tray.on('double-click', () => (windows.size ? createWindow() : restoreWindows({})));
+    tray.on('double-click', () => createWindow());
     const menu = Menu.buildFromTemplate([
         ...(isMac ? [{ label: 'Promptbook', submenu: [
-            { label: 'About Promptbook', click: () => app.showAboutPanel() },
-            { label: 'Open at Login', type: 'checkbox', enabled: app.isPackaged, checked: app.isPackaged && app.getLoginItemSettings().openAtLogin,
-                click: (item) => {
-                    app.setLoginItemSettings({ openAtLogin: item.checked });
-                    item.checked = app.getLoginItemSettings().openAtLogin;
-                } },
-            { type: 'separator' },
-            // Closed-lid keep-awake needs the same local administrator approval as the CLI: it runs in a terminal tab.
-            { label: 'Keep Awake with the Lid Closed…', click: () => {
-                const focused = BrowserWindow.getFocusedWindow();
-                const entry = [...windows.values()].find((item) => item.window === focused) || [...windows.values()][0];
-                if (entry) emit(entry, { type: 'menu', action: 'keep-awake-helper' });
-                else createWindow();
-            } },
-            { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' },
-            { type: 'separator' }, { role: 'quit' },
+            { role: 'about' }, { label: 'Open at Login', type: 'checkbox', enabled: app.isPackaged, checked: app.isPackaged && app.getLoginItemSettings().openAtLogin,
+                click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked }) },
+            { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'quit' },
         ] }] : []),
-        { label: 'File', submenu: [{ label: 'New window', accelerator: 'CmdOrCtrl+Shift+N', click: () => createWindow() }, { label: 'New project…', click: () => createWindow({ init: true }) }, { type: 'separator' }, { role: 'close' }, { label: 'Quit Promptbook and engines…', click: () => void quitAll() }] },
+        { label: 'Projects', submenu: [
+            { label: 'All local projects', accelerator: 'CmdOrCtrl+Shift+P', click: () => launcher('projects') },
+            { label: 'New project…', click: () => launcher('init') },
+            { label: 'Set up with the web App…', click: () => launcher('setup') },
+            { label: 'New window', accelerator: 'CmdOrCtrl+Shift+N', click: () => createWindow() },
+            { type: 'separator' }, { label: 'Open CLI console', click: () => launcher('console') },
+            ...(isMac ? [{ label: 'Keep Awake with the Lid Closed…', click: () => launcher('keep-awake-helper') }] : []),
+            { role: 'close' }, { role: 'quit' }, { label: 'Quit Promptbook and engines…', click: () => void quitAll() },
+        ] },
         { role: 'editMenu' }, { role: 'viewMenu' },
-        { label: 'Updates', submenu: [{ label: 'Check for updates…', click: () => { if (!windows.size) createWindow(); void desktopUpdates.check(); } }] },
-        ...(isMac ? [{ role: 'windowMenu' }] : [{ label: 'Help', submenu: [{ label: 'About Promptbook', click: () => app.showAboutPanel() }] }]),
+        { label: 'Updates', submenu: [{ label: 'Check for updates…', click: () => { launcher('projects'); void desktopUpdates.check(); } }] },
+        ...(isMac ? [{ role: 'windowMenu' }] : []),
     ]);
     Menu.setApplicationMenu(menu);
+    if (!process.argv.includes('--tray') && !(isMac && app.isPackaged && app.getLoginItemSettings().wasOpenedAtLogin)) createWindow(launchOptions(process.argv));
     await refreshTray();
     setInterval(() => void refreshTray(), 3000).unref();
-    if (process.argv.includes('--quit-client')) { app.quit(); return; }
-    if (!process.argv.includes('--tray') && !(isMac && app.isPackaged && app.getLoginItemSettings().wasOpenedAtLogin) && !windows.size) {
-        restoreWindows(launchOptions(process.argv));
-    }
-    app.on('activate', () => { if (!windows.size) restoreWindows({}); });
+    app.on('activate', () => { if (!windows.size) createWindow(); });
 }).catch((error) => dialog.showErrorBox('Promptbook could not open', error.message));
-void ready.catch(() => {});

@@ -5,25 +5,16 @@ import { createRichInput } from './rich-input.js';
 /** Local view state contains no credentials, project business rules or engine ownership. */
 const api = window.desktop;
 const $ = (id) => document.getElementById(id);
-const themeButtons = [...$('appearance').querySelectorAll('button')];
 const terminals = new Map();
 const earlyEvents = new Map();
-let host = { rows: [] };
-let selected;
-let mode = 'overview';
 let activeTerminal;
-let launch;
-let observed = false;
+let mode = 'overview';
+let selected;
+let rows = [];
+let receivedLaunch;
+let opening = false;
+let followFirst = false;
 let refreshing = false;
-let busy = false;
-/** Live views presented in this window (a controlled tab's viewer, a voice call's media page), by feature id. */
-const features = new Map();
-const earlyFeatureEvents = new Map();
-let activeFeature;
-/** The selected project's live-control context: pending sign-ins, controlled tabs, browsers and chats. */
-let featureContext;
-let featureForm;
-let featureSignature;
 
 /** DOM helper: project names, errors and prompt text are always text nodes. */
 function element(tag, attrs = {}, ...children) {
@@ -57,385 +48,97 @@ function showUpdate(update) {
         : `Promptbook desktop ${update.current}: no newer installer in the ${update.channel} channel.`;
     panel.replaceChildren(element('span', {}, message), ...(release ? [element('button', { onclick: () => void api.update('download').catch((error) => notice(error.message, true)) }, 'Download installer'),
         element('small', {}, `${release.unsigned ? 'Unsigned experimental macOS build. ' : ''}Install at a suitable time; running tasks are not restarted.`)] : []));
-    $('check-update').disabled = update.status === 'checking';
     requestAnimationFrame(layout);
 }
 
-/** Keeps the appearance selector in sync with the app-wide preference. */
-function showTheme(source) {
-    for (const button of themeButtons) {
-        button.setAttribute('aria-pressed', String(button.dataset.theme === source));
-        button.disabled = false;
-    }
-}
-
-/** Fits client-owned terminal content and the native unprivileged dashboard view. */
+/** Fit only the native console; its size has no bearing on the full-window App UI. */
 function layout() {
-    if (mode === 'dashboard') {
-        const bounds = $('dashboard-pane').getBoundingClientRect();
-        api.bounds({ x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height });
-    }
-    if (mode === 'terminal') {
-        const item = terminals.get(activeTerminal);
-        if (item) { item.fit.fit(); api.resize(activeTerminal, { cols: item.term.cols, rows: item.term.rows }); }
-    }
-    // The selected live view fills the pane; a voice call stays below the dashboard so its chat remains usable.
-    // Other views keep running with zero size.
-    const area = (id) => { const rect = $(id).getBoundingClientRect(); return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }; };
-    for (const [id, item] of features) {
-        if (mode === 'feature' && id === activeFeature) api.featureBounds(id, area('feature-pane'));
-        else if (item.kind === 'voice' && !$('voice-strip').hidden && item.root === selected) api.featureBounds(id, area('voice-strip'));
-        else api.featureBounds(id, { x: 0, y: 0, width: 0, height: 0 });
+    const item = terminals.get(activeTerminal);
+    if (mode === 'terminal' && item && item.container.clientWidth > 0) {
+        item.fit.fit();
+        api.resize(activeTerminal, { cols: item.term.cols, rows: item.term.rows });
     }
 }
 
-/** Shows the voice strip under the dashboard while this project's call is live here. */
-function syncVoiceStrip() {
-    const live = [...features.values()].some((item) => item.kind === 'voice' && item.root === selected);
-    const strip = $('voice-strip');
-    const hidden = !(live && mode === 'dashboard');
-    if (strip.hidden !== hidden) { strip.hidden = hidden; requestAnimationFrame(layout); }
-}
-
-/** A local panel edge supports pointer drag and the standard separator keyboard controls. */
-function resizePane(divider, pane, { axis, variable, range }) {
-    const horizontal = axis === 'x';
-    const size = () => pane.getBoundingClientRect()[horizontal ? 'width' : 'height'];
-    const coordinate = (event) => horizontal ? event.clientX : event.clientY;
-    const reflect = () => {
-        if (!pane.getClientRects().length) return;
-        const [min, max] = range();
-        divider.setAttribute('aria-valuemin', min);
-        divider.setAttribute('aria-valuemax', max);
-        divider.setAttribute('aria-valuenow', Math.round(size()));
-    };
-    const set = (value) => {
-        const [min, max] = range();
-        pane.style.setProperty(variable, `${Math.min(max, Math.max(min, value))}px`);
-    };
-    let drag;
-    divider.addEventListener('pointerdown', (event) => {
-        if (event.button !== 0 || drag) return;
-        divider.focus();
-        divider.setPointerCapture(event.pointerId);
-        drag = { id: event.pointerId, start: coordinate(event), size: size() };
-        event.preventDefault();
-    });
-    divider.addEventListener('pointermove', (event) => {
-        if (drag?.id === event.pointerId) set(drag.size + coordinate(event) - drag.start);
-    });
-    divider.addEventListener('lostpointercapture', () => { drag = undefined; });
-    divider.addEventListener('keydown', (event) => {
-        const [min, max] = range();
-        const backward = horizontal ? 'ArrowLeft' : 'ArrowUp';
-        const forward = horizontal ? 'ArrowRight' : 'ArrowDown';
-        const value = { [backward]: size() - 16, [forward]: size() + 16, Home: min, End: max }[event.key];
-        if (value === undefined) return;
-        event.preventDefault();
-        set(value);
-    });
-    new ResizeObserver(reflect).observe(pane);
-    window.addEventListener('resize', reflect);
-}
-
-/** Shows the host's current lifecycle and, separately, any existing attention signal. */
-function projectStatus(row) {
-    const state = row.status === 'live' ? row.state || 'unknown' : row.status;
-    const attention = row.needsAttention ?? (row.waitingChats > 0);
-    const tone = attention && row.status === 'live' ? 'attention' : state;
-    const label = tone === 'attention' ? `${state} · needs attention` : state;
-    return { dot: element('span', { className: 'status-dot', 'data-status': tone, 'aria-hidden': 'true' }), label };
-}
-
-/** Changing views never invokes a lifecycle operation or closes another terminal. */
+/** The shell owns only discovery and local CLI prompts. */
 function show(next) {
-    if (next !== 'dashboard') api.hideDashboard();
     mode = next;
-    for (const pane of ['overview', 'dashboard', 'terminal', 'feature']) $(`${pane}-pane`).hidden = pane !== mode;
-    const heading = $('heading');
-    heading.textContent = next === 'overview' ? 'Your projects' : host.rows.find((row) => row.projectRoot === selected)?.projectName || 'Promptbook';
-    heading.title = heading.textContent;
-    renderFeatureBar(true);
+    $('overview-pane').hidden = next !== 'overview';
+    $('terminal-pane').hidden = next !== 'terminal';
+    $('back').hidden = next !== 'terminal';
     requestAnimationFrame(layout);
 }
 
-/** Whether a tab control is over (handed back, ended or lost). */
-function controlOver(control) {
-    return ['returned', 'ended', 'lost'].includes(control.state);
-}
-
-/** A short name of a live tab view for its switcher (voice has no separate view: it is part of its chat). */
-function featureLabel(item) {
-    const view = item.view || {};
-    let where = view.title || '';
-    if (!where && view.url) { try { where = new URL(view.url).host; } catch { where = view.url; } }
-    return `Tab · ${where || view.browser || 'browser'}`;
-}
-
-/** Reads the selected project's live-control context (nothing when its engine is stopped or older). */
-async function refreshFeatures() {
-    const root = selected;
-    if (!root || mode === 'overview' || mode === 'terminal') return;
-    try { featureContext = { root, ...await api.featureContext(root) }; }
-    catch { featureContext = undefined; }
-    renderFeatureBar();
-}
-
-/** Opens a live view in this window: a controlled tab (new, reopened or a manual sign-in) or voice. */
-async function openFeature(request) {
-    if (!selected) return;
-    const root = selected;
-    notice('');
-    try {
-        const result = await api.openFeature({ ...request, root, bounds: { x: 0, y: 0, width: 0, height: 0 } });
-        if (!features.has(result.feature)) features.set(result.feature, { kind: request.kind, root, chat: request.chat, control: result.control?.id, view: result.control, state: 'waiting' });
-        for (const event of earlyFeatureEvents.get(result.feature) || []) featureEvent(event);
-        earlyFeatureEvents.delete(result.feature);
-        featureForm = undefined;
-        // Voice media joins its chat right below it (the dashboard stays); a tab viewer takes the pane.
-        if (!features.has(result.feature) || request.kind === 'voice') renderFeatureBar(true);
-        else selectFeature(result.feature);
-    } catch (error) { notice(error.message, true); }
-    void refreshFeatures();
-}
-
-/** Shows one live view in place of the dashboard (the dashboard reopens when chosen again). */
-function selectFeature(id) {
-    activeFeature = id;
-    show('feature');
-}
-
-/** Closes a live view: voice ends; a tab viewer only closes (the tab stays with you until you return it). */
-async function closeFeature(id) {
-    const item = features.get(id);
-    try { await api.closeFeature(id); } catch (error) { notice(error.message, true); }
-    void refreshFeatures();
-}
-
-/** Returns the tab to the agent, ends use, or answers the Wallet's save offer. */
-async function tabAction(control, action, answer) {
-    if (action === 'end' && !window.confirm('End your use of this tab? It closes, and the waiting work continues without it.')) return;
-    try {
-        const result = await api.tabAction({ root: selected, id: control.id, action, ...(action === 'offer' ? { offer: control.offer.id, answer } : {}) });
-        const outcome = result?.outcome || result?.control?.outcome || result?.control?.problem;
-        if (outcome) notice(outcome);
-    } catch (error) { notice(error.message, true); }
-    void refreshFeatures();
-}
-
-/** A call control of one chat's voice call (its chat shows the observed result). */
-async function voiceAction(item, action) {
-    try { await api.voiceControl(item.root, item.chat, action); }
-    catch (error) { notice(error.message, true); }
-}
-
-/** The form choosing a tab to control (an existing tab of a browser, or a new tab at an address). */
-function tabForm(context) {
-    const browser = element('select', { 'aria-label': 'Browser' }, ...context.browsers.map((name) => element('option', { value: name }, name)));
-    const tab = element('select', { 'aria-label': 'Tab' }, element('option', { value: '' }, 'New tab at the address'));
-    const url = element('input', { type: 'url', placeholder: 'https://…', 'aria-label': 'Address of a new tab' });
-    const load = async () => {
-        tab.replaceChildren(element('option', { value: '' }, 'New tab at the address'));
-        try {
-            const tabs = await api.tabTabs(selected, browser.value);
-            for (const item of tabs?.tabs || []) tab.append(element('option', { value: item.targetId, disabled: item.reserved ? true : undefined }, `${item.title || item.url || item.targetId}${item.task ? ` · used by ${item.task}` : ''}${item.reserved ? ' · already controlled' : ''}`));
-        } catch (error) { notice(error.message, true); }
-        url.hidden = !!tab.value;
-    };
-    browser.onchange = () => void load();
-    tab.onchange = () => { url.hidden = !!tab.value; };
-    void load();
-    const form = element('form', { className: 'feature-form' }, element('span', {}, 'Take control of'), browser, tab, url,
-        element('button', { type: 'submit', className: 'primary' }, 'Take control'), element('button', { type: 'button', onclick: () => { featureForm = undefined; renderFeatureBar(true); } }, 'Cancel'));
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        void openFeature({ kind: 'tab', browser: browser.value, ...(tab.value ? { target: tab.value } : url.value.trim() ? { url: url.value.trim() } : {}) });
-    });
-    return form;
-}
-
-/**
- * A voice intent of the open chat in this window's dashboard (start there, its call controls, or leaving that chat
- * view). The chat that invoked it is the call's target; another chat shown later never takes the call over.
- */
-async function voiceIntent({ root, action, chat }) {
-    if (root !== selected || mode !== 'dashboard') return;
-    const own = [...features].find(([, item]) => item.kind === 'voice' && item.root === root);
-    const mine = own && own[1].chat === chat ? own : undefined;
-    if (action === 'start') {
-        if (mine) return;
-        if (own) return notice(`Voice is live in {${own[1].chat}} in this window. End it in that chat first.`, true);
-        return void openFeature({ kind: 'voice', chat });
-    }
-    if (action === 'leave') {
-        if (mine) await api.closeFeature(mine[0], 'You left the chat, so the voice call ended. The chat and its work continue.').catch(() => undefined);
-        return;
-    }
-    if (action === 'end' && mine) {
-        try { await api.closeFeature(mine[0], 'Voice ended. The chat and its work continue.'); } catch (error) { notice(error.message, true); }
-        return;
-    }
-    // Mute controls (and ending a call this window does not present) act on the chat's own call.
-    await voiceAction({ root, chat }, action);
-}
-
-/**
- * The trusted controls of live views, kept in the shell outside the embedded pages: switching views, returning a tab
- * to the agent, ending use, the Wallet's save offer, manual sign-in of pending Wallet requests, and voice controls.
- */
-function renderFeatureBar(force = false) {
-    const bar = $('feature-bar');
-    const context = featureContext?.root === selected ? featureContext : undefined;
-    // Voice lives in its chat (start, controls, media and captions): the bar shows tab control only.
-    const own = [...features].filter(([, item]) => item.root === selected && item.kind !== 'voice');
-    const visible = !!selected && (mode === 'dashboard' || mode === 'feature') && (!!context?.browsers?.length || !!context?.controls?.length || !!context?.pending?.length || own.length > 0);
-    const signature = JSON.stringify({ visible, mode, activeFeature, context, own, featureForm });
-    syncVoiceStrip();
-    if (!force && signature === featureSignature) return;
-    featureSignature = signature;
-    // An open form keeps its selection while the context refreshes.
-    if (!force && featureForm && bar.querySelector('.feature-form') && visible) return;
-    bar.hidden = !visible;
-    if (!visible) { bar.replaceChildren(); requestAnimationFrame(layout); return; }
-    const controls = (context?.controls || []).filter((control) => !controlOver(control));
-    const switcher = element('div', { className: 'feature-switch', role: 'tablist', 'aria-label': 'Views' },
-        own.length ? element('button', { role: 'tab', 'aria-selected': String(mode === 'dashboard'), className: mode === 'dashboard' ? 'active' : '', onclick: () => void openProject(selected) }, 'Dashboard') : null,
-        ...own.map(([id, item]) => element('button', { role: 'tab', 'aria-selected': String(mode === 'feature' && activeFeature === id), className: mode === 'feature' && activeFeature === id ? 'active' : '', title: item.view?.url || '', onclick: () => selectFeature(id) },
-            featureLabel(item), element('span', { role: 'button', tabindex: '0', 'aria-label': `Close ${featureLabel(item)}`, onclick: (event) => { event.stopPropagation(); void closeFeature(id); } }, '  ×'))),
-        element('span', { className: 'spacer' }),
-        context?.browsers?.length ? element('button', { onclick: () => { featureForm = featureForm === 'tab' ? undefined : 'tab'; renderFeatureBar(true); } }, 'Take control of a tab…') : null,
-    );
-    const rows = [];
-    for (const control of controls) {
-        const shown = own.find(([, item]) => item.control === control.id);
-        const viewer = shown ? 'open in this window' : control.viewer === 'connected' ? 'open in another window' : 'no viewer open';
-        rows.push(element('div', { className: 'feature-row' },
-            element('span', {}, element('strong', {}, 'You control this tab'), ` · ${control.browser} · ${control.mode} · viewer ${viewer} · awaiting your handoff`, control.url ? element('small', {}, control.url) : null),
-            element('span', { className: 'feature-buttons' },
-                shown ? (mode === 'feature' && activeFeature === shown[0] ? null : element('button', { onclick: () => selectFeature(shown[0]) }, 'Show')) : element('button', { onclick: () => void openFeature({ kind: 'tab', id: control.id }) }, 'Open viewer'),
-                element('button', { className: 'primary', onclick: () => void tabAction(control, 'handback') }, 'Return control to agent'),
-                element('button', { onclick: () => void tabAction(control, 'end') }, 'End use'))));
-        for (const limitation of control.limitations || []) rows.push(element('div', { className: 'feature-row warning' }, limitation));
-        if (control.signIn?.detected) rows.push(element('div', { className: 'feature-row success' }, `Sign-in to ${control.signIn.origin || 'the service'} detected. The tab stays with you until you return it.`));
-        if (control.offer) rows.push(element('div', { className: 'feature-row offer' },
-            element('span', {}, element('strong', {}, control.offer.kind === 'update' ? 'Update the password in Wallet?' : 'Save this login to Wallet?'), ` ${control.offer.account} for ${control.offer.origin}`),
-            element('span', { className: 'feature-buttons' }, element('button', { className: 'primary', onclick: () => void tabAction(control, 'offer', 'yes') }, 'Yes'), element('button', { onclick: () => void tabAction(control, 'offer', 'no') }, 'No'))));
-        if (control.requestSettled) rows.push(element('div', { className: 'feature-row' }, control.requestSettled));
-        if (control.problem) rows.push(element('div', { className: 'feature-row warning' }, control.problem));
-    }
-    for (const request of context?.pending || []) {
-        if (controls.some((control) => control.request === request.id)) continue;
-        rows.push(element('div', { className: 'feature-row' },
-            element('span', {}, element('strong', {}, 'Sign-in needed'), ` · ${request.origin}${request.account ? ` · ${request.account}` : ''}`),
-            element('span', { className: 'feature-buttons' }, element('button', { onclick: () => void openFeature({ kind: 'tab', request: request.id }) }, 'Sign in manually'))));
-    }
-    if (featureForm === 'tab' && context?.browsers?.length) rows.push(tabForm(context));
-    bar.replaceChildren(switcher, ...rows);
-    requestAnimationFrame(layout);
-}
-
-/** Feature state and views from the main process (only this window's own features). */
-function featureEvent(event) {
-    const item = features.get(event.feature);
-    if (!item) { const queue = earlyFeatureEvents.get(event.feature) || []; if (queue.length < 100) queue.push(event); earlyFeatureEvents.set(event.feature, queue); return; }
-    if (event.view) item.view = event.view;
-    if (event.state) item.state = event.state;
-    if (event.state === 'closed') {
-        features.delete(event.feature);
-        if (event.reason) notice(event.reason);
-        if (activeFeature === event.feature) {
-            activeFeature = undefined;
-            if (mode === 'feature' && selected) void openProject(selected);
-        }
-        void refreshFeatures();
-    }
-    renderFeatureBar();
-}
-
-/** Lists the host's durable projects, including stopped ones. */
-function renderProjects() {
-    $('projects').replaceChildren(...host.rows.map((row) => {
-        const { dot, label } = projectStatus(row);
-        return element('button', { className: selected === row.projectRoot ? 'selected' : '', onclick: () => void openProject(row.projectRoot) },
-            element('span', { className: 'project-name' }, dot, row.projectName), element('small', {}, row.status === 'live' && row.keepAwake ? `${label} · keeps this computer awake` : label));
-    }));
-    $('version').textContent = `ptbk ${host.version || ''}`;
-}
-
-/** All overview actions call the same global controller as the CLI. */
-async function applyAction(action, roots) {
-    if (busy || !roots.length) return;
-    busy = true;
-    try {
-        const results = await api.action(action, roots);
-        if (results.length) notice(results.map((result) => `${result.projectName}: ${result.status} — ${result.message}`).join('\n'), results.some((result) => ['failed', 'unconfirmed', 'needs-confirmation'].includes(result.status)));
-    } catch (error) { notice(error.message, true); }
-    finally { busy = false; await refresh(); }
-}
-
-/** A host overview with per-project outcomes and explicit individual/bulk controls. */
+/** Display only verified running projects as openable. Other registered paths require an explicit start. */
 function renderOverview() {
-    const selectedRoots = () => [...document.querySelectorAll('[data-project]:checked')].map((input) => input.dataset.project);
-    const actions = [['start', 'Start'], ['start-paused', 'Start paused'], ['pause', 'Pause'], ['resume', 'Resume'], ['stop', 'Stop'], ['force-stop', 'Force stop…'], ['remove', 'Forget…']];
-    const toolbar = element('div', { className: 'toolbar' }, ...actions.map(([action, label]) => element('button', { onclick: () => {
-        const roots = selectedRoots();
-        if (!roots.length) notice('Select one or more project rows first.');
-        else void applyAction(action, roots);
-    } }, label)));
-    const body = element('tbody', {}, ...host.rows.map((row) => {
-        const { dot, label } = projectStatus(row);
-        return element('tr', {},
-            element('td', {}, element('input', { type: 'checkbox', 'data-project': row.projectRoot, 'aria-label': `Select ${row.projectName}` })),
-            element('td', {}, element('strong', {}, row.projectName), element('small', {}, row.projectRoot), row.reason ? element('small', {}, row.reason) : ''),
-            element('td', {}, element('span', { className: 'state' }, dot, label), row.status === 'live' && row.keepAwake ? element('small', {}, 'Keeps this computer awake') : ''),
-            element('td', {}, row.work || '—'),
-            element('td', {}, element('button', { onclick: () => void openProject(row.projectRoot) }, 'Open'), ' ', element('button', { onclick: () => void applyAction(row.status === 'live' ? 'stop' : 'start', [row.projectRoot]), disabled: row.status === 'unreachable' || row.status === 'missing' }, row.status === 'live' ? 'Stop' : 'Start')),
-        );
-    }));
-    const table = element('table', {}, element('thead', {}, element('tr', {}, element('th', {}, element('input', { type: 'checkbox', 'aria-label': 'Select all projects', onchange: (event) => document.querySelectorAll('[data-project]').forEach((input) => { input.checked = event.target.checked; }) })), ...['Project', 'State', 'Current work', ''].map((label) => element('th', {}, label)))), body);
-    const checked = selectedRoots();
-    const empty = element('div', { className: 'empty' },
-        element('img', { src: 'vendor/promptbook-robot.svg', alt: '', width: 72, height: 72 }),
-        element('h2', {}, 'Start your first project'),
-        element('p', {}, 'The setup assistant uses the same workflow as ptbk init.'),
-        element('button', { className: 'primary', onclick: () => void newProject() }, 'Create a project'),
-    );
-    $('overview-pane').replaceChildren(element('h1', {}, 'Your projects'), element('p', {}, 'One engine per project. Any number of views.'), ...(host.problem ? [element('p', { className: 'error-text' }, host.problem)] : []), toolbar, host.rows.length ? table : empty);
-    for (const input of document.querySelectorAll('[data-project]')) input.checked = checked.includes(input.dataset.project);
+    const list = $('projects');
+    const active = document.activeElement?.dataset.project;
+    const cards = rows.map((row) => {
+        const run = row.status === 'live';
+        const button = element('button', { type: 'button', className: 'project', 'data-project': row.projectRoot,
+            disabled: !run && row.status !== 'stopped', onclick: async () => {
+                if (run) return openProject(row.projectRoot);
+                button.disabled = true;
+                try {
+                    const result = await api.start(row.projectRoot);
+                    if (!['completed', 'accepted', 'unchanged'].includes(result.status)) throw new Error(result.message);
+                    await refresh();
+                    await openProject(row.projectRoot);
+                } catch (error) { notice(error.message, true); }
+            } }, element('span', {}, element('strong', {}, row.projectName), element('small', {}, row.projectRoot)),
+            element('span', { className: 'state' }, run ? 'Open' : row.status === 'stopped' ? 'Start project' : row.status));
+        return button;
+    });
+    list.replaceChildren(...(cards.length ? cards : [element('p', {}, 'No local projects yet. Start an existing project with ptbk start or create one here.')]));
+    if (active) [...list.children].find((button) => button.dataset.project === active)?.focus();
 }
 
-/** Refreshes observations only; project startup is always explicit. */
+/** Attach through the main process. A stopped or old engine stays running on its own version until explicitly restarted. */
+async function openProject(root) {
+    if (opening) return;
+    opening = true;
+    followFirst = false;
+    selected = root;
+    notice('');
+    try { await api.dashboard(root); }
+    catch (error) { show('overview'); notice(error.message, true); }
+    finally { opening = false; }
+}
+
+/** Handle a native menu, installer handoff or project-switcher link. */
+async function launch(action, root) {
+    followFirst = false;
+    notice('');
+    if (action === 'init') await openTerminal('init', root);
+    else if (action === 'setup') await openTerminal('setup');
+    else if (action === 'console') await openTerminal(root ? 'dashboard' : 'global', root);
+    else if (action === 'keep-awake-helper' && root) await openTerminal(action, root);
+    else { show('overview'); renderOverview(); }
+}
+
+/** Observe new engines, including ones started from another terminal while the empty state is open. */
 async function refresh() {
     if (refreshing) return;
     refreshing = true;
     try {
-        host = await api.observe();
-        renderProjects();
-        if (mode === 'overview') renderOverview();
-        void refreshFeatures();
-        if (!observed) { observed = true; await applyLaunch(); }
+        const host = await api.observe();
+        rows = host.rows;
+        renderOverview();
+        if (host.problem) notice(host.problem, true);
+        if (receivedLaunch) {
+            const options = receivedLaunch;
+            receivedLaunch = undefined;
+            if (options.init || options.action) await launch(options.init ? 'init' : options.action, options.root);
+            else if (options.root) await openProject(options.root);
+            else followFirst = true;
+        }
+        if (followFirst && mode === 'overview') {
+            const first = rows.find((row) => row.status === 'live');
+            if (first) await openProject(first.projectRoot);
+        }
     } catch (error) { notice(error.message, true); }
     finally { refreshing = false; }
 }
-
-/** Opens the shared graphical dashboard of a verified live engine. */
-async function openProject(root) {
-    selected = root;
-    $('cli').disabled = true;
-    notice('');
-    if (featureContext?.root !== root) { featureContext = undefined; featureForm = undefined; }
-    show('dashboard');
-    renderProjects();
-    void refreshFeatures();
-    try {
-        const rect = $('dashboard-pane').getBoundingClientRect();
-        await api.dashboard(root, { x: rect.x, y: rect.y, width: rect.width, height: rect.height });
-    } catch (error) {
-        show('overview');
-        notice(`${error.message} Use Start in the overview, or open the CLI dashboard.`, true);
-    } finally { $('cli').disabled = false; }
-}
-
 /** Each native terminal is a separate CLI client; xterm only presents its actual PTY. */
 async function openTerminal(kind, root, page) {
     try {
@@ -449,7 +152,6 @@ async function openTerminal(kind, root, page) {
         term.onData((data) => api.input(result.id, data));
         const titles = { init: 'Project setup', setup: 'Set up with App', global: 'All projects · CLI', 'keep-awake-helper': 'Keep awake · closed lid' };
         terminals.set(result.id, { term, fit, container, kind, root, page, title: titles[kind] ?? `${page || 'Dashboard'} · CLI`, prompt: null });
-        syncSessions();
         for (const event of earlyEvents.get(result.id) || []) terminalEvent(event);
         earlyEvents.delete(result.id);
         selectTerminal(result.id);
@@ -482,7 +184,6 @@ async function removeTerminal(id) {
     if (item.kind === 'init' && !item.ended && !window.confirm('Close this setup assistant? Applied setup steps stay; no project engine is stopped.')) return;
     await api.closeTerminal(id);
     item.term.dispose(); item.container.remove(); terminals.delete(id);
-    syncSessions();
     if (activeTerminal === id) {
         const next = [...terminals.keys()].pop();
         if (next) selectTerminal(next);
@@ -496,7 +197,6 @@ function renderPrompt() {
     const prompt = item?.prompt;
     const pane = $('prompt-pane');
     pane.hidden = !prompt;
-    $('prompt-divider').hidden = !prompt;
     if (!prompt) { pane.replaceChildren(); requestAnimationFrame(() => { layout(); if (mode === 'terminal') item?.term.focus(); }); return; }
     if (prompt.kind === 'harness-login') {
         const cancel = async (action) => {
@@ -571,40 +271,6 @@ function renderPrompt() {
     requestAnimationFrame(layout);
 }
 
-/** Starts the ordinary initializer against a chosen location without pre-creating project files. */
-async function newProject(root) {
-    notice('');
-    await openTerminal('init', root);
-}
-
-/** Keeps the context of this window's live CLI sessions for a restart (reconnecting is always explicit). */
-function syncSessions() {
-    api.sessions([...terminals.values()].filter((item) => !item.ended && ['dashboard', 'global'].includes(item.kind)).map(({ kind, root, page, title }) => ({ kind, root, page, title })));
-}
-
-/**
- * After a restart, the CLI sessions this window had open are listed with an explicit Reopen; nothing reconnects on its
- * own. Live tab control and voice are not resumed: their tabs stay protected and calls start again from their chat.
- */
-function showPrevious(previous) {
-    const panel = element('div', { className: 'previous', role: 'region', 'aria-label': 'Sessions before the restart' },
-        element('strong', {}, 'Before the restart'),
-        ...previous.map((item) => element('span', { className: 'previous-item' }, item.title || 'CLI dashboard', ' ',
-            element('button', { onclick: (event) => { event.currentTarget.parentElement.remove(); if (!panel.querySelector('.previous-item')) panel.remove(); void openTerminal(item.kind, item.root, item.page); } }, 'Reopen'))),
-        element('button', { 'aria-label': 'Dismiss', onclick: () => panel.remove() }, '×'));
-    $('notice').after(panel);
-    requestAnimationFrame(layout);
-}
-
-/** Launch arguments are applied once after host discovery. */
-async function applyLaunch() {
-    if (!launch || launch.applied) return;
-    launch.applied = true;
-    if (launch.init) await newProject(launch.root);
-    else if (launch.root) await openProject(launch.root);
-    else if (!host.rows.length && !launch.skipInit) await newProject();
-}
-
 /** Keeps terminal bytes, prompts and process outcomes associated with their actual client. */
 function terminalEvent(event) {
     const item = terminals.get(event.terminal);
@@ -615,7 +281,6 @@ function terminalEvent(event) {
     else if (event.type === 'prompt-closed') { if (item.prompt?.id === event.promptId) { item.prompt = null; if (event.terminal === activeTerminal) renderPrompt(); } }
     else if (event.type === 'exit') {
         item.ended = true; item.prompt = null;
-        syncSessions();
         renderTabs();
         item.term.writeln(`\r\n[CLI exited with ${event.exitCode}. The terminal client is closed; engines have their own lifetime.]`);
         if (event.terminal === activeTerminal) renderPrompt();
@@ -625,43 +290,15 @@ function terminalEvent(event) {
 }
 
 api.onEvent((event) => {
-    if (event.type === 'launch') { launch = event; if (event.previous?.length) showPrevious(event.previous); if (observed) void applyLaunch(); }
-    else if (event.type === 'open-project') void openProject(event.root);
-    else if (event.type === 'theme') showTheme(event.source);
+    if (event.type === 'launch') { receivedLaunch = event; void refresh(); }
+    else if (event.type === 'launcher') { selected = event.root; void launch(event.action, event.action === 'init' ? undefined : selected); }
     else if (event.type === 'update') showUpdate(event.update);
-    else if (event.type === 'error') { api.hideDashboard(); notice(event.message, true); }
-    else if (event.type === 'feature') featureEvent(event);
-    else if (event.type === 'voice-intent') void voiceIntent(event);
-    else if (event.type === 'menu' && event.action === 'keep-awake-helper') {
-        if (selected) void openTerminal('keep-awake-helper', selected);
-        else notice('Select the project that should keep this Mac awake with the lid closed, then choose the menu item again.');
-    }
+    else if (event.type === 'error') notice(event.message, true);
     else if (event.terminal) terminalEvent(event);
 });
-for (const button of themeButtons) {
-    button.onclick = () => {
-        void api.theme(button.dataset.theme).catch((error) => {
-            notice(`Could not save the appearance setting. ${error.message}`, true);
-        });
-    };
-}
-void api.theme().then(showTheme).catch((error) => notice(error.message, true));
+$('new-project').onclick = () => void launch('init');
+$('console').onclick = () => void launch('console');
+$('back').onclick = () => void launch('projects');
 void api.update().then(showUpdate).catch((error) => notice(error.message, true));
-$('check-update').onclick = () => void api.update('check').then(showUpdate).catch((error) => notice(error.message, true));
-$('overview').onclick = () => { show('overview'); renderOverview(); };
-$('new-project').onclick = () => void newProject();
-$('new-app-setup').onclick = () => void openTerminal('setup');
-$('new-window').onclick = () => void api.newWindow(selected);
-$('global-cli').onclick = () => void openTerminal('global');
-$('cli').onclick = () => {
-    // The main process retains the current graphical page and validates its corresponding CLI name.
-    void openTerminal(mode === 'overview' || !selected ? 'global' : 'dashboard', selected);
-};
-resizePane($('sidebar-divider'), $('project-sidebar'), { axis: 'x', variable: '--sidebar-width', range: () => [160, Math.min(480, Math.floor(innerWidth * 0.45))] });
-resizePane($('prompt-divider'), $('prompt-pane'), { axis: 'y', variable: '--prompt-height', range: () => [96, Math.floor($('terminal-pane').clientHeight * 0.72)] });
-const paneObserver = new ResizeObserver(layout);
-paneObserver.observe($('workspace'));
-paneObserver.observe($('terminal-host'));
-window.addEventListener('resize', layout);
-void refresh();
-setInterval(() => void refresh(), 2500);
+new ResizeObserver(layout).observe($('terminal-host'));
+setInterval(() => void refresh(), 3000);

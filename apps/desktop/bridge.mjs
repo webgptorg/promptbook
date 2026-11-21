@@ -171,6 +171,20 @@ async function handle(method, params) {
         if (!['start', 'start-paused', 'stop', 'force-stop', 'pause', 'resume', 'remove'].includes(params.action)) throw new Error('Unknown project action.');
         return await applyGlobalAction(params.action, await target(params.root));
     }
+    if (method === 'app-connect') {
+        const row = await target(params.root);
+        const lookup = await lookupService(projectAt(row.projectRoot));
+        if (lookup.state !== 'running') throw new Error('The project is no longer running.');
+        if (!lookup.engine.compatible) throw new Error('Update the project engine and restart it to use the desktop app.');
+        try {
+            return { ...await lookup.client.request('desktop-app-connect'), instanceId: lookup.record.instanceId };
+        } catch (error) {
+            if (/unknown.*(method|control)|unsupported.*control/i.test(error.message)) {
+                throw new Error('This running engine predates the desktop app connection. Update and restart this project to open it.');
+            }
+            throw error;
+        }
+    }
     if (method === 'dashboard') {
         const row = await target(params.root);
         const lookup = await lookupService(projectAt(row.projectRoot));

@@ -10,9 +10,11 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
+import { startDesktopApi } from '../app/web/desktop-api.js';
+import { DESKTOP_OWNER } from '../app/web/access.js';
 import { EngineApi } from '../app/api/engine-api.js';
 import { CONFORMANCE_BUILD } from '../app/build.js';
-import { AppConnection, type AppEngineFigures } from '../app/connection.js';
+import { AppConnection, type AppEngineFigures, type AppWebHandlers } from '../app/connection.js';
 import { appDirectory, isTunnelMode } from '../app/settings.js';
 import { engineHomePage } from '../app/web/documents.js';
 import { UiLoader } from '../app/web/ui-loader.js';
@@ -88,6 +90,9 @@ export class ServiceHost {
     private localApi: LocalApiView = { state: 'disabled' };
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
+    private appApi?: AppWebHandlers['api'];
+    private desktopApi?: ReturnType<typeof startDesktopApi>;
+
     /** The engine UI loader of the App connection (verified UI bundles from the release store). */
     private uiLoader?: UiLoader;
     /** A coalesced App view publication is queued. */
@@ -354,6 +359,9 @@ export class ServiceHost {
             ui: () => loader.status(enginePageSha256),
             log: (text, level) => this.agenda.log(text, level),
         });
+        const appApi: AppWebHandlers['api'] = async (request, actor, access) =>
+            (await computerAppRequest(request, actor.role === 'owner', (method, params) => this.computerOwner(method, params))) ?? api.handle(request, actor, access);
+        this.appApi = appApi;
         this.appConnection = new AppConnection({
             directory,
             env,
@@ -361,7 +369,7 @@ export class ServiceHost {
             figures: () => this.appFigures(),
             log: (text, level) => this.agenda.log(text, level),
             web: {
-                api: async (request, actor, access) => (await computerAppRequest(request, actor.role === 'owner', (method, params) => this.computerOwner(method, params))) ?? api.handle(request, actor, access),
+                api: appApi,
                 documents: async (request, actor) => {
                     const desktop = await computerDocument(request);
                     if (desktop) return actor.role === 'owner' ? desktop : new Response('Only the engine owner can access its desktop.', { status: 403, headers: { 'cache-control': 'no-store' } });
@@ -557,6 +565,7 @@ export class ServiceHost {
         // browser other engines still use stays, the last disconnection closes it).
         await bounded(() => this.browsers.close());
         if (forced) await bounded(() => this.owned.terminateRemaining(1000));
+        await bounded(async () => (await this.desktopApi)?.close());
         await bounded(() => this.uiLoader?.stop());
         await bounded(() => this.appConnection?.stop());
         await bounded(() => this.http?.close());
@@ -588,6 +597,16 @@ export class ServiceHost {
         // The authenticated local channel is the owner's terminal: it may show the 12 words for recovery during setup.
         if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true, trustedFiles: true });
         switch (method) {
+            case 'desktop-app-connect': {
+                const api = this.appApi;
+                const connection = this.appConnection;
+                if (!api || !connection) throw new Error('This project has no desktop App API in this run.');
+                this.desktopApi ??= startDesktopApi(async (request) => api(request, DESKTOP_OWNER, await connection.projectAccess())).catch((error: unknown) => {
+                    this.desktopApi = undefined;
+                    throw error;
+                });
+                return (await this.desktopApi).endpoint;
+            }
             case 'project-effects': {
                 const snapshot = agenda.snapshot();
                 const events = snapshotEffects(snapshot);

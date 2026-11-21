@@ -5,12 +5,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('desktop', {
     observe: () => ipcRenderer.invoke('desktop:observe'),
     update: (action) => ipcRenderer.invoke('desktop:update', action),
-    theme: (source) => ipcRenderer.invoke('desktop:theme', source),
-    action: (action, roots) => ipcRenderer.invoke('desktop:action', { action, roots }),
-    dashboard: (root, bounds) => ipcRenderer.invoke('desktop:dashboard', { root, bounds }),
-    bounds: (bounds) => ipcRenderer.send('desktop:bounds', bounds),
-    hideDashboard: () => ipcRenderer.send('desktop:hide-dashboard'),
-    newWindow: (root) => ipcRenderer.invoke('desktop:new-window', root),
+    start: (root) => ipcRenderer.invoke('desktop:start', root),
+    dashboard: (root) => ipcRenderer.invoke('desktop:dashboard', root),
     chooseDirectory: () => ipcRenderer.invoke('desktop:directory'),
     clipboardImage: () => ipcRenderer.invoke('desktop:clipboard-image'),
     chooseAttachments: () => ipcRenderer.invoke('desktop:attachments'),
@@ -20,14 +16,6 @@ contextBridge.exposeInMainWorld('desktop', {
     resize: (id, size) => ipcRenderer.send('desktop:resize', { id, ...size }),
     closeTerminal: (id) => ipcRenderer.invoke('desktop:close-terminal', id),
     answer: (id, promptId, answer) => ipcRenderer.invoke('desktop:answer', { id, promptId, answer }),
-    featureContext: (root) => ipcRenderer.invoke('desktop:feature-context', root),
-    openFeature: (request) => ipcRenderer.invoke('desktop:feature-open', request),
-    closeFeature: (id, reason) => ipcRenderer.invoke('desktop:feature-close', id, reason),
-    featureBounds: (feature, bounds) => ipcRenderer.send('desktop:feature-bounds', { feature, bounds }),
-    tabTabs: (root, browser) => ipcRenderer.invoke('desktop:tab-tabs', { root, browser }),
-    tabAction: (request) => ipcRenderer.invoke('desktop:tab-action', request),
-    voiceControl: (root, chat, action) => ipcRenderer.invoke('desktop:voice-control', { root, chat, action }),
-    sessions: (list) => ipcRenderer.send('desktop:sessions', list),
     onEvent: (callback) => {
         const listener = (_event, value) => callback(value);
         ipcRenderer.on('desktop:event', listener);

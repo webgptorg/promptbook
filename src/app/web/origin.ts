@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { Readable } from 'node:stream';
+import { once } from 'node:events';
 import type { TLSSocket } from 'node:tls';
 import { errorMessage } from '../../common/errors.js';
 import type { TunnelStream } from '../tunnel/relay-link.js';
@@ -36,8 +37,9 @@ export type EngineOriginOptions = Omit<GatewayOptions, 'log'> & {
 
 /**
  * Converts a Node request into a Web `Request` on the engine's origin.
+ * @private engine HTTP adapters
  */
-function webRequest(request: IncomingMessage, abort: AbortSignal): Request {
+export function webRequest(request: IncomingMessage, abort: AbortSignal): Request {
     const host = request.headers.host ?? 'invalid.invalid';
     const headers = new Headers();
     for (let index = 0; index < request.rawHeaders.length; index += 2) headers.append(request.rawHeaders[index] ?? '', request.rawHeaders[index + 1] ?? '');
@@ -53,8 +55,9 @@ function webRequest(request: IncomingMessage, abort: AbortSignal): Request {
 
 /**
  * Writes a Web `Response` to a Node response, streaming the body with backpressure (SSE included).
+ * @private engine HTTP adapters
  */
-async function writeResponse(response: Response, target: ServerResponse, method: string): Promise<void> {
+export async function writeResponse(response: Response, target: ServerResponse, method: string): Promise<void> {
     const headers: Record<string, string | string[]> = {};
     response.headers.forEach((value, name) => {
         if (name !== 'set-cookie') headers[name] = value;
@@ -68,13 +71,17 @@ async function writeResponse(response: Response, target: ServerResponse, method:
     }
     if (response.headers.get('content-type')?.startsWith('text/event-stream')) target.flushHeaders();
     const reader = response.body.getReader();
-    const stop = (): void => void reader.cancel().catch(() => undefined);
+    const closed = new AbortController();
+    const stop = (): void => {
+        closed.abort();
+        void reader.cancel().catch(() => undefined);
+    };
     target.once('close', stop);
     try {
         for (;;) {
             const { done, value } = await reader.read();
             if (done) break;
-            if (!target.write(value)) await new Promise<void>((resolve) => target.once('drain', resolve));
+            if (!target.write(value) && !target.destroyed) await once(target, 'drain', { signal: closed.signal });
             if (target.destroyed) break;
         }
         target.end();

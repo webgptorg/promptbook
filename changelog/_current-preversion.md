@@ -1,6 +1,7 @@
 # Unreleased
 
 - Add `npm run link:global` for contributors: it builds the checkout and links the global `ptbk` command to it, so `ptbk` on PATH runs the repository's current state. Self-update recognizes the link as a source checkout and never overwrites it. The script refuses to replace a global installation that live engines still run from (`-- --force` overrides), and it reports when another `ptbk` comes first on PATH.
+- The Windows and macOS desktop apps bundle the production project UI from `webgptorg/app` main. The app discovers local projects and opens them over an authenticated OS pipe without an account, pairing or a running HTTP dashboard. Remote web access and the CLI console keep their existing entry points.
 
 - Add `--global` to `ptbk restart`, `stop`, `pause` and `resume`. Without it they control the selected project; with it they control every discovered active project from any directory, report independent outcomes and leave stopped projects alone. Global restart preserves each project's launch settings and never opens dashboards; stop keeps graceful/force and per-project timeout behavior.
 

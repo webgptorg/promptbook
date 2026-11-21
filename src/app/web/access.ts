@@ -207,6 +207,12 @@ export type Actor = {
     readonly client: { readonly ip: string; readonly userAgent: string };
 };
 
+/** The OS-authenticated owner of the local desktop pipe. Never a gateway member, session or sign-in credential. @private desktop app */
+export const DESKTOP_OWNER: Actor = Object.freeze({
+    memberId: 'local-desktop-owner', sessionId: 'local-desktop', displayName: 'Local owner', role: 'owner',
+    permissions: ALL_PERMISSIONS, stepUpFresh: true, client: { ip: '127.0.0.1', userAgent: 'Promptbook Desktop' },
+});
+
 /** Authorization changed while a write was queued. @private App gateway */
 export class AccessDenied extends Error {
     public constructor(public readonly code: 'unauthenticated' | 'forbidden' | 'step-up-required') { super(code); }
@@ -296,7 +302,7 @@ export class AccessStore {
     /** Rechecks current authority inside the write queue; even a racing revocation cannot grant stale authority. */
     private async authorized<T>(actor: Actor | undefined, permission: Permission, action: string, kind: string | undefined, id: string | undefined, operation: (state: AccessState) => T, stepUp = true): Promise<T> {
         const result = await this.mutate(state => {
-            if (actor) {
+            if (actor && actor !== DESKTOP_OWNER) {
                 const session = state.sessions.find(item => item.id === actor.sessionId && item.memberId === actor.memberId);
                 const member = state.members.find(item => item.id === actor.memberId && item.status === 'active');
                 const code = !session || !member || !this.sessionAlive(session, state) ? 'unauthenticated'
