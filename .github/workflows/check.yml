@@ -1,7 +1,14 @@
 name: Check ptbk
 on:
   workflow_call:
+    secrets:
+      PROMPTBOOK_APP_READ_TOKEN:
+        required: false
     inputs:
+      app-ref:
+        description: Exact engine-ui commit for a release build
+        required: false
+        type: string
       ref:
         description: Commit or release tag to check
         required: false
@@ -77,7 +84,63 @@ jobs:
       - name: Real browser startup, full interaction, shared pools, Wallet codes and device approval
         if: ${{ startsWith(matrix.shard, '1/') }}
         run: npm run test:browser
+  desktop-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    env:
+      FRESH_UI: ${{ github.repository == 'webgptorg/promptbook' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/reborn/2026-10' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v')) }}
+    steps:
+      - if: env.FRESH_UI == 'true'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - name: Check out the private App source for this build
+        if: env.FRESH_UI == 'true'
+        uses: actions/checkout@v6
+        with:
+          repository: webgptorg/app
+          ref: ${{ inputs.app-ref || 'main' }}
+          token: ${{ secrets.PROMPTBOOK_APP_READ_TOKEN }}
+          path: app-source
+          persist-credentials: false
+      - if: env.FRESH_UI == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: app-source/.nvmrc
+          package-manager-cache: false
+      - if: env.FRESH_UI == 'true'
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: app-source/package.json
+          no-cache: true
+      - name: Build the production engine UI once for all platforms
+        if: env.FRESH_UI == 'true'
+        env:
+          PTBK_APP_CHECKOUT: ${{ github.workspace }}/app-source
+        run: node apps/desktop/build-engine-ui.mjs "$RUNNER_TEMP/desktop-engine-ui"
+      # PRs exercise the compiled UI from a trusted base-branch push. They receive neither source nor checkout credentials.
+      - name: Fetch the base branch's tested UI for the desktop pull request checks
+        if: env.FRESH_UI != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: webgptorg/promptbook
+          BASE: ${{ github.base_ref || 'reborn/2026-10' }}
+        run: |
+          for run in $(gh run list --workflow check.yml --event push --branch "$BASE" --status success --limit 20 --json databaseId --jq '.[].databaseId'); do
+            if gh run download "$run" --name desktop-engine-ui --dir "$RUNNER_TEMP/desktop-engine-ui"; then exit 0; fi
+          done
+          echo "::error::No validated desktop-engine-ui artifact on the base branch." && exit 1
+      - uses: actions/upload-artifact@v6
+        with:
+          name: desktop-engine-ui
+          path: ${{ runner.temp }}/desktop-engine-ui
+          if-no-files-found: error
   macos-desktop:
+    needs: desktop-ui
     strategy:
       fail-fast: false
       matrix:
@@ -98,10 +161,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - uses: actions/download-artifact@v6
+        with:
+          name: desktop-engine-ui
+          path: ${{ runner.temp }}/desktop-engine-ui
       - run: npm ci --prefix apps/desktop
       - run: npm --prefix apps/desktop test
       - run: npm --prefix apps/desktop run package:macos
         env:
+          PTBK_DESKTOP_UI_BUNDLE: ${{ runner.temp }}/desktop-engine-ui
           # Match the release environment, including electron-builder's token-based publisher detection.
           GH_TOKEN: ${{ github.token }}
       - name: Verify the DMG and run the packaged application
@@ -145,6 +213,7 @@ jobs:
           path: ${{ runner.temp }}/Installer Report *
           if-no-files-found: warn
   windows-installer:
+    needs: desktop-ui
     # The Windows installer's bootstrap is validated on every check: script syntax, prerequisite detection with an
     # isolated PATH (no Node.js/npm/Git visible: everything planned, nothing installed), and a real run with the
     # runner's compatible tools that installs the exact package candidate and prepares the init handoff.
@@ -169,7 +238,13 @@ jobs:
           npm pack --silent | Out-Null
           "PTBK_VERSION=$version" >> $env:GITHUB_ENV
           "PTBK_TARBALL=$((Resolve-Path "ptbk-$version.tgz").Path)" >> $env:GITHUB_ENV
+      - uses: actions/download-artifact@v6
+        with:
+          name: desktop-engine-ui
+          path: ${{ runner.temp }}/desktop-engine-ui
       - name: Build and test the optional desktop package, including native Windows PTYs
+        env:
+          PTBK_DESKTOP_UI_BUNDLE: ${{ runner.temp }}/desktop-engine-ui
         shell: pwsh
         run: |
           npm ci --prefix apps/desktop

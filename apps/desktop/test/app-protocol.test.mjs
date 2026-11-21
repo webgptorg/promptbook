@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+import { bundleDigest, loadAppBundle, PROJECT_ORIGIN } from '../app-protocol.cjs';
+
+test('the project origin serves the compiled SPA on deep links and only its packaged assets', async (t) => {
+    const directory = await mkdtemp(join(tmpdir(), 'desktop-ui-'));
+    t.after(() => rm(directory, { recursive: true, force: true }));
+    await mkdir(join(directory, 'public', 'assets'), { recursive: true });
+    const csp = "default-src 'self'; connect-src 'self'";
+    await writeFile(join(directory, 'public', 'index.html'), '<main>Built UI</main>');
+    await writeFile(join(directory, 'public', 'assets', 'app.js'), 'export {}');
+    const files = ['index.html', 'assets/app.js'];
+    const sha256 = await bundleDigest(join(directory, 'public'), files);
+    await writeFile(join(directory, 'bundle.json'), JSON.stringify({ source: 'webgptorg/app', commit: 'a'.repeat(40), sha256, version: '0.2.3', apiPrefix: '/api/v1', csp, files }));
+    const serve = await loadAppBundle(directory);
+    const request = (path, accept = '*/*') => serve(new Request(new URL(path, PROJECT_ORIGIN), { headers: { accept } }));
+    const page = await request('/chats/a%20b', 'text/html');
+    assert.equal(await page.text(), '<main>Built UI</main>');
+    assert.equal(page.headers.get('content-security-policy'), csp);
+    assert.equal((await request('/assets/app.js')).headers.get('content-type'), 'text/javascript');
+    assert.equal((await request('/assets/missing.js', 'text/html')).status, 404);
+    assert.equal((await request('/api/private', 'text/html')).status, 404);
+    assert.equal((await request('/auth/setup', 'text/html')).status, 404);
+    assert.equal((await request('/bundle.json')).status, 404);
+    assert.equal((await request('https://another.localhost/api/v1/me')).status, 403);
+    await writeFile(join(directory, 'public', 'assets', 'app.js'), 'modified');
+    await assert.rejects(loadAppBundle(directory), /does not match/);
+});

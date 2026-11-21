@@ -10,6 +10,8 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
+import { startDesktopApi } from '../app/web/desktop-api.js';
+import { DESKTOP_OWNER } from '../app/web/access.js';
 import { EngineApi } from '../app/api/engine-api.js';
 import { CONFORMANCE_BUILD } from '../app/build.js';
 import { AppConnection, type AppEngineFigures } from '../app/connection.js';
@@ -88,6 +90,9 @@ export class ServiceHost {
     private localApi: LocalApiView = { state: 'disabled' };
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
+    private engineApi?: EngineApi;
+    private desktopApi?: ReturnType<typeof startDesktopApi>;
+
     /** The engine UI loader of the App connection (verified UI bundles from the release store). */
     private uiLoader?: UiLoader;
     /** A coalesced App view publication is queued. */
@@ -354,6 +359,7 @@ export class ServiceHost {
             ui: () => loader.status(enginePageSha256),
             log: (text, level) => this.agenda.log(text, level),
         });
+        this.engineApi = api;
         this.appConnection = new AppConnection({
             directory,
             env,
@@ -557,6 +563,7 @@ export class ServiceHost {
         // browser other engines still use stays, the last disconnection closes it).
         await bounded(() => this.browsers.close());
         if (forced) await bounded(() => this.owned.terminateRemaining(1000));
+        await bounded(async () => (await this.desktopApi)?.close());
         await bounded(() => this.uiLoader?.stop());
         await bounded(() => this.appConnection?.stop());
         await bounded(() => this.http?.close());
@@ -588,6 +595,16 @@ export class ServiceHost {
         // The authenticated local channel is the owner's terminal: it may show the 12 words for recovery during setup.
         if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true, trustedFiles: true });
         switch (method) {
+            case 'desktop-app-connect': {
+                const api = this.engineApi;
+                const connection = this.appConnection;
+                if (!api || !connection) throw new Error('This project has no desktop App API in this run.');
+                this.desktopApi ??= startDesktopApi(async (request) => api.handle(request, DESKTOP_OWNER, await connection.projectAccess())).catch((error: unknown) => {
+                    this.desktopApi = undefined;
+                    throw error;
+                });
+                return (await this.desktopApi).endpoint;
+            }
             case 'project-effects': {
                 const snapshot = agenda.snapshot();
                 const events = snapshotEffects(snapshot);

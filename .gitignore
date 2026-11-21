@@ -51,6 +51,7 @@ dist-installer/
 # Optional desktop build and native dependencies
 /apps/desktop/node_modules/
 /apps/desktop/renderer/vendor/
+/apps/desktop/engine-ui/
 /apps/desktop/release/
 /apps/desktop/icon.ico
 /apps/desktop/update-policy.cjs

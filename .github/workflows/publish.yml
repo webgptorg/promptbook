@@ -25,8 +25,9 @@ jobs:
       actions: write
       contents: read
     outputs:
-      passed: ${{ steps.await.outputs.passed }}
-      run-id: ${{ steps.await.outputs.run-id }}
+      passed: ${{ steps.candidate.outputs.passed }}
+      run-id: ${{ steps.candidate.outputs.run-id }}
+      app-sha: ${{ steps.app.outputs.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -41,11 +42,37 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+      - name: Resolve the current App main for all release installers
+        id: app
+        env:
+          GH_TOKEN: ${{ secrets.PROMPTBOOK_APP_READ_TOKEN }}
+        run: |
+          sha=$(gh api repos/webgptorg/app/commits/main --jq .sha)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Reuse a candidate only when its compiled App is still current
+        id: candidate
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          APP_SHA: ${{ steps.app.outputs.sha }}
+          RUN_ID: ${{ steps.await.outputs.run-id }}
+          PASSED: ${{ steps.await.outputs.passed }}
+        run: |
+          if [[ "$PASSED" == true ]] && gh run download "$RUN_ID" --name desktop-engine-ui --dir "$RUNNER_TEMP/ui" && [[ $(jq -r .commit "$RUNNER_TEMP/ui/bundle.json") == "$APP_SHA" ]]; then
+            echo 'passed=true' >> "$GITHUB_OUTPUT"
+            echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          fi
   validate:
     needs: commit-check
     if: github.repository == 'webgptorg/promptbook' && needs.commit-check.outputs.passed != 'true'
     uses: ./.github/workflows/check.yml
+    permissions:
+      contents: read
+      actions: read
+    secrets:
+      PROMPTBOOK_APP_READ_TOKEN: ${{ secrets.PROMPTBOOK_APP_READ_TOKEN }}
     with:
+      app-ref: ${{ needs.commit-check.outputs.app-sha }}
       ref: refs/tags/${{ inputs.tag || github.ref_name }}
   computer-native:
     # The engine's npm package also owns native desktop control: end users must not need Xcode or Electron.
@@ -166,11 +193,9 @@ jobs:
         shell: pwsh
         run: node scripts/publish-desktop-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
   macos-desktop:
-    # The DMG embeds the exact tagged engine, so building it does not wait for registry propagation. Building, signing,
-    # notarizing and verifying it (10-15 minutes on scarce macOS runners) runs alongside the validation; only
-    # `macos-desktop-release` publishes it, after the validation passed.
-    if: github.repository == 'webgptorg/promptbook'
-    needs: computer-native
+    # Use exactly the UI that passed in the Windows installer candidate and both macOS smoke tests.
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    needs: [computer-native, commit-check, validate]
     strategy:
       fail-fast: false
       matrix:
@@ -183,6 +208,9 @@ jobs:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
       # Read-only here: packaging matches check.yml's environment (electron-builder detects token-based publishers).
       GH_TOKEN: ${{ github.token }}
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v6
         with:
@@ -202,10 +230,17 @@ jobs:
       - run: npm run build
         env:
           PTBK_BUILD_PROFILE: staging
+      - uses: actions/download-artifact@v6
+        with:
+          name: desktop-engine-ui
+          run-id: ${{ needs.commit-check.outputs.run-id || github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/desktop-engine-ui
       - run: npm ci --prefix apps/desktop
       - name: Package the matching macOS application
         run: npm --prefix apps/desktop run package:macos -- --release
         env:
+          PTBK_DESKTOP_UI_BUNDLE: ${{ runner.temp }}/desktop-engine-ui
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}

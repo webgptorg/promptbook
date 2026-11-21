@@ -153,6 +153,7 @@ export class AppConnection {
     private links: RelayLink[] = [];
     private origin?: EngineOrigin;
     private access?: AccessStore;
+    private projectAccessOpening?: Promise<AccessStore>;
     private wasConnected = false;
     /** The launch-contract registration with `PTBK_LINK_CODE` while it runs. */
     private registering?: AbortController;
@@ -392,11 +393,20 @@ export class AppConnection {
         return this.access;
     }
 
+    /** One access store for this engine, including while it is unpaired. Local and remote member changes share its write queue. */
+    public projectAccess(): Promise<AccessStore> {
+        this.projectAccessOpening ??= AccessStore.open(this.options.directory).catch((error: unknown) => {
+            this.projectAccessOpening = undefined;
+            throw error;
+        });
+        return this.projectAccessOpening;
+    }
+
     /** Opens the engine's own origin (access state and certificate) for the linked hostname. */
     private async openOrigin(identity: EngineIdentity, registration: StoredRegistration): Promise<void> {
         const web = this.options.web;
         if (!web) return;
-        const access = await AccessStore.open(this.options.directory);
+        const access = await this.projectAccess();
         this.access = access;
         web.onAccess?.(access);
         this.origin = new EngineOrigin({

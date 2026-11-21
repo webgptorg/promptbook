@@ -1,13 +1,12 @@
-# Local desktop controller
+# Promptbook desktop
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../../design/readme-wordmark-dark.svg">
-  <img src="../../design/readme-wordmark.svg" alt="Promptbook" width="230">
-</picture>
+The optional Windows and macOS application packages manGoweb’s production `@ptbk/engine-ui` from `webgptorg/app`. Opening the app attaches to a running project under the current OS user. The project switcher’s **All projects** link, the native **Projects** menu and the tray list other local projects. The chooser can explicitly start a stopped project or open the ordinary setup wizard. Closing the window leaves the engines running.
 
-An optional Electron client for the local `ptbk` engine on Windows and macOS. The renderer uses the [shared Promptbook brand](../../design/README.md). The CLI remains the primary interface; this package is not included in the npm engine's dependencies.
+A local engine needs a version with the `desktop-app-connect` control method. An already running older engine needs an update and restart. The CLI-only installation and its interactive console work independently. The browser App continues to use its existing relay, pairing, passkeys and signed UI releases.
 
-From the repository root:
+## Building the desktop client
+
+From the Promptbook checkout, with Node 24, npm, Git and read access to `webgptorg/app`:
 
 ```sh
 npm ci
@@ -16,7 +15,9 @@ npm ci --prefix apps/desktop
 npm --prefix apps/desktop start
 ```
 
-Development uses this checkout's built CLI and system `node`. Set `PTBK_DESKTOP_NODE` when Node is not on PATH. On Windows, a packaged installation uses the per-user runtime descriptor prepared by the Windows bootstrap (`installation`, `nodePath`, and the verified PATH). `PTBK_DESKTOP_RUNTIME` can point a disposable test to another descriptor.
+Each desktop build fetches the current App main in a temporary directory, installs its frozen lockfile with its declared Bun version, generates and builds `apps/engine-ui`, then embeds the compiled files and source commit in Electron. The UI ships inside the installer and works offline. To test a specific local checkout set `PTBK_APP_CHECKOUT` to its path. The build exports its committed HEAD into a temporary directory.
+
+For Actions, set the Promptbook repository secret `PROMPTBOOK_APP_READ_TOKEN` to a fine-grained token with **Contents: Read** on `webgptorg/app`. Only the trusted UI build checks out the private source. Both native packagers consume the same compiled artifact via `PTBK_DESKTOP_UI_BUNDLE`. A release reuses a validated Windows candidate only when the bundled UI also matches the current App main. PR checks use the base branch’s compiled artifact.
 
 ```sh
 npm --prefix apps/desktop test
@@ -24,15 +25,11 @@ npm --prefix apps/desktop run package:windows
 npm --prefix apps/desktop run test:e2e
 ```
 
-Set `PTBK_DESKTOP_EXECUTABLE` to the packaged `promptbook.exe` to run the end-to-end fixture against the distributable. The fixture uses the repository's deterministic fake harness and stops only its own disposable engine. The package version is derived from the root engine manifest during packaging.
+## Local connection
 
-The main process owns the tray, windows and PTYs. A small system-Node adapter imports existing observation/control operations from the actual CLI installation. Each project dashboard is an unprivileged view of its verified loopback HTTP server. The shell's narrow preload never reaches project content. The optional prompt transport changes presentation only; ordinary initialization owns the decisions, validation, writes and background start.
+Electron discovers running engines through the installed CLI’s per-user registry and authenticated control channel. Only an explicit desktop attachment opens the engine’s HTTP contract on a private Unix socket or Windows named pipe. The Electron main process holds its random credential. A sandboxed project view loads the packaged UI under a virtual HTTPS origin, with a separate Electron session per project, the upstream content security policy and no Node preload. API requests, uploads and event streams go to the selected pipe. The local owner does not create a web member, web session or passkey.
 
-Live tab control and voice are presented in place, without a temporary server, link or external browser. The adapter runs the CLI's own tab viewer and voice relays over the engine's control channel. Their page is served from the private `ptbk-feature:` scheme into a sandboxed view of the owning window, with its own in-memory session, a restrictive content security policy and only `feature-preload.cjs`, which carries its messages over IPC. Only that live view's main frame is accepted. The voice view may use the microphone (audio only), and the tab viewer may use the clipboard for explicit copy and paste. Every other permission is denied. The shell keeps the trusted tab controls outside the page: **Return control to agent**, **End use**, Wallet's save offer and **Sign in manually** for pending Wallet requests. Voice starts only from the open chat: **Start voice chat** sits beside the composer (also before the first message of a new chat), and the call's state, captions, microphone/sound mute and **End voice chat** stay in that chat, with its media view directly below. The unprivileged dashboard hands these intents to its own shell as a refused popup of `/.ptbk-desktop/voice` carrying a per-view token; the shell validates the token, action and chat and binds the call to that chat, so later navigation never retargets it. Leaving the chat view, reopening the dashboard or closing the window ends the call, but only detaches a tab viewer. The tab stays with you until you return it.
-
-Project pages and documents open as tabs of the window's workspace: one reusable **Preview** per window, regular tabs and pinned tabs. Text files and Books are edited in Monaco, which the build bundles with Promptbook's shared Book language logic (`src/book/editor-language.ts`, also used by the VS Code extension). The dashboard loads it from the private `ptbk-editor:` scheme; for that document only, the shell extends the dashboard's own Content-Security-Policy by that scheme, Monaco's runtime styles and a `blob:` editor worker. The dashboard's only desktop capability is `workspace-preload.cjs`: it keeps its own tabs, unsaved drafts (with their base revision) and editor positions in the app profile, and hands a document with its draft, cursor and undo history to the same project's dashboard in another window. The source keeps the tab until the target confirms. After a restart, windows reopen in place with their documents. Drafts of a closed window are offered again with their project, and CLI sessions are listed with an explicit **Reopen**.
-
-Closing a window detaches its clients. Tray Quit is separately confirmed and uses shared graceful/force-stop controls for the listed local engines. `--tray` opens no window and starts no project. The installer uses `--quit-client` during uninstall/upgrade to close only the desktop process, preserving engines.
+Development uses this checkout’s built CLI and system Node. Set `PTBK_DESKTOP_NODE` if Node is outside PATH. Packaged Windows installations use the installer’s per-user runtime descriptor. `PTBK_DESKTOP_RUNTIME` can select a disposable runtime descriptor for testing.
 
 ## macOS installation
 

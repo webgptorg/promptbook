@@ -1,5 +1,7 @@
 # Unreleased
 
+- The Windows and macOS desktop apps bundle the production project UI from `webgptorg/app` main. The app discovers local projects and opens them over an authenticated OS pipe without an account, pairing or a running HTTP dashboard. Remote web access and the CLI console keep their existing entry points.
+
 - Add `--global` to `ptbk restart`, `stop`, `pause` and `resume`. Without it they control the selected project; with it they control every discovered active project from any directory, report independent outcomes and leave stopped projects alone. Global restart preserves each project's launch settings and never opens dashboards; stop keeps graceful/force and per-project timeout behavior.
 
 - Serve the platform's signed setup UI before project creation, following App contracts at `60958c0b`. Published npm and native package candidates use an immutable staging profile with the exact hash-checked staging policy, default UI store and engine domain. Initial paired setup approves only the first verified bundle without its delay; later updates retain normal delays and get an eligibility recheck. Production still refuses staging trust and published builds refuse conformance trust.
