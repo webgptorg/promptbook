@@ -54,18 +54,23 @@ test('the bundled App opens real local projects, writes through the same API and
     assert.equal(summary[1].engineId, null, 'opening the local UI does not pair the project');
     const created = await inProject(application, `fetch('/api/v1/chats', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ title: 'Desktop acceptance' }) }).then(async r => ({ status: r.status, chat: await r.json() }))`);
     assert.equal(created.status, 201, JSON.stringify(created.chat));
+    const containsChat = "fetch('/api/v1/chats').then(r => r.json()).then(page => page.items.some(chat => chat.id === " + JSON.stringify(created.chat.id) + "))";
+    assert.equal(await inProject(application, containsChat), true);
     const chatPath = '/chats/' + encodeURIComponent(created.chat.id);
     await inProject(application, 'setTimeout(() => location.assign(' + JSON.stringify(chatPath) + '), 0); true');
     await waitFor(() => inProject(application, "document.body.innerText.includes('Desktop acceptance')").catch(() => false), { timeoutMs: 20000, message: 'a deep link renders the real chat' });
 
     await start(second.project);
-    // The upstream switcher's web-dashboard destination is local to the desktop.
-    await inProject(application, "setTimeout(() => location.assign('https://projects.localhost/'), 0); true");
+    // Click the actual upstream switcher's All projects link; the shell owns only its local destination.
+    await inProject(application, "[...document.querySelectorAll('button')].find(button => button.textContent.includes('desktop.localhost')).click()");
+    const switchLink = "document.querySelector('a[href=\"https://projects.localhost/\"]')";
+    await waitFor(() => inProject(application, 'Boolean(' + switchLink + ')'), { timeoutMs: 10000, message: 'upstream project switcher offers all projects' });
+    await inProject(application, 'setTimeout(() => ' + switchLink + '.click(), 0); true');
     const projectButtons = shell.locator('button[data-project]');
     await waitFor(() => projectButtons.count().then((n) => n === 2), { timeoutMs: 15000, message: 'both local engines discovered' });
     await projectButtons.filter({ hasText: second.project }).click();
     await mounted();
-    assert.equal(await inProject(application, "fetch('/api/v1/chats').then(r => r.json()).then(page => page.items.some(chat => chat.title === 'Desktop acceptance'))"), false);
+    assert.equal(await inProject(application, containsChat), false);
     await application.close();
     const after = await status(first.project);
     assert.equal(after.service.instanceId, before.service.instanceId);

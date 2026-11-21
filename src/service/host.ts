@@ -14,7 +14,7 @@ import { startDesktopApi } from '../app/web/desktop-api.js';
 import { DESKTOP_OWNER } from '../app/web/access.js';
 import { EngineApi } from '../app/api/engine-api.js';
 import { CONFORMANCE_BUILD } from '../app/build.js';
-import { AppConnection, type AppEngineFigures } from '../app/connection.js';
+import { AppConnection, type AppEngineFigures, type AppWebHandlers } from '../app/connection.js';
 import { appDirectory, isTunnelMode } from '../app/settings.js';
 import { engineHomePage } from '../app/web/documents.js';
 import { UiLoader } from '../app/web/ui-loader.js';
@@ -90,7 +90,7 @@ export class ServiceHost {
     private localApi: LocalApiView = { state: 'disabled' };
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
-    private engineApi?: EngineApi;
+    private appApi?: AppWebHandlers['api'];
     private desktopApi?: ReturnType<typeof startDesktopApi>;
 
     /** The engine UI loader of the App connection (verified UI bundles from the release store). */
@@ -359,7 +359,9 @@ export class ServiceHost {
             ui: () => loader.status(enginePageSha256),
             log: (text, level) => this.agenda.log(text, level),
         });
-        this.engineApi = api;
+        const appApi: AppWebHandlers['api'] = async (request, actor, access) =>
+            (await computerAppRequest(request, actor.role === 'owner', (method, params) => this.computerOwner(method, params))) ?? api.handle(request, actor, access);
+        this.appApi = appApi;
         this.appConnection = new AppConnection({
             directory,
             env,
@@ -367,7 +369,7 @@ export class ServiceHost {
             figures: () => this.appFigures(),
             log: (text, level) => this.agenda.log(text, level),
             web: {
-                api: async (request, actor, access) => (await computerAppRequest(request, actor.role === 'owner', (method, params) => this.computerOwner(method, params))) ?? api.handle(request, actor, access),
+                api: appApi,
                 documents: async (request, actor) => {
                     const desktop = await computerDocument(request);
                     if (desktop) return actor.role === 'owner' ? desktop : new Response('Only the engine owner can access its desktop.', { status: 403, headers: { 'cache-control': 'no-store' } });
@@ -596,10 +598,10 @@ export class ServiceHost {
         if (WALLET_ACTIONS.has(method)) return await applyWalletAction(agenda, method, params, { ownerSurface: true, trustedFiles: true });
         switch (method) {
             case 'desktop-app-connect': {
-                const api = this.engineApi;
+                const api = this.appApi;
                 const connection = this.appConnection;
                 if (!api || !connection) throw new Error('This project has no desktop App API in this run.');
-                this.desktopApi ??= startDesktopApi(async (request) => api.handle(request, DESKTOP_OWNER, await connection.projectAccess())).catch((error: unknown) => {
+                this.desktopApi ??= startDesktopApi(async (request) => api(request, DESKTOP_OWNER, await connection.projectAccess())).catch((error: unknown) => {
                     this.desktopApi = undefined;
                     throw error;
                 });
