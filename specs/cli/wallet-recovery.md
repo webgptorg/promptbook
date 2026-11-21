@@ -4,6 +4,12 @@
 
 Offer deliberate protected owner actions directly on Wallet, including when locked, without manual internal-file deletion. One engine-owned implementation serves local terminal/browser owner surfaces; agent APIs cannot obtain keys/words or a decryption bypass.
 
+## Saving the original words later
+
+An automatically provisioned Wallet is ready for agents while its recovery words await confirmation. The host binding holds an authenticated copy of the words encrypted under a separate domain key derived from the OS-protected wrapping secret and project salt. Only the local owner surface can show them. Closing the dialog or restarting the engine keeps the same words available. A different computer needs the words and the encrypted project data to restore the Wallet.
+
+Explicit acknowledgement requires a receipt from the current local reveal. It publishes a fresh host binding for the same project root, omits the pending words and retires the old wrapping key. The records and the recovery phrase keep working. Existing manually configured Wallets already have a confirmed recovery path.
+
 ## New words while decryption remains available
 
 If existing host-protected binding or another valid available key actually decrypts the vault, allow **Generate new 12 words for recovery** even when the old words are forgotten. Verify decryption first; finding an envelope or knowing an account name is insufficient. Explain/confirm that the new phrase replaces the recovery path for the updated Wallet while its records are preserved.

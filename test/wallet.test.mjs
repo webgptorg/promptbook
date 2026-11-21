@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { createHash, hkdfSync, pbkdf2Sync } from 'node:crypto';
-import { chmod, cp, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { chmod, cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { applyWalletAction } from '../dist/service/actions.js';
 import { entropyToMnemonic, mnemonicToSeedSync } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { browserTools } from '../dist/browser/agent-tools.js';
@@ -147,6 +148,100 @@ test('project encryption: standard 12-word vectors, derivation, domain separatio
     assert.ok(!originMatches('https://example.com', 'http://example.com'), 'another scheme never matches');
     assert.equal(maskAccount('jane.doe@example.com'), 'ja…@example.com');
     assert.equal(walletLabel('https://www.github.com', 'johnsmith'), 'github.com · jo…h');
+});
+
+test('noninteractive init creates a ready Wallet before the first engine start', async (t) => {
+    const { project, env } = await initializedProject(t);
+    const wallet = new WalletSubEngine({ project: { root: project, runtime: { root: join(project, '.ptbk') } }, env, onChange() {}, log() {} });
+    await wallet.initialize();
+    assert.equal(wallet.view().state, 'ready');
+    assert.equal(wallet.view().recoveryPending, true);
+    await wallet.save({ origin: 'https://example.com', username: 'owner', password: 'before start' });
+});
+
+test('automatic Wallet keeps the same pending words across restart and confirms without rewriting saved logins', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk pending recovery');
+    const home = join(root, 'first computer');
+    const project = join(root, 'project');
+    const first = walletAt(project, home);
+    await first.wallet.initialize({ provisionIfEmpty: true });
+    assert.equal(first.wallet.view().state, 'ready');
+    assert.equal(first.wallet.view().recoveryPending, true);
+    await first.wallet.save({ origin: 'https://example.com', username: 'owner', password: 'saved before confirmation' });
+    const records = join(project, '.ptbk', 'wallet', 'records.json');
+    const local = { ownerSurface: true };
+    const remote = { ownerSurface: false };
+    await assert.rejects(applyWalletAction(first, 'wallet-recovery-words', {}, remote), /local owner/);
+    const shown = await applyWalletAction(first, 'wallet-recovery-words', {}, local);
+    assert.equal(shown.words.length, 12);
+    await assert.rejects(applyWalletAction(first, 'wallet-recovery-confirm', { receipt: shown.receipt }, remote), /local owner/);
+    const output = (await filesBelow(project)).map(file => file.content).join('\n') + JSON.stringify(first.wallet.view()) + first.logs.join('\n');
+    for (const phrase of recoveryRuns(shown.words)) assert.ok(!output.includes(phrase));
+    assert.ok(!output.includes('saved before confirmation'));
+
+    const restarted = walletAt(project, home);
+    await restarted.wallet.initialize({ provisionIfEmpty: true });
+    assert.equal(restarted.wallet.view().state, 'ready');
+    await assert.rejects(restarted.wallet.confirmRecoveryWords(shown.receipt), /before confirming/);
+    const again = await restarted.wallet.showRecoveryWords();
+    assert.deepEqual(again.words, shown.words);
+    const page = fakePage('https://example.com');
+    assert.equal((await restarted.wallet.login(page.page, {})).status, 'signed-in');
+    assert.equal(page.entered[0].password, 'saved before confirmation');
+    const beforeConfirm = await readFile(records); // Login updates last-used metadata.
+    assert.ok((await applyWalletAction(restarted, 'wallet-recovery-confirm', { receipt: again.receipt }, local)).applied);
+    assert.deepEqual(await readFile(records), beforeConfirm);
+    assert.equal((await restarted.wallet.confirmRecoveryWords(again.receipt)).applied, false);
+    assert.equal(restarted.wallet.view().recoveryPending, undefined);
+    await assert.rejects(restarted.wallet.showRecoveryWords(), /no pending/);
+    const after = walletAt(project, home);
+    await after.wallet.initialize({ provisionIfEmpty: true });
+    assert.equal(after.wallet.view().state, 'ready');
+    assert.equal(after.wallet.view().recoveryPending, undefined);
+    const copy = join(root, 'copy');
+    await cp(project, copy, { recursive: true });
+    const second = walletAt(copy, join(root, 'second computer'));
+    await second.wallet.initialize({ provisionIfEmpty: true });
+    assert.equal(second.wallet.view().state, 'locked');
+    await second.wallet.restore(shown.words.join(' '));
+    const restored = fakePage('https://example.com');
+    assert.equal((await second.wallet.login(restored.page, {})).status, 'signed-in');
+    assert.equal(restored.entered[0].password, 'saved before confirmation');
+});
+
+test('automatic Wallet does not replace missing keys or partial backups, and a failed OS-key readback is retryable', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk Wallet host failure');
+    const home = join(root, 'home');
+    const project = join(root, 'project');
+    const stored = new Set();
+    const noReadback = new WalletSubEngine({ project: { root: project, runtime: { root: join(project, '.ptbk') } }, onChange() {}, log() {},
+        unlock: { facility: 'insecure-test-file', problem: async () => undefined, store: async id => stored.add(id), load: async () => undefined, remove: async id => stored.delete(id) } });
+    await noReadback.initialize({ provisionIfEmpty: true });
+    assert.equal(noReadback.view().state, 'unavailable');
+    assert.equal(noReadback.view().management.canReset, false);
+    assert.equal(stored.size, 0);
+    const metadata = join(project, '.ptbk', 'encryption', 'project.json');
+    await assert.rejects(stat(metadata), { code: 'ENOENT' });
+
+    const a = walletAt(project, home).wallet;
+    const b = walletAt(project, home).wallet;
+    await Promise.all([a.initialize({ provisionIfEmpty: true }), b.initialize({ provisionIfEmpty: true })]);
+    assert.deepEqual((await a.showRecoveryWords()).words, (await b.showRecoveryWords()).words);
+    await a.save({ origin: 'https://example.com', username: 'owner', password: 'secret' });
+    const data = join(project, '.ptbk', 'wallet', 'records.json');
+    const ciphertext = await readFile(data);
+    await rm(home, { recursive: true });
+    const lost = walletAt(project, home).wallet;
+    await lost.initialize({ provisionIfEmpty: true });
+    assert.equal(lost.view().state, 'locked');
+    await assert.rejects(lost.showRecoveryWords());
+    assert.deepEqual(await readFile(data), ciphertext);
+    await rm(metadata);
+    const partial = walletAt(project, home).wallet;
+    await partial.initialize({ provisionIfEmpty: true });
+    assert.equal(partial.view().state, 'unavailable');
+    await assert.rejects(stat(metadata), { code: 'ENOENT' });
+    assert.deepEqual(await readFile(data), ciphertext);
 });
 
 test('Wallet: lazy setup, automatic unlock after restart, origin-bound automatic login, one deduplicated request and transfer with 12 words', async (t) => {
@@ -1079,11 +1174,11 @@ test('Wallet acceptance: a task waits for a protected login (no chat), resumes o
     await writeFile(join(project, 'ptbk.json'), `${JSON.stringify(config, null, 4)}\n`);
     await git(project, ['commit', '-q', '-m', 'Fixture browser', '--', 'ptbk.json']);
 
-    // The owner set the Wallet up earlier on this computer (the engine unlocks it at startup without prompts).
+    // The normal initializer already made the Wallet usable, and the owner can save the original words later.
     const owner = new WalletSubEngine({ project: { root: project, runtime: { root: join(project, '.ptbk') } }, env, onChange: () => undefined, log: () => undefined });
     await owner.initialize();
-    const { words } = await owner.beginSetup();
-    await owner.confirmSetup();
+    const { words, receipt } = await owner.showRecoveryWords();
+    await owner.confirmRecoveryWords(receipt);
 
     assert.equal((await ptbk(['add', 'WALLET_LOGIN Read the fixture dashboard', '--agent', 'Developer', '--priority', '9', '--raw'], { cwd: project, env })).code, 0);
     assert.equal((await ptbk(['start', '--no-persist', '--raw'], { cwd: project, env })).code, 0);
@@ -1472,8 +1567,7 @@ test('Wallet Test acceptance: the running engine reads the code from an inbox th
     await git(project, ['commit', '-q', '-m', 'Fixture browser', '--', 'ptbk.json']);
     const owner = new WalletSubEngine({ project: { root: project, runtime: { root: join(project, '.ptbk') } }, env, onChange: () => undefined, log: () => undefined });
     await owner.initialize();
-    await owner.beginSetup();
-    await owner.confirmSetup();
+    assert.equal(owner.view().recoveryPending, true);
     const { id } = await owner.save({ origin: `${origin}/login`, username: 'fixture-user', password: 'saved password 1' });
 
     assert.equal((await ptbk(['start', '--no-persist', '--raw', '--paused'], { cwd: project, env })).code, 0);

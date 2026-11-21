@@ -2,11 +2,11 @@
 
 [Wallet](wallet.md) · [Workspace](workspace.md) · [Environment](environment.md) · [Recovery](recovery.md)
 
-## Scope and lazy setup
+## Scope and initial setup
 
 Each project has its own encryption root and encrypted local data. Encrypt the entire Wallet record, including service/origin, account/username and label as well as passwords/TOTP parameters; do not add a plaintext account index for recovery. Start with **Wallet credentials only**, including supported additional fields and any retained legacy protected factor data; Wallet-owned TOTP generation/import is future scope. The key hierarchy can protect other domains later, but this version does not encrypt all Books, traces, configuration, browser profiles or existing `.env` keys.
 
-Initialize encryption lazily on first Wallet use requiring storage, or through init's optional **Set up Wallet now?** choice (default No). Both call the same protected setup operation. Generate **12 random recovery words** and show them only in the owner's protected setup surface, with simple guidance to write them down and keep them safely for recovery of encrypted data. Do not add routine unlock/reconfirmation to every use or reboot. Choosing No leaves an empty project without a phrase prompt; choosing Yes deliberately opens the same protected flow. Interrupted first setup preserves a recoverable state and never overwrites an existing vault/key.
+Provision a usable encrypted Wallet when creating a project. On upgrade, the engine provisions an existing project that has no Wallet data. The host must successfully store and read back its protected unlock key before the Wallet accepts logins. Publish the verifier and host binding together. If the store is unavailable, explain the problem and retry on a later startup. Preserve existing Wallets and partial backups.
 
 Terminal/browser UI and user-facing help say only **“12 words for recovery”** (or localized equivalent). Do not mention Bitcoin, cryptocurrency, BIP names/numbers, Shamir, seed jargon or an optional passphrase there. Those technical details belong in this specification. No additional passphrase or Shamir sharing is in scope.
 
@@ -38,4 +38,5 @@ The trusted engine/Wallet boundary may decrypt for authorized operations. Agent 
 
 ## Acceptance outcomes
 
-First Wallet storage shows 12 recovery words through protected UI with no cryptocurrency/standard jargon, and init does so only after the optional Yes choice. Exercise default No, Yes, interrupted/resumed setup and later Wallet setup without replacing an existing vault. Verify standard derivation vectors, domain separation and authenticated tamper failure. Save credentials, restart the engine and reboot the unattended host: login works without manual unlock. Copy the folder to a different host: decryption fails until one protected restoration, then survives reboot. Wrong words/corrupted metadata preserve the vault. Inspect Git, traces, status, logs, child environments and agent tools for absent secret material. Cache cleanup and project migration preserve persistent ciphertext/envelopes.
+Verify unattended project creation, saving logins before the first reveal, repeated reveal across restart, and acknowledgement on the local owner surface. Confirmation preserves the saved ciphertext and the same recovery words.
+Verify standard derivation vectors, domain separation and authenticated tamper failure. Save credentials, restart the engine and reboot the unattended host: login works without manual unlock. Copy the folder to a different host: decryption fails until one protected restoration, then survives reboot. Wrong words/corrupted metadata preserve the vault. Inspect Git, traces, status, logs, child environments and agent tools for absent secret material. Cache cleanup and project migration preserve persistent ciphertext/envelopes.

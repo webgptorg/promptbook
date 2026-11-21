@@ -85,7 +85,7 @@ Management adds/updates/removes records through shared operations with atomic re
 
 ## Initialization and presentation
 
-Init offers **Set up Wallet now?**, default No. Yes uses precisely the same protected initialization and 12-recovery-word flow as later dashboard/first use, without duplicating logic or recreating an initialized vault. During new-project init, hold pending setup/import records and key material in protected memory until the final project-creation confirmation; do not write project-local vault/encryption files early. No defers it. After chosen/reused setup, offer the same optional Bitwarden import before init completes, with individual/all/none selection and no later mandatory dashboard visit.
+Init creates an encrypted Wallet after the project is confirmed. The local owner can write down the 12 recovery words then or later, as described in [Wallet recovery](wallet-recovery.md). Attended setup can also stage a Bitwarden import. Keep those optional drafts in protected memory until final confirmation.
 
 The home tile gives a compact ready/empty/waiting/failure summary and pending count. Its page lists nonsecret service/account labels, workflow progress and protected management actions. Never present keys, passwords, codes or recovery words as ordinary state or chat text. Recovery words appear only in deliberate protected setup/restoration/replacement flows. Requests are Wallet actions, not a fourth Book entity; chats may contain a nonsecret reason/link/outcome.
 

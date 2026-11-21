@@ -1,5 +1,7 @@
 # Unreleased
 
+- New projects start with an encrypted Wallet. Its local owner can view the same 12 words for recovery across restarts until they confirm saving them. Confirmation preserves existing logins.
+
 - The Windows and macOS desktop apps bundle the production project UI from `webgptorg/app` main. The app discovers local projects and opens them over an authenticated OS pipe without an account, pairing or a running HTTP dashboard. Remote web access and the CLI console keep their existing entry points.
 
 - Add `--global` to `ptbk restart`, `stop`, `pause` and `resume`. Without it they control the selected project; with it they control every discovered active project from any directory, report independent outcomes and leave stopped projects alone. Global restart preserves each project's launch settings and never opens dashboards; stop keeps graceful/force and per-project timeout behavior.

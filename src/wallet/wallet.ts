@@ -1,10 +1,11 @@
 import { createHash, randomBytes, randomInt } from 'node:crypto';
-import { open as openFile, readFile, rename, rm, stat } from 'node:fs/promises';
+import { lstat, mkdtemp, readFile, rename, rm, rmdir, stat } from 'node:fs/promises';
 import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { createPrivateFile, syncDirectory, writePrivateFile } from '../app/files.js';
 import { PtbkError, errorMessage } from '../common/errors.js';
-import { ensureDirectory, readJsonIfExists, writeJsonAtomic } from '../common/fs.js';
+import { ensureDirectory, readJsonIfExists, readTextIfExists, writeJsonAtomic } from '../common/fs.js';
 import { Mutex } from '../common/mutex.js';
 import { redact } from '../common/redact.js';
 import type { Project } from '../project/workspace.js';
@@ -146,6 +147,8 @@ export type WalletActionView = {
  */
 export type WalletView = {
     readonly state: WalletState;
+    /** The local owner can still view and acknowledge the original words. The Wallet is usable throughout. */
+    readonly recoveryPending?: true;
     /** One-line summary for the home tile. */
     readonly summary: string;
     /** A specific setup or unlock problem of this host. */
@@ -333,9 +336,19 @@ type EncryptionMetadata = {
  * Host bindings of the automatic unlock (`.ptbk/encryption/hosts.json`): the project root wrapped by a secret that only
  * the host facility holds, under a nonsecret reference.
  */
+type HostBinding = {
+    readonly facility: HostUnlockFacility;
+    readonly reference: string;
+    readonly wrappedRoot: Envelope;
+    readonly at: string;
+    /** Available only with the creating OS account's wrapping secret, until its owner confirms the words. */
+    readonly pendingWords?: Envelope;
+};
+
+/** The host bindings belonging to this generation of the Wallet. */
 type HostBindings = {
     readonly projectKeyId: string;
-    readonly hosts: Readonly<Record<string, { readonly facility: HostUnlockFacility; readonly reference: string; readonly wrappedRoot: Envelope; readonly at: string }>>;
+    readonly hosts: Readonly<Record<string, HostBinding>>;
 };
 
 /**
@@ -471,6 +484,9 @@ const PRIVATE_FILE_MODE = 0o600;
  * Domain of the host-unlock wrapping envelope.
  */
 const HOST_DOMAIN = 'host-unlock';
+
+/** Separate encryption domain for the recovery words waiting for their owner's acknowledgement. */
+const PENDING_WORDS_DOMAIN = 'pending-recovery';
 
 /**
  * Domain of the Wallet records.
@@ -667,6 +683,11 @@ export class WalletSubEngine {
     private state: WalletState = 'empty';
     private problem?: string;
     private metadata?: EncryptionMetadata;
+    /** Existing Wallet files, including a partial backup whose metadata cannot be loaded. */
+    private hasWalletFiles = false;
+    private recoveryPending = false;
+    /** Receipt for an explicit local reveal, valid only for this binding and engine session. */
+    private shownRecovery?: { readonly reference: string; readonly receipt: string };
     /** The wallet domain key, only in this engine's memory while ready. */
     private key?: Buffer;
     private records: StoredRecord[] = [];
@@ -725,14 +746,24 @@ export class WalletSubEngine {
 
     /**
      * Loads the Wallet and unlocks it automatically with this host's protected secret (no words, no master password).
-     * Nothing is created for a project that never used the Wallet.
+     * Project creation and engine startup provision an empty Wallet. An attended setup draft only inspects it.
      */
-    public async initialize(): Promise<void> {
+    public async initialize({ provisionIfEmpty = false }: { readonly provisionIfEmpty?: boolean } = {}): Promise<void> {
         await this.mutex.run(async () => {
             this.actions = await this.readActions();
             this.pruneActions();
             await this.recoverGeneration();
-            const metadata = await this.readMetadata();
+            let metadata = await this.readMetadata();
+            if (!metadata && provisionIfEmpty && this.readiness === 'empty') {
+                try {
+                    await this.createWallet(generateRecoveryWords(), newProjectSalt(), true);
+                    return;
+                } catch (error) {
+                    // A concurrent creator may have published a complete Wallet while this process was preparing it.
+                    metadata = await this.readMetadata();
+                    if (!metadata && this.state === 'empty') this.fail('unavailable', errorMessage(error));
+                }
+            }
             if (!metadata) return;
             this.metadata = metadata;
             await this.unlockWithHost(metadata);
@@ -743,17 +774,41 @@ export class WalletSubEngine {
 
     /** Reads the write-once metadata (undefined when the Wallet was never set up; unreadable is `unavailable`). */
     private async readMetadata(): Promise<EncryptionMetadata | undefined> {
-        let text: string;
+        const path = join(this.encryptionDirectory, 'project.json');
+        let text: string | undefined;
         try {
-            text = await readFile(join(this.encryptionDirectory, 'project.json'), 'utf8');
-        } catch (error) {
-            if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-                this.state = 'empty';
-                return undefined;
+            text = await readTextIfExists(path);
+            if (text === undefined) {
+                // A partial backup is not a fresh Wallet. An inaccessible file also counts as existing data.
+                let hasData = false;
+                for (const sibling of [join(this.walletDirectory, 'records.json'), join(this.encryptionDirectory, 'hosts.json')]) {
+                    try {
+                        await lstat(sibling);
+                        hasData = true;
+                        break;
+                    } catch (error) {
+                        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+                    }
+                }
+                if (!hasData) {
+                    this.hasWalletFiles = false;
+                    this.state = 'empty';
+                    return undefined;
+                }
+                // A concurrent creator may have published both files since the first read.
+                text = await readTextIfExists(path);
+                if (text === undefined) {
+                    this.hasWalletFiles = true;
+                    this.fail('unavailable', 'The Wallet has existing data but its encryption metadata is missing. Restore .ptbk/encryption/project.json from the same backup.');
+                    return undefined;
+                }
             }
+        } catch (error) {
+            this.hasWalletFiles = true;
             this.fail('unavailable', `The Wallet's encryption metadata cannot be read (${errorMessage(error)}); it was not changed.`);
             return undefined;
         }
+        this.hasWalletFiles = true;
         try {
             const metadata = JSON.parse(text) as EncryptionMetadata;
             if (metadata.format !== ENCRYPTION_FORMAT) {
@@ -773,6 +828,8 @@ export class WalletSubEngine {
         this.state = state;
         this.problem = problem;
         this.key = undefined;
+        this.recoveryPending = false;
+        this.shownRecovery = undefined;
     }
 
     /** Unlocks with this host's binding, else explains why this host needs one restoration. */
@@ -780,7 +837,8 @@ export class WalletSubEngine {
         const bindings = await this.readBindings(metadata);
         const binding = bindings?.hosts[this.host];
         if (!binding) {
-            this.fail('locked', 'The Wallet has saved logins, but this computer cannot unlock them yet (the project was copied or moved here). Enter the 12 words for recovery once on the Wallet page.');
+            const pending = Object.values(bindings?.hosts ?? {}).some(host => host.pendingWords);
+            this.fail('locked', 'This computer has no automatic unlock for this Wallet. Enter the 12 words for recovery once on the Wallet page.' + (pending ? ' You can still view unconfirmed words on the original computer while its protected key is available.' : ''));
             return;
         }
         if (binding.facility !== this.unlock.facility) {
@@ -790,7 +848,7 @@ export class WalletSubEngine {
         const secret = await this.unlock.load(binding.reference).catch(() => undefined);
         if (!secret) {
             const problem = await this.unlock.problem().catch((error: unknown) => errorMessage(error));
-            this.fail(problem ? 'unavailable' : 'locked', problem ?? "This computer's protected Wallet unlock key is missing (for example it was removed from the credential store). Enter the 12 words for recovery once to set it up again.");
+            this.fail(problem ? 'unavailable' : 'locked', problem ?? "The Wallet is locked because this computer's protected key could not be loaded. Unlock the operating system's credential store and restart the engine to retry. If the key was removed, enter the 12 words for recovery.");
             return;
         }
         try {
@@ -806,6 +864,7 @@ export class WalletSubEngine {
             secret.fill(0);
         }
         this.records = await this.readRecords(metadata);
+        this.recoveryPending = Boolean(binding.pendingWords);
         this.state = 'ready';
         this.problem = undefined;
         this.lockedRecords = 0;
@@ -969,66 +1028,161 @@ export class WalletSubEngine {
             }
             // A confirmed reset replaces the unrecoverable Wallet only now, with the new words written down.
             if (draft.reset) await this.discardUnrecoverable();
-            const root = deriveProjectRoot(draft.words, draft.salt);
-            try {
-                const metadata: EncryptionMetadata = {
-                    format: ENCRYPTION_FORMAT,
-                    projectKeyId: randomBytes(KEY_ID_BYTES).toString('hex'),
-                    createdAt: new Date().toISOString(),
-                    salt: draft.salt.toString('base64'),
-                    derivation: {
-                        words: '12 words for recovery: 128 bits of OS randomness, standard English word list with checksum',
-                        seed: 'UTF-8 NFKD; PBKDF2-HMAC-SHA512, 2048 iterations, 64 bytes, empty passphrase',
-                        root: 'HKDF-SHA256(seed, salt, "promptbook/project-root/v1"), 32 bytes',
-                        domains: 'HKDF-SHA256(root, salt, "promptbook/domain/<domain>/v1"), 32 bytes',
-                        encryption: `AES-256-GCM, 96-bit random nonce, authenticated data "${ENCRYPTION_FORMAT}|<domain>"`,
-                    },
-                    verifier: createVerifier(root, draft.salt),
-                };
-                await ensureDirectory(this.encryptionDirectory);
-                // Write-once: an existing vault is never overwritten (a concurrent or earlier setup wins).
-                const handle = await openFile(join(this.encryptionDirectory, 'project.json'), 'wx', PRIVATE_FILE_MODE).catch((error: unknown) => {
-                    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new PtbkError('This project already has encrypted Wallet data; nothing was overwritten.', { kind: 'conflict', next: ['Restore it with its 12 words for recovery.'] });
-                    throw error;
-                });
-                try {
-                    await handle.writeFile(`${JSON.stringify(metadata, null, 4)}\n`);
-                    await handle.sync();
-                } finally {
-                    await handle.close();
-                }
-                this.metadata = metadata;
-                await this.provisionHost(metadata, root);
-                this.key = domainKey(root, draft.salt, WALLET_DOMAIN);
-                this.records = [];
-                await this.writeRecords();
-                this.state = 'ready';
-                this.problem = undefined;
-                this.draft = undefined;
-                return { action: 'wallet-setup-confirm', applied: true, outcome: `The Wallet is set up; this computer unlocks it automatically (${this.unlock.facility}). Keep the 12 words for recovery safe.` };
-            } finally {
-                root.fill(0);
-            }
+            await this.createWallet(draft.words, draft.salt, false);
+            this.draft = undefined;
+            return { action: 'wallet-setup-confirm', applied: true, outcome: `The Wallet is set up; this computer unlocks it automatically (${this.unlock.facility}). Keep the 12 words for recovery safe.` };
         });
         if (outcome.applied) this.options.log(`Wallet: set up with automatic unlock through ${this.unlock.facility}.`);
         return this.remember(outcome);
     }
 
-    /** Stores a fresh wrapping secret in the host facility and the wrapped root in the project (this host's binding). */
-    private async provisionHost(metadata: EncryptionMetadata, root: Buffer): Promise<void> {
+    /** Publishes the verifier and verified host binding together, before any login may be saved. */
+    private async createWallet(words: readonly string[], salt: Buffer, deferRecovery: boolean): Promise<void> {
+        const root = deriveProjectRoot(words, salt);
+        try {
+            const metadata: EncryptionMetadata = {
+                format: ENCRYPTION_FORMAT,
+                projectKeyId: randomBytes(KEY_ID_BYTES).toString('hex'),
+                createdAt: new Date().toISOString(),
+                salt: salt.toString('base64'),
+                derivation: {
+                    words: '12 words for recovery: 128 bits of OS randomness, standard English word list with checksum',
+                    seed: 'UTF-8 NFKD; PBKDF2-HMAC-SHA512, 2048 iterations, 64 bytes, empty passphrase',
+                    root: 'HKDF-SHA256(seed, salt, "promptbook/project-root/v1"), 32 bytes',
+                    domains: 'HKDF-SHA256(root, salt, "promptbook/domain/<domain>/v1"), 32 bytes',
+                    encryption: `AES-256-GCM, 96-bit random nonce, authenticated data "${ENCRYPTION_FORMAT}|<domain>"`,
+                },
+                verifier: createVerifier(root, salt),
+            };
+            await ensureDirectory(this.project.runtime.root);
+            const staging = await mkdtemp(join(this.project.runtime.root, '.wallet-setup-'));
+            let binding: HostBinding | undefined;
+            let published = false;
+            try {
+                binding = await this.createHostBinding(metadata, root, deferRecovery ? words : undefined);
+                const bindings: HostBindings = { projectKeyId: metadata.projectKeyId, hosts: { [this.host]: binding } };
+                await createPrivateFile(staging, 'project.json', JSON.stringify(metadata));
+                await createPrivateFile(staging, 'hosts.json', JSON.stringify(bindings));
+                // An existing nonempty directory (including a concurrent winner) is never replaced.
+                await rmdir(this.encryptionDirectory).catch((error: NodeJS.ErrnoException) => {
+                    if (error.code !== 'ENOENT') throw error;
+                });
+                await rename(staging, this.encryptionDirectory);
+                published = true;
+                await syncDirectory(this.project.runtime.root);
+            } finally {
+                if (binding && !published) await this.unlock.remove(binding.reference).catch(() => undefined);
+                await rm(staging, { recursive: true, force: true });
+            }
+            this.metadata = metadata;
+            this.key = domainKey(root, salt, WALLET_DOMAIN);
+            this.records = [];
+            this.state = 'ready';
+            this.problem = undefined;
+            this.lockedRecords = 0;
+            this.recoveryPending = deferRecovery;
+            this.shownRecovery = undefined;
+        } finally {
+            root.fill(0);
+        }
+    }
+
+    /** Creates and reads back an OS-protected wrapping key before publishing its binding. */
+    private async createHostBinding(metadata: EncryptionMetadata, root: Buffer, words?: readonly string[]): Promise<HostBinding> {
         const problem = await this.unlock.problem();
-        if (problem) throw new PtbkError(problem, { kind: 'setup', effect: 'Automatic unlock was not set up on this computer.' });
+        if (problem) throw new PtbkError(problem, { kind: 'setup' });
         const reference = `ptbk-${metadata.projectKeyId.slice(0, 8)}-${randomBytes(6).toString('hex')}`;
         const secret = randomBytes(WRAPPING_KEY_BYTES);
+        let readBack: Buffer | undefined;
         try {
             await this.unlock.store(reference, secret);
-            const previous = (await this.readBindings(metadata))?.hosts ?? {};
-            const replaced = previous[this.host];
-            await writeJsonAtomic(join(this.encryptionDirectory, 'hosts.json'), { projectKeyId: metadata.projectKeyId, hosts: { ...previous, [this.host]: { facility: this.unlock.facility, reference, wrappedRoot: seal(secret, HOST_DOMAIN, root), at: new Date().toISOString() } } } satisfies HostBindings, { mode: PRIVATE_FILE_MODE });
-            if (replaced && replaced.reference !== reference && replaced.facility === this.unlock.facility) await this.unlock.remove(replaced.reference).catch(() => undefined);
+            readBack = await this.unlock.load(reference);
+            if (!readBack?.equals(secret)) throw new PtbkError('The operating system could not read back the stored Wallet key. Unlock its credential store and retry.', { kind: 'setup' });
+            const binding = { facility: this.unlock.facility, reference, wrappedRoot: seal(secret, HOST_DOMAIN, root), at: new Date().toISOString() };
+            if (!words) return binding;
+            const key = domainKey(secret, Buffer.from(metadata.salt, 'base64'), PENDING_WORDS_DOMAIN);
+            const plaintext = Buffer.from(words.join(' '), 'utf8');
+            try {
+                return { ...binding, pendingWords: seal(key, PENDING_WORDS_DOMAIN, plaintext) };
+            } finally {
+                plaintext.fill(0);
+                key.fill(0);
+            }
+        } catch (error) {
+            await this.unlock.remove(reference).catch(() => undefined);
+            throw error;
         } finally {
+            readBack?.fill(0);
             secret.fill(0);
         }
+    }
+
+    /** Rebinds the same root to a fresh verified host key and retires the previous key after publication. */
+    private async provisionHost(metadata: EncryptionMetadata, root: Buffer): Promise<void> {
+        const previous = (await this.readBindings(metadata))?.hosts ?? {};
+        const replaced = previous[this.host];
+        const binding = await this.createHostBinding(metadata, root);
+        const bindings: HostBindings = { projectKeyId: metadata.projectKeyId, hosts: { ...previous, [this.host]: binding } };
+        // Only retire the old OS key after the replacement file and its directory entry are durable.
+        await writePrivateFile(this.encryptionDirectory, 'hosts.json', JSON.stringify(bindings));
+        this.recoveryPending = false;
+        this.shownRecovery = undefined;
+        if (replaced?.facility === this.unlock.facility) await this.unlock.remove(replaced.reference).catch(() => undefined);
+    }
+
+    /** Reads the pending words on a protected owner surface and verifies they match this generation. */
+    public async showRecoveryWords(): Promise<{ readonly words: readonly string[]; readonly receipt: string }> {
+        return await this.mutex.run(async () => {
+            this.requireReady();
+            const metadata = this.metadata!;
+            const binding = (await this.readBindings(metadata))?.hosts[this.host];
+            if (!binding?.pendingWords || binding.facility !== this.unlock.facility) throw new PtbkError('There are no pending recovery words to show on this computer.', { kind: 'conflict' });
+            const secret = await this.unlock.load(binding.reference);
+            if (!secret) throw new PtbkError("Unlock this computer's credential store to view the recovery words.", { kind: 'setup' });
+            const salt = Buffer.from(metadata.salt, 'base64');
+            const key = domainKey(secret, salt, PENDING_WORDS_DOMAIN);
+            let plaintext: Buffer | undefined;
+            let root: Buffer | undefined;
+            try {
+                plaintext = open(key, PENDING_WORDS_DOMAIN, binding.pendingWords);
+                const words = normalizeRecoveryWords(plaintext.toString('utf8'));
+                root = deriveProjectRoot(words, salt);
+                if (!verifyRoot(root, salt, metadata.verifier)) throw new PtbkError('The pending words do not match this Wallet.', { kind: 'conflict' });
+                if (this.shownRecovery?.reference !== binding.reference) this.shownRecovery = { reference: binding.reference, receipt: randomBytes(16).toString('hex') };
+                return { words, receipt: this.shownRecovery.receipt };
+            } finally {
+                secret.fill(0);
+                key.fill(0);
+                plaintext?.fill(0);
+                root?.fill(0);
+            }
+        });
+    }
+
+    /** Acknowledges a local reveal without changing any record, project key, or written recovery word. */
+    public async confirmRecoveryWords(receipt: string): Promise<WalletOutcome> {
+        const outcome = await this.mutex.run(async () => {
+            this.requireReady();
+            if (!this.recoveryPending) return { action: 'wallet-recovery-confirm', applied: false, outcome: 'Recovery words are already confirmed.' };
+            const metadata = this.metadata!;
+            const binding = (await this.readBindings(metadata))?.hosts[this.host];
+            if (!binding?.pendingWords || !this.shownRecovery || this.shownRecovery.reference !== binding.reference || this.shownRecovery.receipt !== receipt) {
+                throw new PtbkError('Open the pending recovery words on this computer before confirming them.', { kind: 'conflict' });
+            }
+            const secret = await this.unlock.load(binding.reference);
+            if (!secret) throw new PtbkError("Unlock this computer's credential store to confirm the recovery words.", { kind: 'setup' });
+            let root: Buffer | undefined;
+            try {
+                root = open(secret, HOST_DOMAIN, binding.wrappedRoot);
+                if (!verifyRoot(root, Buffer.from(metadata.salt, 'base64'), metadata.verifier)) throw new PtbkError('The local key does not match the Wallet.', { kind: 'conflict' });
+                await this.provisionHost(metadata, root);
+            } finally {
+                root?.fill(0);
+                secret.fill(0);
+            }
+            return { action: 'wallet-recovery-confirm', applied: true, outcome: 'Recovery words confirmed. Keep them with a separate backup of the encrypted project data.' };
+        });
+        return this.remember(outcome);
     }
 
     /**
@@ -1266,6 +1420,8 @@ export class WalletSubEngine {
             const draft = this.rotation;
             if (!draft || draft.expiresAt < Date.now()) {
                 this.rotation = undefined;
+                this.recoveryPending = false;
+                this.shownRecovery = undefined;
                 return { action: 'wallet-rotate-confirm', applied: false, outcome: 'No word replacement is waiting for confirmation (it expires after 30 minutes); start it again.' };
             }
             this.requireReady();
@@ -1296,6 +1452,8 @@ export class WalletSubEngine {
                 this.key = key;
                 this.records = reopened;
                 this.rotation = undefined;
+                this.recoveryPending = false;
+                this.shownRecovery = undefined;
                 return { action: 'wallet-rotate-confirm', applied: true, outcome: `The Wallet now uses the new 12 words for recovery; all ${this.records.length} saved login${this.records.length === 1 ? '' : 's'} are preserved and this computer still unlocks it automatically. The old words no longer open it. Other computers need the new words once.` };
             } finally {
                 root.fill(0);
@@ -1316,7 +1474,7 @@ export class WalletSubEngine {
     public async beginReset(input: { readonly confirm: string }): Promise<{ readonly words: readonly string[]; readonly warning: string }> {
         return await this.mutex.run(async () => {
             if (this.state === 'ready') throw new PtbkError('The Wallet can be unlocked here, so nothing is lost: generate new 12 words instead of resetting it.', { kind: 'conflict', effect: 'Nothing was changed.' });
-            if (this.state === 'empty' && !this.metadata) throw new PtbkError('There is no Wallet to reset; set it up instead.', { kind: 'usage', effect: 'Nothing was changed.' });
+            if (!this.hasWalletFiles && !this.metadata) throw new PtbkError('There is no Wallet to reset; set it up instead.', { kind: 'usage', effect: 'Nothing was changed.' });
             if (input.confirm !== 'RESET') throw new PtbkError(`Type RESET to confirm. ${RESET_WARNING}`, { kind: 'usage', effect: 'Nothing was changed.' });
             const problem = await this.unlock.problem();
             if (problem) throw new PtbkError(problem, { kind: 'setup', effect: 'Nothing was changed.' });
@@ -2298,6 +2456,7 @@ export class WalletSubEngine {
         return {
             state,
             summary,
+            ...(state === 'ready' && this.recoveryPending ? { recoveryPending: true as const } : {}),
             ...(this.problem ? { problem: this.problem } : {}),
             ...(this.metadata ? { facility: this.unlock.facility } : {}),
             records: this.records.map((record): WalletRecordView => {
@@ -2318,7 +2477,7 @@ export class WalletSubEngine {
             }),
             ...(this.lockedRecords ? { lockedRecords: this.lockedRecords } : {}),
             management: (() => {
-                const canReset = (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.problem);
+                const canReset = (state === 'locked' || state === 'unavailable') && Boolean(this.metadata || this.hasWalletFiles);
                 return { canImport: state === 'ready', canRotate: state === 'ready', canReset, ...(canReset ? { resetWarning: RESET_WARNING } : {}) };
             })(),
             pending,

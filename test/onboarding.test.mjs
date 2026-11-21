@@ -214,7 +214,11 @@ test('the daemon waits without a project, restores a draft, then publishes one a
     }, { timeoutMs: 25_000 });
     const linked = await loadEngineIdentity(finalProject.runtime.app, { create: false });
     assert.equal(linked.engineId, identity.engineId);
-    assert.equal((await lookupService(finalProject)).state, 'running');
+    const running = await lookupService(finalProject);
+    assert.equal(running.state, 'running');
+    const wallet = await running.client.request('wallet');
+    assert.equal(wallet.state, 'ready');
+    assert.equal(wallet.recoveryPending, true, 'paired project creation never asks for words');
     assert.equal((await readFile(join(root, 'specs', '_initial.md'), 'utf8')).trim(), 'Create a newsletter.\n\n[brief.txt](_initial/brief.txt)');
     assert.equal(await readFile(join(root, 'specs', '_initial', 'brief.txt'), 'utf8'), 'A private attachment.');
     const firstCommit = (await git(root, ['rev-list', '--max-parents=0', 'HEAD'])).trim();

@@ -371,7 +371,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         browserProfile?: string;
         browserMode?: 'headless' | 'headful';
         traces?: { commit: boolean; ignoreVideos: boolean; recordVideo: boolean };
-        /** Optional Wallet setup now (default No; the same protected operation as later Wallet setup). */
+        /** Whether the owner chose to write down recovery words during the wizard. */
         wallet?: boolean;
         /**
          * The staged Wallet: words the owner already wrote down and an optional import selection, held only in this
@@ -820,8 +820,7 @@ export async function initializeProject(context: CommandContext, options: { proj
             );
             answers.set('traces', `Traces: ${state.traces.commit ? 'committed' : 'local only'}, videos ${state.traces.recordVideo ? 'recorded locally' : 'off'}`);
         },
-        // 8. Optional Wallet setup, default No; an existing vault is never recreated. Its words and an optional import
-        // selection stay in this draft's memory; the Wallet is created only after the final confirmation.
+        // 8. Optionally save recovery words now and stage an import. The default Wallet needs no words during init.
         wallet: async () => {
             if (!interactive || (await pathExists(join(projectAt(state.root).runtime.root, 'encryption', 'project.json')))) {
                 discardWalletDraft();
@@ -833,15 +832,15 @@ export async function initializeProject(context: CommandContext, options: { proj
             state.wallet = answered(
                 await confirm(terminal, {
                     frame: frame('wallet', 'website logins your agents may need'),
-                    question: 'Set up Wallet now? It keeps website logins encrypted in this project and signs agents in without ever showing them a password. You can also set it up later on the dashboard.',
+                    question: 'Write down the 12 words for recovery now? The Wallet can save encrypted logins either way.',
                     defaultYes: state.wallet === true,
-                    yesLabel: state.walletDraft ? 'Yes, keep the Wallet whose 12 words you wrote down' : 'Yes, set it up now (shows 12 words for recovery once)',
-                    noLabel: 'No, later',
+                    yesLabel: state.walletDraft ? 'Yes, keep the Wallet whose 12 words you wrote down' : 'Yes, show the words and offer a login import',
+                    noLabel: 'Later, use the Wallet on this computer',
                 }),
             );
             if (!state.wallet) {
                 discardWalletDraft();
-                answers.set('wallet', 'Wallet: later');
+                answers.set('wallet', 'Wallet: automatic unlock on this computer, recovery words later');
                 return;
             }
             await stageWallet();
@@ -1768,6 +1767,18 @@ export async function initializeProject(context: CommandContext, options: { proj
             unresolved.push(`Wallet: ${errorMessage(error)} → set it up or import later on the Wallet page`);
         }
         state.walletDraft = undefined;
+    } else if (state.newProject && intendedUser(context.env).scope === 'direct') {
+        // Paired, unattended and --no-start creation use the same Wallet as a running engine.
+        // An elevated installer leaves provisioning to the service running as the project owner.
+        const wallet = new WalletSubEngine({ project, env: context.env, onChange: () => undefined, log: () => undefined });
+        try {
+            await wallet.initialize({ provisionIfEmpty: true });
+            const view = wallet.view();
+            if (view.recoveryPending) changed.push('The Wallet is ready on this computer. Save its 12 words for recovery later from the local Wallet page.');
+            else if (view.problem) notes.push(`Wallet: ${view.problem}`);
+        } catch (error) {
+            notes.push(`Wallet: ${errorMessage(error)}`);
+        }
     }
     await handOverCreated(createdDirectories, intendedUser(context.env)).catch((error: unknown) => unresolved.push(`The new project folder could not be handed over to its user: ${errorMessage(error)} → fix its ownership (chown) before running Promptbook without sudo`));
 
