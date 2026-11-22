@@ -1,5 +1,9 @@
 # Unreleased
 
+- The npm package is released whenever the engine checks of its commit pass. Before, any failing desktop job blocked it: 0.119.0-128 passed every engine test and was still not published, because the desktop UI could not check out the private App source. Now npm, VS Code and Android depend only on the engine checks (`check (...)` jobs); the desktop installers additionally need the desktop jobs, and when they are withheld the `desktop-withheld` job fails so the incomplete release stays visible. A release also no longer fails when App main cannot be resolved (missing `PROMPTBOOK_APP_READ_TOKEN`).
+- A check run cancelled by a job timeout now gets the same one re-run of its failed jobs as a failed run. Before, the publication validated the whole tag again: for 0.119.0-126 that took another 60 minutes, hung the same way and cancelled the release.
+- The package check (`npm run test:package`) can no longer hang a release. On Windows runners it sometimes never ended after reporting success, until the 60-minute job timeout (0.119.0-125/126). It now exits explicitly once the result is reported, bounds the cleanup of its disposable folder, and a 15-minute watchdog fails it with the list of what is still running.
+
 - Remove the VS Code extension test that compared it with the desktop Monaco editor adapter. The desktop app now hosts the bundled project UI and no longer has that adapter, so the test failed every check with a missing module.
 - The Windows installer report-dialog check no longer fails when it reads the clipboard at the moment the dialog is writing the report ("Requested Clipboard operation did not succeed"); a busy clipboard is read again until the deadline.
 - When the repository secret `PROMPTBOOK_APP_READ_TOKEN` is missing, the desktop UI build now says so and how to set it, instead of failing on the private App checkout with "Input required and not supplied: token".

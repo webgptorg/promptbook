@@ -16,8 +16,10 @@ concurrency:
 jobs:
   commit-check:
     # The release commit is pushed with its tag, so the branch push already runs check.yml on this exact commit.
-    # Its passing run is reused. A failed one gets one re-run of its failed jobs (failing again fails the release); with
-    # no run, a cancelled or a hung one, `validate` checks the tag here (scripts/await-commit-check.mjs).
+    # Its passing run is reused. A failed one gets one re-run of its failed jobs; failing again, only its engine jobs
+    # decide npm, VS Code and Android (`passed`), and the desktop installers need its desktop jobs too (`desktop`).
+    # With no run, a cancelled or a hung one, `validate` checks the tag here (scripts/await-commit-check.mjs). A
+    # desktop candidate whose compiled App is no longer App main is rebuilt by `validate` (`revalidate`).
     if: github.repository == 'webgptorg/promptbook'
     runs-on: ubuntu-latest
     timeout-minutes: 100
@@ -26,6 +28,8 @@ jobs:
       contents: read
     outputs:
       passed: ${{ steps.candidate.outputs.passed }}
+      desktop: ${{ steps.candidate.outputs.desktop }}
+      revalidate: ${{ steps.candidate.outputs.revalidate }}
       run-id: ${{ steps.candidate.outputs.run-id }}
       app-sha: ${{ steps.app.outputs.sha }}
     steps:
@@ -46,10 +50,16 @@ jobs:
         id: app
         env:
           GH_TOKEN: ${{ secrets.PROMPTBOOK_APP_READ_TOKEN }}
+        # Without the secret the engine is still released; only the desktop installers, which bundle the App, are not.
         run: |
-          sha=$(gh api repos/webgptorg/app/commits/main --jq .sha)
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-      - name: Reuse a candidate only when its compiled App is still current
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo "::warning::Repository secret PROMPTBOOK_APP_READ_TOKEN is not set: the desktop installers of this release cannot be built."
+          elif ! sha=$(gh api repos/webgptorg/app/commits/main --jq .sha); then
+            echo "::warning::App main could not be resolved: the desktop installers of this release cannot be built."
+          else
+            echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Reuse the engine check, and the desktop candidate only when its compiled App is still current
         id: candidate
         env:
           GH_REPO: ${{ github.repository }}
@@ -57,14 +67,19 @@ jobs:
           APP_SHA: ${{ steps.app.outputs.sha }}
           RUN_ID: ${{ steps.await.outputs.run-id }}
           PASSED: ${{ steps.await.outputs.passed }}
+          DESKTOP: ${{ steps.await.outputs.desktop }}
         run: |
-          if [[ "$PASSED" == true ]] && gh run download "$RUN_ID" --name desktop-engine-ui --dir "$RUNNER_TEMP/ui" && [[ $(jq -r .commit "$RUNNER_TEMP/ui/bundle.json") == "$APP_SHA" ]]; then
-            echo 'passed=true' >> "$GITHUB_OUTPUT"
-            echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          if [[ "$PASSED" != true ]]; then exit 0; fi
+          { echo 'passed=true'; echo "run-id=$RUN_ID"; } >> "$GITHUB_OUTPUT"
+          if [[ "$DESKTOP" != true || -z "$APP_SHA" ]]; then exit 0; fi
+          if gh run download "$RUN_ID" --name desktop-engine-ui --dir "$RUNNER_TEMP/ui" && [[ $(jq -r .commit "$RUNNER_TEMP/ui/bundle.json") == "$APP_SHA" ]]; then
+            echo 'desktop=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'revalidate=true' >> "$GITHUB_OUTPUT"
           fi
   validate:
     needs: commit-check
-    if: github.repository == 'webgptorg/promptbook' && needs.commit-check.outputs.passed != 'true'
+    if: github.repository == 'webgptorg/promptbook' && (needs.commit-check.outputs.passed != 'true' || needs.commit-check.outputs.revalidate == 'true')
     uses: ./.github/workflows/check.yml
     permissions:
       contents: read
@@ -136,8 +151,8 @@ jobs:
     # missing, corrupt or mismatched installer makes the release incomplete (this job fails) without republishing npm.
     # check.yml already built and tested this installer from the exact release commit (desktop payload, Inno Setup,
     # compiled-installer runs): that validated candidate is published instead of being rebuilt here.
-    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.publish.result == 'success' }}
-    needs: [commit-check, publish]
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.publish.result == 'success' && (needs.commit-check.outputs.desktop == 'true' || needs.validate.result == 'success') }}
+    needs: [commit-check, validate, publish]
     runs-on: windows-latest
     timeout-minutes: 20
     permissions:
@@ -167,7 +182,7 @@ jobs:
         with:
           name: windows-desktop-installer-candidate
           path: dist-installer
-          run-id: ${{ needs.commit-check.outputs.run-id || github.run_id }}
+          run-id: ${{ needs.commit-check.outputs.desktop == 'true' && needs.commit-check.outputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
       - name: The bootstrap installs and reports the exact published ptbk version
         shell: powershell
@@ -194,7 +209,7 @@ jobs:
         run: node scripts/publish-desktop-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
   macos-desktop:
     # Use exactly the UI that passed in the Windows installer candidate and both macOS smoke tests.
-    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.desktop == 'true' || needs.validate.result == 'success') }}
     needs: [computer-native, commit-check, validate]
     strategy:
       fail-fast: false
@@ -233,7 +248,7 @@ jobs:
       - uses: actions/download-artifact@v6
         with:
           name: desktop-engine-ui
-          run-id: ${{ needs.commit-check.outputs.run-id || github.run_id }}
+          run-id: ${{ needs.commit-check.outputs.desktop == 'true' && needs.commit-check.outputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/desktop-engine-ui
       - run: npm ci --prefix apps/desktop
@@ -261,7 +276,7 @@ jobs:
     # Publishes the DMGs verified by `macos-desktop` once the release commit is validated; no macOS runner needed. One
     # architecture failing, or cancelled because GitHub found no macOS arm64 runner (0.119.0-122), still publishes the
     # other, and this job then fails so the incomplete release is visible.
-    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && contains(fromJSON('["success", "failure", "cancelled"]'), needs.macos-desktop.result) && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && contains(fromJSON('["success", "failure", "cancelled"]'), needs.macos-desktop.result) && (needs.commit-check.outputs.desktop == 'true' || needs.validate.result == 'success') }}
     needs: [commit-check, validate, macos-desktop]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -366,3 +381,16 @@ jobs:
       - run: npm run package:vscode
       - name: Publish matching VSIX to GitHub Release and existing Marketplace listing
         run: npm run release:vscode
+  desktop-withheld:
+    # The engine was released from a check run whose desktop jobs failed (for example without the
+    # PROMPTBOOK_APP_READ_TOKEN secret): the desktop installers are skipped, and this job fails so that the
+    # incomplete release stays visible. Once fixed, `gh workflow run publish.yml -f tag=<tag>` adds them;
+    # every publisher of this workflow is idempotent.
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.commit-check.outputs.passed == 'true' && needs.commit-check.outputs.desktop != 'true' && needs.commit-check.outputs.revalidate != 'true' }}
+    needs: commit-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "::error::The desktop installers of this release were not built: the desktop jobs of check run ${{ needs.commit-check.outputs.run-id }} failed or App main could not be resolved. npm, VS Code and Android are released."
+          exit 1
