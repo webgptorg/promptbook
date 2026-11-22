@@ -1,5 +1,7 @@
 # Unreleased
 
+- New projects start with an encrypted Wallet. Its local owner can view the same 12 words for recovery across restarts until they confirm saving them. Confirmation preserves existing logins.
+
 - Fix the desktop end-to-end check, which failed on every platform as soon as CI could build the bundled App: its own cleanup stopped the second project after the fixture had already deleted that folder, so the stop could not start (`spawn node ENOENT`). The fixtures already stop their engines before removing them.
 - The README shows the status of the latest publication and the current npm version. The badge uses shields.io because GitHub's own badge reads `publish.yml` from the default branch, where it is an older, unrelated workflow.
 - When GitHub has no Apple Silicon runner for the native Computer Control helper (0.119.0-120 was never released for this reason), the publication cross-compiles the same arm64 helper on an Intel macOS runner (`node scripts/build-computer-helper.mjs --cross`). Local builds on Intel Macs still skip the helper.

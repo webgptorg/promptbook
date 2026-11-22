@@ -378,8 +378,8 @@ export async function applyLocalModelsAction(agenda: Agenda, params: Readonly<Re
 
 /**
  * Wallet operations of every channel (terminal, browser, API): one engine-owned implementation. Secrets are
- * write-only (never echoed in replies, errors or logs). The 12 words for recovery are returned only by `wallet-setup`
- * and only to an owner surface (`ownerSurface`: the local terminal or the local browser, never a direct API client).
+ * write-only (never echoed in replies, errors or logs). Recovery words are returned only to a protected owner
+ * surface (the local terminal or local browser) during setup, deferred acknowledgement, rotation or reset.
  *
  * @private shared runtime controls
  */
@@ -397,6 +397,10 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
     switch (method) {
         case 'wallet':
             return wallet.view();
+        case 'wallet-recovery-words':
+        case 'wallet-recovery-confirm':
+            if (!options.ownerSurface) throw new PtbkError('Only the local owner dashboard can show or confirm the recovery words.', { kind: 'usage' });
+            return method === 'wallet-recovery-words' ? await wallet.showRecoveryWords() : await wallet.confirmRecoveryWords(text('receipt'));
         case 'wallet-setup':
             if (!options.ownerSurface) throw new PtbkError('The 12 words for recovery are shown only in the dashboard (terminal or local browser), never to API clients.', { kind: 'usage', effect: 'Nothing was changed.' });
             return await wallet.beginSetup();
@@ -466,4 +470,4 @@ export async function applyWalletAction(agenda: Agenda, method: string, params: 
  *
  * @private shared runtime controls
  */
-export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-test-code', 'wallet-test-cancel', 'wallet-code', 'wallet-field', 'wallet-remove', 'wallet-seen', 'wallet-reject', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);
+export const WALLET_ACTIONS: ReadonlySet<string> = new Set(['wallet', 'wallet-setup', 'wallet-setup-confirm', 'wallet-setup-cancel', 'wallet-recovery-words', 'wallet-recovery-confirm', 'wallet-restore', 'wallet-save', 'wallet-test', 'wallet-test-code', 'wallet-test-cancel', 'wallet-code', 'wallet-field', 'wallet-remove', 'wallet-seen', 'wallet-reject', 'wallet-dismiss', 'wallet-import-preview', 'wallet-import-apply', 'wallet-import-cancel', 'wallet-rotate', 'wallet-rotate-confirm', 'wallet-rotate-cancel', 'wallet-reset']);
