@@ -112,10 +112,34 @@ jobs:
           path: .ptbk/computer-native/macos-arm64/
           include-hidden-files: true
           if-no-files-found: error
+  computer-native-intel:
+    # The same arm64 helper cross-compiled on an Intel Mac when no Apple Silicon runner was available: in 0.119.0-120
+    # `computer-native` was never assigned a runner and the npm package, which ships the helper, was not released.
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result != 'success' }}
+    needs: computer-native
+    runs-on: macos-15-intel
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          architecture: x64
+      - name: Cross-compile the engine-owned primary-desktop helper for Apple Silicon
+        run: node scripts/build-computer-helper.mjs --cross
+      - uses: actions/upload-artifact@v6
+        with:
+          name: computer-native-macos-arm64
+          path: .ptbk/computer-native/macos-arm64/
+          include-hidden-files: true
+          if-no-files-found: error
   publish:
     # `validate` is skipped when the branch check is reused: `!cancelled()` keeps a skipped need from skipping this job.
-    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
-    needs: [commit-check, validate, computer-native]
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && (needs.computer-native.result == 'success' || needs.computer-native-intel.result == 'success') && (needs.commit-check.outputs.passed == 'true' || needs.validate.result == 'success') }}
+    needs: [commit-check, validate, computer-native, computer-native-intel]
     runs-on: ubuntu-latest
     # Covers npm's registry processing after the upload, which `release:publish` waits for (up to 35 minutes).
     timeout-minutes: 50
@@ -209,8 +233,8 @@ jobs:
         run: node scripts/publish-desktop-installer.mjs "dist-installer/Promptbook-Setup-$env:PTBK_VERSION-windows-x64.exe"
   macos-desktop:
     # Use exactly the UI that passed in the Windows installer candidate and both macOS smoke tests.
-    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && needs.computer-native.result == 'success' && (needs.commit-check.outputs.desktop == 'true' || needs.validate.result == 'success') }}
-    needs: [computer-native, commit-check, validate]
+    if: ${{ !cancelled() && github.repository == 'webgptorg/promptbook' && (needs.computer-native.result == 'success' || needs.computer-native-intel.result == 'success') && (needs.commit-check.outputs.desktop == 'true' || needs.validate.result == 'success') }}
+    needs: [computer-native, computer-native-intel, commit-check, validate]
     strategy:
       fail-fast: false
       matrix:
