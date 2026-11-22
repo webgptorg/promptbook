@@ -98,6 +98,15 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
+      - name: Require read access to the private App source
+        if: env.FRESH_UI == 'true'
+        env:
+          APP_READ_TOKEN: ${{ secrets.PROMPTBOOK_APP_READ_TOKEN }}
+        run: |
+          if [ -z "$APP_READ_TOKEN" ]; then
+            echo "::error::Repository secret PROMPTBOOK_APP_READ_TOKEN is not set. Create a fine-grained token with Contents: Read on webgptorg/app and store it with: gh secret set PROMPTBOOK_APP_READ_TOKEN --repo webgptorg/promptbook"
+            exit 1
+          fi
       - name: Check out the private App source for this build
         if: env.FRESH_UI == 'true'
         uses: actions/checkout@v6

@@ -73,12 +73,15 @@ function Click-Button([IntPtr] $Window, [string] $Caption) {
 }
 
 function Read-CopiedReport([IntPtr] $Window, [string] $Expected) {
-    [Windows.Forms.Clipboard]::SetText('clipboard sentinel')
+    # SetDataObject retries while another process holds the clipboard open; SetText would fail on the first attempt.
+    [Windows.Forms.Clipboard]::SetDataObject('clipboard sentinel', $true, 20, 100)
     Click-Button $Window 'Copy report'
     $deadline = [DateTime]::UtcNow.AddSeconds(10)
+    $text = ''
     do {
         Start-Sleep -Milliseconds 100
-        $text = [Windows.Forms.Clipboard]::GetText()
+        # The dialog opens the clipboard to copy the report; a read during that moment is "not yet", not a failure.
+        try { $text = [Windows.Forms.Clipboard]::GetText() } catch [Runtime.InteropServices.ExternalException] { continue }
         if ($text.Contains($Expected)) {
             if ([InstallerDialogNative]::FindReportWindow() -eq [IntPtr]::Zero) { throw 'Copy report closed the dialog.' }
             if (-not $text.Contains('Version: 0.0.0-test')) { throw 'The copied report omitted the version.' }

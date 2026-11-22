@@ -1,5 +1,9 @@
 # Unreleased
 
+- Remove the VS Code extension test that compared it with the desktop Monaco editor adapter. The desktop app now hosts the bundled project UI and no longer has that adapter, so the test failed every check with a missing module.
+- The Windows installer report-dialog check no longer fails when it reads the clipboard at the moment the dialog is writing the report ("Requested Clipboard operation did not succeed"); a busy clipboard is read again until the deadline.
+- When the repository secret `PROMPTBOOK_APP_READ_TOKEN` is missing, the desktop UI build now says so and how to set it, instead of failing on the private App checkout with "Input required and not supplied: token".
+
 - Add `npm run link:global` for contributors: it builds the checkout and links the global `ptbk` command to it, so `ptbk` on PATH runs the repository's current state. Self-update recognizes the link as a source checkout and never overwrites it. The script refuses to replace a global installation that live engines still run from (`-- --force` overrides), and it reports when another `ptbk` comes first on PATH.
 - The Windows and macOS desktop apps bundle the production project UI from `webgptorg/app` main. The app discovers local projects and opens them over an authenticated OS pipe without an account, pairing or a running HTTP dashboard. Remote web access and the CLI console keep their existing entry points.
 
