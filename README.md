@@ -16,6 +16,11 @@
   <a href="https://www.ptbk.io/en/partnership"><strong>For partners</strong></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/webgptorg/promptbook/actions/workflows/publish.yml"><img src="https://img.shields.io/github/actions/workflow/status/webgptorg/promptbook/publish.yml?label=publish" alt="Publish ptbk: status of the latest release" /></a>
+  <a href="https://www.npmjs.com/package/ptbk"><img src="https://img.shields.io/npm/v/ptbk?label=ptbk" alt="ptbk on npm" /></a>
+</p>
+
 Give Promptbook an ongoing responsibility, a goal and your rules. Its agents find useful work, carry it through and ask when a decision needs you. **Your engine runs on your computer or server, with your files and your choice of models.**
 
 ![The dashboard controls an independent engine. The engine coordinates agents and tasks, records file changes in Git, and uses your selected models and tools.](https://raw.githubusercontent.com/webgptorg/promptbook/reborn/2026-10/design/readme-engine.svg)
