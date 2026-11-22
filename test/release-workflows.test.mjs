@@ -66,14 +66,15 @@ test('the sharded test suite runs every test file exactly once, in shards of sim
     assert.ok(testSeconds[0] < Math.min(...testSeconds.slice(1)), `the first shard, which does other work too, gets fewer tests: ${testSeconds}`);
 });
 
-test('a publication reuses only a passing check run of its exact commit, re-runs a failed one once, and otherwise validates the tag itself', async () => {
+test('a publication reuses only a passing check run of its exact commit, re-runs a failed one once, releases the engine when only desktop jobs failed, and otherwise validates the tag itself', async () => {
     /** Simulates the runs the API lists over time; each poll advances the clock by the requested pause. */
-    const scenario = async (timeline, options = {}) => {
+    const scenario = async (timeline, options = {}, jobs = []) => {
         let clock = 0;
         let poll = 0;
         const reruns = [];
         const result = await awaitCommitCheck({
             listRuns: async () => structuredClone(timeline[Math.min(poll++, timeline.length - 1)]),
+            listJobs: async () => structuredClone(jobs),
             rerunFailedJobs: async (id) => { reruns.push(id); },
             sleep: async (ms) => { clock += ms; },
             now: () => clock,
@@ -82,18 +83,35 @@ test('a publication reuses only a passing check run of its exact commit, re-runs
         return { ...result, reruns };
     };
     const run = (id, status, conclusion = null, { created_at = '2026-11-19T12:00:00Z', run_attempt = 1 } = {}) => ({ id, status, conclusion, created_at, run_attempt, html_url: `https://example.test/runs/${id}` });
-    const unusable = { passed: false, failed: false, runId: undefined, reruns: [] };
-    assert.deepEqual(await scenario([[], [run(7, 'queued')], [run(7, 'in_progress')], [run(7, 'completed', 'success')]]), { passed: true, failed: false, runId: '7', reruns: [] });
-    assert.deepEqual(await scenario([[run(7, 'completed', 'cancelled')]]), unusable, 'a superseded branch run is not reused');
+    const unusable = { passed: false, desktop: false, failed: false, runId: undefined, reruns: [] };
+    assert.deepEqual(await scenario([[], [run(7, 'queued')], [run(7, 'in_progress')], [run(7, 'completed', 'success')]]), { passed: true, desktop: true, failed: false, runId: '7', reruns: [] });
+    assert.deepEqual(
+        await scenario([[run(7, 'completed', 'cancelled')], [run(7, 'completed', 'success', { run_attempt: 2 })]]),
+        { passed: true, desktop: true, failed: false, runId: '7', reruns: [7] },
+        'a run cancelled by a job timeout (check.yml has no concurrency group) gets the one re-run, not a second full validation',
+    );
     assert.deepEqual(await scenario([[]], { appearanceTimeoutMs: 60_000 }), unusable, 'no branch run: the tag is validated');
     assert.deepEqual(await scenario([[run(7, 'in_progress')]], { completionTimeoutMs: 60_000 }), unusable, 'a hung branch run does not block forever');
     const failed = run(7, 'completed', 'failure');
     assert.deepEqual(
         await scenario([[failed], [failed], [run(7, 'queued', null, { run_attempt: 2 })], [run(7, 'completed', 'success', { run_attempt: 2 })]]),
-        { passed: true, failed: false, runId: '7', reruns: [7] },
+        { passed: true, desktop: true, failed: false, runId: '7', reruns: [7] },
         'a failed run gets one re-run of its failed jobs, and the still-listed replaced attempt is not taken for its result',
     );
-    assert.deepEqual(await scenario([[failed], [run(7, 'completed', 'failure', { run_attempt: 2 })]]), { passed: false, failed: true, runId: undefined, reruns: [7] }, 'failing again fails the publication');
+    assert.deepEqual(await scenario([[failed], [run(7, 'completed', 'failure', { run_attempt: 2 })]]), { passed: false, desktop: false, failed: true, runId: undefined, reruns: [7] }, 'failing again fails the publication');
+    const failedAgain = [[failed], [run(7, 'completed', 'failure', { run_attempt: 2 })]];
+    const job = (name, conclusion) => ({ name, conclusion });
+    const engineJobs = [job('check (ubuntu-latest, 24)', 'success'), job('check (windows-latest, 22, 1/5)', 'success')];
+    assert.deepEqual(
+        await scenario(failedAgain, {}, [...engineJobs, job('desktop-ui', 'failure'), job('windows-installer', 'skipped')]),
+        { passed: true, desktop: false, failed: false, runId: '7', reruns: [7] },
+        'a missing App token or macOS runner withholds only the desktop installers, never the npm engine',
+    );
+    assert.deepEqual(
+        await scenario(failedAgain, {}, [...engineJobs, job('check (macos-latest, 24, 2/2)', 'failure'), job('desktop-ui', 'success')]),
+        { passed: false, desktop: false, failed: true, runId: undefined, reruns: [7] },
+        'one failing engine shard fails the publication',
+    );
     const newer = [run(7, 'completed', 'failure'), run(8, 'completed', 'success', { created_at: '2026-11-19T12:30:00Z' })];
-    assert.deepEqual(await scenario([newer]), { passed: true, failed: false, runId: '8', reruns: [] }, 'the newest run of the commit decides');
+    assert.deepEqual(await scenario([newer]), { passed: true, desktop: true, failed: false, runId: '8', reruns: [] }, 'the newest run of the commit decides');
 });

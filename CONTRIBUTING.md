@@ -9,6 +9,10 @@ Thank you for considering contributing to Promptbook! Here are some guidelines t
 3. **Add changes in [Changelog](/changelog/_current-preversion.md)**
 4. **Test your changes** to ensure they work as expected, use `npm run check` _(typecheck, tests and package checks)_
 
+## Running your checkout as the global `ptbk`
+
+Run `npm run link:global` to build this checkout and link the global `ptbk` command to it, uncommitted changes included. Every later build of the checkout then changes the global `ptbk`, and while a build runs the command fails. The link replaces a published global installation. The script refuses while engines still run from that installation; pass `-- --force` to link anyway. Pass `-- --no-build` to link the existing `dist/` unchanged. Return to the published release with `npm install --global ptbk`.
+
 ## Reporting Issues
 
 If you encounter any issues, please [open an issue](https://github.com/webgptorg/promptbook/issues) with a clear description and steps to reproduce the problem.

@@ -24,7 +24,8 @@ test('the bundled App opens real local projects, writes through the same API and
     const first = await initializedProject(t);
     const second = await initializedProject(t);
     const { env, directory } = first;
-    t.after(() => ptbk(['stop', '--force', '--raw', '--path', second.project], { cwd: second.project, env }));
+    // Each fixture stops its own engine before removing its folder. A stop hook here would run after that removal
+    // (t.after hooks run in registration order) and fail to spawn in the deleted directory.
     const start = async (project) => {
         const result = await ptbk(['start', '--paused', '--no-server', '--no-dashboard', '--no-persist', '--raw'], { cwd: project, env });
         assert.equal(result.code, 0, result.output);

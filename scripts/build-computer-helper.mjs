@@ -7,9 +7,13 @@ import { fileURLToPath } from 'node:url';
 /** Root of the checked-out engine that owns the bundled native desktop helper. */
 const root = fileURLToPath(new URL('../', import.meta.url));
 
-/** Compile the Apple Silicon helper on a macOS runner; published npm installs receive this prebuilt payload. */
-export async function buildComputerHelper() {
-    if (process.platform !== 'darwin' || process.arch !== 'arm64') return false;
+/**
+ * Compile the Apple Silicon helper on a macOS runner; published npm installs receive this prebuilt payload.
+ * `crossCompile` also compiles it on an Intel Mac (swiftc targets arm64 explicitly): the release falls back to an Intel
+ * runner when GitHub has no Apple Silicon runner (0.119.0-120). Local builds on Intel Macs keep skipping it.
+ */
+export async function buildComputerHelper({ crossCompile = false } = {}) {
+    if (process.platform !== 'darwin' || (process.arch !== 'arm64' && !crossCompile)) return false;
     const source = join(root, 'src', 'computer', 'native', 'macos.swift');
     const hash = createHash('sha256').update(await readFile(source)).digest('hex');
     const directory = join(root, '.ptbk', 'computer-native', 'macos-arm64');
@@ -38,5 +42,5 @@ export async function verifyComputerHelper(directory) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    if (!await buildComputerHelper()) throw new Error('Compile the native Computer Control helper on Apple Silicon macOS.');
+    if (!await buildComputerHelper({ crossCompile: process.argv.includes('--cross') })) throw new Error('Compile the native Computer Control helper on Apple Silicon macOS (or on any Mac with --cross).');
 }

@@ -19,6 +19,16 @@ if (!npmCli) throw new Error('Run this check with `npm run test:package`.');
 const temporary = await realpath(await mkdtemp(join(tmpdir(), 'ptbk package ')));
 
 /**
+ * The whole check normally takes 2-3 minutes. On Windows runners it sometimes never ended after reporting success
+ * (0.119.0-125/126 hit the 60-minute job timeout), so a hang fails fast and names what is still alive.
+ */
+const watchdog = setTimeout(() => {
+    const alive = process._getActiveHandles().map((handle) => [handle.constructor?.name, handle.pid, handle.spawnargs?.join(' ')].filter(Boolean).join(' '));
+    process.stderr.write(`The package check did not finish within 15 minutes. Still alive: ${JSON.stringify(alive)}\n`);
+    process.exit(1);
+}, 15 * 60_000);
+
+/**
  * Runs npm through its JavaScript entry point (works on Windows without a shell).
  */
 function npm(args, cwd = repositoryRoot, env = process.env) {
@@ -172,9 +182,11 @@ try {
 } catch (error) {
     failure = error;
 } finally {
-    await rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }).catch(() => undefined);
+    // Bounded: a disposable folder that Windows still keeps busy is left to the runner rather than blocking the check.
+    const cleanup = rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }).catch(() => undefined);
+    await Promise.race([cleanup, new Promise((resolvePromise) => setTimeout(resolvePromise, 60_000).unref())]);
 }
-if (failure) {
-    process.stderr.write(`${failure.stack ?? failure}\n`);
-    process.exitCode = 1;
-}
+clearTimeout(watchdog);
+if (failure) process.stderr.write(`${failure.stack ?? failure}\n`);
+// Exit explicitly once the result is reported: nothing left behind by the installed engine may keep the check open.
+process.stdout.write('', () => process.exit(failure ? 1 : 0));
