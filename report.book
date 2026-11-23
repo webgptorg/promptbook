@@ -13,3 +13,6 @@ Publishing repair still needs you to complete GitHub two-factor authentication i
 CHAT MESSAGE @Chatter 2026-11-01T04:36:41+01:00
 Expert is now working on release videos from version 0.119.0-45, but published-version discovery is blocked and no videos are confirmed published. Publishing repair still needs you to complete GitHub two-factor authentication in the project browser and confirm in the publishing chat so Developer can inspect the failed jobs. Fixer’s template reconciliation remains queued, while the health check awaits your response because Chrome crashes prevent required verification.
 
+CHAT MESSAGE @Chatter 2026-11-23T14:17:44+01:00
+Two release videos were publicly published on November 1. The latest-version video remains queued for the requested practical ptbk CLI demonstration with your ElevenLabs voice "Pavol Hejny 20206"; the latest ElevenLabs sign-in attempt failed. Publishing repair still awaits your GitHub two-factor authentication in the project browser and confirmation in the publishing chat. The health check also needs your response in Fixer’s chat because Chrome crashes prevent required verification; neither blocker is confirmed resolved.
+
