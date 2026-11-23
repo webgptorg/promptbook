@@ -1,0 +1,8 @@
+TASK Assign routing: Learn from: Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00 — 2026-11-23 14:39:19 — 2026-11-23 15:34:41
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Learn from: Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00 — 2026-11-23 14:39:19}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PURPOSE SYSTEM
+TASK PARENT {Learn from: Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00 — 2026-11-23 14:39:19}
+TASK ORIGIN assignment for {Learn from: Repair the execution requirements of Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17 — 2026-11-02 18:12:00 — 2026-11-23 14:39:19}
+TASK DONE 2026-11-23T15:35:41+01:00

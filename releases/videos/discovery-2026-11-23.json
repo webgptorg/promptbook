@@ -1,0 +1,837 @@
+{
+  "checkedAt": "2026-11-23T13:18:13.064Z",
+  "registryUrl": "https://registry.npmjs.org/ptbk",
+  "versionCount": 927,
+  "eligibleVersions": [
+    {
+      "version": "0.119.0-47",
+      "predecessor": "0.119.0-45",
+      "publishedAt": "2026-11-01T18:16:24.751Z",
+      "gitHead": "fd1860136b55cd95c45066660bdcc7c9c417e9fb",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-47",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-0ZOL4PYi8EW3OQVa7gQqpazzyOS+th9LyJ7s9rnpos8ei0A1yDQXn1UU85a3oSA2GF8YI0yU/iFGYfbRkw+Esw=="
+    },
+    {
+      "version": "0.119.0-54",
+      "predecessor": "0.119.0-47",
+      "publishedAt": "2026-11-03T15:04:28.257Z",
+      "gitHead": "b47c23986cfc3bd6fedee0d58737a26d8199816b",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-54",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-NcJMb68XD61IdWjy6GdetL/zudaQQC1d35MhHNsRXv0YAtPsKeTUDlNxZP/WBuppyvPN+i1N/ZjSdopSpE/IXw=="
+    },
+    {
+      "version": "0.119.0-56",
+      "predecessor": "0.119.0-54",
+      "publishedAt": "2026-11-04T06:17:13.929Z",
+      "gitHead": "367d170996f7abab75f5a2ea09a814955a2665c3",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-56",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-ObLj0gsFnridcN0rtmMVYQNIZ3IulAuk6wxcsI6eCww1TF9EDGe7b+tjHGIV85Jq6yEvVGo83Vg8NT+cdvzEMQ=="
+    },
+    {
+      "version": "0.119.0-62",
+      "predecessor": "0.119.0-56",
+      "publishedAt": "2026-11-04T19:49:59.040Z",
+      "gitHead": "3022f26d4adc667b4cf9903b70977bd76f5113bc",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-62",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-cIILw2y7YCGy4ir6ZsrI+Vtw7yT9fH4OpJpHtd2MWBAaZJRMrg4+6NIgkN0MDvfs1E/sU0VRUf+cceWu5ZtRUg=="
+    },
+    {
+      "version": "0.119.0-66",
+      "predecessor": "0.119.0-62",
+      "publishedAt": "2026-11-05T13:01:04.983Z",
+      "gitHead": "4fc70d934fcf8c3dc571f0287e8ebc9fcff04e76",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-66",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-LyehDCY0Cdr9YE9HEz2SYx6CCLZ4nC4J3fNrMGOTe3/bHgy6OmW+PL7ilI/W77d1HWEPS9leCp6XD+J9K3s/Aw=="
+    },
+    {
+      "version": "0.119.0-67",
+      "predecessor": "0.119.0-66",
+      "publishedAt": "2026-11-05T13:44:37.115Z",
+      "gitHead": "4de0f0a1a7d5b2d4aaf1ca6de5d09b2b7ce31163",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-67",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-32+o0HvbZXefawgu7XvdG+Iffxjg/+lNzqxH6BV9zmnAOExGt7EpBEJlG8nKPW0PTAWimZnT6/EX74aAJmXNFA=="
+    },
+    {
+      "version": "0.119.0-70",
+      "predecessor": "0.119.0-67",
+      "publishedAt": "2026-11-05T18:24:48.822Z",
+      "gitHead": "2e7ee039f5030d3e964e731358c6e588d70c77a2",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-70",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-EX7y98nfrb/P3ug/gvZ0TTS/84xb/QRPPjjHfO83F2rVxbIQTjWoS/BrU53LIxMhh6ErvOY+TmlwmOjJBtPnbw=="
+    },
+    {
+      "version": "0.119.0-71",
+      "predecessor": "0.119.0-70",
+      "publishedAt": "2026-11-05T22:59:13.380Z",
+      "gitHead": "6acf1cc6111fa8348f2e04f02d03898559abc638",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-71",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-DNJRf/sD/5Gebdqz9Wtrl7O6KHeuEfRfU4kOYuPOzFI7PqgkSiIXB/H2V27JUImQgeWIuuefAkipU9yo0uXcxA=="
+    },
+    {
+      "version": "0.119.0-72",
+      "predecessor": "0.119.0-71",
+      "publishedAt": "2026-11-06T02:21:32.026Z",
+      "gitHead": "59d53f619b4b8880e4e4bdadec7b3d11cd99c644",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-72",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-Si613hqeaAya3cByKcdZvQlSTQFsI8zTJhfup/Q6Mg4/5UPAlHi6HZRNJ+0BygASgHpM1BhhDWWgrVmd18qXlw=="
+    },
+    {
+      "version": "0.119.0-74",
+      "predecessor": "0.119.0-72",
+      "publishedAt": "2026-11-07T18:17:59.229Z",
+      "gitHead": "53b4c92b2a23665c2ebe5a9e1c04cc8dd6d521bc",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-74",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-8s1JPqNcOHf39VVub7UUoUOpENdwLYnuZSmHRFmvC+BhLHhj8fOSGvb1aF5phVRoPlcLAqHyO+Qrkc/7YXTR3Q=="
+    },
+    {
+      "version": "0.119.0-75",
+      "predecessor": "0.119.0-74",
+      "publishedAt": "2026-11-07T22:53:45.117Z",
+      "gitHead": "91d5c86ca304057f7dea400307e0877b276db43c",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-75",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-Zlfdcqvs+Fo3bOYGxuFoGIWEXvEPcEe+Nmld37eMKXT5I5CT+RCVy44ROx8tJ47DFWOyeVY8b57PuLfh7odtzg=="
+    },
+    {
+      "version": "0.119.0-77",
+      "predecessor": "0.119.0-75",
+      "publishedAt": "2026-11-08T19:04:16.254Z",
+      "gitHead": "b2f454b4288a6c8ef5c606e95e344dac1c7b7df2",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-77",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-acNki6cAgLLuCktLgxeFPPsmz+8tn42YK3ZeTxpH0MxpRmqLB5Ofd/k1aeCVa/nC6dyOHe1aRoHBDpNsu8aQUA=="
+    },
+    {
+      "version": "0.119.0-78",
+      "predecessor": "0.119.0-77",
+      "publishedAt": "2026-11-08T20:15:35.148Z",
+      "gitHead": "08da6078ce836fba32921bf0f294a41cf055786c",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-78",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-QfgI4IcxgdrH0Ifi9YWp/jMBRtwr7N2WG+10mfCXTKqFLM0Q6/8cQ4z1uR5dF5Q2OG5qGKWUyqrJ3AckhOTYZQ=="
+    },
+    {
+      "version": "0.119.0-79",
+      "predecessor": "0.119.0-78",
+      "publishedAt": "2026-11-08T23:01:32.394Z",
+      "gitHead": "552596d1a523e95041ddbdcbdd8bcb1bcbf10803",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-79",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-dLBbeYT2UbonIaMOJOrIpX6hwiODK0yaJ9JvQC98VauZXBK4UkN/fAaLhJqLhD1/kLJ4B1mArydlFGRXBaWgZg=="
+    },
+    {
+      "version": "0.119.0-80",
+      "predecessor": "0.119.0-79",
+      "publishedAt": "2026-11-09T01:26:19.595Z",
+      "gitHead": "88b7594fd3dfdfe8a6fe4119c99450846f698dfd",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-80",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-UDwq7vtN4eQE0id54l9BhPwhyUf6ciFR9G2NBkdFzQpTatNFsNrt7eMow1/wlWLajTwFkhRRi0ysfhJVR50FJw=="
+    },
+    {
+      "version": "0.119.0-84",
+      "predecessor": "0.119.0-80",
+      "publishedAt": "2026-11-09T05:18:27.598Z",
+      "gitHead": "07d87db85a421078f7e452337fe8aff50389e882",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-84",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-0OIUZwZjkh4XGovrxPDHWha1/hw48PHzRykjBMBXKrIlL5jVPMGcaMsxt18TnA6BlB5YOIrLji6rstc3Rze8Pw=="
+    },
+    {
+      "version": "0.119.0-85",
+      "predecessor": "0.119.0-84",
+      "publishedAt": "2026-11-09T10:46:54.011Z",
+      "gitHead": "a47072c20eabf4041e021d8e86174084a27a2517",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-85",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-2bCWBhyyQUkTcKODVxs4O/cz8aN7WeeoXybbV/ln32C+i8xMbUdXvS+4EHgAYRbGBHFl45PZ28K95oeWZ8SjdA=="
+    },
+    {
+      "version": "0.119.0-93",
+      "predecessor": "0.119.0-85",
+      "publishedAt": "2026-11-10T20:43:45.315Z",
+      "gitHead": "e4f4ae522f952777df69ffdf8237c35392ff9864",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-93",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-m8TCRQjiiZ2JY1Tsl9XPpeym8w9fRYK97h4yu7FdV8smbektFbIF3/SrX7VBRlJs285LFC7rPhWEDDEKKx9Q4g=="
+    },
+    {
+      "version": "0.119.0-98",
+      "predecessor": "0.119.0-93",
+      "publishedAt": "2026-11-12T12:57:43.862Z",
+      "gitHead": "36c10362c2b8158fbfec12a79d63d70711b86d5f",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-98",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-vX/AEbeqFmzFH54uydAC4/u7nYhX31c2qhAc8MDoX288V8qTVda3IvHcNV2DHnvWa8rP+Ji5KR7orcv1OUMb1g=="
+    },
+    {
+      "version": "0.119.0-101",
+      "predecessor": "0.119.0-98",
+      "publishedAt": "2026-11-13T21:40:26.741Z",
+      "gitHead": "c937efee2233d3762a357e0eb3d5024061363269",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-101",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-WnVjwM7nDuV2pWtKR5SZhF14Cjbss0rIoxJR7RT+2sXcys3CAm4SRa6ESXPEKHLtCwpQGNUResn+J7HUazpyCw=="
+    },
+    {
+      "version": "0.119.0-102",
+      "predecessor": "0.119.0-101",
+      "publishedAt": "2026-11-14T09:36:18.429Z",
+      "gitHead": "8dd6011305ba91984d759c6194e5c336332c4b49",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-102",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-wY69iJaMsgwe71PNlRiMZ6bBPoRxEd2Hs7XkJM/30WJHhi1v0xzezesuigaKwTGCZS2glBNZBEyMyFaqha8mPA=="
+    },
+    {
+      "version": "0.119.0-103",
+      "predecessor": "0.119.0-102",
+      "publishedAt": "2026-11-14T19:22:20.293Z",
+      "gitHead": "6f679bc441ea3d250d3c0fbebb32549cb26d18ac",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-103",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-3ITLx42GBiFhkpOeVz8eQhrnAa+NqQcmPNX2KL1IvRV4oOI97aSvxRD+T1PG7RQAVz6EeNRPEmXHsY4F1XJwiQ=="
+    },
+    {
+      "version": "0.119.0-110",
+      "predecessor": "0.119.0-103",
+      "publishedAt": "2026-11-15T23:45:59.633Z",
+      "gitHead": "7f79f5e490ed9b5564a4e4a413cceef340769876",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-110",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-q/91clybdfCuQoiFxQh1acMUVWeRD/nWi1xtX4NoijYw0yAKhSVyN9L6cYT9pqFsb5M72rx7UCWJU6S9jGC/ow=="
+    },
+    {
+      "version": "0.119.0-111",
+      "predecessor": "0.119.0-110",
+      "publishedAt": "2026-11-16T00:41:32.850Z",
+      "gitHead": "c5521487a602f8c6591e6cac5a0bc0bcbab387fe",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-111",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-/tncgyxabpqWGzYi86dXanONVjjnTfvy74gjL80QWICWlfYZv1Lm7ayENb8ZB5zE4QO2iMZ5MXSqqOtgRCO5pA=="
+    },
+    {
+      "version": "0.119.0-112",
+      "predecessor": "0.119.0-111",
+      "publishedAt": "2026-11-16T14:40:40.583Z",
+      "gitHead": "278752034ca8e8f75c827362c0b006d1f4c988b7",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-112",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-MGfbdaqBEgt72EWvcuU5mDtXRhHgN5qpxGYmCbZOXriROPUBfKjNR3oRwVv+WffD+AmKTDDV7Bq07BQkjh2OjQ=="
+    },
+    {
+      "version": "0.119.0-114",
+      "predecessor": "0.119.0-112",
+      "publishedAt": "2026-11-17T20:48:04.399Z",
+      "gitHead": "1001010d2cbc8dbceb5eb22190e4a52b1371db96",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-114",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-dS9Af//GY6xV26iEOhHR3PfU3VKd7LwwjOD9MYTlhCS36xDozFOcSr8tRBuj30cZGqkTwe6ZIB6LiXf2086NFQ=="
+    },
+    {
+      "version": "0.119.0-116",
+      "predecessor": "0.119.0-114",
+      "publishedAt": "2026-11-18T23:19:36.920Z",
+      "gitHead": "71ebdb62130243eec6a21e9be9d9eca8bd817165",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-116",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-nnbDGLYTZGWrJvrVcnkJoCGVskTJMSLaDD4OmRWjC2yZPl3viTHNimkAPMzBEf1N/htGO/edYkVEwBBHv22t1w=="
+    },
+    {
+      "version": "0.119.0-117",
+      "predecessor": "0.119.0-116",
+      "publishedAt": "2026-11-19T01:20:48.271Z",
+      "gitHead": "eda1a109787d164046d1f73732705e8a9afa76ec",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-117",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-7/QSxvNWIQfopgkwEfbGoEa1A2HruO3OgLN23Jjr6kd+0RE6OIMtOlMJuFNhyCEgeD+vLxE3tg1qBibWA+U9tg=="
+    },
+    {
+      "version": "0.119.0-118",
+      "predecessor": "0.119.0-117",
+      "publishedAt": "2026-11-19T09:42:11.080Z",
+      "gitHead": "b80e5556bba8b2baadd8b02ba2bc992a7c0ab6ed",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-118",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-oY6nvO/9KdueaPA1rvd0xQmcxl3ylamix5vPWn5yPleHrycDQPT1XCLsp/VNKlIrV4jGI5/U7lRSgHmWxbb7Ng=="
+    },
+    {
+      "version": "0.119.0-121",
+      "predecessor": "0.119.0-118",
+      "publishedAt": "2026-11-19T15:04:32.967Z",
+      "gitHead": "ef15bf4dab6f9bb0b936ebaab9dbf80ae90ca96c",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-121",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-3RJZcN6fhlRe8s75N3Q8cqgSrhTr4m1JF+1lP7yLOti23z/U3+r3Yp3jM+hZRwfpt+680j/V6vGtTJAWty14Uw=="
+    },
+    {
+      "version": "0.119.0-122",
+      "predecessor": "0.119.0-121",
+      "publishedAt": "2026-11-19T18:42:50.758Z",
+      "gitHead": "d8a8fb6043354250942b814cdbdcbef6503b6017",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-122",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-69nSCaHOGI3lHkioc6s2BKC3MZvvbUnyMKcWwgOgaEHnBlYOqFAdhnpVFFUO7+hgL0dp+y1i0JAfvXDe+ohwhQ=="
+    },
+    {
+      "version": "0.119.0-123",
+      "predecessor": "0.119.0-122",
+      "publishedAt": "2026-11-19T23:25:50.014Z",
+      "gitHead": "5803534cebbc2db1bc31220015694b6fc1dab371",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-123",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-3L+zglbFq/E50aXV1vXqiQjpc29X2f/Rh3+XT6M7e7lhRdbJcJZC9ncG+V/94VoO6tY6znYPWjuNaPUfv8a1VQ=="
+    },
+    {
+      "version": "0.119.0-124",
+      "predecessor": "0.119.0-123",
+      "publishedAt": "2026-11-20T00:51:42.231Z",
+      "gitHead": "1331d08a8b2602a229e326a2a5275e2de575fd15",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-124",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-xgVf+osbe07pMIoGT1sR8EQ3MBZXBVFRf0nei4G+vjrn0WG/0BkYRYgkkWEvUxDCWg0x4tOtTRJb5537IGjR6A=="
+    },
+    {
+      "version": "0.119.0-125",
+      "predecessor": "0.119.0-124",
+      "publishedAt": "2026-11-20T09:25:46.973Z",
+      "gitHead": "c43151668bd989f93ce511769911dc17dd9489eb",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-125",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-6Gv8A0gkwBFZnv43Z8cGmjAyBfRp7JYfpg6tD4x4zPst/THunHBnSb57xQqh2SDyLMoyJ106oYH68Ykuf5KMyQ=="
+    },
+    {
+      "version": "0.119.0-127",
+      "predecessor": "0.119.0-125",
+      "publishedAt": "2026-11-20T18:10:15.626Z",
+      "gitHead": "3b28474cbe38a7b38c36d126defc98f028c4460c",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-127",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-tPbRiWdbeGiJXJQjWasMsq9QWnsvpeCy5sm+r/mxtPkAr4sFJP/yXnIifJ9Qkm8DBgyfUePCkiQkl3M5ZQJwmA=="
+    },
+    {
+      "version": "0.119.0-129",
+      "predecessor": "0.119.0-127",
+      "publishedAt": "2026-11-22T09:39:28.717Z",
+      "gitHead": "eb6dcbb21be2c242db52f76fdf7af7425ee5fbf0",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-129",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-UEVPqHjzVmO4e8YBiDjkiSE12tbWT3fx8u7Fti/7m+peHE8hA+cen2VkjqNaPObBuJlpUM70KI0SjffH/exJ1A=="
+    },
+    {
+      "version": "0.119.0-130",
+      "predecessor": "0.119.0-129",
+      "publishedAt": "2026-11-22T12:59:33.880Z",
+      "gitHead": "55939133aa2aaa4295d19bfe4bee3832fc14d912",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-130",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-xUaEvyHtO3sTKE2snPD0G67jQhw+Fqr2LzcTKm/+tnnMmG4/NwmegoZk+Fry4VxVBtAkceroFvBV/Q83mnNj3g=="
+    },
+    {
+      "version": "0.119.0-131",
+      "predecessor": "0.119.0-130",
+      "publishedAt": "2026-11-22T14:08:40.562Z",
+      "gitHead": "d35a811b48aa8061af17b788cf661e9e0cd0ab4c",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-131",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-yGWZfcX6bZRecZjME9G62vJjBHnzQT5buH0g3A6pfpFVOOrzCf2J/t8/trFz+UREFObmuVI9m4YGpaw+TRIWlg=="
+    },
+    {
+      "version": "0.119.0-132",
+      "predecessor": "0.119.0-131",
+      "publishedAt": "2026-11-23T09:00:45.249Z",
+      "gitHead": "4b21f52917fdd14a6309e9debf9414911a9e390b",
+      "registryUrl": "https://registry.npmjs.org/ptbk/0.119.0-132",
+      "exactMetadataVerified": true,
+      "integrity": "sha512-ax5MUypGv2yBdlzUXSDWLWYZ57m+b80qDJsk2ccYvTp7qOxDNAgT3jP0OGKqU7y1vcEhq8oqoEiucX/J+Yobaw=="
+    }
+  ],
+  "tagComparison": "All 39 gitHead values match local v<exact-version>^{commit}.",
+  "audit": [
+    {
+      "version": "0.119.0-47",
+      "tagCommit": "fd1860136b55cd95c45066660bdcc7c9c417e9fb",
+      "taskMatches": [
+        "tasks\\2026-11-01-release-video-0-119-0-47.book"
+      ],
+      "statusExists": true,
+      "actionMatches": [
+        "actions\\2026-11-01-0225-create-a-release-video-agent-and-publish-youtube\\2026-11-01-2100-upload-and-publicly-publish-release-video-youtube.md",
+        "actions\\2026-11-01-release-video-0-119-0-47\\2026-11-01-2108-upload-and-publicly-publish-release-video-youtube.md"
+      ]
+    },
+    {
+      "version": "0.119.0-54",
+      "tagCommit": "b47c23986cfc3bd6fedee0d58737a26d8199816b",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-56",
+      "tagCommit": "367d170996f7abab75f5a2ea09a814955a2665c3",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-62",
+      "tagCommit": "3022f26d4adc667b4cf9903b70977bd76f5113bc",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-66",
+      "tagCommit": "4fc70d934fcf8c3dc571f0287e8ebc9fcff04e76",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-67",
+      "tagCommit": "4de0f0a1a7d5b2d4aaf1ca6de5d09b2b7ce31163",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-70",
+      "tagCommit": "2e7ee039f5030d3e964e731358c6e588d70c77a2",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-71",
+      "tagCommit": "6acf1cc6111fa8348f2e04f02d03898559abc638",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-72",
+      "tagCommit": "59d53f619b4b8880e4e4bdadec7b3d11cd99c644",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-74",
+      "tagCommit": "53b4c92b2a23665c2ebe5a9e1c04cc8dd6d521bc",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-75",
+      "tagCommit": "91d5c86ca304057f7dea400307e0877b276db43c",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-77",
+      "tagCommit": "b2f454b4288a6c8ef5c606e95e344dac1c7b7df2",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-78",
+      "tagCommit": "08da6078ce836fba32921bf0f294a41cf055786c",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-79",
+      "tagCommit": "552596d1a523e95041ddbdcbdd8bcb1bcbf10803",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-80",
+      "tagCommit": "88b7594fd3dfdfe8a6fe4119c99450846f698dfd",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-84",
+      "tagCommit": "07d87db85a421078f7e452337fe8aff50389e882",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-85",
+      "tagCommit": "a47072c20eabf4041e021d8e86174084a27a2517",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-93",
+      "tagCommit": "e4f4ae522f952777df69ffdf8237c35392ff9864",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-98",
+      "tagCommit": "36c10362c2b8158fbfec12a79d63d70711b86d5f",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-101",
+      "tagCommit": "c937efee2233d3762a357e0eb3d5024061363269",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-102",
+      "tagCommit": "8dd6011305ba91984d759c6194e5c336332c4b49",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-103",
+      "tagCommit": "6f679bc441ea3d250d3c0fbebb32549cb26d18ac",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-110",
+      "tagCommit": "7f79f5e490ed9b5564a4e4a413cceef340769876",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-111",
+      "tagCommit": "c5521487a602f8c6591e6cac5a0bc0bcbab387fe",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-112",
+      "tagCommit": "278752034ca8e8f75c827362c0b006d1f4c988b7",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-114",
+      "tagCommit": "1001010d2cbc8dbceb5eb22190e4a52b1371db96",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-116",
+      "tagCommit": "71ebdb62130243eec6a21e9be9d9eca8bd817165",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-117",
+      "tagCommit": "eda1a109787d164046d1f73732705e8a9afa76ec",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-118",
+      "tagCommit": "b80e5556bba8b2baadd8b02ba2bc992a7c0ab6ed",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-121",
+      "tagCommit": "ef15bf4dab6f9bb0b936ebaab9dbf80ae90ca96c",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-122",
+      "tagCommit": "d8a8fb6043354250942b814cdbdcbef6503b6017",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-123",
+      "tagCommit": "5803534cebbc2db1bc31220015694b6fc1dab371",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-124",
+      "tagCommit": "1331d08a8b2602a229e326a2a5275e2de575fd15",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-125",
+      "tagCommit": "c43151668bd989f93ce511769911dc17dd9489eb",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-127",
+      "tagCommit": "3b28474cbe38a7b38c36d126defc98f028c4460c",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-129",
+      "tagCommit": "eb6dcbb21be2c242db52f76fdf7af7425ee5fbf0",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-130",
+      "tagCommit": "55939133aa2aaa4295d19bfe4bee3832fc14d912",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-131",
+      "tagCommit": "d35a811b48aa8061af17b788cf661e9e0cd0ab4c",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    },
+    {
+      "version": "0.119.0-132",
+      "tagCommit": "4b21f52917fdd14a6309e9debf9414911a9e390b",
+      "taskMatches": [],
+      "statusExists": false,
+      "actionMatches": []
+    }
+  ],
+  "taskBooksScanned": 110,
+  "existingPublished": {
+    "0.119.0-45": "https://www.youtube.com/watch?v=lMl8T_zR2hs",
+    "0.119.0-47": "https://www.youtube.com/watch?v=jdSEZ5OJEho"
+  },
+  "newTasks": [
+    {
+      "version": "0.119.0-54",
+      "path": "tasks/2026-11-23-release-video-0-119-0-54.book",
+      "name": "Publish the Promptbook 0.119.0-54 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-56",
+      "path": "tasks/2026-11-23-release-video-0-119-0-56.book",
+      "name": "Publish the Promptbook 0.119.0-56 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-62",
+      "path": "tasks/2026-11-23-release-video-0-119-0-62.book",
+      "name": "Publish the Promptbook 0.119.0-62 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-66",
+      "path": "tasks/2026-11-23-release-video-0-119-0-66.book",
+      "name": "Publish the Promptbook 0.119.0-66 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-67",
+      "path": "tasks/2026-11-23-release-video-0-119-0-67.book",
+      "name": "Publish the Promptbook 0.119.0-67 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-70",
+      "path": "tasks/2026-11-23-release-video-0-119-0-70.book",
+      "name": "Publish the Promptbook 0.119.0-70 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-71",
+      "path": "tasks/2026-11-23-release-video-0-119-0-71.book",
+      "name": "Publish the Promptbook 0.119.0-71 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-72",
+      "path": "tasks/2026-11-23-release-video-0-119-0-72.book",
+      "name": "Publish the Promptbook 0.119.0-72 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-74",
+      "path": "tasks/2026-11-23-release-video-0-119-0-74.book",
+      "name": "Publish the Promptbook 0.119.0-74 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-75",
+      "path": "tasks/2026-11-23-release-video-0-119-0-75.book",
+      "name": "Publish the Promptbook 0.119.0-75 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-77",
+      "path": "tasks/2026-11-23-release-video-0-119-0-77.book",
+      "name": "Publish the Promptbook 0.119.0-77 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-78",
+      "path": "tasks/2026-11-23-release-video-0-119-0-78.book",
+      "name": "Publish the Promptbook 0.119.0-78 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-79",
+      "path": "tasks/2026-11-23-release-video-0-119-0-79.book",
+      "name": "Publish the Promptbook 0.119.0-79 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-80",
+      "path": "tasks/2026-11-23-release-video-0-119-0-80.book",
+      "name": "Publish the Promptbook 0.119.0-80 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-84",
+      "path": "tasks/2026-11-23-release-video-0-119-0-84.book",
+      "name": "Publish the Promptbook 0.119.0-84 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-85",
+      "path": "tasks/2026-11-23-release-video-0-119-0-85.book",
+      "name": "Publish the Promptbook 0.119.0-85 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-93",
+      "path": "tasks/2026-11-23-release-video-0-119-0-93.book",
+      "name": "Publish the Promptbook 0.119.0-93 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-98",
+      "path": "tasks/2026-11-23-release-video-0-119-0-98.book",
+      "name": "Publish the Promptbook 0.119.0-98 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-101",
+      "path": "tasks/2026-11-23-release-video-0-119-0-101.book",
+      "name": "Publish the Promptbook 0.119.0-101 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-102",
+      "path": "tasks/2026-11-23-release-video-0-119-0-102.book",
+      "name": "Publish the Promptbook 0.119.0-102 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-103",
+      "path": "tasks/2026-11-23-release-video-0-119-0-103.book",
+      "name": "Publish the Promptbook 0.119.0-103 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-110",
+      "path": "tasks/2026-11-23-release-video-0-119-0-110.book",
+      "name": "Publish the Promptbook 0.119.0-110 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-111",
+      "path": "tasks/2026-11-23-release-video-0-119-0-111.book",
+      "name": "Publish the Promptbook 0.119.0-111 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-112",
+      "path": "tasks/2026-11-23-release-video-0-119-0-112.book",
+      "name": "Publish the Promptbook 0.119.0-112 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-114",
+      "path": "tasks/2026-11-23-release-video-0-119-0-114.book",
+      "name": "Publish the Promptbook 0.119.0-114 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-116",
+      "path": "tasks/2026-11-23-release-video-0-119-0-116.book",
+      "name": "Publish the Promptbook 0.119.0-116 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-117",
+      "path": "tasks/2026-11-23-release-video-0-119-0-117.book",
+      "name": "Publish the Promptbook 0.119.0-117 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-118",
+      "path": "tasks/2026-11-23-release-video-0-119-0-118.book",
+      "name": "Publish the Promptbook 0.119.0-118 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-121",
+      "path": "tasks/2026-11-23-release-video-0-119-0-121.book",
+      "name": "Publish the Promptbook 0.119.0-121 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-122",
+      "path": "tasks/2026-11-23-release-video-0-119-0-122.book",
+      "name": "Publish the Promptbook 0.119.0-122 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-123",
+      "path": "tasks/2026-11-23-release-video-0-119-0-123.book",
+      "name": "Publish the Promptbook 0.119.0-123 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-124",
+      "path": "tasks/2026-11-23-release-video-0-119-0-124.book",
+      "name": "Publish the Promptbook 0.119.0-124 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-125",
+      "path": "tasks/2026-11-23-release-video-0-119-0-125.book",
+      "name": "Publish the Promptbook 0.119.0-125 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-127",
+      "path": "tasks/2026-11-23-release-video-0-119-0-127.book",
+      "name": "Publish the Promptbook 0.119.0-127 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-129",
+      "path": "tasks/2026-11-23-release-video-0-119-0-129.book",
+      "name": "Publish the Promptbook 0.119.0-129 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-130",
+      "path": "tasks/2026-11-23-release-video-0-119-0-130.book",
+      "name": "Publish the Promptbook 0.119.0-130 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-131",
+      "path": "tasks/2026-11-23-release-video-0-119-0-131.book",
+      "name": "Publish the Promptbook 0.119.0-131 release video — 2026-11-23 14:23:52"
+    },
+    {
+      "version": "0.119.0-132",
+      "path": "tasks/2026-11-23-release-video-0-119-0-132.book",
+      "name": "Publish the Promptbook 0.119.0-132 release video — 2026-11-23 14:23:52"
+    }
+  ],
+  "scope": "Discovery only. No upload, remote mutation or Studio inspection. Existing Community practical-video/access work preserved."
+}

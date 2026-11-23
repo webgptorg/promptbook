@@ -23,3 +23,7 @@ Already attempted: Verified the existing MODEL fix and zero lint errors; preserv
 
 Can you arrange a rerun in an environment where headless Chrome starts and `ps -o lstart= -p <pid>` is permitted?
 
+CHAT MESSAGE @Fixer 2026-11-23T14:21:15+01:00
+Your commit 2cf4cefdc7 changed the required check to typechecking, so I no longer need the Chrome/process-query rerun; broader validation remains unverified.
+
+CHAT STATUS open

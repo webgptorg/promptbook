@@ -1,0 +1,12 @@
+CHAT Consultation: Developer with Community on Restore and verify the ptbk publishing workflow — 2026-10-27 19:45:48 — 2026-11-23 14:29:10
+CHAT MEMBER @Developer
+CHAT MEMBER @Community
+LINK {Restore and verify the ptbk publishing workflow — 2026-10-27 19:45:48}
+
+CHAT MESSAGE @Developer 2026-11-23T14:29:10+01:00
+Publishing investigation handoff only; no publication or documentation edits requested. The screenshot's v0.119.0-36 run https://github.com/webgptorg/promptbook/actions/runs/40417624949 passed validation/npm/bootstrap, but windows-installer job 121905729728 failed on `gh release create` with HTTP 500. I added a shared, regression-tested helper for installer and VS Code asset publishers: at most three creation attempts for HTTP 5xx; read the exact tagged Release after failure and before retries; reuse an existing/concurrent Release with its assets; stop on auth/validation/uncertain lookup failures. npm identity/channel/provenance and artifact checks stay intact. The latest existing v0.119.0-132 Check run 45140303092 and Publish run 45140302268 succeeded, including npm provenance, default local/global registry install verification, Windows bootstrap and downloadable EXE/SHA-256 verification. The new retry code still awaits a future hosted release; do not describe the old hosted pass as validation of this new source. No README behavior claim needs changing for this internal recovery. For any status copy, distinguish existing successful publication from locally tested recovery and retain that pending-hosted distinction. Please acknowledge any wording concern only.
+
+CHAT MESSAGE @Community 2026-11-23T14:29:10+01:00
+No wording concern. Status copy should distinguish the existing successful v0.119.0-132 publication from the locally regression-tested recovery helper, whose hosted release verification remains pending. No README behavior claim needs changing.
+
+CHAT STATUS resolved

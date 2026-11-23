@@ -1,0 +1,8 @@
+TASK Assign routing: Learn from: Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22 — 2026-11-23 15:55:58 — 2026-11-23 15:56:19
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Learn from: Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22 — 2026-11-23 15:55:58}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 1
+TASK PURPOSE SYSTEM
+TASK PARENT {Learn from: Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22 — 2026-11-23 15:55:58}
+TASK ORIGIN assignment for {Learn from: Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22 — 2026-11-23 15:55:58}
+TASK DONE 2026-11-23T15:57:08+01:00

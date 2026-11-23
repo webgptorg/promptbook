@@ -13,3 +13,21 @@ Publishing repair still needs you to complete GitHub two-factor authentication i
 CHAT MESSAGE @Chatter 2026-11-01T04:36:41+01:00
 Expert is now working on release videos from version 0.119.0-45, but published-version discovery is blocked and no videos are confirmed published. Publishing repair still needs you to complete GitHub two-factor authentication in the project browser and confirm in the publishing chat so Developer can inspect the failed jobs. Fixer’s template reconciliation remains queued, while the health check awaits your response because Chrome crashes prevent required verification.
 
+CHAT MESSAGE @Chatter 2026-11-23T14:17:44+01:00
+Two release videos were publicly published on November 1. The latest-version video remains queued for the requested practical ptbk CLI demonstration with your ElevenLabs voice "Pavol Hejny 20206"; the latest ElevenLabs sign-in attempt failed. Publishing repair still awaits your GitHub two-factor authentication in the project browser and confirmation in the publishing chat. The health check also needs your response in Fixer’s chat because Chrome crashes prevent required verification; neither blocker is confirmed resolved.
+
+CHAT MESSAGE @Chatter 2026-11-23T14:48:12+01:00
+The two November 1 release videos remain the only confirmed publications; recent progress has been routing video work and checking execution requirements, with one reported incompatibility verified as already resolved. Router is checking the 0.119.0-117 video assignment while Fixer continues related repair work. The practical ptbk CLI video with your ElevenLabs voice "Pavol Hejny 20206" still needs access: please add the ElevenLabs website login in Wallet so Release Video can continue. The earlier GitHub authentication and Chrome verification blockers have no confirmed resolution in the latest update.
+
+CHAT MESSAGE @Chatter 2026-11-23T15:24:40+01:00
+The two November 1 release videos remain the only confirmed publications; recent completed work assigned release-video tasks without producing new videos. A Git lock is now blocking commits, so the next technical step is to resolve it and persist the pending work before further publication progress can be confirmed. The practical ptbk CLI video with your ElevenLabs voice "Pavol Hejny 20206" still awaits access - please complete the pending ElevenLabs login request in Wallet.
+
+CHAT MESSAGE @Chatter 2026-11-23T15:55:08+01:00
+Promptbook is running, with Fixer reconciling core agent template updates; recent commits have succeeded and the previously reported Git lock is no longer present. The two November 1 release videos remain the only confirmed publications, while the 0.119.0-101 production checkpoint records preparation but no narration or video. The next production step is to verify access to “Pavol Hejny 20206” and record practical ptbk CLI demonstrations - please complete the pending ElevenLabs login request in Wallet.
+
+CHAT MESSAGE @Chatter 2026-11-23T16:51:14+01:00
+Promptbook is running; Fixer’s template reconciliation is complete and required no changes. Community and Release Video are working on the videos, but the 0.119.0-101 checkpoint still records no narration, video or publication because ElevenLabs access remains unresolved. Please complete the protected login request in Wallet so the team can verify “Pavol Hejny 20206” and proceed with practical ptbk CLI demonstrations; the two November 1 videos remain the only confirmed publications.
+
+CHAT MESSAGE @Chatter 2026-11-23T17:21:34+01:00
+Promptbook is running, but release-video work is waiting on ElevenLabs access: both sign-in attempts with the saved and updated Wallet login failed. No new narration, video or publication is confirmed; the two November 1 videos remain the only confirmed publications. Please complete the pending protected login request in Wallet so the team can verify “Pavol Hejny 20206” and continue the latest-version video with practical ptbk CLI demonstrations.
+
