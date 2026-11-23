@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 import JSZip from 'jszip';
 import { validateRelease } from './validate-release.mjs';
 import { vscodeVersion } from './vscode-version.mjs';
+import { ensureGithubRelease } from './ensure-github-release.mjs';
 
 /** Repository root, independent of the caller's working directory. */
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -105,17 +106,7 @@ async function attachRelease(tag, path, bytes) {
     const work = await mkdtemp(join(tmpdir(), 'ptbk-vscode-'));
     const gh = async (args) => (await execute('gh', args, { cwd: root, maxBuffer: 16 * 1024 * 1024 })).stdout;
     try {
-        let release;
-        try { release = JSON.parse(await gh(['release', 'view', tag, '--json', 'tagName,assets'])); }
-        catch (error) {
-            if (!/release not found/i.test(error.stderr ?? error.message)) throw error;
-            await gh(['release', 'create', tag, '--verify-tag', '--title', `ptbk ${tag.slice(1)}`, '--notes', `Promptbook ${tag.slice(1)} and its matching Book language extension.`, ...(tag.includes('-') ? ['--prerelease'] : [])])
-                .catch(async (creationError) => {
-                    // The Windows installer may have created this same release concurrently.
-                    try { await gh(['release', 'view', tag, '--json', 'tagName']); } catch { throw creationError; }
-                });
-            release = JSON.parse(await gh(['release', 'view', tag, '--json', 'tagName,assets']));
-        }
+        const release = await ensureGithubRelease(tag, `Promptbook ${tag.slice(1)} and its matching Book language extension.`, { gh });
         const name = basename(path);
         let installed = bytes;
         if (release.assets.some((asset) => asset.name === name)) {

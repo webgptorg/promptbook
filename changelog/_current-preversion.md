@@ -1,5 +1,7 @@
 # Unreleased
 
+- Recover from transient GitHub Release creation failures, which blocked the Windows installer of `0.119.0-36` with HTTP 500 after npm publication had passed. The installer and VS Code asset publishers share bounded creation retries, reconcile the exact tag before retrying, and reuse concurrent releases and their assets. Authentication, validation and uncertain lookup failures still stop publication; asset integrity checks and npm validation remain required.
+
 - Diagnose the 2026-10-24 project health check: Adam's invalid prose MODEL was already corrected on 2026-10-25. Record the passing full lint diagnosis, accepted legacy warnings and remaining migration/historical-link warnings, and classify the check as system maintenance without changing agent restrictions or historical references.
 
 - New projects start with an encrypted Wallet. Its local owner can view the same 12 words for recovery across restarts until they confirm saving them. Confirmation preserves existing logins.

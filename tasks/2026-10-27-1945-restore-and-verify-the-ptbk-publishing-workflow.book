@@ -4,3 +4,19 @@ TASK AGENT @Developer
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=high runtime=official
 TASK ORIGIN Chat {Chatter: The publishing should work — 2026-10-27 19:45:20}
 LINK {Chatter: The publishing should work — 2026-10-27 19:45:20}
+
+TASK NOTE Release automation is supporting infrastructure for maintaining the Promptbook product.
+TASK PURPOSE SYSTEM
+
+TASK NOTE Located and inspected the original screenshot at chats/_assets/2026-10-27-1945-chatter-the-publishing-should-work/1/image-1.png. Retrieved actual job logs through the connected GitHub tools, so this investigation no longer needs the earlier browser GitHub login/2FA request.
+
+TASK NOTE Original failure evidence: https://github.com/webgptorg/promptbook/actions/runs/40417624949/job/121905729728 (v0.119.0-36). Validation, npm publication and the exact-version Windows bootstrap passed; `gh release create` failed with HTTP 500 from the GitHub releases API. The previous v0.119.0-35 run 40398657010 instead failed Windows home-screen assertions and a panic fixture during validation. Recent v0.119.0-129 run 45006887810 published npm successfully but withheld desktop installers because the App read token was missing; the later successful desktop jobs establish that this is not a current release blocker.
+
+TASK NOTE Added shared bounded GitHub Release creation recovery for installer and VS Code asset publishers. Retry only HTTP 5xx, at most three creation attempts, reconcile the exact release after a failed creation and again after backoff, and retain assets found on a concurrent release. Lookup/authentication/validation failures stop publication. npm identity, channel, provenance, tag validation and downloadable asset checks remain in place. Added regression coverage and changelog entry; no release was triggered and no existing tag or published version was changed.
+
+TASK NOTE Existing hosted verification is for v0.119.0-132 commit 4b21f52917fdd14a6309e9debf9414911a9e390b, before this recovery change: Check https://github.com/webgptorg/promptbook/actions/runs/45140303092 and Publish https://github.com/webgptorg/promptbook/actions/runs/45140302268 passed. Publication job 137582048513 records provenance and registry local/global install verification; Windows job 137586347834 records bootstrap success and downloaded EXE/checksum verification (SHA-256 66acb6cf641006986c10fa7eed13933e6e2fb546db109ac079a0be8f18a0dd5a). The published Release exposes the matching Windows installer, checksum, both macOS DMGs and Android APK.
+
+TASK NOTE Local verification: npm run check and npm run release:validate -- v0.119.0-132 passed. node --test test/github-release.test.mjs test/release-workflows.test.mjs passed all 15 tests. The two publication-related tests in extensions/vscode/test/package.test.mjs passed with --test-name-pattern='publication retries|Marketplace publication'. npm run release:verify passed against public npm with a disposable cache under TEMP and verified the actual default local/global installations of 0.119.0-132. Script syntax checks and git diff --check passed.
+
+TASK NOTE Verification limits: npm run test:package stopped at the VS Code build because esbuild could not read an ancestor directory in this restricted environment. Running scripts/test-package.mjs separately against the freshly built engine, with npm_execpath set and a disposable npm cache, reached installation but failed launching the generated local Windows ptbk.cmd shim with a path-not-found error. These checks are not reported as passing. The new retry source still requires hosted Check and Publish verification through the normal version/tag process. Community received the behavior and verification handoff and confirmed that no README claim needs changing.
+TASK DONE 2026-11-23T14:31:41+01:00

@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { promisify } from 'node:util';
 import { validateRelease } from './validate-release.mjs';
+import { ensureGithubRelease } from './ensure-github-release.mjs';
 
 /** Runs the GitHub CLI without a shell. */
 const execute = promisify(execFile);
@@ -49,26 +50,9 @@ async function publishInstaller(installerPath) {
         ].join('\n');
         const checksumPath = join(work, checksumName);
         await writeFile(checksumPath, `${digest}  ${name}\n`);
-        const exists = await gh(['release', 'view', tag, '--json', 'tagName,assets'])
-            .then((output) => JSON.parse(output))
-            .catch((error) => {
-                if (!/release not found/i.test(error.stderr ?? error.message)) throw error;
-                return undefined;
-            });
-        if (!exists) {
-            const prerelease = release.version.includes('-');
-            const notes = [
-                `Promptbook ${release.version}.`,
-                '',
-                installationNotes,
-            ].join('\n');
-            await gh(['release', 'create', tag, '--verify-tag', '--title', `ptbk ${release.version}`, '--notes', notes, ...(prerelease ? ['--prerelease'] : [])])
-                .catch(async (creationError) => {
-                    // The extension may have created this release after our initial lookup.
-                    try { await gh(['release', 'view', tag, '--json', 'tagName']); } catch { throw creationError; }
-                });
-        }
-        const assets = exists?.assets ?? [];
+        const notes = [`Promptbook ${release.version}.`, '', installationNotes].join('\n');
+        const existingRelease = await ensureGithubRelease(tag, notes, { gh });
+        const assets = existingRelease.assets;
         const existing = assets.find((asset) => asset.name === name);
         if (existing) {
             await gh(['release', 'download', tag, '--pattern', name, '--dir', work, '--clobber']);
