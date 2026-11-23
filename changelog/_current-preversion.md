@@ -1,5 +1,7 @@
 # Unreleased
 
+- Diagnose the 2026-10-24 project health check: Adam's invalid prose MODEL was already corrected on 2026-10-25. Record the passing full lint diagnosis, accepted legacy warnings and remaining migration/historical-link warnings, and classify the check as system maintenance without changing agent restrictions or historical references.
+
 - New projects start with an encrypted Wallet. Its local owner can view the same 12 words for recovery across restarts until they confirm saving them. Confirmation preserves existing logins.
 
 - Fix the desktop end-to-end check, which failed on every platform as soon as CI could build the bundled App: its own cleanup stopped the second project after the fixture had already deleted that folder, so the stop could not start (`spawn node ENOENT`). The fixtures already stop their engines before removing them.

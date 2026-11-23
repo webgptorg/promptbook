@@ -66,3 +66,11 @@ For a risky, ambiguous or owner-dependent correction, do not guess: consult your
 TASK AGENT @Fixer
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK ORIGIN maintenance: project health
+
+TASK NOTE Health-check diagnosis on 2026-11-23: all 21 reported MODEL errors came from prose in Adam's MODEL commitment being parsed as invalid field=value tokens, invalidating the inherited execution requirement. Confidence: high. Commit dd212d4d905ac91f3bfa56183328e0aaa4e369d6 already replaced it with the owner's current OpenAI selection on 2026-10-25. Adam's current MODEL is valid; no further change is justified.
+TASK NOTE Full node bin/ptbk.js lint --json passes with zero errors and 85 warnings. Exactly 83 are the accepted inactive legacy warnings: unknown/no-effect commitments and shadowed Adam/Teacher definitions. The latest agents/.legacy commit remains a2ccb80f45. Confidence: high. Preserve those reference Books unchanged.
+TASK NOTE The two other warnings are the engine-managed configuration migration from 0.119.0-131 to 0.119.0-132 and a historical LINK at chats/2026-10-25-1652-router-asks-how-should-i-continue-retrying-runs.book:5 to the removed 2026-10-25 14:03:18 routing task. That chat already records the removal and resolves its question on 2026-11-01. Impact: navigation to that historical task is unavailable; LINK does not schedule current work. Confidence: high. Preserve the historical reference rather than inventing a replacement, and leave the version migration to the engine.
+TASK NOTE Required npm run check passes (typechecking only under the current package.json). Broader tests and packaging were not run for this diagnosis-only change.
+TASK NOTE This check maintains this project's operating Books rather than implementing the Promptbook product, so its purpose is supporting system work.
+TASK PURPOSE SYSTEM
+TASK DONE 2026-11-23T14:23:43+01:00
