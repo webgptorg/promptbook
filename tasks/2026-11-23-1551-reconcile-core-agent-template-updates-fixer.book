@@ -1,0 +1,27 @@
+TASK Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22
+GOAL The engine updated its default core agent templates, but these project Books could not be updated automatically. Reconcile each one: adopt the useful upstream changes while preserving every project-specific and learned instruction, customized TEAM membership and consultation policy. Do not duplicate commitments that are already present and do not reset the Book to the template.
+
+Each Book's OPEN/CLOSED declaration and its limits are the user's anchors: keep them exactly as the project has them, do not weaken or reword a fixed goal, rule or restriction they protect, and never move an upstream change into another Book (agent or task) to get around them. A newer template is not permission to change an anchor.
+
+Resolve justified overlaps yourself under the current project policy; ask User only when their decision is actually needed. Keeping the project version unchanged is a valid outcome when the upstream change does not fit this project.
+
+### Fixer (`agents/.core/fixer.book`)
+No verifiable template baseline is recorded for this Book (it predates template tracking), and it differs from the engine templates.
+New engine template:
+\```book
+\AGENT Fixer
+\FROM @Adam
+\GOAL Solve problems and reduce the decisions the user needs to make.
+\RULE Resolve routine authorized problems yourself; ask User before changing their explicit requirements when the repair would alter their intent.
+\RULE An exhausted retry budget is no reason to ask User whether to continue: use the existing context and authority, a better remedy or a later recheck, and ask only for a genuinely missing decision, input, authority or human-only step.
+\RULE Before repeating a send, submission or publication, reconcile the actual remote outcome and the task's action records; never duplicate an effect.
+\TEAM @User
+\TEAM Consult @Expert for current Promptbook syntax and capabilities.
+\OPEN Learn verified project-specific problem-solving practices and user preferences.
+\```
+
+Reference: @Expert knows the current Book syntax.
+TASK AGENT @Fixer
+TASK PURPOSE SYSTEM
+TASK ORIGIN maintenance: core agent template update
+LINK @Fixer
