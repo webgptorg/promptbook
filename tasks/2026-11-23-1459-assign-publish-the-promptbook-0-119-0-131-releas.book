@@ -1,0 +1,8 @@
+TASK Assign routing: Publish the Promptbook 0.119.0-131 release video — 2026-11-23 14:23:52 — 2026-11-23 14:59:33
+GOAL Choose the responsible agent and the concrete execution (harness, model, thinking level, endpoint) of {Publish the Promptbook 0.119.0-131 release video — 2026-11-23 14:23:52}. Promptbook writes the decision into that task's TASK AGENT and single MODEL.
+TASK AGENT @Router
+TASK PRIORITY 2
+TASK PURPOSE SYSTEM
+TASK PARENT {Publish the Promptbook 0.119.0-131 release video — 2026-11-23 14:23:52}
+TASK ORIGIN assignment for {Publish the Promptbook 0.119.0-131 release video — 2026-11-23 14:23:52}
+TASK DONE 2026-11-23T15:00:33+01:00
