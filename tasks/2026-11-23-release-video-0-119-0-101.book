@@ -5,6 +5,7 @@ RULE Before upload claim version files and inspect all existing version tasks, s
 RULE Use begin_external_action immediately before each remote mutation and record_external_action immediately after with observed evidence. Save video ID, canonical URL, stable channel ID, exact version/revision, visibility and actual processing/publication state. Verify public visibility in Studio and watch-page video ID, title and channel ID with playback advancing. Record verification time and playback quality; report HD processing and copyright checks separately, leaving unverified states explicit. A draft is not publication.
 RULE Add project changes to changelog/_current-preversion.md and run npm run check. Leave commits and completion stamps to the engine.
 TASK AGENT {Release Video}
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK PRIORITY 1
 TASK PURPOSE SYSTEM
 LINK {Release Video}
