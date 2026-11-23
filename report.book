@@ -25,3 +25,6 @@ The two November 1 release videos remain the only confirmed publications; recent
 CHAT MESSAGE @Chatter 2026-11-23T15:55:08+01:00
 Promptbook is running, with Fixer reconciling core agent template updates; recent commits have succeeded and the previously reported Git lock is no longer present. The two November 1 release videos remain the only confirmed publications, while the 0.119.0-101 production checkpoint records preparation but no narration or video. The next production step is to verify access to “Pavol Hejny 20206” and record practical ptbk CLI demonstrations - please complete the pending ElevenLabs login request in Wallet.
 
+CHAT MESSAGE @Chatter 2026-11-23T16:51:14+01:00
+Promptbook is running; Fixer’s template reconciliation is complete and required no changes. Community and Release Video are working on the videos, but the 0.119.0-101 checkpoint still records no narration, video or publication because ElevenLabs access remains unresolved. Please complete the protected login request in Wallet so the team can verify “Pavol Hejny 20206” and proceed with practical ptbk CLI demonstrations; the two November 1 videos remain the only confirmed publications.
+
