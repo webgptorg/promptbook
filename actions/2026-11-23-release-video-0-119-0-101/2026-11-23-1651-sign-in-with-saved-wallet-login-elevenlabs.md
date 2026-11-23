@@ -3,8 +3,8 @@
 - **Outcome:** failed
 - **Impact:** 1
 - **Action time:** 2026-11-23T16:51:22+01:00
-- **Recorded:** 2026-11-23T16:51:38+01:00
-- **Attempts:** 1
+- **Recorded:** 2026-11-23T16:53:49+01:00
+- **Attempts:** 2
 - **Agent:** Release Video
 - **Task:** Publish the Promptbook 0.119.0-101 release video — 2026-11-23 14:23:52
 - **Task source:** tasks/2026-11-23-release-video-0-119-0-101.book (revision 6a33238fa15a)
@@ -22,7 +22,7 @@ Authenticate the existing owner account for authorized release narration.
 
 ## Observed outcome
 
-Wallet selected owner account me@pavolhejny.com from two saved ElevenLabs accounts. ElevenLabs rejected that saved login; Wallet opened protected correction request 9f533e33ea. No authenticated session or narration was obtained.
+Reopened ElevenLabs sign-in. Wallet reported two saved accounts; selected owner me@pavolhejny.com. wallet_login reports that the saved owner login was rejected and created protected correction request e62706a13b. No authenticated session or voice access verified.
 
 ## Impact
 
@@ -39,3 +39,5 @@ Methodology:
 
 - 2026-11-23T16:51:22+01:00 — intent recorded before the request (attempt v6s9vjgj7z-a1)
 - 2026-11-23T16:51:38+01:00 — failed: Wallet selected owner account me@pavolhejny.com from two saved ElevenLabs accounts. ElevenLabs rejected that saved login; Wallet opened protected correction request 9f533e33ea. No authenticated sessio (attempt v6s9vjgj7z-a1)
+- 2026-11-23T16:53:30+01:00 — another attempt of the same action begun (attempt v6s9vjgj7z-a1)
+- 2026-11-23T16:53:49+01:00 — failed: Reopened ElevenLabs sign-in. Wallet reported two saved accounts; selected owner me@pavolhejny.com. wallet_login reports that the saved owner login was rejected and created protected correction request (attempt v6s9vjgj7z-a1)
