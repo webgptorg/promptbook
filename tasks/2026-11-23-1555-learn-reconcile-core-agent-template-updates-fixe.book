@@ -1,6 +1,9 @@
 TASK Learn from: Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22 — 2026-11-23 15:55:58
 GOAL Review how Fixer performed {Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22} and improve `agents/.core/fixer.book` where the available evidence justifies it and its learning permission allows. Making no change is a valid result.
 TASK AGENT @Teacher
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK PARENT {Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22}
 TASK ORIGIN learning from {Reconcile core agent template updates (Fixer) — 2026-11-23 15:51:22} by @Fixer
 TASK NOTE Evidence: traces/2026-11-23-1551-reconcile-core-agent-template-updates-fixer/harness.log
+TASK NOTE Router: Reviewing and improving the project's working Fixer agent supports project operation.
+TASK PURPOSE SYSTEM
