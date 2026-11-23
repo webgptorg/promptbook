@@ -3,9 +3,9 @@
 - **Outcome:** failed
 - **Impact:** 1
 - **Action time:** 2026-11-23T16:51:27+01:00
-- **Recorded:** 2026-11-23T16:51:38+01:00
+- **Recorded:** 2026-11-23T16:53:49+01:00
 - **Related action:** act-ybqxcf8jkq
-- **Attempts:** 1
+- **Attempts:** 2
 - **Agent:** Community
 - **Task:** Video k poslední verzi: praktické použití ptbk v CLI s hlasem Pavola — 2026-11-02 16:23:38
 - **Task source:** tasks/2026-11-02-1623-video-k-posledni-verzi-prakticke-pouziti-ptbk-v.book (revision 506ba578f315)
@@ -21,7 +21,7 @@ _Not described by the agent._
 
 ## Observed outcome
 
-Wallet selected owner account me@pavolhejny.com; ElevenLabs rejected saved login. Protected Wallet request 9f533e33ea created. No authenticated session or voice verification.
+Opened ElevenLabs sign-in again and selected the owner's saved login me@pavolhejny.com after Wallet reported two accounts. wallet_login reports that ElevenLabs rejected the saved login and created protected Wallet request e62706a13b. No authenticated session or access to the requested voice was verified; no narration generated or video uploaded.
 
 ## Impact
 
@@ -38,3 +38,5 @@ Methodology:
 
 - 2026-11-23T16:51:27+01:00 — intent recorded before the request (attempt zabjrxxggq-a1)
 - 2026-11-23T16:51:38+01:00 — failed: Wallet selected owner account me@pavolhejny.com; ElevenLabs rejected saved login. Protected Wallet request 9f533e33ea created. No authenticated session or voice verification. (attempt zabjrxxggq-a1)
+- 2026-11-23T16:53:26+01:00 — another attempt of the same action begun (attempt zabjrxxggq-a1)
+- 2026-11-23T16:53:49+01:00 — failed: Opened ElevenLabs sign-in again and selected the owner's saved login me@pavolhejny.com after Wallet reported two accounts. wallet_login reports that ElevenLabs rejected the saved login and created pro (attempt zabjrxxggq-a1)
