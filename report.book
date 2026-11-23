@@ -19,3 +19,6 @@ Two release videos were publicly published on November 1. The latest-version vid
 CHAT MESSAGE @Chatter 2026-11-23T14:48:12+01:00
 The two November 1 release videos remain the only confirmed publications; recent progress has been routing video work and checking execution requirements, with one reported incompatibility verified as already resolved. Router is checking the 0.119.0-117 video assignment while Fixer continues related repair work. The practical ptbk CLI video with your ElevenLabs voice "Pavol Hejny 20206" still needs access: please add the ElevenLabs website login in Wallet so Release Video can continue. The earlier GitHub authentication and Chrome verification blockers have no confirmed resolution in the latest update.
 
+CHAT MESSAGE @Chatter 2026-11-23T15:24:40+01:00
+The two November 1 release videos remain the only confirmed publications; recent completed work assigned release-video tasks without producing new videos. A Git lock is now blocking commits, so the next technical step is to resolve it and persist the pending work before further publication progress can be confirmed. The practical ptbk CLI video with your ElevenLabs voice "Pavol Hejny 20206" still awaits access - please complete the pending ElevenLabs login request in Wallet.
+
