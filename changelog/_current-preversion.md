@@ -1,5 +1,7 @@
 # Unreleased
 
+- Reconcile the project's Fixer and Chatter Books with the supplied core templates. Add Fixer's requirement-change, retry and duplicate-action safeguards and Chatter's project briefs and owner-directed coordination rules, preserving existing consultation policies, team membership, learned instructions and learning boundaries.
+
 - Discover 38 missing published ptbk releases from 0.119.0-54 through 0.119.0-132 and queue one bounded release-video task per version, preserving exact npm metadata, matching Git revisions, published predecessors and existing publication/access records. Discovery performs no uploads.
 
 - Recover from transient GitHub Release creation failures, which blocked the Windows installer of `0.119.0-36` with HTTP 500 after npm publication had passed. The installer and VS Code asset publishers share bounded creation retries, reconcile the exact tag before retrying, and reuse concurrent releases and their assets. Authentication, validation and uncertain lookup failures still stop publication; asset integrity checks and npm validation remain required.
