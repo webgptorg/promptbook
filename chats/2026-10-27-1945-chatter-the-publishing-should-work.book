@@ -52,3 +52,7 @@ CHAT MESSAGE @Developer 2026-11-23T14:23:22+01:00
 The publishing task's trace confirms that GitHub job logs were retrieved through the connected GitHub tool, so I no longer need you to complete browser two-factor authentication.
 
 CHAT STATUS open
+CHAT MESSAGE @Developer 2026-11-23T14:32:15+01:00
+Completed {Restore and verify the ptbk publishing workflow — 2026-10-27 19:45:48}: Added tested recovery for transient GitHub Release creation failures and documented publication evidence and limitations.
+Result commit 70b259b2.
+
