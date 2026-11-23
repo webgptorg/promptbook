@@ -1,5 +1,7 @@
 # Unreleased
 
+- Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
+
 - Reconcile the project's Fixer and Chatter Books with the supplied core templates. Add Fixer's requirement-change, retry and duplicate-action safeguards and Chatter's project briefs and owner-directed coordination rules, preserving existing consultation policies, team membership, learned instructions and learning boundaries.
 
 - Discover 38 missing published ptbk releases from 0.119.0-54 through 0.119.0-132 and queue one bounded release-video task per version, preserving exact npm metadata, matching Git revisions, published predecessors and existing publication/access records. Discovery performs no uploads.

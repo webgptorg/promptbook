@@ -9,3 +9,5 @@ MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK PURPOSE SYSTEM
 TASK ORIGIN maintenance: impossible execution of {Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17}
 LINK {Learn from: Discover published versions for release videos — 2026-11-01 02:55:33 — 2026-11-02 18:11:17}
+TASK NOTE Diagnosis 2026-11-23: The reported model-offer mismatch is historical and no longer blocks the linked learning task. Router commit 5618e09c1b selected @Teacher with harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official. Its trace at traces/2026-11-02-1811-learn-discover-published-versions-for-release-vi/harness.log records run x6fzgszk7f using OpenAI Codex 0.171.0 through tool openai-codex with that model, a successful no-change learning result and a passing project check. Engine result commit a3763916fd recorded completion at 2026-11-23T14:22:05+01:00. No execution requirement or learning boundary needs changing; preserve the original brief and the linked task's existing completion state.
+TASK DONE 2026-11-23T14:39:19+01:00
