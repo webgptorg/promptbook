@@ -7,3 +7,8 @@ Otevři prohlížeč s ElevenLabs a já se přihlásím
 
 MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=low runtime=official
 
+CHAT MESSAGE @Chatter 2026-11-24T09:35:17+01:00 progress
+- $ "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command "Get-Content 'C:/Users/me/.codex/plugins/cache/openai-bundled/computer-use/26.1103.32239/skills/computer-u
+
+CHAT MESSAGE STEPS [{"kind":"tool","tool":"shell","text":"\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content 'C:/Users/me/.codex/plugins/cache/openai-bundled/computer-use/26.1103.32239/skills/computer-use/SKILL.md'\"","level":"info"}]
+
