@@ -1,5 +1,7 @@
 # Unreleased
 
+- Foreground service shutdown gives runtime cleanup one shared deadline after work settles and exits even when a provider leaves a handle open.
+
 - Browser setup warns before project creation when Linux cannot protect the Wallet key. The review explains which login features are unavailable and how to restore them.
 
 - The owner of a running project can reconnect an expired native AI account from the browser. An older Claude project can move its implicit shared login to a private profile after successful verification.

@@ -94,6 +94,7 @@ export class ServiceHost {
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
     private recovery?: ProjectHarnessRecovery;
+    private shuttingDown?: Promise<void>;
     private appApi?: AppWebHandlers['api'];
     private desktopApi?: ReturnType<typeof startDesktopApi>;
 
@@ -551,15 +552,24 @@ export class ServiceHost {
         return await this.agenda.run();
     }
 
-    /**
-     * Releases every owned resource (browser, HTTP, control, discovery entry, record and finally its own project
-     * lock). Each step is bounded so an internal force stop still cleans up promptly; after a force stop every owned
-     * process still running is killed, so no owned worker outlives the engine. Only this owner's records are removed,
-     * never another process's lock or persistent project data.
-     */
-    public async shutdown(): Promise<void> {
-        const bounded = async (step: () => Promise<unknown> | unknown): Promise<void> => {
-            await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
+    /** Concurrent shutdown requests join the same cleanup and release this instance's project lock once. */
+    public shutdown(): Promise<void> {
+        return this.shuttingDown ??= this.closeResources();
+    }
+
+    /** The agenda has settled. Reserve the end of the shared 15-second budget for this instance's records and lock. */
+    private async closeResources(): Promise<void> {
+        const deadline = performance.now() + 15_000;
+        const bounded = async (step: () => Promise<unknown> | unknown, until = deadline - 3_000): Promise<void> => {
+            const work = Promise.resolve().then(step).catch(() => undefined);
+            const remaining = Math.min(10_000, until - performance.now());
+            if (remaining <= 0) return;
+            let timer: NodeJS.Timeout | undefined;
+            try {
+                await Promise.race([work, new Promise<void>((resolve) => { timer = setTimeout(resolve, remaining).unref(); })]);
+            } finally {
+                clearTimeout(timer);
+            }
         };
         this.recovery?.stop();
         const forced = this.agenda.forceStopped;
@@ -584,12 +594,12 @@ export class ServiceHost {
         this.unregister = undefined;
         if (this.knownRun) {
             const reason = this.agenda.shutdownReason;
-            await bounded(() => recordRunEnded(this.options.project, this.instanceId, reason === 'force' ? 'force-stopped' : reason === 'stop' ? 'stopped' : reason === 'restart' ? 'restarted' : 'ended', this.options.env));
+            await bounded(() => recordRunEnded(this.options.project, this.instanceId, reason === 'force' ? 'force-stopped' : reason === 'stop' ? 'stopped' : reason === 'restart' ? 'restarted' : 'ended', this.options.env), deadline - 2_000);
             this.knownRun = false;
         }
-        await bounded(() => removeProcessRecord(this.options.project, this.instanceId));
+        await bounded(() => removeProcessRecord(this.options.project, this.instanceId), deadline - 1_000);
         this.owned.stop();
-        await bounded(() => this.releaseLock?.());
+        await bounded(() => this.releaseLock?.(), deadline);
         this.releaseLock = undefined;
     }
 
