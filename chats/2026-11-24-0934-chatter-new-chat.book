@@ -11,6 +11,12 @@ CHAT MESSAGE @Chatter 2026-11-24T09:35:17+01:00 progress
 - $ "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command "Get-Content 'C:/Users/me/.codex/plugins/cache/openai-bundled/computer-use/26.1103.32239/skills/computer-u
 - cua_repl.js Otevírání ElevenLabs
 - cua_repl.js Kontrola dostupného prohlížeče
+- cua_repl.js Výběr okna Chrome
+- cua_repl.js
 
-CHAT MESSAGE STEPS [{"kind":"tool","tool":"shell","text":"\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content 'C:/Users/me/.codex/plugins/cache/openai-bundled/computer-use/26.1103.32239/skills/computer-use/SKILL.md'\"","level":"info"},{"kind":"tool","tool":"mcp__cua_repl__js","text":"Otevírání ElevenLabs","level":"info"},{"kind":"tool","tool":"mcp__cua_repl__js","text":"Kontrola dostupného prohlížeče","level":"info"}]
+CHAT MESSAGE STEPS [{"kind":"tool","tool":"shell","text":"\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content 'C:/Users/me/.codex/plugins/cache/openai-bundled/computer-use/26.1103.32239/skills/computer-use/SKILL.md'\"","level":"info"},{"kind":"tool","tool":"mcp__cua_repl__js","text":"Otevírání ElevenLabs","level":"info"},{"kind":"tool","tool":"mcp__cua_repl__js","text":"Kontrola dostupného prohlížeče","level":"info"},{"kind":"tool","tool":"mcp__cua_repl__js","text":"Výběr okna Chrome","level":"info"},{"kind":"tool","tool":"mcp__cua_repl__js","text":"","level":"info"}]
 
+CHAT MESSAGE @Chatter 2026-11-24T09:36:21+01:00 final
+Prohlížeč se mi nepodařilo ovládat - připojení k němu je nedostupné. +@User Otevři prosím [ElevenLabs](https://elevenlabs.io/app/sign-in) a přihlas se.
+
+CHAT STATUS waiting-for-user
