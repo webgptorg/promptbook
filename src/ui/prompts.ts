@@ -330,7 +330,8 @@ export async function selectMany<T>(
     // An empty selection with consequences is confirmed by a second Enter after its visible warning.
     let emptyConfirmed = false;
     const hasFeatured = options.choices.some((choice) => choice.featured) && options.choices.some((choice) => !choice.featured);
-    let expanded = !hasFeatured || options.choices.some((choice) => !choice.featured && selected.has(choice.value));
+    let expanded = !hasFeatured;
+    const secondary = (choice: Choice<T>): boolean => !choice.featured && !selected.has(choice.value);
     let focus = 0;
     let message = '';
     let query = '';
@@ -338,7 +339,10 @@ export async function selectMany<T>(
     const rows = (): Row[] => {
         if (query) return options.choices.filter((choice) => matchesFilter(`${choice.label} ${choice.description ?? ''}`, query)).map((choice) => ({ kind: 'choice' as const, choice }));
         if (!hasFeatured) return options.choices.map((choice) => ({ kind: 'choice' as const, choice }));
-        if (!expanded) return [...options.choices.filter((choice) => choice.featured).map((choice) => ({ kind: 'choice' as const, choice })), { kind: 'more' as const }];
+        if (!expanded) {
+            const visible = options.choices.filter((choice) => !secondary(choice)).map((choice) => ({ kind: 'choice' as const, choice }));
+            return visible.length < options.choices.length ? [...visible, { kind: 'more' }] : visible;
+        }
         return [...options.choices.map((choice) => ({ kind: 'choice' as const, choice })), { kind: 'fewer' as const }];
     };
     // The row of the list drawn on each row of the frame, for the pointer.
@@ -362,8 +366,8 @@ export async function selectMany<T>(
                 const focused = index === focus;
                 const pointer = focused ? style.accent(marks.pointer) : ' ';
                 if (row.kind !== 'choice') {
-                    const hidden = options.choices.filter((choice) => !choice.featured).length;
-                    const text = row.kind === 'more' ? `More… (${hidden} other integrations)` : 'Fewer (featured only)';
+                    const hidden = options.choices.filter(secondary).length;
+                    const text = row.kind === 'more' ? `More… (${hidden} other integrations)` : 'Fewer (featured and selected)';
                     lines.push(`  ${pointer}   ${focused ? style.bold(style.accent(text)) : style.accent(text)}`);
                     continue;
                 }
@@ -426,7 +430,7 @@ export async function selectMany<T>(
                 if (!row) return undefined;
                 if (row.kind === 'more') {
                     expanded = true;
-                    focus = options.choices.filter((choice) => choice.featured).length;
+                    focus = options.choices.findIndex(secondary);
                 } else if (row.kind === 'fewer') {
                     expanded = false;
                     focus = 0;

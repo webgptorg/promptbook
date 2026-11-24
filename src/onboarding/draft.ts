@@ -8,6 +8,7 @@ import { PtbkError } from '../common/errors.js';
 import { intendedUser, sharedProjectsRoot } from '../common/user-home.js';
 import { canonicalPath, projectAt, runtimePaths, type Project } from '../project/workspace.js';
 import { acquireProjectLock } from '../service/records.js';
+import type { InferenceRuntimeVariant } from '../tools/model.js';
 import type { OnboardingActivity } from './contract.js';
 
 /** The persisted transition, independent of any running client. @private onboarding */
@@ -25,6 +26,8 @@ export type OnboardingDraft = {
     readonly intent?: string;
     readonly fileIds?: readonly string[];
     readonly harnesses?: readonly string[];
+    /** Model accepted with the displayed storage estimate, retained across a service restart. */
+    readonly localModel?: { readonly runtime: InferenceRuntimeVariant; readonly model: string; readonly download: boolean };
     readonly title?: string;
     readonly folder?: string;
     readonly activity?: readonly OnboardingActivity[];

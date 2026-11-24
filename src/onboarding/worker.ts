@@ -55,9 +55,9 @@ export async function runOnboardingWorker(staging: Project, launch: LaunchMetada
         await Promise.all([active?.stop(), ui?.stop()]);
     };
 
-    const session = new OnboardingSession(staging, draft, uploads, env, async (saved, save) => {
+    const session = new OnboardingSession(staging, draft, uploads, env, async (saved, save, local) => {
         try {
-            const project = await finishOnboarding({ staging, draft: saved, env, uploads, persistent: launch.persistent, closeApp, save });
+            const project = await finishOnboarding({ staging, draft: saved, env, uploads, local, persistent: launch.persistent, closeApp, save });
             if (project) stop();
         } catch (error) {
             if (!connection && await onboardingTargetExists(directory)) await startApp();
@@ -111,6 +111,7 @@ export async function runOnboardingWorker(staging: Project, launch: LaunchMetada
     process.on('SIGTERM', stop);
     process.on('SIGINT', stop);
     try {
+        await session.refreshHarnessPrompt();
         if (await onboardingTargetExists(directory)) await startApp();
         control = await startControlServer(address, token, async (method, params) => {
             switch (method) {
@@ -145,7 +146,6 @@ export async function runOnboardingWorker(staging: Project, launch: LaunchMetada
             instanceId, controlAddress: address, token, ...engineIdentity(), startedAt: new Date().toISOString(),
             persistent: launch.persistent, launchNonce: launch.launchNonce,
         });
-        void session.discoverDefaults().catch(() => undefined);
         session.resume();
         await stopped;
         return 0;

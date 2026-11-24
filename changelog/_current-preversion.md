@@ -1,5 +1,7 @@
 # Unreleased
 
+- Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
+
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
 
 - Reconcile the project's Fixer and Chatter Books with the supplied core templates. Add Fixer's requirement-change, retry and duplicate-action safeguards and Chatter's project briefs and owner-directed coordination rules, preserving existing consultation policies, team membership, learned instructions and learning boundaries.

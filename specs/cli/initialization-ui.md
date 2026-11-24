@@ -10,7 +10,7 @@ Open new initialization with one generous field asking what the user is working 
 
 After intent, offer the three [destinations](initialization.md#initial-input-and-destination) in order: shared home-based ptbk projects folder, current directory, new subfolder. Explain existing-work versus new-agenda use, reuse an explicit destination and show the resolved path before writes.
 
-Offer **Use the global CLI** first/preferred and local installation second, respecting an existing destination-local dependency. For a fresh selection, preselect detected installed/configured usable harnesses, or OpenAI Codex when none are available; executable presence alone is insufficient. Let users deselect them and retain explicit/prior selections.
+Offer **Use the global CLI** first/preferred and local installation second, respecting an existing destination-local dependency. For a fresh selection, preselect installed harnesses and detected local models, or OpenAI Codex on an empty host. Check authentication and readiness after selection. Let users deselect them and retain explicit/prior selections.
 
 Offer **Set up Wallet now?**, default No. Yes opens the same protected setup/recovery-word flow as later Wallet management; No proceeds without it. Existing vaults are preserved. Chosen/reused Wallet setup offers the same optional [Bitwarden import](wallet-import.md), protected individual/Select all/Select none controls and honest unsupported/conflicting outcomes. Wallet No skips it. Use shared logic and finish selected routine access without a later required dashboard visit.
 

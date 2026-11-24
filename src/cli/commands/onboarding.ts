@@ -118,7 +118,7 @@ async function interact(context: CommandContext, project: Project, client: Contr
             const text = await inputLine(terminal, { frame, question: prompt.question, initial: prompt.initial });
             answer = text === CANCELLED ? CANCELLED : { kind: 'text', text, fileIds: [] };
         } else if (prompt.kind === 'choice') {
-            const choices = prompt.choices.map((choice) => ({ value: choice.id, label: choice.label, description: choice.description ?? undefined, disabled: choice.disabled }));
+            const choices = prompt.choices.map((choice) => ({ value: choice.id, label: choice.label, description: choice.description ?? undefined, disabled: choice.disabled, featured: choice.featured !== false }));
             const values = await selectMany(terminal, { frame, question: prompt.question, choices, initial: prompt.initial, minimum: 1 });
             answer = values === CANCELLED ? CANCELLED : { kind: 'choice', choiceIds: [...values] };
         } else if (prompt.kind === 'secret') {

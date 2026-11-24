@@ -160,6 +160,8 @@ export type RuntimeAdapter = {
     readonly actions: readonly RuntimeAction[];
     /** Read-only observation of service, version and catalog. */
     readonly inspect: (context: RuntimeContext) => Promise<RuntimeObservation>;
+    /** Read-only catalog of downloaded weights when the default host service is stopped. */
+    readonly installedModels?: (context: RuntimeContext) => Promise<readonly RuntimeModel[]>;
     /** Downloads one model with progress (an accepted, explicit operation). */
     readonly download?: (context: RuntimeContext, model: string, onProgress: (progress: RuntimeProgress) => void) => Promise<void>;
     readonly load?: (context: RuntimeContext, model: string) => Promise<void>;
