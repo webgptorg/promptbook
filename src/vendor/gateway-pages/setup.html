@@ -117,22 +117,22 @@
 
             <section data-state="valid" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">Set up your engine</span><span data-lang="cs">Nastavte svůj engine</span>
+                    <span data-lang="en">Set up your project</span><span data-lang="cs">Nastavte svůj projekt</span>
                 </h1>
                 <p data-lang="en">
-                    You are about to become the owner of this engine. Your passkey stays with you; the engine keeps only
-                    its public half.
+                    You are about to become the owner of this project. Your passkey stays with you; the project keeps
+                    only its public half.
                 </p>
                 <p data-lang="cs">
-                    Stanete se majitelem tohoto enginu. Přístupový klíč zůstane u Vás; engine si uloží jen jeho veřejnou
-                    část.
+                    Stanete se majitelem tohoto projektu. Přístupový klíč zůstane u Vás; projekt si uloží jen jeho
+                    veřejnou část.
                 </p>
                 <dl class="facts">
                     <dt><span data-lang="en">Address</span><span data-lang="cs">Adresa</span></dt>
                     <dd>https://{{hostname}}</dd>
-                    <dt><span data-lang="en">Engine ID</span><span data-lang="cs">ID enginu</span></dt>
+                    <dt><span data-lang="en">Project ID</span><span data-lang="cs">ID projektu</span></dt>
                     <dd>{{engineId}}</dd>
-                    <dt><span data-lang="en">Engine fingerprint</span><span data-lang="cs">Otisk enginu</span></dt>
+                    <dt><span data-lang="en">Project fingerprint</span><span data-lang="cs">Otisk projektu</span></dt>
                     <dd>
                         <span class="fingerprint"
                             ><svg class="seal" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
@@ -175,11 +175,11 @@
                     </dd>
                 </dl>
                 <p data-lang="en" class="muted">
-                    Compare the fingerprint with the one in your terminal. If they differ, this is not your engine:
+                    Compare the fingerprint with the one in your terminal. If they differ, this is not your project:
                     close this page.
                 </p>
                 <p data-lang="cs" class="muted">
-                    Porovnejte otisk s tím v terminálu. Pokud se liší, nejde o Váš engine: stránku zavřete.
+                    Porovnejte otisk s tím v terminálu. Pokud se liší, nejde o Váš projekt: stránku zavřete.
                 </p>
                 <div class="actions">
                     <button type="button" class="button" data-action="create">
@@ -296,27 +296,27 @@
                     </g>
                 </svg>
                 <h1 tabindex="-1">
-                    <span data-lang="en">You are the owner</span><span data-lang="cs">Engine teď patří Vám</span>
+                    <span data-lang="en">You are the owner</span><span data-lang="cs">Projekt teď patří Vám</span>
                 </h1>
                 <p data-lang="en">
                     Sign in from any device with this passkey. To add a device without synced passkeys, use Security in
-                    the engine.
+                    the project.
                 </p>
                 <p data-lang="cs">
                     Tímto přístupovým klíčem se přihlásíte z jakéhokoli zařízení. Zařízení bez synchronizovaných klíčů
-                    přidáte v enginu v sekci Zabezpečení.
+                    přidáte v projektu v sekci Zabezpečení.
                 </p>
                 <p data-lang="en">
-                    Setup is done. If you started on the Promptbook dashboard, its tab shows this engine as ready by
+                    Setup is done. If you started on the Promptbook dashboard, its tab shows this project as ready by
                     itself; you can close it.
                 </p>
                 <p data-lang="cs">
-                    Nastavení je hotové. Pokud jste začali na nástěnce Promptbooku, její karta sama ukáže, že je engine
+                    Nastavení je hotové. Pokud jste začali na nástěnce Promptbooku, její karta sama ukáže, že je projekt
                     připravený; můžete ji zavřít.
                 </p>
                 <div class="actions">
                     <a class="button" href="/" data-next-link
-                        ><span data-lang="en">Open your engine</span><span data-lang="cs">Otevřít engine</span></a
+                        ><span data-lang="en">Open your project</span><span data-lang="cs">Otevřít projekt</span></a
                     >
                 </div>
             </section>
@@ -327,27 +327,27 @@
                     ><span data-lang="cs">Platnost odkazu pro nastavení vypršela</span>
                 </h1>
                 <p data-lang="en">
-                    Setup links work for 30 minutes. On the engine's server, run <code>{{command}} setup-link</code> for
-                    a new one.
+                    Setup links work for 30 minutes. On the project's server, run
+                    <code>{{setupLinkCommand}}</code> for a new one.
                 </p>
                 <p data-lang="cs">
-                    Odkaz pro nastavení platí 30 minut. Nový získáte příkazem <code>{{command}} setup-link</code> na
-                    serveru enginu.
+                    Odkaz pro nastavení platí 30 minut. Nový získáte příkazem <code>{{setupLinkCommand}}</code> na
+                    serveru projektu.
                 </p>
             </section>
 
             <section data-state="owner-exists" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">This engine already has an owner</span
-                    ><span data-lang="cs">Tento engine už má majitele</span>
+                    <span data-lang="en">This project already has an owner</span
+                    ><span data-lang="cs">Tento projekt už má majitele</span>
                 </h1>
                 <p data-lang="en">
                     Sign in with your passkey. If you are the owner and lost every passkey, run
-                    <code>{{command}} owner --reset</code> on the server.
+                    <code>{{resetOwnerCommand}}</code> on the server.
                 </p>
                 <p data-lang="cs">
-                    Přihlaste se přístupovým klíčem. Pokud engine patří Vám a přišli jste o všechny klíče, spusťte na
-                    serveru <code>{{command}} owner --reset</code>.
+                    Přihlaste se přístupovým klíčem. Pokud projekt patří Vám a přišli jste o všechny klíče, spusťte na
+                    serveru <code>{{resetOwnerCommand}}</code>.
                 </p>
                 <div class="actions">
                     <a class="button" href="/auth/sign-in"
@@ -358,16 +358,16 @@
 
             <section data-state="missing" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">This page needs the setup link from the engine's terminal</span
-                    ><span data-lang="cs">Tato stránka potřebuje odkaz pro nastavení z terminálu enginu</span>
+                    <span data-lang="en">This page needs the setup link from the project's terminal</span
+                    ><span data-lang="cs">Tato stránka potřebuje odkaz pro nastavení z terminálu projektu</span>
                 </h1>
                 <p data-lang="en">
                     Open the link exactly as the terminal printed it. For a new one, run
-                    <code>{{command}} setup-link</code> on the engine's server.
+                    <code>{{setupLinkCommand}}</code> on the project's server.
                 </p>
                 <p data-lang="cs">
                     Otevřete odkaz přesně tak, jak ho terminál vypsal. Nový získáte příkazem
-                    <code>{{command}} setup-link</code> na serveru enginu.
+                    <code>{{setupLinkCommand}}</code> na serveru projektu.
                 </p>
             </section>
 
@@ -386,16 +386,15 @@
 
             <section data-state="not-verified" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">The engine did not accept this passkey</span
-                    ><span data-lang="cs">Engine tento přístupový klíč nepřijal</span>
+                    <span data-lang="en">The project did not accept this passkey</span
+                    ><span data-lang="cs">Projekt tento přístupový klíč nepřijal</span>
                 </h1>
                 <p data-lang="en">
-                    Try again; if it keeps failing, run <code>{{command}} setup-link</code> on the server for a new
-                    link.
+                    Try again; if it keeps failing, run <code>{{setupLinkCommand}}</code> on the server for a new link.
                 </p>
                 <p data-lang="cs">
                     Zkuste to znovu. Pokud to stále nejde, získejte nový odkaz příkazem
-                    <code>{{command}} setup-link</code> na serveru.
+                    <code>{{setupLinkCommand}}</code> na serveru.
                 </p>
                 <div class="actions">
                     <button type="button" class="button" data-action="retry">
@@ -425,7 +424,8 @@
 
             <section data-state="offline" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">Cannot reach the engine</span><span data-lang="cs">Engine není dostupný</span>
+                    <span data-lang="en">Cannot reach the project</span
+                    ><span data-lang="cs">Projekt není dostupný</span>
                 </h1>
                 <p data-lang="en">Check your connection and try again.</p>
                 <p data-lang="cs">Zkontrolujte připojení a zkuste to znovu.</p>
@@ -438,16 +438,16 @@
 
             <section data-state="error" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">The engine could not answer</span
-                    ><span data-lang="cs">Engine nemohl odpovědět</span>
+                    <span data-lang="en">The project could not answer</span
+                    ><span data-lang="cs">Projekt nemohl odpovědět</span>
                 </h1>
                 <p data-lang="en">
                     It returned an error. Try again in a moment; if it keeps failing, run
-                    <code>{{command}} status</code> on the server.
+                    <code>{{statusCommand}}</code> on the server.
                 </p>
                 <p data-lang="cs">
                     Vrátil chybu. Zkuste to za chvíli znovu. Pokud to stále nejde, spusťte na serveru
-                    <code>{{command}} status</code>.
+                    <code>{{statusCommand}}</code>.
                 </p>
                 <div class="actions">
                     <button type="button" class="button" data-action="retry">

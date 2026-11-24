@@ -129,9 +129,9 @@
                     <span data-lang="en">Sign in to {{hostname}}</span
                     ><span data-lang="cs">Přihlášení do {{hostname}}</span>
                 </h1>
-                <p data-lang="en">Use the passkey you created for this engine. There is no password.</p>
+                <p data-lang="en">Use the passkey you created for this project. There is no password.</p>
                 <p data-lang="cs">
-                    Použijte přístupový klíč, který jste pro tento engine vytvořili. Heslo se nepoužívá.
+                    Použijte přístupový klíč, který jste pro tento projekt vytvořili. Heslo se nepoužívá.
                 </p>
                 <p class="fingerprint muted">
                     <svg class="seal seal-small" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
@@ -170,8 +170,8 @@
                             <rect class="fp-cell fp-tone-5" x="41.5" y="41.5" width="5" height="5" rx="1" />
                         </g></svg
                     ><span
-                        ><span data-lang="en">Engine fingerprint</span
-                        ><span data-lang="cs">Otisk enginu</span> {{fingerprint}}</span
+                        ><span data-lang="en">Project fingerprint</span
+                        ><span data-lang="cs">Otisk projektu</span> {{fingerprint}}</span
                     >
                 </p>
                 <p data-lang="en" class="muted">
@@ -207,10 +207,10 @@
                     <span data-lang="en">You are not signed in</span><span data-lang="cs">Nejste přihlášeni</span>
                 </h1>
                 <p data-lang="en">
-                    The passkey prompt was closed, timed out, or found no passkey for this engine on this device.
+                    The passkey prompt was closed, timed out, or found no passkey for this project on this device.
                 </p>
                 <p data-lang="cs">
-                    Výzva byla zavřena, vypršela, nebo na tomto zařízení nenašla žádný klíč pro tento engine.
+                    Výzva byla zavřena, vypršela, nebo na tomto zařízení nenašla žádný klíč pro tento projekt.
                 </p>
                 <div class="actions">
                     <button type="button" class="button" data-action="retry">
@@ -257,12 +257,12 @@
                     ><span data-lang="cs">Tento přístupový klíč tu není zaregistrovaný</span>
                 </h1>
                 <p data-lang="en">
-                    This engine does not know the passkey you chose. If you are the owner and lost every passkey, run
-                    <code>{{command}} owner --reset</code> on the server.
+                    This project does not know the passkey you chose. If you are the owner and lost every passkey, run
+                    <code>{{resetOwnerCommand}}</code> on the server.
                 </p>
                 <p data-lang="cs">
-                    Tento engine zvolený klíč nezná. Pokud engine patří Vám a přišli jste o všechny klíče, spusťte na
-                    serveru <code>{{command}} owner --reset</code>.
+                    Tento projekt zvolený klíč nezná. Pokud projekt patří Vám a přišli jste o všechny klíče, spusťte na
+                    serveru <code>{{resetOwnerCommand}}</code>.
                 </p>
                 <div class="actions">
                     <button type="button" class="button" data-action="retry">
@@ -273,15 +273,15 @@
 
             <section data-state="no-owner" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">This engine has no owner yet</span
-                    ><span data-lang="cs">Tento engine zatím nemá majitele</span>
+                    <span data-lang="en">This project has no owner yet</span
+                    ><span data-lang="cs">Tento projekt zatím nemá majitele</span>
                 </h1>
                 <p data-lang="en">
-                    To become its owner, run <code>{{command}} setup-link</code> on the engine's server and open the
-                    link it prints.
+                    To become its owner, run <code>{{setupLinkCommand}}</code> on the project's server and open the link
+                    it prints.
                 </p>
                 <p data-lang="cs">
-                    Majitelem se stanete tak, že na serveru enginu spustíte <code>{{command}} setup-link</code> a
+                    Majitelem se stanete tak, že na serveru projektu spustíte <code>{{setupLinkCommand}}</code> a
                     otevřete odkaz, který vypíše.
                 </p>
             </section>
@@ -315,7 +315,8 @@
 
             <section data-state="offline" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">Cannot reach the engine</span><span data-lang="cs">Engine není dostupný</span>
+                    <span data-lang="en">Cannot reach the project</span
+                    ><span data-lang="cs">Projekt není dostupný</span>
                 </h1>
                 <p data-lang="en">Check your connection and try again.</p>
                 <p data-lang="cs">Zkontrolujte připojení a zkuste to znovu.</p>
@@ -328,16 +329,16 @@
 
             <section data-state="error" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">The engine could not answer</span
-                    ><span data-lang="cs">Engine nemohl odpovědět</span>
+                    <span data-lang="en">The project could not answer</span
+                    ><span data-lang="cs">Projekt nemohl odpovědět</span>
                 </h1>
                 <p data-lang="en">
                     It returned an error. Try again in a moment; if it keeps failing, run
-                    <code>{{command}} status</code> on the server.
+                    <code>{{statusCommand}}</code> on the server.
                 </p>
                 <p data-lang="cs">
                     Vrátil chybu. Zkuste to za chvíli znovu. Pokud to stále nejde, spusťte na serveru
-                    <code>{{command}} status</code>.
+                    <code>{{statusCommand}}</code>.
                 </p>
                 <div class="actions">
                     <button type="button" class="button" data-action="retry">
@@ -353,19 +354,19 @@
                         <span data-lang="en">Signed in</span><span data-lang="cs">Jste přihlášeni</span>
                     </h1>
                 </div>
-                <p data-lang="en">Opening your engine.</p>
-                <p data-lang="cs">Otevíráme engine.</p>
+                <p data-lang="en">Opening your project.</p>
+                <p data-lang="cs">Otevíráme projekt.</p>
                 <div class="actions">
                     <a class="link" href="/" data-next-link
-                        ><span data-lang="en">Open your engine</span><span data-lang="cs">Otevřít engine</span></a
+                        ><span data-lang="en">Open your project</span><span data-lang="cs">Otevřít projekt</span></a
                     >
                 </div>
             </section>
 
             <div class="ways" data-shown-in="ready cancelled failed not-recognised" hidden>
                 <h2>
-                    <span data-lang="en">No passkey for this engine on this device?</span
-                    ><span data-lang="cs">Nemáte na tomto zařízení klíč k tomuto enginu?</span>
+                    <span data-lang="en">No passkey for this project on this device?</span
+                    ><span data-lang="cs">Nemáte na tomto zařízení klíč k tomuto projektu?</span>
                 </h2>
                 <ul data-lang="en">
                     <li>
@@ -378,7 +379,7 @@
                         where you created it.
                     </li>
                     <li>
-                        <strong>New here, or never finished setting up?</strong> Open the engine from your Promptbook
+                        <strong>New here, or never finished setting up?</strong> Open the project from your Promptbook
                         dashboard: choose Open next to it. The dashboard takes you through creating one.
                     </li>
                 </ul>
@@ -392,7 +393,7 @@
                         zařízení, kde jste klíč vytvořili.
                     </li>
                     <li>
-                        <strong>Jste tu noví, nebo jste nastavení nedokončili?</strong> Otevřete engine ze svého
+                        <strong>Jste tu noví, nebo jste nastavení nedokončili?</strong> Otevřete projekt ze svého
                         dashboardu Promptbook tlačítkem Otevřít u něj. Dashboard Vás provede vytvořením klíče.
                     </li>
                 </ul>

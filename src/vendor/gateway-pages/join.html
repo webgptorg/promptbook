@@ -120,18 +120,18 @@
                     <span data-lang="en">Join {{hostname}}</span><span data-lang="cs">Připojte se k {{hostname}}</span>
                 </h1>
                 <p data-lang="en">
-                    Your organization invited you to this engine. Create a passkey for it; someone on the engine then
+                    Your organization invited you to this project. Create a passkey for it; someone in the project then
                     approves your access.
                 </p>
                 <p data-lang="cs">
-                    Vaše organizace Vás pozvala do tohoto enginu. Vytvořte si pro něj přístupový klíč; někdo z enginu
-                    pak Váš přístup schválí.
+                    Vaše organizace Vás pozvala do tohoto projektu. Vytvořte si pro něj přístupový klíč; někdo z
+                    projektu pak Váš přístup schválí.
                 </p>
                 <p data-lang="en" class="muted">
-                    This engine has its own secure address, so your browser asks for one more passkey here.
+                    This project has its own secure address, so your browser asks for one more passkey here.
                 </p>
                 <p data-lang="cs" class="muted">
-                    Tento engine má vlastní zabezpečenou adresu, a tak si tu prohlížeč řekne o ještě jeden přístupový
+                    Tento projekt má vlastní zabezpečenou adresu, a tak si tu prohlížeč řekne o ještě jeden přístupový
                     klíč.
                 </p>
                 <div class="actions">
@@ -162,11 +162,11 @@
                     <span class="spinner" aria-hidden="true"></span>
                     <h1 tabindex="-1"><span data-lang="en">You're in</span><span data-lang="cs">Jste uvnitř</span></h1>
                 </div>
-                <p data-lang="en">Opening the engine…</p>
-                <p data-lang="cs">Otevíráme engine…</p>
+                <p data-lang="en">Opening the project…</p>
+                <p data-lang="cs">Otevíráme projekt…</p>
                 <div class="actions">
                     <a class="button" href="/" data-next-link
-                        ><span data-lang="en">Open the engine</span><span data-lang="cs">Otevřít engine</span></a
+                        ><span data-lang="en">Open the project</span><span data-lang="cs">Otevřít projekt</span></a
                     >
                 </div>
             </section>
@@ -202,11 +202,11 @@
                     ><span data-lang="cs">Tento odkaz z pozvánky nefunguje</span>
                 </h1>
                 <p data-lang="en">
-                    The engine could not check it. Open the team again from your organization’s dashboard for a new
+                    The project could not check it. Open the team again from your organization’s dashboard for a new
                     link.
                 </p>
                 <p data-lang="cs">
-                    Engine ho nedokázal ověřit. Pro nový odkaz otevřete tým znovu z nástěnky Vaší organizace.
+                    Projekt ho nedokázal ověřit. Pro nový odkaz otevřete tým znovu z nástěnky Vaší organizace.
                 </p>
             </section>
 
@@ -240,8 +240,8 @@
                 <h1 tabindex="-1">
                     <span data-lang="en">You already have access</span><span data-lang="cs">Přístup už máte</span>
                 </h1>
-                <p data-lang="en">Sign in with the passkey you created for this engine.</p>
-                <p data-lang="cs">Přihlaste se přístupovým klíčem, který jste pro tento engine vytvořili.</p>
+                <p data-lang="en">Sign in with the passkey you created for this project.</p>
+                <p data-lang="cs">Přihlaste se přístupovým klíčem, který jste pro tento projekt vytvořili.</p>
                 <div class="actions">
                     <a class="button" href="/auth/sign-in"
                         ><span data-lang="en">Sign in</span><span data-lang="cs">Přihlásit se</span></a
@@ -254,8 +254,8 @@
                     <span data-lang="en">Too many people are waiting for approval</span
                     ><span data-lang="cs">Na schválení čeká příliš mnoho lidí</span>
                 </h1>
-                <p data-lang="en">Ask someone on the engine to handle the pending requests, then try again.</p>
-                <p data-lang="cs">Požádejte někoho z enginu, ať vyřídí čekající žádosti, a pak to zkuste znovu.</p>
+                <p data-lang="en">Ask someone in the project to handle the pending requests, then try again.</p>
+                <p data-lang="cs">Požádejte někoho z projektu, ať vyřídí čekající žádosti, a pak to zkuste znovu.</p>
                 <div class="actions">
                     <button type="button" class="button" data-action="retry">
                         <span data-lang="en">Try again</span><span data-lang="cs">Zkusit znovu</span>
@@ -265,8 +265,8 @@
 
             <section data-state="not-verified" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">The engine did not accept this passkey</span
-                    ><span data-lang="cs">Engine tento přístupový klíč nepřijal</span>
+                    <span data-lang="en">The project did not accept this passkey</span
+                    ><span data-lang="cs">Projekt tento přístupový klíč nepřijal</span>
                 </h1>
                 <p data-lang="en">
                     Try again; if it keeps failing, open the team again from your organization’s dashboard for a new
@@ -378,7 +378,8 @@
 
             <section data-state="offline" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">Cannot reach the engine</span><span data-lang="cs">Engine není dostupný</span>
+                    <span data-lang="en">Cannot reach the project</span
+                    ><span data-lang="cs">Projekt není dostupný</span>
                 </h1>
                 <p data-lang="en">Check your connection and try again.</p>
                 <p data-lang="cs">Zkontrolujte připojení a zkuste to znovu.</p>
@@ -391,8 +392,8 @@
 
             <section data-state="error" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">The engine could not answer</span
-                    ><span data-lang="cs">Engine nemohl odpovědět</span>
+                    <span data-lang="en">The project could not answer</span
+                    ><span data-lang="cs">Projekt nemohl odpovědět</span>
                 </h1>
                 <p data-lang="en">It returned an error. Try again in a moment.</p>
                 <p data-lang="cs">Vrátil chybu. Zkuste to za chvíli znovu.</p>
