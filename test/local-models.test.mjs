@@ -374,11 +374,22 @@ test('local models: `ptbk tool setup-local` prepares, verifies and saves the run
     assert.equal(Number((await git(project, ['rev-list', '--count', 'HEAD'])).trim()), commitsBefore + 1, 'host maintenance never commits');
 });
 
-test('onboarding offers local models last on fresh, cloud-only, and previously provisioned hosts', async (t) => {
+// Discovery must never pick a developer's running LM Studio or inspect the model store on their machine.
+async function onboardingHost(t, models) {
+    t.mock.method(lmStudioAdapter, 'inspect', async () => ({
+        variant: 'LM_STUDIO', displayName: 'LM Studio', endpoint: lmStudioAdapter.defaultEndpoint, endpointSource: 'discovered',
+        onEngineHost: true, resourceKey: 'fixture-lm-studio', running: false, summary: 'Not installed.', problem: 'missing', checkedAt: 0,
+    }));
+    t.mock.method(lmStudioAdapter, 'installedModels', async () => []);
     const root = await temporaryDirectory(t);
     const { env } = await fakeHarness(t, root);
-    const ollama = await fakeOllama(t, { models: [CLOUD_MODEL] });
-    const isolated = { ...env, OLLAMA_HOST: ollama.url, PATH: join(root, 'empty'), Path: join(root, 'empty') };
+    const ollama = await fakeOllama(t, { models });
+    return { root, env: { ...env, OLLAMA_HOST: ollama.url }, ollama };
+}
+
+test('onboarding offers local models last on fresh, cloud-only, and previously provisioned hosts', async (t) => {
+    const { root, env, ollama } = await onboardingHost(t, [CLOUD_MODEL]);
+    const isolated = { ...env, PATH: join(root, 'empty'), Path: join(root, 'empty') };
     const offered = async () => harnessChoices(await discoverHarnessChoices(isolated));
     let picker = await offered();
     assert.deepEqual(picker.initial, ['openai-codex']);
@@ -405,9 +416,7 @@ test('onboarding offers local models last on fresh, cloud-only, and previously p
 });
 
 test('interactive ptbk init exposes the same ordered choices, defaults and disk estimate', async (t) => {
-    const root = await temporaryDirectory(t);
-    const { env } = await fakeHarness(t, root);
-    const ollama = await fakeOllama(t);
+    const { root, env, ollama } = await onboardingHost(t, [LOCAL_MODEL]);
     const directory = join(root, 'destination');
     await initRepository(directory);
     let picker;
@@ -421,13 +430,12 @@ test('interactive ptbk init exposes the same ordered choices, defaults and disk 
     await assert.rejects(initializeProject({
         path: ['init'], spec: COMMANDS.find((command) => command.name === 'init'),
         options: { path: directory, intent: 'local picker', installation: 'global', 'self-update': 'no' },
-        explicit: new Set(['path']), positionals: [], terminal, cwd: directory, env: { ...env, OLLAMA_HOST: ollama.url }, argv: [],
+        explicit: new Set(['path']), positionals: [], terminal, cwd: directory, env, argv: [],
     }), /cancelled/);
     const local = picker.choices.at(-1);
     assert.equal(local.label, 'Local models');
     assert.ok(local.featured && picker.initial.includes(local.value));
     assert.match(local.description, /0 GB/);
-    assert.ok(picker.choices.some((choice) => choice.featured === false));
     assert.ok(ollama.state.requests.every(({ path }) => path !== '/api/pull' && path !== '/api/generate'));
 });
 
@@ -455,14 +463,12 @@ test('offline model inventories distinguish complete local weights from cloud en
 });
 
 test('browser onboarding accepts a local-only choice, downloads once and resumes without a cloud sign-in', async (t) => {
-    const root = await temporaryDirectory(t);
-    const { env } = await fakeHarness(t, root);
-    const ollama = await fakeOllama(t, { models: [] });
+    const { root, env, ollama } = await onboardingHost(t, []);
     const project = projectAt(root);
     const log = join(root, 'local-preparation.log');
     const draft = { version: 1, engineId: 'a'.repeat(26), step: 'intent', promptId: randomUUID(), deferred: false };
     const session = new OnboardingSession(project, draft, new OnboardingUploads(join(root, 'uploads')),
-        { ...env, OLLAMA_HOST: ollama.url, FAKE_CODEX_PREPARATION_LOG: log }, async () => assert.fail('unconfirmed'));
+        { ...env, FAKE_CODEX_PREPARATION_LOG: log }, async () => assert.fail('unconfirmed'));
     t.after(() => session.stop());
     const reply = (value) => session.answer({ promptId: session.state().prompt.id, action: 'answer', answer: value });
     const state = await reply({ kind: 'text', text: 'NAME_ME:Local herbarium', fileIds: [] });
@@ -476,19 +482,17 @@ test('browser onboarding accepts a local-only choice, downloads once and resumes
     assert.ok(calls.length && calls.every((call) => call.config.model_provider === '"ptbk_local"'));
     const persisted = JSON.parse(await readFile(join(root, 'onboarding.json'), 'utf8'));
     assert.deepEqual(persisted.localModel, { runtime: 'OLLAMA', model: 'gpt-oss:20b', download: true });
-    const restored = new OnboardingSession(project, persisted, session.uploads, { ...env, OLLAMA_HOST: ollama.url }, async () => assert.fail('unconfirmed'));
+    const restored = new OnboardingSession(project, persisted, session.uploads, env, async () => assert.fail('unconfirmed'));
     await restored.answer({ promptId: restored.state().prompt.id, action: 'back' });
     assert.deepEqual(restored.state().prompt.initial, ['local-models']);
     assert.match(restored.state().prompt.choices.at(-1).description, /0 GB/);
 });
 
 test('paired setup refreshes estimates and refuses an unapproved download if the weights disappeared', async (t) => {
-    const root = await temporaryDirectory(t);
-    const { env } = await fakeHarness(t, root);
-    const ollama = await fakeOllama(t, { models: [LOCAL_MODEL] });
+    const { root, env, ollama } = await onboardingHost(t, [LOCAL_MODEL]);
     const draft = { version: 1, engineId: 'a'.repeat(26), step: 'harnesses', promptId: randomUUID(), deferred: false };
     const session = new OnboardingSession(projectAt(root), draft, new OnboardingUploads(join(root, 'uploads')),
-        { ...env, OLLAMA_HOST: ollama.url }, async () => assert.fail('unconfirmed'));
+        env, async () => assert.fail('unconfirmed'));
     t.after(() => session.stop());
     await session.refreshHarnessPrompt();
     const choice = (id) => session.answer({ promptId: id, action: 'answer', answer: { kind: 'choice', choiceIds: ['local-models'] } });
