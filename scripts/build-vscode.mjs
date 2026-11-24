@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { vscodeVersion } from './vscode-version.mjs';
+import { bookGrammar, bookTemplateGrammar, templateHosts } from './book-grammars.mjs';
 
 /** All extension outputs are generated from this checkout; no extension version is maintained separately. */
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -19,6 +20,13 @@ const engine = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 const manifest = JSON.parse(await readFile(join(source, 'package.json'), 'utf8'));
 manifest.version = vscodeVersion(engine.version);
 manifest.promptbook = { version: engine.version };
+for (const [host, language] of Object.entries(templateHosts)) {
+    manifest.contributes.grammars.push({
+        scopeName: `book.template.${host}`, path: `./syntaxes/book-${host}.tmLanguage.json`,
+        injectTo: [`source.${host}`],
+        embeddedLanguages: { 'meta.embedded.block.book': 'book', [`meta.embedded.line.${host}`]: language },
+    });
+}
 await rm(stage, { recursive: true, force: true });
 await mkdir(join(stage, 'syntaxes'), { recursive: true });
 for (const path of ['icons', 'snippets', 'README.md', 'language-configuration.json']) await cp(join(source, path), join(stage, path), { recursive: true });
@@ -61,21 +69,11 @@ await build({
 });
 /** Load the just-built vocabulary, including aliases and newly introduced commitments. */
 const { commitmentKeywords } = createRequire(import.meta.url)(join(output, 'test/language.cjs'));
-/** TextMate is the startup fallback; semantic highlighting uses the shared engine ranges directly. */
-const alternatives = commitmentKeywords().sort((a, b) => b.length - a.length || a.localeCompare(b))
-    .map((keyword) => keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replaceAll(' ', '[ \\t]+')).join('|');
-/** Offline TextMate fallback with generated commitment spellings and embedded Markdown. */
-const grammar = {
-    name: 'Book', scopeName: 'text.book', patterns: [
-        { name: 'markup.raw.block.book', begin: '^\\s{0,3}(`{3,})(.*)$', end: '^\\s{0,3}\\1`*[ \\t]*$' },
-        { name: 'markup.raw.block.book', begin: '^\\s{0,3}(~{3,})(.*)$', end: '^\\s{0,3}\\1~*[ \\t]*$' },
-        { name: 'string.quoted.literal.book', match: '^\\\\.*$' },
-        { name: 'keyword.control.commitment.book', match: `^\\x{FEFF}?(?:${alternatives})(?![ \\t]+\\p{Lu}[\\p{Lu}\\p{M}]*(?=[ \\t]|$))(?=[ \\t]|$)` },
-        { name: 'invalid.illegal.unknown-commitment.book', match: '^\\x{FEFF}?(?=(?:[ \\t]*[\\p{Lu}\\p{M}]){3})\\p{Lu}[\\p{Lu}\\p{M}]*(?:[ \\t]+\\p{Lu}[\\p{Lu}\\p{M}]*)*(?=[ \\t]|$)' },
-        { name: 'markup.inline.raw.book', begin: '(`+)', end: '\\1' },
-        { name: 'variable.other.reference.book', match: '(?<![A-Za-z0-9._%+@-])@[^\\s@{}()\\[\\]<>,;:!?"\'`]+|(?<!\\{)\\{[^{}\\n]+\\}(?!\\})' },
-        { include: 'text.html.markdown' },
-    ],
-};
-await writeFile(join(stage, 'syntaxes/book.tmLanguage.json'), `${JSON.stringify(grammar, null, 4)}\n`);
+const keywords = commitmentKeywords();
+const grammar = bookGrammar(keywords);
+await writeFile(join(stage, 'syntaxes/book.tmLanguage.json'), JSON.stringify(grammar, null, 4) + '\n');
+for (const host of Object.keys(templateHosts)) {
+    const injection = bookTemplateGrammar(host, keywords);
+    await writeFile(join(stage, `syntaxes/book-${host}.tmLanguage.json`), JSON.stringify(injection, null, 4) + '\n');
+}
 process.stdout.write(`Built Book extension ${manifest.version} for ptbk ${engine.version}.\n`);

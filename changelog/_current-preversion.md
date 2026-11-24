@@ -1,5 +1,7 @@
 # Unreleased
 
+- Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.
+
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
 
 - Reconcile the project's Fixer and Chatter Books with the supplied core templates. Add Fixer's requirement-change, retry and duplicate-action safeguards and Chatter's project briefs and owner-directed coordination rules, preserving existing consultation policies, team membership, learned instructions and learning boundaries.

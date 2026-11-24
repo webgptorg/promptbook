@@ -229,6 +229,28 @@ export function formatModelRow(row: ModelRow): string {
 }
 
 /**
+ * Constructs the explicit MODEL a structured editor can write. Each supplied field must fit in one token, so a
+ * model ID cannot accidentally turn into a second field or commitment. The ordinary parser normalizes the values.
+ *
+ * @private MODEL commitment
+ */
+export function modelFromRows(rows: readonly ModelRow[]): ModelConstraint {
+    if (!rows.length) throw new Error('MODEL needs at least one alternative; use [{}] for any model.');
+    const normalized = rows.map((row) => {
+        for (const [field, value] of Object.entries(row)) {
+            if (!(MODEL_FIELDS as readonly string[]).includes(field)) throw new Error(`Unknown MODEL field "${field}".`);
+            if (value !== undefined && (typeof value !== 'string' || !value || /\s/u.test(value))) {
+                throw new Error(`MODEL ${field} needs a single nonempty token.`);
+            }
+        }
+        const parsed = parseModelRow(formatModelRow(row));
+        if (!parsed.row) throw new Error(parsed.problems.join('. '));
+        return parsed.row;
+    });
+    return { rows: dedupeRows(normalized), explicit: true };
+}
+
+/**
  * Content of a MODEL commitment (one line per alternative), e.g. `harness=OPENAI_CODEX model=gpt-5 runtime=official`.
  *
  * @private MODEL commitment
