@@ -113,6 +113,25 @@ test('changing tools during a sign-in drops stale activity and verifies only the
     assert.deepEqual((await readOnboarding(project)).harnesses, ['openai-codex']);
 });
 
+test('an apparently signed-in Gemini that fails inference offers sign-in and shows a redacted CLI diagnostic', { skip: process.platform === 'win32' }, async (t) => {
+    const { home, project, draft } = await pending(t);
+    const { env } = await fakeApiHarness(t, home, 'gemini');
+    const config = join(env.GEMINI_CLI_HOME, '.gemini');
+    await mkdir(config, { recursive: true });
+    await writeFile(join(config, 'oauth_creds.json'), '{}');
+    await writeFile(join(home, 'provider-bin', 'gemini'), `#!/bin/sh
+if test "$1" = '--version'; then echo 3.0.0; else echo 'Workspace access denied for fixture-secret-value' >&2; exit 1; fi
+`);
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), { ...env, TEST_ACCESS_TOKEN: 'fixture-secret-value' }, async () => assert.fail());
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['gemini'] }));
+    const state = await waitFor(() => session.signInOptions() && session.state());
+    assert.match(state.prompt.error, /Workspace access denied/);
+    assert.doesNotMatch(JSON.stringify(state), /fixture-secret-value/);
+    assert(state.prompt.alternatives.some(item => item.id === 'api-key'));
+});
+
 test('an HTTPS pairing URL supplies the dashboard and its origin survives a fresh process', async (t) => {
     const { project, identity } = await pending(t);
     const code = 'a'.repeat(26);

@@ -34,7 +34,10 @@ async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     const configHome = join(context.env.GEMINI_CLI_HOME || contextHome(context.env), '.gemini');
     const settings = await readJsonIfExists<{ security?: { auth?: { selectedType?: string } }; selectedAuthType?: string }>(join(configHome, 'settings.json')).catch(() => undefined);
     const selected = settings?.security?.auth?.selectedType ?? settings?.selectedAuthType;
-    if (selected && API_TYPES.has(selected)) return withAuthentication(inspection, true, 'api', plugin.loginHint, `Gemini CLI is set to ${selected} authentication in its settings.json.`);
+    if (selected && API_TYPES.has(selected)) {
+        if (context.tool?.authentication === 'NATIVE') return withAuthentication(inspection, false, 'none', plugin.loginHint, `Gemini CLI is set to ${selected}: only API credentials are visible. Choose Login with Google or enter an API key.`);
+        return withAuthentication(inspection, true, 'api', plugin.loginHint, `Gemini CLI is set to ${selected} authentication in its settings.json.`);
+    }
     if (await anyExists([join(configHome, 'oauth_creds.json')])) return withAuthentication(inspection, true, 'account', plugin.loginHint);
     if (context.tool?.authentication !== 'NATIVE' && (context.env.GEMINI_API_KEY || context.env.GOOGLE_API_KEY || context.env.GOOGLE_GENAI_USE_VERTEXAI)) return withAuthentication(inspection, true, 'api', plugin.loginHint);
     if (selected) return withAuthentication(inspection, 'unknown', 'unknown', plugin.loginHint);

@@ -1,5 +1,7 @@
 # Unreleased
 
+- Gemini setup distinguishes a saved API selection from a Google login. A failed provider check shows its redacted diagnostic and offers sign-in again.
+
 - Changing AI tools during setup cancels the previous check and discards its progress and login prompt. Only the latest selection advances.
 
 - Claude Code offers an Anthropic API key directly from browser sign-in. The engine verifies it through a real request before saving it in the project’s ignored `.env`.

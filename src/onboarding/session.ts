@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { errorMessage, PtbkError } from '../common/errors.js';
+import { createRedactor } from '../common/redact.js';
 import { kebabIdentifier } from '../common/naming.js';
 import { instanceEnvironment } from '../engine/harnesses.js';
 import { pluginDefaultRow } from '../engine/routing.js';
@@ -59,15 +60,22 @@ function harnessContext(plugin: HarnessPlugin, root: string, env: NodeJS.Process
     return { projectRoot: root, env: instanceEnvironment(plugin, tool, api?.credential, env), tool, signal };
 }
 
+/** The checked invocation or a bounded explanation safe to show on the owner's sign-in form. */
+type Verification = { call: PreparatoryCall; diagnostic?: undefined } | { call?: undefined; diagnostic: string };
+
 /** Tests the selected provider through the real CLI without retaining its output or credentials. */
-async function verifyHarness(plugin: HarnessPlugin, context: HarnessContext, inspection: HarnessInspection, timeoutMs?: number): Promise<PreparatoryCall | undefined> {
-    if (!inspection.usable) return undefined;
+async function verifyHarness(plugin: HarnessPlugin, context: HarnessContext, inspection: HarnessInspection, timeoutMs?: number): Promise<Verification> {
+    context.signal?.throwIfAborted();
+    if (!inspection.usable || (context.tool?.authentication === 'NATIVE' && inspection.authentication === 'api')) return { diagnostic: label(inspection.summary).slice(0, 500) };
     const api = context.tool?.authentication === 'API_KEY' ? plugin.setupApiKey : undefined;
     const catalog = !api?.model && plugin.modelCatalog === 'complete' && plugin.listModels ? await plugin.listModels(context).catch(() => []) : [];
     const row = pluginDefaultRow(plugin, catalog);
     const call = { plugin, inspection, env: context.env, signal: context.signal, baseUrl: context.tool?.baseUrl, model: api?.model ?? row.model, thinkingLevel: api?.thinkingLevel ?? row.thinking };
     const check = await functionalCheck({ ...call, timeoutMs, ...(context.tool?.authentication === 'NATIVE' ? { modelCandidates: catalog } : {}) });
-    return check.ok ? { ...call, model: check.model ?? call.model } : undefined;
+    if (check.ok) return { call: { ...call, model: check.model ?? call.model } };
+    // A pasted key and provider URLs with transient challenges must never return to the form.
+    const detail = createRedactor([], context.env)(check.summary).replace(/https?:\/\/[^\s<>"']+/gi, '[provider URL]');
+    return { diagnostic: label(detail).slice(0, 500) || 'The CLI could not verify a response.' };
 }
 
 /**
@@ -159,7 +167,7 @@ export class OnboardingSession {
         try {
             const { plugin } = login;
             const context = harnessContext(plugin, this.staging.root, this.env, login.context.signal!, prepareApiHarness(plugin, value));
-            const call = await verifyHarness(plugin, context, await plugin.inspect(context), 30_000);
+            const { call } = await verifyHarness(plugin, context, await plugin.inspect(context), 30_000);
             await this.exclusive(async () => {
                 if (this.nativeLogin !== login || login.context.signal?.aborted) throw new PtbkError('The sign-in step has changed.', { kind: 'conflict' });
                 if (!call) throw new PtbkError('The provider did not accept the key or could not answer the setup check.', { kind: 'setup' });
@@ -315,11 +323,11 @@ export class OnboardingSession {
                         } else if (!login.checking) {
                             login.checking = true;
                             try {
-                                const call = await verifyHarness(login.plugin, login.context, await login.plugin.inspect(login.context), 30_000);
+                                const { call, diagnostic } = await verifyHarness(login.plugin, login.context, await login.plugin.inspect(login.context), 30_000);
                                 if (call) {
                                     await discardPreparedApiKey(this.staging.root, login.plugin);
                                     login.finish(call);
-                                } else this.login = { ...prompt, error: 'The engine could not verify ' + login.plugin.displayName + ' sign-in.' };
+                                } else this.login = { ...prompt, error: diagnostic };
                             } finally {
                                 login.checking = false;
                             }
@@ -420,14 +428,14 @@ export class OnboardingSession {
     }
 
     /** Prefers a provider device challenge, with a separate cancellation scope for switching to the terminal. */
-    private async deviceSignIn(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal): Promise<string | undefined> {
+    private async deviceSignIn(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal, diagnostic?: string): Promise<string | undefined> {
         const abort = new AbortController();
         this.deviceLogin = abort;
         try {
             const failure = await presentNativeLogin(plugin, { ...context, signal: AbortSignal.any([signal, abort.signal]) }, method, (challenge) => {
                 if (signal.aborted || abort.signal.aborted) return;
                 this.login = { id: randomUUID(), title: plugin.displayName + ' sign-in', kind: 'harness-login', canGoBack: true,
-                    harness: plugin.displayName, method: 'device-code', status: 'waiting', diagnostic: null, hint: null, error: null,
+                    harness: plugin.displayName, method: 'device-code', status: 'waiting', diagnostic: diagnostic ?? null, hint: null, error: null,
                     question: 'Open the provider’s sign-in page and enter the one-time code there.', ...challenge,
                     alternatives: [{ id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH }] };
             });
@@ -441,7 +449,7 @@ export class OnboardingSession {
     }
 
     /** Presents Claude's native returned-code flow while its real CLI owns all authorization state. */
-    private async returnCodeSignIn(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal): Promise<string | undefined> {
+    private async returnCodeSignIn(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal, diagnostic?: string): Promise<string | undefined> {
         const abort = new AbortController();
         this.deviceLogin = abort;
         const combined = AbortSignal.any([signal, abort.signal]);
@@ -469,7 +477,7 @@ export class OnboardingSession {
                         this.returnCode = { promptId, submit: async code => { await terminal.command(owner, { id, action: 'write', data: code + '\r' }); } };
                         this.login = { id: promptId, kind: 'harness-login', title: plugin.displayName + ' sign-in', canGoBack: true,
                             question: 'Open the provider sign-in page, sign in, then paste its returned code here.', hint: null, error: null,
-                            harness: plugin.displayName, method: 'return-code', url: challenge.url, userCode: null, status: 'waiting', diagnostic: null, expiresAt,
+                            harness: plugin.displayName, method: 'return-code', url: challenge.url, userCode: null, status: 'waiting', diagnostic: diagnostic ?? null, expiresAt,
                             alternatives: [
                                 ...(plugin.setupApiKey ? [{ id: 'api-key', label: 'Use an API key instead', description: null, href: null }] : []),
                                 { id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH },
@@ -608,16 +616,21 @@ export class OnboardingSession {
                     await this.noteActivity(signal, id + '-install', 'Install ' + plugin.displayName, 'done');
                     inspection = await plugin.inspect(context);
                 }
-                let call = await verifyHarness(plugin, context, inspection);
-                if (!call && inspection.installed && (inspection.authenticated !== true || api)) {
+                const checked = await verifyHarness(plugin, context, inspection);
+                let call = checked.call;
+                let diagnostic = checked.diagnostic;
+                if (!call && inspection.installed) {
                     const methods = await harnessLoginMethods(plugin, native, 'remote');
                     signal.throwIfAborted();
                     const device = methods.find((method) => method.deviceChallenge || method.returnChallenge);
-                    let diagnostic: string | undefined;
                     if (device && !api) {
-                        diagnostic = device.returnChallenge ? await this.returnCodeSignIn(plugin, native, device, signal) : await this.deviceSignIn(plugin, native, device, signal);
+                        const loginProblem = device.returnChallenge ? await this.returnCodeSignIn(plugin, native, device, signal, diagnostic) : await this.deviceSignIn(plugin, native, device, signal, diagnostic);
                         signal.throwIfAborted();
-                        call = this.loginFallback ? undefined : await verifyHarness(plugin, native, await plugin.inspect(native));
+                        if (!this.loginFallback) {
+                            const recheck = await verifyHarness(plugin, native, await plugin.inspect(native));
+                            call = recheck.call;
+                            diagnostic = loginProblem ?? recheck.diagnostic;
+                        }
                     }
                     if (!call) {
                         const terminal = methods.find((method) => method.remote && !method.deviceChallenge) ?? methods[0] ?? {
@@ -628,8 +641,9 @@ export class OnboardingSession {
                     }
                 }
                 if (!call) {
-                    problems.push(plugin.displayName + ': the engine could not verify a real response.');
-                    await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'failed', 'The engine could not verify a real provider response.');
+                    const detail = diagnostic ?? 'The engine could not verify a real provider response.';
+                    problems.push(plugin.displayName + ': ' + detail);
+                    await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'failed', detail);
                     continue;
                 }
                 await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'done');
