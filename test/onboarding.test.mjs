@@ -254,14 +254,14 @@ for (const mode of ['return-code', 'terminal']) test('the owner can complete Cla
     const executable = join(bin, 'claude');
     await writeFile(executable, `#!/bin/sh
 case "$*" in
-  --version) echo '2.0.0 (Claude Code)' ;;
+  --version) echo '2.1.330 (Claude Code)' ;;
   'auth status --json')
     if test -f "$TEST_CLAUDE_STATE"; then echo '{"loggedIn":true,"authMethod":"oauth"}'; else echo '{"loggedIn":false}'; fi ;;
   'auth login --help') echo 'Usage: claude auth login --claudeai' ;;
   'auth login --claudeai')
     test -t 0 && test -t 1 || exit 1
     stty -echo
-    printf 'Open https://claude.ai/oauth/authorize?state=fixture-state\\n'
+    printf '\\033]8;;https://claude.ai/oauth/authorize?state=fixture-state\\007Open browser\\033]8;;\\007\\n'
     printf 'Paste code at the native prompt: '
     IFS= read -r code
     test "$code" = '${code}' && touch "$TEST_CLAUDE_STATE" ;;

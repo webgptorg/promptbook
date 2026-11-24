@@ -1,5 +1,7 @@
 # Unreleased
 
+- Browser setup reads Claude Code's native OSC 8 authorization links on headless servers. HTTPS links in the fallback terminal open in a separate tab.
+
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
 
 - Reconcile the project's Fixer and Chatter Books with the supplied core templates. Add Fixer's requirement-change, retry and duplicate-action safeguards and Chatter's project briefs and owner-directed coordination rules, preserving existing consultation policies, team membership, learned instructions and learning boundaries.

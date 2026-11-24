@@ -31,13 +31,23 @@ async function listModels(context: HarnessContext): Promise<string[]> {
 
 /** Presents only Claude's native OAuth authorization URL; arbitrary CLI links remain in the terminal. */
 function returnChallenge(output: string): { url: string } | undefined {
-    // eslint-disable-next-line no-control-regex -- Remove ANSI CSI before extracting the native CLI's link.
-    const plain = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '');
+    const targets: string[] = [];
+    // OSC 8 carries the actual URL even when its visible label is only "Open browser".
+    // Ignore other OSC payloads and wait for BEL or ST before accepting a streamed target.
+    // eslint-disable-next-line no-control-regex -- Parse terminal escape sequences from the native PTY.
+    const plain = output.replace(/\u001b\]([^\u0007\u001b]*)(\u0007|\u001b\\|$)/g, (_, payload: string, end: string) => {
+        const target = /^8;[^;]*;(.+)$/.exec(payload)?.[1];
+        if (end && target) targets.push(target);
+        return ' ';
+    }).replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '');
     // eslint-disable-next-line no-control-regex -- A presented URL must never contain terminal control characters.
-    for (const candidate of plain.match(/https:\/\/[^\s<>"\u0000-\u001f]+(?=[\s<>"])/g) ?? []) {
+    targets.push(...(plain.match(/https:\/\/[^\s<>"\u0000-\u001f]+(?=[\s<>"])/g) ?? []));
+    for (const candidate of targets) {
+        // eslint-disable-next-line no-control-regex -- URL parsing would otherwise silently discard some control bytes.
+        if (candidate.length > 2048 || !/^https:\/\//.test(candidate) || /[\s<>"\\\u0000-\u001f\u007f]/.test(candidate)) continue;
         try {
             const url = new URL(candidate);
-            if (candidate.length <= 2048 && ['https://claude.ai', 'https://console.anthropic.com'].includes(url.origin) && url.pathname === '/oauth/authorize' && !url.username && !url.password) return { url: url.href };
+            if (['https://claude.ai', 'https://console.anthropic.com'].includes(url.origin) && url.pathname === '/oauth/authorize' && !url.username && !url.password) return { url: url.href };
         } catch { /* Native output can contain incomplete or unrelated links. */ }
     }
     return undefined;

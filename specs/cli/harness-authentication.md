@@ -39,7 +39,7 @@ Each adapter detects the installed version's real login capabilities; do not inv
 - **Gemini CLI** offers a Google AI Studio key. The terminal can use the CLI's own account and cloud authentication options. On remote hosts it sets `NO_BROWSER=true` for manual Google authorization.
 - **Qwen Code** offers a QwenCloud Singapore pay-as-you-go key. The CLI's `/auth` supports its other providers and subscription modes in the terminal.
 - **OpenCode** offers an OpenCode Console key. Its `opencode auth login` terminal supports its provider selection and native account flows.
-- **Claude Code** runs its native `claude auth login` or `/login` interaction. Anthropic's terms reserve Claude.ai account sign-in for its own flow. Promptbook forwards the unmodified CLI's terminal, so the user pastes any return code directly into Claude Code's prompt.
+- **Claude Code** runs its native `claude auth login` or `/login` interaction. Browser setup presents the native authorization URL from plain text or a complete OSC 8 hyperlink, including links whose visible label is only “Open browser”. It passes the returned code to the running CLI. The terminal fallback opens HTTPS links in a separate tab without access to the engine window.
 
 [Codex](https://learn.chatgpt.com/docs/auth) · [Copilot](https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/authenticate-copilot-cli) · [Gemini](https://geminicli.com/docs/get-started/authentication/) · [Qwen](https://docs.qwencloud.com/api-reference/preparation/api-key) · [OpenCode](https://opencode.ai/docs/cli/providers) · [Anthropic](https://code.claude.com/docs/en/legal-and-compliance#authentication-and-credential-use)
 
