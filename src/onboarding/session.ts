@@ -17,7 +17,7 @@ import { HARNESS_TERMINAL_PATH, HarnessLoginTerminal, type TerminalFrame } from 
 import { MAX_ONBOARDING_FILES, type OnboardingFile, type OnboardingUploads } from './uploads.js';
 
 /** The lifetime of one preparation or publication job. */
-type Job = { readonly abort: AbortController; readonly done: Promise<void> };
+type Job = { readonly abort: AbortController };
 
 /** What the operator sees over the local control socket, including a completed project's location. @private onboarding */
 export type OnboardingView = {
@@ -80,6 +80,7 @@ export class OnboardingSession {
     private draft: OnboardingDraft;
     private tail: Promise<unknown> = Promise.resolve();
     private job?: Job;
+    private readonly running = new Set<Promise<void>>();
     private login?: OnboardingPrompt;
     private nativeLogin?: NativeLogin;
     private deviceLogin?: AbortController;
@@ -258,9 +259,8 @@ export class OnboardingSession {
                 const back = { harnesses: 'intent', prepare: 'harnesses', title: 'harnesses', folder: 'title', review: 'folder' } as const;
                 const previous = back[this.draft.step as keyof typeof back];
                 if (!previous) throw new PtbkError('There is no earlier prompt.', { kind: 'usage' });
-                this.job?.abort.abort();
-                this.login = undefined;
-                await this.next(previous);
+                this.cancelPreparation();
+                await this.next(previous, { activity: [] });
                 return this.state();
             }
             if (reply.answer.kind !== prompt.kind) throw new PtbkError('The reply is for a different kind of prompt.', { kind: 'usage' });
@@ -300,9 +300,9 @@ export class OnboardingSession {
                 case 'choice': {
                     const ids = [...new Set(reply.answer.choiceIds)];
                     if (!ids.length || ids.some((id) => !HARNESS_PLUGINS.some((plugin) => plugin.id === id))) {
-                        await this.next('harnesses', { error: 'Choose at least one available harness.' });
+                        await this.next('harnesses', { harnesses: ids.filter(id => harnessPlugin(id)), activity: [], error: 'Choose at least one available harness.' });
                     } else {
-                        await this.next('prepare', { harnesses: ids });
+                        await this.next('prepare', { harnesses: ids, activity: [] });
                     }
                     break;
                 }
@@ -310,10 +310,8 @@ export class OnboardingSession {
                     if (this.nativeLogin) {
                         const login = this.nativeLogin;
                         if (!reply.answer.confirmed) {
-                            login.terminal.close();
-                            this.job?.abort.abort();
-                            this.login = undefined;
-                            await this.next('harnesses');
+                            this.cancelPreparation();
+                            await this.next('harnesses', { activity: [] });
                         } else if (!login.checking) {
                             login.checking = true;
                             try {
@@ -342,9 +340,8 @@ export class OnboardingSession {
                         return this.state();
                     }
                     if (reply.answer.returnCode !== null) throw new PtbkError('Enter the device code on the provider’s page.', { kind: 'usage' });
-                    this.job?.abort.abort();
-                    this.login = undefined;
-                    await this.next('prepare');
+                    this.cancelPreparation();
+                    await this.next('prepare', { activity: [] });
                     break;
                 default:
                     throw new PtbkError('This prompt cannot accept an upload by itself.', { kind: 'usage' });
@@ -358,9 +355,22 @@ export class OnboardingSession {
     public async stop(): Promise<void> {
         this.stopped = true;
         if (this.draft.step === 'prepare') this.job?.abort.abort();
-        await this.job?.done;
+        await Promise.allSettled(this.running);
         await this.secretJob;
         await this.tail;
+    }
+
+    /** Detaches the cancelled job before another answer starts preparing its own selection. */
+    private cancelPreparation(): void {
+        this.job?.abort.abort();
+        this.job = undefined;
+        this.nativeLogin?.terminal.close();
+        this.nativeLogin = undefined;
+        this.deviceLogin = undefined;
+        this.login = undefined;
+        this.secretReturn = undefined;
+        this.returnCode = undefined;
+        this.loginFallback = undefined;
     }
 
     /** Collects the key through the owner-only secret input shared by all setup clients. */
@@ -380,7 +390,8 @@ export class OnboardingSession {
         const { label: keyLabel, url } = plugin.setupApiKey ?? {};
         const options = { promptId, harness: plugin.displayName, instructions: method.instructions,
             ...(keyLabel && url ? { apiKey: { label: keyLabel, url } } : {}) };
-        this.nativeLogin = { terminal, finish, options, context, plugin, checking: false };
+        const login = { terminal, finish, options, context, plugin, checking: false };
+        this.nativeLogin = login;
         this.login = { id: promptId, title: plugin.displayName + ' sign-in', kind: 'confirm', canGoBack: true, error: diagnostic ?? null,
             question: options.apiKey ? 'Connect a provider API key or sign in in the native terminal.' : 'Sign in in the native terminal.',
             confirmLabel: 'Check sign-in', declineLabel: 'Choose AI tools',
@@ -400,9 +411,11 @@ export class OnboardingSession {
         } finally {
             signal.removeEventListener('abort', cancel);
             terminal.close();
-            this.nativeLogin = undefined;
-            this.secretReturn = undefined;
-            this.login = undefined;
+            if (this.nativeLogin === login) {
+                this.nativeLogin = undefined;
+                this.secretReturn = undefined;
+                this.login = undefined;
+            }
         }
     }
 
@@ -420,8 +433,10 @@ export class OnboardingSession {
             });
             return abort.signal.aborted ? undefined : failure?.diagnostic;
         } finally {
-            this.deviceLogin = undefined;
-            this.login = undefined;
+            if (this.deviceLogin === abort) {
+                this.deviceLogin = undefined;
+                this.login = undefined;
+            }
         }
     }
 
@@ -442,7 +457,7 @@ export class OnboardingSession {
             await terminal.command(owner, { id, action: 'start', cols: 200, rows: 24 });
             while (!combined.aborted && Date.now() - startedAt < 8 * 60_000) {
                 const frame = await terminal.command(owner, { id, action: 'read', offset });
-                if (!frame) break;
+                if (combined.aborted || !frame) break;
                 offset = frame.offset;
                 if (!presented) {
                     output = (output + frame.output).slice(-16_384);
@@ -471,9 +486,11 @@ export class OnboardingSession {
             return 'The native authorization flow could not continue. Use its sign-in terminal.';
         } finally {
             terminal.close();
-            this.returnCode = undefined;
-            this.deviceLogin = undefined;
-            this.login = undefined;
+            if (this.deviceLogin === abort) {
+                this.returnCode = undefined;
+                this.deviceLogin = undefined;
+                this.login = undefined;
+            }
         }
     }
 
@@ -490,8 +507,9 @@ export class OnboardingSession {
     }
 
     /** Persists measured work outcomes, without credentials, OAuth output or model content. */
-    private async noteActivity(id: string, label: string, status: OnboardingActivity['status'], detail: string | null = null): Promise<void> {
+    private async noteActivity(signal: AbortSignal, id: string, label: string, status: OnboardingActivity['status'], detail: string | null = null): Promise<void> {
         await this.exclusive(async () => {
+            signal.throwIfAborted();
             const previous = this.draft.activity ?? [];
             const entry = { id, label, status, detail };
             const activity = previous.some(item => item.id === id) ? previous.map(item => item.id === id ? entry : item) : [...previous, entry];
@@ -539,15 +557,17 @@ export class OnboardingSession {
 
     /** Resumes the one current job, holding no request open for installations or model calls. */
     private drive(): void {
-        const step = this.draft.step;
+        const start = this.draft;
+        const step = start.step;
         if (this.stopped || this.job || this.draft.error || !['prepare', 'create', 'publish', 'published'].includes(step)) return;
         const abort = new AbortController();
         const done = Promise.resolve().then(async () => {
-            if (step === 'prepare') await this.prepare(abort.signal);
+            if (step === 'prepare') await this.prepare(start, abort.signal);
             else await this.finish(this.draft, (patch) => this.exclusive(() => this.save(patch)));
         }).catch(async (error: unknown) => {
             if (abort.signal.aborted) return;
             await this.exclusive(async () => {
+                if (abort.signal.aborted || this.job?.abort !== abort) return;
                 const current = this.draft.step;
                 const problem = label(errorMessage(error)) || 'Onboarding could not continue.';
                 if (current === 'prepare') await this.next('harnesses', { error: problem, deferred: this.draft.deferred });
@@ -555,38 +575,43 @@ export class OnboardingSession {
                 else await this.save({ error: problem });
             });
         }).finally(() => {
+            this.running.delete(done);
+            if (this.job?.abort !== abort) return;
             this.job = undefined;
             this.login = undefined;
-            if (abort.signal.aborted && !this.stopped) this.drive();
+            if (this.draft.step === 'prepare' && this.draft.promptId !== start.promptId) this.drive();
         });
         // The caller sees the error via the draft; never leave a rejected background promise unobserved.
         void done.catch(() => undefined);
-        this.job = { abort, done };
+        this.running.add(done);
+        this.job = { abort };
     }
 
     /** Installs or checks the chosen native harnesses, then offers an editable project name. */
-    private async prepare(signal: AbortSignal): Promise<void> {
+    private async prepare(start: OnboardingDraft, signal: AbortSignal): Promise<void> {
         const problems: string[] = [];
         let name: Awaited<ReturnType<typeof proposeProjectName>> | undefined;
         let ready = false;
-        for (const id of this.draft.harnesses ?? []) {
+        for (const id of start.harnesses ?? []) {
             signal.throwIfAborted();
             const plugin = harnessPlugin(id)!;
-            await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'running');
+            await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'running');
             try {
                 const native = harnessContext(plugin, this.staging.root, this.env, signal);
                 const api = await readPreparedApiHarness(this.staging.root, plugin);
                 const context = api ? harnessContext(plugin, this.staging.root, this.env, signal, api) : native;
                 let inspection = await plugin.inspect(context);
+                signal.throwIfAborted();
                 if (!inspection.installed && plugin.npmPackage) {
-                    await this.noteActivity(id + '-install', 'Install ' + plugin.displayName, 'running');
+                    await this.noteActivity(signal, id + '-install', 'Install ' + plugin.displayName, 'running');
                     await installHarness(plugin, native);
-                    await this.noteActivity(id + '-install', 'Install ' + plugin.displayName, 'done');
+                    await this.noteActivity(signal, id + '-install', 'Install ' + plugin.displayName, 'done');
                     inspection = await plugin.inspect(context);
                 }
                 let call = await verifyHarness(plugin, context, inspection);
                 if (!call && inspection.installed && (inspection.authenticated !== true || api)) {
                     const methods = await harnessLoginMethods(plugin, native, 'remote');
+                    signal.throwIfAborted();
                     const device = methods.find((method) => method.deviceChallenge || method.returnChallenge);
                     let diagnostic: string | undefined;
                     if (device && !api) {
@@ -604,10 +629,10 @@ export class OnboardingSession {
                 }
                 if (!call) {
                     problems.push(plugin.displayName + ': the engine could not verify a real response.');
-                    await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'failed', 'The engine could not verify a real provider response.');
+                    await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'failed', 'The engine could not verify a real provider response.');
                     continue;
                 }
-                await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'done');
+                await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'done');
                 ready = true;
                 if (!name && !this.draft.title && this.draft.intent?.trim()) {
                     name = await proposeProjectName(call, this.draft.intent).catch(() => undefined);
@@ -615,14 +640,14 @@ export class OnboardingSession {
             } catch {
                 signal.throwIfAborted();
                 const installing = this.draft.activity?.find(item => item.id === id + '-install');
-                if (installing?.status === 'running') await this.noteActivity(installing.id, installing.label, 'failed', 'The installation did not complete. Retry or check the engine host.');
-                await this.noteActivity(id + '-check', 'Check ' + plugin.displayName, 'failed', 'The tool could not be prepared and verified.');
+                if (installing?.status === 'running') await this.noteActivity(signal, installing.id, installing.label, 'failed', 'The installation did not complete. Retry or check the engine host.');
+                await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'failed', 'The tool could not be prepared and verified.');
                 problems.push(plugin.displayName + ': preparation did not complete.');
             }
         }
         if (signal.aborted) return;
         await this.exclusive(async () => {
-            if (signal.aborted) return;
+            if (signal.aborted || this.draft.step !== 'prepare' || this.draft.promptId !== start.promptId || this.draft.harnesses !== start.harnesses) return;
             if (!ready) await this.next('harnesses', { error: problems.join(' ').slice(0, 2000) || 'No selected harness passed its check.', deferred: this.draft.deferred });
             else await this.next('title', { title: this.draft.title ?? name?.title ?? 'My project', folder: this.draft.folder ?? name?.folder ?? 'my-project', deferred: this.draft.deferred });
         });

@@ -93,6 +93,26 @@ test('an additional harness failure remains visible with the real completed chec
     assert.deepEqual(restored.state(), review);
 });
 
+test('changing tools during a sign-in drops stale activity and verifies only the new selection', { skip: process.platform === 'win32' }, async (t) => {
+    const { home, project, draft } = await pending(t);
+    const { env } = await fakeApiHarness(t, home, 'gemini');
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), env, async () => assert.fail());
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['gemini'] }));
+    const login = await waitFor(() => session.signInOptions() && session.state());
+    const back = await session.answer({ promptId: login.prompt.id, action: 'back' });
+    assert.deepEqual(back.activity, []);
+    const empty = await session.answer(answer(back, { kind: 'choice', choiceIds: [] }));
+    assert.deepEqual(empty.prompt.initial, []);
+    assert.match(empty.prompt.error, /at least one/);
+    await session.answer(answer(empty, { kind: 'choice', choiceIds: ['openai-codex'] }));
+    await assert.rejects(session.answer(answer(login, { kind: 'confirm', confirmed: true })), /changed/);
+    await waitFor(() => session.state().prompt?.title === 'Project name');
+    assert.deepEqual(session.state().activity.map(({ id, status }) => [id, status]), [['openai-codex-check', 'done']]);
+    assert.deepEqual((await readOnboarding(project)).harnesses, ['openai-codex']);
+});
+
 test('an HTTPS pairing URL supplies the dashboard and its origin survives a fresh process', async (t) => {
     const { project, identity } = await pending(t);
     const code = 'a'.repeat(26);

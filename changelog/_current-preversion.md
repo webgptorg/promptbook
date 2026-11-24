@@ -1,5 +1,7 @@
 # Unreleased
 
+- Changing AI tools during setup cancels the previous check and discards its progress and login prompt. Only the latest selection advances.
+
 - Claude Code offers an Anthropic API key directly from browser sign-in. The engine verifies it through a real request before saving it in the project’s ignored `.env`.
 
 - Browser setup reads Claude Code's native OSC 8 authorization links on headless servers. HTTPS links in the fallback terminal open in a separate tab.
