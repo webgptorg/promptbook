@@ -323,6 +323,9 @@ for (const mode of ['return-code', 'terminal', 'api-key']) test('the owner can c
     await mkdir(bin);
     const code = 'fixture-one-time-code';
     const marker = join(home, 'claude-ready');
+    const recorded = JSON.parse(await readFile(new URL('./fixtures/claude-code-2.1.330-login.json', import.meta.url), 'utf8'));
+    const loginOutput = join(home, 'claude-login-output');
+    await writeFile(loginOutput, recorded.output);
     const executable = join(bin, 'claude');
     await writeFile(executable, `#!/bin/sh
 case "$*" in
@@ -333,8 +336,7 @@ case "$*" in
   'auth login --claudeai')
     test -t 0 && test -t 1 || exit 1
     stty -echo
-    printf '\\033]8;;https://claude.ai/oauth/authorize?state=fixture-state\\007Open browser\\033]8;;\\007\\n'
-    printf 'Paste code at the native prompt: '
+    cat "$TEST_CLAUDE_LOGIN_OUTPUT"
     IFS= read -r code
     test "$code" = '${code}' && touch "$TEST_CLAUDE_STATE" ;;
   -p*) test -f "$TEST_CLAUDE_STATE" || { test "$ANTHROPIC_API_KEY" = 'fixture-anthropic' && test -n "$CLAUDE_CONFIG_DIR" && test -z "$CLAUDE_CODE_OAUTH_TOKEN"; } || exit 1
@@ -342,7 +344,7 @@ case "$*" in
 esac
 `);
     await chmod(executable, 0o755);
-    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, TEST_CLAUDE_STATE: marker };
+    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, TEST_CLAUDE_STATE: marker, TEST_CLAUDE_LOGIN_OUTPUT: loginOutput };
     const uploads = new OnboardingUploads(join(project.root, 'uploads'));
     const session = new OnboardingSession(project, draft, uploads, env, async () => assert.fail('not confirmed'));
     t.after(() => session.stop());
@@ -364,7 +366,7 @@ esac
     if (mode === 'return-code') {
         const waiting = session.state();
         assert.equal(waiting.prompt.method, 'return-code');
-        assert.match(waiting.prompt.url, /^https:\/\/claude\.ai\/oauth\/authorize/);
+        assert.equal(waiting.prompt.url, recorded.url);
         await assert.rejects(session.answer(answer(waiting, { kind: 'harness-login', returnCode: 'code\nextra-input' })), /one line/);
         await session.answer(answer(waiting, { kind: 'harness-login', returnCode: code }));
         await assert.rejects(session.answer(answer(waiting, { kind: 'harness-login', returnCode: code })), /changed/);
@@ -409,7 +411,7 @@ esac
     assert.equal((await send({ action: 'start' })).status, 200);
     assert.equal((await send({ action: 'read', offset: 0 }, cookies.second)).status, 409);
     await assert.rejects(session.terminal('local', { id: randomUUID(), promptId: waiting.prompt.id, action: 'start' }), /already open/);
-    await waitFor(async () => (await (await send({ action: 'read', offset: 0 })).json()).output.includes('Paste code at the native prompt'), { timeoutMs: 5000, intervalMs: 40 });
+    await waitFor(async () => (await (await send({ action: 'read', offset: 0 })).json()).output.includes('Paste code here if prompted'), { timeoutMs: 5000, intervalMs: 40 });
     assert.equal((await send({ action: 'write', data: code + '\r' })).status, 200);
     const frame = await waitFor(async () => {
         const current = await (await send({ action: 'read', offset: 0 })).json();
