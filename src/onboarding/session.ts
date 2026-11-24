@@ -83,7 +83,7 @@ export class OnboardingSession {
     private login?: OnboardingPrompt;
     private nativeLogin?: NativeLogin;
     private deviceLogin?: AbortController;
-    private terminalRequested = false;
+    private loginFallback?: 'native-terminal' | 'api-key';
     private secretJob?: Promise<void>;
     private secretReturn?: OnboardingPrompt;
     private returnCode?: { readonly promptId: string; readonly submit: (code: string) => Promise<void> };
@@ -122,7 +122,7 @@ export class OnboardingSession {
     /** Switches a running device-code sign-in to the same adapter's native terminal. */
     public useTerminal(promptId: unknown): void {
         if (!this.deviceLogin || this.login?.id !== promptId) throw new PtbkError('The sign-in step has changed.', { kind: 'conflict' });
-        this.terminalRequested = true;
+        this.loginFallback = 'native-terminal';
         this.deviceLogin.abort();
     }
 
@@ -235,11 +235,15 @@ export class OnboardingSession {
             if (!prompt || reply.promptId !== prompt.id) throw new PtbkError('The onboarding prompt has changed.', { kind: 'conflict' });
             if (reply.action === 'alternative') {
                 const alternative = prompt.alternatives?.find(item => item.id === reply.alternativeId && item.href === null);
+                if (alternative?.id === 'api-key' && this.deviceLogin) {
+                    this.loginFallback = 'api-key';
+                    this.deviceLogin.abort();
+                    this.login = undefined;
+                    return this.state();
+                }
                 const key = this.nativeLogin?.options.apiKey;
                 if (!alternative || alternative.id !== 'api-key' || !key) throw new PtbkError('Choose an offered action for this prompt.', { kind: 'usage' });
-                this.secretReturn = prompt;
-                this.login = { id: randomUUID(), kind: 'secret', title: key.label, question: 'Enter your provider API key.', label: key.label,
-                    helpUrl: key.url, placeholder: null, hint: 'The engine verifies the key without putting it in the setup draft or history.', error: null, canGoBack: true };
+                this.showKeyPrompt(prompt, key);
                 return this.state();
             }
             if (reply.action === 'back') {
@@ -359,6 +363,13 @@ export class OnboardingSession {
         await this.tail;
     }
 
+    /** Collects the key through the owner-only secret input shared by all setup clients. */
+    private showKeyPrompt(prompt: OnboardingPrompt, key: { label: string; url: string }): void {
+        this.secretReturn = prompt;
+        this.login = { id: randomUUID(), kind: 'secret', title: key.label, question: 'Enter your provider API key.', label: key.label,
+            helpUrl: key.url, placeholder: null, hint: 'The engine verifies the key without putting it in the setup draft or history.', error: null, canGoBack: true };
+    }
+
     /** Gives the owner the native terminal and any supported explicit key, then checks the chosen account. */
     private async waitForNativeLogin(plugin: HarnessPlugin, context: HarnessContext, method: HarnessLoginMethod, signal: AbortSignal, diagnostic?: string): Promise<PreparatoryCall | undefined> {
         signal.throwIfAborted();
@@ -370,7 +381,6 @@ export class OnboardingSession {
         const options = { promptId, harness: plugin.displayName, instructions: method.instructions,
             ...(keyLabel && url ? { apiKey: { label: keyLabel, url } } : {}) };
         this.nativeLogin = { terminal, finish, options, context, plugin, checking: false };
-        this.terminalRequested = false;
         this.login = { id: promptId, title: plugin.displayName + ' sign-in', kind: 'confirm', canGoBack: true, error: diagnostic ?? null,
             question: options.apiKey ? 'Connect a provider API key or sign in in the native terminal.' : 'Sign in in the native terminal.',
             confirmLabel: 'Check sign-in', declineLabel: 'Choose AI tools',
@@ -379,6 +389,8 @@ export class OnboardingSession {
                 { id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH },
             ],
             hint: 'Open the sign-in page on this engine at ' + HARNESS_TERMINAL_PATH };
+        if (this.loginFallback === 'api-key' && options.apiKey) this.showKeyPrompt(this.login, options.apiKey);
+        this.loginFallback = undefined;
         const cancel = (): void => finish();
         signal.addEventListener('abort', cancel, { once: true });
         try {
@@ -443,7 +455,10 @@ export class OnboardingSession {
                         this.login = { id: promptId, kind: 'harness-login', title: plugin.displayName + ' sign-in', canGoBack: true,
                             question: 'Open the provider sign-in page, sign in, then paste its returned code here.', hint: null, error: null,
                             harness: plugin.displayName, method: 'return-code', url: challenge.url, userCode: null, status: 'waiting', diagnostic: null, expiresAt,
-                            alternatives: [{ id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH }] };
+                            alternatives: [
+                                ...(plugin.setupApiKey ? [{ id: 'api-key', label: 'Use an API key instead', description: null, href: null }] : []),
+                                { id: 'native-terminal', label: 'Sign in in a terminal instead', description: null, href: HARNESS_TERMINAL_PATH },
+                            ] };
                     }
                 }
                 if (frame.done) return undefined;
@@ -577,7 +592,7 @@ export class OnboardingSession {
                     if (device && !api) {
                         diagnostic = device.returnChallenge ? await this.returnCodeSignIn(plugin, native, device, signal) : await this.deviceSignIn(plugin, native, device, signal);
                         signal.throwIfAborted();
-                        call = this.terminalRequested ? undefined : await verifyHarness(plugin, native, await plugin.inspect(native));
+                        call = this.loginFallback ? undefined : await verifyHarness(plugin, native, await plugin.inspect(native));
                     }
                     if (!call) {
                         const terminal = methods.find((method) => method.remote && !method.deviceChallenge) ?? methods[0] ?? {

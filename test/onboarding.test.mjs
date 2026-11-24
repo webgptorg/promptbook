@@ -245,7 +245,7 @@ test('the pending engine ships a same-origin onboarding script', async () => {
     assert.doesNotMatch(await script.text(), /innerHTML|eval\(/);
 });
 
-for (const mode of ['return-code', 'terminal']) test('the owner can complete Claude Code sign-in with ' + mode, { skip: process.platform === 'win32' }, async (t) => {
+for (const mode of ['return-code', 'terminal', 'api-key']) test('the owner can complete Claude Code sign-in with ' + mode, { skip: process.platform === 'win32' }, async (t) => {
     const { home, project, draft } = await pending(t);
     const bin = join(home, 'fake bin');
     await mkdir(bin);
@@ -265,7 +265,8 @@ case "$*" in
     printf 'Paste code at the native prompt: '
     IFS= read -r code
     test "$code" = '${code}' && touch "$TEST_CLAUDE_STATE" ;;
-  -p*) echo '{"type":"result","subtype":"success","result":"PONG"}' ;;
+  -p*) test -f "$TEST_CLAUDE_STATE" || { test "$ANTHROPIC_API_KEY" = 'fixture-anthropic' && test -n "$CLAUDE_CONFIG_DIR" && test -z "$CLAUDE_CODE_OAUTH_TOKEN"; } || exit 1
+       echo '{"type":"result","subtype":"success","result":"PONG"}' ;;
 esac
 `);
     await chmod(executable, 0o755);
@@ -276,6 +277,18 @@ esac
     await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
     await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['claude-code'] }));
     await waitFor(() => session.state().prompt?.kind === 'harness-login', { timeoutMs: 6000, intervalMs: 40 });
+    if (mode === 'api-key') {
+        const waiting = session.state();
+        assert(waiting.prompt.alternatives.some(item => item.id === 'api-key'));
+        await session.answer({ promptId: waiting.prompt.id, action: 'alternative', alternativeId: 'api-key' });
+        const secret = await waitFor(() => session.state().prompt?.kind === 'secret' && session.state(), { timeoutMs: 6000 });
+        assert.equal(secret.prompt.helpUrl, 'https://console.anthropic.com/settings/keys');
+        await session.answer(answer(secret, { kind: 'secret', value: 'fixture-anthropic' }));
+        await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 6000 });
+        assert.equal((await readPreparedApiHarness(project.root, harnessPlugin('claude-code'))).credential.name, 'PTBK_ANTHROPIC_API_KEY');
+        assert(!JSON.stringify(await readOnboarding(project)).includes('fixture-anthropic'));
+        return;
+    }
     if (mode === 'return-code') {
         const waiting = session.state();
         assert.equal(waiting.prompt.method, 'return-code');
@@ -292,7 +305,7 @@ esac
     const waiting = session.state();
     const hostname = 'engine.example.test';
     const path = '/_ptbk/harness-terminal';
-    assert.equal(session.signInOptions().apiKey, undefined);
+    assert.equal(session.signInOptions().apiKey.label, 'Anthropic API key');
     const inactive = await harnessTerminalPage(new Request(`https://${hostname}${path}`), { role: 'owner' }, { signInOptions: () => undefined, prepareTerminal: async () => {} });
     assert.equal(inactive.status, 404);
     const cookies = { owner: 'a'.repeat(22), outsider: 'b'.repeat(22), second: 'c'.repeat(22) };

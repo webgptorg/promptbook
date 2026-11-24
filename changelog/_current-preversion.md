@@ -1,5 +1,7 @@
 # Unreleased
 
+- Claude Code offers an Anthropic API key directly from browser sign-in. The engine verifies it through a real request before saving it in the project’s ignored `.env`.
+
 - Browser setup reads Claude Code's native OSC 8 authorization links on headless servers. HTTPS links in the fallback terminal open in a separate tab.
 
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.

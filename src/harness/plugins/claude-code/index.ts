@@ -7,6 +7,7 @@ import type { HarnessContext, HarnessInspection, HarnessInvocation, HarnessLogin
 async function inspect(context: HarnessContext): Promise<HarnessInspection> {
     const { inspection, executablePath } = await baseInspection(plugin, context);
     if (!executablePath) return inspection;
+    if (context.tool?.authentication === 'API_KEY' && context.env.ANTHROPIC_API_KEY) return withAuthentication(inspection, true, 'api', plugin.loginHint);
     const status = await probe(context, executablePath, ['auth', 'status', '--json']);
     try {
         const json = JSON.parse(status.output.slice(status.output.indexOf('{'))) as { loggedIn?: boolean; authMethod?: string; apiKeySource?: string };
@@ -116,6 +117,10 @@ export const plugin: HarnessPlugin = {
     id: 'claude-code',
     variant: 'CLAUDE_CODE',
     apiKeyVariable: 'ANTHROPIC_API_KEY',
+    setupApiKey: {
+        reference: 'PTBK_ANTHROPIC_API_KEY', label: 'Anthropic API key', url: 'https://console.anthropic.com/settings/keys',
+        profile: { home: 'CLAUDE_CONFIG_DIR', omit: ['CLAUDE_SECURESTORAGE_CONFIG_DIR'] },
+    },
     // Keys, bearer tokens, endpoint overrides and the Bedrock/Vertex/Foundry selectors all choose another billing route.
     ambientApiKeyVariables: ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY', 'ANTHROPIC_BEDROCK_BASE_URL', 'ANTHROPIC_VERTEX_BASE_URL', 'ANTHROPIC_FOUNDRY_API_KEY', 'ANTHROPIC_FOUNDRY_BASE_URL'],
     // A long-lived subscription token is the native account context: kept for NATIVE only.
