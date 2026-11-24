@@ -144,6 +144,27 @@ if test "$1" = '--version'; then echo 3.0.0; else echo 'Workspace access denied 
     assert(state.prompt.alternatives.some(item => item.id === 'api-key'));
 });
 
+test('a rootless server with systemd 255 can review and create its project with an actionable Wallet notice', { skip: process.platform !== 'linux' }, async t => {
+    const { home, project, draft } = await pending(t);
+    const { env } = await fakeHarness(t, home);
+    delete env.PTBK_HOST_UNLOCK;
+    const executable = join(home, 'fake bin', 'systemd-creds');
+    await writeFile(executable, '#!/bin/sh\nif test "$1" = --user; then echo "Unknown option --user" >&2; else echo "Permission denied" >&2; fi\nexit 1\n', { mode: 0o755 });
+    let created = false;
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), env, async (_, save) => { created = true; await save({ step: 'done' }); });
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['openai-codex'] }));
+    await waitFor(() => session.state().prompt?.title === 'Project name');
+    await session.answer(answer(session.state(), { kind: 'text', text: 'Database', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'text', text: 'database', fileIds: [] }));
+    const review = session.state();
+    assert.match(review.prompt.details.find(item => item.label === 'Wallet').text, /Wallet cannot save logins.*systemd 256/i);
+    api.ENGINE_API_ROUTES.getOnboarding.responses[200].schema.parse(review);
+    await session.answer(answer(review, { kind: 'confirm', confirmed: true }));
+    await waitFor(() => created);
+});
+
 test('an HTTPS pairing URL supplies the dashboard and its origin survives a fresh process', async (t) => {
     const { project, identity } = await pending(t);
     const code = 'a'.repeat(26);

@@ -1,5 +1,7 @@
 # Unreleased
 
+- Browser setup warns before project creation when Linux cannot protect the Wallet key. The review explains which login features are unavailable and how to restore them.
+
 - The owner of a running project can reconnect an expired native AI account from the browser. An older Claude project can move its implicit shared login to a private profile after successful verification.
 
 - New projects give native Claude Code its own account profile throughout installation, sign-in and execution. Concurrent projects no longer rotate the same refresh token.

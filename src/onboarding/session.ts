@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { errorMessage, PtbkError } from '../common/errors.js';
+import { hostUnlock } from '../wallet/host-unlock.js';
 import { verifyHarness } from './verify-harness.js';
 import { kebabIdentifier } from '../common/naming.js';
 import { instanceEnvironment, nativeSetupTool } from '../engine/harnesses.js';
@@ -478,7 +479,8 @@ export class OnboardingSession {
                     hint: 'The engine will save the brief and attachments in the project and create the first task for Expert.',
                     confirmLabel: 'Create and start', declineLabel: 'Review folder',
                     details: [{ label: 'Project', text: title ?? 'My project' }, { label: 'Folder', text: folder ?? 'my-project' },
-                        { label: 'AI tools', text: (harnesses ?? []).map(id => harnessPlugin(id)?.displayName ?? id).join(', ') || 'None' }] };
+                        { label: 'AI tools', text: (harnesses ?? []).map(id => harnessPlugin(id)?.displayName ?? id).join(', ') || 'None' },
+                        ...(this.draft.walletProblem ? [{ label: 'Wallet', text: this.draft.walletProblem }] : [])] };
             case 'publish':
             case 'published':
                 return error ? { ...base, canGoBack: false, kind: 'confirm', title: 'Finish setup', question: 'Retry finishing the project setup?', confirmLabel: 'Retry', declineLabel: 'Later' } : undefined;
@@ -584,10 +586,13 @@ export class OnboardingSession {
             }
         }
         if (signal.aborted) return;
+        const walletProblem = ready && process.platform === 'linux'
+            ? await hostUnlock(this.env).problem().catch(() => 'Wallet credential protection could not be checked. Check the Wallet page after setup.')
+            : undefined;
         await this.exclusive(async () => {
             if (signal.aborted || this.draft.step !== 'prepare' || this.draft.promptId !== start.promptId || this.draft.harnesses !== start.harnesses) return;
             if (!ready) await this.next('harnesses', { error: problems.join(' ').slice(0, 2000) || 'No selected harness passed its check.', deferred: this.draft.deferred });
-            else await this.next('title', { title: this.draft.title ?? name?.title ?? 'My project', folder: this.draft.folder ?? name?.folder ?? 'my-project', deferred: this.draft.deferred });
+            else await this.next('title', { walletProblem: walletProblem && label(walletProblem).slice(0, 400), title: this.draft.title ?? name?.title ?? 'My project', folder: this.draft.folder ?? name?.folder ?? 'my-project', deferred: this.draft.deferred });
         });
     }
 }
