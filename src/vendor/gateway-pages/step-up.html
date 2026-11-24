@@ -201,10 +201,10 @@
                     ><span data-lang="cs">Tento přístupový klíč nepatří k Vašemu účtu</span>
                 </h1>
                 <p data-lang="en">
-                    Use a passkey you registered on this engine for the account you are signed in with.
+                    Use a passkey you registered in this project for the account you are signed in with.
                 </p>
                 <p data-lang="cs">
-                    Použijte přístupový klíč, který jste na tomto enginu zaregistrovali pro účet, se kterým jste
+                    Použijte přístupový klíč, který jste v tomto projektu zaregistrovali pro účet, se kterým jste
                     přihlášeni.
                 </p>
                 <div class="actions">
@@ -261,7 +261,8 @@
 
             <section data-state="offline" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">Cannot reach the engine</span><span data-lang="cs">Engine není dostupný</span>
+                    <span data-lang="en">Cannot reach the project</span
+                    ><span data-lang="cs">Projekt není dostupný</span>
                 </h1>
                 <p data-lang="en">Check your connection and try again.</p>
                 <p data-lang="cs">Zkontrolujte připojení a zkuste to znovu.</p>
@@ -274,16 +275,16 @@
 
             <section data-state="error" hidden>
                 <h1 tabindex="-1">
-                    <span data-lang="en">The engine could not answer</span
-                    ><span data-lang="cs">Engine nemohl odpovědět</span>
+                    <span data-lang="en">The project could not answer</span
+                    ><span data-lang="cs">Projekt nemohl odpovědět</span>
                 </h1>
                 <p data-lang="en">
                     It returned an error. Try again in a moment; if it keeps failing, run
-                    <code>{{command}} status</code> on the server.
+                    <code>{{statusCommand}}</code> on the server.
                 </p>
                 <p data-lang="cs">
                     Vrátil chybu. Zkuste to za chvíli znovu. Pokud to stále nejde, spusťte na serveru
-                    <code>{{command}} status</code>.
+                    <code>{{statusCommand}}</code>.
                 </p>
                 <div class="actions">
                     <button type="button" class="button" data-action="retry">

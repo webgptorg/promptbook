@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable */
-// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 60958c0b9290d89875087460d5b2333d2442d620. Do not edit; regenerate.
+// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 390740e688ca0ae96c49f507cf28312affd83598. Do not edit; regenerate.
 // Licenses: see THIRD_PARTY_LICENSES.md next to this file.
 import { createRequire } from "node:module";
 var __create = Object.create;
@@ -20923,9 +20923,36 @@ __export(exports_src, {
   AuditTarget: () => AuditTarget,
   AuditTargetKind: () => AuditTargetKind,
   AuditVerification: () => AuditVerification,
+  BLOCKED_REASONS: () => BLOCKED_REASONS,
+  BROWSER_AGENT_STATES: () => BROWSER_AGENT_STATES,
+  BROWSER_HELP_OUTCOMES: () => BROWSER_HELP_OUTCOMES,
+  BROWSER_HELP_REASONS: () => BROWSER_HELP_REASONS,
+  BROWSER_HELP_STATUSES: () => BROWSER_HELP_STATUSES,
+  BROWSER_IDLE_MS: () => BROWSER_IDLE_MS,
+  BROWSER_SESSION_KINDS: () => BROWSER_SESSION_KINDS,
+  BROWSER_SESSION_MODES: () => BROWSER_SESSION_MODES,
+  BROWSER_SESSION_STATUSES: () => BROWSER_SESSION_STATUSES,
   BookSource: () => BookSource,
+  BrowserAgentState: () => BrowserAgentState,
+  BrowserHelpChangedEvent: () => BrowserHelpChangedEvent,
+  BrowserHelpOutcome: () => BrowserHelpOutcome,
+  BrowserHelpReason: () => BrowserHelpReason,
+  BrowserHelpRequest: () => BrowserHelpRequest,
+  BrowserHelpRequestId: () => BrowserHelpRequestId,
+  BrowserHelpRequestList: () => BrowserHelpRequestList,
+  BrowserHelpRequestParams: () => BrowserHelpRequestParams,
+  BrowserHelpResolution: () => BrowserHelpResolution,
+  BrowserHelpStatus: () => BrowserHelpStatus,
   BrowserOrigin: () => BrowserOrigin,
-  BrowserTabSession: () => BrowserTabSession,
+  BrowserSession: () => BrowserSession,
+  BrowserSessionKind: () => BrowserSessionKind,
+  BrowserSessionMode: () => BrowserSessionMode,
+  BrowserSessionParams: () => BrowserSessionParams,
+  BrowserTab: () => BrowserTab,
+  BrowserTabChangedEvent: () => BrowserTabChangedEvent,
+  BrowserTabId: () => BrowserTabId,
+  BrowserTabList: () => BrowserTabList,
+  BrowserTabParams: () => BrowserTabParams,
   BrowserToolName: () => BrowserToolName,
   CERTIFICATE_STATUSES: () => CERTIFICATE_STATUSES,
   CHAT_ROUTES: () => CHAT_ROUTES,
@@ -21016,6 +21043,7 @@ __export(exports_src, {
   HARNESS_LOGIN_STATUSES: () => HARNESS_LOGIN_STATUSES,
   HexColor: () => HexColor,
   Hostname: () => Hostname,
+  INPUT_REFUSED_REASONS: () => INPUT_REFUSED_REASONS,
   INTEGRATION_KINDS: () => INTEGRATION_KINDS,
   INTEGRATION_ROUTES: () => INTEGRATION_ROUTES,
   INTEGRATION_STATUSES: () => INTEGRATION_STATUSES,
@@ -21046,18 +21074,35 @@ __export(exports_src, {
   LIVE_AUDIO_FORMATS: () => LIVE_AUDIO_FORMATS,
   LIVE_CHANNEL_PATH: () => LIVE_CHANNEL_PATH,
   LIVE_CHANNEL_SUBPROTOCOL: () => LIVE_CHANNEL_SUBPROTOCOL,
+  LIVE_CHANNEL_VERSIONS: () => LIVE_CHANNEL_VERSIONS,
+  LIVE_END_REASONS: () => LIVE_END_REASONS,
+  LIVE_MEDIA_HEADER_BYTES: () => LIVE_MEDIA_HEADER_BYTES,
+  LIVE_MEDIA_KINDS: () => LIVE_MEDIA_KINDS,
+  LIVE_NAMED_KEYS: () => LIVE_NAMED_KEYS,
   LIVE_ROUTES: () => LIVE_ROUTES,
   LIVE_SESSION_ATTACH_MS: () => LIVE_SESSION_ATTACH_MS,
+  LanguageTag: () => LanguageTag,
   LinkedEntry: () => LinkedEntry,
+  ListBrowserHelpRequestsQuery: () => ListBrowserHelpRequestsQuery,
+  ListBrowserTabsQuery: () => ListBrowserTabsQuery,
   LiveAudioFormat: () => LiveAudioFormat,
   LiveAudioParams: () => LiveAudioParams,
   LiveAudioSession: () => LiveAudioSession,
+  LiveClientMessage: () => LiveClientMessage,
+  LiveEndReason: () => LiveEndReason,
+  LiveEngineMessage: () => LiveEngineMessage,
+  LiveInputEvent: () => LiveInputEvent,
+  LiveKey: () => LiveKey,
   LiveSessionId: () => LiveSessionId,
   MAX_ACCESS_CODE_ATTEMPTS: () => MAX_ACCESS_CODE_ATTEMPTS,
   MAX_AUDIT_DETAILS_BYTES: () => MAX_AUDIT_DETAILS_BYTES,
   MAX_AUDIT_DETAILS_DEPTH: () => MAX_AUDIT_DETAILS_DEPTH,
   MAX_AUDIT_TARGET_NAME_LENGTH: () => MAX_AUDIT_TARGET_NAME_LENGTH,
   MAX_BOOK_SOURCE_LENGTH: () => MAX_BOOK_SOURCE_LENGTH,
+  MAX_BROWSER_HELP_MESSAGE_LENGTH: () => MAX_BROWSER_HELP_MESSAGE_LENGTH,
+  MAX_BROWSER_HELP_REQUESTS: () => MAX_BROWSER_HELP_REQUESTS,
+  MAX_BROWSER_PARTICIPANTS: () => MAX_BROWSER_PARTICIPANTS,
+  MAX_BROWSER_TABS: () => MAX_BROWSER_TABS,
   MAX_BROWSER_TAB_SESSION_MS: () => MAX_BROWSER_TAB_SESSION_MS,
   MAX_CHAT_PREVIEW_LENGTH: () => MAX_CHAT_PREVIEW_LENGTH,
   MAX_CHAT_STATE_TEXT_LENGTH: () => MAX_CHAT_STATE_TEXT_LENGTH,
@@ -21065,6 +21110,11 @@ __export(exports_src, {
   MAX_CURSOR_LENGTH: () => MAX_CURSOR_LENGTH,
   MAX_FILE_BYTES: () => MAX_FILE_BYTES,
   MAX_INTERVAL_SECONDS: () => MAX_INTERVAL_SECONDS,
+  MAX_LIVE_CONTROL_MESSAGE_BYTES: () => MAX_LIVE_CONTROL_MESSAGE_BYTES,
+  MAX_LIVE_COORDINATE: () => MAX_LIVE_COORDINATE,
+  MAX_LIVE_INPUT_PER_S: () => MAX_LIVE_INPUT_PER_S,
+  MAX_LIVE_MEDIA_BYTES: () => MAX_LIVE_MEDIA_BYTES,
+  MAX_LIVE_SEND_BUFFER_BYTES: () => MAX_LIVE_SEND_BUFFER_BYTES,
   MAX_MESSAGE_CHOICES: () => MAX_MESSAGE_CHOICES,
   MAX_MESSAGE_CHOICE_LENGTH: () => MAX_MESSAGE_CHOICE_LENGTH,
   MAX_MESSAGE_LENGTH: () => MAX_MESSAGE_LENGTH,
@@ -21082,10 +21132,15 @@ __export(exports_src, {
   MAX_RUN_PREVIEW_LENGTH: () => MAX_RUN_PREVIEW_LENGTH,
   MAX_RUN_TEXT_BYTES: () => MAX_RUN_TEXT_BYTES,
   MAX_SEEN_MESSAGES: () => MAX_SEEN_MESSAGES,
+  MAX_SPEECH_TEXT_LENGTH: () => MAX_SPEECH_TEXT_LENGTH,
   MAX_TEST_CHAT_MESSAGES: () => MAX_TEST_CHAT_MESSAGES,
   MAX_TEST_CHAT_TRANSCRIPT_LENGTH: () => MAX_TEST_CHAT_TRANSCRIPT_LENGTH,
+  MAX_TRANSCRIPT_LENGTH: () => MAX_TRANSCRIPT_LENGTH,
+  MAX_UNACKED_FRAMES: () => MAX_UNACKED_FRAMES,
   MAX_UNEXPECTED_CERTIFICATES: () => MAX_UNEXPECTED_CERTIFICATES,
   MAX_USER_AGENT_LENGTH: () => MAX_USER_AGENT_LENGTH,
+  MAX_VOICE_CLIP_BYTES: () => MAX_VOICE_CLIP_BYTES,
+  MAX_VOICE_CLIP_MS: () => MAX_VOICE_CLIP_MS,
   MAX_WALLET_FIELDS: () => MAX_WALLET_FIELDS,
   MAX_WALLET_FIELD_LABEL_LENGTH: () => MAX_WALLET_FIELD_LABEL_LENGTH,
   MAX_WALLET_FIELD_VALUE_LENGTH: () => MAX_WALLET_FIELD_VALUE_LENGTH,
@@ -21094,6 +21149,7 @@ __export(exports_src, {
   MAX_WALLET_RECORDS: () => MAX_WALLET_RECORDS,
   MAX_WALLET_REQUESTS: () => MAX_WALLET_REQUESTS,
   MAX_WALLET_USERNAME_LENGTH: () => MAX_WALLET_USERNAME_LENGTH,
+  MAX_WHEEL_DELTA: () => MAX_WHEEL_DELTA,
   MAX_WORKING_STEPS: () => MAX_WORKING_STEPS,
   MEMBER_ROUTES: () => MEMBER_ROUTES,
   MEMBER_STATUSES: () => MEMBER_STATUSES,
@@ -21135,13 +21191,15 @@ __export(exports_src, {
   OnboardingTextPrompt: () => OnboardingTextPrompt,
   OnboardingUploadPrompt: () => OnboardingUploadPrompt,
   OpaqueId: () => OpaqueId,
-  OpenBrowserTabBody: () => OpenBrowserTabBody,
+  OpenBrowserSignInBody: () => OpenBrowserSignInBody,
   OpenLiveAudioBody: () => OpenLiveAudioBody,
   OrgId: () => OrgId,
   PARTICIPANT_KINDS: () => PARTICIPANT_KINDS,
   PASSKEY_PAGE_RESPONSE: () => PASSKEY_PAGE_RESPONSE,
   PASSKEY_ROUTES: () => PASSKEY_ROUTES,
   PERMISSIONS: () => PERMISSIONS,
+  POINTER_ACTIONS: () => POINTER_ACTIONS,
+  POINTER_BUTTONS: () => POINTER_BUTTONS,
   PROBLEM_CODES: () => PROBLEM_CODES,
   PROBLEM_STATUS: () => PROBLEM_STATUS,
   PROGRESS_ITEM_STATUSES: () => PROGRESS_ITEM_STATUSES,
@@ -21209,6 +21267,7 @@ __export(exports_src, {
   SETTINGS_ROUTES: () => SETTINGS_ROUTES,
   SIGN_IN_PATH: () => SIGN_IN_PATH,
   SIGN_OUT_PATH: () => SIGN_OUT_PATH,
+  SPEECH_FORMATS: () => SPEECH_FORMATS,
   SSE_MAX_LINE_LENGTH: () => SSE_MAX_LINE_LENGTH,
   STEP_UP_PATH: () => STEP_UP_PATH,
   ScheduleConfig: () => ScheduleConfig,
@@ -21231,6 +21290,8 @@ __export(exports_src, {
   Settings: () => Settings,
   Sha256Hex: () => Sha256Hex,
   Slug: () => Slug,
+  SpeakMessageBody: () => SpeakMessageBody,
+  SpeechFormat: () => SpeechFormat,
   StatusEntry: () => StatusEntry,
   TASK_ACTIONS: () => TASK_ACTIONS,
   TASK_CONDITION_KINDS: () => TASK_CONDITION_KINDS,
@@ -21250,6 +21311,7 @@ __export(exports_src, {
   TRIGGER_KINDS: () => TRIGGER_KINDS,
   TRIGGER_LIFECYCLES: () => TRIGGER_LIFECYCLES,
   TRIGGER_ROUTES: () => TRIGGER_ROUTES,
+  TabOrigin: () => TabOrigin,
   Task: () => Task,
   TaskChangedEvent: () => TaskChangedEvent,
   TaskChangedEventReader: () => TaskChangedEventReader,
@@ -21286,6 +21348,8 @@ __export(exports_src, {
   TitledEntry: () => TitledEntry,
   ToolCall: () => ToolCall,
   ToolCallId: () => ToolCallId,
+  TranscriptDraft: () => TranscriptDraft,
+  TranscriptionQuery: () => TranscriptionQuery,
   Trigger: () => Trigger,
   TriggerChangedEvent: () => TriggerChangedEvent,
   TriggerFire: () => TriggerFire,
@@ -21322,7 +21386,10 @@ __export(exports_src, {
   UpdateTriggerBody: () => UpdateTriggerBody,
   UpdateWalletRecordBody: () => UpdateWalletRecordBody,
   UploadFileBody: () => UploadFileBody,
+  VOICE_CLIP_FORMATS: () => VOICE_CLIP_FORMATS,
+  VOICE_ROUTES: () => VOICE_ROUTES,
   ValidateBookBody: () => ValidateBookBody,
+  VoiceClip: () => VoiceClip,
   WALLET_REQUEST_PROBLEMS: () => WALLET_REQUEST_PROBLEMS,
   WALLET_ROUTES: () => WALLET_ROUTES,
   WALLET_SIGN_IN_OUTCOMES: () => WALLET_SIGN_IN_OUTCOMES,
@@ -21346,6 +21413,7 @@ __export(exports_src, {
   acceptsFile: () => acceptsFile,
   activityCapability: () => activityCapability,
   activityPermission: () => activityPermission,
+  agreeLiveChannelVersion: () => agreeLiveChannelVersion,
   buildOpenApiDocument: () => buildOpenApiDocument,
   capabilityLabel: () => capabilityLabel,
   commonProblems: () => commonProblems,
@@ -21353,17 +21421,24 @@ __export(exports_src, {
   createFetchEngineApiClient: () => createFetchEngineApiClient,
   createProblem: () => createProblem,
   createSseParser: () => createSseParser,
+  decodeLiveMedia: () => decodeLiveMedia,
   defineRoute: () => defineRoute,
+  encodeLiveMedia: () => encodeLiveMedia,
   encodeSseMessage: () => encodeSseMessage,
   isAuditAction: () => isAuditAction,
   isReadPermission: () => isReadPermission,
   isReservedCapability: () => isReservedCapability,
+  matchMediaType: () => matchMediaType,
+  normalizeMediaType: () => normalizeMediaType,
   pageOf: () => pageOf,
   parseActivity: () => parseActivity,
+  parseLiveClientMessage: () => parseLiveClientMessage,
   parseSseStream: () => parseSseStream,
   problemType: () => problemType,
+  readLiveEngineMessage: () => readLiveEngineMessage,
   stripUnknownFields: () => stripUnknownFields,
   supports: () => supports,
+  toBrowserHelpMessage: () => toBrowserHelpMessage,
   toTolerant: () => toTolerant,
   valueSet: () => valueSet
 });
@@ -28307,6 +28382,7 @@ var PERMISSIONS = [
   "triggers.manage",
   "integrations.read",
   "integrations.manage",
+  "browser.watch",
   "browser.control"
 ];
 var Permission = _enum(PERMISSIONS);
@@ -28343,15 +28419,28 @@ var PROBLEM_STATUS = {
   "file-infected": 409,
   "onboarding-prompt-stale": 409,
   "onboarding-not-deferrable": 409,
+  "browser-tab-controlled": 409,
+  "browser-tab-full": 409,
+  "browser-busy": 409,
+  "browser-session-ended": 409,
+  "live-channel-attached": 409,
+  "browser-help-resolved": 409,
+  "message-not-speakable": 409,
   "payload-too-large": 413,
   "unsupported-media-type": 415,
   "invalid-book": 422,
   "access-code-mismatch": 422,
   "invalid-schedule": 422,
+  "browser-origin-refused": 422,
+  "voice-clip-too-long": 422,
+  "speech-too-long": 422,
   "rate-limited": 429,
   "internal-error": 500,
   "reply-failed": 502,
-  unavailable: 503
+  "transcription-failed": 502,
+  "speech-failed": 502,
+  unavailable: 503,
+  "voice-unavailable": 503
 };
 var PROBLEM_CODES = Object.keys(PROBLEM_STATUS);
 var ProblemCode = _enum(PROBLEM_CODES);
@@ -28456,6 +28545,28 @@ var ClientInfo = strictObject({
 function defineRoute(route) {
   return route;
 }
+// ../../../packages/engine-api/src/media-type.ts
+function normalizeMediaType(value) {
+  const parts = value.split(";").map((part) => part.trim());
+  const [essence, ...parameters] = parts;
+  if (essence === undefined || !/^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/i.test(essence))
+    return null;
+  const normalized = [essence.toLowerCase()];
+  for (const parameter of parameters) {
+    const match = /^([a-z0-9!#$&^_.+-]+)\s*=\s*(?:"([^"\\]*)"|([^\s"\\]+))$/i.exec(parameter);
+    if (match === null)
+      return null;
+    const [, name = "", quoted, bare] = match;
+    normalized.push(`${name.toLowerCase()}=${(quoted ?? bare ?? "").toLowerCase()}`);
+  }
+  return normalized.join(";");
+}
+function matchMediaType(value, allowed) {
+  if (value === null || value === undefined)
+    return null;
+  const normalized = normalizeMediaType(value);
+  return allowed.find((candidate) => candidate === normalized) ?? null;
+}
 // ../../../packages/engine-api/src/capabilities/capability.ts
 var CapabilityId = string2().regex(/^[a-z][a-z0-9-]{0,31}$/);
 var CapabilityRef = strictObject({ id: CapabilityId, version: int().min(1) });
@@ -28474,12 +28585,14 @@ var KNOWN_CAPABILITIES = {
   bookEditor: { id: "book-editor", version: 1 },
   agentManagement: { id: "agent-management", version: 1 },
   onboarding: { id: "onboarding", version: 1 },
-  wallet: { id: "wallet", version: 1 }
+  wallet: { id: "wallet", version: 1 },
+  browserTab: { id: "browser-tab", version: 1 },
+  voiceInput: { id: "voice-input", version: 1 },
+  voiceOutput: { id: "voice-output", version: 1 }
 };
 var RESERVED_CAPABILITIES = {
   liveAudio: { id: "live-audio", version: 1 },
-  liveVideo: { id: "live-video", version: 1 },
-  browserTab: { id: "browser-tab", version: 1 }
+  liveVideo: { id: "live-video", version: 1 }
 };
 function isReservedCapability(ref) {
   return Object.values(RESERVED_CAPABILITIES).some(({ id, version }) => id === ref.id && version === ref.version);
@@ -28887,6 +29000,13 @@ var AUDIT_ACTIONS = [
   "integration.enable",
   "integration.disable",
   "integration.delete",
+  "browser.sign-in.open",
+  "browser.watch",
+  "browser.control.take",
+  "browser.control.hand-back",
+  "browser.session.end",
+  "browser.channel.attach",
+  "browser.help.dismiss",
   "engine.update.install",
   "ui.update.install"
 ];
@@ -28914,7 +29034,9 @@ var AUDIT_TARGET_KINDS = [
   "engine",
   "run",
   "trigger",
-  "integration"
+  "integration",
+  "browser-session",
+  "browser-help-request"
 ];
 var AuditTargetKind = _enum(AUDIT_TARGET_KINDS);
 var AUDIT_OUTCOMES = ["success", "denied", "failed"];
@@ -30125,11 +30247,218 @@ var ACCESS_REQUEST_ROUTES = {
   })
 };
 
+// ../../../packages/engine-api/src/capabilities/live-channel.ts
+var LIVE_CHANNEL_VERSIONS = [1];
+var MAX_LIVE_CONTROL_MESSAGE_BYTES = 4096;
+var MAX_LIVE_MEDIA_BYTES = 64 * 1024;
+var MAX_LIVE_SEND_BUFFER_BYTES = 16 * MAX_LIVE_MEDIA_BYTES;
+var LIVE_MEDIA_HEADER_BYTES = 13;
+var MAX_UNACKED_FRAMES = 2;
+var MAX_LIVE_INPUT_PER_S = 120;
+var MAX_LIVE_COORDINATE = 16384;
+var MAX_WHEEL_DELTA = 1e4;
+var Uint32 = int().min(0).max(4294967295);
+var Coordinate = number2().min(0).max(MAX_LIVE_COORDINATE);
+var LIVE_END_REASONS = [
+  "ended",
+  "expired",
+  "idle",
+  "not-attached",
+  "revoked",
+  "tab-closed",
+  "engine-stopped",
+  "protocol-error"
+];
+var LiveEndReason = _enum(LIVE_END_REASONS);
+var BROWSER_SESSION_MODES = ["watching", "controlling"];
+var BrowserSessionMode = _enum(BROWSER_SESSION_MODES);
+var BROWSER_AGENT_STATES = ["working", "waiting", "paused", "none"];
+var BrowserAgentState = _enum(BROWSER_AGENT_STATES);
+function isCanonicalWebOrigin(value) {
+  if (!URL.canParse(value))
+    return false;
+  const url = new URL(value);
+  return (url.protocol === "https:" || url.protocol === "http:") && url.origin === value;
+}
+var TabOrigin = string2().max(300).refine(isCanonicalWebOrigin, {
+  message: "Expected a canonical web origin: scheme and host, no path"
+});
+var LIVE_NAMED_KEYS = [
+  "Enter",
+  "Tab",
+  "Backspace",
+  "Delete",
+  "Escape",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "Home",
+  "End",
+  "PageUp",
+  "PageDown"
+];
+var NAMED_KEYS = new Set(LIVE_NAMED_KEYS);
+var PRINTABLE_CHARACTER = /^[^\p{C}]$/u;
+var LiveKey = string2().max(16).refine((key) => NAMED_KEYS.has(key) || PRINTABLE_CHARACTER.test(key), {
+  message: "Expected a named key or one printable character"
+});
+var POINTER_ACTIONS = ["move", "down", "up"];
+var POINTER_BUTTONS = ["none", "left", "middle", "right"];
+var LiveInputEvent = discriminatedUnion("kind", [
+  strictObject({
+    kind: literal("pointer"),
+    action: _enum(POINTER_ACTIONS),
+    x: Coordinate,
+    y: Coordinate,
+    button: _enum(POINTER_BUTTONS),
+    clicks: int().min(0).max(3)
+  }),
+  strictObject({
+    kind: literal("wheel"),
+    x: Coordinate,
+    y: Coordinate,
+    deltaX: number2().min(-MAX_WHEEL_DELTA).max(MAX_WHEEL_DELTA),
+    deltaY: number2().min(-MAX_WHEEL_DELTA).max(MAX_WHEEL_DELTA)
+  }),
+  strictObject({
+    kind: literal("key"),
+    action: _enum(["down", "up"]),
+    key: LiveKey,
+    shift: boolean2()
+  })
+]);
+var Viewport = strictObject({
+  width: int().min(1).max(MAX_LIVE_COORDINATE),
+  height: int().min(1).max(MAX_LIVE_COORDINATE)
+});
+var LiveClientMessage = discriminatedUnion("type", [
+  strictObject({
+    type: literal("hello"),
+    versions: array(int().min(1).max(255)).min(1).max(8).refine((versions) => new Set(versions).size === versions.length, { message: "Each version once" })
+  }),
+  strictObject({
+    type: literal("view"),
+    width: Viewport.shape.width,
+    height: Viewport.shape.height,
+    visible: boolean2()
+  }),
+  strictObject({ type: literal("frame-ack"), seq: Uint32 }),
+  strictObject({ type: literal("input"), event: LiveInputEvent }),
+  strictObject({ type: literal("end") })
+]);
+var INPUT_REFUSED_REASONS = ["not-controlling", "blocked", "outside-viewport"];
+var BLOCKED_REASONS = ["origin-not-allowed", "browser-page", "secret-page"];
+var engineMessages = [
+  strictObject({ type: literal("hello"), version: int().min(1).max(255) }),
+  strictObject({
+    type: literal("state"),
+    mode: BrowserSessionMode,
+    agent: BrowserAgentState,
+    others: int().min(0).max(64),
+    viewport: Viewport
+  }),
+  strictObject({ type: literal("navigated"), origin: TabOrigin }),
+  strictObject({ type: literal("blocked"), reason: _enum(BLOCKED_REASONS), origin: TabOrigin.nullable() }),
+  strictObject({ type: literal("input-refused"), reason: _enum(INPUT_REFUSED_REASONS) }),
+  strictObject({ type: literal("end"), reason: LiveEndReason })
+];
+var LiveEngineMessage = discriminatedUnion("type", [...engineMessages]);
+var tolerantEngineMessage = toTolerant(discriminatedUnion("type", [
+  engineMessages[0],
+  engineMessages[1].extend({ mode: openEnum(BROWSER_SESSION_MODES), agent: openEnum(BROWSER_AGENT_STATES) }),
+  engineMessages[2],
+  engineMessages[3].extend({ reason: openEnum(BLOCKED_REASONS) }),
+  engineMessages[4].extend({ reason: openEnum(INPUT_REFUSED_REASONS) }),
+  engineMessages[5].extend({ reason: openEnum(LIVE_END_REASONS) })
+]));
+var KNOWN_ENGINE_TYPES = new Set(engineMessages.map((schema) => schema.shape.type.value));
+var encoder = new TextEncoder;
+function parseJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return;
+  }
+}
+function parseLiveClientMessage(text) {
+  if (encoder.encode(text).byteLength > MAX_LIVE_CONTROL_MESSAGE_BYTES)
+    return { kind: "invalid", reason: "too-large" };
+  const json = parseJson(text);
+  if (json === undefined)
+    return { kind: "invalid", reason: "not-json" };
+  const parsed = LiveClientMessage.safeParse(json);
+  return parsed.success ? { kind: "ok", message: parsed.data } : { kind: "invalid", reason: "schema" };
+}
+function readLiveEngineMessage(text) {
+  if (encoder.encode(text).byteLength > MAX_LIVE_CONTROL_MESSAGE_BYTES)
+    return null;
+  const json = parseJson(text);
+  const type = typeof json === "object" && json !== null ? json["type"] : undefined;
+  if (typeof type !== "string" || !KNOWN_ENGINE_TYPES.has(type))
+    return null;
+  const parsed = tolerantEngineMessage.safeParse(json);
+  return parsed.success ? parsed.data : null;
+}
+function agreeLiveChannelVersion(offered) {
+  const shared = LIVE_CHANNEL_VERSIONS.filter((version) => offered.includes(version));
+  return shared.length === 0 ? null : Math.max(...shared);
+}
+var LIVE_MEDIA_KINDS = { "tab-frame-jpeg": 1, "tab-frame-png": 2, "tab-frame-webp": 3 };
+var KIND_BY_BYTE = new Map(Object.entries(LIVE_MEDIA_KINDS).map(([kind, byte]) => [byte, kind]));
+function encodeLiveMedia(media) {
+  if (!Uint32.safeParse(media.seq).success)
+    throw new RangeError("seq must be a u32");
+  if (!Number.isFinite(media.timestamp) || media.timestamp < 0)
+    throw new RangeError("timestamp must be finite");
+  const size = LIVE_MEDIA_HEADER_BYTES + media.payload.byteLength;
+  if (size > MAX_LIVE_MEDIA_BYTES)
+    return { kind: "too-large", bytes: size };
+  const bytes = new Uint8Array(size);
+  const view = new DataView(bytes.buffer);
+  view.setUint8(0, LIVE_MEDIA_KINDS[media.kind]);
+  view.setUint32(1, media.seq);
+  view.setFloat64(5, media.timestamp);
+  bytes.set(media.payload, LIVE_MEDIA_HEADER_BYTES);
+  return { kind: "ok", bytes };
+}
+function decodeLiveMedia(bytes) {
+  if (bytes.byteLength > MAX_LIVE_MEDIA_BYTES)
+    return { kind: "invalid", reason: "too-large" };
+  if (bytes.byteLength < LIVE_MEDIA_HEADER_BYTES)
+    return { kind: "invalid", reason: "too-short" };
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const kind = KIND_BY_BYTE.get(view.getUint8(0));
+  if (kind === undefined)
+    return { kind: "invalid", reason: "unknown-kind" };
+  const timestamp = view.getFloat64(5);
+  if (!Number.isFinite(timestamp) || timestamp < 0)
+    return { kind: "invalid", reason: "bad-timestamp" };
+  return {
+    kind: "ok",
+    media: { kind, seq: view.getUint32(1), timestamp, payload: bytes.subarray(LIVE_MEDIA_HEADER_BYTES) }
+  };
+}
+
 // ../../../packages/engine-api/src/capabilities/live.ts
 var LIVE_CHANNEL_PATH = "/live-sessions/{sessionId}/channel";
 var LIVE_CHANNEL_SUBPROTOCOL = "ptbk-live";
 var LIVE_SESSION_ATTACH_MS = 30000;
 var MAX_BROWSER_TAB_SESSION_MS = 10 * 60000;
+var BROWSER_IDLE_MS = 2 * 60000;
+var MAX_BROWSER_PARTICIPANTS = 5;
+var MAX_BROWSER_TABS = 50;
+var MAX_BROWSER_HELP_REQUESTS = 100;
+var MAX_BROWSER_HELP_MESSAGE_LENGTH = 500;
+var HELP_MESSAGE_REFUSED = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
+var HELP_MESSAGE_REFUSED_ALL = new RegExp(HELP_MESSAGE_REFUSED.source, "gu");
+function toBrowserHelpMessage(text) {
+  const folded = text.replace(/[\u202A-\u202E\u2066-\u2069]/gu, "").replace(HELP_MESSAGE_REFUSED_ALL, " ").replace(/\s+/gu, " ").trim();
+  let cut = folded.slice(0, MAX_BROWSER_HELP_MESSAGE_LENGTH);
+  if (/[\uD800-\uDBFF]$/.test(cut))
+    cut = cut.slice(0, -1);
+  return cut.trimEnd();
+}
 var LIVE_AUDIO_FORMATS = ["opus-48k-mono", "pcm16-24k-mono"];
 var LiveAudioFormat = _enum(LIVE_AUDIO_FORMATS);
 var LiveAudioParams = strictObject({ chatId: ChatId });
@@ -30142,34 +30471,138 @@ var LiveAudioSession = strictObject({
   format: LiveAudioFormat,
   attachBy: Timestamp
 });
+var BROWSER_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+var BrowserTabId = string2().regex(BROWSER_ID_PATTERN).brand();
+var BrowserHelpRequestId = string2().regex(BROWSER_ID_PATTERN).brand();
 var BrowserToolName = string2().min(1).max(64);
 function isCanonicalHttpsOrigin(value) {
   if (!URL.canParse(value))
     return false;
   const url = new URL(value);
-  return url.protocol === "https:" && url.origin === value;
+  return url.protocol === "https:" && url.origin === value && !url.hostname.endsWith(".");
 }
 var BrowserOrigin = string2().max(300).refine(isCanonicalHttpsOrigin, {
   message: "Expected a canonical https origin: scheme and host, no path"
 });
-var OpenBrowserTabBody = strictObject({
+var OpenBrowserSignInBody = strictObject({
   browser: BrowserToolName.nullable(),
   origin: BrowserOrigin
 });
-var BrowserTabSession = strictObject({
+var BROWSER_SESSION_KINDS = ["sign-in", "agent-tab"];
+var BrowserSessionKind = _enum(BROWSER_SESSION_KINDS);
+var BROWSER_SESSION_STATUSES = ["open", "ended"];
+var BrowserSession = strictObject({
   id: LiveSessionId,
+  kind: BrowserSessionKind,
+  tabId: BrowserTabId,
   browser: BrowserToolName,
-  origin: BrowserOrigin,
+  mode: BrowserSessionMode,
+  origin: TabOrigin.nullable(),
+  status: _enum(BROWSER_SESSION_STATUSES),
+  endReason: LiveEndReason.nullable(),
+  helpRequestId: BrowserHelpRequestId.nullable(),
+  openedAt: Timestamp,
   attachBy: Timestamp,
   endsAt: Timestamp
 });
+var ReadBrowserSessionShape = BrowserSession.extend({
+  kind: openEnum(BROWSER_SESSION_KINDS),
+  mode: openEnum(BROWSER_SESSION_MODES),
+  status: openEnum(BROWSER_SESSION_STATUSES),
+  endReason: openEnum(LIVE_END_REASONS).nullable()
+});
+var ReadBrowserSession = toTolerant(ReadBrowserSessionShape);
+var BrowserTab = strictObject({
+  id: BrowserTabId,
+  browser: BrowserToolName,
+  agentId: AgentId.nullable(),
+  chatId: ChatId.nullable(),
+  taskId: TaskId.nullable(),
+  runId: RunId.nullable(),
+  origin: TabOrigin.nullable(),
+  agentState: BrowserAgentState,
+  participants: int().min(0),
+  helpRequestId: BrowserHelpRequestId.nullable(),
+  openedAt: Timestamp
+});
+var ReadBrowserTabShape = BrowserTab.extend({ agentState: openEnum(BROWSER_AGENT_STATES) });
+var BROWSER_HELP_REASONS = ["login", "captcha", "confirmation", "blocked", "other"];
+var BrowserHelpReason = _enum(BROWSER_HELP_REASONS);
+var BROWSER_HELP_STATUSES = ["pending", "in-progress", "resolved"];
+var BrowserHelpStatus = _enum(BROWSER_HELP_STATUSES);
+var BROWSER_HELP_OUTCOMES = [
+  "handed-back",
+  "ended",
+  "expired",
+  "idle",
+  "blocked-origin",
+  "dismissed",
+  "revoked",
+  "cancelled"
+];
+var BrowserHelpOutcome = _enum(BROWSER_HELP_OUTCOMES);
+var BrowserHelpResolution = strictObject({
+  outcome: BrowserHelpOutcome,
+  origin: TabOrigin.nullable(),
+  by: MemberId.nullable(),
+  at: Timestamp
+});
+var BrowserHelpRequest = strictObject({
+  id: BrowserHelpRequestId,
+  tabId: BrowserTabId,
+  agentId: AgentId.nullable(),
+  chatId: ChatId.nullable(),
+  taskId: TaskId.nullable(),
+  runId: RunId.nullable(),
+  reason: BrowserHelpReason,
+  origin: TabOrigin.nullable(),
+  message: string2().max(MAX_BROWSER_HELP_MESSAGE_LENGTH).refine((text) => !HELP_MESSAGE_REFUSED.test(text), {
+    message: "No control characters, line breaks or bidi controls"
+  }),
+  status: BrowserHelpStatus,
+  resolution: BrowserHelpResolution.nullable(),
+  createdAt: Timestamp,
+  updatedAt: Timestamp
+});
+var ReadBrowserHelpRequestShape = BrowserHelpRequest.extend({
+  reason: openEnum(BROWSER_HELP_REASONS),
+  status: openEnum(BROWSER_HELP_STATUSES),
+  resolution: BrowserHelpResolution.extend({ outcome: openEnum(BROWSER_HELP_OUTCOMES) }).nullable()
+});
+var ReadBrowserHelpRequest = toTolerant(ReadBrowserHelpRequestShape);
+var BrowserTabList = strictObject({ items: array(BrowserTab).max(MAX_BROWSER_TABS) });
+var ReadBrowserTabList = toTolerant(strictObject({ items: array(ReadBrowserTabShape).max(MAX_BROWSER_TABS) }));
+var BrowserHelpRequestList = strictObject({
+  items: array(BrowserHelpRequest).max(MAX_BROWSER_HELP_REQUESTS)
+});
+var ReadBrowserHelpRequestList = toTolerant(strictObject({ items: array(ReadBrowserHelpRequestShape).max(MAX_BROWSER_HELP_REQUESTS) }));
+var ListBrowserTabsQuery = strictObject({
+  chatId: ChatId.optional(),
+  taskId: TaskId.optional(),
+  runId: RunId.optional()
+});
+var ListBrowserHelpRequestsQuery = strictObject({
+  status: _enum(["open", "resolved"]).default("open")
+});
+var BrowserTabParams = strictObject({ tabId: BrowserTabId });
+var BrowserSessionParams = strictObject({ sessionId: LiveSessionId });
+var BrowserHelpRequestParams = strictObject({ requestId: BrowserHelpRequestId });
+var BrowserTabChangedEvent = strictObject({ type: literal("browser-tab.changed"), tabId: BrowserTabId });
+var BrowserHelpChangedEvent = strictObject({
+  type: literal("browser-help.changed"),
+  requestId: BrowserHelpRequestId
+});
+var capability6 = KNOWN_CAPABILITIES.browserTab;
+var session = { 200: { kind: "json", schema: BrowserSession, read: ReadBrowserSession } };
+var created = { 201: { kind: "json", schema: BrowserSession, read: ReadBrowserSession } };
+var help = { 200: { kind: "json", schema: BrowserHelpRequest, read: ReadBrowserHelpRequest } };
 var LIVE_ROUTES = {
   openLiveAudioSession: defineRoute({
     id: "openLiveAudioSession",
     method: "POST",
     path: "/chats/{chatId}/live-audio",
     summary: "Open a voice session in a chat; the audio flows over the live channel",
-    description: "Design only (`live-audio@1`). The voice belongs to the chat: transcripts become its messages with their " + "real authors. One live session per chat at a time. None of the offered formats is 415 " + "`unsupported-media-type`.",
+    description: "Design only (`live-audio@1`, reserved). The voice belongs to the chat: transcripts become its messages " + "with their real authors. One live session per chat at a time. None of the offered formats is 415 " + "`unsupported-media-type`.",
     permission: "chats.write",
     capability: RESERVED_CAPABILITIES.liveAudio,
     params: LiveAudioParams,
@@ -30178,17 +30611,142 @@ var LIVE_ROUTES = {
     problems: ["unsupported-media-type"],
     draft: true
   }),
-  openBrowserTabSession: defineRoute({
-    id: "openBrowserTabSession",
+  openBrowserSignIn: defineRoute({
+    id: "openBrowserSignIn",
     method: "POST",
-    path: "/browser-tab-sessions",
+    path: "/browser-sessions",
     summary: "Open a new engine browser tab at a site for the owner to sign in by hand",
-    description: "Design only (`browser-tab@1`). The channel carries the tab’s frames out and the owner’s input in. The " + "engine refuses its own origins, origins outside its allowlist, and pages where secrets are typed.",
+    description: "The session starts in control of a new tab at `origin`, which no agent uses and no other session " + "reaches; ending it closes the tab, and the login stays in the browser profile. 422 " + "`browser-origin-refused` for the engine’s own origins and origins outside its sign-in allowlist; 409 " + "`browser-busy` while another sign-in session is open on the engine.",
     permission: "browser.control",
-    capability: RESERVED_CAPABILITIES.browserTab,
-    body: { kind: "json", schema: OpenBrowserTabBody },
-    responses: { 201: { kind: "json", schema: BrowserTabSession } },
+    capability: capability6,
+    body: { kind: "json", schema: OpenBrowserSignInBody },
+    responses: created,
+    problems: ["browser-origin-refused", "browser-busy"],
     stepUp: true,
+    draft: true
+  }),
+  listBrowserTabs: defineRoute({
+    id: "listBrowserTabs",
+    method: "GET",
+    path: "/browser-tabs",
+    summary: "The tabs agents work in now that the member may watch",
+    description: "Only tabs of work the member can see (its chat, task or run). Sign-in tabs are never listed. Newest " + "first, at most `MAX_BROWSER_TABS`.",
+    permission: "browser.watch",
+    capability: capability6,
+    query: ListBrowserTabsQuery,
+    responses: { 200: { kind: "json", schema: BrowserTabList, read: ReadBrowserTabList } },
+    draft: true
+  }),
+  watchBrowserTab: defineRoute({
+    id: "watchBrowserTab",
+    method: "POST",
+    path: "/browser-tabs/{tabId}/watch",
+    summary: "Open a session that watches an agent’s tab without controlling it",
+    description: "409 `browser-tab-full` when `MAX_BROWSER_PARTICIPANTS` − 1 watchers are open on the tab: the last place " + "is kept for a controller.",
+    permission: "browser.watch",
+    capability: capability6,
+    params: BrowserTabParams,
+    responses: created,
+    problems: ["browser-tab-full"],
+    draft: true
+  }),
+  controlBrowserTab: defineRoute({
+    id: "controlBrowserTab",
+    method: "POST",
+    path: "/browser-tabs/{tabId}/control",
+    summary: "Open a session that takes over an agent’s tab; the agent pauses until it gets the tab back",
+    description: "Answers the tab’s open help request, if any. 409 `browser-tab-controlled` while someone else controls " + "the tab; never full, since watchers leave a place for the controller.",
+    permission: "browser.control",
+    capability: capability6,
+    params: BrowserTabParams,
+    responses: created,
+    problems: ["browser-tab-controlled"],
+    stepUp: true,
+    draft: true
+  }),
+  getBrowserSession: defineRoute({
+    id: "getBrowserSession",
+    method: "GET",
+    path: "/browser-sessions/{sessionId}",
+    summary: "One of the caller’s own browser sessions; 404 for any other gateway session’s",
+    permission: "browser.watch",
+    capability: capability6,
+    params: BrowserSessionParams,
+    responses: session,
+    draft: true
+  }),
+  takeBrowserControl: defineRoute({
+    id: "takeBrowserControl",
+    method: "POST",
+    path: "/browser-sessions/{sessionId}/control",
+    summary: "Take control from a watching session; the agent pauses",
+    description: "Idempotent while the session controls. 409 `browser-tab-controlled` while someone else controls the " + "tab, `browser-session-ended` once the session ended.",
+    permission: "browser.control",
+    capability: capability6,
+    params: BrowserSessionParams,
+    responses: session,
+    problems: ["browser-tab-controlled", "browser-session-ended"],
+    stepUp: true,
+    draft: true
+  }),
+  handBackBrowserTab: defineRoute({
+    id: "handBackBrowserTab",
+    method: "POST",
+    path: "/browser-sessions/{sessionId}/hand-back",
+    summary: "Hand the tab back to the agent; the session keeps watching",
+    description: "The agent resumes with the outcome `handed-back`. Idempotent while the session only watches. A sign-in " + "session has no agent to hand back to, so it ends. 409 `browser-session-ended` once the session ended.",
+    permission: "browser.control",
+    capability: capability6,
+    params: BrowserSessionParams,
+    responses: session,
+    problems: ["browser-session-ended"],
+    draft: true
+  }),
+  endBrowserSession: defineRoute({
+    id: "endBrowserSession",
+    method: "POST",
+    path: "/browser-sessions/{sessionId}/end",
+    summary: "End the session and close its channel; a controller’s agent resumes with the outcome `ended`",
+    description: "Idempotent: an ended session answers as it is.",
+    permission: "browser.watch",
+    capability: capability6,
+    params: BrowserSessionParams,
+    responses: session,
+    draft: true
+  }),
+  listBrowserHelpRequests: defineRoute({
+    id: "listBrowserHelpRequests",
+    method: "GET",
+    path: "/browser-help-requests",
+    summary: "Agents’ requests for a human to get past a page, for the work the member can see",
+    permission: "browser.watch",
+    capability: capability6,
+    query: ListBrowserHelpRequestsQuery,
+    responses: { 200: { kind: "json", schema: BrowserHelpRequestList, read: ReadBrowserHelpRequestList } },
+    draft: true
+  }),
+  getBrowserHelpRequest: defineRoute({
+    id: "getBrowserHelpRequest",
+    method: "GET",
+    path: "/browser-help-requests/{requestId}",
+    summary: "One help request with its resolution",
+    permission: "browser.watch",
+    capability: capability6,
+    params: BrowserHelpRequestParams,
+    responses: help,
+    draft: true
+  }),
+  dismissBrowserHelpRequest: defineRoute({
+    id: "dismissBrowserHelpRequest",
+    method: "POST",
+    path: "/browser-help-requests/{requestId}/dismiss",
+    summary: "Decline without taking control; the agent resumes with the outcome `dismissed`",
+    description: "409 `browser-tab-controlled` while someone controls the tab (they hand back instead), " + "`browser-help-resolved` once it is resolved.",
+    permission: "browser.control",
+    capability: capability6,
+    params: BrowserHelpRequestParams,
+    responses: help,
+    problems: ["browser-tab-controlled", "browser-help-resolved"],
     draft: true
   })
 };
@@ -30226,7 +30784,8 @@ var OnboardingChoice = strictObject({
   id: OpaqueId,
   label: ShortText,
   description: LongText.nullable(),
-  disabled: boolean2()
+  disabled: boolean2(),
+  featured: boolean2().optional()
 });
 var OnboardingTextPrompt = strictObject({
   ...promptBase,
@@ -30349,7 +30908,7 @@ var AnswerOnboardingBody = discriminatedUnion("action", [
   strictObject({ promptId: OnboardingPromptId, action: literal("back") }),
   strictObject({ promptId: OnboardingPromptId, action: literal("alternative"), alternativeId: OpaqueId })
 ]);
-var capability6 = KNOWN_CAPABILITIES.onboarding;
+var capability7 = KNOWN_CAPABILITIES.onboarding;
 var ONBOARDING_ROUTES = {
   getOnboarding: defineRoute({
     id: "getOnboarding",
@@ -30358,7 +30917,7 @@ var ONBOARDING_ROUTES = {
     summary: "Get the onboarding state and the prompt waiting for an answer",
     description: "Poll while `status` is `working` or a harness login is `waiting` or `verifying`.",
     permission: "settings.manage",
-    capability: capability6,
+    capability: capability7,
     responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } }
   }),
   answerOnboarding: defineRoute({
@@ -30368,7 +30927,7 @@ var ONBOARDING_ROUTES = {
     summary: "Answer the current prompt, or go back one; the engine decides what comes next",
     description: "A `promptId` that is not the current prompt is 409 `onboarding-prompt-stale` and changes nothing. An " + "answer of another kind than the prompt, or an `alternativeId` the prompt does not offer without " + "`href`, is 400 `validation-failed`. A returned login code or a secret is never logged or audited.",
     permission: "settings.manage",
-    capability: capability6,
+    capability: capability7,
     body: { kind: "json", schema: AnswerOnboardingBody },
     responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
     problems: ["onboarding-prompt-stale"]
@@ -30380,7 +30939,7 @@ var ONBOARDING_ROUTES = {
     summary: '"Skip for now": keep the setup pending, and let the engine set itself up through its built-in agents',
     description: "Idempotent. Onboarding stays reachable; answering a prompt later continues where it stopped. 409 " + "`onboarding-not-deferrable` while `canDefer` is false.",
     permission: "settings.manage",
-    capability: capability6,
+    capability: capability7,
     responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
     problems: ["onboarding-not-deferrable"]
   })
@@ -30583,7 +31142,7 @@ var TriggerChangedEvent = strictObject({
   triggerId: TriggerId,
   agentId: AgentId
 });
-var capability7 = KNOWN_CAPABILITIES.triggers;
+var capability8 = KNOWN_CAPABILITIES.triggers;
 var one2 = { kind: "json", schema: Trigger, read: TriggerReader };
 var TRIGGER_ROUTES = {
   listTriggers: defineRoute({
@@ -30592,7 +31151,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers",
     summary: "List triggers, newest first",
     permission: "triggers.read",
-    capability: capability7,
+    capability: capability8,
     query: TriggerListQuery,
     responses: { 200: { kind: "json", schema: TriggerPage, read: TriggerPageReader } }
   }),
@@ -30602,7 +31161,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/stats",
     summary: "Count triggers by lifecycle, with the soonest next fire",
     permission: "triggers.read",
-    capability: capability7,
+    capability: capability8,
     query: TriggerStatsQuery,
     responses: { 200: { kind: "json", schema: TriggerStats } }
   }),
@@ -30612,7 +31171,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers",
     summary: "Create a schedule or an inbound email address for an agent",
     permission: "triggers.manage",
-    capability: capability7,
+    capability: capability8,
     body: { kind: "json", schema: CreateTriggerBody },
     responses: { 201: one2 },
     problems: ["invalid-schedule", "agent-deleted"]
@@ -30623,7 +31182,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}",
     summary: "Get a trigger",
     permission: "triggers.read",
-    capability: capability7,
+    capability: capability8,
     params: TriggerParams,
     responses: { 200: one2 }
   }),
@@ -30633,7 +31192,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}",
     summary: "Rename a trigger or change a schedule's timing and message",
     permission: "triggers.manage",
-    capability: capability7,
+    capability: capability8,
     params: TriggerParams,
     body: { kind: "json", schema: UpdateTriggerBody },
     responses: { 200: one2 },
@@ -30645,7 +31204,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}",
     summary: "Delete a trigger; runs it started are kept",
     permission: "triggers.manage",
-    capability: capability7,
+    capability: capability8,
     params: TriggerParams,
     responses: { 204: { kind: "empty" } }
   }),
@@ -30655,7 +31214,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}/pause",
     summary: "Pause a trigger (idempotent)",
     permission: "triggers.manage",
-    capability: capability7,
+    capability: capability8,
     params: TriggerParams,
     responses: { 200: one2 },
     problems: ["trigger-ended"]
@@ -30666,7 +31225,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}/resume",
     summary: "Resume a paused or failed trigger (idempotent); an ended one answers 409 `trigger-ended`",
     permission: "triggers.manage",
-    capability: capability7,
+    capability: capability8,
     params: TriggerParams,
     responses: { 200: one2 },
     problems: ["trigger-ended"]
@@ -30677,181 +31236,10 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}/fires",
     summary: "List a trigger's fires, newest first, each linked to the run it started",
     permission: "triggers.read",
-    capability: capability7,
+    capability: capability8,
     params: TriggerParams,
     query: PageQuery,
     responses: { 200: { kind: "json", schema: TriggerFirePage, read: TriggerFirePageReader } }
-  })
-};
-
-// ../../../packages/engine-api/src/capabilities/wallet.ts
-var WALLET_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
-var WalletRecordId = string2().regex(WALLET_ID_PATTERN).brand();
-var WalletRequestId = string2().regex(WALLET_ID_PATTERN).brand();
-var MAX_WALLET_FIELDS = 12;
-var MAX_WALLET_FIELD_LABEL_LENGTH = 80;
-var MAX_WALLET_FIELD_VALUE_LENGTH = 1000;
-var MAX_WALLET_PASSWORD_LENGTH = 4096;
-var MAX_WALLET_USERNAME_LENGTH = 320;
-var MAX_WALLET_LABEL_LENGTH = 200;
-var MAX_WALLET_RECORDS = 1000;
-var MAX_WALLET_REQUESTS = 200;
-var WALLET_STATES = ["ready", "empty", "setup", "locked", "unavailable"];
-var WalletState = _enum(WALLET_STATES);
-var WalletOrigin = string2().max(2048).regex(/^https?:\/\/[^\s/?#@]+$/).refine((value) => URL.canParse(value) && new URL(value).origin === value, "Not a normalised origin.");
-var FieldLabel = string2().trim().min(1).max(MAX_WALLET_FIELD_LABEL_LENGTH);
-var WalletFieldInfo = strictObject({
-  label: FieldLabel,
-  uncertain: boolean2()
-});
-var WALLET_VERIFICATION_STATES = ["verified", "rejected", "incomplete"];
-var WalletVerification = strictObject({
-  state: _enum(WALLET_VERIFICATION_STATES),
-  at: Timestamp,
-  reason: string2().max(500)
-});
-var WALLET_SIGN_IN_OUTCOMES = ["signed-in", "rejected"];
-var WalletRecord = strictObject({
-  id: WalletRecordId,
-  label: string2().min(1).max(MAX_WALLET_LABEL_LENGTH),
-  origin: WalletOrigin,
-  username: string2().min(1).max(MAX_WALLET_USERNAME_LENGTH).nullable(),
-  fields: array(WalletFieldInfo).max(MAX_WALLET_FIELDS),
-  updatedAt: Timestamp,
-  lastUse: strictObject({ at: Timestamp, outcome: _enum(WALLET_SIGN_IN_OUTCOMES) }).nullable(),
-  verification: WalletVerification.nullable()
-});
-var WALLET_REQUEST_PROBLEMS = ["missing", "rejected", "locked", "code", "field"];
-var WalletRequest = strictObject({
-  id: WalletRequestId,
-  origin: WalletOrigin,
-  account: string2().min(1).max(MAX_WALLET_USERNAME_LENGTH).nullable(),
-  problem: _enum(WALLET_REQUEST_PROBLEMS),
-  fields: array(FieldLabel).max(MAX_WALLET_FIELDS),
-  recordId: WalletRecordId.nullable(),
-  reason: string2().max(1000),
-  tasks: array(string2().min(1).max(256)).max(50),
-  agents: array(string2().min(1).max(256)).max(50),
-  requests: int().min(1),
-  createdAt: Timestamp,
-  seenAt: Timestamp.nullable(),
-  step: int().min(0)
-});
-var WalletOverview = strictObject({
-  state: WalletState,
-  records: array(WalletRecord).max(MAX_WALLET_RECORDS),
-  lockedRecords: int().min(0),
-  pending: array(WalletRequest).max(MAX_WALLET_REQUESTS)
-});
-var ReadWalletRecord = WalletRecord.extend({
-  lastUse: strictObject({ at: Timestamp, outcome: openEnum(WALLET_SIGN_IN_OUTCOMES) }).nullable(),
-  verification: WalletVerification.extend({ state: openEnum(WALLET_VERIFICATION_STATES) }).nullable()
-});
-var ReadWalletOverviewShape = WalletOverview.extend({
-  state: openEnum(WALLET_STATES),
-  records: array(ReadWalletRecord).max(MAX_WALLET_RECORDS),
-  pending: array(WalletRequest.extend({ problem: openEnum(WALLET_REQUEST_PROBLEMS) })).max(MAX_WALLET_REQUESTS)
-});
-var ReadWalletOverview = toTolerant(ReadWalletOverviewShape);
-var ReadWalletRequestSchema = toTolerant(WalletRequest.extend({ problem: openEnum(WALLET_REQUEST_PROBLEMS) }));
-var WalletPassword = string2().min(1).max(MAX_WALLET_PASSWORD_LENGTH);
-var WalletFieldInput = strictObject({
-  label: FieldLabel,
-  value: string2().max(MAX_WALLET_FIELD_VALUE_LENGTH),
-  uncertain: boolean2().default(false)
-});
-var saveShape = {
-  origin: WalletOrigin,
-  username: string2().trim().min(1).max(MAX_WALLET_USERNAME_LENGTH),
-  password: WalletPassword,
-  label: string2().trim().min(1).max(MAX_WALLET_LABEL_LENGTH).optional(),
-  fields: array(WalletFieldInput).max(MAX_WALLET_FIELDS).optional(),
-  requestId: WalletRequestId.optional()
-};
-var AddWalletRecordBody = strictObject(saveShape);
-var UpdateWalletRecordBody = strictObject(saveShape);
-var WalletSaved = strictObject({
-  record: WalletRecord,
-  resolvedRequestIds: array(WalletRequestId).max(MAX_WALLET_REQUESTS)
-});
-var ReadWalletSaved = toTolerant(WalletSaved.extend({ record: ReadWalletRecord }));
-var WalletRecordParams = strictObject({ recordId: WalletRecordId });
-var WalletRequestParams = strictObject({ requestId: WalletRequestId });
-var WalletRequestStepBody = strictObject({ step: int().min(0) });
-var capability8 = KNOWN_CAPABILITIES.wallet;
-var WALLET_ROUTES = {
-  getWallet: defineRoute({
-    id: "getWallet",
-    method: "GET",
-    path: "/wallet",
-    summary: "The Wallet's state, saved logins without secrets and pending agent requests",
-    permission: "wallet.read",
-    capability: capability8,
-    responses: { 200: { kind: "json", schema: WalletOverview, read: ReadWalletOverview } }
-  }),
-  addWalletRecord: defineRoute({
-    id: "addWalletRecord",
-    method: "POST",
-    path: "/wallet/records",
-    summary: "Save a login; its password and field values can never be read back",
-    description: "A login for the same origin and username is updated rather than duplicated. The save resolves the " + "pending requests for that origin (and `requestId`), except one-time code requests. A new or changed " + "login stays unverified until the engine tests it. 409 `wallet-not-ready` unless the Wallet is `ready`.",
-    permission: "wallet.manage",
-    capability: capability8,
-    body: { kind: "json", schema: AddWalletRecordBody },
-    responses: { 200: { kind: "json", schema: WalletSaved, read: ReadWalletSaved } },
-    problems: ["wallet-not-ready"],
-    stepUp: true
-  }),
-  updateWalletRecord: defineRoute({
-    id: "updateWalletRecord",
-    method: "PUT",
-    path: "/wallet/records/{recordId}",
-    summary: "Replace one login’s username and password, and change its label or fields",
-    permission: "wallet.manage",
-    capability: capability8,
-    params: WalletRecordParams,
-    body: { kind: "json", schema: UpdateWalletRecordBody },
-    responses: { 200: { kind: "json", schema: WalletSaved, read: ReadWalletSaved } },
-    problems: ["wallet-not-ready"],
-    stepUp: true
-  }),
-  deleteWalletRecord: defineRoute({
-    id: "deleteWalletRecord",
-    method: "DELETE",
-    path: "/wallet/records/{recordId}",
-    summary: "Remove one saved login; other logins are untouched",
-    permission: "wallet.manage",
-    capability: capability8,
-    params: WalletRecordParams,
-    responses: { 204: { kind: "empty" } },
-    problems: ["wallet-not-ready"],
-    stepUp: true
-  }),
-  markWalletRequestSeen: defineRoute({
-    id: "markWalletRequestSeen",
-    method: "POST",
-    path: "/wallet/requests/{requestId}/seen",
-    summary: "Mark as seen: the request keeps waiting, but stops asking for attention in every client",
-    description: "Neither an answer nor a refusal. Idempotent for the same step; 409 `wallet-request-moved` when the " + "request moved to another step since it was shown, 404 once it is no longer pending.",
-    permission: "wallet.manage",
-    capability: capability8,
-    params: WalletRequestParams,
-    body: { kind: "json", schema: WalletRequestStepBody },
-    responses: { 200: { kind: "json", schema: WalletRequest, read: ReadWalletRequestSchema } },
-    problems: ["wallet-request-moved"]
-  }),
-  rejectWalletRequest: defineRoute({
-    id: "rejectWalletRequest",
-    method: "POST",
-    path: "/wallet/requests/{requestId}/reject",
-    summary: "Reject request: end it; the waiting work learns that nothing was provided",
-    description: "The work is never told it signed in, and the same request is not raised again for it. 409 " + "`wallet-request-moved` for a stale step, 404 once it is no longer pending.",
-    permission: "wallet.manage",
-    capability: capability8,
-    params: WalletRequestParams,
-    body: { kind: "json", schema: WalletRequestStepBody },
-    responses: { 204: { kind: "empty" } },
-    problems: ["wallet-request-moved"]
   })
 };
 
@@ -31181,6 +31569,241 @@ var CHAT_ROUTES = {
   })
 };
 
+// ../../../packages/engine-api/src/capabilities/voice.ts
+var VOICE_CLIP_FORMATS = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/wav"];
+var MAX_VOICE_CLIP_BYTES = 2 * 1024 * 1024;
+var MAX_VOICE_CLIP_MS = 60000;
+var MAX_TRANSCRIPT_LENGTH = 4000;
+var LanguageTag = string2().max(35).regex(/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/);
+var TranscriptionQuery = strictObject({
+  language: LanguageTag.optional()
+});
+var VoiceClip = _instanceof(Blob);
+var TranscriptDraft = strictObject({
+  text: string2().max(MAX_TRANSCRIPT_LENGTH),
+  language: LanguageTag.nullable(),
+  confidence: number2().min(0).max(1).nullable(),
+  durationMs: int().min(0).max(MAX_VOICE_CLIP_MS)
+});
+var SPEECH_FORMATS = ["audio/mpeg", "audio/ogg;codecs=opus", "audio/wav"];
+var SpeechFormat = _enum(SPEECH_FORMATS);
+var MAX_SPEECH_TEXT_LENGTH = 4000;
+var SpeakMessageBody = strictObject({
+  formats: array(SpeechFormat).min(1).max(SPEECH_FORMATS.length).refine((formats) => new Set(formats).size === formats.length, { message: "Each format may appear once" })
+});
+var VOICE_ROUTES = {
+  transcribeVoiceClip: defineRoute({
+    id: "transcribeVoiceClip",
+    method: "POST",
+    path: "/chats/{chatId}/transcriptions",
+    summary: "Turn a recorded clip into a transcript draft for the composer; nothing is sent or kept",
+    description: "The body is the clip itself, with its `Content-Type` one of `VOICE_CLIP_FORMATS`. Longer than " + "`MAX_VOICE_CLIP_MS` is 422 `voice-clip-too-long`. The engine keeps no audio and no transcript, logs " + "neither, and adds nothing to the chat: the member sends the edited text as an ordinary message. A " + "provider that fails is 502 `transcription-failed`; none ready right now is 503 `voice-unavailable`.",
+    permission: "chats.write",
+    capability: KNOWN_CAPABILITIES.voiceInput,
+    params: ChatParams,
+    query: TranscriptionQuery,
+    body: { kind: "binary", schema: VoiceClip, mediaTypes: VOICE_CLIP_FORMATS, maxBytes: MAX_VOICE_CLIP_BYTES },
+    responses: { 200: { kind: "json", schema: TranscriptDraft } },
+    problems: [
+      "payload-too-large",
+      "unsupported-media-type",
+      "voice-clip-too-long",
+      "transcription-failed",
+      "voice-unavailable"
+    ]
+  }),
+  speakChatMessage: defineRoute({
+    id: "speakChatMessage",
+    method: "POST",
+    path: "/chats/{chatId}/messages/{messageId}/speech",
+    summary: "Read a message aloud: its text as audio in the first offered format the engine can make",
+    description: "Only a `completed` message with text (409 `message-not-speakable` otherwise), of at most " + "`MAX_SPEECH_TEXT_LENGTH` (422 `speech-too-long`). None of the offered formats is 415 " + "`unsupported-media-type`. The audio is made for this request and neither stored nor cached.",
+    permission: "chats.read",
+    capability: KNOWN_CAPABILITIES.voiceOutput,
+    params: ChatMessageParams,
+    body: { kind: "json", schema: SpeakMessageBody },
+    responses: { 200: { kind: "binary", mediaTypes: SPEECH_FORMATS } },
+    problems: [
+      "unsupported-media-type",
+      "speech-too-long",
+      "message-not-speakable",
+      "speech-failed",
+      "voice-unavailable"
+    ]
+  })
+};
+
+// ../../../packages/engine-api/src/capabilities/wallet.ts
+var WALLET_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+var WalletRecordId = string2().regex(WALLET_ID_PATTERN).brand();
+var WalletRequestId = string2().regex(WALLET_ID_PATTERN).brand();
+var MAX_WALLET_FIELDS = 12;
+var MAX_WALLET_FIELD_LABEL_LENGTH = 80;
+var MAX_WALLET_FIELD_VALUE_LENGTH = 1000;
+var MAX_WALLET_PASSWORD_LENGTH = 4096;
+var MAX_WALLET_USERNAME_LENGTH = 320;
+var MAX_WALLET_LABEL_LENGTH = 200;
+var MAX_WALLET_RECORDS = 1000;
+var MAX_WALLET_REQUESTS = 200;
+var WALLET_STATES = ["ready", "empty", "setup", "locked", "unavailable"];
+var WalletState = _enum(WALLET_STATES);
+var WalletOrigin = string2().max(2048).regex(/^https?:\/\/[^\s/?#@]+$/).refine((value) => URL.canParse(value) && new URL(value).origin === value, "Not a normalised origin.");
+var FieldLabel = string2().trim().min(1).max(MAX_WALLET_FIELD_LABEL_LENGTH);
+var WalletFieldInfo = strictObject({
+  label: FieldLabel,
+  uncertain: boolean2()
+});
+var WALLET_VERIFICATION_STATES = ["verified", "rejected", "incomplete"];
+var WalletVerification = strictObject({
+  state: _enum(WALLET_VERIFICATION_STATES),
+  at: Timestamp,
+  reason: string2().max(500)
+});
+var WALLET_SIGN_IN_OUTCOMES = ["signed-in", "rejected"];
+var WalletRecord = strictObject({
+  id: WalletRecordId,
+  label: string2().min(1).max(MAX_WALLET_LABEL_LENGTH),
+  origin: WalletOrigin,
+  username: string2().min(1).max(MAX_WALLET_USERNAME_LENGTH).nullable(),
+  fields: array(WalletFieldInfo).max(MAX_WALLET_FIELDS),
+  updatedAt: Timestamp,
+  lastUse: strictObject({ at: Timestamp, outcome: _enum(WALLET_SIGN_IN_OUTCOMES) }).nullable(),
+  verification: WalletVerification.nullable()
+});
+var WALLET_REQUEST_PROBLEMS = ["missing", "rejected", "locked", "code", "field"];
+var WalletRequest = strictObject({
+  id: WalletRequestId,
+  origin: WalletOrigin,
+  account: string2().min(1).max(MAX_WALLET_USERNAME_LENGTH).nullable(),
+  problem: _enum(WALLET_REQUEST_PROBLEMS),
+  fields: array(FieldLabel).max(MAX_WALLET_FIELDS),
+  recordId: WalletRecordId.nullable(),
+  reason: string2().max(1000),
+  tasks: array(string2().min(1).max(256)).max(50),
+  agents: array(string2().min(1).max(256)).max(50),
+  requests: int().min(1),
+  createdAt: Timestamp,
+  seenAt: Timestamp.nullable(),
+  step: int().min(0)
+});
+var WalletOverview = strictObject({
+  state: WalletState,
+  records: array(WalletRecord).max(MAX_WALLET_RECORDS),
+  lockedRecords: int().min(0),
+  pending: array(WalletRequest).max(MAX_WALLET_REQUESTS)
+});
+var ReadWalletRecord = WalletRecord.extend({
+  lastUse: strictObject({ at: Timestamp, outcome: openEnum(WALLET_SIGN_IN_OUTCOMES) }).nullable(),
+  verification: WalletVerification.extend({ state: openEnum(WALLET_VERIFICATION_STATES) }).nullable()
+});
+var ReadWalletOverviewShape = WalletOverview.extend({
+  state: openEnum(WALLET_STATES),
+  records: array(ReadWalletRecord).max(MAX_WALLET_RECORDS),
+  pending: array(WalletRequest.extend({ problem: openEnum(WALLET_REQUEST_PROBLEMS) })).max(MAX_WALLET_REQUESTS)
+});
+var ReadWalletOverview = toTolerant(ReadWalletOverviewShape);
+var ReadWalletRequestSchema = toTolerant(WalletRequest.extend({ problem: openEnum(WALLET_REQUEST_PROBLEMS) }));
+var WalletPassword = string2().min(1).max(MAX_WALLET_PASSWORD_LENGTH);
+var WalletFieldInput = strictObject({
+  label: FieldLabel,
+  value: string2().max(MAX_WALLET_FIELD_VALUE_LENGTH),
+  uncertain: boolean2().default(false)
+});
+var saveShape = {
+  origin: WalletOrigin,
+  username: string2().trim().min(1).max(MAX_WALLET_USERNAME_LENGTH),
+  password: WalletPassword,
+  label: string2().trim().min(1).max(MAX_WALLET_LABEL_LENGTH).optional(),
+  fields: array(WalletFieldInput).max(MAX_WALLET_FIELDS).optional(),
+  requestId: WalletRequestId.optional()
+};
+var AddWalletRecordBody = strictObject(saveShape);
+var UpdateWalletRecordBody = strictObject(saveShape);
+var WalletSaved = strictObject({
+  record: WalletRecord,
+  resolvedRequestIds: array(WalletRequestId).max(MAX_WALLET_REQUESTS)
+});
+var ReadWalletSaved = toTolerant(WalletSaved.extend({ record: ReadWalletRecord }));
+var WalletRecordParams = strictObject({ recordId: WalletRecordId });
+var WalletRequestParams = strictObject({ requestId: WalletRequestId });
+var WalletRequestStepBody = strictObject({ step: int().min(0) });
+var capability9 = KNOWN_CAPABILITIES.wallet;
+var WALLET_ROUTES = {
+  getWallet: defineRoute({
+    id: "getWallet",
+    method: "GET",
+    path: "/wallet",
+    summary: "The Wallet's state, saved logins without secrets and pending agent requests",
+    permission: "wallet.read",
+    capability: capability9,
+    responses: { 200: { kind: "json", schema: WalletOverview, read: ReadWalletOverview } }
+  }),
+  addWalletRecord: defineRoute({
+    id: "addWalletRecord",
+    method: "POST",
+    path: "/wallet/records",
+    summary: "Save a login; its password and field values can never be read back",
+    description: "A login for the same origin and username is updated rather than duplicated. The save resolves the " + "pending requests for that origin (and `requestId`), except one-time code requests. A new or changed " + "login stays unverified until the engine tests it. 409 `wallet-not-ready` unless the Wallet is `ready`.",
+    permission: "wallet.manage",
+    capability: capability9,
+    body: { kind: "json", schema: AddWalletRecordBody },
+    responses: { 200: { kind: "json", schema: WalletSaved, read: ReadWalletSaved } },
+    problems: ["wallet-not-ready"],
+    stepUp: true
+  }),
+  updateWalletRecord: defineRoute({
+    id: "updateWalletRecord",
+    method: "PUT",
+    path: "/wallet/records/{recordId}",
+    summary: "Replace one login’s username and password, and change its label or fields",
+    permission: "wallet.manage",
+    capability: capability9,
+    params: WalletRecordParams,
+    body: { kind: "json", schema: UpdateWalletRecordBody },
+    responses: { 200: { kind: "json", schema: WalletSaved, read: ReadWalletSaved } },
+    problems: ["wallet-not-ready"],
+    stepUp: true
+  }),
+  deleteWalletRecord: defineRoute({
+    id: "deleteWalletRecord",
+    method: "DELETE",
+    path: "/wallet/records/{recordId}",
+    summary: "Remove one saved login; other logins are untouched",
+    permission: "wallet.manage",
+    capability: capability9,
+    params: WalletRecordParams,
+    responses: { 204: { kind: "empty" } },
+    problems: ["wallet-not-ready"],
+    stepUp: true
+  }),
+  markWalletRequestSeen: defineRoute({
+    id: "markWalletRequestSeen",
+    method: "POST",
+    path: "/wallet/requests/{requestId}/seen",
+    summary: "Mark as seen: the request keeps waiting, but stops asking for attention in every client",
+    description: "Neither an answer nor a refusal. Idempotent for the same step; 409 `wallet-request-moved` when the " + "request moved to another step since it was shown, 404 once it is no longer pending.",
+    permission: "wallet.manage",
+    capability: capability9,
+    params: WalletRequestParams,
+    body: { kind: "json", schema: WalletRequestStepBody },
+    responses: { 200: { kind: "json", schema: WalletRequest, read: ReadWalletRequestSchema } },
+    problems: ["wallet-request-moved"]
+  }),
+  rejectWalletRequest: defineRoute({
+    id: "rejectWalletRequest",
+    method: "POST",
+    path: "/wallet/requests/{requestId}/reject",
+    summary: "Reject request: end it; the waiting work learns that nothing was provided",
+    description: "The work is never told it signed in, and the same request is not raised again for it. 409 " + "`wallet-request-moved` for a stale step, 404 once it is no longer pending.",
+    permission: "wallet.manage",
+    capability: capability9,
+    params: WalletRequestParams,
+    body: { kind: "json", schema: WalletRequestStepBody },
+    responses: { 204: { kind: "empty" } },
+    problems: ["wallet-request-moved"]
+  })
+};
+
 // ../../../packages/engine-api/src/engine.ts
 var ENGINE_MODES = ["tunnel", "direct", "local"];
 var EngineInfo = strictObject({
@@ -31209,7 +31832,9 @@ var coreEvents = [
   strictObject({ type: literal("chat.changed"), chatId: ChatId }),
   TriggerChangedEvent,
   FileChangedEvent,
-  IntegrationChangedEvent
+  IntegrationChangedEvent,
+  BrowserTabChangedEvent,
+  BrowserHelpChangedEvent
 ];
 var CoreEngineEvent = discriminatedUnion("type", [...coreEvents, RunChangedEvent, TaskChangedEvent]);
 var EngineEvent = discriminatedUnion("type", [...CoreEngineEvent.options, ActivityEvent]);
@@ -31637,7 +32262,8 @@ var ENGINE_API_ROUTES = {
   ...ACCESS_REQUEST_ROUTES,
   ...LIVE_ROUTES,
   ...ONBOARDING_ROUTES,
-  ...WALLET_ROUTES
+  ...WALLET_ROUTES,
+  ...VOICE_ROUTES
 };
 var ENGINE_API_ROUTE_LIST = Object.values(ENGINE_API_ROUTES);
 function commonProblems(route) {
@@ -31754,6 +32380,19 @@ function createEngineApiClient(transport) {
       markSeen: (requestId, body, signal) => call(ENGINE_API_ROUTES.markWalletRequestSeen, { params: { requestId }, body }, signal),
       reject: (requestId, body, signal) => call(ENGINE_API_ROUTES.rejectWalletRequest, { params: { requestId }, body }, signal)
     },
+    browser: {
+      openSignIn: (body, signal) => call(ENGINE_API_ROUTES.openBrowserSignIn, { body }, signal),
+      listTabs: (query, signal) => call(ENGINE_API_ROUTES.listBrowserTabs, { query }, signal),
+      watch: (tabId, signal) => call(ENGINE_API_ROUTES.watchBrowserTab, { params: { tabId } }, signal),
+      control: (tabId, signal) => call(ENGINE_API_ROUTES.controlBrowserTab, { params: { tabId } }, signal),
+      getSession: (sessionId, signal) => call(ENGINE_API_ROUTES.getBrowserSession, { params: { sessionId } }, signal),
+      takeControl: (sessionId, signal) => call(ENGINE_API_ROUTES.takeBrowserControl, { params: { sessionId } }, signal),
+      handBack: (sessionId, signal) => call(ENGINE_API_ROUTES.handBackBrowserTab, { params: { sessionId } }, signal),
+      end: (sessionId, signal) => call(ENGINE_API_ROUTES.endBrowserSession, { params: { sessionId } }, signal),
+      listHelpRequests: (query, signal) => call(ENGINE_API_ROUTES.listBrowserHelpRequests, { query }, signal),
+      getHelpRequest: (requestId, signal) => call(ENGINE_API_ROUTES.getBrowserHelpRequest, { params: { requestId } }, signal),
+      dismissHelpRequest: (requestId, signal) => call(ENGINE_API_ROUTES.dismissBrowserHelpRequest, { params: { requestId } }, signal)
+    },
     files: {
       list: (query, signal) => call(ENGINE_API_ROUTES.listFiles, { query }, signal),
       stats: (query, signal) => call(ENGINE_API_ROUTES.getFileStats, { query }, signal),
@@ -31806,6 +32445,10 @@ function createEngineApiClient(transport) {
       get: (signal) => call(ENGINE_API_ROUTES.getOnboarding, {}, signal),
       answer: (body, signal) => call(ENGINE_API_ROUTES.answerOnboarding, { body }, signal),
       defer: (signal) => call(ENGINE_API_ROUTES.deferOnboarding, {}, signal)
+    },
+    voice: {
+      transcribe: (chatId, clip, query, signal) => call(ENGINE_API_ROUTES.transcribeVoiceClip, { params: { chatId }, query, body: clip }, signal),
+      speak: (chatId, messageId, body, signal) => call(ENGINE_API_ROUTES.speakChatMessage, { params: { chatId, messageId }, body }, signal)
     },
     activity: {
       list: (query, signal) => call(ENGINE_API_ROUTES.listActivity, { query }, signal)
@@ -32184,6 +32827,8 @@ function requestHeaders(route, success, request) {
   const headers = { accept: acceptFor(success) };
   if (route.body?.kind === "json")
     headers["content-type"] = "application/json";
+  if (route.body?.kind === "binary")
+    headers["content-type"] = binaryBody(route, request).type;
   if (request.lastEventId !== undefined)
     headers["last-event-id"] = request.lastEventId;
   return headers;
@@ -32196,8 +32841,13 @@ function acceptFor(success) {
     case "sse":
       return "text/event-stream, application/problem+json";
     case "binary":
-      return "*/*";
+      return success.mediaTypes === undefined ? "*/*" : [...success.mediaTypes, "application/problem+json"].join(", ");
   }
+}
+function binaryBody(route, request) {
+  if (!(request.body instanceof Blob))
+    throw new Error(`Route ${route.id} takes a Blob as its body`);
+  return request.body;
 }
 function requestBody(route, request) {
   switch (route.body?.kind) {
@@ -32205,6 +32855,8 @@ function requestBody(route, request) {
       return null;
     case "json":
       return JSON.stringify(request.body);
+    case "binary":
+      return binaryBody(route, request);
     case "multipart": {
       const form = new FormData;
       for (const [name, value] of Object.entries(request.body)) {
@@ -32223,8 +32875,15 @@ async function decodeSuccess(route, success, response) {
   switch (success.kind) {
     case "empty":
       return null;
-    case "binary":
-      return await response.blob();
+    case "binary": {
+      if (success.mediaTypes === undefined)
+        return await response.blob();
+      const type = matchMediaType(response.headers.get("content-type"), success.mediaTypes);
+      if (type === null) {
+        throw new EngineApiContractError(route.id, `status ${String(response.status)} in an undeclared format`);
+      }
+      return new Blob([await response.arrayBuffer()], { type });
+    }
     case "json":
       requireMediaType(route, response, "application/json");
       return readJsonResponse(route, success, await readJson(route, response));
@@ -32244,7 +32903,7 @@ async function* decodeSse(route, success, response, deadline) {
     if (!response.body)
       throw new EngineApiContractError(route.id, "event stream without a body");
     for await (const message of parseSseStream(response.body, deadline.signal)) {
-      const data = parseJson(route, message.data);
+      const data = parseJson2(route, message.data);
       const type = typeof data === "object" && data !== null ? data["type"] : undefined;
       if (type !== message.event) {
         throw new EngineApiContractError(route.id, "SSE event name differs from the event type");
@@ -32264,9 +32923,9 @@ function requireMediaType(route, response, expected) {
   }
 }
 async function readJson(route, response) {
-  return parseJson(route, await response.text());
+  return parseJson2(route, await response.text());
 }
-function parseJson(route, text) {
+function parseJson2(route, text) {
   try {
     return JSON.parse(text);
   } catch (error) {
@@ -32542,6 +33201,12 @@ function requestBodyOf(route, components) {
         }
       };
     }
+    case "binary":
+      return {
+        required: true,
+        description: `The raw bytes, at most ${String(body.maxBytes)}.`,
+        content: Object.fromEntries(body.mediaTypes.map((type) => [type, { schema: { type: "string", contentMediaType: type } }]))
+      };
   }
 }
 function successResponseOf(response, components) {
@@ -32558,15 +33223,13 @@ function successResponseOf(response, components) {
         description: "Server-sent events; each event's `type` is also its SSE `event` field, and `data` is the event as JSON.",
         content: { "text/event-stream": { schema: components.convert(response.event, "output") } }
       };
-    case "binary":
+    case "binary": {
+      const types = response.mediaTypes ?? ["application/octet-stream"];
       return {
-        description: "The bytes.",
-        content: {
-          "application/octet-stream": {
-            schema: { type: "string", contentMediaType: "application/octet-stream" }
-          }
-        }
+        description: response.mediaTypes === undefined ? "The bytes." : "The bytes, in one of these formats.",
+        content: Object.fromEntries(types.map((type) => [type, { schema: { type: "string", contentMediaType: type } }]))
       };
+    }
   }
 }
 function problemResponsesOf(route) {
@@ -32740,6 +33403,15 @@ async function readBody(route, request) {
         };
       }
     }
+    case "binary": {
+      const type = matchMediaType(request.headers.get("content-type"), route.body.mediaTypes);
+      if (type === null)
+        return { kind: "problem", problem: createProblem("unsupported-media-type") };
+      const bytes = await readCapped(request, route.body.maxBytes);
+      if (bytes === null)
+        return { kind: "problem", problem: createProblem("payload-too-large") };
+      return { kind: "ok", value: new Blob([bytes], { type }) };
+    }
     case "multipart": {
       let form;
       try {
@@ -32753,6 +33425,41 @@ async function readBody(route, request) {
       return { kind: "ok", value };
     }
   }
+}
+async function readCapped(request, maxBytes) {
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    release(request.body?.cancel());
+    return null;
+  }
+  const chunks = [];
+  let size = 0;
+  if (request.body !== null) {
+    const reader = request.body.getReader();
+    for (;; ) {
+      const next = await reader.read();
+      if (next.done)
+        break;
+      size += next.value.byteLength;
+      if (size > maxBytes) {
+        release(reader.cancel());
+        return null;
+      }
+      chunks.push(next.value);
+    }
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
+}
+function release(cancelled) {
+  cancelled?.catch(() => {
+    return;
+  });
 }
 function writeResult(route, result) {
   if (result.kind === "problem")
@@ -32774,7 +33481,7 @@ function writeResult(route, result) {
       return new Response(result.data, {
         status,
         headers: {
-          "content-type": "application/octet-stream",
+          "content-type": binaryType(route, success, result.data),
           "content-disposition": "attachment",
           "x-content-type-options": "nosniff",
           "cache-control": "no-store"
@@ -32786,6 +33493,14 @@ function writeResult(route, result) {
         headers: { "content-type": "text/event-stream", "cache-control": "no-store" }
       });
   }
+}
+function binaryType(route, success, data) {
+  if (success.mediaTypes === undefined)
+    return "application/octet-stream";
+  const type = matchMediaType(data.type, success.mediaTypes);
+  if (type === null)
+    throw new Error(`Route ${route.id} answered in an undeclared format`);
+  return type;
 }
 function sseBody(items) {
   const iterator = items[Symbol.asyncIterator]();
@@ -33204,9 +33919,9 @@ function encodeBase32Lower(bytes) {
   return text;
 }
 // ../../../packages/protocol/src/bytes.ts
-var encoder = new TextEncoder;
+var encoder2 = new TextEncoder;
 function utf8Encode(text) {
-  return encoder.encode(text);
+  return encoder2.encode(text);
 }
 function concatBytes(...parts) {
   const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
@@ -35433,9 +36148,9 @@ var CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 var CODE_BITS = 100;
 var PATTERN_BITS = 15;
 var GROUP_LENGTH = 4;
-var encoder2 = new TextEncoder;
+var encoder3 = new TextEncoder;
 function digestBits(engineId) {
-  const digest = sha256(encoder2.encode(`${FINGERPRINT_DERIVATION}${engineId}`));
+  const digest = sha256(encoder3.encode(`${FINGERPRINT_DERIVATION}${engineId}`));
   return Array.from(digest, (byte) => byte.toString(2).padStart(8, "0")).join("");
 }
 function deriveEngineFingerprint(engineId) {
@@ -37480,6 +38195,10 @@ function escapedValues(values) {
   if (!FINGERPRINT_CELLS.test(values.fingerprintCells)) {
     throw new Error('Gateway page value "fingerprintCells" is not 25 cells of 0 and 1');
   }
+  const connect = values.command === "ptbk" ? "ptbk connect" : values.command;
+  escaped.set("setupLinkCommand", escapeHtml(values.setupLinkCommand ?? `${connect} ${values.command === "ptbk" ? "--setup-link" : "setup-link"}`));
+  escaped.set("resetOwnerCommand", escapeHtml(values.resetOwnerCommand ?? `${connect} ${values.command === "ptbk" ? "--reset-owner" : "owner --reset"}`));
+  escaped.set("statusCommand", escapeHtml(values.statusCommand ?? `${values.command} status`));
   return escaped;
 }
 function renderGatewayPage(template, values) {

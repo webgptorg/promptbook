@@ -1,3 +1,6 @@
+import { glob, readFile, stat } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { which } from '../common/process.js';
 import { isLoopbackUrl, runtimeJson, runtimeStream, serviceKey } from './http.js';
@@ -60,6 +63,41 @@ function localityOf(entry: TagEntry, onEngineHost: boolean): RuntimeModel['local
     const name = entry.name ?? entry.model ?? '';
     if (entry.remote_host || entry.remote_model || /(?:-|:)cloud$/i.test(name)) return 'cloud';
     return onEngineHost ? 'local' : 'unknown';
+}
+
+/**
+ * Reads completed manifests without starting Ollama. Cloud entries and partial downloads have no complete weight
+ * layers. Only metadata is read; the potentially large blobs are checked by size.
+ */
+async function installedModels({ env, signal }: RuntimeContext): Promise<RuntimeModel[]> {
+    const homeStore = join(env.HOME || env.USERPROFILE || homedir(), '.ollama', 'models');
+    const stores = env.OLLAMA_MODELS ? [env.OLLAMA_MODELS] : [homeStore, ...(process.platform === 'linux' ? ['/usr/share/ollama/.ollama/models'] : [])];
+    const models: RuntimeModel[] = [];
+    for (const store of stores) {
+        const manifests = join(store, 'manifests');
+        for await (const path of glob('*/*/*/*', { cwd: manifests })) {
+            signal?.throwIfAborted();
+            const [registry, namespace, name, tag] = path.split(sep);
+            let id = `${name}:${tag}`;
+            if (namespace !== 'library' || registry !== 'registry.ollama.ai') id = `${namespace}/${id}`;
+            if (registry !== 'registry.ollama.ai') id = `${registry}/${id}`;
+            if (localityOf({ name: id }, true) !== 'local') continue;
+            try {
+                const manifest = JSON.parse(await readFile(join(manifests, path), 'utf8')) as { layers: { mediaType: string; digest: string; size: number }[] };
+                const weights = manifest.layers.filter(({ mediaType }) => ['application/vnd.ollama.image.model', 'application/vnd.ollama.image.tensor'].includes(mediaType));
+                if (!weights.length) continue;
+                const complete = await Promise.all(weights.map(async ({ digest, size }) => {
+                    if (!/^sha256:[a-f0-9]{64}$/.test(digest) || !(size > 0)) return false;
+                    const blob = await stat(join(store, 'blobs', digest.replace(':', '-')));
+                    return blob.isFile() && blob.size === size;
+                }));
+                if (complete.every(Boolean)) models.push({ id, installed: true, locality: 'local', tools: 'unknown', vision: 'unknown' });
+            } catch {
+                // A partial, unreadable or removed manifest cannot establish that the model is installed.
+            }
+        }
+    }
+    return models;
 }
 
 /**
@@ -230,6 +268,7 @@ export const ollamaAdapter: RuntimeAdapter = {
     homepage: 'https://ollama.com',
     actions: ['status', 'models', 'download', 'load', 'unload', 'remove-model', 'start', 'stop', 'restart'],
     inspect,
+    installedModels,
     download,
     load,
     unload,

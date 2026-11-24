@@ -7,7 +7,7 @@ export type PresentationPrompt = {
     readonly kind: 'one' | 'many' | 'text' | 'secret' | 'toggles' | 'harness-login' | 'complete';
     readonly frame: { readonly title: string; readonly step?: string; readonly summary?: readonly string[]; readonly guide?: { readonly name: string; readonly note?: string } };
     readonly question: string;
-    readonly choices?: readonly { readonly label: string; readonly description?: string; readonly disabled?: boolean; readonly value: number | string }[];
+    readonly choices?: readonly { readonly label: string; readonly description?: string; readonly disabled?: boolean; readonly featured?: boolean; readonly value: number | string }[];
     readonly initial?: unknown;
     readonly placeholder?: string;
     readonly hint?: string;

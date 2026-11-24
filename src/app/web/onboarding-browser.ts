@@ -123,9 +123,23 @@ function controls(prompt: OnboardingPrompt): HTMLElement[] {
                 label.append(option, document.createTextNode(' ' + choice.label));
                 const row = element('p');
                 row.append(label);
-                return { option, row };
+                if (choice.description) row.append(element('small', ' ' + choice.description));
+                return { option, row, featured: choice.featured !== false };
             });
-            return [...choices.map(({ row }) => row), button('Continue', async () => answer({ kind: 'choice', choiceIds: choices.filter(({ option }) => option.checked).map(({ option }) => option.value) }))];
+            let expanded = false;
+            const more = button('Show more', async () => {
+                expanded = !expanded;
+                update();
+            });
+            const update = (): void => {
+                for (const { row, option, featured } of choices) row.hidden = !expanded && !featured && !option.checked;
+                more.hidden = !expanded && choices.every(({ row }) => !row.hidden);
+                more.textContent = expanded ? 'Show less' : 'Show more';
+                more.setAttribute('aria-expanded', String(expanded));
+            };
+            for (const { option } of choices) option.onchange = update;
+            update();
+            return [...choices.map(({ row }) => row), more, button('Continue', async () => answer({ kind: 'choice', choiceIds: choices.filter(({ option }) => option.checked).map(({ option }) => option.value) }))];
         }
         case 'confirm': {
             if (prompt.hint?.endsWith(signInPath)) {

@@ -126,7 +126,7 @@ export function recommendLocalModel(hardware: HostHardware, runtime: InferenceRu
     const limitations: string[] = [];
     if (hardware.accelerator.kind === 'none' || hardware.accelerator.kind === 'unknown') limitations.push('No GPU acceleration was detected: local models run on the CPU and answer much more slowly than hosted models.');
     const fits = (entry: LocalCombination): boolean => hardware.inferenceMemoryBytes >= entry.minimumMemoryBytes;
-    const reused = candidates.find((entry) => installed.some((model) => model.id === entry.model && model.locality === 'local') && fits(entry));
+    const reused = candidates.find((entry) => installed.some((model) => model.id === entry.model && model.installed && model.locality === 'local') && fits(entry));
     if (reused) return { combination: reused, installed: true, alternatives: candidates.filter((entry) => entry !== reused && fits(entry)), limitations };
     const fitting = candidates.filter((entry) => fits(entry) && (hardware.freeDiskBytes === undefined || hardware.freeDiskBytes > entry.downloadBytes * 1.1)).sort((a, b) => b.minimumMemoryBytes - a.minimumMemoryBytes);
     if (fitting.length) {
