@@ -12,6 +12,9 @@ import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js
 import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
 import { startDesktopApi } from '../app/web/desktop-api.js';
 import { DESKTOP_OWNER } from '../app/web/access.js';
+import { ProjectHarnessRecovery } from '../onboarding/recovery.js';
+import { onboardingPage } from '../app/web/onboarding-page.js';
+import { harnessTerminalPage } from '../app/web/harness-terminal.js';
 import { EngineApi } from '../app/api/engine-api.js';
 import { CONFORMANCE_BUILD } from '../app/build.js';
 import { AppConnection, type AppEngineFigures, type AppWebHandlers } from '../app/connection.js';
@@ -90,6 +93,7 @@ export class ServiceHost {
     private localApi: LocalApiView = { state: 'disabled' };
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
+    private recovery?: ProjectHarnessRecovery;
     private appApi?: AppWebHandlers['api'];
     private desktopApi?: ReturnType<typeof startDesktopApi>;
 
@@ -334,7 +338,7 @@ export class ServiceHost {
         const snapshot: ServiceSnapshot = this.agenda.snapshot();
         const update = snapshot.update;
         const state = !update ? 'none' : update.phase === 'installing' || update.phase === 'restarting' ? 'installing' : update.target ? 'pending' : update.latest && update.latest !== update.current ? 'available' : 'none';
-        return { agents: snapshot.agents.length, members: 0, update: state, setup: 'done', licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
+        return { agents: snapshot.agents.length, members: 0, update: state, setup: this.agenda.harnessNeedingSignIn() ? 'pending' : 'done', licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
     }
 
     /**
@@ -348,8 +352,10 @@ export class ServiceHost {
         const directory = appDirectory(this.options.project.runtime.app, env);
         const loader = this.uiLoader!;
         const enginePageSha256 = createHash('sha256').update(engineHomePage.toString()).digest('hex');
+        const recovery = new ProjectHarnessRecovery(() => this.agenda.harnessNeedingSignIn(), target => this.agenda.harnessSignedIn(target));
+        this.recovery = recovery;
         const api = new EngineApi({
-            agenda: this.agenda,
+            recovery, agenda: this.agenda,
             projectRoot: this.options.project.root,
             stateDirectory: directory,
             engineId: () => view()?.engineId,
@@ -373,7 +379,8 @@ export class ServiceHost {
                 documents: async (request, actor) => {
                     const desktop = await computerDocument(request);
                     if (desktop) return actor.role === 'owner' ? desktop : new Response('Only the engine owner can access its desktop.', { status: 403, headers: { 'cache-control': 'no-store' } });
-                    return (await loader.serve(request)) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId });
+                    return (await harnessTerminalPage(request, actor, recovery)) ?? (await loader.serve(request)) ??
+                        (actor.role === 'owner' && recovery.state().status !== 'completed' ? await onboardingPage(request) : undefined) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId });
                 },
                 ...(CONFORMANCE_BUILD ? { certificateSource: 'dev-ca' as const } : {}),
             },
@@ -554,6 +561,7 @@ export class ServiceHost {
         const bounded = async (step: () => Promise<unknown> | unknown): Promise<void> => {
             await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
         };
+        this.recovery?.stop();
         const forced = this.agenda.forceStopped;
         // Keep awake ends first: a restart carries held protection to its replacement, every other end releases it.
         const keepAwake = this.keepAwake;

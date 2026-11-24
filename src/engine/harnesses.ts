@@ -429,7 +429,7 @@ export class HarnessPool {
         const mark = this.unavailable.get(name);
         const tool = this.instance(name);
         if (!inspection || !tool || this.inspectedConfig.get(name) !== this.inspectionFingerprint(tool)) return undefined;
-        if (mark && mark.identity === this.fingerprint(tool) && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: 'error', nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction, ...(mark.kind === 'quota' || mark.kind === 'technical' ? { recheckAt: mark.until } : {}) };
+        if (mark && mark.identity === this.fingerprint(tool) && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: mark.kind === 'authentication' ? 'signed-out' : 'error', ...(mark.kind === 'authentication' ? { authenticated: false as const } : {}), nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction, ...(mark.kind === 'quota' || mark.kind === 'technical' ? { recheckAt: mark.until } : {}) };
         if (mark) this.unavailable.delete(name);
         return tool.inferenceRuntime ? this.localReadiness(tool, inspection) : inspection;
     }
@@ -606,6 +606,15 @@ export class HarnessPool {
      */
     public markTechnical(name: string, diagnostic: string, context?: HarnessContext): void {
         this.markUnavailable(name, 'technical', `Technical failure: ${diagnostic}`, TECHNICAL_RECHECK_MS, context);
+    }
+
+    /** Clears only an authentication failure on the exact instance that the owner has just verified. */
+    public authenticated(context: HarnessContext): void {
+        const tool = context.tool;
+        if (!tool) return;
+        const mark = this.unavailable.get(tool.name);
+        if (mark?.kind === 'authentication' && mark.identity === this.fingerprint(tool, context.env)) this.unavailable.delete(tool.name);
+        this.invalidate(tool.name);
     }
 
     /** Marks a variant or instance for recheck (e.g. after an authentication failure). */

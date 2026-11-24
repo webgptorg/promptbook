@@ -66,6 +66,12 @@ Use `ptbk onboarding --id <engine-id>` to continue on the host. With `--json`, i
 
 See [App connection](connection.md) and [native harness sign-in](../cli/harness-authentication.md).
 
+## Reconnect an account after project creation
+
+When an enabled native tool reports an expired or missing login, the owner can reopen setup in the signed UI. The engine offers the provider's code flow or its native terminal, scoped to the failed tool. A real response clears the sign-in failure and wakes waiting work. The owner can defer repair and keep using the project. A chat failure also names `ptbk tool enable <tool-name>`. Reconnecting does not recreate the project or rerun its initialization.
+
+For an older Claude project using the implicit shared home, browser repair verifies a fresh private profile before saving it on the existing tool. It never copies refresh tokens. Explicitly configured account homes retain their identity.
+
 ## Signed UI readiness
 
 Engine version, relay reachability and UI version are independent facts. The platform source of truth is pinned to `webgptorg/app@60958c0b9290d89875087460d5b2333d2442d620`, prioritizing its 20 November staging build and 19 November browser setup requirements.

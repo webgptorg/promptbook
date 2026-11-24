@@ -1,5 +1,7 @@
 # Unreleased
 
+- The owner of a running project can reconnect an expired native AI account from the browser. An older Claude project can move its implicit shared login to a private profile after successful verification.
+
 - New projects give native Claude Code its own account profile throughout installation, sign-in and execution. Concurrent projects no longer rotate the same refresh token.
 
 - Gemini setup distinguishes a saved API selection from a Google login. A failed provider check shows its redacted diagnostic and offers sign-in again.

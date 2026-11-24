@@ -59,7 +59,7 @@ const QUOTA_PATTERN = /usage limit|rate[ _-]?limit|quota|insufficient_quota|cred
 /**
  * Signals of missing or expired authentication.
  */
-const AUTH_PATTERN = /not logged in|please (run )?(\/)?login|log ?in required|unauthori[sz]ed|\b401\b|invalid api key|authentication (failed|required)|oauth token (has )?expired|forbidden.*auth|no credentials/i;
+const AUTH_PATTERN = /not logged in|please (run )?(\/)?login|log ?in required|unauthori[sz]ed|\b401\b|invalid api key|authentication (failed|required)|oauth (?:session|token) (?:has )?expired|forbidden.*auth|no credentials/i;
 
 /**
  * Output tails of a process silently waiting for terminal input it will never receive in unattended operation.
