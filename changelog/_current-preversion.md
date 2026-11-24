@@ -1,6 +1,6 @@
 # Unreleased
 
-- Foreground service shutdown gives runtime cleanup one shared deadline after work settles and exits even when a provider leaves a handle open.
+- Foreground service shutdown gives runtime cleanup one shared deadline after work settles. It stays alive to release the project lock and exits even when a provider leaves a handle open.
 
 - Browser setup warns before project creation when Linux cannot protect the Wallet key. The review explains which login features are unavailable and how to restore them.
 

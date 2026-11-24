@@ -566,7 +566,9 @@ export class ServiceHost {
             if (remaining <= 0) return;
             let timer: NodeJS.Timeout | undefined;
             try {
-                await Promise.race([work, new Promise<void>((resolve) => { timer = setTimeout(resolve, remaining).unref(); })]);
+                // A pending promise alone cannot keep Node alive to attempt the remaining ownership cleanup.
+                const timeout = new Promise<void>((resolve) => { timer = setTimeout(resolve, remaining); });
+                await Promise.race([work, timeout]);
             } finally {
                 clearTimeout(timer);
             }

@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { projectAt } from '../dist/project/workspace.js';
-import { ServiceHost } from '../dist/service/host.js';
 import { readProcessRecord, writeProcessRecord } from '../dist/service/records.js';
 import { BIN, initializedProject, ptbk, temporaryDirectory, waitFor } from './helpers.mjs';
 
@@ -21,22 +22,13 @@ async function within(promise, limitMs) {
 
 test('several stalled resources share one cleanup deadline and the owner still releases its records and lock', async t => {
     const project = projectAt(await temporaryDirectory(t, 'ptbk-shutdown'));
-    const calls = [];
-    const stuck = name => () => {
-        calls.push(name);
-        return new Promise(() => {});
-    };
-    const host = Object.assign(Object.create(ServiceHost.prototype), {
-        options: { project }, instanceId: 'stopping-instance', agenda: { shutdownReason: 'stop' },
-        computer: { close: stuck('computer') }, tabs: { closeAll: stuck('tabs') }, browsers: { close: stuck('browsers') },
-        controlServer: { close: stuck('control') }, unregister: () => calls.push('unregister'),
-        owned: { stop: () => calls.push('owned') }, releaseLock: () => calls.push('lock'),
-    });
-    await writeProcessRecord(project, { instanceId: host.instanceId });
-    const shutdown = host.shutdown();
-    assert.equal(host.shutdown(), shutdown, 'a second stop joins the first');
-    await within(shutdown, 18_000);
-    assert.deepEqual(calls, ['computer', 'tabs', 'browsers', 'control', 'unregister', 'owned', 'lock']);
+    await writeProcessRecord(project, { instanceId: 'stopping-instance' });
+    // This owner has no referenced handles except its own cleanup deadline.
+    const script = fileURLToPath(new URL('./fixtures/stalled-service.mjs', import.meta.url));
+    const { stdout } = await promisify(execFile)(process.execPath, [script, project.root], { timeout: 18_000 });
+    const result = JSON.parse(stdout);
+    assert.equal(result.joined, true, 'a second stop joins the first');
+    assert.deepEqual(result.calls, ['computer', 'tabs', 'browsers', 'control', 'unregister', 'owned', 'lock']);
     assert.equal(await readProcessRecord(project), undefined);
 });
 
