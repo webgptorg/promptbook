@@ -54,7 +54,7 @@ async function initializeStaged(
         argv: [],
     }, {
         projectRoot: built.root,
-        prepared: { title: draft.title!, segments: await uploads.segments(draft.intent ?? '', draft.fileIds ?? []), apiHarnesses },
+        prepared: { projectId: draft.engineId, title: draft.title!, segments: await uploads.segments(draft.intent ?? '', draft.fileIds ?? []), apiHarnesses },
     });
     if (result.outcome !== 'ready' || !result.firstTask) {
         throw new PtbkError(result.unresolved[0] ?? 'The project did not pass its setup checks.', { kind: 'setup' });

@@ -18,6 +18,8 @@ Run login as the engine user with the same home, selected account context, crede
 
 Service-context checks and restart metadata retain non-secret OS identity (`USER`, `LOGNAME`) and Claude Code's literal `CLAUDE_CONFIG_DIR` and `CLAUDE_SECURESTORAGE_CONFIG_DIR` selectors. On macOS, the OS account participates in the Keychain lookup; dropping it can make a successful native login appear signed out. Preserve an explicitly empty secure-storage selector as distinct from an absent one, and do not normalize or replace it with a default path, because that can select another Keychain entry. Save only identity and locations, never OAuth tokens or API keys.
 
+New projects give the native Claude Code tool a private account profile. Browser setup derives its name from the engine ID and local initialization generates it once for the project. The saved tool keeps the same configuration and Keychain selector from the first sign-in through publication, a rename and service restart. Each project signs in independently. Existing saved profiles and legacy logins continue to use their configured account.
+
 ## Enforce the selected authentication mode
 
 The [saved authentication mode](tools.md#harness-records) applies to every adapter, including Gemini, Qwen Code and OpenCode, at both readiness inspection and actual invocation. A generic "some credentials exist" result is insufficient when those credentials belong to another mode or account.

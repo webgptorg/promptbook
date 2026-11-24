@@ -1,5 +1,7 @@
 # Unreleased
 
+- New projects give native Claude Code its own account profile throughout installation, sign-in and execution. Concurrent projects no longer rotate the same refresh token.
+
 - Gemini setup distinguishes a saved API selection from a Google login. A failed provider check shows its redacted diagnostic and offers sign-in again.
 
 - Changing AI tools during setup cancels the previous check and discards its progress and login prompt. Only the latest selection advances.

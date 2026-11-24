@@ -29,6 +29,17 @@ export function accountHome(plugin: HarnessPlugin, accountProfile: string, env: 
 }
 
 /**
+ * Initial native instance. Claude's rotating credentials belong to a stable project identity across setup and restart.
+ * @private harness setup
+ */
+export function nativeSetupTool(plugin: HarnessPlugin, projectId?: string): HarnessToolRecord {
+    return {
+        type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE',
+        ...(plugin.id === 'claude-code' && projectId ? { accountProfile: 'project-' + projectId } : {}),
+    };
+}
+
+/**
  * Hosted inference and cloud-account credentials a credential-free `NONE` connection never inherits, whichever adapter
  * runs it: hosted model API keys and endpoints, AWS (Bedrock), Google Cloud (Vertex AI) and Azure account credentials.
  * Unrelated credentials (for example a GitHub token used by the work itself) stay available.
@@ -71,7 +82,11 @@ export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolReco
     if (tool.authentication === 'NONE') remove(CLOUD_CREDENTIAL_VARIABLES);
     Object.assign(env, plugin.modeEnvironment?.[tool.authentication] ?? {});
     if (tool.authentication === 'NATIVE') {
-        if (tool.accountProfile && plugin.accountHomeVariable) env[plugin.accountHomeVariable] = accountHome(plugin, tool.accountProfile, base);
+        if (tool.accountProfile && plugin.accountHomeVariable) {
+            const home = accountHome(plugin, tool.accountProfile, base);
+            env[plugin.accountHomeVariable] = home;
+            if (plugin.id === 'claude-code' && tool.accountProfile.startsWith('project-')) env.CLAUDE_SECURESTORAGE_CONFIG_DIR = home;
+        }
     } else if (tool.authentication === 'API_KEY') {
         if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
         const setup = plugin.setupApiKey;

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
@@ -14,7 +15,7 @@ import { maintainProjectConfiguration } from '../../project/configuration.js';
 import { MIGRATED_BROWSER_NAME, planConfigurationMigration } from '../../project/migrations.js';
 import { requireEngineUpdate } from '../compatibility.js';
 import { existingOrigin, githubLogin, publishProject, type PublicationChoice, type PublicationOutcome } from '../../project/publication.js';
-import { instanceEnvironment } from '../../engine/harnesses.js';
+import { instanceEnvironment, nativeSetupTool } from '../../engine/harnesses.js';
 import { pluginDefaultRow } from '../../engine/routing.js';
 import { formatModelRow } from '../../book/model.js';
 import { redactUrl } from '../../engine/sync.js';
@@ -298,10 +299,10 @@ const NEUTRAL_TITLE = 'My project';
  * Harness variants that are installed **and ready** (verified login or configuration, usable now), inspected in
  * parallel without any model call. An executable alone, a signed-out or an unverifiable variant is not ready.
  */
-async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Promise<string[]> {
+async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv, projectId?: string): Promise<string[]> {
     const ready = await Promise.all(
         HARNESS_PLUGINS.map(async (plugin) => {
-            const tool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+            const tool = nativeSetupTool(plugin, projectId);
             const inspection = await plugin.inspect({ projectRoot, env: instanceEnvironment(plugin, tool, undefined, env), tool }).catch(() => undefined);
             return inspection?.installed && inspection.usable && inspection.authenticated === true ? plugin.id : undefined;
         }),
@@ -322,10 +323,11 @@ async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Prom
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string; readonly apiHarnesses?: ReadonlyMap<string, PreparedApiHarness> } } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly projectId?: string; readonly segments: readonly ComposedSegment[]; readonly title: string; readonly apiHarnesses?: ReadonlyMap<string, PreparedApiHarness> } } = {}): Promise<InitResult> {
     const { terminal } = context;
     const { embeddedHarness } = options;
     const apiHarnesses = options.prepared?.apiHarnesses;
+    const projectId = options.prepared?.projectId ?? randomUUID();
     const interactive = terminal.interactive;
     const style = terminal.style;
     const marks = symbols(terminal.unicode);
@@ -666,7 +668,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                     // A fresh selection starts with every installed and usable harness, or OpenAI Codex when there is none
                     // (visible and editable); earlier choices win.
                     if (state.selected === undefined) {
-                        const ready = await readyHarnesses(await nearestExisting(state.root), context.env);
+                        const ready = await readyHarnesses(await nearestExisting(state.root), context.env, state.newProject ? projectId : undefined);
                         state.selected = ready.length ? ready : [DEFAULT_HARNESS];
                     }
                     const failed = [...state.checks].filter(([, check]) => !check.ok);
@@ -1131,7 +1133,7 @@ export async function initializeProject(context: CommandContext, options: { proj
      * Uses the same explicit account choice for readiness, the real check, and the initial Router model.
      */
     const setupTool = (plugin: HarnessPlugin): HarnessToolRecord => apiHarnesses?.get(plugin.id)?.tool ??
-        { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+        nativeSetupTool(plugin, state.newProject ? projectId : undefined);
 
     /** The preparatory call context of the selected instance in the engine's effective environment. */
     const preparatoryCall = async (id: string): Promise<PreparatoryCall> => {
@@ -1662,7 +1664,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         if (!instances.length) {
             const prepared = apiHarnesses?.get(id);
             const name = typedTools.some((tool) => tool.name === id) ? id + (prepared ? '-api' : '-native') : id;
-            operations.push({ kind: 'add', tool: prepared ? { ...prepared.tool, name, apiKeyEnv: prepared.credential.name } : { type: 'HARNESS', variant, name, authentication: 'NATIVE' } });
+            operations.push({ kind: 'add', tool: prepared ? { ...prepared.tool, name, apiKeyEnv: prepared.credential.name } : { ...setupTool(harnessPlugin(id)!), name } });
         } else if (!instances.some((tool) => tool.isEnabled)) operations.push({ kind: 'enable', name: instances[0]!.name });
     }
     // Local models: the runtime and its credential-free connection prepared and verified in the harness step.

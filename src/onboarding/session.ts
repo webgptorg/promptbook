@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { errorMessage, PtbkError } from '../common/errors.js';
 import { createRedactor } from '../common/redact.js';
 import { kebabIdentifier } from '../common/naming.js';
-import { instanceEnvironment } from '../engine/harnesses.js';
+import { instanceEnvironment, nativeSetupTool } from '../engine/harnesses.js';
 import { pluginDefaultRow } from '../engine/routing.js';
 import { harnessLoginMethods, installHarness } from '../harness/maintenance.js';
 import { functionalCheck, proposeProjectName, type PreparatoryCall } from '../harness/preparation.js';
@@ -55,8 +55,8 @@ function label(text: string): string {
 }
 
 /** The selected account running with the same user and environment as the service. */
-function harnessContext(plugin: HarnessPlugin, root: string, env: NodeJS.ProcessEnv, signal: AbortSignal, api?: PreparedApiHarness): HarnessContext {
-    const tool: HarnessToolRecord = api?.tool ?? { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+function harnessContext(plugin: HarnessPlugin, root: string, projectId: string, env: NodeJS.ProcessEnv, signal: AbortSignal, api?: PreparedApiHarness): HarnessContext {
+    const tool: HarnessToolRecord = api?.tool ?? nativeSetupTool(plugin, projectId);
     return { projectRoot: root, env: instanceEnvironment(plugin, tool, api?.credential, env), tool, signal };
 }
 
@@ -166,7 +166,7 @@ export class OnboardingSession {
         login.terminal.close();
         try {
             const { plugin } = login;
-            const context = harnessContext(plugin, this.staging.root, this.env, login.context.signal!, prepareApiHarness(plugin, value));
+            const context = harnessContext(plugin, this.staging.root, this.draft.engineId, this.env, login.context.signal!, prepareApiHarness(plugin, value));
             const { call } = await verifyHarness(plugin, context, await plugin.inspect(context), 30_000);
             await this.exclusive(async () => {
                 if (this.nativeLogin !== login || login.context.signal?.aborted) throw new PtbkError('The sign-in step has changed.', { kind: 'conflict' });
@@ -208,7 +208,7 @@ export class OnboardingSession {
     public async discoverDefaults(): Promise<void> {
         const signal = AbortSignal.timeout(15_000);
         const ready = await Promise.all(HARNESS_PLUGINS.map(async (plugin) => {
-            const result = await plugin.inspect(harnessContext(plugin, this.staging.root, this.env, signal)).catch(() => undefined);
+            const result = await plugin.inspect(harnessContext(plugin, this.staging.root, this.draft.engineId, this.env, signal)).catch(() => undefined);
             return result?.installed && result.usable && result.authenticated === true ? [plugin.id] : [];
         }));
         if (ready.flat().length) this.defaults = ready.flat();
@@ -605,9 +605,9 @@ export class OnboardingSession {
             const plugin = harnessPlugin(id)!;
             await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'running');
             try {
-                const native = harnessContext(plugin, this.staging.root, this.env, signal);
+                const native = harnessContext(plugin, this.staging.root, this.draft.engineId, this.env, signal);
                 const api = await readPreparedApiHarness(this.staging.root, plugin);
-                const context = api ? harnessContext(plugin, this.staging.root, this.env, signal, api) : native;
+                const context = api ? harnessContext(plugin, this.staging.root, this.draft.engineId, this.env, signal, api) : native;
                 let inspection = await plugin.inspect(context);
                 signal.throwIfAborted();
                 if (!inspection.installed && plugin.npmPackage) {

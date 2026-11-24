@@ -11,7 +11,7 @@ import { onboardingDocuments, onboardingPage } from '../dist/app/web/onboarding-
 import { AccessStore } from '../dist/app/web/access.js';
 import { Gateway, SESSION_COOKIE_NAME } from '../dist/app/web/gateway.js';
 import { harnessTerminalPage } from '../dist/app/web/harness-terminal.js';
-import { HarnessPool } from '../dist/engine/harnesses.js';
+import { HarnessPool, instanceEnvironment, nativeSetupTool } from '../dist/engine/harnesses.js';
 import { loadSettings } from '../dist/project/config.js';
 import { harnessLoginMethods } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
@@ -91,6 +91,18 @@ test('an additional harness failure remains visible with the real completed chec
     api.ENGINE_API_ROUTES.getOnboarding.responses[200].schema.parse(review);
     const restored = new OnboardingSession(project, await readOnboarding(project), session.uploads, fixture.env, async () => assert.fail('not confirmed'));
     assert.deepEqual(restored.state(), review);
+});
+
+test('Claude uses a stable private profile for each engine from the first check through restart', async (t) => {
+    const first = await pending(t);
+    const second = await pending(t);
+    const plugin = harnessPlugin('claude-code');
+    const env = { HOME: first.home, CLAUDE_CONFIG_DIR: '/legacy', CLAUDE_SECURESTORAGE_CONFIG_DIR: '/shared' };
+    const profile = project => instanceEnvironment(plugin, nativeSetupTool(plugin, project.draft.engineId), undefined, env);
+    assert.notEqual(profile(first).CLAUDE_CONFIG_DIR, profile(second).CLAUDE_CONFIG_DIR);
+    assert.equal(profile(first).CLAUDE_SECURESTORAGE_CONFIG_DIR, profile(first).CLAUDE_CONFIG_DIR);
+    assert.equal(profile(first).CLAUDE_CONFIG_DIR, profile({ draft: await readOnboarding(first.project) }).CLAUDE_CONFIG_DIR);
+    assert.equal(instanceEnvironment(plugin, nativeSetupTool(plugin), undefined, env).CLAUDE_CONFIG_DIR, '/legacy');
 });
 
 test('changing tools during a sign-in drops stale activity and verifies only the new selection', { skip: process.platform === 'win32' }, async (t) => {
