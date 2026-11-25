@@ -50,6 +50,7 @@ test('Wallet live sessions bind the gateway owner, request and lifetime of the t
         live.route('openBrowserSignIn', member, {}, { origin, browser: null, wallet: target, ...fields });
     assert.equal((await open({}, { ...actor, stepUpFresh: false })).problem.code, 'step-up-required');
     assert.equal((await open({}, { ...actor, role: 'member' })).problem.code, 'forbidden');
+    assert.equal((await open({}, { ...actor, permissions: ['wallet.manage', 'browser.control'] })).problem.code, 'forbidden');
     assert.equal((await open({ origin: 'https://engine.test' })).problem.code, 'browser-origin-refused');
     assert.equal((await open({ wallet: { ...target, step: 1 } })).problem.code, 'wallet-request-moved');
     const session = (await open()).data;
@@ -126,7 +127,11 @@ test(
                     void trusted.promise.then(() => res.end('ready'));
                     return;
                 }
-                if (req.url === '/signed-in') return res.end('<main>Signed in as owner@example.test</main>');
+                if (req.url === '/account') return res.end('<main>Signed in as owner@example.test</main>');
+                if (req.url === '/signed-in')
+                    return res.end(
+                        button + `<button onclick="location.href='/account'">Show account</button><main>Contact teamowner@example.test</main>`,
+                    );
                 res.end(
                     button +
                         "<button onclick=\"const chooser=open('about:blank','chooser','width=400,height=400');fetch('/provider-ready').then(()=>chooser.location='" +
@@ -219,6 +224,12 @@ test(
         await waitFor(() => shown === provider, { timeoutMs: 15_000, message: 'provider popup' });
         click();
         await waitFor(() => shown === relying && origins.length >= 3, { timeoutMs: 12_000, message: 'return from popup' });
+        const unrelated = await live.route('handBackBrowserTab', actor, { sessionId: id });
+        assert.equal(unrelated.kind, 'problem', 'an email ending with the expected account cannot satisfy the request');
+        assert.equal(settled, 0);
+        const previousFrame = frame;
+        click();
+        await waitFor(() => frame > previousFrame + 1, { timeoutMs: 8000, message: 'confirmed account page' });
         const done = await live.route('handBackBrowserTab', actor, { sessionId: id });
         assert.equal(done.data?.status, 'ended', JSON.stringify(done));
         assert.equal(settled, 1);

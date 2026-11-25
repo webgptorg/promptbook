@@ -1033,8 +1033,18 @@ export class TabControlSession {
         const account = this.signedInAs || (submitted && serviceMatches(submitted.origin, origin) ? submitted.username : undefined);
         if (wallet.account && !(account && account.toLowerCase() === wallet.account.toLowerCase())) {
             // The request names an account: the signed-in page must show it when no submitted username proves it.
-            const text = await this.link.send('Runtime.evaluate', { expression: 'document.body ? document.body.innerText.slice(0, 200000) : ""', returnByValue: true }, this.sessionId).catch(() => undefined);
-            const shown = String((text?.result as { value?: unknown } | undefined)?.value ?? '').toLowerCase().includes(wallet.account.toLowerCase());
+            const expected = JSON.stringify(wallet.account.toLowerCase());
+            const expression = `(() => {
+                const expected = ${expected};
+                const text = (document.body?.innerText || '').slice(0, 200000).toLowerCase();
+                const part = char => !!char && /[\\p{L}\\p{N}\\p{M}_.@+%-]/u.test(char);
+                for (let at = text.indexOf(expected); at >= 0; at = text.indexOf(expected, at + expected.length)) {
+                    if (!part(text[at - 1]) && !part(text[at + expected.length])) return true;
+                }
+                return false;
+            })()`;
+            const match = account ? undefined : await this.link.send('Runtime.evaluate', { expression, returnByValue: true }, this.sessionId).catch(() => undefined);
+            const shown = (match?.result as {value?:unknown} | undefined)?.value === true;
             if (!shown) {
                 this.problem = `Wallet could not confirm that ${origin} is signed in as ${wallet.account}; a different account does not satisfy the request.`;
                 return undefined;

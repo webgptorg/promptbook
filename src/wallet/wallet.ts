@@ -1996,10 +1996,10 @@ export class WalletSubEngine {
      * The context of a pending request for **Sign in manually**: its service, account and the browser it needs. It
      * works whatever the Wallet's readiness (a locked Wallet only cannot remember the password afterwards).
      */
-    public manualSignIn(id: string): { readonly request: string; readonly step:number; readonly origin: string; readonly account?: string; readonly browser?: string } {
+    public manualSignIn(id: string): { readonly request: string; readonly origin: string; readonly account?: string; readonly browser?: string } {
         const action = this.actions.find((candidate) => candidate.id === id && candidate.state === 'pending');
         if (!action) throw new PtbkError('No pending Wallet request has that id (it may have been completed or rejected meanwhile).', { kind: 'not-found' });
-        return { request: action.id, step: action.step ?? 0, origin: action.origin, ...(action.account ? { account: action.account } : {}), ...(action.browser ? { browser: action.browser } : {}) };
+        return { request: action.id, origin: action.origin, ...(action.account ? { account: action.account } : {}), ...(action.browser ? { browser: action.browser } : {}) };
     }
 
     /**

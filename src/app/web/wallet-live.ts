@@ -41,7 +41,10 @@ const PROVIDERS = new Set([
 const ok = (data: unknown): ContractResponse => ({ kind: 'ok', data });
 const problem = (code: string): ContractResponse => ({ kind: 'problem', problem: api.createProblem(code) });
 const permitted = (actor: Actor | undefined): actor is Actor =>
-    actor?.role === 'owner' && actor.permissions.includes('browser.control') && actor.permissions.includes('wallet.manage');
+    actor?.role === 'owner' &&
+    actor.permissions.includes('browser.watch') &&
+    actor.permissions.includes('browser.control') &&
+    actor.permissions.includes('wallet.manage');
 /** The four implemented browser routes. The general browser feature stays independently negotiated. */
 export const walletLiveRoutes = new Set(['openBrowserSignIn', 'getBrowserSession', 'endBrowserSession', 'handBackBrowserTab']);
 

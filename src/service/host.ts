@@ -252,17 +252,18 @@ export class ServiceHost {
             let url = text('url');
             if (request) {
                 const context = this.agenda.wallet.manualSignIn(request);
-                if (params.step !== undefined && context.step !== params.step) throw new PtbkError('The Wallet request has moved to another step.', {kind:'conflict'});
+                const requestStep = this.agenda.wallet.view().pending.find(item => item.id === context.request)?.step ?? 0;
+                if (params.step !== undefined && requestStep !== params.step) throw new PtbkError('The Wallet request has moved to another step.', {kind:'conflict'});
                 browserName = context.browser || browserName;
                 url ??= context.origin;
                 wallet = {
                     request: context.request,
-                    step: context.step,
+                    step: requestStep,
                     origin: context.origin,
                     ...(context.account ? { account: context.account } : {}),
                     offer: async (candidate) => this.agenda.wallet.manualOffer(candidate),
                     save: async (candidate, expected) => await this.agenda.wallet.saveFromManualSignIn(candidate, expected),
-                    satisfy: async (access) => await this.agenda.wallet.satisfyByManualSignIn(context.request, access, context.step),
+                    satisfy: async (access) => await this.agenda.wallet.satisfyByManualSignIn(context.request, access, requestStep),
                     settled: () => {
                         const action = this.agenda.wallet.action(context.request);
                         if (!action) return 'The sign-in request no longer exists. You may finish here or leave; the tab stays with you until you return it.';
