@@ -52,7 +52,7 @@ test('project brief: Chatter appends briefs independently of viewers; status rea
     assert.match(first.text, /^Fixture brief number 1: [1-9]\d* recent result\(s\) are done/, 'Chatter wrote it from the engine digest');
     const report = await readFile(join(project, 'report.book'), 'utf8');
     assert.match(report, /^CHAT Report\nCHAT MEMBER @Chatter\n/);
-    assert.ok((await rawSubjects(project)).some((subject) => /^ptbk: `[^`]+` Chat - Report$/.test(subject)), 'Chatter’s scoped report commit');
+    assert.ok((await rawSubjects(project)).some((subject) => /^`ptbk` `report\.update` - `[^`]+` Chat - Report$/.test(subject)), 'Chatter’s scoped report commit');
     assert.ok((await messages(project)).some((message) => /^ptbk: Chat - Report\n/.test(message) && /^Chat-Name: Report$/m.test(message)));
     assert.equal((await git(project, ['status', '--porcelain', '--', 'report.book'])).trim(), '');
 

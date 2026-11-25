@@ -26,7 +26,7 @@ import { inspectBrowserTool } from '../../tools/readiness.js';
 import { describeProfileSource, harnessPluginId, harnessVariantOf, INFERENCE_RUNTIME_VARIANTS, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type InferenceRuntimeVariant, type ToolRecord } from '../../tools/model.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
 import { clearSetupDraft, readSetupDraft, saveSetupDraft } from '../../project/draft.js';
-import { commitPaths, inspectGit } from '../../project/git.js';
+import { prefixedSubject, commitPaths, inspectGit } from '../../project/git.js';
 import { ensureManifest, inspectLocalInstallation, installLocally, verifyGlobalAvailability } from '../../project/install.js';
 import { assessReadiness } from '../../project/readiness.js';
 import { checkForEngineUpdate, updateEngine, type UpdateCheck } from '../../project/self-update.js';
@@ -1680,7 +1680,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                     projectRoot: root,
                     repositoryRoot: repository.repositoryRoot,
                     paths: uniquePaths,
-                    subject: configBefore ? 'Update project setup' : 'Initialize project',
+                    subject: prefixedSubject(configBefore ? 'Update project setup' : 'Initialize project', 'project.setup'),
                     trailers: { 'Task-Name': firstTask ? [firstTask.title] : [] },
                     temporaryDirectory: project.runtime.temporary,
                     env: context.env,
@@ -1889,7 +1889,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
         wrap(value, width - 18).forEach((line, index) => lines.push(`${index === 0 ? style.bold(label.padEnd(12)) : ' '.repeat(12)}${line}`));
     };
     row('Project', `${result.project?.name ?? ''}  ${style.muted(root)}`);
-    row('Setup', `${result.changed.length ? `${result.changed.length} change${result.changed.length === 1 ? '' : 's'}` : 'nothing to change'}${result.commit ? ` committed ${result.commit.slice(0, 8)} (ptbk: setup)` : ''}${result.alreadyReady.length ? style.muted(` · ${result.alreadyReady.length} already ready`) : ''}`);
+    row('Setup', `${result.changed.length ? `${result.changed.length} change${result.changed.length === 1 ? '' : 's'}` : 'nothing to change'}${result.commit ? ` committed ${result.commit.slice(0, 8)}` : ''}${result.alreadyReady.length ? style.muted(` · ${result.alreadyReady.length} already ready`) : ''}`);
     if (first) row('First task', first);
     row('Service', running ? style.success(serviceLine) : style.warning(serviceLine));
     if (app) row('App', app.replace(/^App: /, ''));

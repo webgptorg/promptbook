@@ -8,39 +8,34 @@ import { normalizeAgentName, parseReferenceValue } from '../book/references.js';
 import { staticVisual } from '../ui/badges.js';
 import { rm } from 'node:fs/promises';
 
+/** Previously generated subjects may still be queued or supplied by an older caller. */
+const LEGACY_PREFIX = /^ptbk:\s*/i;
+
 /**
- * Prefix of every commit created by Promptbook (lowercase; older history may still carry `PTBK: `).
+ * Parses the canonical automatic subject while keeping its description verbatim.
  *
  * @private Git persistence
  */
-export const COMMIT_PREFIX = 'ptbk: ';
+export const AUTOMATIC_SUBJECT = /^`ptbk` `([a-z]+(?:\.[a-z]+)*)` - (.+)$/;
 
 /**
- * Matches an already applied runtime prefix in either historical spelling.
- */
-const APPLIED_PREFIX = /^ptbk:\s*/i;
-
-/**
- * Applies the lowercase commit prefix exactly once (an existing `ptbk: `/`PTBK: ` prefix is not repeated).
+ * Formats an automatic subject with a literal Git marker, category and ASCII hyphen.
  *
  * @private Git persistence
  */
-export function prefixedSubject(subject: string): string {
-    const trimmed = subject.trim().replace(/\s+/g, ' ');
-    return `${COMMIT_PREFIX}${trimmed.replace(APPLIED_PREFIX, '')}`;
+export function prefixedSubject(subject: string, category = 'project.update'): string {
+    const trimmed = subject.trim().replace(/\s+/g, ' ').replace(LEGACY_PREFIX, '');
+    return AUTOMATIC_SUBJECT.test(trimmed) ? trimmed : '`ptbk` `' + category + '` - ' + trimmed;
 }
 
 /**
- * Subject summary of actual agent work: the responsible agent's backtick-quoted static visual followed by the
- * meaningful subject (``ptbk: `~<@@/>-` Review export`` once prefixed). Without an agent (system operations) the
- * summary stays undecorated; no agent and no extra date are invented.
+ * Formats an agent operation with its stable visual at the beginning of the description.
  *
  * @private Git persistence
  */
-export function agentSubject(agentName: string | undefined, summary: string): string {
-    const trimmed = summary.trim().replace(APPLIED_PREFIX, '');
+export function agentSubject(agentName: string | undefined, summary: string, category = 'task.result'): string {
     const name = agentName?.trim() ? (parseReferenceValue(agentName)?.name ?? agentName.trim()) : undefined;
-    return name ? `\`${staticVisual(name)}\` ${trimmed}` : trimmed;
+    return prefixedSubject(name ? '`' + staticVisual(name) + '` ' + summary : summary, category);
 }
 
 /**
@@ -239,25 +234,19 @@ export function changedSince(before: DirtySnapshot, after: DirtySnapshot): strin
 export type CommitIdentity = {
     /** `-c` configuration arguments. */
     readonly configArgs: readonly string[];
-    /** Human description of the effective identity. */
-    readonly description: string;
 };
 
 /**
- * Resolves commit identity: `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`, otherwise Git configuration.
+ * Resolves commit identity: `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`, with a Promptbook default.
  *
  * @private Git persistence
  */
-export async function resolveCommitIdentity(cwd: string, env: NodeJS.ProcessEnv = process.env): Promise<CommitIdentity> {
-    const configArgs: string[] = [];
-    const name = env.CODING_AGENT_GIT_NAME;
+export function resolveCommitIdentity(env: NodeJS.ProcessEnv = process.env): CommitIdentity {
+    const name = env.CODING_AGENT_GIT_NAME || 'Promptbook';
     const signingKey = env.CODING_AGENT_GIT_SIGNING_KEY || env.CODING_AGENT_GPG_KEY_ID;
-    if (name) configArgs.push('-c', `user.name=${name}`);
+    const configArgs = ['-c', `user.name=${name}`];
     if (signingKey) configArgs.push('-c', `user.signingkey=${signingKey}`, '-c', 'commit.gpgsign=true');
-    const effectiveName = name || (await git(cwd, ['config', 'user.name'])).stdout.trim();
-    const effectiveEmail = (await git(cwd, ['config', 'user.email'])).stdout.trim();
-    const description = `${effectiveName || '(no user.name)'} <${effectiveEmail || 'no user.email'}>${name ? '' : ' from Git configuration'}${signingKey ? ', signed' : ''}`;
-    return { configArgs, description };
+    return { configArgs };
 }
 
 /**
@@ -269,10 +258,20 @@ export type CommitTrailers = Readonly<Record<string, string | readonly string[] 
 
 /**
  * The full commit message: prefixed subject, optional body and deduplicated trailers.
+ *
+ * @private Git persistence
  */
-function commitMessage(options: { readonly subject: string; readonly body?: string; readonly trailers?: CommitTrailers }): string {
-    const trailers = Object.entries(options.trailers ?? {}).flatMap(([key, value]) => [...new Set(value === undefined ? [] : typeof value === 'string' ? [value] : value)].map((item) => `${key}: ${item.replace(/\s+/g, ' ')}`));
-    return [prefixedSubject(options.subject), options.body?.trim() ? `\n${options.body.trim()}` : '', trailers.length ? `\n${trailers.join('\n')}` : '']
+export function commitMessage(options: { readonly subject: string; readonly body?: string; readonly trailers?: CommitTrailers }): string {
+    const category = options.trailers?.['Task-Name']
+        ? /^Add /.test(options.subject) ? 'task.create' : 'task.update'
+        : 'project.update';
+    const subject = prefixedSubject(options.subject, category);
+    const trailers = Object.entries({
+        'PTBK-Source': 'engine',
+        'PTBK-Type': AUTOMATIC_SUBJECT.exec(subject)?.[1],
+        ...options.trailers,
+    }).flatMap(([key, value]) => [...new Set(value === undefined ? [] : typeof value === 'string' ? [value] : value)].map((item) => `${key}: ${item.replace(/\s+/g, ' ')}`));
+    return [subject, options.body?.trim() ? `\n${options.body.trim()}` : '', trailers.length ? `\n${trailers.join('\n')}` : '']
         .join('\n')
         .replace(/\n{3,}/g, '\n\n')
         .trimEnd();
@@ -286,7 +285,7 @@ function commitMessage(options: { readonly subject: string; readonly body?: stri
 export type CommitOutcome = { readonly committed: true; readonly sha: string; readonly paths: readonly string[] } | { readonly committed: false; readonly reason: 'no-changes' };
 
 /**
- * Commits exactly the given paths with a `ptbk: ` subject, preserving every other staged/unstaged change.
+ * Commits exactly the given paths with a categorized Promptbook subject, preserving every other staged/unstaged change.
  *
  * Hooks and signing are respected. Paths must be inside the project.
  *
@@ -312,7 +311,7 @@ export async function commitPaths(options: {
     const staged = await gitOrThrow(repositoryRoot, ['diff', '--cached', '--name-only', '-z', '--no-renames'], { phase: 'staging' });
     const stagedPaths = new Set(staged.split('\0').filter(Boolean));
     if (!relative.some((path) => stagedPaths.has(path))) return { committed: false, reason: 'no-changes' };
-    const identity = await resolveCommitIdentity(repositoryRoot, options.env);
+    const identity = resolveCommitIdentity(options.env);
     const message = commitMessage(options);
     await ensureDirectory(options.temporaryDirectory);
     const messageFile = join(options.temporaryDirectory, `commit-message-${shortId()}.txt`);
@@ -533,7 +532,7 @@ export async function commitFileContents(options: {
             await gitOrThrow(repositoryRoot, ['update-index', '--add', '--cacheinfo', `${mode ?? '100644'},${blob},${relative}`], { env: indexEnv, phase: 'staging', literal: true });
         }
         if (updates.every((update) => update.previous === update.blob)) return { committed: false, reason: 'no-changes' };
-        const identity = await resolveCommitIdentity(repositoryRoot, options.env);
+        const identity = resolveCommitIdentity(options.env);
         await writeFileAtomic(messageFile, `${commitMessage(options)}\n`);
         const result = await git(repositoryRoot, [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile], { env: indexEnv });
         if (result.exitCode !== 0) {

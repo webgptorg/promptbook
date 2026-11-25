@@ -20,6 +20,7 @@ function terminal(columns = 100, rows = 30) {
 
 test('History: recognized Promptbook formats are presented without rewriting originals; others stay verbatim', () => {
     assert.deepEqual(classifySubject('ptbk: `~<@@/>-` Write the welcome page — 2026-10-29 10:00:00'), { kind: 'agent', summary: 'Write the welcome page — 2026-10-29 10:00:00', visual: '~<@@/>-' });
+    assert.deepEqual(classifySubject('`ptbk` `task.result` - `o(ee)o` Build the feature'), { kind: 'agent', summary: 'Build the feature', visual: 'o(ee)o' });
     assert.deepEqual(classifySubject('ptbk: Add task - Plan'), { kind: 'system', summary: 'Add task - Plan' });
     assert.deepEqual(classifySubject('PTBK: Chat - Old'), { kind: 'legacy', summary: 'Chat - Old' });
     assert.deepEqual(classifySubject('Fix the header (manual)'), { kind: 'foreign', summary: 'Fix the header (manual)' });
