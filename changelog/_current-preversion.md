@@ -3,6 +3,7 @@
 # Unreleased
 
 - Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.
+- Use the user’s Git identity and signing configuration for Promptbook commits. The author name includes the responsible agent, or Promptbook when no agent is known. Remove the legacy coding-agent Git identity and signing-key overrides.
 
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
 
