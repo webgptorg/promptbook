@@ -43,7 +43,7 @@ Watching messages/queued for queued agent messages.
 │  P  Pause   CTRL+C  Exit                                                                     │
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 Tip: `ptbk coder run` used your default Git config because the coding-agent identity environment variables are incomplete.
-For cleaner commit history, set `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and either `CODING_AGENT_GIT_SIGNING_KEY` or `CODING_AGENT_GPG_KEY_ID`.
+For cleaner commit history, set `CODING_AGENT_GIT_NAME` and either `CODING_AGENT_GIT_SIGNING_KEY` or `CODING_AGENT_GPG_KEY_ID`.
 
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook-agents/agent (main)
 $

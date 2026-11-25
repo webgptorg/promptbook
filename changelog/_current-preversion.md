@@ -1,3 +1,5 @@
+-   Coding-agent commits now use the email resolved by Git. `ptbk coder init` only provisions the agent name and signing key.
+
 -   Published the pre-Reborn maintenance release `0.114.0-51` under npm tag `legacy`, preserving Reborn as `latest`.
     Release publication can be started by creating `legacy-release/<version>` and produces a pinned GitHub archive.
 

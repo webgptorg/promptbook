@@ -95,7 +95,6 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
                 Ensures required coding-agent environment variables in .env:
                 - CODING_AGENT_GIT_NAME
-                - CODING_AGENT_GIT_EMAIL
                 - CODING_AGENT_GIT_SIGNING_KEY
 
                 Checks that the coding harnesses are installed and up to date unless \`--no-questions\` is used:

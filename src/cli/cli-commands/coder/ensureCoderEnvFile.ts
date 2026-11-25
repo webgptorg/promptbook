@@ -32,10 +32,6 @@ const REQUIRED_CODER_ENV_VARIABLES: ReadonlyArray<RequiredCoderEnvVariable> = [
         value: 'Promptbook Coding Agent',
     },
     {
-        name: 'CODING_AGENT_GIT_EMAIL',
-        value: 'coding-agent@promptbook.studio',
-    },
-    {
         name: 'CODING_AGENT_GIT_SIGNING_KEY',
         value: '13406525ED912F938FEA85AB4046C687298B2382',
     },

@@ -10,7 +10,6 @@ import {
  */
 const AGENT_GIT_ENV_NAMES = [
     'CODING_AGENT_GIT_NAME',
-    'CODING_AGENT_GIT_EMAIL',
     'CODING_AGENT_GIT_SIGNING_KEY',
     'CODING_AGENT_GPG_KEY_ID',
 ] as const;
@@ -25,7 +24,6 @@ type AgentGitEnvName = (typeof AGENT_GIT_ENV_NAMES)[number];
  */
 const ORIGINAL_AGENT_GIT_ENV: Readonly<Record<AgentGitEnvName, string | undefined>> = {
     CODING_AGENT_GIT_NAME: process.env.CODING_AGENT_GIT_NAME,
-    CODING_AGENT_GIT_EMAIL: process.env.CODING_AGENT_GIT_EMAIL,
     CODING_AGENT_GIT_SIGNING_KEY: process.env.CODING_AGENT_GIT_SIGNING_KEY,
     CODING_AGENT_GPG_KEY_ID: process.env.CODING_AGENT_GPG_KEY_ID,
 };
@@ -36,19 +34,16 @@ describe('agentGitIdentity', () => {
         jest.restoreAllMocks();
     });
 
-    it('uses dedicated coding-agent git identity when all dedicated variables are configured', () => {
+    it('uses the configured agent name and signing key', () => {
         setAgentGitEnv({
             CODING_AGENT_GIT_NAME: 'Promptbook Coding Agent',
-            CODING_AGENT_GIT_EMAIL: 'coding-agent@promptbook.studio',
             CODING_AGENT_GIT_SIGNING_KEY: 'agent-signing-key',
             CODING_AGENT_GPG_KEY_ID: undefined,
         });
 
         expect(buildAgentGitEnv()).toEqual({
             GIT_AUTHOR_NAME: 'Promptbook Coding Agent',
-            GIT_AUTHOR_EMAIL: 'coding-agent@promptbook.studio',
             GIT_COMMITTER_NAME: 'Promptbook Coding Agent',
-            GIT_COMMITTER_EMAIL: 'coding-agent@promptbook.studio',
         });
         expect(buildAgentGitSigningFlag()).toBe('--gpg-sign="agent-signing-key"');
 
@@ -61,7 +56,6 @@ describe('agentGitIdentity', () => {
     it('accepts the legacy signing-key environment variable', () => {
         setAgentGitEnv({
             CODING_AGENT_GIT_NAME: 'Promptbook Coding Agent',
-            CODING_AGENT_GIT_EMAIL: 'coding-agent@promptbook.studio',
             CODING_AGENT_GIT_SIGNING_KEY: undefined,
             CODING_AGENT_GPG_KEY_ID: 'legacy-signing-key',
         });
@@ -72,7 +66,6 @@ describe('agentGitIdentity', () => {
     it('falls back to default git config and prints a tip when the coding-agent identity is incomplete', () => {
         setAgentGitEnv({
             CODING_AGENT_GIT_NAME: 'Promptbook Coding Agent',
-            CODING_AGENT_GIT_EMAIL: 'coding-agent@promptbook.studio',
             CODING_AGENT_GIT_SIGNING_KEY: undefined,
             CODING_AGENT_GPG_KEY_ID: undefined,
         });
@@ -93,7 +86,6 @@ describe('agentGitIdentity', () => {
     it('can defer the tip until process exit so long-running UIs stay clean', () => {
         setAgentGitEnv({
             CODING_AGENT_GIT_NAME: 'Promptbook Coding Agent',
-            CODING_AGENT_GIT_EMAIL: 'coding-agent@promptbook.studio',
             CODING_AGENT_GIT_SIGNING_KEY: undefined,
             CODING_AGENT_GPG_KEY_ID: undefined,
         });
