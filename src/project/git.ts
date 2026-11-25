@@ -244,21 +244,19 @@ export type CommitIdentity = {
 };
 
 /**
- * Resolves commit identity: `CODING_AGENT_GIT_NAME/EMAIL/SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`, otherwise Git configuration.
+ * Resolves commit identity: `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`, otherwise Git configuration.
  *
  * @private Git persistence
  */
 export async function resolveCommitIdentity(cwd: string, env: NodeJS.ProcessEnv = process.env): Promise<CommitIdentity> {
     const configArgs: string[] = [];
     const name = env.CODING_AGENT_GIT_NAME;
-    const email = env.CODING_AGENT_GIT_EMAIL;
     const signingKey = env.CODING_AGENT_GIT_SIGNING_KEY || env.CODING_AGENT_GPG_KEY_ID;
     if (name) configArgs.push('-c', `user.name=${name}`);
-    if (email) configArgs.push('-c', `user.email=${email}`);
     if (signingKey) configArgs.push('-c', `user.signingkey=${signingKey}`, '-c', 'commit.gpgsign=true');
     const effectiveName = name || (await git(cwd, ['config', 'user.name'])).stdout.trim();
-    const effectiveEmail = email || (await git(cwd, ['config', 'user.email'])).stdout.trim();
-    const description = `${effectiveName || '(no user.name)'} <${effectiveEmail || 'no user.email'}>${name || email ? '' : ' from Git configuration'}${signingKey ? ', signed' : ''}`;
+    const effectiveEmail = (await git(cwd, ['config', 'user.email'])).stdout.trim();
+    const description = `${effectiveName || '(no user.name)'} <${effectiveEmail || 'no user.email'}>${name ? '' : ' from Git configuration'}${signingKey ? ', signed' : ''}`;
     return { configArgs, description };
 }
 
