@@ -1,5 +1,7 @@
 # Unreleased
 
+- Keep the configured Git email when signing automatic commits, with Promptbook as the default name and `CODING_AGENT_GIT_EMAIL` available as an explicit override.
+
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
 
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
