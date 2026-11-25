@@ -473,6 +473,9 @@ export function chatToolGuidance(tools: readonly BridgeTool[]): string[] {
         tools.some((tool) => tool.name === 'create_task')
             ? CREATE_TASK_GUIDANCE
             : '- You cannot create tasks here; describe what `ptbk add` should contain instead.',
+        ...(tools.some((tool) => tool.name === 'create_task')
+            ? ['- When an authorized operation needs tools unavailable in this conversation, hand the operation to a task so the engine can attempt recovery. Ask the user only for the specific step that requires their action or decision. Let a task prepare any technical prerequisites before requesting a human-only step.']
+            : []),
         ...(tools.some((tool) => tool.name === 'consult')
             ? ['- For a specialist question, call the `consult` tool with a teammate from your TEAM (or @Expert for Promptbook itself) and tell the user whose advice you relay. Advice is not executed work: specialist work goes through `create_task`.']
             : []),
