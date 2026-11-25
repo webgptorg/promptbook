@@ -192,7 +192,7 @@ export type SignInForm = 'password' | 'username' | 'code' | 'approval' | 'captch
 export type SignInPage = {
     readonly browser: string;
     /** Origin of the page now open, and what of a login it shows. */
-    readonly inspect: () => Promise<{ readonly origin: string; readonly form: SignInForm }>;
+    readonly inspect: () => Promise<{ readonly origin: string; readonly form: SignInForm; readonly providers?: readonly string[] }>;
     /**
      * Enters the credentials of their origin (only while the page is on it; not recorded, never returned), submits and
      * verifies the resulting session.
@@ -268,6 +268,7 @@ export type SignInAttempt = { readonly result: 'signed-in' | 'rejected' | 'chall
 export type WalletLoginResult =
     | { readonly status: 'signed-in'; readonly origin: string; readonly account: string; readonly note?: string }
     | { readonly status: 'no-login-form'; readonly origin: string }
+    | { readonly status: 'provider-available'; readonly origin: string; readonly providers: readonly string[]; readonly account?: string }
     | { readonly status: 'challenge'; readonly origin: string; readonly account: string; readonly note?: string }
     | { readonly status: 'ambiguous'; readonly origin: string; readonly accounts: readonly string[] }
     /** No login of this origin, but of a related service domain: sign in on that login's own page instead. */
@@ -2158,6 +2159,8 @@ export class WalletSubEngine {
             readonly agent?: string;
             /** The related service domains' logins turned out not to apply to this site. */
             readonly ignoreRelated?: boolean;
+            /** Request the direct site login or a human handoff after inspecting other offered methods. */
+            readonly method?: 'password' | 'manual';
             /** The site asks for a one-time code the agent cannot obtain itself: the owner enters it in protected input. */
             readonly requestCode?: boolean;
         },
@@ -2170,9 +2173,15 @@ export class WalletSubEngine {
         } catch {
             return { status: 'failed', reason: 'The current tab shows no website; open the login page of the site first.' };
         }
-        if (inspected.form === 'none') return { status: 'no-login-form', origin };
-        if (inspected.form === 'approval') return { status: 'approval-needed', origin };
         const account = request.account?.trim() || undefined;
+        const providers = inspected.providers ?? [];
+        const alternative: WalletLoginResult | undefined = !request.method && providers.length
+            ? { status: 'provider-available', origin, providers, ...(account ? { account } : {}) }
+            : undefined;
+        if (request.method !== 'manual') {
+            if (inspected.form === 'none') return alternative ?? { status: 'no-login-form', origin };
+            if (inspected.form === 'approval') return { status: 'approval-needed', origin };
+        }
         const purpose = request.reason?.trim() ? ` (${request.reason.trim().slice(0, 200)})` : '';
         return await this.mutex.run(async (): Promise<WalletLoginResult> => {
             const waitFor = async (problem: WalletActionView['problem'], reason: string, asked?: { readonly fields: readonly string[]; readonly login: string }): Promise<WalletLoginResult> => {
@@ -2181,16 +2190,20 @@ export class WalletSubEngine {
                 if (action.state === 'dismissed') return { status: 'rejected', origin, action: action.id, problem };
                 return { status: 'waiting', origin, action: action.id, problem, reason };
             };
+            if (request.method === 'manual') return await waitFor('missing', `Manual sign-in to ${origin}${account ? ` (${account})` : ''} is needed${purpose}. Use the project browser and return control after signing in.`);
             if (inspected.form === 'code') return await this.codeStep(page, origin, request.requestCode === true, purpose, waitFor);
             // A host facility that was not available at startup (for example a credential store still locked) is
             // tried again before anyone is asked.
             if (this.state !== 'ready' && this.metadata) await this.unlockWithHost(this.metadata);
             if (this.state !== 'ready' || !this.key) {
+                if (alternative) return alternative;
                 if (this.state === 'locked' || this.state === 'unavailable') return await waitFor('locked', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}, but the Wallet is locked on this computer.`);
                 return await waitFor('missing', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}; the Wallet has none.`);
             }
             const accountMatches = (record: StoredRecord): boolean => !account || record.account.toLowerCase() === account.toLowerCase() || this.usernameOf(record)?.toLowerCase() === account.toLowerCase();
             const matching = this.records.filter((record) => originMatches(record.origin, origin) && accountMatches(record));
+            // An active provider session can work without any site password, including after a rejected import.
+            if (alternative && !matching.some(record => record.lastOutcome !== 'rejected' && (record.lastOutcome === 'signed-in' || record.verification?.state === 'verified'))) return alternative;
             if (!matching.length) {
                 // Discovery across related service domains: an already stored login is never requested again; the agent
                 // signs in on that login's own page (secrets are only entered on their own origin).
@@ -2238,6 +2251,7 @@ export class WalletSubEngine {
                 case 'rejected':
                     update({ lastUsedAt: now, lastOutcome: 'rejected' });
                     await this.writeRecords();
+                    if (alternative) return alternative;
                     return await waitFor('rejected', `${origin} rejected the saved login "${record.account}"${purpose}; update it in the Wallet.`);
                 case 'no-form':
                     return { status: 'failed', reason: `The login form of ${origin} could not be filled${attempt.note ? `: ${attempt.note}` : ''}.` };

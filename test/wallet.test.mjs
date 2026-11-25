@@ -2136,3 +2136,27 @@ test('Wallet reset after total key loss: strongly confirmed, declinable, empty a
     await third.wallet.initialize();
     assert.ok((await third.wallet.restore(words.join(' '))).applied, 'the new words open the new Wallet');
 });
+
+test('Wallet offers the site’s existing identity provider before asking for or submitting a site password', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk wallet provider');
+    const { wallet } = walletAt(root, join(root, 'home'));
+    const origin = 'https://studio.example';
+    const account = 'owner@example.test';
+    const { page, entered } = fakePage(origin, 'rejected');
+    page.inspect = async () => ({ origin, form: 'password', providers: ['Google', 'Apple'] });
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin, username: account, password: 'unused fixture' });
+    const expected = { status: 'provider-available', origin, providers: ['Google', 'Apple'], account };
+    assert.deepEqual(await wallet.login(page, { account }), expected);
+    assert.equal(wallet.view().pending.length, 0);
+    assert.equal(entered.length, 0);
+    page.inspect = async () => ({ origin, form: 'none', providers: ['Google', 'Apple'] });
+    assert.deepEqual(await wallet.login(page, { account }), expected);
+    const first = await wallet.login(page, { account, method: 'manual' });
+    const again = await wallet.login(page, { account, method: 'manual' });
+    assert.equal(first.status, 'waiting');
+    assert.equal(again.action, first.action);
+    assert.equal(entered.length, 0);
+});

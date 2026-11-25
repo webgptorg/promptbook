@@ -1,5 +1,7 @@
 - Use Git's configured commit email for Promptbook commits.
 
+- Wallet can use an existing identity-provider session before asking for a replacement password, and offers manual sign-in from the selected Wallet item.
+
 # Unreleased
 
 - Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.

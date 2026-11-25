@@ -566,7 +566,7 @@ export class TabControlSession {
                 return false;
             }
         })();
-        const form = scan.password || scan.username || scan.otp || scan.captcha || scan.approval;
+        const form = scan.password || scan.username || scan.otp || scan.captcha || scan.approval || Boolean(scan.providers?.length);
         if (form) {
             if (related) this.sawLoginForm = true;
             // The password form came back well after the submission: the site refused those values, so they are no
@@ -947,11 +947,12 @@ export class TabControlSession {
             this.problem = `the tab is on ${origin}, not on ${wallet.origin}; an unrelated sign-in does not satisfy the request.`;
             return undefined;
         }
-        if (scan.password || scan.username || scan.otp || scan.captcha || scan.approval) {
+        if (scan.password || scan.username || scan.otp || scan.captcha || scan.approval || Boolean(scan.providers?.length)) {
             this.problem = `${origin} still shows a sign-in step.`;
             return undefined;
         }
-        const account = this.signedInAs || this.candidate?.username || this.pendingUsername?.username;
+        const submitted = this.candidate ?? this.pendingUsername;
+        const account = this.signedInAs || (submitted && serviceMatches(submitted.origin, origin) ? submitted.username : undefined);
         if (wallet.account && !(account && account.toLowerCase() === wallet.account.toLowerCase())) {
             // The request names an account: the signed-in page must show it when no submitted username proves it.
             const text = await this.link.send('Runtime.evaluate', { expression: 'document.body ? document.body.innerText.slice(0, 200000) : ""', returnByValue: true }, this.sessionId).catch(() => undefined);

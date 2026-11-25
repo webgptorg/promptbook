@@ -1564,7 +1564,7 @@ export class TaskBrowser {
             browser: this.name,
             inspect: async () => {
                 const scan = await this.scanLogin();
-                return { origin: scan.origin, form: scan.captcha ? 'captcha' : scan.password ? 'password' : scan.username ? 'username' : scan.otp ? 'code' : scan.approval ? 'approval' : 'none' };
+                return { origin: scan.origin, providers: scan.providers, form: scan.captcha ? 'captcha' : scan.password ? 'password' : scan.username ? 'username' : scan.otp ? 'code' : scan.approval ? 'approval' : 'none' };
             },
             takeOver: async () => (this.browser.headful ? (await this.bringToFront(), this.name) : undefined),
             signIn: async (credentials) => await this.walletSignIn(credentials),

@@ -18,6 +18,10 @@ Credential discovery recognizes verified related service domains, subdomains and
 
 Add/update verification and explicit per-item **Test** use the same [credential testing/login logic](wallet-testing.md). Apply the [authentication examples](../concepts/minimal-interruption/authentication-examples.md) and common DRY operations across init, Wallet and ordinary login.
 
+## Sign-in through an identity provider
+
+Discover visible sign-in choices on the original service, including Google, Apple, Microsoft, Facebook, GitHub and enterprise SSO. Reuse a suitable signed-in service session first. When the direct site password is missing, unverified or rejected, offer the provider route before creating a password correction request. Follow the authorized identity in the same project browser and verify access and account on the original service after the provider returns. An unmatched account, new permission outside the assignment, hardware challenge or uncertain identity can require owner input. The agent can explicitly request manual sign-in on the original service, or use a known direct password. Provider buttons are navigation hints, never authority to fill a password on another origin.
+
 ## One continuing login workflow
 
 The unit of completion is **verified access to the requested service/account**, not saving credentials or submitting a form. Input, trusted browser interaction and verification form one continuing workflow. Progress may request further fields, a TOTP factor, mobile approval, consent or [manual control of the relevant browser tab](browser-tab-control.md). New steps extend the current request rather than create repeated disconnected prompts.
