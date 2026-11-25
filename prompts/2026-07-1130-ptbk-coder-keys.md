@@ -16,7 +16,6 @@ ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh -
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 
 CODING_AGENT_GIT_NAME='Promptbook Coding Agent _(from Mac)_'
-CODING_AGENT_GIT_EMAIL=me+agent@pavolhejny.com
 #CODING_AGENT_GPG_KEY_ID=6C717E2EE0E66193
 #CODING_AGENT_GIT_SIGNING_KEY=1BCA682E29A49F237BDFE40C6C717E2EE0E66193
 

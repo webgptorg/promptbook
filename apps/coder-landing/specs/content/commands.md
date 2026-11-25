@@ -67,6 +67,6 @@ These `ptbk coder` options may be referenced in page prose and must be described
 -   `--no-ui`, `--preserve-logs` — plain streaming output / keep temp artifacts.
 -   `--port <port>` — `server` only; kanban UI port, default `4441`.
 
-Environment variables that may be mentioned: `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, `CODING_AGENT_GIT_SIGNING_KEY` (agent git identity, created by `ptbk coder init` in `.env`), and `PTBK_HARNESS` / `PTBK_MODEL` / `PTBK_THINKING_LEVEL` as defaults for the corresponding options.
+Environment variables that may be mentioned: `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_SIGNING_KEY` (agent git identity, created by `ptbk coder init` in `.env`), and `PTBK_HARNESS` / `PTBK_MODEL` / `PTBK_THINKING_LEVEL` as defaults for the corresponding options.
 
 `ptbk init` and `ptbk coder init` share additive project setup and automatic local Git initialization. Other mutating Coder commands ask once in a terminal, and fail without a repository under `--no-questions` or noninteractive input. Recover with either initializer or `git init`. Read-only and `--dry-run` commands only warn. `--no-commit` never bypasses detection. Remote synchronization requires a configured remote.

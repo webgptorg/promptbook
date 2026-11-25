@@ -309,7 +309,6 @@ describe('coder boilerplate templates', () => {
         expect(repeatedSummary.envFileStatus).toBe('unchanged');
         expect(repeatedSummary.initializedEnvVariableNames).toEqual([]);
         expect(envContent.match(/CODING_AGENT_GIT_NAME/gu)).toHaveLength(1);
-        expect(envContent.match(/CODING_AGENT_GIT_EMAIL/gu)).toHaveLength(1);
         expect(envContent.match(/CODING_AGENT_GIT_SIGNING_KEY/gu)).toHaveLength(1);
     });
 

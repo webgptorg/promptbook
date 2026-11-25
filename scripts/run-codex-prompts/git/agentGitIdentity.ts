@@ -7,11 +7,6 @@ import { spaceTrim } from 'spacetrim';
 const AGENT_GIT_NAME_ENV = 'CODING_AGENT_GIT_NAME';
 
 /**
- * Environment variable that configures the email used for agent commits.
- */
-const AGENT_GIT_EMAIL_ENV = 'CODING_AGENT_GIT_EMAIL';
-
-/**
  * Environment variable that configures the signing key used for agent commits.
  */
 const AGENT_GIT_SIGNING_KEY_ENV = 'CODING_AGENT_GIT_SIGNING_KEY';
@@ -36,7 +31,6 @@ let isAgentGitIdentityExitTipRegistered = false;
  */
 export type AgentGitIdentity = {
     readonly name: string;
-    readonly email: string;
     readonly signingKey: string;
 };
 
@@ -48,18 +42,17 @@ export type AgentGitIdentity = {
  */
 export function getAgentGitIdentity(): AgentGitIdentity | undefined {
     const name = readOptionalEnvValue(AGENT_GIT_NAME_ENV);
-    const email = readOptionalEnvValue(AGENT_GIT_EMAIL_ENV);
     const signingKey = readOptionalSigningKeyValue();
 
-    if (!name || !email || !signingKey) {
+    if (!name || !signingKey) {
         return undefined;
     }
 
-    return { name, email, signingKey };
+    return { name, signingKey };
 }
 
 /**
- * Builds the environment overrides that ensure git commits use the dedicated agent identity instead of the primary user.
+ * Builds the environment overrides that ensure git commits use the configured agent name.
  */
 export function buildAgentGitEnv(identity = getAgentGitIdentity()): Record<string, string> | undefined {
     if (!identity) {
@@ -68,9 +61,7 @@ export function buildAgentGitEnv(identity = getAgentGitIdentity()): Record<strin
 
     return {
         GIT_AUTHOR_NAME: identity.name,
-        GIT_AUTHOR_EMAIL: identity.email,
         GIT_COMMITTER_NAME: identity.name,
-        GIT_COMMITTER_EMAIL: identity.email,
     };
 }
 
@@ -96,7 +87,7 @@ export function printAgentGitIdentityTipIfNeeded(): void {
     console.info(
         colors.cyan(spaceTrim(`
             Tip: \`ptbk coder run\` used your default Git config because the coding-agent identity environment variables are incomplete.
-            For cleaner commit history, set \`CODING_AGENT_GIT_NAME\`, \`CODING_AGENT_GIT_EMAIL\`, and either \`CODING_AGENT_GIT_SIGNING_KEY\` or \`CODING_AGENT_GPG_KEY_ID\`.
+            For cleaner commit history, set \`CODING_AGENT_GIT_NAME\` and either \`CODING_AGENT_GIT_SIGNING_KEY\` or \`CODING_AGENT_GPG_KEY_ID\`.
         `)),
     );
 }

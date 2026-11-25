@@ -32,7 +32,6 @@ describe('isolated workspace project and repository context', () => {
         delete process.env.GIT_DIR;
         delete process.env.GIT_WORK_TREE;
         delete process.env.CODING_AGENT_GIT_NAME;
-        delete process.env.CODING_AGENT_GIT_EMAIL;
         delete process.env.CODING_AGENT_GIT_SIGNING_KEY;
         await git(repositoryPath, 'init');
         await git(repositoryPath, 'config', 'user.name', 'Isolation Test');
