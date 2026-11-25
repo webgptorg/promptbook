@@ -22,7 +22,7 @@ const execFileAsync = promisify(execFile);
 /**
  * Fixture Git identity (fixtures never rely on a global Git author or signing identity).
  */
-export const GIT_IDENTITY = { CODING_AGENT_GIT_NAME: 'Fixture Tester', CODING_AGENT_GIT_EMAIL: 'fixture@example.test' };
+export const GIT_IDENTITY = { CODING_AGENT_GIT_NAME: 'Fixture Tester', GIT_AUTHOR_EMAIL: 'fixture@example.test', GIT_COMMITTER_EMAIL: 'fixture@example.test' };
 
 /**
  * Creates a temporary directory whose name contains spaces (canonical path).

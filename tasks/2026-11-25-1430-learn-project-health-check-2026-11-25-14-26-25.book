@@ -1,0 +1,10 @@
+TASK Learn from: Project health check — 2026-11-25 14:26:25 — 2026-11-25 14:30:10
+GOAL Review how Fixer performed {Project health check — 2026-11-25 14:26:25} and improve `agents/.core/fixer.book` where the available evidence justifies it and its learning permission allows. Making no change is a valid result.
+TASK AGENT @Teacher
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
+TASK PARENT {Project health check — 2026-11-25 14:26:25}
+TASK ORIGIN learning from {Project health check — 2026-11-25 14:26:25} by @Fixer
+TASK NOTE Evidence: traces/2026-11-25-1426-project-health-check/harness.log
+TASK NOTE Router: Reviewing local Fixer performance improves this project's supporting maintenance workflow.
+TASK PURPOSE SYSTEM
+TASK DONE 2026-11-25T14:32:33+01:00

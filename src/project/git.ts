@@ -234,24 +234,19 @@ export function changedSince(before: DirtySnapshot, after: DirtySnapshot): strin
 export type CommitIdentity = {
     /** `-c` configuration arguments. */
     readonly configArgs: readonly string[];
-    /** Environment of the Git command, including Git's fallback email. */
-    readonly env: NodeJS.ProcessEnv;
 };
 
 /**
- * Resolves commit identity: `CODING_AGENT_GIT_NAME/EMAIL/SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`, with a Promptbook default.
+ * Resolves commit identity: `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`, with a Promptbook default.
  *
  * @private Git persistence
  */
 export function resolveCommitIdentity(env: NodeJS.ProcessEnv = process.env): CommitIdentity {
     const name = env.CODING_AGENT_GIT_NAME || 'Promptbook';
-    const email = env.CODING_AGENT_GIT_EMAIL;
     const signingKey = env.CODING_AGENT_GIT_SIGNING_KEY || env.CODING_AGENT_GPG_KEY_ID;
     const configArgs = ['-c', `user.name=${name}`];
-    if (email) configArgs.push('-c', `user.email=${email}`);
     if (signingKey) configArgs.push('-c', `user.signingkey=${signingKey}`, '-c', 'commit.gpgsign=true');
-    // Git uses EMAIL only when no email is configured. Keep the configured identity for signing.
-    return { configArgs, env: { ...env, EMAIL: (env.EMAIL ?? process.env.EMAIL) || 'bot@ptbk.io' } };
+    return { configArgs };
 }
 
 /**
@@ -324,7 +319,7 @@ export async function commitPaths(options: {
     try {
         // `--only` commits exactly these paths and keeps other staged content staged (also on an unborn branch).
         const commitArgs = [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile, '--only', '--pathspec-from-file=-', '--pathspec-file-nul'];
-        const result = await git(repositoryRoot, commitArgs, { input: pathspec, env: identity.env, literal: true });
+        const result = await git(repositoryRoot, commitArgs, { input: pathspec, env: options.env, literal: true });
         if (result.exitCode !== 0) {
             throw new PtbkError('The commit failed.', {
                 kind: 'persistence',
@@ -539,7 +534,7 @@ export async function commitFileContents(options: {
         if (updates.every((update) => update.previous === update.blob)) return { committed: false, reason: 'no-changes' };
         const identity = resolveCommitIdentity(options.env);
         await writeFileAtomic(messageFile, `${commitMessage(options)}\n`);
-        const result = await git(repositoryRoot, [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile], { env: { ...identity.env, GIT_INDEX_FILE: indexFile } });
+        const result = await git(repositoryRoot, [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile], { env: indexEnv });
         if (result.exitCode !== 0) {
             throw new PtbkError('The commit failed.', {
                 kind: 'persistence',

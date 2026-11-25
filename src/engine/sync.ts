@@ -316,7 +316,7 @@ export class SyncCoordinator {
                 if (late) return { ok: false as const, conflicted: [], deferred: late };
                 const identity = resolveCommitIdentity(this.host.env);
                 // A visible merge commit even when fast-forward would be possible; history stays append-only.
-                const result = await git(root, [...identity.configArgs, 'merge', '--no-ff', '--no-edit', '-m', commitMessage({ subject: prefixedSubject(`Merge ${upstream} into ${branch}`, 'git.merge') }), upstream], { env: identity.env });
+                const result = await git(root, [...identity.configArgs, 'merge', '--no-ff', '--no-edit', '-m', commitMessage({ subject: prefixedSubject(`Merge ${upstream} into ${branch}`, 'git.merge') }), upstream], { env: this.host.env });
                 if (result.exitCode === 0) return { ok: true as const };
                 const conflicted = (await git(root, ['diff', '--name-only', '--diff-filter=U'])).stdout.split('\n').filter(Boolean);
                 // Never leave the sole working tree half-merged: restore the exact pre-attempt state.

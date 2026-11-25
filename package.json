@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.119.0-134",
+    "version": "0.119.0-135",
     "description": "Autonomous AI agendas on your machine. Readable agents, your choice of models, and Git history under your control.",
     "private": false,
     "sideEffects": false,
@@ -46,7 +46,7 @@
         "build:vscode": "node scripts/build-vscode.mjs",
         "build:conformance": "node scripts/build.mjs && node scripts/build-conformance.mjs",
         "typecheck:vscode": "tsc -p extensions/vscode/tsconfig.json",
-        "test:vscode": "npm run build:vscode && node --test extensions/vscode/test/language.test.mjs extensions/vscode/test/package.test.mjs",
+        "test:vscode": "npm run build:vscode && node --test extensions/vscode/test/language.test.mjs extensions/vscode/test/package.test.mjs extensions/vscode/test/templates.test.mjs",
         "package:vscode": "npm run build:vscode && node scripts/package-vscode.mjs",
         "release:vscode": "node scripts/publish-vscode.mjs"
     },
@@ -56,6 +56,7 @@
     },
     "devDependencies": {
         "@eslint/js": "10.0.1",
+        "@shikijs/langs": "4.6.0",
         "@types/node": "22.20.5",
         "@types/vscode": "1.85.0",
         "@vscode/vsce": "4.1.0",
@@ -66,12 +67,18 @@
         "globals": "16.5.0",
         "jszip": "3.10.2",
         "typescript": "6.0.3",
-        "typescript-eslint": "8.71.1"
+        "typescript-eslint": "8.71.1",
+        "vscode-oniguruma": "2.0.1",
+        "vscode-textmate": "9.3.2"
     },
+    "main": "./book.mjs",
+    "types": "./book.d.mts",
     "bin": {
         "ptbk": "bin/ptbk.js"
     },
     "files": [
+        "book.mjs",
+        "book.d.mts",
         "bin/",
         "dist/",
         "README.md",
