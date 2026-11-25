@@ -1035,7 +1035,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
     };
 
     /** The live control of the focused Wallet request, if any. */
-    const requestControl = (request: string): TabControlView | undefined => (snapshot.tabControls ?? []).find((control) => control.request === request && control.state !== 'returned' && control.state !== 'ended' && control.state !== 'lost');
+    const requestControl = (request: string): TabControlView | undefined => (snapshot.tabControls ?? []).find((control) => (control.request === request || control.record === request) && control.state !== 'returned' && control.state !== 'ended' && control.state !== 'lost');
 
     /** The newest live control of a browser, if any. */
     const browserControl = (browser: string): TabControlView | undefined => [...(snapshot.tabControls ?? [])].reverse().find((control) => control.browser === browser && (control.state === 'controlled' || control.state === 'opening'));
@@ -1126,7 +1126,7 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         const focused = walletItems(wallet)[page.focus];
         const unset = wallet.state === 'empty' || wallet.state === 'setup';
         // Wallet's save offer of a manual sign-in shown with the focused request: Y saves, N does not (this occurrence).
-        const offered = focused?.kind === 'request' ? requestControl(focused.id) : undefined;
+        const offered = focused ? requestControl(focused.id) : undefined;
         if ((key === 'y' || key === 'n') && offered?.offer) {
             void answerOffer(offered, key === 'y' ? 'yes' : 'no');
             return;
@@ -1157,11 +1157,17 @@ export async function runDashboard(terminal: TerminalProfile, source: DashboardS
         // step the owner saw, so a request that moved on in the meantime is not changed.
         else if (key === 'm' && focused?.kind === 'request') void runWallet('wallet-seen', { request: focused.id, step: focused.step });
         // Sign in manually in the request's own browser profile; the tab and the offer are then handled here too.
-        else if (key === 'b' && focused?.kind === 'request') {
+        else if ((key === 'b' || key === 'v') && focused && snapshot.app?.hostname) {
+            notify(`Open https://${snapshot.app.hostname}/wallet#wallet-${focused.id} on your device and choose Sign in manually.`);
+        } else if (key === 'b' && focused) {
+            if (process.env.SSH_CONNECTION || process.env.SSH_TTY) {
+                notify('Pair this engine with the app to sign in from another device.');
+                return;
+            }
             const control = requestControl(focused.id);
             if (control) void tabLifecycle(control, 'reopen');
-            else void takeControl({ request: focused.id });
-        } else if ((key === 'h' || key === 'e' || key === 'v') && focused?.kind === 'request' && requestControl(focused.id)) {
+            else void takeControl({ [focused.kind]: focused.id });
+        } else if ((key === 'h' || key === 'e' || key === 'v') && focused && requestControl(focused.id)) {
             const control = requestControl(focused.id)!;
             if (key === 'e') confirmThen(`End your use of the sign-in tab for ${focused.origin} without handing it back? The tab closes; the request keeps waiting.`, async () => await tabLifecycle(control, 'end'));
             else void tabLifecycle(control, key === 'h' ? 'handback' : 'reopen');

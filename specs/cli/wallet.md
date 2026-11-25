@@ -110,3 +110,15 @@ Sign in manually, choose No and hand back the tab. Continue with the authenticat
 Verify origin/account matching and exclusion of all secret material from Git, ordinary API/status, model tools, browser observations and recordings. Perform authorized technical updates without automatic approval prompts; genuinely necessary human steps use protected Wallet input. Keep Wallet mutations in protected storage without creating Git commits or rerunning successful external effects.
 
 Exercise Mark as seen versus Reject request from concurrent clients and after restart. Only the former keeps the request waiting; only the latter returns denial. Neither proves access or clears another request/Health incident. Enabled desktop notifications contain only the nonsecret action description and safely open the correct protected request when activation is supported.
+
+### Attended sign-in
+
+| Website asks for | What to do in the project browser |
+| --- | --- |
+| User name, password and extra fields such as date of birth | Wallet fills the stored fields. The owner can also enter the site's own form in the remote tab. |
+| Google, Apple or another provider, including enterprise SSO | Follow the site's button and use the matching signed-in account in the configured profile. Keep the callback in the original service tab. |
+| A one-time code or approval on a second device | Keep the pending challenge in its original tab. The owner can enter the code there or approve on the other device. |
+| A sign-in link sent by email | Complete the link in the project browser when the service binds it to the initiating session. Verify the original site's signed-in state. |
+| A passkey, security key or native dialog | Use the full-computer viewer when available. The authenticator must be usable by the device that receives the challenge. |
+
+The paired console shows a link to the selected Wallet item for use from another device. Headless browsers support browser-tab handoff. The independently configured Computer Control tool determines whether a whole-desktop fallback is available.
