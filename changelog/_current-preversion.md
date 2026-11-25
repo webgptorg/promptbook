@@ -2,7 +2,8 @@
 
 # Unreleased
 
-- Publish ptbk to npm through trusted publishing (GitHub Actions OIDC) instead of the `NPM_TOKEN` secret. The token had expired, so 0.119.0-134 and -135 passed every check and then failed with `404 Not Found - PUT https://registry.npmjs.org/ptbk`. Publication now fails early on an npm older than 11.5.1, and a refused upload explains how to check the trusted publisher.
+- Publish ptbk to npm through trusted publishing (GitHub Actions OIDC) instead of the `NPM_TOKEN` secret. The token had expired, so 0.119.0-134 and -135 passed every check and then failed with `404 Not Found - PUT https://registry.npmjs.org/ptbk`. Publication now fails early on an npm older than 11.5.1, and a refused upload explains how to check the trusted publisher. The trusted publisher must allow `npm publish`, not only staged publishing: otherwise npm answers `403 OIDC permission denied for this action`.
+- Fix the package check (`npm run test:package`), which failed on every platform and blocked 0.119.0-136: it still expected the Expert bootstrap commit in the former `ptbk: ` subject format instead of the categorized `` `ptbk` `task.result` - `` format.
 
 - Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.
 - Use the user’s Git identity and signing configuration for Promptbook commits. The author name includes the responsible agent, or Promptbook when no agent is known. Remove the legacy coding-agent Git identity and signing-key overrides.

@@ -180,8 +180,8 @@ try {
         assert.equal(init.code, 0, `${init.stdout}\n${init.stderr}`);
         assert.match(init.stdout, /^Project ready · agenda running/m);
         assert.doesNotMatch(init.stdout, /\x1b|[╭╮╰╯]/);
-        // Agent-work subject: lowercase `ptbk: `, the executing agent's backtick-quoted visual and the task name.
-        const bootstrapSubject = /^([0-9a-f]+) ptbk: `[^`\n]+` Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m;
+        // Agent-work subject: `ptbk` and its category in backticks, ` - `, the executing agent's backtick-quoted visual and the task name.
+        const bootstrapSubject = /^([0-9a-f]+) `ptbk` `[a-z]+(?:\.[a-z]+)+` - `[^`\n]+` Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m;
         const deadline = Date.now() + 90_000;
         let bootstrap;
         while (!(bootstrap = bootstrapSubject.exec((await git(fixture, ['log', '--format=%H %s'])).stdout))) {
