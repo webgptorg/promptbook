@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { createServer as httpsServer } from 'node:https';
+import { createServer as httpsServer, request as httpsRequest } from 'node:https';
+import { createServer as tcpServer } from 'node:net';
 import { once } from 'node:events';
 import { join } from 'node:path';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { WalletLive } from '../dist/app/web/wallet-live.js';
-import { createAcmeChallengeCertificate } from '../dist/app/web/x509.js';
+import { EngineApi } from '../dist/app/api/engine-api.js';
+import { EngineOrigin } from '../dist/app/web/origin.js';
+import { createAcmeChallengeCertificate, createLocalCa, issueLocalLeaf } from '../dist/app/web/x509.js';
 import { api } from '../dist/vendor/app-platform.js';
 import { BrowserFleet } from '../dist/browser/fleet.js';
 import { findBrowserExecutable } from '../dist/browser/browser.js';
@@ -223,3 +226,146 @@ test(
         assert.deepEqual(origins.slice(0, 3), [relying, provider, relying]);
     },
 );
+
+test('The TLS engine origin admits only the exact Wallet channel, same browser origin and opening owner session', async (t) => {
+    const root = await temporaryDirectory(t, 'wallet-gateway'),
+        hostname = 'wallet.engine.test';
+    const { ca } = await createLocalCa('Wallet gateway fixture');
+    const leaf = await issueLocalLeaf(ca, hostname);
+    const keys = join(root, 'tls');
+    await mkdir(keys, { mode: 0o700 });
+    await writeFile(join(keys, hostname + '.pem'), leaf.certificatePem, { mode: 0o600 });
+    await writeFile(join(keys, hostname + '.key.pem'), leaf.keyPem, { mode: 0o600 });
+    const token = 'a'.repeat(22),
+        other = 'b'.repeat(22),
+        service = 'https://service.test';
+    const tab = {
+        id: 'tab-test',
+        grant: 'private',
+        view: () => ({ browser: 'project-browser' }),
+        authorized: (g) => g === 'private',
+        remoteAttached: () => {},
+        viewerDetached: () => {},
+        endUse: async () => {},
+    };
+    const live = new WalletLive(
+        async () => ({ kind: 'open', binding: { origin: service, tab, target } }),
+        () => false,
+    );
+    const access = {
+        authenticate: (value) => (value === token ? actor : value === other ? { ...actor, sessionId: 'second' } : undefined),
+        recordAudit: async () => {},
+    };
+    const engineApi = new EngineApi({
+        agenda: {},
+        projectRoot: root,
+        stateDirectory: root,
+        hostname: () => hostname,
+        engineId: () => 'project',
+        dashboardUrl: () => undefined,
+        security: () => undefined,
+        ui: () => ({}),
+        walletLive: live,
+        hasBrowser: () => true,
+    });
+    const gateway = new EngineOrigin({
+        directory: root,
+        hostname,
+        certificateSource: 'acme',
+        env: {},
+        tunnelReady: () => false,
+        onChange: () => {},
+        engineId: 'project',
+        fingerprint: 'fixture',
+        api: (request, member) => engineApi.handle(request, member, access),
+        documents: async () => new Response(),
+        access,
+        walletLive: live,
+    });
+    await gateway.start();
+    const relay = tcpServer((socket) => {
+        socket.peer = { address: '127.0.0.1', port: socket.remotePort };
+        gateway.handleStream(socket);
+    });
+    relay.listen(0, '127.0.0.1');
+    await once(relay, 'listening');
+    t.after(async () => {
+        await live.close();
+        gateway.stop();
+        relay.close();
+    });
+    const entry = await new Promise((resolve, reject) => {
+        const request = httpsRequest(
+            {
+                hostname: '127.0.0.1',
+                port: relay.address().port,
+                servername: hostname,
+                ca: ca.certificatePem,
+                agent: false,
+                path: '/api/v1/browser-sessions',
+                method: 'POST',
+                headers: {
+                    Host: hostname,
+                    Origin: 'https://' + hostname,
+                    'Sec-Fetch-Site': 'same-origin',
+                    Cookie: '__Host-ptbk_session=' + token,
+                    'Content-Type': 'application/json',
+                },
+            },
+            (response) => {
+                let body = '';
+                response.setEncoding('utf8');
+                response.on('data', (chunk) => {
+                    body += chunk;
+                });
+                response.on('end', () => {
+                    if (response.statusCode !== 201) return reject(new Error('Unexpected status ' + response.statusCode + ' ' + body));
+                    resolve(JSON.parse(body));
+                });
+            },
+        );
+        request.once('error', reject);
+        request.end(JSON.stringify({ origin: service, browser: null, wallet: target }));
+    });
+    const path = '/api/v1/live-sessions/' + entry.id + '/channel',
+        site = 'https://' + hostname;
+    async function upgrade(origin, credential, route = path) {
+        return new Promise((resolve, reject) => {
+            const req = httpsRequest({
+                hostname: '127.0.0.1',
+                port: relay.address().port,
+                servername: hostname,
+                ca: ca.certificatePem,
+                path: route,
+                method: 'GET',
+                agent: false,
+                headers: {
+                    Host: hostname,
+                    Origin: origin,
+                    Upgrade: 'websocket',
+                    Connection: 'Upgrade',
+                    'Sec-WebSocket-Protocol': 'ptbk-live',
+                    'Sec-WebSocket-Version': '13',
+                    'Sec-WebSocket-Key': 'MDEyMzQ1Njc4OUFCQ0RFRg==',
+                    ...(credential ? { Cookie: '__Host-ptbk_session=' + credential } : {}),
+                },
+            });
+            req.once('error', reject);
+            req.once('response', (res) => {
+                res.resume();
+                resolve(res.statusCode);
+            });
+            req.once('upgrade', (res, socket) => {
+                assert.equal(res.headers['sec-websocket-protocol'], 'ptbk-live');
+                socket.destroy();
+                resolve(res.statusCode);
+            });
+            req.end();
+        });
+    }
+    assert.equal(await upgrade(site, null), 401);
+    assert.equal(await upgrade('https://other.test', token), 403);
+    assert.equal(await upgrade(site, other), 404);
+    assert.equal(await upgrade(site, token, path + '?token=ignored'), 404);
+    assert.equal(await upgrade(site, token), 101);
+});
