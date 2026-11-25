@@ -1561,6 +1561,7 @@ export class TaskBrowser {
      */
     public walletPage(): SignInPage {
         return {
+            target: this.targetId,
             browser: this.name,
             inspect: async () => {
                 const scan = await this.scanLogin();

@@ -10,6 +10,7 @@ import { setting, type BrowserOverrides } from '../project/config.js';
 import type { Project } from '../project/workspace.js';
 import { Agenda, type AgendaMode, type AgendaSummary } from '../engine/agenda.js';
 import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
+import { WalletLive } from '../app/web/wallet-live.js';
 import { startDesktopApi } from '../app/web/desktop-api.js';
 import { DESKTOP_OWNER } from '../app/web/access.js';
 import { EngineApi } from '../app/api/engine-api.js';
@@ -104,6 +105,7 @@ export class ServiceHost {
     private readonly computerAgents = new Map<string, Set<string>>();
     /** Tabs the user controls live (reserved for every engine of their profile until handed back). */
     private readonly tabs: TabControls;
+    private walletLive?: WalletLive;
     /** Every execution process this engine starts, so a force stop (also from outside) ends all of them. */
     private readonly owned: OwnedProcessRecorder;
     /** The engine's keep-awake controller and its OS power requests (not in maintenance runs). */
@@ -139,7 +141,15 @@ export class ServiceHost {
                     context.onUserChat,
                     () => this.describeBrowsers(),
                     // A login request for the task's page only: the agent never reads a Wallet record.
-                    { login: async (page, request) => await this.agenda.wallet.login(page, { ...request, task: task.title, agent: context.agent }), accounts: (site) => this.agenda.wallet.accounts(site), createLogin: async (page, request) => await this.agenda.wallet.createLogin(page, request), correctLogin: async (input) => await this.agenda.wallet.correctLogin(input), onWait: context.onWalletWait },
+                    { login: async (page, request) => {
+                        const response = await this.agenda.wallet.login(page, { ...request, task: task.title, agent: context.agent });
+                        if (response.status === 'waiting' && page.target) {
+                            const step = this.agenda.wallet.view().pending.find(item => item.id === response.action)?.step ?? 0;
+                            // Reserve before the task releases its tabs, so a code or redirect challenge survives the wait.
+                            await this.tabControl('tab-control-open',{request:response.action, step, browser:page.browser, target:page.target, reserveOnly:true}).catch(() => undefined);
+                        }
+                        return response;
+                    }, accounts: (site) => this.agenda.wallet.accounts(site), createLogin: async (page, request) => await this.agenda.wallet.createLogin(page, request), correctLogin: async (input) => await this.agenda.wallet.correctLogin(input), onWait: context.onWalletWait },
                 ), ...computerTools(this.computer, { agent: context.agent, trace: context.trace })];
             },
             finalizeEvidence: async (task) => await this.browsers.scope(task.key).finishEvidence(),
@@ -236,20 +246,23 @@ export class ServiceHost {
         }
         if (method === 'tab-control-open') {
             const request = text('request');
+            const record = text('record');
             let wallet: TabControlWallet | undefined;
             let browserName = text('browser');
             let url = text('url');
             if (request) {
                 const context = this.agenda.wallet.manualSignIn(request);
-                browserName ??= context.browser && this.browsers.instance(context.browser) ? context.browser : undefined;
+                if (params.step !== undefined && context.step !== params.step) throw new PtbkError('The Wallet request has moved to another step.', {kind:'conflict'});
+                browserName = context.browser || browserName;
                 url ??= context.origin;
                 wallet = {
                     request: context.request,
+                    step: context.step,
                     origin: context.origin,
                     ...(context.account ? { account: context.account } : {}),
                     offer: async (candidate) => this.agenda.wallet.manualOffer(candidate),
                     save: async (candidate, expected) => await this.agenda.wallet.saveFromManualSignIn(candidate, expected),
-                    satisfy: async (access) => await this.agenda.wallet.satisfyByManualSignIn(context.request, access),
+                    satisfy: async (access) => await this.agenda.wallet.satisfyByManualSignIn(context.request, access, context.step),
                     settled: () => {
                         const action = this.agenda.wallet.action(context.request);
                         if (!action) return 'The sign-in request no longer exists. You may finish here or leave; the tab stays with you until you return it.';
@@ -258,8 +271,17 @@ export class ServiceHost {
                     },
                 };
             }
+            if (record && !request) {
+                const saved = this.agenda.wallet.view().records.find(item => item.id === record);
+                if (!saved) throw new PtbkError('This saved login is no longer available.', {kind:'not-found'});
+                url = saved.origin;
+                wallet = {request: '', record, origin:saved.origin, account:this.agenda.wallet.recordUsername(record),
+                    offer: async candidate => this.agenda.wallet.manualOffer(candidate),
+                    save: async (candidate, expected) => this.agenda.wallet.saveFromManualSignIn(candidate, expected),
+                    satisfy: async () => ({resolved:true, reason:'The signed-in session stays in this browser profile.'})};
+            }
             const session = await this.tabs.open({ browser: this.browserNamed(browserName), ...(text('target') ? { target: text('target') } : {}), ...(url && !text('target') ? { url } : {}), purpose: wallet ? 'wallet' : 'browse', ...(wallet ? { wallet } : {}) });
-            return { control: session.view(), grant: session.claim() };
+            return params.reserveOnly ? {control:session.view()} : { control: session.view(), grant: session.claim() };
         }
         const session = this.tabs.get(String(params.id ?? ''));
         const grant = String(params.grant ?? '');
@@ -348,7 +370,21 @@ export class ServiceHost {
         const directory = appDirectory(this.options.project.runtime.app, env);
         const loader = this.uiLoader!;
         const enginePageSha256 = createHash('sha256').update(engineHomePage.toString()).digest('hex');
+        const walletLive = this.walletLive = new WalletLive(async (origin, target) => {
+            const wallet = this.agenda.wallet.view();
+            const item = target.kind === 'record' ? wallet.records.find(record => record.id === target.id) : wallet.pending.find(request => request.id === target.id);
+            if (!item) return {kind:'problem',code:'not-found'};
+            if (origin !== item.origin) return {kind:'problem',code:'browser-origin-refused'};
+            if (target.kind === 'request' && (('step' in item ? item.step : 0) ?? 0) !== target.step) return {kind:'problem',code:'wallet-request-moved'};
+            const {control} = await this.tabControl('tab-control-open', {[target.kind]:target.id, ...(target.kind === 'request' ? {step:target.step} : {})}) as {control:{id:string}};
+            return {kind:'open',binding:{origin,target,tab:this.tabs.get(control.id)}};
+        }, origin => {
+            const url = new URL(origin);
+            return url.protocol !== 'https:' || url.hostname === view()?.hostname || url.hostname === 'passwords.google.com' || origin === (view()?.dashboardUrl ? new URL(view()!.dashboardUrl!).origin : undefined);
+        }, new Set((env.PTBK_WALLET_IDP_ORIGINS ?? '').split(',').map(value => value.trim()).filter(value => URL.canParse(value) && new URL(value).origin === value && value.startsWith('https://'))));
         const api = new EngineApi({
+            walletLive, hasBrowser:()=>Boolean(this.browsers.enabledNames().length),
+            hasDesktop:()=>this.agenda.effectiveSettings.tools.some(tool=>tool.type==='COMPUTER_CONTROL' && tool.isEnabled) && (process.platform === 'win32' || (process.platform === 'darwin' && process.arch === 'arm64')),
             agenda: this.agenda,
             projectRoot: this.options.project.root,
             stateDirectory: directory,
@@ -369,6 +405,7 @@ export class ServiceHost {
             figures: () => this.appFigures(),
             log: (text, level) => this.agenda.log(text, level),
             web: {
+                walletLive,
                 api: appApi,
                 documents: async (request, actor) => {
                     const desktop = await computerDocument(request);
@@ -560,6 +597,7 @@ export class ServiceHost {
         if (keepAwake) await bounded(async () => (this.agenda.shutdownReason === 'restart' && !forced ? await keepAwake.handOff() : await keepAwake.stop()));
         await bounded(() => this.computer.close());
         // A tab the user controls is closed rather than left to another engine's automation.
+        await bounded(() => this.walletLive?.close());
         await bounded(() => this.tabs.closeAll('The engine stopped, so the tab you controlled was closed (nothing was handed back to the agent).'));
         // Recording evidence is finalized even on force stop (bounded); this engine leaves its shared browsers (a
         // browser other engines still use stays, the last disconnection closes it).

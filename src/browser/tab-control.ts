@@ -34,6 +34,8 @@ export type TabControlView = {
     readonly purpose: 'wallet' | 'browse';
     /** The Wallet request this sign-in serves. */
     readonly request?: string;
+    readonly record?: string;
+    readonly requestStep?: number;
     /** The task of this engine that worked in the tab before (it waits until the tab is handed back). */
     readonly task?: string;
     readonly state: TabControlState;
@@ -95,6 +97,8 @@ export type SignInCandidate = { readonly origin: string; readonly username: stri
  */
 export type TabControlWallet = {
     readonly request: string;
+    readonly step?: number;
+    readonly record?: string;
     /** The service the request needs. */
     readonly origin: string;
     readonly account?: string;
@@ -348,6 +352,70 @@ export class TabControlSession {
         return !this.over && sameSecret(grant, this.grantValue);
     }
 
+    /** Direct popup targets opened by this tab. A viewer may never adopt an unrelated tab of the shared profile. */
+    public async signInPopups(): Promise<readonly { targetId: string; url: string }[]> {
+        const result = await this.link.send('Target.getTargets');
+        const targets = result.targetInfos as {type: string; targetId: string; openerId?: string; url: string}[];
+        return targets.filter(target => target.type === 'page' && target.openerId === this.targetId);
+    }
+
+    /** Reserve one direct child using the same profile-wide exclusion as the original sign-in tab. */
+    public async openSignInPopup(target: string): Promise<TabControlSession> {
+        if (!(await this.signInPopups()).some(popup => popup.targetId === target)) throw new PtbkError('The sign-in popup closed.', {kind: 'not-found'});
+        return TabControlSession.open({browser:this.browser, target, purpose:'browse', host:this.host});
+    }
+
+    /** Return the current main document identity directly from Chrome, including across cross-origin redirects. */
+    private async remoteDocument(): Promise<{origin:string; loader:string} | undefined> {
+        if (!this.sessionId || this.over) return undefined;
+        const reply = await this.link.send('Page.getFrameTree', {}, this.sessionId);
+        const frame = (reply.frameTree as { frame?: {url?: string; loaderId?: string} })?.frame;
+        if (!frame?.url || !frame.loaderId || !URL.canParse(frame.url)) return undefined;
+        const url = new URL(frame.url);
+        return url.protocol === 'https:' ? {origin:url.origin, loader:frame.loaderId} : undefined;
+    }
+
+    /** Attach the remote viewer without enabling an unrestricted local screencast. */
+    public remoteAttached(grant:string): void {
+        this.require(grant);
+        this.viewer = 'connected';
+        this.viewerSeenAt = Date.now();
+        this.changed();
+    }
+
+    /** Capture only a permitted document that stays in place for the entire capture. Never use a buffered frame from an earlier origin. */
+    public async remoteFrame(grant: string, allowed: (origin: string) => boolean, capture: boolean): Promise<{ origin?: string; loader?: string; width?: number; height?: number; jpeg?: Buffer }> {
+        this.require(grant);
+        this.viewerSeenAt = Date.now();
+        const doc = await this.remoteDocument();
+        if (!doc || !allowed(doc.origin)) return {};
+        if (!capture) return doc;
+        const metrics = await this.link.send('Page.getLayoutMetrics', {}, this.sessionId);
+        const viewport = metrics.cssVisualViewport as {clientWidth: number; clientHeight: number; pageX: number; pageY: number};
+        const width = Math.max(1, Math.round(viewport.clientWidth)), height = Math.max(1, Math.round(viewport.clientHeight));
+        let image: Buffer | undefined;
+        const scale = Math.min(1, 1200 / width, 900 / height);
+        for (const factor of [1, 0.6, 0.35]) {
+            const snap = await this.link.send('Page.captureScreenshot', {format:'jpeg', quality:58, captureBeyondViewport:false, clip:{x:viewport.pageX,y:viewport.pageY,width,height,scale:scale*factor}}, this.sessionId);
+            const jpeg = Buffer.from(String(snap.data), 'base64');
+            if (jpeg.length <= 65536 - 13) { image = jpeg; break; }
+        }
+        const after = await this.remoteDocument();
+        if (!after || after.origin !== doc.origin || after.loader !== doc.loader) return {};
+        return {...doc, width, height, jpeg:image};
+    }
+
+    /** Apply input to exactly the document last shown to the remote owner. Coordinates already use viewport CSS pixels. */
+    public async remoteInput(grant: string, shown: {origin:string; loader:string}, method: string, params: Record<string, unknown>, current: () => boolean): Promise<boolean> {
+        this.require(grant);
+        if (this.stateValue !== 'controlled' || !this.sessionId) return false;
+        const doc = await this.remoteDocument();
+        if (!doc || doc.origin !== shown.origin || doc.loader !== shown.loader || !this.authorized(grant) || !current()) return false;
+        this.viewerSeenAt = Date.now();
+        await this.link.send(method, params, this.sessionId);
+        return true;
+    }
+
     /** The shared view. */
     public view(): TabControlView {
         return {
@@ -355,7 +423,7 @@ export class TabControlSession {
             browser: this.browser.name,
             targetId: this.targetId,
             purpose: this.purpose,
-            ...(this.wallet ? { request: this.wallet.request } : {}),
+            ...(this.wallet?.record ? {record:this.wallet.record} : this.wallet ? { request: this.wallet.request, requestStep: this.wallet.step } : {}),
             ...(this.task ? { task: this.task } : {}),
             state: this.stateValue,
             viewer: this.viewer,
@@ -530,6 +598,10 @@ export class TabControlSession {
     /** Periodic duties: the viewer lease and Wallet's sign-in detection. */
     private async tick(): Promise<void> {
         if (this.over) return;
+        if (this.wallet && !this.claimed && (Date.now() - Date.parse(this.startedAt) > 10 * 60_000 || this.wallet.settled?.())) {
+            await this.endUse();
+            return;
+        }
         if (this.viewer === 'connected' && Date.now() - this.viewerSeenAt > VIEWER_LEASE_MS) this.viewerDetached();
         if (this.wallet && !this.scanning && this.stateValue === 'controlled' && Date.now() - this.lastScan >= SIGN_IN_POLL_MS) {
             this.scanning = true;
@@ -682,6 +754,7 @@ export class TabControlSession {
     /** Fresh access for reopening control after the viewer was closed (the previous grant stops working). */
     public reopen(): string {
         if (this.over) throw new PtbkError('This tab control has ended.', { kind: 'conflict' });
+        this.claimed = true;
         this.grantValue = randomBytes(18).toString('base64url');
         this.viewer = 'waiting';
         void this.stopScreencast();
@@ -895,9 +968,13 @@ export class TabControlSession {
      * released by its own generation. A Wallet request is satisfied only by revalidated access to its original service
      * and account; tasks that gave the tab up are told to revalidate it.
      */
-    public async handBack(): Promise<TabControlView> {
+    public async handBack(requireVerifiedAccess = false, closeOnReturn = false): Promise<TabControlView> {
         if (this.over) return this.view();
         if (this.stateValue !== 'controlled') throw new PtbkError('The tab is not under your control yet.', { kind: 'conflict' });
+        if (requireVerifiedAccess && this.wallet && !(await this.revalidate())) {
+            this.changed();
+            return this.view();
+        }
         const viewerWas = this.viewer;
         this.viewer = 'detached';
         await this.queue;
@@ -916,7 +993,8 @@ export class TabControlSession {
         this.pendingUsername = undefined;
         this.offer = undefined;
         await this.release('', 'returned');
-        this.browser.handedBack(this.targetId, this.url);
+        if (closeOnReturn) await this.link.send('Target.closeTarget', {targetId:this.targetId}).catch(() => undefined);
+        else this.browser.handedBack(this.targetId, this.url);
         let outcome = 'You handed the tab back; the agent may use it again.';
         if (this.wallet && access) {
             const satisfied = await this.wallet.satisfy({ origin: access.origin, ...(access.account ? { account: access.account } : {}), evidence }).catch((error: unknown) => ({ resolved: false, reason: errorMessage(error) }));
@@ -947,7 +1025,7 @@ export class TabControlSession {
             this.problem = `the tab is on ${origin}, not on ${wallet.origin}; an unrelated sign-in does not satisfy the request.`;
             return undefined;
         }
-        if (scan.password || scan.username || scan.otp || scan.captcha || scan.approval || Boolean(scan.providers?.length)) {
+        if (scan.blank || scan.password || scan.username || scan.otp || scan.captcha || scan.approval || Boolean(scan.providers?.length)) {
             this.problem = `${origin} still shows a sign-in step.`;
             return undefined;
         }
@@ -962,6 +1040,10 @@ export class TabControlSession {
                 return undefined;
             }
             return { origin, account: wallet.account };
+        }
+        if (!wallet.account && !account && !this.signIn?.detected) {
+            this.problem = 'Wallet could not confirm a signed-in account on this page.';
+            return undefined;
         }
         return { origin, ...(account ? { account } : {}) };
     }
@@ -1035,6 +1117,8 @@ export class TabControlSession {
 export class TabControls {
     private readonly sessions = new Map<string, TabControlSession>();
 
+    private readonly openingWallets = new Map<string,Promise<TabControlSession>>();
+
     public constructor(private readonly host: { readonly onChange: () => void; readonly log: (text: string) => void }) {}
 
     /**
@@ -1042,10 +1126,24 @@ export class TabControls {
      * a Wallet request has at most one live manual sign-in.
      */
     public async open(input: { readonly browser: ProjectBrowser; readonly target?: string; readonly url?: string; readonly purpose: 'wallet' | 'browse'; readonly wallet?: TabControlWallet }): Promise<TabControlSession> {
-        if (input.wallet) {
-            const existing = [...this.sessions.values()].find((session) => !session.over && session.view().request === input.wallet!.request);
-            if (existing) return existing;
-        }
+        const wallet = input.wallet;
+        if (!wallet) return this.openTab(input);
+        const key = wallet.record ? 'record:' + wallet.record : `request:${wallet.request}:${wallet.step ?? 0}`;
+        const existing = [...this.sessions.values()].find(session => {
+            if (session.over) return false;
+            const view = session.view();
+            return wallet.record ? view.record === wallet.record : view.request === wallet.request && (view.requestStep ?? 0) === (wallet.step ?? 0);
+        });
+        if (existing) return existing;
+        const opening = this.openingWallets.get(key);
+        if (opening) return opening;
+        const started = this.openTab(input);
+        this.openingWallets.set(key,started);
+        try { return await started; } finally { this.openingWallets.delete(key); }
+    }
+
+    /** Reserve a concrete browser target before starting its viewer. */
+    private async openTab(input:Parameters<TabControls['open']>[0]):Promise<TabControlSession> {
         if (input.target) {
             const existing = [...this.sessions.values()].find((session) => !session.over && session.targetId === input.target);
             if (existing) return existing;

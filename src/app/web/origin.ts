@@ -5,7 +5,10 @@ import type { TLSSocket } from 'node:tls';
 import { errorMessage } from '../../common/errors.js';
 import type { TunnelStream } from '../tunnel/relay-link.js';
 import { CertificateManager, type CertificateSourceKind, type CertificateView } from './certificates.js';
-import { Gateway, withSecurityHeaders, contractProblem, type GatewayOptions } from './gateway.js';
+import { refuseUpgrade } from '../../common/websocket.js';
+import type { WalletLive } from './wallet-live.js';
+import { api } from '../../vendor/app-platform.js';
+import { Gateway, sessionToken, withSecurityHeaders, contractProblem, type GatewayOptions } from './gateway.js';
 import { TlsTerminator, type SecureConnectionInfo } from './tls.js';
 import type { TestTlsOptions } from '../net.js';
 
@@ -25,6 +28,7 @@ const MAX_HEADER_BYTES = 32 * 1024;
 export type EngineOriginOptions = Omit<GatewayOptions, 'log'> & {
     /** The App data directory (certificates, ACME account, access state). */
     readonly directory: string;
+    readonly walletLive?: WalletLive;
     /** The engine's hostname (`<engineId>.<engine domain>`). */
     readonly hostname: string;
     readonly certificateSource: CertificateSourceKind;
@@ -119,6 +123,18 @@ export class EngineOrigin {
         });
         this.gateway = new Gateway(options);
         this.http = createServer({ headersTimeout: HEADERS_TIMEOUT_MS, requestTimeout: REQUEST_TIMEOUT_MS, keepAliveTimeout: KEEP_ALIVE_TIMEOUT_MS, maxHeaderSize: MAX_HEADER_BYTES }, (request, response) => void this.serve(request, response));
+        this.http.on('upgrade', (request, socket, head) => {
+            const connection = this.connections.get(request.socket);
+            const host = request.headers.host;
+            const prefix = api.ENGINE_API_PREFIX + '/live-sessions/';
+            const id = request.url?.startsWith(prefix) ? /^([a-zA-Z0-9_-]+)\/channel$/.exec(request.url.slice(prefix.length))?.[1] : undefined;
+            if (!options.walletLive || !id) return refuseUpgrade(socket,404,'Not Found');
+            if (!connection || host?.split(':')[0] !== connection.hostname || host !== options.hostname || request.method !== 'GET' ||
+                head.length || request.headers.origin !== 'https://' + host || request.headers.upgrade?.toLowerCase() !== 'websocket') return refuseUpgrade(socket,403,'Forbidden');
+            const token = sessionToken(request.headers.cookie ?? null);
+            const client = {ip:connection.clientIp, userAgent:(request.headers['user-agent'] ?? '').slice(0,512)};
+            options.walletLive.upgrade(id,request,socket,()=>token ? options.access.authenticate(token,client) : undefined);
+        });
         this.http.on('clientError', (_error, socket) => socket.destroy());
         this.terminator = new TlsTerminator({
             credentials: (hostname) => this.certificates.credentials(hostname),

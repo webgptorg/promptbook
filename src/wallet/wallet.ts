@@ -190,6 +190,8 @@ export type SignInForm = 'password' | 'username' | 'code' | 'approval' | 'captch
  * @private Wallet
  */
 export type SignInPage = {
+    /** Current project browser target, retained locally for an attended sign-in. */
+    readonly target?: string;
     readonly browser: string;
     /** Origin of the page now open, and what of a login it shows. */
     readonly inspect: () => Promise<{ readonly origin: string; readonly form: SignInForm; readonly providers?: readonly string[] }>;
@@ -1994,10 +1996,10 @@ export class WalletSubEngine {
      * The context of a pending request for **Sign in manually**: its service, account and the browser it needs. It
      * works whatever the Wallet's readiness (a locked Wallet only cannot remember the password afterwards).
      */
-    public manualSignIn(id: string): { readonly request: string; readonly origin: string; readonly account?: string; readonly browser?: string } {
+    public manualSignIn(id: string): { readonly request: string; readonly step:number; readonly origin: string; readonly account?: string; readonly browser?: string } {
         const action = this.actions.find((candidate) => candidate.id === id && candidate.state === 'pending');
         if (!action) throw new PtbkError('No pending Wallet request has that id (it may have been completed or rejected meanwhile).', { kind: 'not-found' });
-        return { request: action.id, origin: action.origin, ...(action.account ? { account: action.account } : {}), ...(action.browser ? { browser: action.browser } : {}) };
+        return { request: action.id, step: action.step ?? 0, origin: action.origin, ...(action.account ? { account: action.account } : {}), ...(action.browser ? { browser: action.browser } : {}) };
     }
 
     /**
@@ -2072,15 +2074,16 @@ export class WalletSubEngine {
      * After a manual sign-in was handed back: revalidated access to the request's service (and account) satisfies it
      * and every other pending request it covers; anything else leaves them waiting.
      */
-    public async satisfyByManualSignIn(id: string, access: { readonly origin: string; readonly account?: string }): Promise<{ readonly resolved: boolean; readonly reason: string }> {
+    public async satisfyByManualSignIn(id: string, access: { readonly origin: string; readonly account?: string }, expectedStep?:number): Promise<{ readonly resolved: boolean; readonly reason: string }> {
         const result = await this.mutex.run(async (): Promise<{ resolved: boolean; reason: string; settled: number }> => {
             const action = this.actions.find((candidate) => candidate.id === id);
             if (!action) return { resolved: false, reason: 'the Wallet request no longer exists.', settled: 0 };
             if (action.state !== 'pending') return { resolved: true, reason: `The request for ${action.origin} was already ${action.state === 'resolved' ? 'completed' : 'rejected'}.`, settled: 0 };
+            if (expectedStep !== undefined && (action.step ?? 0) !== expectedStep) return {resolved:false, reason:'The sign-in request has moved to another step.', settled:0};
             if (!serviceMatches(access.origin, action.origin)) return { resolved: false, reason: `the tab is signed in to ${access.origin}, not to ${action.origin}.`, settled: 0 };
             const covered = (candidate: StoredAction): boolean => candidate.state === 'pending' && serviceMatches(access.origin, candidate.origin) && (!candidate.account || (access.account ?? '').toLowerCase() === candidate.account.toLowerCase());
             if (!covered(action)) return { resolved: false, reason: `Wallet could not confirm the account ${action.account} in the tab.`, settled: 0 };
-            const satisfied = this.actions.filter(covered);
+            const satisfied = expectedStep === undefined ? this.actions.filter(covered) : [action];
             const now = new Date().toISOString();
             this.actions = this.actions.map((candidate) => (satisfied.includes(candidate) ? { ...candidate, state: 'resolved', settledAt: now, resolvedBy: 'manual' } : candidate));
             await this.writeActions();
@@ -2099,7 +2102,7 @@ export class WalletSubEngine {
      * same login share it, and every waiting task is listed.
      */
     private async request(input: { readonly origin: string; readonly account?: string; readonly problem: WalletActionView['problem']; readonly reason: string; readonly task?: string; readonly agent?: string; readonly browser: string; readonly fields?: readonly string[]; readonly login?: string }): Promise<StoredAction> {
-        const sameAccount = (action: StoredAction): boolean => originMatches(action.origin, input.origin) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase();
+        const sameAccount = (action: StoredAction): boolean => originMatches(action.origin, input.origin) && (!action.browser || action.browser === input.browser) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase();
         // A recent rejection of the same step for the same work (or, without a task, of a request without one). It is
         // bounded in time, so recurring work with the same title may ask again on a later run.
         const rejected = (asked: typeof input): StoredAction | undefined =>

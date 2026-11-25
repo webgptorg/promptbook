@@ -87,6 +87,7 @@ export type AppConnectionOptions = {
  */
 export type AppWebHandlers = {
     /** The engine API (`/api/v1/...`) for a signed-in member. */
+    readonly walletLive?: import('./web/wallet-live.js').WalletLive;
     readonly api: (request: Request, actor: Actor, access: AccessStore) => Promise<Response>;
     /** Every other document or file for a signed-in member (the UI bundle or the plain engine page). */
     readonly documents: (request: Request, actor: Actor) => Promise<Response>;
@@ -424,6 +425,7 @@ export class AppConnection {
             memberKey: registration.memberKey ? decodeBase64Url(registration.memberKey) : undefined,
             api: (request, actor) => web.api(request, actor, access),
             documents: web.documents,
+            walletLive: web.walletLive,
             audit: web.audit,
         });
         await this.origin.start();

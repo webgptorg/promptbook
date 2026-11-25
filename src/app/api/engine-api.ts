@@ -20,6 +20,7 @@ import { decodeBase64Url, encodeBase64Url } from '../encoding.js';
 import type { AccessStore, Actor, StoredMember, StoredPasskey, StoredSession } from '../web/access.js';
 import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
 import { memberHandlers, memberView, MEMBER_ACTIONS } from './members.js';
+import { walletLiveRoutes, type WalletLive } from '../web/wallet-live.js';
 import { walletHandlers } from './wallet.js';
 import { taskHandlers, taskKeyOf } from './tasks.js';
 
@@ -60,6 +61,9 @@ const MAX_CHOICE_LENGTH = 1000;
  */
 export type EngineApiDeps = {
     readonly agenda?: Agenda;
+    readonly walletLive?: WalletLive;
+    readonly hasBrowser?: () => boolean;
+    readonly hasDesktop?: () => boolean;
     readonly onboarding?: OnboardingSession;
     readonly projectRoot: string;
     /** The App data directory, where the API keeps its state beside the Books. */
@@ -277,7 +281,9 @@ export class EngineApi {
 
     /** The capabilities available at this stage of the engine's lifecycle. */
     private get capabilities(): readonly { readonly id: string; readonly version: number }[] {
-        if (this.deps.agenda) return [...ADVERTISED_CAPABILITIES, { id: 'wallet', version: 1 }, { id: 'tasks', version: 1 }];
+        if (this.deps.agenda) return [...ADVERTISED_CAPABILITIES, { id: 'wallet', version: 1 }, { id: 'tasks', version: 1 },
+            ...(this.deps.walletLive && this.deps.hasBrowser?.() ? [{id:'wallet-sign-in',version:1}]:[]),
+            ...(this.deps.hasDesktop?.() ? [{id:'computer-control',version:1}]:[])];
         return this.deps.onboarding ? [...ADVERTISED_CAPABILITIES, { id: 'files', version: 1 }] : ADVERTISED_CAPABILITIES;
     }
 
@@ -308,9 +314,10 @@ export class EngineApi {
 
     /** Validates, authorizes and runs one operation. */
     private async dispatch(route: ContractRoute, request: ContractTransportRequest, signal: AbortSignal, actor: Actor, access: AccessStore): Promise<Outcome> {
-        if (route.capability && !this.capabilities.some((capability) => capability.id === route.capability?.id && capability.version === route.capability.version)) return fail('capability-not-supported');
-        const handler = this.handlers[route.id];
-        if (!handler || route.draft) return fail('not-found');
+        const live = walletLiveRoutes.has(route.id) && this.deps.hasBrowser?.() ? this.deps.walletLive : undefined;
+        if (!live && route.capability && !this.capabilities.some((capability) => capability.id === route.capability?.id && capability.version === route.capability.version)) return fail('capability-not-supported');
+        const handler = live ? async (ctx:Context) => live.route(route.id,ctx.actor,ctx.params,ctx.body) : this.handlers[route.id];
+        if (!handler || (route.draft && !live)) return fail('not-found');
         const errors: { path: string; message: string }[] = [];
         const parse = (part: 'params' | 'query' | 'body', schema: ContractRoute['params'], value: unknown): unknown => {
             if (!schema) return value;
@@ -337,6 +344,10 @@ export class EngineApi {
             outcome = await handler({ actor, access, state, params: params ?? {}, query: query ?? {}, body, lastEventId: request.lastEventId ?? null, signal });
         } catch (error) {
             outcome = this.problemOf(error, route);
+        }
+        if (live && outcome.kind === 'ok' && route.id !== 'getBrowserSession') {
+            const action = {openBrowserSignIn:'browser.sign-in.open', handBackBrowserTab:'browser.control.hand-back', endBrowserSession:'browser.session.end'}[route.id];
+            if (action) await access.recordAudit(action,actor,'browser-session',String((outcome.data as {id:string}).id));
         }
         if (outcome.kind === 'ok') {
             const success = Object.values(route.responses)[0];

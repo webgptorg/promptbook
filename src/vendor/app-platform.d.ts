@@ -53,6 +53,13 @@ export type ContractTransportRequest = {
 /** The engine API transport port (`EngineApiTransport`). */
 export type ContractTransport = (route: ContractRoute, request: ContractTransportRequest, signal: AbortSignal) => Promise<ContractResponse>;
 
+/** Strictly parsed input accepted on the browser live channel. */
+export type LiveInput = {kind:'pointer'; action:'move'|'down'|'up'; button:'none'|'left'|'middle'|'right'; x:number; y:number; clicks:number}
+    | {kind:'wheel'; x:number; y:number; deltaX:number; deltaY:number}
+    | {kind:'key'; action:'up'|'down'; key:string; shift:boolean};
+export type LiveClientMessage = {type:'hello'; versions:number[]} | {type:'view'; width:number; height:number; visible:boolean}
+    | {type:'input'; event:LiveInput} | {type:'frame-ack'; seq:number} | {type:'end'};
+
 /** `@ptbk/engine-api` as the engine uses it. */
 export declare const api: {
     readonly MAX_PENDING_ACCESS_REQUESTS: number;
@@ -73,6 +80,16 @@ export declare const api: {
     readonly ENGINE_RESERVED_PATHS: readonly string[];
     readonly ENGINE_API_ROUTE_LIST: readonly ContractRoute[];
     readonly ENGINE_API_ROUTES: Readonly<Record<string, ContractRoute>>;
+    readonly parseLiveClientMessage:(text:string) => {kind:'ok';message:LiveClientMessage}|{kind:'invalid'};
+    readonly encodeLiveMedia:(media:{kind:'tab-frame-jpeg'; seq:number; timestamp:number; payload:Uint8Array})=>{kind:'ok';bytes:Uint8Array}|{kind:'too-large'};
+    readonly LIVE_SESSION_ATTACH_MS:number;
+    readonly MAX_BROWSER_TAB_SESSION_MS:number;
+    readonly BROWSER_IDLE_MS:number;
+    readonly MAX_UNACKED_FRAMES:number;
+    readonly MAX_LIVE_INPUT_PER_S:number;
+    readonly MAX_LIVE_CONTROL_MESSAGE_BYTES:number;
+    readonly MAX_LIVE_SEND_BUFFER_BYTES:number;
+    readonly LIVE_CHANNEL_SUBPROTOCOL:'ptbk-live';
     readonly PERMISSIONS: readonly string[];
     readonly PROBLEM_CODES: readonly string[];
     readonly AUDIT_ACTIONS: readonly string[];
