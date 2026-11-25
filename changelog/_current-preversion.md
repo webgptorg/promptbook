@@ -1,5 +1,7 @@
 # Unreleased
 
+- Give chat and task agents explicit technical recovery and escalation instructions, including task delegation for unavailable chat tools and the order of browser recovery before human intervention.
+
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
 
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
