@@ -232,34 +232,16 @@ export function changedSince(before: DirtySnapshot, after: DirtySnapshot): strin
 }
 
 /**
- * Commit identity and signing derived from the coding-agent environment variables.
+ * Adds provenance to the effective Git author name for a single command.
  *
  * @private Git persistence
  */
-export type CommitIdentity = {
-    /** `-c` configuration arguments. */
-    readonly configArgs: readonly string[];
-    /** Human description of the effective identity. */
-    readonly description: string;
-};
-
-/**
- * Resolves commit identity: `CODING_AGENT_GIT_NAME/EMAIL/SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`, otherwise Git configuration.
- *
- * @private Git persistence
- */
-export async function resolveCommitIdentity(cwd: string, env: NodeJS.ProcessEnv = process.env): Promise<CommitIdentity> {
-    const configArgs: string[] = [];
-    const name = env.CODING_AGENT_GIT_NAME;
-    const email = env.CODING_AGENT_GIT_EMAIL;
-    const signingKey = env.CODING_AGENT_GIT_SIGNING_KEY || env.CODING_AGENT_GPG_KEY_ID;
-    if (name) configArgs.push('-c', `user.name=${name}`);
-    if (email) configArgs.push('-c', `user.email=${email}`);
-    if (signingKey) configArgs.push('-c', `user.signingkey=${signingKey}`, '-c', 'commit.gpgsign=true');
-    const effectiveName = name || (await git(cwd, ['config', 'user.name'])).stdout.trim();
-    const effectiveEmail = email || (await git(cwd, ['config', 'user.email'])).stdout.trim();
-    const description = `${effectiveName || '(no user.name)'} <${effectiveEmail || 'no user.email'}>${name || email ? '' : ' from Git configuration'}${signingKey ? ', signed' : ''}`;
-    return { configArgs, description };
+export async function commitAuthorEnvironment(cwd: string, env?: NodeJS.ProcessEnv, agentName?: string): Promise<NodeJS.ProcessEnv | undefined> {
+    const identity = await git(cwd, ['var', 'GIT_AUTHOR_IDENT'], { env });
+    const name = identity.exitCode === 0 ? /^(.*) <[^>]*> \d+ [+-]\d{4}$/.exec(identity.stdout.trimEnd())?.[1] : undefined;
+    if (!name) return env;
+    const agent = agentName?.trim() ? (parseReferenceValue(agentName)?.name ?? agentName.trim()) : 'Promptbook';
+    return { ...env, GIT_AUTHOR_NAME: `${name} (by ${agent})` };
 }
 
 /**
@@ -304,6 +286,7 @@ export async function commitPaths(options: {
     readonly trailers?: Readonly<Record<string, string | readonly string[] | undefined>>;
     readonly temporaryDirectory: string;
     readonly env?: NodeJS.ProcessEnv;
+    readonly agentName?: string;
 }): Promise<CommitOutcome> {
     const { projectRoot, repositoryRoot } = options;
     const paths = [...new Set(options.paths.map((path) => resolve(path)))].filter((path) => isPathInside(projectRoot, path));
@@ -314,15 +297,15 @@ export async function commitPaths(options: {
     const staged = await gitOrThrow(repositoryRoot, ['diff', '--cached', '--name-only', '-z', '--no-renames'], { phase: 'staging' });
     const stagedPaths = new Set(staged.split('\0').filter(Boolean));
     if (!relative.some((path) => stagedPaths.has(path))) return { committed: false, reason: 'no-changes' };
-    const identity = await resolveCommitIdentity(repositoryRoot, options.env);
+    const env = await commitAuthorEnvironment(repositoryRoot, options.env, options.agentName);
     const message = commitMessage(options);
     await ensureDirectory(options.temporaryDirectory);
     const messageFile = join(options.temporaryDirectory, `commit-message-${shortId()}.txt`);
     await writeFileAtomic(messageFile, `${message}\n`);
     try {
         // `--only` commits exactly these paths and keeps other staged content staged (also on an unborn branch).
-        const commitArgs = [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile, '--only', '--pathspec-from-file=-', '--pathspec-file-nul'];
-        const result = await git(repositoryRoot, commitArgs, { input: pathspec, env: options.env, literal: true });
+        const commitArgs = ['commit', '--quiet', '--cleanup=verbatim', '-F', messageFile, '--only', '--pathspec-from-file=-', '--pathspec-file-nul'];
+        const result = await git(repositoryRoot, commitArgs, { input: pathspec, env, literal: true });
         if (result.exitCode !== 0) {
             throw new PtbkError('The commit failed.', {
                 kind: 'persistence',
@@ -535,9 +518,9 @@ export async function commitFileContents(options: {
             await gitOrThrow(repositoryRoot, ['update-index', '--add', '--cacheinfo', `${mode ?? '100644'},${blob},${relative}`], { env: indexEnv, phase: 'staging', literal: true });
         }
         if (updates.every((update) => update.previous === update.blob)) return { committed: false, reason: 'no-changes' };
-        const identity = await resolveCommitIdentity(repositoryRoot, options.env);
+        const env = await commitAuthorEnvironment(repositoryRoot, indexEnv);
         await writeFileAtomic(messageFile, `${commitMessage(options)}\n`);
-        const result = await git(repositoryRoot, [...identity.configArgs, 'commit', '--quiet', '--cleanup=verbatim', '-F', messageFile], { env: indexEnv });
+        const result = await git(repositoryRoot, ['commit', '--quiet', '--cleanup=verbatim', '-F', messageFile], { env });
         if (result.exitCode !== 0) {
             throw new PtbkError('The commit failed.', {
                 kind: 'persistence',

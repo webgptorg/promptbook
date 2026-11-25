@@ -184,7 +184,7 @@ test('configuration coordinator: one migration commit; repeated loads are no-ops
     await assert.rejects(maintainProjectConfiguration(project, { commit: true, engineVersion: '0.119.0-22' }), /uncommitted edits/);
     await writeFile(project.configPath, original);
 
-    const outcome = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0', env: { ...process.env, CODING_AGENT_GIT_NAME: 'Fixture', CODING_AGENT_GIT_EMAIL: 'f@example.test' } });
+    const outcome = await maintainProjectConfiguration(project, { commit: true, engineVersion: '0.121.0', env: { ...process.env, GIT_AUTHOR_NAME: 'Fixture', GIT_AUTHOR_EMAIL: 'f@example.test', GIT_COMMITTER_NAME: 'Fixture', GIT_COMMITTER_EMAIL: 'f@example.test' } });
     assert.equal(outcome.migrated.from, PRE_VERSIONING_BASELINE);
     assert.deepEqual(outcome.migrated.steps, ['0.119.0-22', '0.119.0-32', '0.119.0-35', '0.119.0-45', '0.119.0-97', '0.119.0-104'], 'every applicable sparse step, in order, in one pass');
     assert.deepEqual(await subjects(root), [`ptbk: Migrate project from ${PRE_VERSIONING_BASELINE} to 0.121.0`, 'Legacy project']);
@@ -384,7 +384,7 @@ test('project migration 0.119.0-32: Manager becomes Router, references follow, t
     await write('chats/c.book', 'CHAT Old chat\nCHAT MEMBER @User\nCHAT MEMBER @Manager\nCHAT STATUS open\n\nCHAT MESSAGE @Manager 2026-01-01T00:00:00+00:00\nI am @Manager.\n\n');
     await git(root, ['add', '-A']);
     await git(root, ['commit', '-q', '-m', 'Project at 0.119.0-30']);
-    const env = { ...process.env, CODING_AGENT_GIT_NAME: 'Fixture', CODING_AGENT_GIT_EMAIL: 'f@example.test' };
+    const env = { ...process.env, GIT_AUTHOR_NAME: 'Fixture', GIT_AUTHOR_EMAIL: 'f@example.test', GIT_COMMITTER_NAME: 'Fixture', GIT_COMMITTER_EMAIL: 'f@example.test' };
 
     // A Book with uncommitted edits is never rewritten (nothing is written, the pass waits).
     await writeFile(join(root, 'tasks', 'a.book'), `${await readFile(join(root, 'tasks', 'a.book'), 'utf8')}TASK NOTE editing\n`);

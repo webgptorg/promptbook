@@ -200,8 +200,6 @@ const PRESERVED_VARIABLES = [
     'LC_ALL',
     'TZ',
     'SSH_AUTH_SOCK',
-    'CODING_AGENT_GIT_NAME',
-    'CODING_AGENT_GIT_EMAIL',
     'PTBK_HOME',
     'CHROME_PATH',
     'NODE_ENV',

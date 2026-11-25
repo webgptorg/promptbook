@@ -628,7 +628,7 @@ export class Agenda {
         this.ownership = new FileOwnership(options.project.root, { onChange: () => this.touch() });
         this.chatBatches = new ChatCommitBatcher(options.project, {
             repositoryRoot: () => this.repositoryRoot,
-            commit: async (paths, subject, trailers) => await this.commitAuthoring(paths, subject, trailers),
+            commit: async (paths, subject, trailers, agentName) => await this.commitAuthoring(paths, subject, trailers, agentName),
             quietMs: Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || CHAT_BATCH_QUIET_MS,
             maxAgeMs: Math.max(Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || 0, CHAT_BATCH_MAX_AGE_MS),
             retryMs: 60_000,
@@ -2428,7 +2428,7 @@ export class Agenda {
     }
 
     /** Commits authored paths under the Git lock (with name trailers such as `Task-Name`/`Chat-Name`). */
-    private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}): Promise<string | undefined> {
+    private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}, agentName?: string): Promise<string | undefined> {
         if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
         // A no-op has nothing to commit and triggers no remote work (also during Pause, where commits are the boundary).
         if (this.sync.view() && !(await anyPathChanged(this.options.project.root, this.repositoryRoot, paths))) return undefined;
@@ -2441,6 +2441,7 @@ export class Agenda {
                 paths,
                 subject: summary,
                 trailers,
+                agentName,
                 temporaryDirectory: this.options.project.runtime.temporary,
                 env: this.options.env,
             }),
@@ -2463,7 +2464,7 @@ export class Agenda {
         }
         // One bulk operation's records share a commit that says how many it covers.
         const count = record.count ?? 1;
-        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`), { 'Task-Name': record.subject.taskName || undefined });
+        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`), { 'Task-Name': record.subject.taskName || undefined }, record.subject.agent || undefined);
         for (const path of paths) this.authoredPaths.delete(path);
         return 'committed';
     }
@@ -5017,7 +5018,7 @@ export class Agenda {
         this.reportCommitTimer = undefined;
         try {
             const evidence = setting<boolean>(this.settings, 'traces.isCommitted') ? await stageableFiles(this.options.project.root, 'traces/.chats/report') : [];
-            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`), { 'Chat-Name': REPORT_NAME });
+            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`), { 'Chat-Name': REPORT_NAME }, REPORT_AUTHOR);
             this.authoredPaths.delete(path);
             await this.setReportCommitPending(false);
         } catch (error) {

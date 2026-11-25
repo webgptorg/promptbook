@@ -32,8 +32,6 @@ const pathKey = Object.keys(process.env).find((key) => key.toUpperCase() === 'PA
 const env = {
     ...process.env,
     [pathKey]: `${fakeBin}${delimiter}${process.env[pathKey] ?? ''}`,
-    CODING_AGENT_GIT_NAME: 'Conformance',
-    CODING_AGENT_GIT_EMAIL: 'conformance@example.test',
     GIT_AUTHOR_NAME: 'Conformance',
     GIT_AUTHOR_EMAIL: 'conformance@example.test',
     GIT_COMMITTER_NAME: 'Conformance',

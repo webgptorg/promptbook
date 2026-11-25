@@ -108,8 +108,10 @@ try {
     const env = {
         ...process.env,
         [pathKey]: `${bin}${delimiter}${process.env[pathKey] ?? ''}`,
-        CODING_AGENT_GIT_NAME: 'Package Fixture',
-        CODING_AGENT_GIT_EMAIL: 'fixture@example.test',
+        GIT_AUTHOR_NAME: 'Package Fixture',
+        GIT_AUTHOR_EMAIL: 'fixture@example.test',
+        GIT_COMMITTER_NAME: 'Package Fixture',
+        GIT_COMMITTER_EMAIL: 'fixture@example.test',
         PTBK_HOME: join(temporary, 'ptbk home'),
         NO_COLOR: '1',
     };
