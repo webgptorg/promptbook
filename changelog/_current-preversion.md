@@ -1,5 +1,7 @@
 # Unreleased
 
+- Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.
+
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
 
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
