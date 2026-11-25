@@ -71,7 +71,7 @@ Required configuration migrations and explicit saved `ptbk tool` management do n
 
 An uncommitted workflow may process its proven owned work, not adopt unrelated changes. Reentering committed mode requires reconciliation, never a surprise aggregate commit. Preserve `--git-changes fail|ignore|continue`: default refuses unrelated dirt, ignore retains it, continue reconciles proven interrupted work, including several active tasks and pending conversation batches. No flag transfers unknown ownership. No-commit conflicts with autosync, including legacy auto-pull/push aliases; task-worktree isolation is removed.
 
-Respect Git's configured commit email and signing settings. The default name is `Promptbook`. The engine accepts `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`.
+Use the Git author and committer identities and the user’s Git signing configuration. For Promptbook commits, append `(by <agent name>)` to the author name, or `(by Promptbook)` when no agent is known.
 
 A full revert may reverse result/completion together or remove a task created there. Reverts add history rather than rewriting it. Git cannot undo browser/external effects; preserve their evidence and never repeat them solely because a completion stamp disappeared.
 

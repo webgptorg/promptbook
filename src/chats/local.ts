@@ -46,7 +46,7 @@ export class LocalChats {
     ) {
         const commit = setting<boolean>(settings, 'execution.isCommitEnabled') && Boolean(repositoryRoot);
         this.state = new StateStore(project.runtime.state);
-        this.batches = new ChatCommitBatcher(project, { repositoryRoot: () => this.repositoryRoot, commit: async (paths, subject, trailers) => await this.locked(async () => await this.commit(paths, subject, trailers)) });
+        this.batches = new ChatCommitBatcher(project, { repositoryRoot: () => this.repositoryRoot, commit: async (paths, subject, trailers, agentName) => await this.locked(async () => await this.commit(paths, subject, trailers, agentName)) });
         this.store = new ChatStore(project, {
             timeZone: setting<string>(settings, 'timezone'),
             persistence: commit
@@ -80,8 +80,8 @@ export class LocalChats {
     }
 
     /** Commits chat or authoring paths. */
-    private async commit(paths: readonly string[], subject: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>>): Promise<string | undefined> {
-        const outcome = await commitPaths({ projectRoot: this.project.root, repositoryRoot: this.repositoryRoot!, paths, subject, trailers, temporaryDirectory: this.project.runtime.temporary, env: this.env });
+    private async commit(paths: readonly string[], subject: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>>, agentName?: string): Promise<string | undefined> {
+        const outcome = await commitPaths({ projectRoot: this.project.root, repositoryRoot: this.repositoryRoot!, paths, subject, trailers, agentName, temporaryDirectory: this.project.runtime.temporary, env: this.env });
         return outcome.committed ? outcome.sha : undefined;
     }
 
