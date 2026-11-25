@@ -18,6 +18,7 @@ import { instanceEnvironment } from '../../engine/harnesses.js';
 import { pluginDefaultRow } from '../../engine/routing.js';
 import { formatModelRow } from '../../book/model.js';
 import { redactUrl } from '../../engine/sync.js';
+import { discoverHarnessChoices, harnessChoices, LOCAL_MODELS, selectionLabel } from '../../onboarding/harness-choices.js';
 import type { PreparedApiHarness } from '../../onboarding/credentials.js';
 import { editDotEnv } from '../../tools/environment.js';
 import { applyToolOperationsToConfig, type ToolDraft, type ToolOperation } from '../../tools/operations.js';
@@ -271,43 +272,9 @@ function projectFolderProblem(value: string): string | undefined {
 }
 
 /**
- * The harness preselected when no installed and usable one is detected, so accepting the defaults never leads to an
- * empty selection (visible and editable, never a hidden fallback).
- */
-const DEFAULT_HARNESS = 'openai-codex';
-
-/**
- * The Local models choice of the harness selection: a resource/setup category (runtime, model and a credential-free
- * harness connection), not another harness variant.
- */
-const LOCAL_MODELS = 'local-models';
-
-/**
- * The label of one harness selection (a harness plugin, or the Local models choice).
- */
-function selectionLabel(id: string): string {
-    return id === LOCAL_MODELS ? 'Local models' : (harnessPlugin(id)?.displayName ?? id);
-}
-
-/**
  * A neutral editable title of a project whose brief is blank (no purpose is invented).
  */
 const NEUTRAL_TITLE = 'My project';
-
-/**
- * Harness variants that are installed **and ready** (verified login or configuration, usable now), inspected in
- * parallel without any model call. An executable alone, a signed-out or an unverifiable variant is not ready.
- */
-async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Promise<string[]> {
-    const ready = await Promise.all(
-        HARNESS_PLUGINS.map(async (plugin) => {
-            const tool: HarnessToolRecord = { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
-            const inspection = await plugin.inspect({ projectRoot, env: instanceEnvironment(plugin, tool, undefined, env), tool }).catch(() => undefined);
-            return inspection?.installed && inspection.usable && inspection.authenticated === true ? plugin.id : undefined;
-        }),
-    );
-    return ready.filter((id): id is string => id !== undefined);
-}
 
 /**
  * Wizard/unattended initialization shared by `ptbk init`, the global dashboard's New project and the setup step of
@@ -322,7 +289,7 @@ async function readyHarnesses(projectRoot: string, env: NodeJS.ProcessEnv): Prom
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string; readonly apiHarnesses?: ReadonlyMap<string, PreparedApiHarness> } } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string; readonly apiHarnesses?: ReadonlyMap<string, PreparedApiHarness>; readonly local?: LocalSetupResult; readonly localDownload?: boolean } } = {}): Promise<InitResult> {
     const { terminal } = context;
     const { embeddedHarness } = options;
     const apiHarnesses = options.prepared?.apiHarnesses;
@@ -402,6 +369,11 @@ export async function initializeProject(context: CommandContext, options: { proj
         /** The Local models choice: its plan and the outcome of its preparation (a ready one is reused after Back). */
         local?: { plan: LocalSetupPlan; result?: LocalSetupResult };
     } = { purposeRecorded: false, root: option<string>(context, 'subfolder') ? resolve(base, option<string>(context, 'subfolder')!) : base, inspections: new Map(), newProject: false, checks: new Map(), folderEditable: false };
+    const preparedLocal = options.prepared?.local;
+    if (preparedLocal?.status === 'ready' && preparedLocal.check?.ok) {
+        state.local = { plan: preparedLocal.plan, result: preparedLocal };
+        state.checks.set(LOCAL_MODELS, preparedLocal.check);
+    }
     const shown = new Set<StepId>();
 
     const stepFunctions: Record<StepId, () => Promise<void>> = {
@@ -651,42 +623,36 @@ export async function initializeProject(context: CommandContext, options: { proj
             const harnessFlags = option<string[]>(context, 'harness');
             for (const id of harnessFlags ?? []) if (id !== LOCAL_MODELS && !harnessPlugin(id)) throw usageError(`Unknown harness "${id}". Supported: ${HARNESS_PLUGINS.map((plugin) => plugin.id).join(', ')} or ${LOCAL_MODELS}.`, 'init');
             const configBefore = (await pathExists(projectAt(state.root).configPath)) ? await loadSettings(projectAt(state.root), { env: context.env }) : undefined;
-            const configured = configBefore ? enabledHarnesses(configBefore) : [];
+            const tools = configBefore?.tools ?? [];
+            const configured = [...new Set(tools.flatMap((tool) => tool.type === 'HARNESS' && tool.isEnabled
+                ? [tool.inferenceRuntime ? LOCAL_MODELS : harnessPluginId(tool.variant)] : []))];
+            const discovery = interactive && !harnessFlags && !flag(context, 'no-harness')
+                ? await discoverHarnessChoices(context.env, tools, localSetupChoices()) : undefined;
             state.inspections = new Map();
             for (;;) {
                 let selected: string[];
                 if (harnessFlags) selected = [...new Set(harnessFlags)];
                 else if (flag(context, 'no-harness')) selected = [];
-                else if (configured.length) selected = configured;
+                else if (!interactive && configured.length) selected = configured;
                 else if (!interactive) {
                     missingDecisions.push('--harness <id> (repeatable) or --no-harness');
                     return;
                 } else {
                     shown.add('harnesses');
-                    // A fresh selection starts with every installed and usable harness, or OpenAI Codex when there is none
-                    // (visible and editable); earlier choices win.
-                    if (state.selected === undefined) {
-                        const ready = await readyHarnesses(await nearestExisting(state.root), context.env);
-                        state.selected = ready.length ? ready : [DEFAULT_HARNESS];
-                    }
+                    const defaults = configured.length ? [...new Set([...configured, ...discovery!.installed])] : undefined;
+                    const offer = harnessChoices(discovery!, state.selected ?? defaults);
                     const failed = [...state.checks].filter(([, check]) => !check.ok);
                     selected = answered(
                         await selectMany(terminal, {
                             frame: frame('harnesses', failed.length ? 'no selected harness works yet — fix one or choose another' : 'pick the coding agents that will do the work', failed.length ? 'blocked' : 'working'),
-                            question: `Which harnesses should run this project? (installed globally, shared with other projects; usable ones are preselected, otherwise OpenAI Codex${state.newProject ? '; each is tested with a real request' : ''})`,
-                            choices: [
-                                ...HARNESS_PLUGINS.map((plugin) => {
-                                    const check = state.checks.get(plugin.id);
-                                    // A failed real check stays visible with its concrete cause.
-                                    const description = check ? `${check.ok ? marks.ok : marks.fail} ${check.summary}` : plugin.featured ? undefined : plugin.npmPackage;
-                                    return { value: plugin.id, label: plugin.displayName, featured: plugin.featured || state.selected!.includes(plugin.id) || Boolean(check), description };
-                                }),
-                                (() => {
-                                    const check = state.checks.get(LOCAL_MODELS);
-                                    return { value: LOCAL_MODELS, label: 'Local models', featured: true, description: check ? `${check.ok ? marks.ok : marks.fail} ${check.summary}` : 'Models on this computer (no cloud login; downloads a model)' };
-                                })(),
-                            ],
-                            initial: state.selected,
+                            question: `Which harnesses should run this project? (installed tools are preselected${state.newProject ? '; each selection is tested' : ''})`,
+                            choices: offer.choices.map((choice) => {
+                                const check = state.checks.get(choice.id);
+                                const status = check ? `${check.ok ? marks.ok : marks.fail} ${check.summary}` : undefined;
+                                const description = choice.id === LOCAL_MODELS && status ? `${choice.description} ${status}` : status ?? choice.description ?? undefined;
+                                return { value: choice.id, label: choice.label, featured: choice.featured || Boolean(check), description };
+                            }),
+                            initial: offer.initial,
                             ...(state.newProject ? { minimum: 1 } : {}),
                             noneLabel: state.newProject ? 'None selected (a new project needs at least one working harness)' : 'None selected (setup stays incomplete)',
                             emptyWarning: state.newProject
@@ -702,7 +668,10 @@ export async function initializeProject(context: CommandContext, options: { proj
                     await setUpHarnesses(hosted);
                     selected = selected.filter((id) => id === LOCAL_MODELS || hosted.includes(id));
                     if (selected.includes(LOCAL_MODELS)) await setUpLocalModels(configBefore?.tools ?? []);
-                    else state.local = undefined;
+                    else {
+                        state.local = undefined;
+                        state.checks.delete(LOCAL_MODELS);
+                    }
                     state.selected = selected;
                     // A new project needs at least one selected harness that answers a real request; additional failures
                     // stay visible but do not block. Without a working one, the user stays in harness configuration.
@@ -1205,13 +1174,20 @@ export async function initializeProject(context: CommandContext, options: { proj
         const saved = await loadSettings(destination, { env: context.env }).catch(() => undefined);
         const remembered = ((raw.initialized ?? {}) as { installation?: string }).installation === 'global';
         steps.set('installation', !(local.usable || local.declaredIn || option<string>(context, 'installation') || remembered));
-        steps.set('harnesses', !(option<string[]>(context, 'harness') || flag(context, 'no-harness') || (saved && enabledHarnesses(saved).length)));
+        steps.set('harnesses', !(option<string[]>(context, 'harness') || flag(context, 'no-harness') || (!interactive && saved && enabledHarnesses(saved).length)));
         steps.set('browser', !(hasBrowserTool(raw) || option<string>(context, 'browser-profile')));
         const tracesSaved = ['traces.isCommitted', 'traces.isVideoIgnored', 'traces.isVideoRecordingEnabled'].every((key) => typeof getPath(raw, key) === 'boolean');
         const tracesFlagged = flag(context, 'commit-traces') !== undefined && flag(context, 'ignore-trace-videos') !== undefined && flag(context, 'record-video') !== undefined;
         steps.set('traces', !(tracesSaved || tracesFlagged));
         steps.set('wallet', !(await pathExists(join(destination.runtime.root, 'encryption', 'project.json'))));
         steps.set('sync', !(typeof raw.isAutoSync === 'boolean' || flag(context, 'auto-sync') !== undefined || flag(context, 'auto-pull') || flag(context, 'auto-push')));
+    };
+
+    /** The explicit local setup route applies both to the preview and to its preparation. */
+    const localSetupChoices = () => {
+        const runtimeFlag = option<string>(context, 'local-runtime')?.trim().toUpperCase().replace(/[\s-]+/g, '_');
+        if (runtimeFlag && !INFERENCE_RUNTIME_VARIANTS.includes(runtimeFlag as InferenceRuntimeVariant)) throw usageError(`--local-runtime expects ${INFERENCE_RUNTIME_VARIANTS.join(' or ')}.`, 'init');
+        return { ...(runtimeFlag ? { runtime: runtimeFlag as InferenceRuntimeVariant } : {}), ...(option<string>(context, 'local-model') ? { model: option<string>(context, 'local-model')! } : {}), ...(option<string>(context, 'local-endpoint') ? { endpoint: option<string>(context, 'local-endpoint')! } : {}) };
     };
 
     /**
@@ -1222,9 +1198,7 @@ export async function initializeProject(context: CommandContext, options: { proj
      */
     const setUpLocalModels = async (tools: readonly ToolRecord[]): Promise<void> => {
         if (state.local?.result?.status === 'ready') return;
-        const runtimeFlag = option<string>(context, 'local-runtime')?.trim().toUpperCase().replace(/[\s-]+/g, '_');
-        if (runtimeFlag && !INFERENCE_RUNTIME_VARIANTS.includes(runtimeFlag as InferenceRuntimeVariant)) throw usageError(`--local-runtime expects ${INFERENCE_RUNTIME_VARIANTS.join(' or ')}.`, 'init');
-        const choices = { ...(runtimeFlag ? { runtime: runtimeFlag as InferenceRuntimeVariant } : {}), ...(option<string>(context, 'local-model') ? { model: option<string>(context, 'local-model')! } : {}), ...(option<string>(context, 'local-endpoint') ? { endpoint: option<string>(context, 'local-endpoint')! } : {}) };
+        const choices = localSetupChoices();
         say(style.muted(`Discovering local model support on this computer${marks.ellipsis}`));
         const discover = async (): Promise<LocalSetupPlan> => planLocalSetup(await discoverLocalSetup(context.env, tools, { ...(choices.endpoint ? { endpoint: choices.endpoint } : {}), ...(choices.runtime ? { runtime: choices.runtime } : {}) }), tools, choices);
         let plan = await discover();
@@ -1248,9 +1222,10 @@ export async function initializeProject(context: CommandContext, options: { proj
         for (const note of plan.notes) say(style.muted(`  ${note}`));
         const failed = (summary: string, result?: LocalSetupResult): void => {
             state.local = { plan, ...(result ? { result } : {}) };
-            state.checks.set(LOCAL_MODELS, result?.check ?? { ok: false, summary, durationMs: 0 });
+            state.checks.set(LOCAL_MODELS, { ok: false, summary, durationMs: result?.check?.durationMs ?? 0 });
             say(`${style.error(marks.fail)} Local models: ${summary}`);
         };
+        if (options.prepared?.localDownload === false && plan.steps.download) return failed('The previously downloaded model is missing. Review its updated disk requirement.');
         if (plan.problems.length) return failed(plan.problems.join(' '));
         // Noninteractively, selecting local models (--harness local-models) is the decision to prepare them.
         if (interactive && (plan.steps.install || plan.steps.start || plan.steps.download)) {

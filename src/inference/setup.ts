@@ -120,7 +120,12 @@ export async function discoverLocalSetup(env: NodeJS.ProcessEnv, tools: readonly
             RUNTIME_ADAPTERS.map(async (adapter) => {
                 const existing = tools.find((tool): tool is InferenceRuntimeToolRecord => tool.type === 'INFERENCE_RUNTIME' && tool.variant === adapter.variant && tool.isEnabled);
                 const endpoint = options.runtime === adapter.variant && options.endpoint ? options.endpoint : existing?.endpoint;
-                const observation = await adapter.inspect({ tool: { name: existing?.name ?? `local-${adapter.variant.toLowerCase().replace(/_/g, '-')}`, variant: adapter.variant, ...(endpoint ? { endpoint } : {}) }, env, ...(options.signal ? { signal: options.signal } : {}) });
+                const context = { tool: { name: existing?.name ?? `local-${adapter.variant.toLowerCase().replace(/_/g, '-')}`, variant: adapter.variant, ...(endpoint ? { endpoint } : {}) }, env, signal: options.signal };
+                let observation = await adapter.inspect(context);
+                if (!observation.running && observation.onEngineHost && !endpoint && adapter.installedModels) {
+                    const models = await adapter.installedModels(context).catch(() => []);
+                    if (models.length) observation = { ...observation, models };
+                }
                 const installation = observation.problem === 'missing' ? await adapter.installation?.(process.platform, env) : undefined;
                 return { variant: adapter.variant, displayName: adapter.displayName, observation, ...(installation ? { installation } : {}) };
             }),
@@ -153,10 +158,11 @@ function uniqueName(names: readonly string[], base: string): string {
 export function planLocalSetup(discovery: LocalSetupDiscovery, tools: readonly ToolRecord[], choices: LocalSetupChoices = {}): LocalSetupPlan {
     const problems: string[] = [];
     const notes: string[] = [];
-    // Default runtime: one that is already running with local models, else the automatic-install baseline (Ollama).
-    const running = discovery.runtimes.find((entry) => entry.observation.running && entry.observation.models?.some((model) => model.locality === 'local'));
-    const runtime = choices.runtime ?? running?.variant ?? 'OLLAMA';
+    // Prefer a reusable model, including weights on disk while the service is stopped.
     const harness = choices.harness ?? 'OPENAI_CODEX';
+    const withWeights = discovery.runtimes.filter(({ observation }) => observation.onEngineHost && observation.models?.some((model) => model.installed && model.locality === 'local'));
+    const reusable = withWeights.find(({ variant, observation }) => recommendLocalModel(discovery.hardware, variant, harness, observation.models).installed);
+    const runtime = choices.runtime ?? reusable?.variant ?? withWeights[0]?.variant ?? 'OLLAMA';
     const found = discovery.runtimes.find((entry) => entry.variant === runtime)!;
     const observation = found.observation;
     const harnessEntry = discovery.harnesses.find((entry) => entry.variant === harness);
@@ -185,7 +191,7 @@ export function planLocalSetup(discovery: LocalSetupDiscovery, tools: readonly T
     if (download && combination && discovery.hardware.freeDiskBytes !== undefined && discovery.hardware.freeDiskBytes < combination.downloadBytes * 1.1) problems.push(`${model} needs about ${formatBytes(combination.downloadBytes)} of free disk space; ${formatBytes(discovery.hardware.freeDiskBytes)} is free.`);
 
     // Reuse an enabled runtime record of the same service and its credential-free connection.
-    const endpoint = choices.endpoint ?? undefined;
+    const endpoint = choices.endpoint ?? (observation.endpointSource === 'configured' ? observation.endpoint : undefined);
     const runtimeRecord = tools.find((tool): tool is InferenceRuntimeToolRecord => tool.type === 'INFERENCE_RUNTIME' && tool.variant === runtime && tool.isEnabled && (choices.runtimeName ? tool.name === choices.runtimeName : (tool.endpoint ?? undefined) === endpoint));
     const runtimeName = runtimeRecord?.name ?? uniqueName(tools.map((tool) => tool.name), choices.runtimeName ?? `local-${runtime.toLowerCase().replace(/_/g, '-')}`);
     const connectionRecord = tools.find((tool): tool is HarnessToolRecord => tool.type === 'HARNESS' && tool.variant === harness && tool.inferenceRuntime === runtimeName && tool.authentication === 'NONE' && tool.isEnabled && (!choices.connectionName || tool.name === choices.connectionName));
@@ -290,6 +296,7 @@ export async function prepareLocalSetup(
             observation = started.observation ?? observation;
         }
         if (plan.model && !observation.models?.some((entry) => entry.id === plan.model && entry.installed && entry.locality === 'local')) {
+            if (!plan.steps.download) return result('failed', `${plan.model} is no longer available to the runtime. Review the updated download size and retry.`);
             progress({ stage: 'downloading', message: `Downloading ${plan.model}…`, ...(plan.steps.downloadBytes ? { totalBytes: plan.steps.downloadBytes } : {}) });
             const downloaded = await runRuntimeAction(
                 { ...context, onProgress: (item) => progress({ stage: 'downloading', message: item.message ?? item.stage, ...(item.completedBytes !== undefined ? { completedBytes: item.completedBytes } : {}), ...(item.totalBytes !== undefined ? { totalBytes: item.totalBytes } : {}) }), onWait: (holder) => progress({ stage: 'downloading', message: `Waiting for ${holder.label} started by another Promptbook engine…` }) },

@@ -16,7 +16,7 @@ export type OnboardingPrompt = {
     readonly alternatives?: readonly { readonly id: string; readonly label: string; readonly description: string | null; readonly href: string | null }[];
 } & (
     | { readonly kind: 'text'; readonly multiline: boolean; readonly required: boolean; readonly placeholder: string | null; readonly initial: string; readonly attachments: boolean }
-    | { readonly kind: 'choice'; readonly multiple: boolean; readonly choices: readonly { id: string; label: string; description: string | null; disabled: boolean }[]; readonly initial: readonly string[] }
+    | { readonly kind: 'choice'; readonly multiple: boolean; readonly choices: readonly { id: string; label: string; description: string | null; disabled: boolean; featured?: boolean }[]; readonly initial: readonly string[] }
     | { readonly kind: 'confirm'; readonly confirmLabel: string; readonly declineLabel: string }
     | { readonly kind: 'upload'; readonly required: boolean; readonly maxFiles: number }
     | { readonly kind: 'secret'; readonly label: string; readonly placeholder: string | null; readonly helpUrl: string | null }
