@@ -218,7 +218,7 @@ export const AGENT_VISUAL = /^(ptbk: )`[^`\n]+` /;
  * Fixtures compare work by its meaningful subject; dedicated assertions inspect the visual with {@link rawSubjects}.
  */
 export function withoutVisual(text) {
-    return text.replace(AGENT_VISUAL, '$1');
+    return text.replace(/^`ptbk` `[a-z.]+` - /, 'ptbk: ').replace(AGENT_VISUAL, '$1');
 }
 
 /**

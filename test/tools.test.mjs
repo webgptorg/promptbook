@@ -422,7 +422,7 @@ test('live tools: a browser added during a task serves that task; an in-use tool
     const history = await subjects(project);
     const result = history.findIndex((subject) => /^ptbk: Publish the post/.test(subject));
     assert.ok(history.indexOf('ptbk: Add browser tool facebook-browser') > result && history.indexOf(`ptbk: Disable tool ${tool}`) > result, 'tool commits are separate and earlier');
-    const resultSha = (await git(project, ['log', '--format=%H', '--grep', '^ptbk: .*Publish the post'])).trim().split('\n')[0];
+    const resultSha = (await git(project, ['log', '--format=%H', '--grep', '^`ptbk` .*Publish the post'])).trim().split('\n')[0];
     assert.doesNotMatch(await git(project, ['show', '--name-only', '--format=', resultSha]), /ptbk\.json/, 'the result commit does not restore or include configuration');
     const saved = await savedTools(project);
     assert.equal(saved.find((item) => item.name === tool).isEnabled, false, 'the saved change survives the task completion');

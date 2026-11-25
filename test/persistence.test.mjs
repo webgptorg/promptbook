@@ -11,17 +11,18 @@ import { StateStore } from '../dist/engine/state.js';
 import { git, GIT_IDENTITY, initRepository, temporaryDirectory } from './helpers.mjs';
 
 test('commit prefix is lowercase and applied exactly once', () => {
-    assert.equal(prefixedSubject('Add task - X'), 'ptbk: Add task - X');
-    assert.equal(prefixedSubject('ptbk: Add task - X'), 'ptbk: Add task - X');
-    assert.equal(prefixedSubject('PTBK: Add task - X'), 'ptbk: Add task - X', 'an older uppercase prefix is not repeated');
+    assert.equal(prefixedSubject('Add task - X'), '`ptbk` `project.update` - Add task - X');
+    assert.equal(prefixedSubject('`ptbk` `project.update` - Add task - X'), '`ptbk` `project.update` - Add task - X');
+    assert.equal(prefixedSubject('ptbk: Add task - X'), '`ptbk` `project.update` - Add task - X');
+    assert.equal(prefixedSubject('PTBK: Add task - X'), '`ptbk` `project.update` - Add task - X', 'an older uppercase prefix is not repeated');
 });
 
 test('agent work subjects quote the static agent visual; system subjects invent no agent or date', () => {
-    assert.equal(prefixedSubject(agentSubject('Expert', 'Review export')), 'ptbk: `~<@@/>-` Review export');
+    assert.equal(prefixedSubject(agentSubject('Expert', 'Review export')), '`ptbk` `task.result` - `~<@@/>-` Review export');
     assert.equal(prefixedSubject(agentSubject('@Expert', 'Review export')), prefixedSubject(agentSubject('{Expert}', 'Review export')), 'equivalent references share one visual');
-    assert.equal(prefixedSubject(agentSubject(undefined, 'Initialize project')), 'ptbk: Initialize project');
+    assert.equal(prefixedSubject(agentSubject(undefined, 'Initialize project')), '`ptbk` `task.result` - Initialize project');
     assert.equal(prefixedSubject(agentSubject('Developer', 'Write the page — 2026-10-28 13:00:00')), prefixedSubject(agentSubject('Developer', 'Write the page — 2026-10-28 13:00:00')), 'stable, no animation frame');
-    assert.match(prefixedSubject(agentSubject('Developer', 'Write the page')), /^ptbk: `[^`\s]+` Write the page$/);
+    assert.match(prefixedSubject(agentSubject('Developer', 'Write the page')), /^`ptbk` `task\.result` - `[^`\s]+` Write the page$/);
 });
 
 test('a chat batch names the one agent whose replies it adds', async (t) => {
@@ -52,8 +53,8 @@ test('scoped commits keep unrelated staged and unstaged work, and never create e
     const env = { ...process.env, ...GIT_IDENTITY };
     const outcome = await commitPaths({ projectRoot: root, repositoryRoot: root, paths: [join(root, 'dir with space', 'owned [1].txt')], subject: 'Owned change', body: 'Assignment body', trailers: { 'PTBK-Run': 'abc' }, temporaryDirectory: join(root, '.ptbk', 'tmp'), env });
     assert.equal(outcome.committed, true);
-    assert.equal((await git(root, ['show', '--name-only', '--format=%s', 'HEAD'])).trim(), 'ptbk: Owned change\n\ndir with space/owned [1].txt');
-    assert.match(await git(root, ['log', '-1', '--format=%B']), /Assignment body\n\nPTBK-Run: abc/);
+    assert.equal((await git(root, ['show', '--name-only', '--format=%s', 'HEAD'])).trim(), '`ptbk` `project.update` - Owned change\n\ndir with space/owned [1].txt');
+    assert.match(await git(root, ['log', '-1', '--format=%B']), /Assignment body\n\nPTBK-Source: engine\nPTBK-Type: project\.update\nPTBK-Run: abc/);
     const status = await git(root, ['status', '--porcelain']);
     assert.match(status, /^A  staged\.txt$/m, 'user staging survives');
     assert.match(status, /^ M base\.txt$/m, 'user edit survives');
@@ -122,7 +123,7 @@ test('chats: offered answers are validated; every human-facing message is one co
     assert.equal(Number((await git(root, ['rev-list', '--count', 'HEAD'])).trim()), Number(commitsBefore) + 1, 'the answer is exactly one commit');
     const message = await git(root, ['log', '-1', '--format=%B']);
     assert.match(created.chat.name, /^Fixer asks: Retry\? — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/, 'a new chat gets its creation date/time in its name');
-    assert.ok(message.includes(`ptbk: Chat - ${created.chat.name}\n`), message);
+    assert.ok(message.includes(`\`ptbk\` \`chat.turn\` - Chat - ${created.chat.name}\n`), message);
     assert.ok(message.includes(`Chat-Name: ${created.chat.name}\n`), message);
     assert.equal(answered.written.chat.name, created.chat.name, 'appending never renames the chat');
     assert.match(message, /^Task-Name: Broken task$/m);

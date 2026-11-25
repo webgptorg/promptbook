@@ -24,21 +24,28 @@ Save accepted ordinary text and import changes promptly. Combine compatible chan
 
 Track the exact paths and accepted content. Use shared ownership and revision checks to preserve unrelated staging and concurrent edits. Before a competing engine write or conflicting synchronization can change an affected path, safely flush the applicable pending commit or report/defer the conflict. Unrelated work can proceed. If a task already owns the file or an external edit invalidates the accepted revision, preserve both sides and report the block. Never stage a changed working copy as if it were the accepted version.
 
-Distinguish **Saved · Pending commit**, **Committed**, and any blocked or failed persistence with its cause. **Commit now** flushes the selected safe batch early. After interruption, resume or reconcile its persistence without replaying the user operation. Empty/no-op batches create no commit. Commit subjects describe the operation under the usual `ptbk: ` prefix, for example `ptbk: Import 12 files into docs/assets`, and metadata identifies Promptbook Desktop as the operation source. Local commits still occur during task Pause. Remote publication follows [Git synchronization](git-synchronization.md) and is separate from local persistence.
+Distinguish **Saved · Pending commit**, **Committed**, and any blocked or failed persistence with its cause. **Commit now** flushes the selected safe batch early. After interruption, resume or reconcile its persistence without replaying the user operation. Empty/no-op batches create no commit. Commit subjects describe the operation under the shared automatic commit format, for example `` `ptbk` `project.update` - Import 12 files into docs/assets ``, and metadata identifies Promptbook Desktop as the operation source. Local commits still occur during task Pause. Remote publication follows [Git synchronization](git-synchronization.md) and is separate from local persistence.
 
 ## Commit messages and history
 
-Every automatic engine subject starts with lowercase `ptbk: `, exactly once, followed by a meaningful operation summary. When actual agent work is responsible, include that agent's compact single-line textual visualization in backticks, using its shared [visual identity](../agents/visual-identity.md). Use the stable static identity, not an animation frame or a made-up system agent.
+Every automatic commit subject starts with lowercase `ptbk` in literal backticks, a space, the category in separate literal backticks, and an ASCII hyphen with one space on each side. For example:
 
-Agent-work subjects have the shape `ptbk: ` + backtick-quoted agent visual + space + meaningful subject, normally the task title for a task result. For example: ``ptbk: `~<@@/>-` Review export``. System operations use `ptbk: <operation summary>` without an invented agent. Do not automatically decorate subjects with another date/time: Git already records it. Preserve a date that is part of an actual declared name when needed for name correlation.
+```text
+`ptbk` `task.result` - `~<@@/>-` Review export
+`ptbk` `config.migrate` - Migrate configuration from 0.119.0-133 to 0.119.0-134
+```
 
-The body may explain the detailed work, assignment, decisions and external outcome; retain Task-Name/Chat-Name/source provenance. Other subjects identify setup, tool changes, migration, normalization, maintenance or integration. Chat batches keep actual authorship even when multiple agents contributed. Do not rewrite existing history to restyle older commit messages.
+The description of actual agent work starts with the responsible agent's static [visual identity](../agents/visual-identity.md) in backticks. Keep the operation summary meaningful. A declared name may contain its own date. Git records the commit timestamp separately.
+
+The default Git identity is Promptbook. Configured agent identity and signing settings still apply. Git trailers identify the source and category (`PTBK-Source`, `PTBK-Type`), the responsible agent when known (`PTBK-Agent`), and applicable task, chat and run provenance (`Task-Name`, `Chat-Name`, `PTBK-Run`). When multiple agents contribute to a chat batch, the Book preserves each message's author. History recognizes both the current and historical formats and shows the original messages on inspection.
+
+A running chat turn can hold its quiet batch until its reply or the hard age cap. Its messages and assets are saved immediately. Report generations cover related changes and requests in a separate `report.update` commit. Include an assignment known at creation in the task's creation commit. Routing that requires a later agent run retains its own checked changes. Related external action records share their bounded task audit batch. Checked results, configuration migrations, confirmed tool changes and actual branch integrations keep their separate histories.
 
 Engine-defined [system tasks](system-tasks.md) need no committed project definition. Their real versioned effects, including update policy, configuration/Book migrations and changed local package files, still use scoped system operation commits without a fictitious agent or Task-Name for a nonexistent Book. Capture the pre-migration content before transforming it; this never makes ignored secrets or external effects part of Git recovery.
 
 Task-attributable commits carry `Task-Name: <declared name>` and source/revision context, not generated IDs or filename identity. Creation, assignment, result, repair, integration and recurrence retain the name valid for that operation; explicit renames relate old/new names. Multi-task records distinguish executing work from generated follow-ups.
 
-History is append-only for automatic engine operations. Never rebase, amend, squash away commits, reset away history or force-push to manufacture cleanliness. Real integrations use visible non-fast-forward merge commits under [synchronization](git-synchronization.md); task worktrees are removed under [shared-tree isolation](isolation.md); already up-to-date input does not require an empty merge. Preserve each original result commit and its provenance. Specification-editing commits in this repository follow their requested `Specs - ...` convention, not the runtime `ptbk: ` convention.
+History is append-only for automatic engine operations. Never rebase, amend, squash away commits, reset away history or force-push to manufacture cleanliness. Real integrations use visible non-fast-forward merge commits under [synchronization](git-synchronization.md); task worktrees are removed under [shared-tree isolation](isolation.md); already up-to-date input does not require an empty merge. Preserve each original result commit and its provenance. Specification-editing commits in this repository follow their requested `Specs - ...` convention, not the automatic runtime convention.
 
 ## Concurrent operations and task results
 
@@ -64,7 +71,7 @@ Required configuration migrations and explicit saved `ptbk tool` management do n
 
 An uncommitted workflow may process its proven owned work, not adopt unrelated changes. Reentering committed mode requires reconciliation, never a surprise aggregate commit. Preserve `--git-changes fail|ignore|continue`: default refuses unrelated dirt, ignore retains it, continue reconciles proven interrupted work, including several active tasks and pending conversation batches. No flag transfers unknown ownership. No-commit conflicts with autosync, including legacy auto-pull/push aliases; task-worktree isolation is removed.
 
-Respect configured Git identity/signing, including `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`; report the effective identity when falling back to Git configuration.
+Respect configured Git identity/signing, including `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, `CODING_AGENT_GIT_SIGNING_KEY` and `CODING_AGENT_GPG_KEY_ID`; report the effective identity.
 
 A full revert may reverse result/completion together or remove a task created there. Reverts add history rather than rewriting it. Git cannot undo browser/external effects; preserve their evidence and never repeat them solely because a completion stamp disappeared.
 
@@ -72,6 +79,6 @@ A full revert may reverse result/completion together or remove a task created th
 
 ## Acceptance outcomes
 
-Verify creation commits before dispatch, one meaningful lowercase ptbk prefix with a backtick-quoted visual only for actual agent work, task/chat name correlation and one result per occurrence. Verify immediate message/file saves, meaningful debounced batches with a bounded flush, saved-versus-committed state and recovery after force stop before a commit. Interleave tool changes and task work, including same-file edits: preserve both scoped histories and unrelated staging. Test mandatory version-only migration commits, normalization no-ops, secret exclusion, failed hooks/signing and explicit uncommitted workflows. Pull/push failure does not rerun successful work; visible merge commits retain original results. Runtime controls and navigation create no commits.
+Verify creation commits before dispatch, the lowercase backtick-quoted marker and category, with a backtick-quoted visual only for actual agent work, task/chat name correlation and one result per occurrence. Verify immediate message/file saves, meaningful debounced batches with a bounded flush, saved-versus-committed state and recovery after force stop before a commit. Interleave tool changes and task work, including same-file edits: preserve both scoped histories and unrelated staging. Test mandatory version-only migration commits, normalization no-ops, secret exclusion, failed hooks/signing and explicit uncommitted workflows. Pull/push failure does not rerun successful work; visible merge commits retain original results. Runtime controls and navigation create no commits.
 
 See [authoring](authoring.md), [checks](checks.md), [recovery](recovery.md), [Git synchronization](git-synchronization.md) and [isolation](isolation.md).

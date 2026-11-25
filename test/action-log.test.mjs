@@ -113,7 +113,7 @@ test('action records: one committed Markdown per remote mutation, independent of
     const audit = (await messages(project)).filter((message) => /Action - Send email · Gmail/.test(message.split('\n')[0]));
     assert.equal(audit.length, 1, 'one scoped audit commit of the email');
     assert.match(audit[0], /^ptbk: Action - Send email · Gmail/);
-    assert.ok((await rawSubjects(project)).some((subject) => /^ptbk: `[^`]+` Action - Send email · Gmail$/.test(subject)), 'the subject quotes the acting agent’s visual');
+    assert.ok((await rawSubjects(project)).some((subject) => /^`ptbk` `action\.audit` - `[^`]+` Action - Send email · Gmail$/.test(subject)), 'the subject quotes the acting agent’s visual');
     assert.match(audit[0], /^Task-Name: Send the weekly news EXTERNAL_ACTIONS/m);
     await assert.rejects(readdir(join(project, actionDirectoryOf(quiet))), 'a task without external actions has no action directory');
     const touching = (await git(project, ['log', '--format=%s', '--', 'actions'])).trim().split('\n');

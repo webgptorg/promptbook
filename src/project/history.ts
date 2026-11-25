@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { PtbkError } from '../common/errors.js';
-import { git } from './git.js';
+import { AUTOMATIC_SUBJECT, git } from './git.js';
 
 /**
  * How a commit message was written: current Promptbook agent work (lowercase `ptbk: ` with a backtick-quoted agent
@@ -91,6 +91,12 @@ const RECORD = '\u001e';
  * @private Git history
  */
 export function classifySubject(subject: string): { readonly kind: CommitKind; readonly summary: string; readonly visual?: string } {
+    const automatic = AUTOMATIC_SUBJECT.exec(subject);
+    if (automatic) {
+        const description = automatic[2]!;
+        const visual = /^`([^`]+)` (.+)$/.exec(description);
+        return visual ? { kind: 'agent', summary: visual[2]!, visual: visual[1]! } : { kind: 'system', summary: description };
+    }
     const agent = /^ptbk: `([^`]+)` (.+)$/.exec(subject);
     if (agent) return { kind: 'agent', summary: agent[2]!, visual: agent[1]! };
     if (subject.startsWith('ptbk: ')) return { kind: 'system', summary: subject.slice('ptbk: '.length) };

@@ -102,7 +102,7 @@ test('desktop Files: text saves check revisions and ownership, share one batched
     await waitFor(async () => {
         const view = files.view();
         if (view.batches.length !== 0 || view.recent[0]?.outcome !== 'committed' || reserved.size !== 0) return false;
-        return (await log(project, 1))[0] === 'ptbk: Edit notes.md';
+        return (await log(project, 1))[0] === '`ptbk` `project.update` - Edit notes.md';
     }, { message: 'the batched commit and its completed cleanup', timeoutMs: 20_000, intervalMs: 50 });
     assert.equal((await git(project, ['rev-list', '--count', 'HEAD'])).trim(), '2', 'repeated saves of one file share one commit');
     assert.match(await git(project, ['log', '-1', '--format=%B']), /Operation-Source: Promptbook Desktop/);
@@ -141,7 +141,7 @@ test('desktop Files: text saves check revisions and ownership, share one batched
     assert.deepEqual(files.view().batches.map((batch) => batch.state), ['pending'], 'the newer save waits in its own batch, never blocked');
     await files.flush();
     assert.equal(await git(project, ['show', 'HEAD:docs/readme.md']), 'saved during the commit\n');
-    assert.deepEqual((await log(project, 2)), ['ptbk: Edit docs/readme.md', 'ptbk: Edit docs/readme.md']);
+    assert.deepEqual((await log(project, 2)), ['`ptbk` `project.update` - Edit docs/readme.md', '`ptbk` `project.update` - Edit docs/readme.md']);
     assert.equal(files.view().batches.length, 0);
 });
 
@@ -187,7 +187,7 @@ test('desktop Files: imports preflight collisions, hidden descendants and escapi
     await files.complete(moreApplied.id);
     assert.equal(files.view().batches.length, 1);
     await files.flush(files.view().batches[0].id);
-    assert.deepEqual(await log(project, 1), ['ptbk: Import 4 files into docs']);
+    assert.deepEqual(await log(project, 1), ['`ptbk` `project.update` - Import 4 files into docs']);
     assert.equal((await git(project, ['status', '--porcelain'])).trim(), '');
 
     // Skip and Replace.
@@ -234,7 +234,7 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     assert.equal(await readFile(join(project, 'docs', 'guide (2)', 'one.md'), 'utf8'), 'one\n');
     await assert.rejects(readFile(join(project, 'docs', 'guide (2)', '.hidden')), /ENOENT/, 'hidden descendants are not copied');
     await files.flush();
-    assert.deepEqual(await log(project, 1), ['ptbk: Copy 1 file into docs']);
+    assert.deepEqual(await log(project, 1), ['`ptbk` `project.update` - Copy 1 file into docs']);
 
     await mkdir(join(project, 'docs', 'secret'));
     await writeFile(join(project, 'docs', 'secret', '.env'), 'TOKEN=x\n');
@@ -247,7 +247,7 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     await assert.rejects(files.apply({ id: deletion.id }), /Confirm the deletion/);
     const deleted = await files.apply({ id: deletion.id, confirm: true });
     assert.deepEqual(deleted.accepted, ['docs/guide (2)']);
-    assert.deepEqual(await log(project, 1), ['ptbk: Delete docs/guide (2)'], 'a deletion is its own commit at once');
+    assert.deepEqual(await log(project, 1), ['`ptbk` `project.update` - Delete docs/guide (2)'], 'a deletion is its own commit at once');
     assert.equal(await readFile(join(project, 'tasks', 'x.book'), 'utf8'), 'TASK X\n');
     assert.equal(await readFile(join(project, 'docs', 'secret', '.env'), 'utf8'), 'TOKEN=x\n');
 
@@ -260,7 +260,7 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     await files.apply({ id: removal.id, confirm: true });
     assert.deepEqual(files.view().batches.map((item) => item.paths), [['docs/kept.txt']]);
     await files.flush();
-    assert.deepEqual(await log(project, 1), ['ptbk: Import 1 file into docs']);
+    assert.deepEqual(await log(project, 1), ['`ptbk` `project.update` - Import 1 file into docs']);
     assert.equal(files.view().batches.length, 0);
 
     // A deletion while that import's commit is in flight waits for it, then removes the committed file in its own commit.
@@ -274,7 +274,7 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     assert.ok(['pending', 'committing'].includes(files.view().batches.find((item) => item.paths.includes('docs/raced.txt'))?.state));
     await files.apply({ id: racedRemoval.id, confirm: true });
     await committing;
-    assert.deepEqual(await log(project, 2), ['ptbk: Delete docs/raced.txt', 'ptbk: Import 2 files into docs']);
+    assert.deepEqual(await log(project, 2), ['`ptbk` `project.update` - Delete docs/raced.txt', '`ptbk` `project.update` - Import 2 files into docs']);
     assert.equal(files.view().batches.length, 0, 'nothing is left blocked');
     await assert.rejects(readFile(join(project, 'docs', 'raced.txt')), /ENOENT/);
     assert.equal(await readFile(join(project, 'docs', 'stays.txt'), 'utf8'), 'docs/stays.txt\n');
@@ -294,7 +294,7 @@ test('desktop Files: copies within the project and confirmed deletions with prot
     await new Promise((resolve) => setTimeout(resolve, 700));
     assert.equal((await git(project, ['rev-parse', 'HEAD'])).trim(), before, 'an interrupted operation is not committed automatically');
     await session.files.flush(batch.id);
-    assert.deepEqual(await log(project, 1), ['ptbk: Import 1 file into docs']);
+    assert.deepEqual(await log(project, 1), ['`ptbk` `project.update` - Import 1 file into docs']);
     assert.deepEqual((await git(project, ['show', '--name-only', '--format=', 'HEAD'])).trim().split('\n'), ['docs/p.txt']);
 });
 
@@ -396,7 +396,7 @@ test('engine: desktop text saves and their commits continue during Pause; Histor
     const stale = await api('api/files/text', { path: 'notes.md', text: 'stale\n', revision: source.body.revision });
     assert.equal(stale.status, 409);
     assert.equal(stale.body.status, 'conflict');
-    await waitFor(async () => (await git(project, ['log', '-1', '--format=%s'])).trim() === 'ptbk: Edit notes.md' || undefined, { message: 'the commit during Pause', timeoutMs: 15_000 });
+    await waitFor(async () => (await git(project, ['log', '-1', '--format=%s'])).trim() === '`ptbk` `project.update` - Edit notes.md' || undefined, { message: 'the commit during Pause', timeoutMs: 15_000 });
     assert.equal((await api('api/state')).body.service.state, 'pause', 'the engine is still paused');
 
     // Commit now and History's branch scope through the same API.
