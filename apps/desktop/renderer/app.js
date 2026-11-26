@@ -37,18 +37,15 @@ function notice(message, error = false) {
     layout();
 }
 
-/** A persistent app-level offer remains visible while switching projects, without interrupting work. */
+/** Show the download action only while a matching installer is known. */
 function showUpdate(update) {
-    const panel = $('desktop-update');
-    const release = update.available;
-    panel.hidden = update.status === 'idle';
-    const message = update.status === 'checking' ? 'Checking for desktop updates…'
-        : update.status === 'unknown' ? `Desktop update availability is unknown: ${update.problem}`
-        : release ? `Promptbook desktop ${release.version} is available${update.channel === 'prerelease' ? ' (prerelease channel)' : ''}.`
-        : `Promptbook desktop ${update.current}: no newer installer in the ${update.channel} channel.`;
-    panel.replaceChildren(element('span', {}, message), ...(release ? [element('button', { onclick: () => void api.update('download').catch((error) => notice(error.message, true)) }, 'Download installer'),
-        element('small', {}, `${release.unsigned ? 'Unsigned experimental macOS build. ' : ''}Install at a suitable time; running tasks are not restarted.`)] : []));
-    requestAnimationFrame(layout);
+    $('update-detail').textContent = update.available?.unsigned ? 'Unsigned experimental macOS build' : '';
+    $('desktop-update').hidden = !update.available;
+}
+
+/** The project is a native child view. Leave exactly the visible footer height available for its button. */
+function reportUpdateHeight() {
+    api.updateBarHeight($('desktop-update').getBoundingClientRect().height);
 }
 
 /** Fit only the native console; its size has no bearing on the full-window App UI. */
@@ -311,12 +308,16 @@ api.onEvent((event) => {
     if (event.type === 'launch') { receivedLaunch = event; void refresh(); }
     else if (event.type === 'launcher') { selected = event.root; void launch(event.action, event.action === 'init' ? undefined : selected); }
     else if (event.type === 'update') showUpdate(event.update);
+    else if (event.type === 'focus-update') $('download-update').focus();
     else if (event.type === 'error') notice(event.message, true);
     else if (event.terminal) terminalEvent(event);
 });
 $('new-project').onclick = () => void launch('init');
 $('console').onclick = () => void launch('console');
 $('back').onclick = () => void launch('projects');
-void api.update().then(showUpdate).catch((error) => notice(error.message, true));
+$('download-update').onclick = () => void api.update('download').catch((error) => notice(error.message, true));
+void api.update().then(showUpdate).catch((error) => console.warn('Could not read the desktop update offer.', error));
+new ResizeObserver(reportUpdateHeight).observe($('desktop-update'));
+window.addEventListener('resize', reportUpdateHeight);
 new ResizeObserver(layout).observe($('terminal-host'));
 setInterval(() => void refresh(), 3000);

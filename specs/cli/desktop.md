@@ -19,7 +19,7 @@ Preserve the existing per-project supervisors, engine ownership, discovery regis
 
 ## Release discovery
 
-The desktop client independently discovers newer GitHub Releases under the shared [release-channel and update-offer contract](updates.md#discovery-and-offers-across-installation-methods). **Check for updates** is available in the window and application/tray menus. A nonmodal banner offers the matching Windows EXE or macOS architecture's DMG; downloads open in the user's browser, and unsigned experimental builds are labelled. Background discovery continues with only the tray open. It never installs or restarts automatically. Distinguish the client version from its running engines; the macOS bundle is updated as one installer-owned unit, while the Windows npm engine retains its own updater.
+The desktop client independently discovers newer GitHub Releases under the shared [release-channel and update-offer contract](updates.md#discovery-and-offers-across-installation-methods). **Check for updates** is available in the application and tray menus. When a matching Windows EXE or macOS DMG is available, a compact **Update available** button opens the installer in the user's browser. The button is available in the project chooser, CLI console and open projects. Unsigned experimental macOS builds are labelled. Checks that find no installer leave the window quiet. Background discovery continues with only the tray open. It never installs or restarts automatically. Distinguish the client version from its running engines; the macOS bundle is updated as one installer-owned unit, while the Windows npm engine retains its own updater.
 
 ## Tray and lifetime
 

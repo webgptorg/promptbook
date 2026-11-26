@@ -2,6 +2,8 @@
 
 # Unreleased
 
+- Desktop update checks stay quiet when there is no newer installer. A compact **Update available** button opens a matching installer from the project chooser, console or open project.
+
 - Keep the Windows notification area, title bar and taskbar icons visible in light, dark and mixed themes, including pinned shortcuts when Promptbook is closed.
 
 - Publish ptbk to npm through trusted publishing (GitHub Actions OIDC) instead of the `NPM_TOKEN` secret. The token had expired, so 0.119.0-134 and -135 passed every check and then failed with `404 Not Found - PUT https://registry.npmjs.org/ptbk`. Publication now fails early on an npm older than 11.5.1, and a refused upload explains how to check the trusted publisher. The trusted publisher must allow `npm publish`, not only staged publishing: otherwise npm answers `403 OIDC permission denied for this action`.

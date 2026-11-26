@@ -22,8 +22,10 @@ nav { display: grid; gap: 8px; margin-bottom: 22px; }
 .project { width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 13px 16px; }
 .project small { display: block; color: var(--muted); overflow-wrap: anywhere; }
 .state { white-space: nowrap; }
-#notice, #desktop-update { padding: 9px 24px; background: var(--surface); }
-#desktop-update small { margin-left: 8px; } #desktop-update button { margin: 0 8px; }
+#notice { padding: 9px 24px; background: var(--surface); }
+#desktop-update { flex: none; margin-top: auto; padding: 8px 24px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+#update-detail { color: var(--muted); }
+#update-detail:empty { display: none; }
 .error, .error-text { color: var(--danger); }
 #terminal-pane { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 10px 16px; }
 #terminal-tabs { display: flex; gap: 6px; }

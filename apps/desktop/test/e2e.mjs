@@ -19,6 +19,48 @@ async function inProject(application, expression) {
     }, { origin: projectOrigin, script: expression });
 }
 
+/** Exercise the real update IPC and native view layout with a fixture release feed and no external download. */
+async function checkDesktopUpdate(application, page) {
+    const { version, name } = await application.evaluate(({ app }) => {
+        const [major, minor, patch] = app.getVersion().split(/[-+]/)[0].split('.').map(Number);
+        const version = [major, minor, patch + 1].join('.');
+        const name = process.platform === 'win32' ? `Promptbook-Setup-${version}-windows-x64.exe`
+            : process.platform === 'darwin' ? `Promptbook-${version}-macos-${process.arch}.dmg` : undefined;
+        return { version, name };
+    });
+    const check = async (releases) => {
+        await application.evaluate((_electron, releases) => { globalThis.fetch = async () => Response.json(releases); }, releases);
+        await page.evaluate(() => window.desktop.update('check'));
+    };
+    const footer = page.locator('#desktop-update');
+    if (name) {
+        const opened = await application.evaluateHandle(({ shell }) => {
+            const urls = [];
+            shell.openExternal = async (url) => { urls.push(url); };
+            return urls;
+        });
+        await check([{ tag_name: 'v' + version, assets: [{ name, state: 'uploaded', size: 100 }] }]);
+        const button = footer.getByRole('button', { name: 'Update available', exact: true });
+        await button.waitFor({ state: 'visible' });
+        const { height } = await footer.boundingBox();
+        await waitFor(() => application.evaluate(({ BrowserWindow }, height) => {
+            const [window] = BrowserWindow.getAllWindows();
+            const [view] = window.contentView.children;
+            const inset = Math.ceil(height * window.webContents.getZoomFactor());
+            return view?.getBounds().height === window.getContentSize()[1] - inset;
+        }, height), { timeoutMs: 5000, message: 'open project leaves the update button accessible' });
+        await button.click();
+        await waitFor(() => opened.evaluate((urls) => urls.length > 0), { timeoutMs: 5000, message: 'the download reaches the browser handoff' });
+        assert.deepEqual(await opened.jsonValue(), [`https://github.com/webgptorg/promptbook/releases/download/v${version}/${name}`]);
+    }
+    await check([]);
+    await footer.waitFor({ state: 'hidden' });
+    await waitFor(() => application.evaluate(({ BrowserWindow }) => {
+        const [window] = BrowserWindow.getAllWindows();
+        return window.contentView.children[0]?.getBounds().height === window.getContentSize()[1];
+    }), { timeoutMs: 5000, message: 'no update leaves the whole window to the open project' });
+}
+
 /** One install, two unpaired engines. The first project even has its ordinary HTTP dashboard disabled. */
 test('the bundled App opens real local projects, writes through the same API and switches without pairing', { timeout: 180000 }, async (t) => {
     const first = await initializedProject(t);
@@ -88,6 +130,7 @@ test('the bundled App opens real local projects, writes through the same API and
     await projectButtons.filter({ hasText: second.project }).click();
     await mounted();
     assert.equal(await inProject(application, containsChat), false);
+    await checkDesktopUpdate(application, shell);
     await application.close();
     const after = await status(first.project);
     assert.equal(after.service.instanceId, before.service.instanceId);

@@ -23,6 +23,7 @@ const desktopUpdates = new DesktopUpdates({ current: app.getVersion(), platform:
 let tray, bridge, runtime, clipboardDirectory, bundle;
 let requestId = 0;
 let refreshingTray = false;
+let checkingFromMenu = false;
 let quitInProgress = false;
 let quitting = false;
 
@@ -169,11 +170,11 @@ function hideDashboard(entry) {
     entry.instance = undefined;
 }
 
-/** Full-window project UI, including on resize and after leaving the launcher. */
+/** Fill the window down to the update button, or to the bottom when the footer is hidden. */
 function resizeProject(entry) {
     if (!entry.view) return;
     const [width, height] = entry.window.getContentSize();
-    entry.view.setBounds({ x: 0, y: 0, width, height });
+    entry.view.setBounds({ x: 0, y: 0, width, height: Math.max(0, height - entry.updateBarHeight) });
 }
 
 /** A local navigation back to the project list, including the upstream switcher's All projects/Add project links. */
@@ -232,7 +233,7 @@ async function openProject(entry, root) {
 function createWindow(launch = {}) {
     const window = new BrowserWindow({ width: 1280, height: 850, minWidth: 720, minHeight: 520, title: 'Promptbook', show: false,
         ...(!isMac && { icon: windowsIcons.current().window }), webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
-    const entry = { window, terminals: new Map(), generation: 0, root: launch.root };
+    const entry = { window, terminals: new Map(), generation: 0, root: launch.root, updateBarHeight: 0 };
     windows.set(window.id, entry);
     window.webContents.on('will-navigate', (event) => { if (event.url !== shellUrl) event.preventDefault(); });
     window.webContents.setWindowOpenHandler(({ url }) => { void externalLink(url, window); return { action: 'deny' }; });
@@ -323,7 +324,7 @@ async function refreshTray() {
         ...(problem || host?.problem ? [{ label: 'Discovery unavailable — open to inspect', click: () => createWindow() }] : []),
         { type: 'separator' },
         { label: 'About Promptbook', click: () => app.showAboutPanel() },
-        { label: 'Check for updates…', click: () => { if (!windows.size) createWindow(); void desktopUpdates.check(); } },
+        { label: 'Check for updates…', click: checkForDesktopUpdates },
         { label: quitInProgress ? 'Stopping engines…' : 'Quit Promptbook and engines…', enabled: !quitInProgress, click: () => void quitAll() },
     ];
     for (const entry of windows.values()) {
@@ -341,13 +342,25 @@ async function refreshTray() {
 }
 
 ipcMain.handle('desktop:observe', async (event) => { owner(event); return { ...await controller('observe'), home: app.getPath('home'), version: app.getVersion() }; });
-ipcMain.handle('desktop:update', (event, action) => {
-    owner(event);
+ipcMain.on('desktop:update-bar-height', (event, height) => {
+    if (!Number.isFinite(height) || height < 0) return;
+    let entry;
+    try { entry = owner(event); } catch { return; }
+    const heightInDip = Math.ceil(height * entry.window.webContents.getZoomFactor());
+    if (entry.updateBarHeight === heightInDip) return;
+    entry.updateBarHeight = heightInDip;
+    resizeProject(entry);
+});
+ipcMain.handle('desktop:update', async (event, action) => {
+    const { window } = owner(event);
     if (action === 'check') return desktopUpdates.check();
     if (action === 'download') {
         const release = desktopUpdates.state.available;
-        if (!release) throw new Error('No matching desktop installer is known. Check for updates first.');
-        return shell.openExternal(release.url);
+        if (release) {
+            try { await shell.openExternal(release.url); }
+            catch (error) { await dialog.showMessageBox(window, { type: 'error', message: 'Could not open the desktop installer.', detail: error.message }); }
+        }
+        return;
     }
     if (action !== undefined) throw new Error('Invalid update action.');
     return desktopUpdates.state;
@@ -447,6 +460,29 @@ function launcher(action) {
     else createWindow({ action });
 }
 
+/** Manual checks keep the current project open. Surface lookup failures only to the person who requested the check. */
+async function checkForDesktopUpdates() {
+    if (checkingFromMenu) return;
+    checkingFromMenu = true;
+    try {
+        const update = await desktopUpdates.check();
+        if (update.status === 'unknown') {
+            await dialog.showMessageBox({ type: 'warning', message: 'Could not check for desktop updates.', detail: update.problem });
+        } else if (update.available) {
+            const entry = windows.get(BrowserWindow.getFocusedWindow()?.id) || windows.values().next().value;
+            if (entry) {
+                entry.window.show();
+                entry.window.webContents.focus();
+                emit(entry, { type: 'focus-update' });
+            } else {
+                createWindow({ action: 'projects' });
+            }
+        }
+    } finally {
+        checkingFromMenu = false;
+    }
+}
+
 void app.whenReady().then(async () => {
     desktopUpdates.start();
     app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/' });
@@ -469,7 +505,7 @@ void app.whenReady().then(async () => {
             { role: 'close' }, { role: 'quit' }, { label: 'Quit Promptbook and engines…', click: () => void quitAll() },
         ] },
         { role: 'editMenu' }, { role: 'viewMenu' },
-        { label: 'Updates', submenu: [{ label: 'Check for updates…', click: () => { launcher('projects'); void desktopUpdates.check(); } }] },
+        { label: 'Updates', submenu: [{ label: 'Check for updates…', click: checkForDesktopUpdates }] },
         ...(isMac ? [{ role: 'windowMenu' }] : []),
     ]);
     Menu.setApplicationMenu(menu);
