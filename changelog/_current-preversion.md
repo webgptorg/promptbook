@@ -2,6 +2,8 @@
 
 # Unreleased
 
+- Keep the Windows notification area, title bar and taskbar icons visible in light, dark and mixed themes, including pinned shortcuts when Promptbook is closed.
+
 - Publish ptbk to npm through trusted publishing (GitHub Actions OIDC) instead of the `NPM_TOKEN` secret. The token had expired, so 0.119.0-134 and -135 passed every check and then failed with `404 Not Found - PUT https://registry.npmjs.org/ptbk`. Publication now fails early on an npm older than 11.5.1, and a refused upload explains how to check the trusted publisher. The trusted publisher must allow `npm publish`, not only staged publishing: otherwise npm answers `403 OIDC permission denied for this action`.
 - Fix the package check (`npm run test:package`), which failed on every platform and blocked 0.119.0-136: it still expected the Expert bootstrap commit in the former `ptbk: ` subject format instead of the categorized `` `ptbk` `task.result` - `` format.
 - A transient GitHub API error no longer fails a release. One `HTTP 500` while the publication was waiting for the branch check run stopped 0.119.0-137 before npm. Reads now retry server errors, rate limits and network failures up to six times with growing pauses. Client errors and writes, such as re-running failed jobs, still fail at once.

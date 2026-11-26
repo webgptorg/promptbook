@@ -5,6 +5,8 @@ The header follows the application's selected appearance. The empty project view
 the homepage robot as a supporting illustration.
 The macOS menu-bar icon uses a monochrome native template with Retina resolution, so the system renders it white on a dark menu bar and black on a light menu bar, independently of the application's selected appearance.
 
+On Windows, the notification-area icon follows the Windows shell theme. The native window uses a white mark on dark chrome and an ink-blue mark on light chrome. When the app and shell themes differ, the title bar and taskbar can share the same window icon, so use the blue mark with a white outline on transparent pixels. The executable and pinned shortcuts always carry this outlined version, including when the app is closed. Refresh open windows and the tray when the theme changes.
+
 [Main specification](../_main.md) · [Windows installer](windows-installer.md) · [Global dashboard](global-dashboard.md) · [Initialization](initialization.md) · [Harness sessions](harness-sessions.md)
 
 ## Authority and scope
