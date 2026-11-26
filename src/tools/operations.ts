@@ -482,6 +482,8 @@ export async function remainingConsumers(project: Project, repositoryRoot: strin
  * @private shared tool management
  */
 export type ToolOperationContext = {
+    /** A native account verified asynchronously may replace only the configuration it actually verified. */
+    readonly expectedTool?: ToolRecord;
     readonly env: NodeJS.ProcessEnv;
     /** Tool names held by active work (empty without a running engine). */
     readonly inUse?: ReadonlySet<string>;
@@ -520,6 +522,14 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
         const head = parseConfigText(headText);
         if (working.diagnostics.length || head.diagnostics.length) throw new PtbkError('ptbk.json is not valid JSON.', { kind: 'configuration', project: project.root, reason: [...working.diagnostics, ...head.diagnostics].map((diagnostic) => diagnostic.message).join('; '), effect: 'Nothing was changed.' });
         const toolsOf = (raw: Record<string, unknown>): unknown[] => (Array.isArray(raw.tools) ? (raw.tools as unknown[]) : []);
+        if (context.expectedTool) {
+            const expected = context.expectedTool;
+            const expectedConfig = JSON.stringify(serializeTool(expected));
+            for (const raw of [head.raw, working.raw]) {
+                const current = parseTools(toolsOf(raw)).tools.find(tool => tool.name === expected.name);
+                if (!current || JSON.stringify(serializeTool(current)) !== expectedConfig) throw new PtbkError('The tool changed while signing in. Reopen its current setup.', { kind: 'conflict' });
+            }
+        }
         // The committed change is planned on HEAD; the same change is applied to the working copy, so someone else's
         // uncommitted edit of ptbk.json stays uncommitted and is never swept into this commit.
         const plan = planToolOperation(toolsOf(head.raw), request.operation);

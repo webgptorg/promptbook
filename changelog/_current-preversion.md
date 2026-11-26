@@ -13,6 +13,22 @@
 
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
 
+- Foreground service shutdown gives runtime cleanup one shared deadline after work settles. It stays alive to release the project lock and exits even when a provider leaves a handle open.
+
+- Browser setup warns before project creation when Linux cannot protect the Wallet key. The review explains which login features are unavailable and how to restore them.
+
+- The owner of a running project can reconnect an expired native AI account from the browser. An older Claude project can move its implicit shared login to a private profile after successful verification.
+
+- New projects give native Claude Code its own account profile throughout installation, sign-in and execution. Concurrent projects no longer rotate the same refresh token.
+
+- Gemini setup distinguishes a saved API selection from a Google login. A failed provider check shows its redacted diagnostic and offers sign-in again.
+
+- Changing AI tools during setup cancels the previous check and discards its progress and login prompt. Only the latest selection advances.
+
+- Claude Code offers an Anthropic API key directly from browser sign-in. The engine verifies it through a real request before saving it in the project’s ignored `.env`.
+
+- Browser setup reads Claude Code's native OSC 8 authorization links on headless servers. HTTPS links in the fallback terminal open in a separate tab.
+
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
 
 - Reconcile the project's Fixer and Chatter Books with the supplied core templates. Add Fixer's requirement-change, retry and duplicate-action safeguards and Chatter's project briefs and owner-directed coordination rules, preserving existing consultation policies, team membership, learned instructions and learning boundaries.

@@ -124,8 +124,11 @@ async function runForeground(context: CommandContext, project: Project, override
             outcome = summary.outcome;
             terminal.write(`${summary.message}\n`);
         } finally {
-            removeSignals();
-            await host.shutdown();
+            try {
+                await host.shutdown();
+            } finally {
+                removeSignals();
+            }
         }
         if (outcome !== 'restart') return EXIT.success;
         terminal.write('Restarting the foreground service with the same configuration…\n');

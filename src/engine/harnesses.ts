@@ -29,6 +29,17 @@ export function accountHome(plugin: HarnessPlugin, accountProfile: string, env: 
 }
 
 /**
+ * Initial native instance. Claude's rotating credentials belong to a stable project identity across setup and restart.
+ * @private harness setup
+ */
+export function nativeSetupTool(plugin: HarnessPlugin, projectId?: string): HarnessToolRecord {
+    return {
+        type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE',
+        ...(plugin.id === 'claude-code' && projectId ? { accountProfile: 'project-' + projectId } : {}),
+    };
+}
+
+/**
  * Hosted inference and cloud-account credentials a credential-free `NONE` connection never inherits, whichever adapter
  * runs it: hosted model API keys and endpoints, AWS (Bedrock), Google Cloud (Vertex AI) and Azure account credentials.
  * Unrelated credentials (for example a GitHub token used by the work itself) stay available.
@@ -71,7 +82,11 @@ export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolReco
     if (tool.authentication === 'NONE') remove(CLOUD_CREDENTIAL_VARIABLES);
     Object.assign(env, plugin.modeEnvironment?.[tool.authentication] ?? {});
     if (tool.authentication === 'NATIVE') {
-        if (tool.accountProfile && plugin.accountHomeVariable) env[plugin.accountHomeVariable] = accountHome(plugin, tool.accountProfile, base);
+        if (tool.accountProfile && plugin.accountHomeVariable) {
+            const home = accountHome(plugin, tool.accountProfile, base);
+            env[plugin.accountHomeVariable] = home;
+            if (plugin.id === 'claude-code' && tool.accountProfile.startsWith('project-')) env.CLAUDE_SECURESTORAGE_CONFIG_DIR = home;
+        }
     } else if (tool.authentication === 'API_KEY') {
         if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
         const setup = plugin.setupApiKey;
@@ -414,7 +429,7 @@ export class HarnessPool {
         const mark = this.unavailable.get(name);
         const tool = this.instance(name);
         if (!inspection || !tool || this.inspectedConfig.get(name) !== this.inspectionFingerprint(tool)) return undefined;
-        if (mark && mark.identity === this.fingerprint(tool) && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: 'error', nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction, ...(mark.kind === 'quota' || mark.kind === 'technical' ? { recheckAt: mark.until } : {}) };
+        if (mark && mark.identity === this.fingerprint(tool) && mark.until > Date.now()) return { ...inspection, usable: false, summary: `${mark.reason} (rechecked after ${formatShortTime(mark.until)})`, problem: mark.kind === 'authentication' ? 'signed-out' : 'error', ...(mark.kind === 'authentication' ? { authenticated: false as const } : {}), nextAction: mark.kind === 'quota' ? 'Wait for the reset, or enable another instance of this variant as a fallback.' : inspection.nextAction, ...(mark.kind === 'quota' || mark.kind === 'technical' ? { recheckAt: mark.until } : {}) };
         if (mark) this.unavailable.delete(name);
         return tool.inferenceRuntime ? this.localReadiness(tool, inspection) : inspection;
     }
@@ -591,6 +606,15 @@ export class HarnessPool {
      */
     public markTechnical(name: string, diagnostic: string, context?: HarnessContext): void {
         this.markUnavailable(name, 'technical', `Technical failure: ${diagnostic}`, TECHNICAL_RECHECK_MS, context);
+    }
+
+    /** Clears only an authentication failure on the exact instance that the owner has just verified. */
+    public authenticated(context: HarnessContext): void {
+        const tool = context.tool;
+        if (!tool) return;
+        const mark = this.unavailable.get(tool.name);
+        if (mark?.kind === 'authentication' && mark.identity === this.fingerprint(tool, context.env)) this.unavailable.delete(tool.name);
+        this.invalidate(tool.name);
     }
 
     /** Marks a variant or instance for recheck (e.g. after an authentication failure). */

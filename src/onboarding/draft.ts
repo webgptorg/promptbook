@@ -31,6 +31,8 @@ export type OnboardingDraft = {
     readonly title?: string;
     readonly folder?: string;
     readonly activity?: readonly OnboardingActivity[];
+    /** Inform the owner before creation if this host cannot protect Wallet credentials. */
+    readonly walletProblem?: string;
 };
 
 /** The engine's private staging area, on the same filesystem as the resulting project. @private onboarding */

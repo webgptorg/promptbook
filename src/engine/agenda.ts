@@ -78,6 +78,7 @@ import {
     validateAssignment,
     workKindOf,
 } from './generated.js';
+import type { RecoveryTarget } from '../onboarding/recovery.js';
 import { HarnessPool, instanceEnvironment } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
@@ -5411,13 +5412,14 @@ export class Agenda {
      * a stopped project's CLI, with the in-use set of active work, the Git lock and synchronization attempts. The new
      * inventory is effective at once, also for the task running now.
      */
-    public async toolOperation(request: ToolOperationRequest): Promise<ToolOperationOutcome> {
+    public async toolOperation(request: ToolOperationRequest, expectedTool?: HarnessToolRecord): Promise<ToolOperationOutcome> {
         const configPath = this.options.project.configPath;
         // Never attribute the configuration write to the active task while it is being committed separately.
         const alreadyAuthored = this.authoredPaths.has(configPath);
         this.authoredPaths.add(configPath);
         try {
             const outcome = await applyToolOperation(this.options.project, request, {
+                expectedTool,
                 env: this.options.env,
                 inUse: this.toolsInUse(),
                 gitLock: (action) => this.gitMutex.run(action),
@@ -5433,6 +5435,33 @@ export class Agenda {
         } finally {
             if (!alreadyAuthored) this.authoredPaths.delete(configPath);
         }
+    }
+
+    /** First enabled native account that cannot serve work until its owner signs in. */
+    public harnessNeedingSignIn(): RecoveryTarget | undefined {
+        const tool = this.pool?.instances().find(item => item.authentication === 'NATIVE' && this.pool.inspectionOf(item.name)?.problem === 'signed-out');
+        if (!tool) return undefined;
+        const plugin = this.pool.plugin(tool.name);
+        if (!plugin) return undefined;
+        let context = this.pool.context(tool.name);
+        // An existing implicit shared Claude home is migrated only after the owner has verified a new login.
+        // Explicit account selectors continue to address the operator's chosen store.
+        if (plugin.id === 'claude-code' && !tool.accountProfile && this.options.env.CLAUDE_CONFIG_DIR === undefined && this.options.env.CLAUDE_SECURESTORAGE_CONFIG_DIR === undefined) {
+            const isolated = { ...tool, accountProfile: 'project-' + shortHash(this.options.project.root + '\0' + tool.name, 24) };
+            context = { ...context, tool: isolated, env: this.pool.environment(isolated) };
+        }
+        return { plugin, tool, context };
+    }
+
+    /** Wake waiting work after the owner's real check of this exact account. */
+    public async harnessSignedIn(target: RecoveryTarget): Promise<void> {
+        const profile = target.context.tool?.accountProfile;
+        if (profile && profile !== target.tool.accountProfile) {
+            const result = await this.toolOperation({ operation: { kind: 'modify', name: target.tool.name, changes: { accountProfile: profile } }, via: 'api' }, target.tool);
+            if (result.status === 'needs-acknowledgement') throw new PtbkError(result.summary, { kind: 'conflict' });
+        }
+        this.pool.authenticated(target.context);
+        await this.recheckTools();
     }
 
     /**

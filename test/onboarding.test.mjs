@@ -11,7 +11,7 @@ import { onboardingDocuments, onboardingPage } from '../dist/app/web/onboarding-
 import { AccessStore } from '../dist/app/web/access.js';
 import { Gateway, SESSION_COOKIE_NAME } from '../dist/app/web/gateway.js';
 import { harnessTerminalPage } from '../dist/app/web/harness-terminal.js';
-import { HarnessPool } from '../dist/engine/harnesses.js';
+import { HarnessPool, instanceEnvironment, nativeSetupTool } from '../dist/engine/harnesses.js';
 import { loadSettings } from '../dist/project/config.js';
 import { harnessLoginMethods } from '../dist/harness/maintenance.js';
 import { harnessPlugin } from '../dist/harness/registry.js';
@@ -91,6 +91,78 @@ test('an additional harness failure remains visible with the real completed chec
     api.ENGINE_API_ROUTES.getOnboarding.responses[200].schema.parse(review);
     const restored = new OnboardingSession(project, await readOnboarding(project), session.uploads, fixture.env, async () => assert.fail('not confirmed'));
     assert.deepEqual(restored.state(), review);
+});
+
+test('Claude uses a stable private profile for each engine from the first check through restart', async (t) => {
+    const first = await pending(t);
+    const second = await pending(t);
+    const plugin = harnessPlugin('claude-code');
+    const env = { HOME: first.home, CLAUDE_CONFIG_DIR: '/legacy', CLAUDE_SECURESTORAGE_CONFIG_DIR: '/shared' };
+    const profile = project => instanceEnvironment(plugin, nativeSetupTool(plugin, project.draft.engineId), undefined, env);
+    assert.notEqual(profile(first).CLAUDE_CONFIG_DIR, profile(second).CLAUDE_CONFIG_DIR);
+    assert.equal(profile(first).CLAUDE_SECURESTORAGE_CONFIG_DIR, profile(first).CLAUDE_CONFIG_DIR);
+    assert.equal(profile(first).CLAUDE_CONFIG_DIR, profile({ draft: await readOnboarding(first.project) }).CLAUDE_CONFIG_DIR);
+    assert.equal(instanceEnvironment(plugin, nativeSetupTool(plugin), undefined, env).CLAUDE_CONFIG_DIR, '/legacy');
+});
+
+test('changing tools during a sign-in drops stale activity and verifies only the new selection', { skip: process.platform === 'win32' }, async (t) => {
+    const { home, project, draft } = await pending(t);
+    const { env } = await fakeApiHarness(t, home, 'gemini');
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), env, async () => assert.fail());
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['gemini'] }));
+    const login = await waitFor(() => session.signInOptions() && session.state());
+    const back = await session.answer({ promptId: login.prompt.id, action: 'back' });
+    assert.deepEqual(back.activity, []);
+    const empty = await session.answer(answer(back, { kind: 'choice', choiceIds: [] }));
+    assert.deepEqual(empty.prompt.initial, []);
+    assert.match(empty.prompt.error, /at least one/);
+    await session.answer(answer(empty, { kind: 'choice', choiceIds: ['openai-codex'] }));
+    await assert.rejects(session.answer(answer(login, { kind: 'confirm', confirmed: true })), /changed/);
+    await waitFor(() => session.state().prompt?.title === 'Project name');
+    assert.deepEqual(session.state().activity.map(({ id, status }) => [id, status]), [['openai-codex-check', 'done']]);
+    assert.deepEqual((await readOnboarding(project)).harnesses, ['openai-codex']);
+});
+
+test('an apparently signed-in Gemini that fails inference offers sign-in and shows a redacted CLI diagnostic', { skip: process.platform === 'win32' }, async (t) => {
+    const { home, project, draft } = await pending(t);
+    const { env } = await fakeApiHarness(t, home, 'gemini');
+    const config = join(env.GEMINI_CLI_HOME, '.gemini');
+    await mkdir(config, { recursive: true });
+    await writeFile(join(config, 'oauth_creds.json'), '{}');
+    await writeFile(join(home, 'provider-bin', 'gemini'), `#!/bin/sh
+if test "$1" = '--version'; then echo 3.0.0; else echo 'Workspace access denied for fixture-secret-value' >&2; exit 1; fi
+`);
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), { ...env, TEST_ACCESS_TOKEN: 'fixture-secret-value' }, async () => assert.fail());
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['gemini'] }));
+    const state = await waitFor(() => session.signInOptions() && session.state());
+    assert.match(state.prompt.error, /Workspace access denied/);
+    assert.doesNotMatch(JSON.stringify(state), /fixture-secret-value/);
+    assert(state.prompt.alternatives.some(item => item.id === 'api-key'));
+});
+
+test('a rootless server with systemd 255 can review and create its project with an actionable Wallet notice', { skip: process.platform !== 'linux' }, async t => {
+    const { home, project, draft } = await pending(t);
+    const { env } = await fakeHarness(t, home);
+    delete env.PTBK_HOST_UNLOCK;
+    const executable = join(home, 'fake bin', 'systemd-creds');
+    await writeFile(executable, '#!/bin/sh\nif test "$1" = --user; then echo "Unknown option --user" >&2; else echo "Permission denied" >&2; fi\nexit 1\n', { mode: 0o755 });
+    let created = false;
+    const session = new OnboardingSession(project, draft, new OnboardingUploads(join(project.root, 'uploads')), env, async (_, save) => { created = true; await save({ step: 'done' }); });
+    t.after(() => session.stop());
+    await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['openai-codex'] }));
+    await waitFor(() => session.state().prompt?.title === 'Project name');
+    await session.answer(answer(session.state(), { kind: 'text', text: 'Database', fileIds: [] }));
+    await session.answer(answer(session.state(), { kind: 'text', text: 'database', fileIds: [] }));
+    const review = session.state();
+    assert.match(review.prompt.details.find(item => item.label === 'Wallet').text, /Wallet cannot save logins.*systemd 256/i);
+    api.ENGINE_API_ROUTES.getOnboarding.responses[200].schema.parse(review);
+    await session.answer(answer(review, { kind: 'confirm', confirmed: true }));
+    await waitFor(() => created);
 });
 
 test('an HTTPS pairing URL supplies the dashboard and its origin survives a fresh process', async (t) => {
@@ -245,41 +317,56 @@ test('the pending engine ships a same-origin onboarding script', async () => {
     assert.doesNotMatch(await script.text(), /innerHTML|eval\(/);
 });
 
-for (const mode of ['return-code', 'terminal']) test('the owner can complete Claude Code sign-in with ' + mode, { skip: process.platform === 'win32' }, async (t) => {
+for (const mode of ['return-code', 'terminal', 'api-key']) test('the owner can complete Claude Code sign-in with ' + mode, { skip: process.platform === 'win32' }, async (t) => {
     const { home, project, draft } = await pending(t);
     const bin = join(home, 'fake bin');
     await mkdir(bin);
     const code = 'fixture-one-time-code';
     const marker = join(home, 'claude-ready');
+    const recorded = JSON.parse(await readFile(new URL('./fixtures/claude-code-2.1.330-login.json', import.meta.url), 'utf8'));
+    const loginOutput = join(home, 'claude-login-output');
+    await writeFile(loginOutput, recorded.output);
     const executable = join(bin, 'claude');
     await writeFile(executable, `#!/bin/sh
 case "$*" in
-  --version) echo '2.0.0 (Claude Code)' ;;
+  --version) echo '2.1.330 (Claude Code)' ;;
   'auth status --json')
     if test -f "$TEST_CLAUDE_STATE"; then echo '{"loggedIn":true,"authMethod":"oauth"}'; else echo '{"loggedIn":false}'; fi ;;
   'auth login --help') echo 'Usage: claude auth login --claudeai' ;;
   'auth login --claudeai')
     test -t 0 && test -t 1 || exit 1
     stty -echo
-    printf 'Open https://claude.ai/oauth/authorize?state=fixture-state\\n'
-    printf 'Paste code at the native prompt: '
+    cat "$TEST_CLAUDE_LOGIN_OUTPUT"
     IFS= read -r code
     test "$code" = '${code}' && touch "$TEST_CLAUDE_STATE" ;;
-  -p*) echo '{"type":"result","subtype":"success","result":"PONG"}' ;;
+  -p*) test -f "$TEST_CLAUDE_STATE" || { test "$ANTHROPIC_API_KEY" = 'fixture-anthropic' && test -n "$CLAUDE_CONFIG_DIR" && test -z "$CLAUDE_CODE_OAUTH_TOKEN"; } || exit 1
+       echo '{"type":"result","subtype":"success","result":"PONG"}' ;;
 esac
 `);
     await chmod(executable, 0o755);
-    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, TEST_CLAUDE_STATE: marker };
+    const env = { ...process.env, PATH: bin + delimiter + process.env.PATH, TEST_CLAUDE_STATE: marker, TEST_CLAUDE_LOGIN_OUTPUT: loginOutput };
     const uploads = new OnboardingUploads(join(project.root, 'uploads'));
     const session = new OnboardingSession(project, draft, uploads, env, async () => assert.fail('not confirmed'));
     t.after(() => session.stop());
     await session.answer(answer(session.state(), { kind: 'text', text: '', fileIds: [] }));
     await session.answer(answer(session.state(), { kind: 'choice', choiceIds: ['claude-code'] }));
     await waitFor(() => session.state().prompt?.kind === 'harness-login', { timeoutMs: 6000, intervalMs: 40 });
+    if (mode === 'api-key') {
+        const waiting = session.state();
+        assert(waiting.prompt.alternatives.some(item => item.id === 'api-key'));
+        await session.answer({ promptId: waiting.prompt.id, action: 'alternative', alternativeId: 'api-key' });
+        const secret = await waitFor(() => session.state().prompt?.kind === 'secret' && session.state(), { timeoutMs: 6000 });
+        assert.equal(secret.prompt.helpUrl, 'https://console.anthropic.com/settings/keys');
+        await session.answer(answer(secret, { kind: 'secret', value: 'fixture-anthropic' }));
+        await waitFor(() => session.state().prompt?.title === 'Project name', { timeoutMs: 6000 });
+        assert.equal((await readPreparedApiHarness(project.root, harnessPlugin('claude-code'))).credential.name, 'PTBK_ANTHROPIC_API_KEY');
+        assert(!JSON.stringify(await readOnboarding(project)).includes('fixture-anthropic'));
+        return;
+    }
     if (mode === 'return-code') {
         const waiting = session.state();
         assert.equal(waiting.prompt.method, 'return-code');
-        assert.match(waiting.prompt.url, /^https:\/\/claude\.ai\/oauth\/authorize/);
+        assert.equal(waiting.prompt.url, recorded.url);
         await assert.rejects(session.answer(answer(waiting, { kind: 'harness-login', returnCode: 'code\nextra-input' })), /one line/);
         await session.answer(answer(waiting, { kind: 'harness-login', returnCode: code }));
         await assert.rejects(session.answer(answer(waiting, { kind: 'harness-login', returnCode: code })), /changed/);
@@ -292,7 +379,7 @@ esac
     const waiting = session.state();
     const hostname = 'engine.example.test';
     const path = '/_ptbk/harness-terminal';
-    assert.equal(session.signInOptions().apiKey, undefined);
+    assert.equal(session.signInOptions().apiKey.label, 'Anthropic API key');
     const inactive = await harnessTerminalPage(new Request(`https://${hostname}${path}`), { role: 'owner' }, { signInOptions: () => undefined, prepareTerminal: async () => {} });
     assert.equal(inactive.status, 404);
     const cookies = { owner: 'a'.repeat(22), outsider: 'b'.repeat(22), second: 'c'.repeat(22) };
@@ -324,7 +411,7 @@ esac
     assert.equal((await send({ action: 'start' })).status, 200);
     assert.equal((await send({ action: 'read', offset: 0 }, cookies.second)).status, 409);
     await assert.rejects(session.terminal('local', { id: randomUUID(), promptId: waiting.prompt.id, action: 'start' }), /already open/);
-    await waitFor(async () => (await (await send({ action: 'read', offset: 0 })).json()).output.includes('Paste code at the native prompt'), { timeoutMs: 5000, intervalMs: 40 });
+    await waitFor(async () => (await (await send({ action: 'read', offset: 0 })).json()).output.includes('Paste code here if prompted'), { timeoutMs: 5000, intervalMs: 40 });
     assert.equal((await send({ action: 'write', data: code + '\r' })).status, 200);
     const frame = await waitFor(async () => {
         const current = await (await send({ action: 'read', offset: 0 })).json();
