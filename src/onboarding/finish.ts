@@ -7,6 +7,7 @@ import { COMMANDS } from '../cli/registry.js';
 import { PtbkError } from '../common/errors.js';
 import { readTextIfExists, writeFileAtomic } from '../common/fs.js';
 import { harnessPlugin } from '../harness/registry.js';
+import type { LocalSetupResult } from '../inference/setup.js';
 import { gitOrThrow } from '../project/git.js';
 import { projectAt, type Project } from '../project/workspace.js';
 import { ensureKnownProject } from '../service/known-projects.js';
@@ -28,6 +29,7 @@ async function initializeStaged(
     draft: OnboardingDraft,
     uploads: OnboardingUploads,
     env: NodeJS.ProcessEnv,
+    local?: LocalSetupResult,
 ): Promise<void> {
     const parent = dirname(built.root);
     // A crash before the publication receipt may leave a partial setup. Rebuild only this engine's private output.
@@ -45,7 +47,12 @@ async function initializeStaged(
     const result = await initializeProject({
         path: ['init'],
         spec: COMMANDS.find((command) => command.name === 'init')!,
-        options: { installation: 'global', harness: [...(draft.harnesses ?? [])], 'self-update': 'no', 'auto-sync': false, 'browser-profile': 'global', 'browser-mode': 'headless' },
+        options: {
+            installation: 'global',
+            harness: [...(draft.harnesses ?? [])],
+            ...(draft.localModel ? { 'local-runtime': draft.localModel.runtime, 'local-model': draft.localModel.model } : {}),
+            'self-update': 'no', 'auto-sync': false, 'browser-profile': 'global', 'browser-mode': 'headless',
+        },
         explicit: new Set(),
         positionals: [],
         terminal: { ...terminal, write: () => undefined, writeError: () => undefined },
@@ -54,7 +61,7 @@ async function initializeStaged(
         argv: [],
     }, {
         projectRoot: built.root,
-        prepared: { projectId: draft.engineId, title: draft.title!, segments: await uploads.segments(draft.intent ?? '', draft.fileIds ?? []), apiHarnesses },
+        prepared: { projectId: draft.engineId, title: draft.title!, segments: await uploads.segments(draft.intent ?? '', draft.fileIds ?? []), apiHarnesses, local, localDownload: draft.localModel?.download },
     });
     if (result.outcome !== 'ready' || !result.firstTask) {
         throw new PtbkError(result.unresolved[0] ?? 'The project did not pass its setup checks.', { kind: 'setup' });
@@ -74,6 +81,7 @@ export async function finishOnboarding(input: {
     readonly uploads: OnboardingUploads;
     readonly env: NodeJS.ProcessEnv;
     readonly persistent: boolean;
+    readonly local?: LocalSetupResult;
     readonly closeApp: () => Promise<void>;
     readonly save: (patch: Partial<OnboardingDraft>) => Promise<void>;
 }): Promise<Project | undefined> {
@@ -88,7 +96,7 @@ export async function finishOnboarding(input: {
         return directory?.isDirectory() === true && (await readTextIfExists(join(target.runtime.root, RECEIPT))) === draft.engineId;
     };
     if (draft.step === 'create') {
-        await initializeStaged(staging, built, draft, input.uploads, env);
+        await initializeStaged(staging, built, draft, input.uploads, env, input.local);
         await save({ step: 'publish' });
     }
     if (draft.step !== 'published') {
@@ -131,7 +139,7 @@ export async function finishOnboarding(input: {
     await ensureKnownProject(target, env);
     await launchDaemon(target, { cli: {}, persistent: input.persistent, env });
     await discardPreparedApiKeys(staging.root);
-    await save({ step: 'done', intent: undefined, fileIds: undefined, harnesses: undefined, error: undefined });
+    await save({ step: 'done', intent: undefined, fileIds: undefined, harnesses: undefined, localModel: undefined, error: undefined });
     await unregisterPersistence(staging).catch(() => undefined);
     await rm(input.uploads.directory, { force: true, recursive: true }).catch(() => undefined);
     await rm(dirname(built.root), { force: true, recursive: true }).catch(() => undefined);

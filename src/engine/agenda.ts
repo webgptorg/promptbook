@@ -21,7 +21,7 @@ import { readBookSource, type BookSource } from '../project/book-sources.js';
 import { validateAttachments } from '../chats/store.js';
 import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
-import { agentSubject, anyPathChanged, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
+import { agentSubject, anyPathChanged, commitPaths, git, inspectGit, prefixedSubject, stageableFiles } from '../project/git.js';
 import { ActionLog } from './action-log.js';
 import type { MethodologyEvidence } from './knowledge.js';
 import { appendBrief, findBrief, readLatestBrief, REPORT_AUTHOR, REPORT_FILE, REPORT_NAME, type ReportView } from './report.js';
@@ -629,7 +629,8 @@ export class Agenda {
         this.ownership = new FileOwnership(options.project.root, { onChange: () => this.touch() });
         this.chatBatches = new ChatCommitBatcher(options.project, {
             repositoryRoot: () => this.repositoryRoot,
-            commit: async (paths, subject, trailers) => await this.commitAuthoring(paths, subject, trailers),
+            commit: async (paths, subject, trailers, agentName) => await this.commitAuthoring(paths, subject, trailers, agentName),
+            turnActive: (chat) => [...this.units.values()].some((unit) => unit.kind === 'chat' && nameKey(unit.label) === nameKey(chat)),
             quietMs: Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || CHAT_BATCH_QUIET_MS,
             maxAgeMs: Math.max(Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || 0, CHAT_BATCH_MAX_AGE_MS),
             retryMs: 60_000,
@@ -717,7 +718,7 @@ export class Agenda {
             changed: () => this.touch(),
             wake: () => this.wake(),
             // Changed versioned package files are a scoped system operation commit (no agent, no Task-Name).
-            commit: async (paths, summary) => (this.commitMode && this.repositoryRoot ? await this.commitAuthoring(paths, summary) : undefined),
+            commit: async (paths, summary) => (this.commitMode && this.repositoryRoot ? await this.commitAuthoring(paths, prefixedSubject(summary, 'engine.update')) : undefined),
         });
         // A finite maintenance host is not the ongoing engine and has no Health sub-engine of its own.
         if (options.mode !== 'maintenance') {
@@ -738,7 +739,7 @@ export class Agenda {
 
     /**
      * Batched commits of human-facing chats: every accepted message is saved to its Book at once, and compatible saves
-     * of one chat share a bounded, debounced `ptbk: Chat - <name>` commit (never one per message).
+     * of one chat share a bounded, debounced `chat.turn` commit (never one per message).
      */
     private readonly chatBatches: ChatCommitBatcher;
     /** Engine-owned desktop Files edits, imports and bulk operations with their scoped commit batches. */
@@ -2185,6 +2186,7 @@ export class Agenda {
                     for (const chat of this.liveReplies.keys()) if (nameKey(chat) === key) this.liveReplies.delete(chat);
                     this.finishUnit(unit);
                 }
+                this.chatBatches.turnSettled();
                 if (failure) await this.chatReplyFailed(name, failure, options.agent);
                 else await this.clearChatRecheck(name);
                 if (turn?.reply) {
@@ -2429,7 +2431,7 @@ export class Agenda {
     }
 
     /** Commits authored paths under the Git lock (with name trailers such as `Task-Name`/`Chat-Name`). */
-    private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}): Promise<string | undefined> {
+    private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}, agentName?: string): Promise<string | undefined> {
         if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
         // A no-op has nothing to commit and triggers no remote work (also during Pause, where commits are the boundary).
         if (this.sync.view() && !(await anyPathChanged(this.options.project.root, this.repositoryRoot, paths))) return undefined;
@@ -2442,6 +2444,7 @@ export class Agenda {
                 paths,
                 subject: summary,
                 trailers,
+                agentName,
                 temporaryDirectory: this.options.project.runtime.temporary,
                 env: this.options.env,
             }),
@@ -2464,7 +2467,7 @@ export class Agenda {
         }
         // One bulk operation's records share a commit that says how many it covers.
         const count = record.count ?? 1;
-        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`), { 'Task-Name': record.subject.taskName || undefined });
+        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`, 'action.audit'), { 'Task-Name': record.subject.taskName || undefined, 'PTBK-Agent': record.subject.agent || undefined }, record.subject.agent || undefined);
         for (const path of paths) this.authoredPaths.delete(path);
         return 'committed';
     }
@@ -5018,7 +5021,7 @@ export class Agenda {
         this.reportCommitTimer = undefined;
         try {
             const evidence = setting<boolean>(this.settings, 'traces.isCommitted') ? await stageableFiles(this.options.project.root, 'traces/.chats/report') : [];
-            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`), { 'Chat-Name': REPORT_NAME });
+            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`, 'report.update'), { 'Chat-Name': REPORT_NAME, 'PTBK-Agent': REPORT_AUTHOR }, REPORT_AUTHOR);
             this.authoredPaths.delete(path);
             await this.setReportCommitPending(false);
         } catch (error) {
@@ -5350,7 +5353,7 @@ export class Agenda {
                 title: generatedName(`Resolve the synchronization conflict with ${conflict.upstream}`, { taken: await this.takenNames(), timeZone: this.timeZone }),
                 description: [
                     `Automatic Git synchronization could not merge \`${conflict.upstream}\` (${conflict.incoming} incoming commit(s)) into \`${conflict.branch}\`: both sides changed ${conflict.files.map((file) => `\`${file}\``).join(', ')}. The merge was aborted, so the local branch, history and working tree are unchanged.`,
-                    `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "ptbk: Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself".`,
+                    `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m ${JSON.stringify(prefixedSubject(`Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)`, 'git.merge')).replaceAll('`', '\\`').replaceAll('$', '\\$')} --trailer "PTBK-Source: engine" --trailer "PTBK-Type: git.merge" --trailer "PTBK-Agent: Fixer"\`. This merge commit is the one exception to "do not commit yourself".`,
                     'Never rebase, reset, amend, force-push or discard either side. If the conflict cannot be resolved safely, abort the merge (`git merge --abort`) and explain why.',
                 ].join('\n\n'),
                 commitments: ['TASK AGENT @Fixer', 'TASK PURPOSE SYSTEM', `TASK ORIGIN ${origin}`],

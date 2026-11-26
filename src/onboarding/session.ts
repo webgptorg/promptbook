@@ -7,10 +7,12 @@ import { instanceEnvironment, nativeSetupTool } from '../engine/harnesses.js';
 import { harnessLoginMethods, installHarness } from '../harness/maintenance.js';
 import { proposeProjectName, type PreparatoryCall } from '../harness/preparation.js';
 import { presentHarnessChallenge } from './harness-challenge.js';
-import { HARNESS_PLUGINS, harnessPlugin } from '../harness/registry.js';
+import { harnessPlugin } from '../harness/registry.js';
+import { discoverLocalSetup, localPreparatoryCall, planLocalSetup, prepareLocalSetup, type LocalSetupResult } from '../inference/setup.js';
+import { discoverHarnessChoices, harnessChoices, LOCAL_MODELS, selectionLabel, type HarnessDiscovery } from './harness-choices.js';
 import type { HarnessContext, HarnessLoginMethod, HarnessPlugin } from '../harness/types.js';
 import type { Project } from '../project/workspace.js';
-import type { HarnessToolRecord } from '../tools/model.js';
+import { harnessPluginId, type HarnessToolRecord } from '../tools/model.js';
 import { completedOnboarding, onboardingReply, type OnboardingPrompt, type OnboardingState, type OnboardingActivity } from './contract.js';
 import { discardPreparedApiKey, prepareApiHarness, readPreparedApiHarness, savePreparedApiKey, type PreparedApiHarness } from './credentials.js';
 import { onboardingTarget, onboardingTargetExists, saveOnboarding, validOnboardingFolder, type OnboardingDraft } from './draft.js';
@@ -79,14 +81,15 @@ export class OnboardingSession {
     private secretReturn?: OnboardingPrompt;
     private returnCode?: { readonly promptId: string; readonly submit: (code: string) => Promise<void> };
     private stopped = false;
-    private defaults: readonly string[] = ['openai-codex'];
+    private discovery: HarnessDiscovery = { installed: [] };
+    private preparedLocal?: LocalSetupResult;
 
     public constructor(
         private readonly staging: Project,
         draft: OnboardingDraft,
         public readonly uploads: OnboardingUploads,
         private readonly env: NodeJS.ProcessEnv,
-        private readonly finish: (draft: OnboardingDraft, save: (patch: Partial<OnboardingDraft>) => Promise<void>) => Promise<void>,
+        private readonly finish: (draft: OnboardingDraft, save: (patch: Partial<OnboardingDraft>) => Promise<void>, local?: LocalSetupResult) => Promise<void>,
     ) {
         this.draft = draft;
     }
@@ -186,14 +189,9 @@ export class OnboardingSession {
         return await this.exclusive(() => this.uploads.delete(id, () => this.attachedIds()));
     }
 
-    /** Inspects the installed native tools for the same initial selection as local init. */
-    public async discoverDefaults(): Promise<void> {
-        const signal = AbortSignal.timeout(15_000);
-        const ready = await Promise.all(HARNESS_PLUGINS.map(async (plugin) => {
-            const result = await plugin.inspect(harnessContext(plugin, this.staging.root, this.draft.engineId, this.env, signal)).catch(() => undefined);
-            return result?.installed && result.usable && result.authenticated === true ? [plugin.id] : [];
-        }));
-        if (ready.flat().length) this.defaults = ready.flat();
+    /** A restarted worker reissues its picker because the installed tools and the model estimate may have changed. */
+    public async refreshHarnessPrompt(): Promise<void> {
+        if (this.draft.step === 'harnesses') await this.next('harnesses', { error: this.draft.error, deferred: this.draft.deferred });
     }
 
     /** Recovers a persisted preparation or publication operation. */
@@ -289,10 +287,16 @@ export class OnboardingSession {
                 }
                 case 'choice': {
                     const ids = [...new Set(reply.answer.choiceIds)];
-                    if (!ids.length || ids.some((id) => !HARNESS_PLUGINS.some((plugin) => plugin.id === id))) {
-                        await this.next('harnesses', { harnesses: ids.filter(id => harnessPlugin(id)), activity: [], error: 'Choose at least one available harness.' });
+                    if (prompt.kind !== 'choice' || !ids.length || ids.some((id) => !prompt.choices.some((choice) => choice.id === id && !choice.disabled))) {
+                        await this.next('harnesses', { harnesses: ids.filter(id => prompt.kind === 'choice' && prompt.choices.some(choice => choice.id === id && !choice.disabled)), activity: [], error: 'Choose at least one available harness.' });
                     } else {
-                        await this.next('prepare', { harnesses: ids, activity: [] });
+                        const plan = ids.includes(LOCAL_MODELS) ? this.discovery.localPlan : undefined;
+                        if (ids.includes(LOCAL_MODELS) && !plan?.model) {
+                            await this.next('harnesses', { harnesses: ids, error: plan?.recommendation.incompatibility ?? 'Local model discovery did not find a suitable model. Check the engine host or choose another tool.' });
+                            break;
+                        }
+                        this.preparedLocal = undefined;
+                        await this.next('prepare', { harnesses: ids, activity: [], localModel: plan?.model ? { runtime: plan.runtime, model: plan.model, download: plan.steps.download } : undefined });
                     }
                     break;
                 }
@@ -429,6 +433,7 @@ export class OnboardingSession {
 
     /** Keeps answers, defaults and busy phases in the same order for every client. */
     private async next(step: OnboardingDraft['step'], patch: Partial<OnboardingDraft> = {}): Promise<void> {
+        if (step === 'harnesses') this.discovery = await discoverHarnessChoices(this.env);
         await this.save({ step, promptId: randomUUID(), deferred: false, error: undefined, ...patch });
     }
 
@@ -468,8 +473,7 @@ export class OnboardingSession {
             case 'harnesses':
                 return { ...base, kind: 'choice', title: 'Harnesses', question: 'Which harnesses should run this project?', multiple: true,
                     hint: 'Choosing a harness authorizes installation for the engine user if needed. The engine checks sign-in and tests the selected tools.',
-                    choices: HARNESS_PLUGINS.map((plugin) => ({ id: plugin.id, label: plugin.displayName, description: null, disabled: false })),
-                    initial: harnesses ?? this.defaults };
+                    ...harnessChoices(this.discovery, harnesses) };
             case 'title':
                 return { ...text, title: 'Project name', question: 'What should this project be called?', initial: title ?? 'My project' };
             case 'folder':
@@ -479,7 +483,7 @@ export class OnboardingSession {
                     hint: 'The engine will save the brief and attachments in the project and create the first task for Expert.',
                     confirmLabel: 'Create and start', declineLabel: 'Review folder',
                     details: [{ label: 'Project', text: title ?? 'My project' }, { label: 'Folder', text: folder ?? 'my-project' },
-                        { label: 'AI tools', text: (harnesses ?? []).map(id => harnessPlugin(id)?.displayName ?? id).join(', ') || 'None' },
+                        { label: 'AI tools', text: (harnesses ?? []).map(selectionLabel).join(', ') || 'None' },
                         ...(this.draft.walletProblem ? [{ label: 'Wallet', text: this.draft.walletProblem }] : [])] };
             case 'publish':
             case 'published':
@@ -497,7 +501,7 @@ export class OnboardingSession {
         const abort = new AbortController();
         const done = Promise.resolve().then(async () => {
             if (step === 'prepare') await this.prepare(start, abort.signal);
-            else await this.finish(this.draft, (patch) => this.exclusive(() => this.save(patch)));
+            else await this.finish(this.draft, (patch) => this.exclusive(() => this.save(patch)), this.preparedLocal);
         }).catch(async (error: unknown) => {
             if (abort.signal.aborted) return;
             await this.exclusive(async () => {
@@ -521,6 +525,25 @@ export class OnboardingSession {
         this.job = { abort };
     }
 
+    /** Prepares the model shown in the picker and checks its credential-free route on this host. */
+    private async prepareLocal(start: OnboardingDraft, signal: AbortSignal): Promise<LocalSetupResult> {
+        const choices = start.localModel;
+        if (!choices) throw new Error('Choose the local model again to confirm its disk requirements.');
+        const discover = async () => planLocalSetup(await discoverLocalSetup(this.env, [], { signal }), [], choices);
+        let plan = await discover();
+        const plugin = harnessPlugin(harnessPluginId(plan.harness))!;
+        const context = { projectRoot: this.staging.root, env: this.env, signal };
+        if (!(await plugin.inspect(context)).installed && plugin.npmPackage) {
+            signal.throwIfAborted();
+            const install = await installHarness(plugin, context);
+            if (install.outcome !== 'installed') throw new Error('The local connection needs ' + plugin.displayName + ' installed on the engine host.');
+            plan = await discover();
+        }
+        signal.throwIfAborted();
+        if (!choices.download && plan.steps.download) throw new Error('The previously downloaded model is missing. Review its updated disk requirement.');
+        return await prepareLocalSetup(this.env, plan, { accepted: true, signal });
+    }
+
     /** Installs or checks the chosen native harnesses, then offers an editable project name. */
     private async prepare(start: OnboardingDraft, signal: AbortSignal): Promise<void> {
         const problems: string[] = [];
@@ -528,6 +551,28 @@ export class OnboardingSession {
         let ready = false;
         for (const id of start.harnesses ?? []) {
             signal.throwIfAborted();
+            if (id === LOCAL_MODELS) {
+                const activity = 'Prepare local models';
+                await this.noteActivity(signal, id, activity, 'running');
+                try {
+                    const result = await this.prepareLocal(start, signal);
+                    signal.throwIfAborted();
+                    if (result.status !== 'ready') throw new Error(result.summary);
+                    this.preparedLocal = result;
+                    ready = true;
+                    await this.noteActivity(signal, id, activity, 'done', result.summary);
+                    if (!name && !start.title && start.intent?.trim()) {
+                        const local = await localPreparatoryCall(this.env, result.plan, this.staging.root, { signal }).catch(() => undefined);
+                        if (local?.call) name = await proposeProjectName(local.call, start.intent).catch(() => undefined);
+                    }
+                } catch (error) {
+                    signal.throwIfAborted();
+                    const reason = label(errorMessage(error));
+                    problems.push(selectionLabel(id) + ': ' + reason);
+                    await this.noteActivity(signal, id, activity, 'failed', reason);
+                }
+                continue;
+            }
             const plugin = harnessPlugin(id)!;
             await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'running');
             try {
@@ -574,8 +619,8 @@ export class OnboardingSession {
                 }
                 await this.noteActivity(signal, id + '-check', 'Check ' + plugin.displayName, 'done');
                 ready = true;
-                if (!name && !this.draft.title && this.draft.intent?.trim()) {
-                    name = await proposeProjectName(call, this.draft.intent).catch(() => undefined);
+                if (!name && !start.title && start.intent?.trim()) {
+                    name = await proposeProjectName(call, start.intent).catch(() => undefined);
                 }
             } catch {
                 signal.throwIfAborted();

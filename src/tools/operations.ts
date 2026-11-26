@@ -6,7 +6,7 @@ import { harnessPlugin } from '../harness/registry.js';
 import { ENVIRONMENT_NAME, KEBAB_IDENTIFIER, kebabIdentifier, matchEnum } from '../common/naming.js';
 import { canonicalizeConfig, configText, parseConfigText } from '../project/config.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
-import { commitFileContents, git, ignoredPaths, inspectGit, readAtHead } from '../project/git.js';
+import { prefixedSubject, commitFileContents, git, ignoredPaths, inspectGit, readAtHead } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
 import { dotEnvPath, editDotEnv, environmentReference, isEngineManagedAssignment, parseEnvironmentReference, readDotEnv, type DotEnvChange } from './environment.js';
 import {
@@ -498,7 +498,7 @@ export type ToolOperationContext = {
 /**
  * The single implementation behind init, `ptbk tool`, dashboards and the API: validates the operation against the
  * configuration current at application time, applies the shared protections, edits `.env` non-destructively for a
- * supplied secret, and commits only its own non-secret changes immediately (`ptbk: <operation>`), even during an
+ * supplied secret, and commits only its own non-secret changes immediately (category `tool.change`), even during an
  * unrelated active task whose edits stay uncommitted in the working tree.
  *
  * @private shared tool management
@@ -633,7 +633,7 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
                 projectRoot: project.root,
                 repositoryRoot,
                 files: files.map((file) => ({ path: file.path, content: file.content })),
-                subject: plan.noop ? `${plan.summary}: ignore .env before storing its secret` : plan.summary,
+                subject: prefixedSubject(plan.noop ? `${plan.summary}: ignore .env before storing its secret` : plan.summary, 'tool.change'),
                 body: [`Saved tool management${request.via ? ` (${request.via})` : ''}: ${commandOf(request.operation)}`, ...notes.filter((note) => !/\.env/.test(note) || /gitignore/.test(note))].join('\n'),
                 trailers: { 'PTBK-Tool': plan.after?.name ?? plan.name },
                 temporaryDirectory: project.runtime.temporary,

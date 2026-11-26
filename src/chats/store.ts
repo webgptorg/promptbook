@@ -1,3 +1,4 @@
+import { prefixedSubject } from '../project/git.js';
 import { copyFile, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { ignoredPaths } from '../project/git.js';
@@ -562,7 +563,7 @@ export class ChatStore {
             return { persistence: 'uncommitted' };
         }
         try {
-            const commit = await persistence.commit([path, ...assets], subject, { 'Chat-Name': name, ...trailers });
+            const commit = await persistence.commit([path, ...assets], prefixedSubject(subject, 'chat.turn'), { 'Chat-Name': name, ...trailers });
             return { commit, persistence: 'committed' };
         } catch (error) {
             throw new PtbkError(`The chat message was written but could not be committed.`, {

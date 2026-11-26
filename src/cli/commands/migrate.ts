@@ -6,7 +6,7 @@ import { convertLegacyBook } from '../../book/convert.js';
 import { renderCommitment } from '../../book/write.js';
 import { slugify } from '../../common/ids.js';
 import { loadSettings, setting } from '../../project/config.js';
-import { commitPaths, inspectGit } from '../../project/git.js';
+import { prefixedSubject, commitPaths, inspectGit } from '../../project/git.js';
 import { lookupService } from '../../service/control.js';
 import { readTaskBook } from '../../tasks/book-task.js';
 import { BookIndex } from '../../project/books.js';
@@ -182,12 +182,12 @@ export default async function migrate(context: CommandContext): Promise<number> 
             projectRoot: project.root,
             repositoryRoot: gitInfo.root,
             paths: [...planned.map((book) => book.path), ...archives.flatMap((item) => [item.from, item.to]), ...conversions.map((item) => item.path)],
-            subject: subject,
+            subject: prefixedSubject(subject, 'config.migrate'),
             trailers: { 'Task-Name': planned.map((book) => book.task.title) },
             temporaryDirectory: project.runtime.temporary,
             env: context.env,
         });
-        if (outcome.committed) terminal.write(`Committed ${outcome.sha.slice(0, 8)} (ptbk: ${subject}).\n`);
+        if (outcome.committed) terminal.write(`Committed ${outcome.sha.slice(0, 8)} (${prefixedSubject(subject, 'config.migrate')}).\n`);
     } else if (!commit) terminal.write('Not committed (--no-commit).\n');
     return blocked.length ? EXIT.incomplete : EXIT.success;
 }

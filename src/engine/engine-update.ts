@@ -178,7 +178,7 @@ export type EngineUpdaterOptions = {
     readonly changed: () => void;
     /** Wakes the agenda loop (a lookup it did not start found something to decide). */
     readonly wake?: () => void;
-    /** Commits project files changed by the update as a system operation (`ptbk: …`, no agent); undefined when nothing was committed. */
+    /** Commits project files changed by the update as a system operation (`engine.update`, no agent); undefined when nothing was committed. */
     readonly commit: (paths: readonly string[], summary: string) => Promise<string | undefined>;
     /** Test seams: the running installation and version. */
     readonly installation?: InstallationInfo;

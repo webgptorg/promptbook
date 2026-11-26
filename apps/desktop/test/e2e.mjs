@@ -46,6 +46,22 @@ test('the bundled App opens real local projects, writes through the same API and
     });
     t.after(() => application.close().catch(() => {}));
     const shell = await application.firstWindow();
+    if (process.platform === 'win32' && process.env.PTBK_DESKTOP_EXECUTABLE) {
+        // Ask the Windows shell for the packaged EXE icon, as a pinned shortcut does with the app closed.
+        const colors = await application.evaluate(async ({ app }) => {
+            const icon = await app.getFileIcon(process.execPath, { size: 'normal' });
+            const pixels = icon.toBitmap();
+            const result = { transparent: false, blue: false, white: false };
+            for (let i = 0; i < pixels.length; i += 4) {
+                const [b, g, r, a] = pixels.subarray(i, i + 4);
+                if (a === 0) result.transparent = true;
+                if (a > 220 && b > r + 45 && b > g + 20) result.blue = true;
+                if (a > 220 && Math.min(r, g, b) > 220) result.white = true;
+            }
+            return result;
+        });
+        assert.deepEqual(colors, { transparent: true, blue: true, white: true });
+    }
     const mounted = () => waitFor(() => inProject(application, "Boolean(document.querySelector('#root nav'))").catch(() => false), { timeoutMs: 30000, message: 'upstream engine UI mounted with its navigation' });
     await mounted();
     assert.equal(await inProject(application, 'typeof window.desktop'), 'undefined');

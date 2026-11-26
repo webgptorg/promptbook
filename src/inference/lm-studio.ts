@@ -59,6 +59,13 @@ async function lms(context: RuntimeContext, args: readonly string[], timeoutMs =
     return result.stdout;
 }
 
+/** Reads LM Studio's downloaded LLM inventory even when its HTTP server is stopped. */
+async function installedModels(context: RuntimeContext): Promise<RuntimeModel[]> {
+    const entries: { type?: string; modelKey?: string }[] = JSON.parse(await lms(context, ['ls', '--json'], 5_000));
+    return entries.flatMap(({ type, modelKey }) => type === 'llm' && typeof modelKey === 'string' && modelKey
+        ? [{ id: modelKey, installed: true, locality: 'local', tools: 'unknown', vision: 'unknown' }] : []);
+}
+
 /**
  * Read-only observation: the server and its downloaded models (LM Studio serves local weights only).
  */
@@ -112,6 +119,7 @@ export const lmStudioAdapter: RuntimeAdapter = {
     homepage: 'https://lmstudio.ai',
     actions: ['status', 'models', 'download', 'load', 'unload', 'start', 'stop', 'restart'],
     inspect,
+    installedModels,
     download: async (context, model, onProgress) => {
         onProgress({ stage: 'downloading', message: `lms get ${model}` });
         await lms(context, ['get', model, '--yes'], 24 * 60 * 60_000, (line) => line.trim() && onProgress({ stage: 'downloading', message: line.trim().slice(0, 160) }));

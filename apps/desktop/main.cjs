@@ -1,5 +1,5 @@
 'use strict';
-const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, session, shell } = require('electron');
+const { app, clipboard, BrowserWindow, WebContentsView, Menu, Tray, dialog, ipcMain, nativeImage, nativeTheme, session, shell } = require('electron');
 const { fork } = require('node:child_process');
 const { readFile, access, mkdtemp, writeFile, rm } = require('node:fs/promises');
 const { createHash, randomUUID } = require('node:crypto');
@@ -9,12 +9,14 @@ const { terminalArguments, terminalSize } = require('./model.cjs');
 const { createPromptServer } = require('./prompt-server.cjs');
 const { DesktopUpdates } = require('./updates.cjs');
 const { PROJECT_ORIGIN, PROJECTS_ORIGIN, loadAppBundle } = require('./app-protocol.cjs');
+const { createWindowsIcons } = require('./windows-icons.cjs');
 
 /** The isolated, persistent session for each local project. Two windows can attach to the same engine. */
 const projects = new Map();
 const windows = new Map();
 const pending = new Map();
 const isMac = process.platform === 'darwin';
+const windowsIcons = createWindowsIcons(join(app.isPackaged ? process.resourcesPath : __dirname, 'icons'), nativeTheme);
 const shellUrl = pathToFileURL(join(__dirname, 'renderer', 'index.html')).href;
 const desktopUpdates = new DesktopUpdates({ current: app.getVersion(), platform: process.platform, arch: process.arch, packaged: app.isPackaged,
     changed: (update) => { for (const entry of windows.values()) emit(entry, { type: 'update', update }); } });
@@ -229,7 +231,7 @@ async function openProject(entry, root) {
 /** The trusted local project chooser and optional CLI wizard stay outside the project page. */
 function createWindow(launch = {}) {
     const window = new BrowserWindow({ width: 1280, height: 850, minWidth: 720, minHeight: 520, title: 'Promptbook', show: false,
-        ...(!isMac && { icon: iconPath() }), webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+        ...(!isMac && { icon: windowsIcons.current().window }), webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
     const entry = { window, terminals: new Map(), generation: 0, root: launch.root };
     windows.set(window.id, entry);
     window.webContents.on('will-navigate', (event) => { if (event.url !== shellUrl) event.preventDefault(); });
@@ -243,12 +245,9 @@ function createWindow(launch = {}) {
     return entry;
 }
 
-/** Location of the same product icon used by the installer. */
-function iconPath() { return app.isPackaged ? join(process.resourcesPath, 'icon.ico') : join(__dirname, 'icon.ico'); }
-
 /** macOS tints the transparent template to match the menu bar, independently of the app's selected theme. */
 function trayIcon() {
-    if (!isMac) return iconPath();
+    if (!isMac) return windowsIcons.current().tray;
     const logo = app.isPackaged ? join(process.resourcesPath, 'tray.png') : join(__dirname, '../../design/logo-blue-transparent-256.png');
     const source = nativeImage.createFromPath(logo);
     const bitmap = source.toBitmap();
@@ -300,8 +299,16 @@ async function quitAll() {
     finally { quitInProgress = false; void refreshTray(); }
 }
 
+/** Shell-only theme changes can arrive between Electron theme notifications. */
+function refreshWindowsIcons() {
+    if (process.platform === 'win32' && tray && !quitting && !tray.isDestroyed()) {
+        windowsIcons.refresh(tray, windows.values());
+    }
+}
+
 /** Refreshes tray labels from the same global observation as the terminal dashboard. */
 async function refreshTray() {
+    refreshWindowsIcons();
     if (!tray || refreshingTray || quitting) return;
     refreshingTray = true;
     let host;
@@ -444,6 +451,7 @@ void app.whenReady().then(async () => {
     desktopUpdates.start();
     app.setAboutPanelOptions({ applicationName: 'Promptbook', applicationVersion: app.getVersion(), website: 'https://ptbk.io/' });
     tray = new Tray(trayIcon());
+    if (process.platform === 'win32') nativeTheme.on('updated', refreshWindowsIcons);
     tray.on('double-click', () => createWindow());
     const menu = Menu.buildFromTemplate([
         ...(isMac ? [{ label: 'Promptbook', submenu: [

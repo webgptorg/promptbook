@@ -85,7 +85,7 @@ test('synchronization coordinator: visible merges, publication, no empty merges,
     assert.equal(events.integrated, 1);
     const parents = (await git(local, ['log', '-1', '--format=%P'])).trim().split(' ');
     assert.equal(parents.length, 2, 'a visible merge commit even though fast-forward was possible');
-    assert.equal((await git(local, ['log', '-1', '--format=%s'])).trim(), 'ptbk: Merge origin/main into main');
+    assert.equal((await git(local, ['log', '-1', '--format=%s'])).trim(), '`ptbk` `git.merge` - Merge origin/main into main');
     // The committed content, not the checkout: Windows Git may check text files out with CRLF (core.autocrlf).
     assert.equal(await git(local, ['show', 'HEAD:remote.md']), 'from another machine\n');
     assert.equal((await git(origin, ['rev-parse', 'main'])).trim(), (await git(local, ['rev-parse', 'HEAD'])).trim(), 'the merge was published');
@@ -235,7 +235,7 @@ test('synchronization at a pre-commit boundary: unowned clean incoming files are
     assert.equal((await git(local, ['log', '-1', '--format=%P'])).trim().split(' ').length, 2, 'a separate visible merge');
     assert.equal(await readFile(join(local, 'draft.md'), 'utf8'), 'unrelated uncommitted work\n', 'unrelated work is preserved');
     await change(local, 'chat.md', 'saved chat\n', 'ptbk: Chat batch', false);
-    assert.equal((await git(local, ['log', '-1', '--format=%s', 'HEAD~1'])).trim(), 'ptbk: Merge origin/main into main', 'the merge precedes the local operation commit');
+    assert.equal((await git(local, ['log', '-1', '--format=%s', 'HEAD~1'])).trim(), '`ptbk` `git.merge` - Merge origin/main into main', 'the merge precedes the local operation commit');
     assert.equal((await sync.request('post-commit')).outcome, 'synchronized');
     assert.equal((await git(origin, ['log', '-1', '--format=%s', 'main'])).trim(), 'ptbk: Chat batch');
 
@@ -363,7 +363,7 @@ test('synchronization setup: init publishes to the supplied origin with autosync
     const branch = (await git(project, ['symbolic-ref', '--short', 'HEAD'])).trim();
     assert.equal((await git(project, ['remote', 'get-url', 'origin'])).trim(), bare);
     assert.equal((await git(project, ['rev-parse', '--abbrev-ref', '@{u}'])).trim(), `origin/${branch}`);
-    assert.equal((await git(bare, ['log', '-1', '--format=%s', branch])).trim(), 'ptbk: Initialize project', 'the committed local setup was published');
+    assert.equal((await git(bare, ['log', '-1', '--format=%s', branch])).trim(), '`ptbk` `project.setup` - Initialize project', 'the committed local setup was published');
     assert.match(init.stdout, new RegExp(`Published ${branch} to origin`));
 
     const conflict = await ptbk(['init', '--non-interactive', '--no-commit', '--auto-sync', '--no-start', '--raw'], { cwd: project, env });
@@ -412,7 +412,7 @@ test('engine synchronization: remote work is integrated at an operation boundary
     await waitFor(async () => (await subjects(project)).includes('ptbk: Remote task from another machine'), { message: 'the remote task to be executed', timeoutMs: 120_000 });
     const history = await subjects(project);
     assert.ok(history.includes(`ptbk: Merge origin/${branch} into ${branch}`), 'remote work arrived with a visible merge');
-    await waitFor(async () => /^ptbk: (?:`[^`\n]+` )?Remote task from another machine/m.test(await git(bare, ['log', '--format=%s', branch])), { message: 'the published result', timeoutMs: 120_000 });
+    await waitFor(async () => /^`ptbk` `task\.result` - (?:`[^`\n]+` )?Remote task from another machine/m.test(await git(bare, ['log', '--format=%s', branch])), { message: 'the published result', timeoutMs: 120_000 });
     assert.doesNotMatch(await git(project, ['log', '--format=%s']), /rebase/i);
     assert.equal((await ptbk(['stop', '--raw'], { cwd: project, env })).code, 0);
 });

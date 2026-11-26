@@ -22,7 +22,7 @@ const execFileAsync = promisify(execFile);
 /**
  * Fixture Git identity (fixtures never rely on a global Git author or signing identity).
  */
-export const GIT_IDENTITY = { CODING_AGENT_GIT_NAME: 'Fixture Tester', CODING_AGENT_GIT_EMAIL: 'fixture@example.test' };
+export const GIT_IDENTITY = { GIT_AUTHOR_NAME: 'Fixture Tester', GIT_AUTHOR_EMAIL: 'fixture@example.test', GIT_COMMITTER_NAME: 'Fixture Tester', GIT_COMMITTER_EMAIL: 'fixture@example.test' };
 
 /**
  * Creates a temporary directory whose name contains spaces (canonical path).
@@ -218,7 +218,7 @@ export const AGENT_VISUAL = /^(ptbk: )`[^`\n]+` /;
  * Fixtures compare work by its meaningful subject; dedicated assertions inspect the visual with {@link rawSubjects}.
  */
 export function withoutVisual(text) {
-    return text.replace(AGENT_VISUAL, '$1');
+    return text.replace(/^`ptbk` `[a-z.]+` - /, 'ptbk: ').replace(AGENT_VISUAL, '$1');
 }
 
 /**

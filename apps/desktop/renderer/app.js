@@ -238,12 +238,30 @@ function renderPrompt() {
         } }, 'Browse…'));
     } else {
         const initial = prompt.initial;
-        form.append(element('div', { className: 'choices' }, ...(prompt.choices || []).map((choice) => {
+        const list = element('div', { className: 'choices' });
+        const optional = [];
+        for (const choice of prompt.choices || []) {
             const checked = prompt.kind === 'one' ? initial === choice.value : prompt.kind === 'many' ? initial?.includes(choice.value) : initial?.[choice.value];
             const input = element('input', { type: prompt.kind === 'one' ? 'radio' : 'checkbox', name: 'answer', value: String(choice.value), checked: !!checked, disabled: choice.disabled });
             controls.push({ input, value: choice.value });
-            return element('label', { className: 'choice' }, input, element('span', {}, choice.label, element('small', {}, choice.description || '')));
-        })));
+            const row = element('label', { className: 'choice' }, input, element('span', {}, choice.label, element('small', {}, choice.description || '')));
+            list.append(row);
+            if (prompt.kind === 'many' && choice.featured === false) optional.push({ row, input });
+        }
+        form.append(list);
+        if (optional.length) {
+            let expanded = false;
+            const more = element('button', { type: 'button', onclick: () => { expanded = !expanded; update(); } });
+            const update = () => {
+                for (const { row, input } of optional) row.hidden = !expanded && !input.checked;
+                more.hidden = !expanded && optional.every(({ input }) => input.checked);
+                more.textContent = expanded ? 'Show less' : 'Show more';
+                more.setAttribute('aria-expanded', String(expanded));
+            };
+            list.addEventListener('change', update);
+            update();
+            form.append(more);
+        }
     }
     const send = async (answer) => {
         try {
