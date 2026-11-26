@@ -6,6 +6,8 @@ import { isEngineId } from '../identity.js';
 const MARKERS = '/etc/promptbook/digitalocean-first-owner';
 /** Fixed provider endpoints. */
 const OAUTH = 'https://cloud.digitalocean.com/v1/oauth';
+/** DigitalOcean requires the supporting read scopes alongside droplet:read. */
+const OWNER_SCOPES = 'droplet:read regions:read sizes:read actions:read image:read snapshot:read';
 const CALLBACK = '/setup/digitalocean/callback';
 const COOKIE = '__Host-ptbk_do_owner';
 const WINDOW_MS = 10 * 60_000;
@@ -81,7 +83,7 @@ export class DigitalOceanOwner {
             this.attempts.set(state, { verifier, browser, clientId, origin, until: now + WINDOW_MS });
             const authorize = new URL(OAUTH + '/authorize');
             authorize.search = new URLSearchParams({ client_id: clientId, redirect_uri: origin + CALLBACK, response_type: 'code',
-                scope: 'droplet:read', prompt: 'select_account', state, code_challenge_method: 'S256',
+                scope: OWNER_SCOPES, prompt: 'select_account', state, code_challenge_method: 'S256',
                 code_challenge: createHash('sha256').update(verifier).digest('base64url') }).toString();
             return redirect(authorize.href, COOKIE + '=' + browser + '; Secure; HttpOnly; SameSite=Lax; Path=/; Max-Age=600');
         } catch { return unavailable(503); }

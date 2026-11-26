@@ -36,7 +36,8 @@ async function fixture(t, wrong = '') {
     const initial = await oauth.handle(new Request(startUrl), host, marker, issue);
     const authorize = new URL(initial.headers.get('location'));
     assert.equal(authorize.origin, 'https://cloud.digitalocean.com');
-    assert.equal(authorize.searchParams.get('scope'), 'droplet:read');
+    assert.deepEqual(authorize.searchParams.get('scope').split(' ').sort(),
+        ['actions:read', 'droplet:read', 'image:read', 'regions:read', 'sizes:read', 'snapshot:read']);
     challenge = authorize.searchParams.get('code_challenge');
     const cookie = initial.headers.get('set-cookie').split(';')[0];
     const callback = new URL(startUrl + '/callback');
