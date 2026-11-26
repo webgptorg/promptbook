@@ -46,6 +46,7 @@ test('theme changes update the tray and all surviving windows without reloading 
 test('the executable and runtime icons include transparent PNG frames at Windows taskbar and display scales', async () => {
     const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url)));
     assert.equal(manifest.build.win.icon, 'icons/promptbook.ico');
+    assert.ok(manifest.build.win.extraResources.some(({ from, to }) => from === manifest.build.win.icon && to === 'icon.ico'));
     assert.ok(manifest.build.win.extraResources.some(({ from, to }) => from === 'icons' && to === 'icons'));
 
     for (const name of ['promptbook', 'promptbook-blue', 'promptbook-white']) {

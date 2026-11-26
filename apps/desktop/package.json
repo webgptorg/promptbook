@@ -62,6 +62,10 @@
       "signAndEditExecutable": true,
       "extraResources": [
         {
+          "from": "icons/promptbook.ico",
+          "to": "icon.ico"
+        },
+        {
           "from": "icons",
           "to": "icons",
           "filter": ["*.ico"]
