@@ -1,8 +1,8 @@
 # Third-party licenses of the vendored App platform bundle
 
-`app-platform.js` and `gateway-pages/` are generated from webgptorg/app 390740e688ca0ae96c49f507cf28312affd83598. They contain the following packages.
+`app-platform.js` is generated from webgptorg/app 390740e688ca0ae96c49f507cf28312affd83598. The static files in `gateway-pages/` come from webgptorg/app fddfd05a05bc8a6888760013f86aedea81758be2. They contain the following packages.
 
-## @ptbk/gateway-pages (webgptorg/app 390740e688ca, MIT)
+## @ptbk/gateway-pages (webgptorg/app fddfd05a05bc, MIT)
 
 ```text
 MIT License
