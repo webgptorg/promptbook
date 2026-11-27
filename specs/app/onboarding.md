@@ -50,6 +50,10 @@ On a clean Ubuntu host, use the version-matched bootstrap with `--prepare-only -
 
 On the host, use `ptbk init --with-app` to start, pair or continue a pending initialization. The global Dashboard offers the same workflow on **I**. The App page of an existing project's Dashboard offers **L** to pair it. On Windows and macOS, choose **Set up with App** to open the wizard in the desktop terminal.
 
+### First owner on a provisioned Droplet
+
+The VM bootstrap binds the new engine ID to a SHA-256 digest of the provisioning DigitalOcean user UUID and team UUID (lowercase, separated by a slash). Root writes the digest to `/etc/promptbook/digitalocean-first-owner/<engine-id>`. A fresh marked engine opens a PKCE authorization from its own HTTPS origin. It checks the grant's user and team and uses its read permission to verify access to the Droplet ID from instance metadata. Only then does it open the ordinary first-passkey ceremony. A previously enrolled owner permanently closes this entry point, including after local owner reset. The dashboard only links to the project hostname.
+
 ## Finish setup
 
 Open the owner setup link from the host and register a passkey on the engine's own origin. The pending engine serves the platform's verified signed UI at that origin through the relay, behind the same passkey gateway as an initialized engine. The engine-built wizard is a fallback only when no verified bundle is available. Both use `onboarding@1` and `files@1` for the brief, files, harness selection, name, folder and confirmation. After handoff, the usual App UI loads at the same origin.

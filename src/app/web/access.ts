@@ -343,6 +343,8 @@ export class AccessStore {
     public get orgId(): string { return this.state.orgId; }
     /** Owner setup remains complete across migrations. */
     public get hasOwner(): boolean { return this.state.members.some(member => member.role === 'owner' && member.status === 'active'); }
+    /** A disabled former owner also permanently closes cloud commissioning. */
+    public get canBootstrapOwner(): boolean { return !this.state.members.some(member => member.role === 'owner'); }
     /** The owner-controlled dashboard removal policy. */
     public get dashboardRemovals(): boolean { return this.state.dashboardRemovals; }
     /** Active members, with no mutable references into authorization state. */
@@ -359,10 +361,13 @@ export class AccessStore {
     public permissionsOf(member: StoredMember): readonly Permission[] { return member.permissions ?? permissionsOfRole(member.role); }
 
     /** Creates a replacement setup secret, stored only as a digest. */
-    public async createSetupSecret(): Promise<{ readonly secret: string; readonly expiresAt: Date }> {
+    public async createSetupSecret(initialOwnerOnly = false): Promise<{ readonly secret: string; readonly expiresAt: Date }> {
         const secret = newOpaqueId();
         const expiresAt = new Date(Date.now() + SETUP_LINK_LIFETIME_MS);
-        await this.mutate(state => { state.setup = { secretDigest: digest(secret), expiresAt: expiresAt.toISOString() }; });
+        await this.mutate(state => {
+            if (initialOwnerOnly && state.members.some(member => member.role === 'owner')) throw new PtbkError('Initial setup has ended.', { kind: 'usage' });
+            state.setup = { secretDigest: digest(secret), expiresAt: expiresAt.toISOString() };
+        });
         return { secret, expiresAt };
     }
 

@@ -15,6 +15,8 @@
 - Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.
 - Use the user’s Git identity and signing configuration for Promptbook commits. The author name includes the responsible agent, or Promptbook when no agent is known. Remove the legacy coding-agent Git identity and signing-key overrides.
 
+- Set up the first passkey on a new DigitalOcean Droplet in the browser. The project verifies the provisioning DigitalOcean user, team and Droplet before opening its existing passkey ceremony.
+
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
 
 - Foreground service shutdown gives runtime cleanup one shared deadline after work settles. It stays alive to release the project lock and exits even when a provider leaves a handle open.
