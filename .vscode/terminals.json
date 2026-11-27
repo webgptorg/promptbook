@@ -1050,35 +1050,35 @@
         },
         {
             "name": "(❗) 🔼🚀 Release minor version (💸)(⏳)",
-            "command": "git pull && npm version minor",
+            "command": "git pull && npm ci && npm version minor",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🔼🧪 Release pre-minor version (💸)(⏳)",
-            "command": "git pull && npm version preminor",
+            "command": "git pull && npm ci && npm version preminor",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🔼🧪 Release pre-release version (💤)(💸)(⏳)",
-            "command": "git pull && npm version prerelease",
+            "command": "git pull && npm ci && npm version prerelease",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🔼🧪 Release pre-release version (ignore pre-checks) (💸)(⏳)",
-            "command": "git pull && npm version prerelease --ignore-scripts && npm run postversion",
+            "command": "git pull && npm ci && npm version prerelease --ignore-scripts && npm run postversion",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🔼🩹 Release patch version (💤)(💸)(⏳)",
-            "command": "git pull && npm version patch",
+            "command": "git pull && npm ci && npm version patch",
             "onlySingle": true,
             "focus": true
         }
