@@ -2,6 +2,8 @@
 
 # Unreleased
 
+- Reopen a project passkey prompt in place during owner setup, joining, sign-in or confirmation. Switching to unlock a password manager no longer means starting the flow again.
+
 - Desktop update checks stay quiet when there is no newer installer. A compact **Update available** button opens a matching installer from the project chooser, console or open project.
 
 - Keep the Windows notification area, title bar and taskbar icons visible in light, dark and mixed themes, including pinned shortcuts when Promptbook is closed.
