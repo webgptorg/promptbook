@@ -55,7 +55,7 @@ test('concurrent work: independent tasks of different agents overlap in the one 
     assert.equal(run.code, 0, run.output);
     const startedAlpha = position(run.output, /^Starting "Write alpha SLOW_WORK/);
     const startedBeta = position(run.output, /^Starting "Write beta SLOW_WORK/);
-    const firstCommit = position(run.output, /^Committed \S+ ptbk: `[^`]+` Write (alpha|beta) SLOW_WORK/);
+    const firstCommit = position(run.output, /^Committed \S+ `ptbk` `task\.result` - `[^`]+` Write (alpha|beta) SLOW_WORK/);
     assert.ok(startedAlpha >= 0 && startedBeta >= 0 && firstCommit >= 0, run.output);
     assert.ok(Math.max(startedAlpha, startedBeta) < firstCommit, `both tasks started before either result was committed:\n${run.output}`);
     assert.match(run.output, /alongside [1-9]\d* other active unit/, 'the shared service reports concurrent units, including any independent bootstrap/report work');
@@ -80,7 +80,7 @@ test('concurrent work: six independent agents run together without a shared limi
     const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '6000', FAKE_CODEX_BARRIER_DIR: join(project, '.ptbk', 'tmp', 'peers'), FAKE_CODEX_BARRIER_COUNT: '6' }, async () => (await Promise.all(titles.map((title) => committed(project, title)))).every(Boolean), { message: 'all six results', timeoutMs: 240_000 });
     assert.equal(run.code, 0, run.output);
     const starts = titles.map((title) => position(run.output, new RegExp(`^Starting "${title}`)));
-    const firstCommit = position(run.output, /^Committed \S+ ptbk: `[^`]+` Write Worker/);
+    const firstCommit = position(run.output, /^Committed \S+ `ptbk` `task\.result` - `[^`]+` Write Worker/);
     assert.ok(starts.every((start) => start >= 0) && Math.max(...starts) < firstCommit, `all six started before any result was committed:\n${run.output}`);
     assert.match(run.output, /alongside (?:[5-9]|\d{2,}) other active units/, 'all six workers acquired the completion barrier; any additional bootstrap/report work stays independent');
     const lint = await ptbk(['lint', '--raw'], { cwd: project, env });
@@ -117,7 +117,7 @@ test('one started unfinished task per agent: a second task of a busy agent queue
     const run = await drive(project, { ...env, FAKE_CODEX_SLOW_MS: '4000', FAKE_CODEX_BARRIER_DIR: join(project, '.ptbk', 'tmp', 'peers'), FAKE_CODEX_BARRIER_COUNT: '2' }, async () => (await Promise.all(titles.map((title) => committed(project, title)))).every(Boolean), { message: 'all three results', timeoutMs: 180_000 });
     assert.equal(run.code, 0, run.output);
     const started = (title) => position(run.output, new RegExp(`^Starting "${title}`));
-    const done = (title) => position(run.output, new RegExp(`^Committed \\S+ ptbk: \`[^\`]+\` ${title}`));
+    const done = (title) => position(run.output, new RegExp(`^Committed \\S+ \`ptbk\` \`task\\.result\` - \`[^\`]+\` ${title}`));
     const [firstDeveloper, planner, secondDeveloper] = titles;
     assert.ok([firstDeveloper, planner, secondDeveloper].every((title) => started(title) >= 0 && done(title) >= 0), run.output);
     assert.ok(Math.max(started(firstDeveloper), started(planner)) < Math.min(done(firstDeveloper), done(planner)), `two agents work in parallel:\n${run.output}`);

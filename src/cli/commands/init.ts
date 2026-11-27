@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { EXIT, PtbkError, errorMessage, usageError } from '../../common/errors.js';
@@ -14,7 +15,7 @@ import { maintainProjectConfiguration } from '../../project/configuration.js';
 import { MIGRATED_BROWSER_NAME, planConfigurationMigration } from '../../project/migrations.js';
 import { requireEngineUpdate } from '../compatibility.js';
 import { existingOrigin, githubLogin, publishProject, type PublicationChoice, type PublicationOutcome } from '../../project/publication.js';
-import { instanceEnvironment } from '../../engine/harnesses.js';
+import { instanceEnvironment, nativeSetupTool } from '../../engine/harnesses.js';
 import { pluginDefaultRow } from '../../engine/routing.js';
 import { formatModelRow } from '../../book/model.js';
 import { redactUrl } from '../../engine/sync.js';
@@ -26,7 +27,7 @@ import { inspectBrowserTool } from '../../tools/readiness.js';
 import { describeProfileSource, harnessPluginId, harnessVariantOf, INFERENCE_RUNTIME_VARIANTS, toolRuntime, type BrowserToolRecord, type HarnessToolRecord, type InferenceRuntimeVariant, type ToolRecord } from '../../tools/model.js';
 import { INITIAL_ASSETS, INITIAL_SPECIFICATION, bootstrapTask, sampleReadme } from '../../project/defaults.js';
 import { clearSetupDraft, readSetupDraft, saveSetupDraft } from '../../project/draft.js';
-import { commitPaths, inspectGit } from '../../project/git.js';
+import { prefixedSubject, commitPaths, inspectGit } from '../../project/git.js';
 import { ensureManifest, inspectLocalInstallation, installLocally, verifyGlobalAvailability } from '../../project/install.js';
 import { assessReadiness } from '../../project/readiness.js';
 import { checkForEngineUpdate, updateEngine, type UpdateCheck } from '../../project/self-update.js';
@@ -289,10 +290,11 @@ const NEUTRAL_TITLE = 'My project';
  *
  * @private command
  */
-export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly segments: readonly ComposedSegment[]; readonly title: string; readonly apiHarnesses?: ReadonlyMap<string, PreparedApiHarness>; readonly local?: LocalSetupResult; readonly localDownload?: boolean } } = {}): Promise<InitResult> {
+export async function initializeProject(context: CommandContext, options: { projectRoot?: string; fromStart?: boolean; homeOnly?: boolean; embeddedHarness?: ToolDraft & Pick<HarnessToolRecord, 'type' | 'variant'>; prepared?: { readonly projectId?: string; readonly segments: readonly ComposedSegment[]; readonly title: string; readonly apiHarnesses?: ReadonlyMap<string, PreparedApiHarness>; readonly local?: LocalSetupResult; readonly localDownload?: boolean } } = {}): Promise<InitResult> {
     const { terminal } = context;
     const { embeddedHarness } = options;
     const apiHarnesses = options.prepared?.apiHarnesses;
+    const projectId = options.prepared?.projectId ?? randomUUID();
     const interactive = terminal.interactive;
     const style = terminal.style;
     const marks = symbols(terminal.unicode);
@@ -1100,7 +1102,7 @@ export async function initializeProject(context: CommandContext, options: { proj
      * Uses the same explicit account choice for readiness, the real check, and the initial Router model.
      */
     const setupTool = (plugin: HarnessPlugin): HarnessToolRecord => apiHarnesses?.get(plugin.id)?.tool ??
-        { type: 'HARNESS', variant: plugin.variant, name: plugin.id, isEnabled: true, authentication: 'NATIVE' };
+        nativeSetupTool(plugin, state.newProject ? projectId : undefined);
 
     /** The preparatory call context of the selected instance in the engine's effective environment. */
     const preparatoryCall = async (id: string): Promise<PreparatoryCall> => {
@@ -1637,7 +1639,7 @@ export async function initializeProject(context: CommandContext, options: { proj
         if (!instances.length) {
             const prepared = apiHarnesses?.get(id);
             const name = typedTools.some((tool) => tool.name === id) ? id + (prepared ? '-api' : '-native') : id;
-            operations.push({ kind: 'add', tool: prepared ? { ...prepared.tool, name, apiKeyEnv: prepared.credential.name } : { type: 'HARNESS', variant, name, authentication: 'NATIVE' } });
+            operations.push({ kind: 'add', tool: prepared ? { ...prepared.tool, name, apiKeyEnv: prepared.credential.name } : { ...setupTool(harnessPlugin(id)!), name } });
         } else if (!instances.some((tool) => tool.isEnabled)) operations.push({ kind: 'enable', name: instances[0]!.name });
     }
     // Local models: the runtime and its credential-free connection prepared and verified in the harness step.
@@ -1680,7 +1682,7 @@ export async function initializeProject(context: CommandContext, options: { proj
                     projectRoot: root,
                     repositoryRoot: repository.repositoryRoot,
                     paths: uniquePaths,
-                    subject: configBefore ? 'Update project setup' : 'Initialize project',
+                    subject: prefixedSubject(configBefore ? 'Update project setup' : 'Initialize project', 'project.setup'),
                     trailers: { 'Task-Name': firstTask ? [firstTask.title] : [] },
                     temporaryDirectory: project.runtime.temporary,
                     env: context.env,
@@ -1889,7 +1891,7 @@ function renderInitSummary(context: CommandContext, input: { result: InitResult;
         wrap(value, width - 18).forEach((line, index) => lines.push(`${index === 0 ? style.bold(label.padEnd(12)) : ' '.repeat(12)}${line}`));
     };
     row('Project', `${result.project?.name ?? ''}  ${style.muted(root)}`);
-    row('Setup', `${result.changed.length ? `${result.changed.length} change${result.changed.length === 1 ? '' : 's'}` : 'nothing to change'}${result.commit ? ` committed ${result.commit.slice(0, 8)} (ptbk: setup)` : ''}${result.alreadyReady.length ? style.muted(` · ${result.alreadyReady.length} already ready`) : ''}`);
+    row('Setup', `${result.changed.length ? `${result.changed.length} change${result.changed.length === 1 ? '' : 's'}` : 'nothing to change'}${result.commit ? ` committed ${result.commit.slice(0, 8)}` : ''}${result.alreadyReady.length ? style.muted(` · ${result.alreadyReady.length} already ready`) : ''}`);
     if (first) row('First task', first);
     row('Service', running ? style.success(serviceLine) : style.warning(serviceLine));
     if (app) row('App', app.replace(/^App: /, ''));

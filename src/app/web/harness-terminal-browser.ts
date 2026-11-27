@@ -37,7 +37,14 @@ async function connect(promptId: string): Promise<void> {
         if (!result.ok) throw new Error(result.status === 409 ? 'The terminal is closed or another client is using it.' : 'The terminal could not continue. You can sign in directly on the engine host.');
         return await result.json() as T;
     };
-    const terminal = new Terminal({ cols: Math.min(100, Math.max(30, Math.floor(window.innerWidth / 9) - 3)), rows: 20, scrollback: 100 });
+    const terminal = new Terminal({
+        cols: Math.min(100, Math.max(30, Math.floor(window.innerWidth / 9) - 3)), rows: 20, scrollback: 100,
+        linkHandler: {
+            activate: (_event, uri) => {
+                if (URL.canParse(uri) && new URL(uri).protocol === 'https:') window.open(uri, '_blank', 'noopener,noreferrer');
+            },
+        },
+    });
     const close = () => { void sendCommand({ action: 'close' }, true).catch(() => undefined); };
     await call({ action: 'start', cols: terminal.cols, rows: terminal.rows });
     window.addEventListener('pagehide', close, { once: true });

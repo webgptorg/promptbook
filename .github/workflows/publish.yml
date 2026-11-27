@@ -166,10 +166,10 @@ jobs:
       - run: npm ci
       - name: Validate release tag and package version
         run: npm run release:validate
+      # npm trusted publishing (OIDC, `id-token: write`): npmjs.com trusts webgptorg/promptbook `publish.yml` for ptbk,
+      # so no long-lived NPM_TOKEN is needed (an expired one made 0.119.0-134/135 fail with `404 Not Found - PUT`).
       - name: Publish the single ptbk package
         run: npm run release:publish -- --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   windows-installer:
     # The matching Windows installer is an additional output of the same release; npm publication stays separate. A
     # missing, corrupt or mismatched installer makes the release incomplete (this job fails) without republishing npm.

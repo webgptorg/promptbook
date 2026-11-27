@@ -14,7 +14,7 @@ import type { Project } from '../project/workspace.js';
 import { runHarnessInSession, type HarnessSessions } from '../harness/sessions.js';
 import type { HarnessEvent } from '../harness/types.js';
 import { ToolBridge, type BridgeTool } from '../engine/bridge.js';
-import { instanceEnvironment, type HarnessPool } from '../engine/harnesses.js';
+import { instanceEnvironment, QUOTA_BACKOFF_MS, type HarnessPool } from '../engine/harnesses.js';
 import { resolveAgentKnowledge } from '../engine/knowledge.js';
 import { USER_PING_INSTRUCTION, renderAgentInstructions } from '../engine/prompt.js';
 import { chatRoutingPrompt, routerAgent, validateAssignment } from '../engine/generated.js';
@@ -209,6 +209,7 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
     // A helper call holds its acquired harness revision like a reply: a change meanwhile retains it visibly.
     const useId = `routing:${shortId(8)}`;
     context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
+    const invocationEnv = instanceEnvironment(routerRoute.plugin, instance, context.pool.credential(instance), context.env);
     let result;
     try {
         result = await runHarnessInSession(
@@ -232,7 +233,7 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
                 prompt,
                 promptFile,
                 readOnly: true,
-                env: instanceEnvironment(routerRoute.plugin, instance, context.pool.credential(instance), context.env),
+                env: invocationEnv,
                 timeoutMs: ROUTING_TIMEOUT_MS,
                 signal: context.signal,
                 allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
@@ -266,6 +267,11 @@ async function routeWithRouter(context: ConversationContext, stored: StoredChat,
     )
         .then(async () => await context.chats.attachEvidence(stored.chat.name, [usageFile]))
         .catch(() => undefined);
+    if (result.outcome === 'authentication') {
+        context.pool.markUnavailable(instance.name, 'authentication', result.diagnostic, QUOTA_BACKOFF_MS, { projectRoot: context.project.root, env: invocationEnv, tool: instance });
+        const repair = instance.authentication === 'NATIVE' ? 'ptbk tool enable ' + instance.name : 'ptbk tool modify ' + instance.name + ' --api-key-stdin';
+        result = { ...result, diagnostic: result.diagnostic + ' · ' + repair };
+    }
     if (result.outcome === 'quota') context.pool.markQuota(instance.name, result);
     if (result.outcome !== 'completed') return { error: `${routerAgentDefinition.name} could not route the chat: ${result.diagnostic}` };
     const report = parseAgentReport(result.messages);
@@ -632,6 +638,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
     // The reply holds this exact configuration revision until its turn ends.
     const useId = `reply:${shortId(8)}`;
     context.onHarnessUse?.({ id: useId, state: 'acquired', record: instance });
+    const invocationEnv = instanceEnvironment(plugin, instance, context.pool.credential(instance), context.env);
     let result;
     try {
         result = await runHarnessInSession(
@@ -657,7 +664,7 @@ export async function replyInChat(context: ConversationContext, chatName: string
                 promptFile,
                 readOnly: true,
                 mcp: bridge?.launch(),
-                env: instanceEnvironment(plugin, instance, context.pool.credential(instance), context.env),
+                env: invocationEnv,
                 timeoutMs: REPLY_TIMEOUT_MS,
                 signal: context.signal,
                 allowCredits: setting<boolean>(context.settings, 'execution.isCreditFallbackAllowed'),
@@ -693,6 +700,11 @@ export async function replyInChat(context: ConversationContext, chatName: string
             attribution: { agent: agent.name, owner: parseReferenceValue(mainReference)?.name ?? mainReference, initiator: 'User', work: { kind: 'chat', chat: chat.name, source: stored.relativePath } },
         }),
     ).catch((error: unknown) => context.onActivity?.(`Usage evidence of {${chat.name}} could not be saved: ${errorMessage(error)}`));
+    if (result.outcome === 'authentication') {
+        context.pool.markUnavailable(instance.name, 'authentication', result.diagnostic, QUOTA_BACKOFF_MS, { projectRoot: context.project.root, env: invocationEnv, tool: instance });
+        const repair = instance.authentication === 'NATIVE' ? 'ptbk tool enable ' + instance.name : 'ptbk tool modify ' + instance.name + ' --api-key-stdin';
+        result = { ...result, diagnostic: result.diagnostic + ' · ' + repair };
+    }
     if (result.outcome === 'quota') context.pool.markQuota(instance.name, result);
     if (result.outcome !== 'completed' || !result.finalMessage.trim()) {
         const error = result.outcome === 'completed' ? `${agent.name} gave no reply.` : result.diagnostic;

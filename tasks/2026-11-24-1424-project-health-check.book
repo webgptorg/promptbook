@@ -64,5 +64,7 @@ For a risky, ambiguous or owner-dependent correction, do not guess: consult your
 - warning: agents/.legacy/default/product-manager.book:30 — Unknown commitment `META INPUT PLACEHOLDER`; it is preserved but has no effect.
 - … 23 more (run `ptbk lint`)
 TASK AGENT @Fixer
+MODEL harness=OPENAI_CODEX model=gpt-6.1-sol thinking=medium runtime=official
 TASK PURPOSE SYSTEM
 TASK ORIGIN maintenance: project health
+TASK DONE 2026-11-25T13:14:59+01:00

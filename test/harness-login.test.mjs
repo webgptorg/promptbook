@@ -120,6 +120,15 @@ test('Claude Code uses its native subscription login with a pasted return code, 
     const plugin = harnessPlugin('claude-code');
     const [remote] = await harnessLoginMethods(plugin, context, 'remote');
     assert.equal(remote.id, 'url-code');
+    const url = 'https://claude.ai/oauth/authorize?state=fixture&code_challenge=fixture';
+    const osc = '\x1b]8;id=auth;';
+    for (const end of ['\x07', '\x1b\\']) {
+        assert.deepEqual(remote.returnChallenge(osc + url + end + 'Open browser\x1b]8;;' + end), { url });
+    }
+    assert.deepEqual(remote.returnChallenge('Open ' + url + '\r\n'), { url });
+    assert.equal(remote.returnChallenge(osc + url), undefined);
+    assert.equal(remote.returnChallenge('\x1b]0;' + url + '\x07'), undefined);
+    assert.equal(remote.returnChallenge(osc + url.replace('claude.ai', 'claude.ai.example') + '\x07Open browser'), undefined);
     assert.deepEqual(remote.args, ['auth', 'login', '--claudeai']);
     assert.equal(remote.terminal, 'inherit', 'the native prompt for the return code keeps the terminal');
     assert.match(remote.instructions, /paste it here/);

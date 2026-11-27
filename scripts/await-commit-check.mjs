@@ -85,12 +85,36 @@ export function isEngineJob(name) {
     return /^check \(/.test(name);
 }
 
-/** Calls the GitHub REST API of `repository` and returns the parsed JSON body (`undefined` without one). */
-async function githubApi({ repository, token }, path, method = 'GET') {
-    const response = await fetch(`https://api.github.com/repos/${repository}/${path}`, { method, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28' } });
-    if (!response.ok) throw new Error(`GitHub API ${method} ${path} failed: HTTP ${response.status} ${await response.text()}`);
-    const body = await response.text();
-    return body ? JSON.parse(body) : undefined;
+/** HTTP statuses of the GitHub API that are worth asking again: server errors and rate limiting. */
+const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+/**
+ * Calls the GitHub REST API of `repository` and returns the parsed JSON body (`undefined` without one).
+ *
+ * A read (GET) that meets a transient server error or a network failure is asked again with a growing pause: a single
+ * `HTTP 500` while polling the branch check run failed the whole release of 0.119.0-137. Writes are never repeated.
+ */
+export async function githubApi({ repository, token, fetch: fetchFunction = fetch, sleep = delay, attempts = 6, retryMs = 10_000 }, path, method = 'GET') {
+    for (let attempt = 1; ; attempt++) {
+        let response;
+        let failure;
+        try {
+            response = await fetchFunction(`https://api.github.com/repos/${repository}/${path}`, { method, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28' } });
+        } catch (error) {
+            failure = new Error(`GitHub API ${method} ${path} failed: ${error.message}`); // Network failure.
+        }
+        if (response?.ok) {
+            const body = await response.text();
+            return body ? JSON.parse(body) : undefined;
+        }
+        if (response) {
+            failure = new Error(`GitHub API ${method} ${path} failed: HTTP ${response.status} ${await response.text()}`);
+            if (!TRANSIENT_STATUSES.has(response.status)) throw failure;
+        }
+        if (method !== 'GET' || attempt >= attempts) throw failure;
+        console.log(`::warning::${failure.message.split('\n')[0]} (attempt ${attempt} of ${attempts}); asking again.`);
+        await sleep(retryMs * attempt);
+    }
 }
 
 // Command line (GitHub Actions): `node scripts/await-commit-check.mjs <commit sha>` with GH_TOKEN and GH_REPO; writes

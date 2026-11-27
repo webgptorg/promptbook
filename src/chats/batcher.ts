@@ -42,7 +42,7 @@ export type BatchView = { readonly chat: string; readonly since: string; readonl
 
 /**
  * Smart, bounded batching of chat commits: every accepted message is saved to its Book at once (usable immediately),
- * and compatible saves of one chat share one scoped `ptbk: Chat - <name>` commit with `Chat-Name` and the union of the
+ * and compatible saves of one chat share one scoped `chat.turn` commit with `Chat-Name` and the union of the
  * other trailers. A batch is committed after a quiet period, at the latest after a bounded age (continuous activity
  * never postpones it indefinitely), and on explicit flushes (graceful shutdown, the end of a CLI operation). Pending
  * batches are recorded in `.ptbk/state/chat-batches.json`, so after a crash or force stop the saved files are committed
@@ -64,9 +64,11 @@ export class ChatCommitBatcher {
             /** Git working tree root (to skip files committed meanwhile). */
             readonly repositoryRoot: () => string | undefined;
             /** Commits exactly these absolute paths as one scoped operation (undefined when nothing changed). */
-            readonly commit: (paths: readonly string[], subject: string, trailers: BatchTrailers) => Promise<string | undefined>;
+            readonly commit: (paths: readonly string[], subject: string, trailers: BatchTrailers, agentName?: string) => Promise<string | undefined>;
             /** Quiet period after the latest write; omitted: commits only on explicit flushes. */
             readonly quietMs?: number;
+            /** An active turn can hold a quiet batch until its reply or the hard age limit. */
+            readonly turnActive?: (chat: string) => boolean;
             /** Longest time a batch stays pending while writes continue. */
             readonly maxAgeMs?: number;
             /** Retry interval after a failed commit. */
@@ -125,6 +127,11 @@ export class ChatCommitBatcher {
         this.options.onChange?.();
     }
 
+    /** Restores the normal quiet deadline when an active chat turn ends. */
+    public turnSettled(): void {
+        this.arm();
+    }
+
     /** Arms the timer for the next due batch. */
     private arm(): void {
         if (this.disposed || this.options.quietMs === undefined) return;
@@ -140,6 +147,7 @@ export class ChatCommitBatcher {
     private dueAt(batch: PendingBatch): number {
         if (batch.failure) return batch.lastAt + (this.options.retryMs ?? 60_000);
         const quiet = batch.lastAt + (this.options.quietMs ?? 0);
+        if (this.options.turnActive?.(batch.chat) && this.options.maxAgeMs !== undefined) return batch.firstAt + this.options.maxAgeMs;
         return this.options.maxAgeMs === undefined ? quiet : Math.min(quiet, batch.firstAt + this.options.maxAgeMs);
     }
 
@@ -166,7 +174,7 @@ export class ChatCommitBatcher {
                     const dirty = root ? new Set((await gitStatus(this.project.root, root)).map((entry) => entry.path)) : undefined;
                     const changed = dirty ? absolute.filter((path) => dirty.has(path)) : absolute;
                     const agent = root && changed.length ? await batchAgent(root, absolute[0]!).catch(() => undefined) : undefined;
-                    const sha = changed.length ? await this.options.commit(changed, agentSubject(agent, `Chat - ${batch.chat}`), { 'Chat-Name': batch.chat, ...batch.trailers }) : undefined;
+                    const sha = changed.length ? await this.options.commit(changed, agentSubject(agent, `Chat - ${batch.chat}`, 'chat.turn'), { 'Chat-Name': batch.chat, 'PTBK-Agent': agent, ...batch.trailers }, agent) : undefined;
                     if (sha) commits.push(sha);
                     this.batches.delete(batch.chat);
                     this.options.onPending?.(absolute, false);

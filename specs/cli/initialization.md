@@ -66,7 +66,7 @@ An explicitly supplied `init --check COMMAND` can fill the missing setting witho
 
 Add the **Automatic synchronization** step under [synchronization setup](synchronization-setup.md). Default/reused false asks nothing further. A new yes offers GitHub publication, private by default with explicit public choice, or a user-supplied other origin. Dedicated GitLab setup is future scope. Keep actual origin/upstream in Git, not duplicated JSON fields. Existing repositories/branches/remotes are not silently replaced.
 
-Save the ordinary first task assigned to Expert and referring to `specs/_initial.md`; do not ask for a separate starter assignment. By default commit only authorized local setup before dispatch/publication, using an initial or scoped `ptbk: ` commit and applicable names. Preserve unrelated edits, hooks and signing. Failed local persistence is incomplete setup. Initial remote creation/push has an honest separate outcome: its failure leaves synchronization pending but does not prevent otherwise ready local work.
+Save the ordinary first task assigned to Expert and referring to `specs/_initial.md`; do not ask for a separate starter assignment. By default commit only authorized local setup before dispatch/publication, using an initial or scoped [automatic Git](git-persistence.md#commit-messages-and-history) commit and applicable names. Preserve unrelated edits, hooks and signing. Failed local persistence is incomplete setup. Initial remote creation/push has an honest separate outcome: its failure leaves synchronization pending but does not prevent otherwise ready local work.
 
 ## Completion and automatic start
 

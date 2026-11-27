@@ -113,10 +113,10 @@ function windowsDpapi(env: NodeJS.ProcessEnv): HostUnlock {
 function systemdCredentials(env: NodeJS.ProcessEnv): HostUnlock {
     const file = async (reference: string): Promise<string> => join(await hostDirectory(env), `${reference}.cred`);
     /** `--user` (per-user host key) first, then the system scope. */
-    const attempt = async (args: readonly string[], input?: string): Promise<{ readonly ok: boolean; readonly stdout: string; readonly stderr: string }> => {
+    const attempt = async (args: readonly string[], input?: string, timeoutMs = 30_000): Promise<{ readonly ok: boolean; readonly stdout: string; readonly stderr: string }> => {
         let last = { ok: false, stdout: '', stderr: '' };
         for (const scope of [['--user'], []]) {
-            const result = await runProcess('systemd-creds', [...scope, ...args], { cwd: process.cwd(), input, timeoutMs: 30_000 });
+            const result = await runProcess('systemd-creds', [...scope, ...args], { cwd: process.cwd(), env, input, timeoutMs });
             last = { ok: result.exitCode === 0, stdout: result.stdout, stderr: result.stderr };
             if (last.ok) return last;
         }
@@ -125,9 +125,11 @@ function systemdCredentials(env: NodeJS.ProcessEnv): HostUnlock {
     return {
         facility: 'systemd-creds',
         problem: async () => {
-            if (!(await which('systemd-creds', env))) return 'This host has no protected credential facility for the Wallet key (systemd-creds is not available). Install systemd 250 or newer, or run the engine where systemd credentials work; plaintext key files are not used.';
-            const probe = await attempt(['encrypt', '--name=ptbk-probe', '-', '-'], 'probe');
-            return probe.ok ? undefined : `systemd-creds cannot protect the Wallet key for this user: ${probe.stderr.trim().slice(0, 200) || 'unknown error'}. Run the engine with access to the host credential key (or a TPM2); plaintext key files are not used.`;
+            const impact = 'Project setup can continue. Wallet cannot save logins or fill them in the browser until the engine user can protect its key.';
+            const repair = 'Configure user-scoped systemd credentials (systemd 256 or later) or a usable system credential facility, then restart the engine.';
+            if (!(await which('systemd-creds', env))) return impact + ' systemd-creds is unavailable. ' + repair;
+            const probe = await attempt(['encrypt', '--name=ptbk-probe', '-', '-'], 'probe', 5_000);
+            return probe.ok ? undefined : `${impact} ${repair} systemd-creds: ${probe.stderr.trim().slice(0, 140) || 'encryption failed'}`;
         },
         store: async (reference, secret) => {
             const target = await file(reference);

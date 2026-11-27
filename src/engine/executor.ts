@@ -11,7 +11,7 @@ import { runCheck } from '../project/checks.js';
 import type { AgentCatalog, EffectiveAgent } from '../project/agents.js';
 import { BookIndex } from '../project/books.js';
 import { EXPERT_DOCUMENTATION_DIRECTORY } from '../project/expert.js';
-import { agentSubject, commitPaths, findCommitWithTrailer, gitStatus, prefixedSubject, readAtHead, stageableFiles } from '../project/git.js';
+import { agentSubject, commitPaths, findCommitWithTrailer, gitStatus, readAtHead, stageableFiles } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
 import type { HarnessToolRecord } from '../tools/model.js';
 import { nativeSignInAction } from '../tools/readiness.js';
@@ -38,6 +38,16 @@ import { teamTools, type ConsultationBudget, type ConsultationEvent } from './te
 import { TaskTrace, traceHeader } from './task-trace.js';
 import { appendUsage, taskUsageFile, usageRecords } from './usage.js';
 import { recordDiagnostic } from './traces.js';
+
+/** Commit categories for the checked effects of each engine work kind. */
+const RESULT_CATEGORY: Readonly<Record<WorkKind, string>> = {
+    task: 'task.result',
+    assignment: 'task.route',
+    learning: 'agent.learn',
+    discovery: 'task.discover',
+    intent: 'task.intent',
+    maintenance: 'task.maintenance',
+};
 
 /**
  * Routable resolution of a task.
@@ -1045,10 +1055,12 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             projectRoot: project.root,
                             repositoryRoot: environment.repositoryRoot,
                             paths: [...owned.map((path) => resolve(project.root, path)), ...evidence],
-                            subject: agentSubject(agent.name, task.title),
+                            subject: agentSubject(agent.name, task.title, RESULT_CATEGORY[record.kind]),
+                            agentName: agent.name,
                             body: [assignmentText(task), record.handover ? `Completed by ${record.handover.agent} after ${record.handover.from} could not: ${record.handover.failure}` : ''].filter(Boolean).join('\n\n'),
                             trailers: {
                                 'Task-Name': task.title,
+                                'PTBK-Agent': agent.name,
                                 'Created-Task-Name': names.created,
                                 'Related-Task-Name': names.related,
                                 'PTBK-Run': record.runId,
@@ -1076,7 +1088,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
             const summary = lastReport?.summary || 'Completed.';
             await finishResult('completed', summary, sha);
             await state.clearActive(record.runId);
-            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} ${prefixedSubject(agentSubject(agent.name, task.title))}` });
+            hooks.emit({ type: 'activity', text: `Committed ${sha ? sha.slice(0, 8) : '(no changes)'} ${agentSubject(agent.name, task.title, RESULT_CATEGORY[record.kind])}` });
             return { kind: 'completed', commit: sha, summary, changedPaths: owned, report: lastReport };
         }
         await hooks.finalizeEvidence?.(trace).catch(() => undefined);

@@ -3,6 +3,7 @@
 Write agents, tasks and chats in the Book language used by [Promptbook](https://ptbk.io/).
 
 - Syntax highlighting for current commitments, their aliases, references and Markdown content.
+- Book syntax inside `book` tagged templates in JavaScript, JSX, TypeScript and TSX. Expressions inside `${...}` use the surrounding language.
 - Keyword completion, hover explanations, agent/task/chat snippets, document outline and folding.
 - Live syntax and MODEL diagnostics from the engine's own parser. Saving remains possible.
 - Ctrl+click (Cmd+click on macOS), F12 and Peek Definition navigate `@Name` and `{Name}` references to the declared agent, task or chat name. The whole reference is the link, including multiword names; open editor changes are used before saved files. Multiple matching names remain multiple results; runtime-only entities do not have editor definitions.

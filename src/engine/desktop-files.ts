@@ -1055,7 +1055,7 @@ export class DesktopFiles {
         return 'pending';
     }
 
-    /** The commit subject of a batch (prefixed with `ptbk: ` by the commit). */
+    /** The commit subject of a batch before the automatic prefix and category. */
     private subject(batch: Batch, committed?: number): string {
         // The files actually written (an interrupted import names only what it applied; a blocked one what it commits).
         const files = committed ?? (Object.keys(batch.paths).length || batch.files);
