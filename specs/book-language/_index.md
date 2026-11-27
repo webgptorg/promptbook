@@ -6,6 +6,28 @@ Book is one human-readable language for **agents, tasks and chats**, each in one
 
 The same syntax and parser apply to every entity kind. The first commitment establishes what is being defined; subsequent commitments build up that entity's instructions, work or conversation. Entity-specific validation and engine behavior are separate from parsing. The commitment vocabulary and supported entity kinds may grow without introducing another document grammar.
 
+### Editing one Book from TypeScript
+
+```ts
+import { Book, book } from 'ptbk';
+
+const name = 'Writer';
+const draft = book`
+    AGENT ${name}
+    RULE Keep answers short.
+`;
+const source = draft.rename('Editor').setModel([
+    { harness: 'OPENAI_CODEX', model: 'gpt-5', thinking: 'high' },
+    { harness: 'CLAUDE_CODE' },
+]).toString();
+```
+
+Use the `book` tag for source written inside JavaScript or TypeScript. It removes surrounding blank lines and common indentation, preserves relative indentation and returns an editable `Book`. A multiline value placed on its own indented line aligns with the surrounding content. Use `Book.parse(source)` for text loaded by the app, then save `draft.toString()` with the original revision ID. Both named exports and their TypeScript declarations ship in the `ptbk` package and work in browser bundles.
+
+Each row is a complete alternative. Use `setModel([{}])` for `MODEL *`. Read `draft.model.constraint.rows` for the local selection and `draft.model.diagnostics` for any problems in its source. A missing MODEL has `explicit: false`. A chat appends a changed selection chronologically.
+
+`Book.create('task', name)` starts a new document. `addCommitment('RULE', text)` appends escaped content. `setSource(text)` accepts the raw editor draft, including incomplete syntax. The same instance then exposes its current name, kind, commitments through `draft.document.commitments`, and diagnostics. Mutators return that instance. `toString()` returns the exact draft for the caller to save with its original revision.
+
 - [Progressive layering](layering.md): Evolving Books and chronological chat events, with implicit open status.
 - [Syntax](syntax.md): Commitment-first documents, uppercase boundaries, content and diagnostics.
 - [References](references.md): One normalized name resolver and graph links across all three kinds.

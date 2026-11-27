@@ -4,7 +4,7 @@ import { ensureDirectory, readJsonIfExists, readTextIfExists, writeFileAtomic, w
 import { ENGINE_VERSION } from '../common/version.js';
 import { rm } from 'node:fs/promises';
 import { canonicalizeConfig, configText, getPath, parseConfigText } from './config.js';
-import { commitPaths, inspectGit, isPathDirty, readAtHead } from './git.js';
+import { prefixedSubject, commitPaths, inspectGit, isPathDirty, readAtHead } from './git.js';
 import { BOOK_MIGRATIONS, BookWorkspace, prepareMigrationPass, preparedDirectory, preparedPath, type PreparedFile } from './book-migrations.js';
 import { planConfigurationMigration } from './migrations.js';
 import type { Project } from './workspace.js';
@@ -101,7 +101,7 @@ async function persistPass(
         const outcome = await input.gitLock(async () => {
             await writeFileAtomic(project.configPath, input.prepared);
             await writePreparedFiles(project, files);
-            return await commitPaths({ projectRoot: project.root, repositoryRoot, paths: [project.configPath, ...files.map((file) => preparedPath(project.root, file))], subject: input.subject, body: input.body, trailers: input.trailers, temporaryDirectory: project.runtime.temporary, env: input.env });
+            return await commitPaths({ projectRoot: project.root, repositoryRoot, paths: [project.configPath, ...files.map((file) => preparedPath(project.root, file))], subject: prefixedSubject(input.subject, input.kind === 'migration' ? 'config.migrate' : 'config.normalize'), body: input.body, trailers: input.trailers, temporaryDirectory: project.runtime.temporary, env: input.env });
         });
         await rm(pendingPath(project), { force: true });
         return outcome.committed ? outcome.sha : undefined;

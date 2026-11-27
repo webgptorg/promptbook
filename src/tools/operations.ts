@@ -6,7 +6,7 @@ import { harnessPlugin } from '../harness/registry.js';
 import { ENVIRONMENT_NAME, KEBAB_IDENTIFIER, kebabIdentifier, matchEnum } from '../common/naming.js';
 import { canonicalizeConfig, configText, parseConfigText } from '../project/config.js';
 import { maintainProjectConfiguration } from '../project/configuration.js';
-import { commitFileContents, git, ignoredPaths, inspectGit, readAtHead } from '../project/git.js';
+import { prefixedSubject, commitFileContents, git, ignoredPaths, inspectGit, readAtHead } from '../project/git.js';
 import type { Project } from '../project/workspace.js';
 import { dotEnvPath, editDotEnv, environmentReference, isEngineManagedAssignment, parseEnvironmentReference, readDotEnv, type DotEnvChange } from './environment.js';
 import {
@@ -482,6 +482,8 @@ export async function remainingConsumers(project: Project, repositoryRoot: strin
  * @private shared tool management
  */
 export type ToolOperationContext = {
+    /** A native account verified asynchronously may replace only the configuration it actually verified. */
+    readonly expectedTool?: ToolRecord;
     readonly env: NodeJS.ProcessEnv;
     /** Tool names held by active work (empty without a running engine). */
     readonly inUse?: ReadonlySet<string>;
@@ -496,7 +498,7 @@ export type ToolOperationContext = {
 /**
  * The single implementation behind init, `ptbk tool`, dashboards and the API: validates the operation against the
  * configuration current at application time, applies the shared protections, edits `.env` non-destructively for a
- * supplied secret, and commits only its own non-secret changes immediately (`ptbk: <operation>`), even during an
+ * supplied secret, and commits only its own non-secret changes immediately (category `tool.change`), even during an
  * unrelated active task whose edits stay uncommitted in the working tree.
  *
  * @private shared tool management
@@ -520,6 +522,14 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
         const head = parseConfigText(headText);
         if (working.diagnostics.length || head.diagnostics.length) throw new PtbkError('ptbk.json is not valid JSON.', { kind: 'configuration', project: project.root, reason: [...working.diagnostics, ...head.diagnostics].map((diagnostic) => diagnostic.message).join('; '), effect: 'Nothing was changed.' });
         const toolsOf = (raw: Record<string, unknown>): unknown[] => (Array.isArray(raw.tools) ? (raw.tools as unknown[]) : []);
+        if (context.expectedTool) {
+            const expected = context.expectedTool;
+            const expectedConfig = JSON.stringify(serializeTool(expected));
+            for (const raw of [head.raw, working.raw]) {
+                const current = parseTools(toolsOf(raw)).tools.find(tool => tool.name === expected.name);
+                if (!current || JSON.stringify(serializeTool(current)) !== expectedConfig) throw new PtbkError('The tool changed while signing in. Reopen its current setup.', { kind: 'conflict' });
+            }
+        }
         // The committed change is planned on HEAD; the same change is applied to the working copy, so someone else's
         // uncommitted edit of ptbk.json stays uncommitted and is never swept into this commit.
         const plan = planToolOperation(toolsOf(head.raw), request.operation);
@@ -623,7 +633,7 @@ export async function applyToolOperation(project: Project, request: ToolOperatio
                 projectRoot: project.root,
                 repositoryRoot,
                 files: files.map((file) => ({ path: file.path, content: file.content })),
-                subject: plan.noop ? `${plan.summary}: ignore .env before storing its secret` : plan.summary,
+                subject: prefixedSubject(plan.noop ? `${plan.summary}: ignore .env before storing its secret` : plan.summary, 'tool.change'),
                 body: [`Saved tool management${request.via ? ` (${request.via})` : ''}: ${commandOf(request.operation)}`, ...notes.filter((note) => !/\.env/.test(note) || /gitignore/.test(note))].join('\n'),
                 trailers: { 'PTBK-Tool': plan.after?.name ?? plan.name },
                 temporaryDirectory: project.runtime.temporary,

@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { build } from 'esbuild';
 import { validateRelease } from './validate-release.mjs';
 
 /**
@@ -74,6 +75,10 @@ try {
     assert.equal(packed.version, release.version);
     const files = packed.files.map((file) => file.path.split('\\').join('/'));
     for (const required of [
+        'book.mjs',
+        'book.d.mts',
+        'dist/book/book.d.ts',
+        'dist/book/notation.d.ts',
         'bin/ptbk.js',
         'dist/cli.js',
         'dist/package.json',
@@ -122,6 +127,29 @@ try {
     await writeFile(join(fixture, 'package.json'), `${JSON.stringify({ name: 'ptbk-package-fixture', version: '1.0.0', private: true, scripts: { ptbk: 'ptbk', check: 'ptbk lint' } }, null, 2)}\n`);
     await writeFile(join(fixture, '.gitignore'), 'node_modules/\n');
     await npm(['install', '--save-dev', '--ignore-scripts', '--no-audit', '--no-fund', tarball], fixture);
+    const book = await execute(process.execPath, ['--input-type=module', '-e', [
+        "import { Book, book } from 'ptbk';",
+        "import { Book as SubpathBook } from 'ptbk/book.mjs';",
+        "if (Book !== SubpathBook) throw new Error('Expected the same Book class');",
+        "process.stdout.write(book`\\n    AGENT Writer\\n    RULE Be brief.\\n`.rename('Editor').toString());",
+    ].join('\n')], { cwd: fixture });
+    assert.equal(book.stdout, 'AGENT Editor\nRULE Be brief.');
+    // Resolve the public types and run the same edit in a bundle built for a browser.
+    const consumer = join(fixture, 'consumer.mts');
+    await writeFile(consumer, [
+        "import { Book, book, type ModelRow } from 'ptbk';",
+        "const rows: ModelRow[] = [{}];",
+        "const draft: Book = book`TASK Draft`.rename('Demo').setModel(rows);",
+        "export default draft.toString();",
+    ].join('\n'));
+    await writeFile(join(fixture, 'tsconfig.json'), JSON.stringify({
+        compilerOptions: { module: 'esnext', moduleResolution: 'bundler', target: 'es2022', types: [], strict: true, noEmit: true },
+        files: ['consumer.mts'],
+    }));
+    await execute(process.execPath, [join(repositoryRoot, 'node_modules/typescript/bin/tsc'), '-p', fixture]);
+    const browser = await build({ entryPoints: [consumer], bundle: true, platform: 'browser', format: 'esm', write: false });
+    const moduleUrl = 'data:text/javascript;base64,' + Buffer.from(browser.outputFiles[0].contents).toString('base64');
+    assert.equal((await import(moduleUrl)).default, 'TASK Demo\nMODEL *');
     const local = join(fixture, 'node_modules', '.bin', process.platform === 'win32' ? 'ptbk.cmd' : 'ptbk');
     assert.equal((await linked(local, ['--version'], fixture)).stdout.trim(), release.version);
     assert.equal((await npm(['run', '--silent', 'ptbk', '--', '--version'], fixture)).stdout.trim(), release.version);
@@ -152,8 +180,8 @@ try {
         assert.equal(init.code, 0, `${init.stdout}\n${init.stderr}`);
         assert.match(init.stdout, /^Project ready · agenda running/m);
         assert.doesNotMatch(init.stdout, /\x1b|[╭╮╰╯]/);
-        // Agent-work subject: lowercase `ptbk: `, the executing agent's backtick-quoted visual and the task name.
-        const bootstrapSubject = /^([0-9a-f]+) ptbk: `[^`\n]+` Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m;
+        // Agent-work subject: `ptbk` and its category in backticks, ` - `, the executing agent's backtick-quoted visual and the task name.
+        const bootstrapSubject = /^([0-9a-f]+) `ptbk` `[a-z]+(?:\.[a-z]+)+` - `[^`\n]+` Review the initialized project — \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m;
         const deadline = Date.now() + 90_000;
         let bootstrap;
         while (!(bootstrap = bootstrapSubject.exec((await git(fixture, ['log', '--format=%H %s'])).stdout))) {

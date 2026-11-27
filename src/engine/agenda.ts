@@ -21,7 +21,7 @@ import { readBookSource, type BookSource } from '../project/book-sources.js';
 import { validateAttachments } from '../chats/store.js';
 import { materializeAttachments } from '../ui/attachments.js';
 import type { TaskInventoryItem } from '../tasks/views.js';
-import { agentSubject, anyPathChanged, commitPaths, git, inspectGit, stageableFiles } from '../project/git.js';
+import { agentSubject, anyPathChanged, commitPaths, git, inspectGit, prefixedSubject, stageableFiles } from '../project/git.js';
 import { ActionLog } from './action-log.js';
 import type { MethodologyEvidence } from './knowledge.js';
 import { appendBrief, findBrief, readLatestBrief, REPORT_AUTHOR, REPORT_FILE, REPORT_NAME, type ReportView } from './report.js';
@@ -78,6 +78,7 @@ import {
     validateAssignment,
     workKindOf,
 } from './generated.js';
+import type { RecoveryTarget } from '../onboarding/recovery.js';
 import { HarnessPool, instanceEnvironment } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
@@ -629,6 +630,7 @@ export class Agenda {
         this.chatBatches = new ChatCommitBatcher(options.project, {
             repositoryRoot: () => this.repositoryRoot,
             commit: async (paths, subject, trailers, agentName) => await this.commitAuthoring(paths, subject, trailers, agentName),
+            turnActive: (chat) => [...this.units.values()].some((unit) => unit.kind === 'chat' && nameKey(unit.label) === nameKey(chat)),
             quietMs: Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || CHAT_BATCH_QUIET_MS,
             maxAgeMs: Math.max(Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || 0, CHAT_BATCH_MAX_AGE_MS),
             retryMs: 60_000,
@@ -716,7 +718,7 @@ export class Agenda {
             changed: () => this.touch(),
             wake: () => this.wake(),
             // Changed versioned package files are a scoped system operation commit (no agent, no Task-Name).
-            commit: async (paths, summary) => (this.commitMode && this.repositoryRoot ? await this.commitAuthoring(paths, summary) : undefined),
+            commit: async (paths, summary) => (this.commitMode && this.repositoryRoot ? await this.commitAuthoring(paths, prefixedSubject(summary, 'engine.update')) : undefined),
         });
         // A finite maintenance host is not the ongoing engine and has no Health sub-engine of its own.
         if (options.mode !== 'maintenance') {
@@ -737,7 +739,7 @@ export class Agenda {
 
     /**
      * Batched commits of human-facing chats: every accepted message is saved to its Book at once, and compatible saves
-     * of one chat share a bounded, debounced `ptbk: Chat - <name>` commit (never one per message).
+     * of one chat share a bounded, debounced `chat.turn` commit (never one per message).
      */
     private readonly chatBatches: ChatCommitBatcher;
     /** Engine-owned desktop Files edits, imports and bulk operations with their scoped commit batches. */
@@ -2184,6 +2186,7 @@ export class Agenda {
                     for (const chat of this.liveReplies.keys()) if (nameKey(chat) === key) this.liveReplies.delete(chat);
                     this.finishUnit(unit);
                 }
+                this.chatBatches.turnSettled();
                 if (failure) await this.chatReplyFailed(name, failure, options.agent);
                 else await this.clearChatRecheck(name);
                 if (turn?.reply) {
@@ -2464,7 +2467,7 @@ export class Agenda {
         }
         // One bulk operation's records share a commit that says how many it covers.
         const count = record.count ?? 1;
-        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`), { 'Task-Name': record.subject.taskName || undefined }, record.subject.agent || undefined);
+        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`, 'action.audit'), { 'Task-Name': record.subject.taskName || undefined, 'PTBK-Agent': record.subject.agent || undefined }, record.subject.agent || undefined);
         for (const path of paths) this.authoredPaths.delete(path);
         return 'committed';
     }
@@ -5018,7 +5021,7 @@ export class Agenda {
         this.reportCommitTimer = undefined;
         try {
             const evidence = setting<boolean>(this.settings, 'traces.isCommitted') ? await stageableFiles(this.options.project.root, 'traces/.chats/report') : [];
-            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`), { 'Chat-Name': REPORT_NAME }, REPORT_AUTHOR);
+            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`, 'report.update'), { 'Chat-Name': REPORT_NAME, 'PTBK-Agent': REPORT_AUTHOR }, REPORT_AUTHOR);
             this.authoredPaths.delete(path);
             await this.setReportCommitPending(false);
         } catch (error) {
@@ -5350,7 +5353,7 @@ export class Agenda {
                 title: generatedName(`Resolve the synchronization conflict with ${conflict.upstream}`, { taken: await this.takenNames(), timeZone: this.timeZone }),
                 description: [
                     `Automatic Git synchronization could not merge \`${conflict.upstream}\` (${conflict.incoming} incoming commit(s)) into \`${conflict.branch}\`: both sides changed ${conflict.files.map((file) => `\`${file}\``).join(', ')}. The merge was aborted, so the local branch, history and working tree are unchanged.`,
-                    `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m "ptbk: Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)"\`. This merge commit is the one exception to "do not commit yourself".`,
+                    `Integrate the remote changes with a visible merge: run \`git merge --no-ff --no-commit ${conflict.upstream}\`, resolve each conflict so that both intents are kept (inspect \`git log ${conflict.branch}...${conflict.upstream}\`), consult your team only when a genuine judgment is needed, then \`git add\` the resolved files and finish with \`git commit --no-edit -m ${JSON.stringify(prefixedSubject(`Merge ${conflict.upstream} into ${conflict.branch} (conflicts resolved by Fixer)`, 'git.merge')).replaceAll('`', '\\`').replaceAll('$', '\\$')} --trailer "PTBK-Source: engine" --trailer "PTBK-Type: git.merge" --trailer "PTBK-Agent: Fixer"\`. This merge commit is the one exception to "do not commit yourself".`,
                     'Never rebase, reset, amend, force-push or discard either side. If the conflict cannot be resolved safely, abort the merge (`git merge --abort`) and explain why.',
                 ].join('\n\n'),
                 commitments: ['TASK AGENT @Fixer', 'TASK PURPOSE SYSTEM', `TASK ORIGIN ${origin}`],
@@ -5409,13 +5412,14 @@ export class Agenda {
      * a stopped project's CLI, with the in-use set of active work, the Git lock and synchronization attempts. The new
      * inventory is effective at once, also for the task running now.
      */
-    public async toolOperation(request: ToolOperationRequest): Promise<ToolOperationOutcome> {
+    public async toolOperation(request: ToolOperationRequest, expectedTool?: HarnessToolRecord): Promise<ToolOperationOutcome> {
         const configPath = this.options.project.configPath;
         // Never attribute the configuration write to the active task while it is being committed separately.
         const alreadyAuthored = this.authoredPaths.has(configPath);
         this.authoredPaths.add(configPath);
         try {
             const outcome = await applyToolOperation(this.options.project, request, {
+                expectedTool,
                 env: this.options.env,
                 inUse: this.toolsInUse(),
                 gitLock: (action) => this.gitMutex.run(action),
@@ -5431,6 +5435,33 @@ export class Agenda {
         } finally {
             if (!alreadyAuthored) this.authoredPaths.delete(configPath);
         }
+    }
+
+    /** First enabled native account that cannot serve work until its owner signs in. */
+    public harnessNeedingSignIn(): RecoveryTarget | undefined {
+        const tool = this.pool?.instances().find(item => item.authentication === 'NATIVE' && this.pool.inspectionOf(item.name)?.problem === 'signed-out');
+        if (!tool) return undefined;
+        const plugin = this.pool.plugin(tool.name);
+        if (!plugin) return undefined;
+        let context = this.pool.context(tool.name);
+        // An existing implicit shared Claude home is migrated only after the owner has verified a new login.
+        // Explicit account selectors continue to address the operator's chosen store.
+        if (plugin.id === 'claude-code' && !tool.accountProfile && this.options.env.CLAUDE_CONFIG_DIR === undefined && this.options.env.CLAUDE_SECURESTORAGE_CONFIG_DIR === undefined) {
+            const isolated = { ...tool, accountProfile: 'project-' + shortHash(this.options.project.root + '\0' + tool.name, 24) };
+            context = { ...context, tool: isolated, env: this.pool.environment(isolated) };
+        }
+        return { plugin, tool, context };
+    }
+
+    /** Wake waiting work after the owner's real check of this exact account. */
+    public async harnessSignedIn(target: RecoveryTarget): Promise<void> {
+        const profile = target.context.tool?.accountProfile;
+        if (profile && profile !== target.tool.accountProfile) {
+            const result = await this.toolOperation({ operation: { kind: 'modify', name: target.tool.name, changes: { accountProfile: profile } }, via: 'api' }, target.tool);
+            if (result.status === 'needs-acknowledgement') throw new PtbkError(result.summary, { kind: 'conflict' });
+        }
+        this.pool.authenticated(target.context);
+        await this.recheckTools();
     }
 
     /**

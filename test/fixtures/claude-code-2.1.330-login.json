@@ -1,0 +1,5 @@
+{
+    "description": "Captured from the Linux x64 Claude Code 2.1.330 PTY with auth login --claudeai. Both copies of the authorization query have been replaced with test values.",
+    "url": "https://claude.ai/oauth/authorize?state=fixture-state&code_challenge=fixture-challenge",
+    "output": "Opening browser to sign in\u2026\r\nIf the browser didn't open, visit:\r\n\u001b]8;;https://claude.ai/oauth/authorize?state=fixture-state&code_challenge=fixture-challenge\u0007\u001b[94mhttps://claude.ai/oauth/authorize?state=fixture-state&code_challenge=fixture-challenge\u001b[39m\u001b]8;;\u0007\r\nPaste code here if prompted > "
+}

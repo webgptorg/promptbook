@@ -16,7 +16,6 @@
     <picture><source media="(prefers-color-scheme: dark)" srcset="vendor/readme-wordmark-dark.svg"><img src="vendor/readme-wordmark.svg" width="148" alt="Promptbook"></picture>
     <button id="back" hidden>Local projects</button>
   </header>
-  <div id="desktop-update" role="status" hidden></div>
   <div id="notice" role="status" hidden></div>
   <main id="overview-pane">
     <h1>Local projects</h1>
@@ -28,5 +27,9 @@
     <section id="prompt-pane" hidden aria-label="Project initialization"></section>
     <div id="terminal-host"></div>
   </section>
+  <footer id="desktop-update" hidden>
+    <small id="update-detail"></small>
+    <button id="download-update" class="primary" type="button" title="Download installer" aria-describedby="update-detail">Update available</button>
+  </footer>
 </body>
 </html>

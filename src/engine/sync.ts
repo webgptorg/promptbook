@@ -1,5 +1,5 @@
 import { createRedactor } from '../common/redact.js';
-import { commitAuthorEnvironment, git } from '../project/git.js';
+import { commitAuthorEnvironment, commitMessage, git, prefixedSubject } from '../project/git.js';
 import type { SyncView } from './snapshot.js';
 import { nextProgressiveWait, restoreProgressiveWait, WAITING_POLICIES, type ProgressiveSchedule } from './progressive-waiting.js';
 
@@ -316,7 +316,7 @@ export class SyncCoordinator {
                 if (late) return { ok: false as const, conflicted: [], deferred: late };
                 const env = await commitAuthorEnvironment(root, this.host.env);
                 // A visible merge commit even when fast-forward would be possible; history stays append-only.
-                const result = await git(root, ['merge', '--no-ff', '--no-edit', '-m', `ptbk: Merge ${upstream} into ${branch}`, upstream], { env });
+                const result = await git(root, ['merge', '--no-ff', '--no-edit', '-m', commitMessage({ subject: prefixedSubject(`Merge ${upstream} into ${branch}`, 'git.merge') }), upstream], { env });
                 if (result.exitCode === 0) return { ok: true as const };
                 const conflicted = (await git(root, ['diff', '--name-only', '--diff-filter=U'])).stdout.split('\n').filter(Boolean);
                 // Never leave the sole working tree half-merged: restore the exact pre-attempt state.
