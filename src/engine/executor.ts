@@ -1056,6 +1056,7 @@ export async function executeWork(environment: ExecutionEnvironment, item: WorkI
                             repositoryRoot: environment.repositoryRoot,
                             paths: [...owned.map((path) => resolve(project.root, path)), ...evidence],
                             subject: agentSubject(agent.name, task.title, RESULT_CATEGORY[record.kind]),
+                            agentName: agent.name,
                             body: [assignmentText(task), record.handover ? `Completed by ${record.handover.agent} after ${record.handover.from} could not: ${record.handover.failure}` : ''].filter(Boolean).join('\n\n'),
                             trailers: {
                                 'Task-Name': task.title,

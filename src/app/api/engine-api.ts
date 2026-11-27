@@ -9,6 +9,7 @@ import type { ChatActivity, ChatDetail } from '../../chats/service.js';
 import type { ChatSummary } from '../../chats/store.js';
 import { PtbkError, errorMessage } from '../../common/errors.js';
 import { ENGINE_VERSION } from '../../common/version.js';
+import type { ProjectHarnessRecovery } from '../../onboarding/recovery.js';
 import { completedOnboarding } from '../../onboarding/contract.js';
 import type { OnboardingSession } from '../../onboarding/session.js';
 import { MAX_ONBOARDING_UPLOAD_BYTES, type OnboardingFile } from '../../onboarding/uploads.js';
@@ -65,6 +66,7 @@ export type EngineApiDeps = {
     readonly hasBrowser?: () => boolean;
     readonly hasDesktop?: () => boolean;
     readonly onboarding?: OnboardingSession;
+    readonly recovery?: ProjectHarnessRecovery;
     readonly projectRoot: string;
     /** The App data directory, where the API keeps its state beside the Books. */
     readonly stateDirectory: string;
@@ -741,20 +743,23 @@ export class EngineApi {
         ...taskHandlers(includeHistory => this.agenda.taskReadSnapshot(includeHistory), opaqueIdOf, page),
         ...walletHandlers(() => this.agenda.wallet),
         ...memberHandlers(() => this.deps.hostname(), page),
-        getOnboarding: async () => ok(this.deps.onboarding?.state() ?? completedOnboarding),
-        answerOnboarding: async ({ body }) => {
-            if (!this.deps.onboarding) return fail('onboarding-prompt-stale');
+        getOnboarding: async ({ actor }) => ok(this.deps.onboarding?.state() ?? (actor.role === 'owner' ? this.deps.recovery?.state() : undefined) ?? completedOnboarding),
+        answerOnboarding: async ({ body, actor }) => {
+            if (this.deps.recovery && actor.role !== 'owner') return fail('forbidden');
+            const session = this.deps.onboarding ?? this.deps.recovery;
+            if (!session) return fail('onboarding-prompt-stale');
             try {
-                return ok(await this.deps.onboarding.answer(body));
+                return ok(await session.answer(body));
             } catch (error) {
                 if (error instanceof PtbkError && error.details.kind === 'conflict') return fail('onboarding-prompt-stale');
                 if (error instanceof PtbkError && error.details.kind === 'usage') return fail('validation-failed', { errors: [{ path: 'body', message: error.message }] });
                 throw error;
             }
         },
-        deferOnboarding: async () => {
+        deferOnboarding: async ({ actor }) => {
+            if (this.deps.recovery && actor.role !== 'owner') return fail('forbidden');
             if (this.deps.onboarding && !this.deps.onboarding.state().canDefer) return fail('onboarding-not-deferrable');
-            return ok(await this.deps.onboarding?.defer() ?? completedOnboarding);
+            return ok(await this.deps.onboarding?.defer() ?? this.deps.recovery?.defer() ?? completedOnboarding);
         },
         getFileUploadPolicy: async ({ query }) => query.purpose === 'upload'
             ? ok({ purpose: 'upload', maxBytes: MAX_ONBOARDING_UPLOAD_BYTES, accept: [] })

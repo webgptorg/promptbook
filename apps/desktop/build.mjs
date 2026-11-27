@@ -4,7 +4,6 @@ import { loadAppBundle } from './app-protocol.cjs';
 import { cp, copyFile, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { windowsIcon } from './icon.mjs';
 
 /** Builds renderer assets and keeps the separate optional desktop package on the engine's release version. */
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -34,5 +33,4 @@ for (const wordmark of ['readme-wordmark.svg', 'readme-wordmark-dark.svg']) {
     await copyFile(join(root, 'design', wordmark), new URL(`./renderer/vendor/${wordmark}`, import.meta.url));
 }
 await cp(join(root, 'design', 'brand', 'fonts'), new URL('./renderer/vendor/fonts/', import.meta.url), { recursive: true });
-await writeFile(new URL('./icon.ico', import.meta.url), windowsIcon(await readFile(`${root}/design/logo-blue-transparent-256.png`)));
 process.stdout.write(`Built optional desktop client ${engine.version}.\n`);

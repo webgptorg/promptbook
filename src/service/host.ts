@@ -13,6 +13,9 @@ import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
 import { WalletLive } from '../app/web/wallet-live.js';
 import { startDesktopApi } from '../app/web/desktop-api.js';
 import { DESKTOP_OWNER } from '../app/web/access.js';
+import { ProjectHarnessRecovery } from '../onboarding/recovery.js';
+import { onboardingPage } from '../app/web/onboarding-page.js';
+import { harnessTerminalPage } from '../app/web/harness-terminal.js';
 import { EngineApi } from '../app/api/engine-api.js';
 import { CONFORMANCE_BUILD } from '../app/build.js';
 import { AppConnection, type AppEngineFigures, type AppWebHandlers } from '../app/connection.js';
@@ -91,6 +94,8 @@ export class ServiceHost {
     private localApi: LocalApiView = { state: 'disabled' };
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
+    private recovery?: ProjectHarnessRecovery;
+    private shuttingDown?: Promise<void>;
     private appApi?: AppWebHandlers['api'];
     private desktopApi?: ReturnType<typeof startDesktopApi>;
 
@@ -357,7 +362,7 @@ export class ServiceHost {
         const snapshot: ServiceSnapshot = this.agenda.snapshot();
         const update = snapshot.update;
         const state = !update ? 'none' : update.phase === 'installing' || update.phase === 'restarting' ? 'installing' : update.target ? 'pending' : update.latest && update.latest !== update.current ? 'available' : 'none';
-        return { agents: snapshot.agents.length, members: 0, update: state, setup: 'done', licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
+        return { agents: snapshot.agents.length, members: 0, update: state, setup: this.agenda.harnessNeedingSignIn() ? 'pending' : 'done', licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
     }
 
     /**
@@ -371,6 +376,8 @@ export class ServiceHost {
         const directory = appDirectory(this.options.project.runtime.app, env);
         const loader = this.uiLoader!;
         const enginePageSha256 = createHash('sha256').update(engineHomePage.toString()).digest('hex');
+        const recovery = new ProjectHarnessRecovery(() => this.agenda.harnessNeedingSignIn(), target => this.agenda.harnessSignedIn(target));
+        this.recovery = recovery;
         const walletLive = this.walletLive = new WalletLive(async (origin, target) => {
             const wallet = this.agenda.wallet.view();
             const item = target.kind === 'record' ? wallet.records.find(record => record.id === target.id) : wallet.pending.find(request => request.id === target.id);
@@ -386,7 +393,7 @@ export class ServiceHost {
         const api = new EngineApi({
             walletLive, hasBrowser:()=>Boolean(this.browsers.enabledNames().length),
             hasDesktop:()=>this.agenda.effectiveSettings.tools.some(tool=>tool.type==='COMPUTER_CONTROL' && tool.isEnabled) && (process.platform === 'win32' || (process.platform === 'darwin' && process.arch === 'arm64')),
-            agenda: this.agenda,
+            recovery, agenda: this.agenda,
             projectRoot: this.options.project.root,
             stateDirectory: directory,
             engineId: () => view()?.engineId,
@@ -411,7 +418,8 @@ export class ServiceHost {
                 documents: async (request, actor) => {
                     const desktop = await computerDocument(request);
                     if (desktop) return actor.role === 'owner' ? desktop : new Response('Only the engine owner can access its desktop.', { status: 403, headers: { 'cache-control': 'no-store' } });
-                    return (await loader.serve(request)) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId });
+                    return (await harnessTerminalPage(request, actor, recovery)) ?? (await loader.serve(request)) ??
+                        (actor.role === 'owner' && recovery.state().status !== 'completed' ? await onboardingPage(request) : undefined) ?? engineHomePage(request, actor, { name: this.agenda.snapshot().project.name || 'Promptbook engine', engineId: view()?.engineId });
                 },
                 ...(CONFORMANCE_BUILD ? { certificateSource: 'dev-ca' as const } : {}),
             },
@@ -582,16 +590,28 @@ export class ServiceHost {
         return await this.agenda.run();
     }
 
-    /**
-     * Releases every owned resource (browser, HTTP, control, discovery entry, record and finally its own project
-     * lock). Each step is bounded so an internal force stop still cleans up promptly; after a force stop every owned
-     * process still running is killed, so no owned worker outlives the engine. Only this owner's records are removed,
-     * never another process's lock or persistent project data.
-     */
-    public async shutdown(): Promise<void> {
-        const bounded = async (step: () => Promise<unknown> | unknown): Promise<void> => {
-            await Promise.race([Promise.resolve().then(step).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 10_000).unref())]);
+    /** Concurrent shutdown requests join the same cleanup and release this instance's project lock once. */
+    public shutdown(): Promise<void> {
+        return this.shuttingDown ??= this.closeResources();
+    }
+
+    /** The agenda has settled. Reserve the end of the shared 15-second budget for this instance's records and lock. */
+    private async closeResources(): Promise<void> {
+        const deadline = performance.now() + 15_000;
+        const bounded = async (step: () => Promise<unknown> | unknown, until = deadline - 3_000): Promise<void> => {
+            const work = Promise.resolve().then(step).catch(() => undefined);
+            const remaining = Math.min(10_000, until - performance.now());
+            if (remaining <= 0) return;
+            let timer: NodeJS.Timeout | undefined;
+            try {
+                // A pending promise alone cannot keep Node alive to attempt the remaining ownership cleanup.
+                const timeout = new Promise<void>((resolve) => { timer = setTimeout(resolve, remaining); });
+                await Promise.race([work, timeout]);
+            } finally {
+                clearTimeout(timer);
+            }
         };
+        this.recovery?.stop();
         const forced = this.agenda.forceStopped;
         // Keep awake ends first: a restart carries held protection to its replacement, every other end releases it.
         const keepAwake = this.keepAwake;
@@ -615,12 +635,12 @@ export class ServiceHost {
         this.unregister = undefined;
         if (this.knownRun) {
             const reason = this.agenda.shutdownReason;
-            await bounded(() => recordRunEnded(this.options.project, this.instanceId, reason === 'force' ? 'force-stopped' : reason === 'stop' ? 'stopped' : reason === 'restart' ? 'restarted' : 'ended', this.options.env));
+            await bounded(() => recordRunEnded(this.options.project, this.instanceId, reason === 'force' ? 'force-stopped' : reason === 'stop' ? 'stopped' : reason === 'restart' ? 'restarted' : 'ended', this.options.env), deadline - 2_000);
             this.knownRun = false;
         }
-        await bounded(() => removeProcessRecord(this.options.project, this.instanceId));
+        await bounded(() => removeProcessRecord(this.options.project, this.instanceId), deadline - 1_000);
         this.owned.stop();
-        await bounded(() => this.releaseLock?.());
+        await bounded(() => this.releaseLock?.(), deadline);
         this.releaseLock = undefined;
     }
 

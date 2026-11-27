@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { awaitCommitCheck } from '../scripts/await-commit-check.mjs';
+import { awaitCommitCheck, githubApi } from '../scripts/await-commit-check.mjs';
 import { selectTestShard } from '../scripts/test.mjs';
 import { isAlreadyPublished } from '../scripts/verify-published.mjs';
 import { ROOT } from './helpers.mjs';
@@ -114,4 +114,35 @@ test('a publication reuses only a passing check run of its exact commit, re-runs
     );
     const newer = [run(7, 'completed', 'failure'), run(8, 'completed', 'success', { created_at: '2026-11-19T12:30:00Z' })];
     assert.deepEqual(await scenario([newer]), { passed: true, desktop: true, failed: false, runId: '8', reruns: [] }, 'the newest run of the commit decides');
+});
+
+test('GitHub API reads survive transient server errors; client errors and writes fail at once', async () => {
+    const quietly = async (run) => {
+        const log = console.log;
+        console.log = () => {};
+        try { return await run(); } finally { console.log = log; }
+    };
+    const respond = (status, body = '') => ({ ok: status < 300, status, text: async () => body });
+    const replies = (...answers) => {
+        const calls = [];
+        return { calls, fetch: async (url, init) => { calls.push(init.method); const answer = answers.shift(); if (answer instanceof Error) throw answer; return answer; } };
+    };
+    const api = (server) => ({ repository: 'webgptorg/promptbook', token: 't', fetch: server.fetch, sleep: async () => {}, attempts: 4 });
+
+    // 0.119.0-137: one HTTP 500 while polling the check run failed the whole release.
+    const flaky = replies(respond(500, 'oops'), new Error('socket hang up'), respond(200, '{"workflow_runs":[]}'));
+    assert.deepEqual(await quietly(() => githubApi(api(flaky), 'actions/runs')), { workflow_runs: [] });
+    assert.equal(flaky.calls.length, 3);
+
+    const down = replies(respond(502), respond(503), respond(504), respond(500, 'still down'));
+    await assert.rejects(quietly(() => githubApi(api(down), 'actions/runs')), /HTTP 500 still down/);
+    assert.equal(down.calls.length, 4, 'a bounded number of attempts');
+
+    const missing = replies(respond(404, 'Not Found'));
+    await assert.rejects(githubApi(api(missing), 'actions/runs'), /HTTP 404/);
+    assert.equal(missing.calls.length, 1, 'a client error is not repeated');
+
+    const write = replies(respond(500));
+    await assert.rejects(quietly(() => githubApi(api(write), 'actions/runs/1/rerun-failed-jobs', 'POST')), /HTTP 500/);
+    assert.equal(write.calls.length, 1, 'a write that may have happened is not repeated');
 });

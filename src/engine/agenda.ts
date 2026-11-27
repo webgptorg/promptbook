@@ -78,6 +78,7 @@ import {
     validateAssignment,
     workKindOf,
 } from './generated.js';
+import type { RecoveryTarget } from '../onboarding/recovery.js';
 import { HarnessPool, instanceEnvironment } from './harnesses.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
@@ -628,7 +629,7 @@ export class Agenda {
         this.ownership = new FileOwnership(options.project.root, { onChange: () => this.touch() });
         this.chatBatches = new ChatCommitBatcher(options.project, {
             repositoryRoot: () => this.repositoryRoot,
-            commit: async (paths, subject, trailers) => await this.commitAuthoring(paths, subject, trailers),
+            commit: async (paths, subject, trailers, agentName) => await this.commitAuthoring(paths, subject, trailers, agentName),
             turnActive: (chat) => [...this.units.values()].some((unit) => unit.kind === 'chat' && nameKey(unit.label) === nameKey(chat)),
             quietMs: Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || CHAT_BATCH_QUIET_MS,
             maxAgeMs: Math.max(Number(options.env.PTBK_CHAT_BATCH_QUIET_MS) || 0, CHAT_BATCH_MAX_AGE_MS),
@@ -2430,7 +2431,7 @@ export class Agenda {
     }
 
     /** Commits authored paths under the Git lock (with name trailers such as `Task-Name`/`Chat-Name`). */
-    private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}): Promise<string | undefined> {
+    private async commitAuthoring(paths: readonly string[], summary: string, trailers: Readonly<Record<string, string | readonly string[] | undefined>> = {}, agentName?: string): Promise<string | undefined> {
         if (!this.repositoryRoot) throw new PtbkError('The project is not in a Git working tree.', { kind: 'setup', next: ['Run `ptbk init`.'] });
         // A no-op has nothing to commit and triggers no remote work (also during Pause, where commits are the boundary).
         if (this.sync.view() && !(await anyPathChanged(this.options.project.root, this.repositoryRoot, paths))) return undefined;
@@ -2443,6 +2444,7 @@ export class Agenda {
                 paths,
                 subject: summary,
                 trailers,
+                agentName,
                 temporaryDirectory: this.options.project.runtime.temporary,
                 env: this.options.env,
             }),
@@ -2465,7 +2467,7 @@ export class Agenda {
         }
         // One bulk operation's records share a commit that says how many it covers.
         const count = record.count ?? 1;
-        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`, 'action.audit'), { 'Task-Name': record.subject.taskName || undefined, 'PTBK-Agent': record.subject.agent || undefined });
+        await this.commitAuthoring(paths, agentSubject(record.subject.agent || undefined, `Action - ${record.operation} · ${record.service}${count > 1 ? ` (${count} records)` : ''}`, 'action.audit'), { 'Task-Name': record.subject.taskName || undefined, 'PTBK-Agent': record.subject.agent || undefined }, record.subject.agent || undefined);
         for (const path of paths) this.authoredPaths.delete(path);
         return 'committed';
     }
@@ -5019,7 +5021,7 @@ export class Agenda {
         this.reportCommitTimer = undefined;
         try {
             const evidence = setting<boolean>(this.settings, 'traces.isCommitted') ? await stageableFiles(this.options.project.root, 'traces/.chats/report') : [];
-            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`, 'report.update'), { 'Chat-Name': REPORT_NAME, 'PTBK-Agent': REPORT_AUTHOR });
+            await this.commitAuthoring([path, ...evidence], agentSubject(REPORT_AUTHOR, `Chat - ${REPORT_NAME}`, 'report.update'), { 'Chat-Name': REPORT_NAME, 'PTBK-Agent': REPORT_AUTHOR }, REPORT_AUTHOR);
             this.authoredPaths.delete(path);
             await this.setReportCommitPending(false);
         } catch (error) {
@@ -5410,13 +5412,14 @@ export class Agenda {
      * a stopped project's CLI, with the in-use set of active work, the Git lock and synchronization attempts. The new
      * inventory is effective at once, also for the task running now.
      */
-    public async toolOperation(request: ToolOperationRequest): Promise<ToolOperationOutcome> {
+    public async toolOperation(request: ToolOperationRequest, expectedTool?: HarnessToolRecord): Promise<ToolOperationOutcome> {
         const configPath = this.options.project.configPath;
         // Never attribute the configuration write to the active task while it is being committed separately.
         const alreadyAuthored = this.authoredPaths.has(configPath);
         this.authoredPaths.add(configPath);
         try {
             const outcome = await applyToolOperation(this.options.project, request, {
+                expectedTool,
                 env: this.options.env,
                 inUse: this.toolsInUse(),
                 gitLock: (action) => this.gitMutex.run(action),
@@ -5432,6 +5435,33 @@ export class Agenda {
         } finally {
             if (!alreadyAuthored) this.authoredPaths.delete(configPath);
         }
+    }
+
+    /** First enabled native account that cannot serve work until its owner signs in. */
+    public harnessNeedingSignIn(): RecoveryTarget | undefined {
+        const tool = this.pool?.instances().find(item => item.authentication === 'NATIVE' && this.pool.inspectionOf(item.name)?.problem === 'signed-out');
+        if (!tool) return undefined;
+        const plugin = this.pool.plugin(tool.name);
+        if (!plugin) return undefined;
+        let context = this.pool.context(tool.name);
+        // An existing implicit shared Claude home is migrated only after the owner has verified a new login.
+        // Explicit account selectors continue to address the operator's chosen store.
+        if (plugin.id === 'claude-code' && !tool.accountProfile && this.options.env.CLAUDE_CONFIG_DIR === undefined && this.options.env.CLAUDE_SECURESTORAGE_CONFIG_DIR === undefined) {
+            const isolated = { ...tool, accountProfile: 'project-' + shortHash(this.options.project.root + '\0' + tool.name, 24) };
+            context = { ...context, tool: isolated, env: this.pool.environment(isolated) };
+        }
+        return { plugin, tool, context };
+    }
+
+    /** Wake waiting work after the owner's real check of this exact account. */
+    public async harnessSignedIn(target: RecoveryTarget): Promise<void> {
+        const profile = target.context.tool?.accountProfile;
+        if (profile && profile !== target.tool.accountProfile) {
+            const result = await this.toolOperation({ operation: { kind: 'modify', name: target.tool.name, changes: { accountProfile: profile } }, via: 'api' }, target.tool);
+            if (result.status === 'needs-acknowledgement') throw new PtbkError(result.summary, { kind: 'conflict' });
+        }
+        this.pool.authenticated(target.context);
+        await this.recheckTools();
     }
 
     /**

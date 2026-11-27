@@ -4,6 +4,11 @@
 
 **Wallet** is one project-owned credential-manager sub-engine, intended as the user's ordinary manager for service accounts, passwords and additional reusable login fields. It is not a Book entity, agent, cryptocurrency wallet or tool type. Projects retain separate vaults even when sharing a browser profile. The sub-engine works with zero clients and has its own dashboard tile/page.
 
+## Headless Linux without a protected credential store
+
+Browser setup checks the credential facility as the engine user. If the Ubuntu host cannot seal the Wallet key, the final review explains that project creation can continue and that saving and filling logins will be unavailable. Ubuntu 24.04 with systemd 255 lacks user-scoped credential encryption. On a VPS without access to a system credential key or TPM, configure a working protected credential facility for the service account and restart the engine. Provisioning then retries. Existing encrypted Wallets keep their keys and their recovery procedure.
+
+
 ## Access without exposing credentials
 
 An agent missing website authentication requests Wallet login with the actual service origin, target browser/tab, required account context and affected work. It does not request credentials in chat, read/decrypt the vault, fetch secrets into model context or type them itself. The trusted Wallet/browser integration applies protected values directly and returns only redacted progress, waiting, failure or verified success. Headless/headful use the same contract.

@@ -14,7 +14,7 @@ import { createTerminalProfile } from './ui/terminal.js';
  *
  * @private CLI entry point
  */
-export async function main(argv: readonly string[] = process.argv.slice(2)): Promise<void> {
+export async function main(argv: readonly string[] = process.argv.slice(2)): Promise<'foreground-ended' | void> {
     const raw = argv.includes('--raw') || argv.includes('--no-ui');
     try {
         const invocation = parseInvocation(argv, COMMANDS);
@@ -45,6 +45,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2)): Pro
             return;
         }
         process.exitCode = await invocation.spec.run(context);
+        if (invocation.path[0] === 'start' && invocation.options.foreground === true) return 'foreground-ended';
     } catch (error) {
         const terminal = createTerminalProfile({ raw, nonInteractive: true, stdout: process.stderr });
         process.stderr.write(renderError(error, terminal));

@@ -64,7 +64,7 @@ export class ChatCommitBatcher {
             /** Git working tree root (to skip files committed meanwhile). */
             readonly repositoryRoot: () => string | undefined;
             /** Commits exactly these absolute paths as one scoped operation (undefined when nothing changed). */
-            readonly commit: (paths: readonly string[], subject: string, trailers: BatchTrailers) => Promise<string | undefined>;
+            readonly commit: (paths: readonly string[], subject: string, trailers: BatchTrailers, agentName?: string) => Promise<string | undefined>;
             /** Quiet period after the latest write; omitted: commits only on explicit flushes. */
             readonly quietMs?: number;
             /** An active turn can hold a quiet batch until its reply or the hard age limit. */
@@ -174,7 +174,7 @@ export class ChatCommitBatcher {
                     const dirty = root ? new Set((await gitStatus(this.project.root, root)).map((entry) => entry.path)) : undefined;
                     const changed = dirty ? absolute.filter((path) => dirty.has(path)) : absolute;
                     const agent = root && changed.length ? await batchAgent(root, absolute[0]!).catch(() => undefined) : undefined;
-                    const sha = changed.length ? await this.options.commit(changed, agentSubject(agent, `Chat - ${batch.chat}`, 'chat.turn'), { 'Chat-Name': batch.chat, 'PTBK-Agent': agent, ...batch.trailers }) : undefined;
+                    const sha = changed.length ? await this.options.commit(changed, agentSubject(agent, `Chat - ${batch.chat}`, 'chat.turn'), { 'Chat-Name': batch.chat, 'PTBK-Agent': agent, ...batch.trailers }, agent) : undefined;
                     if (sha) commits.push(sha);
                     this.batches.delete(batch.chat);
                     this.options.onPending?.(absolute, false);

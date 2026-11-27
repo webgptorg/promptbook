@@ -38,7 +38,7 @@ async function commandBody(request: Request): Promise<Record<string, unknown> | 
 }
 
 /** A sign-in page and terminal on the passkey-protected engine origin, behind the existing end-to-end relay. @private App web origin */
-export async function harnessTerminalPage(request: Request, actor: Actor, session: OnboardingSession): Promise<Response | undefined> {
+export async function harnessTerminalPage(request: Request, actor: Actor, session: Pick<OnboardingSession, 'prepareTerminal' | 'terminal' | 'useTerminal' | 'signInOptions'>): Promise<Response | undefined> {
     const url = new URL(request.url);
     const path = HARNESS_TERMINAL_PATH;
     if (url.pathname !== path && !url.pathname.startsWith(path + '/')) return undefined;

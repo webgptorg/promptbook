@@ -5,6 +5,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('desktop', {
     observe: () => ipcRenderer.invoke('desktop:observe'),
     update: (action) => ipcRenderer.invoke('desktop:update', action),
+    updateBarHeight: (height) => ipcRenderer.send('desktop:update-bar-height', height),
     start: (root) => ipcRenderer.invoke('desktop:start', root),
     dashboard: (root) => ipcRenderer.invoke('desktop:dashboard', root),
     chooseDirectory: () => ipcRenderer.invoke('desktop:directory'),

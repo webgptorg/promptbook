@@ -4,9 +4,34 @@
 
 # Unreleased
 
+- Desktop update checks stay quiet when there is no newer installer. A compact **Update available** button opens a matching installer from the project chooser, console or open project.
+
+- Keep the Windows notification area, title bar and taskbar icons visible in light, dark and mixed themes, including pinned shortcuts when Promptbook is closed.
+
+- Publish ptbk to npm through trusted publishing (GitHub Actions OIDC) instead of the `NPM_TOKEN` secret. The token had expired, so 0.119.0-134 and -135 passed every check and then failed with `404 Not Found - PUT https://registry.npmjs.org/ptbk`. Publication now fails early on an npm older than 11.5.1, and a refused upload explains how to check the trusted publisher. The trusted publisher must allow `npm publish`, not only staged publishing: otherwise npm answers `403 OIDC permission denied for this action`.
+- Fix the package check (`npm run test:package`), which failed on every platform and blocked 0.119.0-136: it still expected the Expert bootstrap commit in the former `ptbk: ` subject format instead of the categorized `` `ptbk` `task.result` - `` format.
+- A transient GitHub API error no longer fails a release. One `HTTP 500` while the publication was waiting for the branch check run stopped 0.119.0-137 before npm. Reads now retry server errors, rate limits and network failures up to six times with growing pauses. Client errors and writes, such as re-running failed jobs, still fail at once.
+
 - Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.
+- Use the user’s Git identity and signing configuration for Promptbook commits. The author name includes the responsible agent, or Promptbook when no agent is known. Remove the legacy coding-agent Git identity and signing-key overrides.
 
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
+
+- Foreground service shutdown gives runtime cleanup one shared deadline after work settles. It stays alive to release the project lock and exits even when a provider leaves a handle open.
+
+- Browser setup warns before project creation when Linux cannot protect the Wallet key. The review explains which login features are unavailable and how to restore them.
+
+- The owner of a running project can reconnect an expired native AI account from the browser. An older Claude project can move its implicit shared login to a private profile after successful verification.
+
+- New projects give native Claude Code its own account profile throughout installation, sign-in and execution. Concurrent projects no longer rotate the same refresh token.
+
+- Gemini setup distinguishes a saved API selection from a Google login. A failed provider check shows its redacted diagnostic and offers sign-in again.
+
+- Changing AI tools during setup cancels the previous check and discards its progress and login prompt. Only the latest selection advances.
+
+- Claude Code offers an Anthropic API key directly from browser sign-in. The engine verifies it through a real request before saving it in the project’s ignored `.env`.
+
+- Browser setup reads Claude Code's native OSC 8 authorization links on headless servers. HTTPS links in the fallback terminal open in a separate tab.
 
 - Reconcile the historical execution-repair request for the release-discovery learning task with its successful Teacher run and engine result commit. Record the verified routing and completion evidence without changing execution requirements, learning boundaries or task completion state.
 
