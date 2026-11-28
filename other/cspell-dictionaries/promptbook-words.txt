@@ -2,6 +2,7 @@ promptbook
 ptbk
 azureopenai
 deepseek
+deepsearch
 ollama
 markitdown
 prebuild
@@ -31,6 +32,7 @@ subvalues
 unhardcoded
 sideeffects
 ptbkurl
+apikey
 promptbool
 llms
 subresult
@@ -58,3 +60,5 @@ dall
 collboard
 colldev
 chococake
+asciioctopus
+blobby

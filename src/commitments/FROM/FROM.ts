@@ -1,6 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
+import { isVoidPseudoAgentReference } from '../../book-2.0/agent-source/pseudoAgentReferences';
+import type { string_agent_url } from '../../types/string_agent_url';
+import { isValidAgentUrl } from '../../utils/validators/url/isValidAgentUrl';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -17,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
-    constructor(type: 'FROM' = 'FROM') {
+    public constructor(type: 'FROM' = 'FROM') {
         super(type);
     }
 
@@ -44,12 +46,25 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
 
             Inherits agent source from another agent.
 
+            Every agent inherits from the core agent \`@Adam\` unless it says otherwise, so writing no ${this.type} at all
+            is the same as writing \`${this.type} @Adam\`. Write \`${this.type} @Null\` to inherit from nothing.
+
+            An agent has exactly one parent, so when ${this.type} is written more than once, the last one wins and
+            overrides every earlier one.
+
             ## Examples
 
             \`\`\`book
             My AI Agent
 
             FROM https://s6.ptbk.io/benjamin-white
+            RULE Speak only in English.
+            \`\`\`
+
+            \`\`\`book
+            My Standalone Agent
+
+            FROM @Null
             RULE Speak only in English.
             \`\`\`
         `);
@@ -62,23 +77,36 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
             return requirements;
         }
 
-        // Validate URL
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const url = new URL(trimmedContent);
-            // TODO: Add more validation if needed (e.g. check for valid protocol)
-        } catch (error) {
-            console.warn(`Invalid URL in FROM commitment: ${trimmedContent}`);
-            return requirements;
+        if (isVoidPseudoAgentReference(trimmedContent)) {
+            return {
+                ...requirements,
+                parentAgentUrl: null,
+            };
         }
+
+        if (!isValidAgentUrl(trimmedContent)) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+                        Invalid agent URL in FROM commitment: "${trimmedContent}"
+
+                        \`\`\`book
+                        ${block(content)}
+                        \`\`\`
+
+
+                `,
+                ),
+            );
+        }
+
+        const parentAgentUrl: string_agent_url = trimmedContent;
 
         return {
             ...requirements,
-            parentAgentUrl: trimmedContent as string_knowledge_source_link,
+            parentAgentUrl,
         };
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,11 +1,11 @@
 import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { GENERATOR_WARNING_IN_ENV } from '../../config';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { $provideEnvFilename } from '../../llm-providers/_common/register/$provideEnvFilename';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_filename } from '../../types/string_filename';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -85,7 +85,7 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
 
         const transformedKey = this.transformKey(key);
         const updatedEnvContent = envContent
-            .split('\n')
+            .split(/\r?\n/)
             .filter((line) => !line.startsWith(`# ${GENERATOR_WARNING_IN_ENV}`)) // Remove GENERATOR_WARNING_IN_ENV
             .filter((line) => !line.startsWith(`${transformedKey}=`)) // Remove existing key if present
             .join('\n');
@@ -111,6 +111,4 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
     }
 }
 
-/**
- * TODO: Write file more securely - ensure that there can be no accidental overwriting of existing variables and other content
- */
+// TODO: Write file more securely - ensure that there can be no accidental overwriting of existing variables and other content

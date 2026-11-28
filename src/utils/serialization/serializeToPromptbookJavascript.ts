@@ -1,9 +1,14 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { string_javascript } from '../../types/typeAliases';
+import type { string_javascript } from '../../types/string_markdown';
 import { Color } from '../color/Color';
 import type { TODO_any } from '../organization/TODO_any';
 
+/**
+ * Type describing serialize to promptbook javascript return.
+ *
+ * @private Internal return type for `serializeToPromptbookJavascript`.
+ */
 type SerializeToPromptbookJavascriptReturn = {
     /**
      * Array of import statements required for the `value` to work
@@ -25,7 +30,9 @@ export function serializeToPromptbookJavascript(value: TODO_any): SerializeToPro
     let serializedValue: string_javascript;
     let imports: string_javascript[] = [];
 
-    if (value === null || value === undefined || typeof value === 'number' || typeof value === 'boolean') {
+    if (value === undefined) {
+        serializedValue = 'undefined';
+    } else if (value === null || typeof value === 'number' || typeof value === 'boolean') {
         serializedValue = JSON.stringify(value, null, 4);
     } else if (Array.isArray(value)) {
         const serializedItems = value.map((item) => serializeToPromptbookJavascript(item));
@@ -59,7 +66,7 @@ export function serializeToPromptbookJavascript(value: TODO_any): SerializeToPro
             .map(
                 ([key, val]) =>
                     `    ${JSON.stringify(key)}: ${val
-                        ?.split('\n')
+                        ?.split(/\r?\n/)
                         .map((line) => `    ${line}`)
                         .join('\n')}`,
             )
@@ -73,11 +80,11 @@ export function serializeToPromptbookJavascript(value: TODO_any): SerializeToPro
         throw new UnexpectedError(`Serialization resulted in undefined value`);
     }
 
-    const uniqueImports = Array.from(new Set(imports)).filter((imp) => !!imp && imp.trim().length > 0);
+    const uniqueImports = Array.from(new Set(imports)).filter(
+        (importStatement) => !!importStatement && importStatement.trim().length > 0,
+    );
 
     return { imports: uniqueImports, value: serializedValue };
 }
 
-/**
- * TODO: Dynamic indentation passable through options in a second argument
- */
+// TODO: Dynamic indentation passable through options in a second argument

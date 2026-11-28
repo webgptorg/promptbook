@@ -1,10 +1,12 @@
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import type { Usage } from '../../execution/Usage';
 import { UNCERTAIN_ZERO_VALUE } from '../../execution/utils/usage-constants';
-import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_model_name } from '../../types/string_model_name';
+import type { string_title } from '../../types/string_title';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
@@ -64,7 +66,7 @@ export const createOpenAiCompatibleExecutionTools = Object.assign(
         packageName: '@promptbook/openai',
         className: 'OpenAiCompatibleExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor;
+) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
 
 /**
  * Execution Tools for calling ONE SPECIFIC PRECONFIGURED OpenAI compatible provider
@@ -151,7 +153,5 @@ export class HardcodedOpenAiCompatibleExecutionTools
     // <- Note: [🤖] getDefaultXxxModel
 }
 
-/**
- * TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

@@ -1,71 +1,35 @@
-import { $provideServer } from '@/src/tools/$provideServer';
-import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { Color } from '../../../../../../../../src/utils/color/Color';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
-import { getAgentName, getAgentProfile } from '../../_utils';
+import { createAgentIconLayout, getAgentImageContext } from '../_shared';
+import { TODO_any } from '@promptbook-local/types';
 
+/**
+ * Target size for the generated icon.
+ *
+ * @private
+ */
 const size = {
     width: 256,
     height: 256,
 };
 
+/**
+ * Renders the circular agent icon used across the agents server.
+ *
+ * @private @@@
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
 
     try {
-        const agentName = await getAgentName(params);
-        const agentProfile = await getAgentProfile(agentName);
-        const agentColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
-        const { publicUrl } = await $provideServer();
+        const context = await getAgentImageContext(params);
 
-        return new ImageResponse(
-            (
-                <div
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '50%',
-                        aspectRatio: '1 / 1',
-                        overflow: 'hidden',
-                    }}
-                >
-                    <div
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            backgroundColor: agentColor.toHex(),
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        {/* Note: `next/image` is not working propperly with `next/og` */}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={
-                                agentProfile.meta.image ||
-                                generatePlaceholderAgentProfileImageUrl(
-                                    agentProfile.permanentId || agentName,
-                                    publicUrl,
-                                )
-                            }
-                            alt="Agent Icon"
-                        />
-                    </div>
-                </div>
-            ),
-            {
-                ...size,
-                emoji: 'openmoji',
-            },
-        );
+        return new ImageResponse(createAgentIconLayout(context) as TODO_any, {
+            ...size,
+            emoji: 'openmoji',
+        });
     } catch (error) {
         assertsError(error);
 
@@ -86,7 +50,3 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         );
     }
 }
-
-/**
- * TODO: [🦚] DRY
- */

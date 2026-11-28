@@ -1,16 +1,24 @@
 'use client';
+import { spaceTrim } from 'spacetrim';
+
 
 import { colorToDataUrl } from '@promptbook-local/color';
-import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
-import { AgentBasicInformation, string_agent_permanent_id } from '@promptbook-local/types';
+import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
-import { AgentCapabilityChips } from './AgentCapabilityChips';
+import { resolveAgentAvatar } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT, AgentCapabilityChips } from './AgentCapabilityChips';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
+import { AgentProfileDescription } from './AgentProfileDescription';
 import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
+/**
+ * Props for agent profile.
+ */
 type AgentProfileProps = {
     /**
      * The agent to display
@@ -32,7 +40,7 @@ type AgentProfileProps = {
     /**
      * Base URL of the agents server
      */
-    readonly publicUrl: URL;
+    readonly publicUrl: string_url;
 
     /**
      * Email of the agent
@@ -67,13 +75,16 @@ type AgentProfileProps = {
     readonly className?: string;
 };
 
+/**
+ * Handles agent profile.
+ */
 export function AgentProfile(props: AgentProfileProps) {
+    const { formatText } = useAgentNaming();
     const {
         agent,
         agentUrl = '',
         agentEmail = '',
         publicUrl,
-        permanentId,
         renderMenu,
         children,
         actions,
@@ -82,15 +93,26 @@ export function AgentProfile(props: AgentProfileProps) {
     } = props;
 
     const { meta, agentName } = agent;
-    const fullname = (meta.fullname as string) || agentName || 'Agent';
+    const fallbackName = formatText('Agent');
+    const fullname = (meta.fullname as string) || agentName || fallbackName;
     const personaDescription = meta.description || agent.personaDescription || '';
-    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId, publicUrl);
+    const showMoreLabel = formatText('Show more');
+    const showLessLabel = formatText('Show less');
+    const resolvedAgentAvatar = resolveAgentAvatar({ agent, baseUrl: publicUrl });
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
 
     // Dynamic Font Loading
     const fontString = meta.font;
+    const primaryFontFamily = fontString ? (fontString.split(',')[0] || '').trim().replace(/['"]/g, '') : '';
+    const PRIMARY_FONT_IMPORT_STYLES = primaryFontFamily
+        ? spaceTrim(
+              (block) => `
+                  @import url('https://fonts.googleapis.com/css2?family=${block(encodeURIComponent(primaryFontFamily))}:wght@400;600;700&display=swap');
+              `,
+          )
+        : '';
     let fontStyle: React.CSSProperties = {};
 
     if (fontString) {
@@ -106,12 +128,8 @@ export function AgentProfile(props: AgentProfileProps) {
 
     return (
         <>
-            {fontString && (
-                <style jsx global>{`
-                    @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(
-                        fontString.split(',')[0].trim().replace(/['"]/g, ''),
-                    )}:wght@400;600;700&display=swap');
-                `}</style>
+            {primaryFontFamily && (
+                <style jsx global>{PRIMARY_FONT_IMPORT_STYLES}</style>
             )}
 
             {/* Full-screen background with agent color */}
@@ -128,7 +146,7 @@ export function AgentProfile(props: AgentProfileProps) {
             >
                 {/* Options menu in top right */}
                 {!isHeadless && renderMenu && (
-                    <div className="absolute top-4 right-4 z-[9999]">
+                    <div className="absolute top-4 right-4 z-20">
                         {renderMenu({ onShowQrCode: () => setIsQrModalOpen(true) })}
                     </div>
                 )}
@@ -154,7 +172,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                 className="absolute inset-0 w-full h-full backface-hidden rounded-lg md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden backdrop-blur-sm"
                                 style={{
                                     backfaceVisibility: 'hidden',
-                                    backgroundColor: brandColorDarkHex,
+                                    background: `radial-gradient(circle at 30% 18%, ${brandColorLightHex}d9 0%, ${brandColorHex} 42%, ${brandColorDarkHex} 100%)`,
                                     boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
 
                                     // Note: Make it squircle
@@ -162,15 +180,38 @@ export function AgentProfile(props: AgentProfileProps) {
                                     // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
-                                <AgentProfileImage
-                                    src={imageUrl}
-                                    alt={fullname}
-                                    className="w-full h-full object-cover"
-                                    style={{
-                                        objectFit: 'cover',
-                                        backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
-                                    }}
-                                />
+                                {resolvedAgentAvatar?.type === 'image' ? (
+                                    <AgentProfileImage
+                                        src={resolvedAgentAvatar.imageUrl}
+                                        alt={fullname}
+                                        className="w-full h-full"
+                                        imageClassName="agent-avatar-pixelated w-full h-full object-contain"
+                                        style={{
+                                            backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center overflow-hidden p-4 md:p-8">
+                                        {/* Keep built-in visuals inside a centered square stage so different avatar renderers fit the tall profile card consistently. */}
+                                        <div className="flex aspect-square w-[80%] items-center justify-center">
+                                            <AgentAvatar
+                                                agent={agent}
+                                                baseUrl={publicUrl}
+                                                surface="transparent"
+                                                size={420}
+                                                alt={fullname}
+                                                className="!h-full !w-full pointer-events-none select-none"
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    maxWidth: '100%',
+                                                    maxHeight: '100%',
+                                                    filter: 'drop-shadow(0 24px 30px rgba(0, 0, 0, 0.28))',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Flip hint icon */}
                                 <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-black/30 p-1 md:p-2 rounded-full text-white/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
@@ -220,11 +261,14 @@ export function AgentProfile(props: AgentProfileProps) {
                         </h1>
 
                         {/* Short description */}
-                        <p className="text-sm md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
-                            {personaDescription}
-                        </p>
+                        <AgentProfileDescription
+                            text={personaDescription}
+                            className="text-sm md:text-xl text-gray-700 max-w-lg"
+                            collapsedLabel={showMoreLabel}
+                            expandedLabel={showLessLabel}
+                        />
 
-                        <AgentCapabilityChips agent={agent} />
+                        <AgentCapabilityChips agent={agent} maxChips={AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT} />
                     </div>
 
                     {/* Chat Area */}
@@ -248,20 +292,19 @@ export function AgentProfile(props: AgentProfileProps) {
             </div>
 
             {/* QR Code Modal */}
-            <QrCodeModal
-                isOpen={isQrModalOpen}
-                onClose={() => setIsQrModalOpen(false)}
-                agentName={agentName}
-                meta={meta}
-                personaDescription={personaDescription}
-                agentUrl={agentUrl}
-                agentEmail={agentEmail}
-                brandColorHex={brandColorHex}
-            />
+            {isQrModalOpen && (
+                <QrCodeModal
+                    onClose={() => setIsQrModalOpen(false)}
+                    agentName={agentName}
+                    meta={meta}
+                    personaDescription={personaDescription}
+                    agentUrl={agentUrl}
+                    agentEmail={agentEmail}
+                    brandColorHex={brandColorHex}
+                />
+            )}
         </>
     );
 }
 
-/**
- * TODO: !!!! Use 3D badge @see https://vercel.com/blog/building-an-interactive-3d-event-badge-with-react-three-fiber
- */
+// TODO: !!!! Use 3D badge @see https://vercel.com/blog/building-an-interactive-3d-event-badge-with-react-three-fiber

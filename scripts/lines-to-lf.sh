@@ -1,18 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+set -euo pipefail
 
 
 folders=(
-    ".vscode/**"
-    ".github/**"
-    "examples/**"
-    "book/**"
-    "other/**"
-    "personas/**"
-    "scripts/**"
-    "books/**"
-    "documents/**"
-    "src/**"
+    ".vscode"
+    ".github"
+    "examples"
+    "book"
+    "other"
+    "personas"
+    "scripts"
+    "books"
+    "documents"
+    "apps"
+    "agents"
+    "prompts"
+    "src"
+    "changelog"
     "CHANGELOG.md"
     "package-lock.json"
     "README.md"
@@ -23,10 +28,27 @@ folders=(
     "jest.config.js"
     "jest.setup.js"
     "package.json"
-    "PROGRAMMING.md"
 )
 
 for fileOrFolder in "${folders[@]}"; do
-    # Note: Recursively find all files, excluding node_modules
-    find $fileOrFolder -type f -not -path "*/node_modules/*" -exec dos2unix {} \;
+    if [ ! -e "$fileOrFolder" ]; then
+        continue
+    fi
+
+    if [ -f "$fileOrFolder" ]; then
+        if [ ! -s "$fileOrFolder" ] || grep -Iq . "$fileOrFolder"; then
+            dos2unix "$fileOrFolder"
+        fi
+        continue
+    fi
+
+    # Recursively process files, excluding hidden folders and node_modules.
+    # Hidden folders are ignored only below the root target directory.
+    find "$fileOrFolder" \
+        -mindepth 1 -type d \( -name '.*' -o -name 'node_modules' \) -prune -o \
+        -type f -print0 | while IFS= read -r -d '' file; do
+            if [ ! -s "$file" ] || grep -Iq . "$file"; then
+                dos2unix "$file"
+            fi
+        done
 done

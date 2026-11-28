@@ -1,8 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { $clearAgentChatHistory } from '../../../utils/chatHistoryAdmin';
 
+/**
+ * Props for clear agent chat history button.
+ */
 type ClearAgentChatHistoryButtonProps = {
     /**
      * Agent name for which the chat history should be cleared.
@@ -24,13 +30,18 @@ type ClearAgentChatHistoryButtonProps = {
 export function ClearAgentChatHistoryButton({ agentName, onCleared }: ClearAgentChatHistoryButtonProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { formatText } = useAgentNaming();
+    const { t } = useServerLanguage();
 
     const handleClick = async () => {
         if (!agentName) return;
 
-        const confirmed = window.confirm(
-            `Are you sure you want to permanently delete all chat history for agent "${agentName}"?`,
-        );
+        const confirmed = await showConfirm({
+            title: t('clearChatHistory.confirmTitle'),
+            message: t('clearChatHistory.confirmMessage', { agentName: formatText(agentName) }),
+            confirmLabel: t('clearChatHistory.confirmAction'),
+            cancelLabel: t('clearChatHistory.confirmCancel'),
+        }).catch(() => false);
         if (!confirmed) return;
 
         try {
@@ -41,7 +52,7 @@ export function ClearAgentChatHistoryButton({ agentName, onCleared }: ClearAgent
                 onCleared();
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to clear chat history');
+            setError(err instanceof Error ? err.message : t('clearChatHistory.errorMessage'));
         } finally {
             setLoading(false);
         }
@@ -55,7 +66,7 @@ export function ClearAgentChatHistoryButton({ agentName, onCleared }: ClearAgent
                 disabled={loading}
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 shadow-sm hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-                {loading ? 'Clearing history…' : 'Clear chat history'}
+                {loading ? t('clearChatHistory.clearingLabel') : t('clearChatHistory.buttonLabel')}
             </button>
             {error && <div className="text-xs text-red-600">{error}</div>}
         </div>

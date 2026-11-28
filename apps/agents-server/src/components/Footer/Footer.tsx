@@ -1,45 +1,76 @@
-import { HeadlessLink } from '../_utils/headlessParam';
+'use client';
 
+import { CLAIM, NAME } from '@promptbook-local/core';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { HeadlessLink } from '../_utils/headlessParam';
+import { getCommitFooterEmoji } from './getCommitFooterEmoji';
+
+/**
+ * Title/url pair used to extend the footer via metadata.
+ *
+ * @private Internal to `apps/agents-server`
+ */
 export type FooterLink = {
     title: string;
     url: string;
 };
 
-type FooterProps = {
-    extraLinks?: FooterLink[];
+/**
+ * Lightweight precomputed version metadata rendered in the footer.
+ *
+ * @private Internal to `apps/agents-server`
+ */
+export type FooterVersionInfo = {
+    label: string;
+    url: string;
+    commitSha: string | null;
+    releasedAtLabel: string | null;
 };
 
+/**
+ * Configuration passed to `Footer` from the layout container.
+ *
+ * @private Internal to `apps/agents-server`
+ */
+type FooterProps = {
+    extraLinks?: FooterLink[];
+    version: FooterVersionInfo;
+};
+
+/**
+ * Footer shown on each page of the Agents Server UI, including metadata-driven links and version info.
+ *
+ * @private Internal to `apps/agents-server`
+ */
 export function Footer(props: FooterProps) {
-    const { extraLinks = [] } = props;
+    const { extraLinks = [], version } = props;
+    const { t } = useServerLanguage();
+    const versionText = version.releasedAtLabel ? `${version.label}, ${version.releasedAtLabel}` : version.label;
 
     return (
-        <footer className="border-t bg-white">
+        <footer className="border-t border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-950">
             <div className="container mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     {/* Company Info */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">
-                            Prompt<b>Book</b>
-                        </h3>
-                        <p className="text-sm text-muted-foreground text-gray-500">
-                            {`It's time for a paradigm shift!`}
-                            <br />
-                            {`The future of software is in plain English ✨`}
-                        </p>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">{NAME}</h3>
+                        <p className="text-sm text-muted-foreground text-gray-500">{CLAIM}</p>
                     </div>
 
                     {/* Products */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">Product</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                            {t('footer.productSectionTitle')}
+                        </h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <HeadlessLink href="/get-started" className="text-gray-500 hover:text-gray-900">
-                                    Get started
+                                    {t('footer.getStarted')}
                                 </HeadlessLink>
                             </li>
                             <li>
                                 <HeadlessLink href="/manifest" className="text-gray-500 hover:text-gray-900">
-                                    Manifest
+                                    {t('footer.manifest')}
                                 </HeadlessLink>
                             </li>
                             <li>
@@ -47,17 +78,17 @@ export function Footer(props: FooterProps) {
                                     href="https://github.com/webgptorg/promptbook"
                                     className="text-gray-500 hover:text-gray-900"
                                 >
-                                    Documentation
+                                    {t('footer.documentation')}
                                 </a>
                             </li>
                             <li>
                                 <HeadlessLink href="/terms" className="text-gray-500 hover:text-gray-900">
-                                    Terms of Service
+                                    {t('footer.termsOfService')}
                                 </HeadlessLink>
                             </li>
                             <li>
                                 <HeadlessLink href="/privacy" className="text-gray-500 hover:text-gray-900">
-                                    Privacy Policy
+                                    {t('footer.privacyPolicy')}
                                 </HeadlessLink>
                             </li>
                         </ul>
@@ -65,7 +96,9 @@ export function Footer(props: FooterProps) {
 
                     {/* Company */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">Company</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                            {t('footer.companySectionTitle')}
+                        </h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a
@@ -77,17 +110,17 @@ export function Footer(props: FooterProps) {
                             </li>
                             <li>
                                 <a href="https://ptbk.io/#about-us" className="text-gray-500 hover:text-gray-900">
-                                    About Us
+                                    {t('footer.aboutUs')}
                                 </a>
                             </li>
                             <li>
                                 <a href="https://ptbk.io/blog" className="text-gray-500 hover:text-gray-900">
-                                    Blog
+                                    {t('footer.blog')}
                                 </a>
                             </li>
                             <li>
                                 <HeadlessLink href="/design" className="text-gray-500 hover:text-gray-900">
-                                    Logos & Branding
+                                    {t('footer.logosAndBranding')}
                                 </HeadlessLink>
                             </li>
                         </ul>
@@ -95,7 +128,9 @@ export function Footer(props: FooterProps) {
 
                     {/* Social */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">Connect</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                            {t('footer.connectSectionTitle')}
+                        </h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a
@@ -120,7 +155,7 @@ export function Footer(props: FooterProps) {
                             </li>
                             <li>
                                 <HeadlessLink href="/contact" className="text-gray-500 hover:text-gray-900">
-                                    More
+                                    {t('common.more')}
                                 </HeadlessLink>
                             </li>
                         </ul>
@@ -129,7 +164,9 @@ export function Footer(props: FooterProps) {
                     {/* Extra Links from Metadata */}
                     {extraLinks.length > 0 && (
                         <div className="space-y-4">
-                            <h3 className="font-bold">Links</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                                {t('footer.linksSectionTitle')}
+                            </h3>
                             <ul className="space-y-2 text-sm">
                                 {extraLinks.map((link, index) => (
                                     <li key={index}>
@@ -148,13 +185,22 @@ export function Footer(props: FooterProps) {
                     )}
                 </div>
 
-                <div className="border-t mt-8 pt-8 text-center text-sm text-gray-500">
+                <div className="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
                     <p>
                         &copy; {new Date().getFullYear()} Promptbook
                         <br />
-                        All rights reserved.
-                        <br />
-                        💜
+                        {t('footer.madeInCzechRepublic', { emoji: getCommitFooterEmoji(version.commitSha) })}
+                        {/* <- TODO: !!!!!!!! Put here Prague outline */}
+                    </p>
+                    <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
+                        <a
+                            href={version.url}
+                            className="hover:text-gray-600 dark:hover:text-slate-300"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {versionText}
+                        </a>
                     </p>
                 </div>
                 {/*

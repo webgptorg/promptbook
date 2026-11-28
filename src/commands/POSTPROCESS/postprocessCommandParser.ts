@@ -1,6 +1,6 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
@@ -11,6 +11,7 @@ import type { PostprocessCommand } from './PostprocessCommand';
  * Parses the postprocess command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const postprocessCommandParser: PipelineTaskCommandParser<PostprocessCommand> = {

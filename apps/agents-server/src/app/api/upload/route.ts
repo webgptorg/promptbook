@@ -1,168 +1,289 @@
-import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
-import { $getTableName } from '@/src/database/$getTableName';
-import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { serializeError } from '@promptbook-local/utils';
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../../../../src/errors/assertsError';
-import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
-import { getMetadata } from '../../../database/getMetadata';
+import { LimitReachedError } from '../../../../../../src/errors/LimitReachedError';
+import { NotAllowed } from '../../../../../../src/errors/NotAllowed';
+import { UnexpectedError } from '../../../../../../src/errors/UnexpectedError';
+import { $getTableName } from '../../../database/$getTableName';
+import { $provideSupabase } from '../../../database/$provideSupabase';
 import type { AgentsServerDatabase } from '../../../database/schema';
+import {
+    $provideCdnForServer,
+    isSelfContainedS3StorageSelected,
+    resolveCdnPublicUrlForServer,
+} from '../../../tools/$provideCdnForServer';
+import { $provideServer } from '../../../tools/$provideServer';
+import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
+import { getUserFileCdnKey } from '../../../utils/cdn/utils/getUserFileCdnKey';
+import { FILE_SECURITY_CHECKERS } from '../../../file-security-checkers';
+import { getUserIdFromRequest } from '../../../utils/getUserIdFromRequest';
+import { getMaxFileUploadSizeBytes } from '../../../utils/serverLimits';
+import { resolveFileUploadAvailability } from '../../../utils/upload/fileUploadAvailability';
+import { validateMimeType } from '../../../utils/validators/validateMimeType';
 
-export async function POST(request: NextRequest) {
+/**
+ * Default purpose used for uploads when the client does not provide one.
+ *
+ * @private
+ */
+const DEFAULT_UPLOAD_PURPOSE = 'GENERIC_UPLOAD';
+
+/**
+ * Default MIME type used for unknown uploads.
+ *
+ * @private
+ */
+const DEFAULT_UPLOAD_CONTENT_TYPE = 'application/octet-stream';
+
+/**
+ * Regular expression for path segments that are safe to keep as public object keys.
+ *
+ * @private
+ */
+const SAFE_UPLOAD_PATH_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._~!$&'()*+,;=:@/-]*$/;
+
+/**
+ * Parsed upload request.
+ *
+ * @private
+ */
+type ParsedUploadRequest = {
+    file: File;
+    pathname: string;
+    purpose: string;
+    contentType: string;
+};
+
+/**
+ * Server context returned by `$provideServer`.
+ *
+ * @private
+ */
+type ProvidedServer = Awaited<ReturnType<typeof $provideServer>>;
+
+/**
+ * Normalizes upload purpose to a non-empty string.
+ *
+ * @private
+ */
+function normalizeUploadPurpose(value: FormDataEntryValue | null): string {
+    if (typeof value !== 'string') {
+        return DEFAULT_UPLOAD_PURPOSE;
+    }
+
+    const normalizedPurpose = value.trim();
+    return normalizedPurpose === '' ? DEFAULT_UPLOAD_PURPOSE : normalizedPurpose;
+}
+
+/**
+ * Normalizes a MIME type string while keeping a safe fallback for unknown values.
+ *
+ * @private
+ */
+function normalizeUploadContentType(value: FormDataEntryValue | null, fallbackContentType: string): string {
+    const candidate = typeof value === 'string' && value.trim() ? value.trim() : fallbackContentType;
+
     try {
-        const body = (await request.json()) as HandleUploadBody;
-        const userId = await getUserIdFromRequest(request);
-        const supabase: SupabaseClient<AgentsServerDatabase> = $provideSupabase();
-
-        // Handle Vercel Blob client upload protocol
-        const jsonResponse = await handleUpload({
-            body,
-            request,
-            token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN!,
-            onBeforeGenerateToken: async (pathname, clientPayload) => {
-                // Authenticate user and validate upload
-
-                // Parse client payload for additional metadata
-                const payload = clientPayload ? JSON.parse(clientPayload) : {};
-                const { purpose, contentType } = payload;
-
-                let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
-                if (Number.isNaN(maxFileSizeMb)) {
-                    maxFileSizeMb = 50; // <- TODO: [🌲] To /config.ts
-                }
-                const maxFileSize = maxFileSizeMb * 1024 * 1024;
-
-                // Generate the proper path with prefix
-                // Note: With client uploads, we use the original filename provided by the client
-                // The file will be stored at: {pathPrefix}/user/files/{filename}
-                const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
-
-                // Create a DB record at the start of the upload to track it
-                const uploadPurpose = purpose || 'GENERIC_UPLOAD';
-                const { data: insertedFile, error: insertError }: PostgrestSingleResponse<Pick<AgentsServerDatabase['public']['Tables']['File']['Row'], 'id'>> = await supabase
-                    .from(await $getTableName('File'))
-                    .insert({
-                        userId: userId || null,
-                        fileName: pathname,
-                        fileSize: 0, // <- Will be updated when upload completes
-                        fileType: contentType || 'application/octet-stream',
-                        storageUrl: null, // <- To be updated on completion
-                        shortUrl: null, // <- To be updated on completion
-                        purpose: uploadPurpose,
-                        status: 'UPLOADING',
-                    })
-                    .select('id')
-                    .single();
-
-                if (insertError) {
-                    console.error('🔼 Failed to create file record:', insertError);
-                }
-
-                console.info('🔼 Upload started, tracking file:', {
-                    pathname,
-                    fileId: insertedFile?.id,
-                    purpose: uploadPurpose,
-                });
-
-                return {
-                    allowedContentTypes: contentType ? [contentType] : undefined,
-                    maximumSizeInBytes: maxFileSize,
-                    addRandomSuffix: true, // Add random suffix to avoid filename collisions since we can't hash content
-                    tokenPayload: JSON.stringify({
-                        userId: userId || null,
-                        purpose: uploadPurpose,
-                        fileId: insertedFile?.id || null,
-                        uploadPath: pathname,
-                        pathPrefix,
-                    }),
-                };
-            },
-            onUploadCompleted: async ({ blob, tokenPayload }) => {
-                // !!!!
-                // ⚠️ IMPORTANT: This callback is a WEBHOOK called by Vercel's servers AFTER the upload completes
-                // - It runs in a DIFFERENT request context (not the original user request)
-                // - It WON'T work in local development (Vercel can't reach localhost)
-                // - All data must come from tokenPayload (userId, fileId, etc.)
-                // - Need to create a fresh supabase client here
-                console.info('🔼 Upload completed (webhook callback):', { blob, tokenPayload });
-
-                try {
-                    const payload = tokenPayload ? JSON.parse(tokenPayload) : {};
-                    const { fileId, userId: tokenUserId, purpose: tokenPurpose, uploadPath } = payload;
-
-                    // Create fresh supabase client for this webhook context
-                    const supabase = $provideSupabase();
-
-                    if (fileId) {
-                        // Update the existing record by ID
-                        const { error: updateError } = await supabase
-                            .from(await $getTableName('File'))
-                            .update({
-                                userId: tokenUserId || null,
-                                fileSize: 0, // <- !!!!
-                                fileType: blob.contentType,
-                                storageUrl: blob.url,
-                                // <- TODO: !!!! Split between storageUrl and shortUrl
-                                purpose: tokenPurpose || 'GENERIC_UPLOAD',
-                                status: 'COMPLETED',
-                            })
-                            .eq('id', fileId);
-
-                        if (updateError) {
-                            console.error('🔼 Failed to update file record:', updateError);
-                        } else {
-                            console.info('🔼 File record updated successfully:', { fileId, shortUrl: blob.url });
-                        }
-                    } else if (uploadPath) {
-                        // Fallback: Update by uploadPath if fileId is not available
-                        const { error: updateError } = await supabase
-                            .from(await $getTableName('File'))
-                            .update({
-                                fileSize: 0, // <- !!!!
-                                fileType: blob.contentType,
-                                storageUrl: blob.url,
-                                status: 'COMPLETED',
-                            })
-                            .eq('id', fileId);
-
-                        if (updateError) {
-                            console.error('🔼 Failed to update file record by uploadPath:', updateError);
-                        }
-                    }
-                } catch (error) {
-                    console.error('🔼 Error in onUploadCompleted:', error);
-                }
-            },
-        });
-
-        return NextResponse.json(jsonResponse);
-    } catch (error) {
-        assertsError(error);
-
-        console.error('🔼', error);
-
-        return new Response(
-            JSON.stringify(
-                serializeError(error),
-                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
-                null,
-                4,
-                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
-            ),
-            {
-                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
-                headers: { 'Content-Type': 'application/json' },
-            },
-        );
+        return validateMimeType(candidate || DEFAULT_UPLOAD_CONTENT_TYPE);
+    } catch {
+        return DEFAULT_UPLOAD_CONTENT_TYPE;
     }
 }
 
 /**
- * TODO: !!!! Change uploaded URLs from `storageUrl` to `shortUrl`
- * TODO: !!!! Record both `storageUrl` (actual storage location) and `shortUrl` in `File` table
- * TODO: !!!! Record `purpose` in `File` table
- * TODO: !!!! Record `userId` in `File` table
- * TODO: !!!! Record all things into `File` table
- * TODO: !!!! File type (mime type) of `.book` files should be `application/book` <- [🧠] !!!! Best mime type?!
+ * Resolves and validates the storage key requested by the browser.
+ *
+ * @private
  */
+function resolveUploadPathname(value: FormDataEntryValue | null): string {
+    if (typeof value !== 'string') {
+        throw new UnexpectedError('Upload request is missing `pathname`.');
+    }
+
+    const pathname = value.trim().replace(/\\/g, '/').replace(/^\/+/, '');
+
+    if (
+        pathname === '' ||
+        pathname.includes('/../') ||
+        pathname.startsWith('../') ||
+        pathname.endsWith('/..') ||
+        !SAFE_UPLOAD_PATH_PATTERN.test(pathname)
+    ) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Upload request contains an invalid \`pathname\`.
+
+                The upload key must be a relative CDN path without parent-directory segments.
+            `),
+        );
+    }
+
+    return getSafeCdnPath({
+        pathname,
+        pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
+    });
+}
+
+/**
+ * Parses the multipart request accepted by `/api/upload`.
+ *
+ * @private
+ */
+async function parseUploadRequest(request: NextRequest): Promise<ParsedUploadRequest> {
+    const formData = await request.formData();
+    const file = formData.get('file');
+
+    if (!(file instanceof File)) {
+        throw new UnexpectedError('Upload request is missing `file`.');
+    }
+
+    return {
+        file,
+        pathname: resolveUploadPathname(formData.get('pathname')),
+        purpose: normalizeUploadPurpose(formData.get('purpose')),
+        contentType: normalizeUploadContentType(formData.get('contentType'), file.type),
+    };
+}
+
+/**
+ * Runs all configured file-security checkers against the uploaded public URL.
+ *
+ * @private
+ */
+async function checkUploadedFileSecurity(storageUrl: string): Promise<Record<string, unknown>> {
+    const securityResults: Record<string, unknown> = {};
+
+    for (const checkerId of Object.keys(FILE_SECURITY_CHECKERS)) {
+        try {
+            const checker = FILE_SECURITY_CHECKERS[checkerId]!;
+            securityResults[checkerId] = await checker.checkFile(storageUrl);
+        } catch (error) {
+            securityResults[checkerId] = {
+                isSafe: false,
+                status: 'ERROR',
+                confidence: 0,
+                message: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
+    return securityResults;
+}
+
+/**
+ * Stores security results for the file row created by `TrackedFilesStorage`.
+ *
+ * @private
+ */
+async function updateUploadedFileSecurityResult(
+    storageUrl: string,
+    securityResult: Record<string, unknown>,
+): Promise<void> {
+    if (Object.keys(securityResult).length === 0) {
+        return;
+    }
+
+    const supabase = $provideSupabase();
+    const securityResultForDatabase =
+        securityResult as AgentsServerDatabase['public']['Tables']['File']['Update']['securityResult'];
+    const { error } = await supabase
+        .from(await $getTableName('File'))
+        .update({ securityResult: securityResultForDatabase })
+        .eq('storageUrl', storageUrl);
+
+    if (error) {
+        console.error('Failed to update uploaded file security result:', error);
+    }
+}
+
+/**
+ * Ensures the current server/domain can accept file uploads.
+ *
+ * @param providedServer - Current server routing context.
+ * @throws `NotAllowed` when uploads would be published without a server domain.
+ * @private
+ */
+function assertFileUploadAvailable(providedServer: ProvidedServer): void {
+    const fileUploadAvailability = resolveFileUploadAvailability({
+        serverId: providedServer.id,
+        serverPublicUrl: providedServer.publicUrl,
+        isSelfContainedS3StorageSelected: isSelfContainedS3StorageSelected(),
+    });
+
+    if (!fileUploadAvailability.isUploadAvailable) {
+        throw new NotAllowed(fileUploadAvailability.message || 'File uploads are not available for this server.');
+    }
+}
+
+/**
+ * Handles file upload requests.
+ */
+export async function POST(request: NextRequest) {
+    try {
+        const providedServer = await $provideServer();
+        assertFileUploadAvailable(providedServer);
+
+        const { file, purpose, contentType } = await parseUploadRequest(request);
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+        const maxFileSize = await getMaxFileUploadSizeBytes();
+
+        if (fileBuffer.byteLength > maxFileSize) {
+            throw new LimitReachedError(
+                spaceTrim(`
+                    Uploaded file \`${file.name}\` exceeds the configured upload limit.
+
+                    Maximum supported size: **${maxFileSize} bytes**
+                `),
+            );
+        }
+
+        // [✨🏣] Compute a content-addressed CDN key so the public URL contains
+        // the file hash and does not expose the internal S3 bucket or path prefix.
+        const rawKey = getUserFileCdnKey(fileBuffer, file.name);
+        const pathname = getSafeCdnPath({
+            pathname: rawKey,
+            pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
+        });
+
+        const cdn = $provideCdnForServer({
+            cdnPublicUrl: resolveCdnPublicUrlForServer(providedServer.publicUrl),
+        });
+        const storageUrl = cdn.getItemUrl(pathname).href;
+        const userId = await getUserIdFromRequest(request);
+
+        await cdn.setItem(pathname, {
+            type: contentType,
+            data: fileBuffer,
+            purpose,
+            userId: userId || undefined,
+            fileSize: fileBuffer.byteLength,
+        });
+
+        const securityResult = await checkUploadedFileSecurity(storageUrl);
+        await updateUploadedFileSecurityResult(storageUrl, securityResult);
+
+        return NextResponse.json({
+            url: storageUrl,
+            pathname,
+            contentType,
+            size: fileBuffer.byteLength,
+        });
+    } catch (error) {
+        assertsError(error);
+
+        console.error('Upload failed:', error);
+
+        const serializedError = serializeError(error);
+
+        return NextResponse.json(
+            {
+                ...serializedError,
+                error: serializedError.message,
+            },
+            {
+                status: error instanceof NotAllowed ? 403 : 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
+            },
+        );
+    }
+}

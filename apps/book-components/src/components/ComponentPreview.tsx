@@ -5,35 +5,65 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import components to avoid SSR issues
 
+/**
+ * Constant for mermaid social graph.
+ */
 const MermaidSocialGraph = dynamic(() => import('@/components/mermaid-social-graph/MermaidSocialGraph'), {
     ssr: false,
 });
+/**
+ * Constant for book editor preview.
+ */
 const BookEditorPreview = dynamic(() => import('@/components/book-editor/BookEditorPreview'), {
     ssr: false,
 });
+/**
+ * Constant for avatar chip preview.
+ */
 const AvatarChipPreview = dynamic(() => import('@/components/avatar-chip/AvatarChipPreview'), {
     ssr: false,
 });
+/**
+ * Constant for avatar profile preview.
+ */
 const AvatarProfilePreview = dynamic(() => import('@/components/avatar-profile/AvatarProfilePreview'), {
     ssr: false,
 });
+/**
+ * Constant for chat preview.
+ */
 const ChatPreview = dynamic(() => import('@/components/chat/ChatPreview'), {
     ssr: false,
 });
+/**
+ * Constant for Llm chat preview.
+ */
 const LlmChatPreview = dynamic(() => import('@/components/llm-chat/LlmChatPreview'), {
     ssr: false,
 });
+/**
+ * Constant for mocked chat preview.
+ */
 const MockedChatPreview = dynamic(() => import('@/components/mocked-chat/MockedChatPreview'), {
     ssr: false,
 });
+/**
+ * Constant for promptbook qr code preview.
+ */
 const PromptbookQrCodePreview = dynamic(() => import('@/components/qr-code/PromptbookQrCodePreview'), {
     ssr: false,
 });
 
+/**
+ * Props for component preview.
+ */
 type ComponentPreviewProps = {
     componentId: string;
 };
 
+/**
+ * Handles component preview.
+ */
 export default function ComponentPreview({ componentId }: ComponentPreviewProps) {
     const renderComponentPreview = () => {
         switch (componentId) {
@@ -112,7 +142,5 @@ export default function ComponentPreview({ componentId }: ComponentPreviewProps)
     return <div className="bg-gray-50">{renderComponentPreview()}</div>;
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- * TODO: [🙉] DRY - make some index / register for component previews, DO not duplicate switch cases in multiple places
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+// TODO: [🙉] DRY - make some index / register for component previews, DO not duplicate switch cases in multiple places

@@ -3,6 +3,9 @@ import { serializeError } from '@promptbook-local/utils';
 import { NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
         const browserContext = await $provideBrowserForServer();
@@ -14,7 +17,7 @@ export async function GET() {
 
         // await page.close();
         // Do not close browser
-        // <- TODO: !!!! Fix
+        // <- TODO: !!! Fix
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return new NextResponse(new Blob([screenshotBuffer as any]), {

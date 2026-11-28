@@ -29,6 +29,7 @@ export type ExportJsonOptions<TObject> = CheckSerializableAsJsonOptions &
  * Note: This function does not mutates the given object
  *
  * @returns The same type of object as the input but read-only and re-ordered
+ *
  * @public exported from `@promptbook/utils`
  */
 export function exportJson<TObject>(options: ExportJsonOptions<TObject>): TObject {
@@ -54,6 +55,4 @@ export function exportJson<TObject>(options: ExportJsonOptions<TObject>): TObjec
     return orderedValue as TODO_any;
 }
 
-/**
- * TODO: [🧠] Is there a way how to meaningfully test this utility
- */
+// TODO: [🧠] Is there a way how to meaningfully test this utility

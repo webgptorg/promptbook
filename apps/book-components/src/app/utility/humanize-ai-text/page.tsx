@@ -8,6 +8,9 @@ import HumanizeAiTextPreview from '@/components/humanize-ai-text/HumanizeAiTextP
 import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/color';
 import { Download, Tag, User } from 'lucide-react';
 
+/**
+ * Handles humanize Ai text page.
+ */
 export default function HumanizeAiTextPage() {
     const utility = {
         name: 'Humanize AI Text1',

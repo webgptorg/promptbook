@@ -1,9 +1,10 @@
+import { getAllCommitmentsToolFunctionsForNode } from '../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { VALUE_STRINGS } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
-import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { Executables } from '../execution/Executables';
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { FilesystemTools } from '../execution/FilesystemTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
@@ -14,10 +15,10 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type { InputParameters } from '../types/Parameters';
+import type { string_filename } from '../types/string_filename';
+import type { string_parameter_value } from '../types/string_name';
+import type { string_pipeline_url } from '../types/string_pipeline_url';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
@@ -77,7 +78,9 @@ class Wizard {
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result: PipelineExecutorResult = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
+        const result: PipelineExecutorResult = await pipelineExecutor(inputParameters).asPromise({
+            isCrashedOnError: true,
+        });
 
         const { outputParameters } = result;
         const outputParametersLength = Object.keys(outputParameters).length;
@@ -126,7 +129,12 @@ class Wizard {
             fs,
             fetch: promptbookFetch,
             scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-            script: [new JavascriptExecutionTools(prepareAndScrapeOptions)],
+            script: [
+                new JavascriptExecutionTools({
+                    ...prepareAndScrapeOptions,
+                    functions: getAllCommitmentsToolFunctionsForNode(),
+                }),
+            ],
         } satisfies ExecutionTools;
 
         this.executionTools = tools;
@@ -161,11 +169,10 @@ class Wizard {
  * Note: This works only in Node.js environment and looks for the configuration, environment, tools and cache in the Node.js environment
  *
  * @singleton
+ *
  * @public exported from `@promptbook/wizard`
  */
 export const wizard = new Wizard();
 
-/**
- * TODO: [🧠] Maybe some way how to handle the progress and streaming?
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node wizard helper [wizard](src/wizard/wizard.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠] Maybe some way how to handle the progress and streaming?

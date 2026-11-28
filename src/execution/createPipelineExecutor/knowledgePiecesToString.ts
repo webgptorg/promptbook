@@ -1,7 +1,6 @@
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 
 /**
- *
  * @param knowledgePieces
  * @returns
  *

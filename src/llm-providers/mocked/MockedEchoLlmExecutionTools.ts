@@ -7,7 +7,9 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -79,12 +81,20 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             console.info('💬 Mocked callChatModel call');
         }
 
+        const start = $getCurrentDate();
+
         await forTime((1 + Math.random() * 4) * 1000);
+
+        const complete = $getCurrentDate();
 
         const modelName = 'mocked-echo';
         const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
 
-        const usage = ZERO_USAGE;
+        const duration = {
+            value: (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+        };
+
+        const usage = { ...ZERO_USAGE, duration };
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
         const thread = (prompt as ChatPrompt) /* <- [🩱] */.thread;
@@ -107,8 +117,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
                 ),
                 modelName,
                 timing: {
-                    start: $getCurrentDate(),
-                    complete: $getCurrentDate(),
+                    start,
+                    complete,
                 },
                 usage,
                 rawPromptContent,
@@ -131,10 +141,20 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             console.info('🖋 Mocked callCompletionModel call');
         }
 
+        const start = $getCurrentDate();
+
+        await forTime((1 + Math.random() * 4) * 1000);
+
+        const complete = $getCurrentDate();
+
         const modelName = 'mocked-echo';
         const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
 
-        const usage = ZERO_USAGE;
+        const duration = {
+            value: (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+        };
+
+        const usage = { ...ZERO_USAGE, duration };
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
         return exportJson({
@@ -150,8 +170,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
                 ),
                 modelName,
                 timing: {
-                    start: $getCurrentDate(),
-                    complete: $getCurrentDate(),
+                    start,
+                    complete,
                 },
                 usage,
                 rawPromptContent,
@@ -167,7 +187,5 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
     // <- Note: [🤖] callXxxModel
 }
 
-/**
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: Allow in spaceTrim: nesting with > ${block(prompt.request)}, same as replace params
- */
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: Allow in spaceTrim: nesting with > ${block(prompt.request)}, same as replace params

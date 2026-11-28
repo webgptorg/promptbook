@@ -1,17 +1,16 @@
 'use server';
 
-import { AgentCollectionInSupabase } from '@promptbook-local/core';
-import { AgentCollection } from '@promptbook-local/types';
-import { just } from '../../../../src/utils/organization/just';
+import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
+import { AgentCollectionInSupabase } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { $provideServer } from './$provideServer';
 
 /**
- * Cache of provided agent collection
+ * Cache of provided agent collections keyed by table prefix.
  *
  * @private internal cache for `$provideAgentCollectionForServer`
  */
-let agentCollection: null | AgentCollection = null;
+const agentCollectionsByTablePrefix = new Map<string, AgentCollection>();
 
 /**
  * [🐱‍🚀]
@@ -21,15 +20,9 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     // TODO: [🐱‍🚀] [🌕] DRY
 
-    const isVerbose = true; // <- TODO: [🐱‍🚀] Pass
+    const isVerbose = false; // true; // <- TODO: [🐱‍🚀] Pass
 
-    if (agentCollection !== null && just(false /* <- TODO: [🐱‍🚀] Fix caching */)) {
-        console.log('[🐱‍🚀] Returning cached agent collection');
-        return agentCollection;
-        // TODO: [🐱‍🚀] Be aware of options changes
-    }
-
-    console.log('[🐱‍🚀] Creating NEW agent collection');
+    // console.info('[🐱‍🚀] Creating NEW agent collection');
 
     /*
     // TODO: [🧟‍♂️][◽] DRY:
@@ -44,11 +37,24 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     const supabase = $provideSupabaseForServer();
     const { tablePrefix } = await $provideServer();
+    const cachedAgentCollection = agentCollectionsByTablePrefix.get(tablePrefix);
 
-    agentCollection = new AgentCollectionInSupabase(supabase, {
+    if (cachedAgentCollection) {
+        return cachedAgentCollection;
+    }
+
+    const providedCollection = new AgentCollectionInSupabase(supabase, {
         isVerbose,
         tablePrefix,
     });
 
-    return agentCollection;
+    agentCollectionsByTablePrefix.set(tablePrefix, providedCollection);
+
+    const { attachAgentPreparationScheduling } = await import('../utils/attachAgentPreparationScheduling');
+
+    attachAgentPreparationScheduling(providedCollection, { tablePrefix });
+
+    return providedCollection;
 }
+
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

@@ -14,10 +14,14 @@
 
 # next.js
 /.next/
+/.next-e2e/
 /out/
 
 # Promptbook
 /.promptbook/
+
+# Web browsing
+/.playwright-cli/
 
 # production
 /build

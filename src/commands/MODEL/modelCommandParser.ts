@@ -1,9 +1,9 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type {
@@ -19,6 +19,7 @@ import type { ModelCommand } from './ModelCommand';
  *
  * @see `documentationUrl` for more details
  * @deprecated Option to manually set the model requirements is not recommended to use, use `PERSONA` instead
+ *
  * @public exported from `@promptbook/editable`
  */
 export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {

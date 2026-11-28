@@ -16,6 +16,11 @@ export type Usage = {
     readonly price: UncertainNumber;
 
     /**
+     * Time how long the agent was running in seconds
+     */
+    readonly duration: UncertainNumber;
+
+    /**
      * Number of whatever used in the input aka. `prompt_tokens`
      */
     readonly input: UsageCounts;
@@ -33,6 +38,4 @@ export type Usage = {
  */
 export type UsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
 
-/**
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🍙] Make some standard order of json properties

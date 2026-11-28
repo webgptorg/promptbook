@@ -1,0 +1,132 @@
+[x] ~$0.00 17 minutes by OpenAI Codex `gpt-5.3-codex`
+
+[✨🆑] Count the usage statistics for the agent.
+
+-   There should be a separate page which is accessible for admins where you can see detailed usage of the agents.
+-   Also, there should be a global page showing an entire server or any particular folder.
+-   There must be an ability to see it granularly.
+    -   Per agent
+    -   Per folder, per entire server
+    -   Per timeframe
+    -   Type of the call - Is it from the web? The API? The compatible API, like OpenAI compatible API? Call from a team member etc...
+        -   Record also details about the disk call, like:
+        -   From what API key is it?
+        -   From what user agent is it?
+-   Put there some good looking graph to visualize the usage.
+-   Put the usage page under the agent context menu.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, Use the existing functions to do the usage counting. Do not create new ones.
+-   You are not implementing limiting of this usage. You are just implementing it to show the usage. Limiting will be implemented in the future.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Create a database migration if it is needed.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[x] ~$0.09 3 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨🆑] Fix the link between the agent context menu and the usage.
+
+-   Currently the navigation from the agent context menu to the usage page is broken. It doesn't filter that agent.
+-   It navigates to _(for example)_ https://pavol-hejny.ptbk.io/admin/usage?agentName=hWTMMThSpx6Yk3
+-   But it should navigate to _(for example)_ https://pavol-hejny.ptbk.io/admin/usage?agentName=aa&timeframe=30d
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[x] $0.00 39 minutes by Gemini CLI
+
+[✨🆑] Record full usage, not only the count.
+
+-   There are good usage statistics, but we are collecting or showing just how many times the agent was asked to aggregate [full usage](src/execution/Usage.ts).
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Create a database migration if it is needed.
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+    -   When using table names in supabase queries, use the `$getTableName` utility function to get the correct table name with prefix, for example: `await supabase.from(await $getTableName('Agent')).select('...')`
+-   Do a proper analysis of the current functionality usage before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ]
+
+[✨🆑] Limiting the agent budget
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[x] <$0.01 16 minutes by Gemini CLI `gemini-3-flash-preview`
+
+[✨🆑] Add timing into Usage object
+
+-   Add not only the token, word,... count but also the time how long the agent was running
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   You are working with the [Usage](src/execution/Usage.ts) object and the places where is this object used.
+
+---
+
+[x] ~$0.5185 11 minutes by OpenAI Codex `gpt-5.3-codex`
+
+[✨🆑] Record Usage per user
+
+-   Both logged user and ad-hoc user (anonymous user identified by the browser session)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+---
+
+[x] ~$0.3285 14 minutes by OpenAI Codex `gpt-5.3-codex`
+
+[✨🆑] Allow to switch between cost / time / human time when viewing a usage
+
+-   When showing the usage, allow to switch between cost, agent duration (How long the prompt took), estimated human time (How long will it take for a human to do the same thing)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+    -   We have already implemented human estimation. Use it.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+![alt text](prompts/screenshots/2026-02-3270-agents-server-usage-statistics.png)
+
+---
+
+[-]
+
+[✨🆑] brr
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+---
+
+[-]
+
+[✨🆑] brr
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+---
+
+[-]
+
+[✨🆑] brr
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+

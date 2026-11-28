@@ -1,11 +1,13 @@
 import { removeMarkdownFormatting } from '@promptbook-local/markdown-utils';
 import type { really_any } from '@promptbook-local/types';
 import { marked } from 'marked';
-// @ts-expect-error: Zeptomail types are not resolving correctly
 import { SendMailClient } from 'zeptomail';
 import { MessageProvider } from '../../interfaces/MessageProvider';
 import { OutboundEmail } from '../_common/Email';
 
+/**
+ * Class implementing zeptomail message provider.
+ */
 export class ZeptomailMessageProvider implements MessageProvider {
     constructor(private readonly apiKey: string) {}
 
@@ -26,10 +28,10 @@ export class ZeptomailMessageProvider implements MessageProvider {
                     address: sender.email || sender.baseEmail || sender,
                     name: sender.name || sender.fullName || undefined,
                 },
-                to: recipients.map((r) => ({
+                to: recipients.map((recipient) => ({
                     email_address: {
-                        address: r.email || r.baseEmail || r,
-                        name: r.name || r.fullName || undefined,
+                        address: recipient.email || recipient.baseEmail || recipient,
+                        name: recipient.name || recipient.fullName || undefined,
                     },
                 })),
                 subject: message.metadata?.subject || 'No Subject',

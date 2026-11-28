@@ -1,10 +1,21 @@
-import { getMetadata } from '@/src/database/getMetadata';
+import { getMetadataMap } from '@/src/database/getMetadata';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    resolveDefaultAgentAvatarVisualId,
+} from '@/src/constants/defaultAgentAvatarVisual';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { computeAgentHash, parseAgentSource } from '@promptbook-local/core';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { createAgentForbiddenResponse, resolveAgentAccess } from '@/src/utils/agentAccess';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { resolveAgentAvatarVisualId } from '../../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS(request: Request) {
     keepUnused(request);
     return new Response(null, {
@@ -12,25 +23,56 @@ export async function OPTIONS(request: Request) {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Promptbook-Team-Agent-Access-Token',
         },
     });
 }
 
+/**
+ * Handles get.
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    keepUnused(request /* <- Note: We dont need `request` parameter */);
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
 
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const agentSource = await collection.getAgentSource(agentName);
-        const agentProfile = parseAgentSource(agentSource);
-        const agentHash = computeAgentHash(agentSource);
-        const isVoiceCallingEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_CALLING_ENABLED')) === 'true';
+        const access = await resolveAgentAccess(agentName, { request, allowTeamInternalAccess: true });
+        if (!access.isAllowed && access.visibility !== null) {
+            return createAgentForbiddenResponse();
+        }
 
-        if (!agentProfile.meta.image) {
-            agentProfile.meta.image = `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`;
+        const collection = await $provideAgentCollectionForServer();
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveServerAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const agentProfile = { ...resolvedAgentContext.resolvedAgentProfile };
+
+        const metadata = await getMetadataMap([
+            'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
+            'IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED',
+            DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+        ]);
+        const agentHash = computeAgentHash(agentSource);
+        const isVoiceCallingEnabled = metadata.IS_EXPERIMENTAL_VOICE_CALLING_ENABLED === 'true';
+        const isVoiceTtsSttEnabled = metadata.IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED === 'true';
+        const isMetaImageExplicit = Boolean(agentProfile.meta.image);
+        const canonicalAgentId = agentProfile.permanentId || agentName;
+        const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
+            metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
+        );
+        const agentAvatarVisualId = resolveAgentAvatarVisualId(agentProfile, defaultAgentAvatarVisualId);
+        const defaultAvatarImageUrl =
+            !isMetaImageExplicit && !resolvedAgentContext.isBookScopedAgent
+                ? `/agents/${encodeURIComponent(canonicalAgentId)}/images/default-avatar.png`
+                : undefined;
+
+        if (defaultAvatarImageUrl) {
+            agentProfile.meta.image = defaultAvatarImageUrl;
         }
 
         return new Response(
@@ -40,6 +82,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     agentHash,
                     parameters: [], // <- TODO: [😰] Implement parameters
                     isVoiceCallingEnabled, // [✨✷] Add voice calling status
+                    isVoiceTtsSttEnabled, // [✨✷] Add TTS/STT availability
+                    toolTitles: agentProfile.meta.toolTitles || {}, // <- [🧠] Should we have this in meta?
+                    knowledgeSources: agentProfile.knowledgeSources || [], // <- [📚] Explicitly include knowledge sources for citation resolution
+                    isMetaImageExplicit,
+                    avatarVisualId: isMetaImageExplicit ? undefined : agentAvatarVisualId,
                 },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
@@ -75,6 +122,4 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     }
 }
 
-/**
- * TODO: [🍞] DRY - Make some common utility for API on one agent
- */
+// TODO: [🍞] DRY - Make some common utility for API on one agent

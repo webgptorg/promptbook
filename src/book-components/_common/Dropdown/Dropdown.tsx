@@ -1,10 +1,13 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { type ReactNode, useState } from 'react';
 import { HamburgerMenu } from '../HamburgerMenu/HamburgerMenu';
 import { classNames } from '../react-utils/classNames';
 import styles from './Dropdown.module.css';
 
+/**
+ * Props for dropdown.
+ */
 type DropdownProps = {
     actions: Array<{
         icon: ReactNode;
@@ -14,7 +17,12 @@ type DropdownProps = {
 };
 
 /**
- * A dropdown menu component that displays a list of actions triggered by a hamburger menu button.
+ * A dropdown menu component that displays a list of actions.
+ *
+ * The menu is toggled by a hamburger menu button. When an action is selected,
+ * the menu automatically closes.
+ *
+ * @param props - Contains an array of actions with icons, names, and click handlers
  *
  * @private internal subcomponent used by various components
  */

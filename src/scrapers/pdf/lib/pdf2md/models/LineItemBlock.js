@@ -1,4 +1,10 @@
+/**
+ * Constant for page item.
+ */
 const PageItem = require('./PageItem');
+/**
+ * Constant for line item.
+ */
 const LineItem = require('./LineItem');
 
 // A block of LineItem[] within a Page

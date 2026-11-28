@@ -1,8 +1,12 @@
+import { spaceTrim } from 'spacetrim';
 import { isValidCsvString } from './isValidCsvString';
 
 describe('isValidCsvString', () => {
     it('should return true for valid CSV strings', () => {
-        const validCsv = 'name,age,city\nJohn,30,New York';
+        const validCsv = spaceTrim(`
+            name,age,city
+            John,30,New York
+        `);
         expect(isValidCsvString(validCsv)).toBe(true);
     });
 
@@ -12,7 +16,11 @@ describe('isValidCsvString', () => {
     });
 
     it('should return false for strings with invalid characters', () => {
-        const invalidCsv = 'name,age,city\nJohn,30,New York\nInvalid@Row';
+        const invalidCsv = spaceTrim(`
+            name,age,city
+            John,30,New York
+            Invalid@Row
+        `);
         expect(isValidCsvString(invalidCsv)).toBe(false);
     });
 

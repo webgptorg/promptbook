@@ -1,7 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
-import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import type { string_knowledge_source_link } from '../../types/string_knowledge_source_content';
+import type { InlineKnowledgeSourceFile } from '../../utils/knowledge/inlineKnowledgeSource';
+import { createInlineKnowledgeSourceFile } from '../../utils/knowledge/inlineKnowledgeSource';
+import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -23,7 +25,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE'> {
-    constructor() {
+    public constructor() {
         super('KNOWLEDGE');
     }
 
@@ -32,6 +34,13 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
      */
     get description(): string {
         return 'Add domain **knowledge** via direct text or external sources (RAG).';
+    }
+
+    /**
+     * Marks KNOWLEDGE as one of the priority commitments surfaced first in catalogues.
+     */
+    public override get isImportant(): boolean {
+        return true;
     }
 
     /**
@@ -81,7 +90,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             KNOWLEDGE Academic research requires careful citation and verification
             KNOWLEDGE https://example.com/research-guidelines.pdf
             ACTION Can help with literature reviews and data analysis
-            STYLE Present information in clear, academic format
+            WRITING RULES Present information in clear, academic format
             \`\`\`
         `);
     }
@@ -93,29 +102,66 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             return requirements;
         }
 
-        // Check if content is a URL (external knowledge source)
-        if (isValidUrl(trimmedContent)) {
-            // Store the URL for later async processing
-            const updatedRequirements = {
-                ...requirements,
-                knowledgeSources: [
-                    ...(requirements.knowledgeSources || []),
-                    trimmedContent as string_knowledge_source_link,
-                ],
+        const extractedUrls = extractUrlsFromText(trimmedContent);
+        const knowledgeSources = [...(requirements.knowledgeSources ?? [])];
+        const existingKnowledgeSources = new Set(knowledgeSources);
+        const knowledgeInfoEntries: string[] = [];
+
+        for (const url of extractedUrls) {
+            if (existingKnowledgeSources.has(url)) {
+                continue;
+            }
+
+            knowledgeSources.push(url as string_knowledge_source_link);
+            existingKnowledgeSources.add(url);
+            knowledgeInfoEntries.push(`Knowledge Source URL: ${url} (will be processed for retrieval during chat)`);
+        }
+
+        let nextRequirements: AgentModelRequirements =
+            knowledgeInfoEntries.length > 0
+                ? {
+                      ...requirements,
+                      knowledgeSources,
+                  }
+                : requirements;
+
+        if (extractedUrls.length === 0 || hasMeaningfulNonUrlText(trimmedContent, extractedUrls)) {
+            const inlineSource = createInlineKnowledgeSourceFile(trimmedContent);
+            const existingInlineSources = (
+                (nextRequirements._metadata?.inlineKnowledgeSources as InlineKnowledgeSourceFile[]) || []
+            ).slice();
+
+            nextRequirements = {
+                ...nextRequirements,
+                _metadata: {
+                    ...nextRequirements._metadata,
+                    inlineKnowledgeSources: [...existingInlineSources, inlineSource],
+                },
             };
 
-            // Add placeholder information about knowledge sources to system message
-            const knowledgeInfo = `Knowledge Source URL: ${trimmedContent} (will be processed for retrieval during chat)`;
-
-            return this.appendToSystemMessage(updatedRequirements, knowledgeInfo, '\n\n');
-        } else {
-            // Direct text knowledge - add to system message
-            const knowledgeSection = `Knowledge: ${trimmedContent}`;
-            return this.appendToSystemMessage(requirements, knowledgeSection, '\n\n');
+            knowledgeInfoEntries.push(
+                `Knowledge Source Inline: ${inlineSource.filename} (derived from inline content and processed for retrieval during chat)`,
+            );
         }
+
+        if (knowledgeInfoEntries.length === 0) {
+            return nextRequirements;
+        }
+
+        return this.appendToSystemMessage(nextRequirements, knowledgeInfoEntries.join('\n'), '\n\n');
     }
 }
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */
+
+/**
+ * Returns true when the commitment text contains meaningful non-URL content.
+ */
+function hasMeaningfulNonUrlText(content: string, urls: ReadonlyArray<string>): boolean {
+    const contentWithoutUrls = urls.reduce((result, url) => result.split(url).join(' '), content);
+    const significantText = contentWithoutUrls.replace(/[\s.,!?;:'"`()[\]{}<>/-]+/g, '');
+
+    return significantText.length > 0;
+}

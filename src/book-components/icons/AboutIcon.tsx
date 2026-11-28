@@ -1,9 +1,14 @@
 'use client';
 
-import { SVGProps } from 'react';
+import type { SVGProps } from 'react';
 
 /**
- * Renders an about icon
+ * Renders an information/about icon.
+ *
+ * This icon is typically used in UI elements that provide additional information
+ * or "about" details to the user.
+ *
+ * @param props - SVG properties augmented with an optional `size`
  *
  * @private internal subcomponent used by various components
  */

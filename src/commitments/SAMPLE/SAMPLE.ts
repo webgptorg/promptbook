@@ -1,92 +1,98 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { createWritingSampleSection } from '../_common/createWritingCommitmentSections';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
- * SAMPLE commitment definition
+ * Legacy `SAMPLE` / `EXAMPLE` commitment definition.
  *
- * The SAMPLE/EXAMPLE commitment provides examples of how the agent should respond
- * or behave in certain situations. These examples help guide the agent's responses.
- *
- * Example usage in agent source:
- *
- * ```book
- * SAMPLE When asked about pricing, respond: "Our basic plan starts at $10/month..."
- * EXAMPLE For code questions, always include working code snippets
- * ```
+ * It stays runtime-compatible, but authors should migrate to `WRITING SAMPLE`
+ * for writing voice exemplars.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
 export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE' | 'EXAMPLE'> {
-    constructor(type: 'SAMPLE' | 'EXAMPLE' = 'SAMPLE') {
+    public constructor(type: 'SAMPLE' | 'EXAMPLE' = 'SAMPLE') {
         super(type);
     }
 
     /**
-     * Short one-line description of SAMPLE/EXAMPLE.
+     * Short one-line description of `SAMPLE` / `EXAMPLE`.
      */
-    get description(): string {
-        return 'Provide example responses to guide behavior.';
+    public get description(): string {
+        return 'Deprecated legacy alias for `WRITING SAMPLE`.';
     }
 
     /**
-     * Icon for this commitment.
+     * Optional UI/docs-only deprecation metadata.
      */
-    get icon(): string {
-        return '🔍';
+    public override get deprecation() {
+        return {
+            message: 'Use `WRITING SAMPLE` for explicit voice exemplars.',
+            replacedBy: ['WRITING SAMPLE'],
+        } as const;
     }
 
     /**
-     * Markdown documentation for SAMPLE/EXAMPLE commitment.
+     * Icon for `SAMPLE` / `EXAMPLE`.
      */
-    get documentation(): string {
+    public get icon(): string {
+        return '🗣️';
+    }
+
+    /**
+     * Markdown documentation for `SAMPLE` / `EXAMPLE`.
+     */
+    public get documentation(): string {
         return spaceTrim(`
             # ${this.type}
 
-            Provides examples of how the agent should respond or behave in certain situations.
+            Deprecated legacy alias for \`WRITING SAMPLE\`.
 
-            ## Key aspects
+            ## Migration
 
-            - Both terms work identically and can be used interchangeably.
-            - Examples help guide the agent's response patterns and style.
+            - Existing \`${this.type}\` blocks still work.
+            - New books should use \`WRITING SAMPLE\` instead.
+            - Runtime behavior is intentionally unchanged for backward compatibility.
 
-            ## Examples
+            ## Preferred replacement
 
             \`\`\`book
-            Sales Assistant
+            Copywriter
 
-            PERSONA You are a knowledgeable sales representative
-            SAMPLE When asked about pricing, respond: "Our basic plan starts at $10/month..."
-            SAMPLE For feature comparisons, create a clear comparison table
-            RULE Always be honest about limitations
+            PERSONA You are a Copywriter who writes persuasive marketing copy.
+            WRITING SAMPLE
+            Looking to boost your productivity? Our app helps you organize your tasks and manage your time effectively, so you can get more done with less stress. Try it today and see the difference! 🚀
             \`\`\`
 
-            \`\`\`book
-            Code Reviewer
+            ## Legacy compatibility example
 
-            PERSONA You are an experienced software engineer
-            EXAMPLE For code questions, always include working code snippets
-            EXAMPLE When suggesting improvements: "Here's a more efficient approach..."
-            RULE Explain the reasoning behind your suggestions
-            STYLE Be constructive and encouraging in feedback
+            \`\`\`book
+            Copywriter
+
+            PERSONA You are a Copywriter who writes persuasive marketing copy.
+            ${this.type}
+            Looking to boost your productivity? Our app helps you organize your tasks and manage your time effectively, so you can get more done with less stress. Try it today and see the difference! 🚀
             \`\`\`
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    public applyToAgentModelRequirements(
+        requirements: AgentModelRequirements,
+        content: string,
+    ): AgentModelRequirements {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
             return requirements;
         }
 
-        // Add example to the system message
-        const exampleSection = `Example: ${trimmedContent}`;
-
-        return this.appendToSystemMessage(requirements, exampleSection, '\n\n');
+        return this.appendToSystemMessage(
+            requirements,
+            this.createSystemMessageSection('Writing sample', createWritingSampleSection(trimmedContent)),
+            '\n\n',
+        );
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

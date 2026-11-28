@@ -1,5 +1,8 @@
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 
+/**
+ * Handles two editors page.
+ */
 export default function TwoEditorsPage() {
     return (
         <div className="min-h-screen">

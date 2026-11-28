@@ -46,6 +46,4 @@ describe('how `getScraperIntermediateSource` works', () => {
         ));
 });
 
-/**
- * TODO: [🐱‍🐉][🧠] Make some smart crop
- */
+// TODO: [🐱‍🐉][🧠] Make some smart crop

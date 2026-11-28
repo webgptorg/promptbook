@@ -1,6 +1,6 @@
 import type { RequireAtLeastOne } from 'type-fest';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
-import type { string_executable_path } from '../types/typeAliases';
+import type { string_executable_path } from '../types/string_filename';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { locateAppOnLinux } from './platforms/locateAppOnLinux';
 import { locateAppOnMacOs } from './platforms/locateAppOnMacOs';
@@ -36,7 +36,7 @@ export type LocateAppOptions = {
  *
  * @private within the repository
  */
-export function locateApp(
+export async function locateApp(
     options: RequireAtLeastOne<LocateAppOptions, 'linuxWhich' | 'windowsSuffix' | 'macOsName'>,
 ): Promise<string_executable_path | null> {
     if (!$isRunningInNode()) {
@@ -66,7 +66,5 @@ export function locateApp(
     }
 }
 
-/**
- * TODO: [🧠][♿] Maybe export through `@promptbook/node`
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node executable locator [locateApp](src/executables/locateApp.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][♿] Maybe export through `@promptbook/node`

@@ -8,7 +8,7 @@ import { preparePersona } from './preparePersona';
 
 describe('how preparePersona works', () => {
     it('should work with simple persona description', () =>
-        expect(
+        await expect(
             preparePersona(`Copywriter`,{ llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() }, {
 
             }),
@@ -35,7 +35,7 @@ describe('how preparePersona works', () => {
     /*
     TODO: [🎰] Implement tests in such a way that they don't need to be updated every time the model names change
     it('should work with advanced structured persona description', () =>
-        expect(
+       await  expect(
             preparePersona(
                 spaceTrim(`
                     Skilled Copywriter with 5 years of experience in the field.
@@ -57,7 +57,7 @@ describe('how preparePersona works', () => {
         }));
 
     it('should work with creative persona', () =>
-        expect(
+       await expect(
             preparePersona(`Poem writer with unconventional style of writing in his own language and style`,{ llm: $provideLlmToolsForTestingAndScriptsAndPlayground() }, {
 
             }),
@@ -70,7 +70,7 @@ describe('how preparePersona works', () => {
         }));
 
     it('should work with non-creative persona', () =>
-        expect(
+        await expect(
             preparePersona(
                 `Technical writer with 5 years of experience in the field. Experience with writing technical documentation, user manuals, and API documentation.`,
                 { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },{
@@ -86,7 +86,7 @@ describe('how preparePersona works', () => {
         }));
 
     it('should work French native speaker', () =>
-        expect(
+        await expect(
             preparePersona(
                 `Locuteur natif français, j'aime écrire et je suis passionné par la langue et la culture française.`,
                 { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },{
@@ -102,7 +102,7 @@ describe('how preparePersona works', () => {
         }));
 
     it('should work with weird persona description', () =>
-        expect(
+        await expect(
             preparePersona(`Xyzzy with 5 years of experience in the field. Experience with foo and bar.`, { llm: await $provideLlmToolsForTestingAndScriptsAndPlayground() },{
 
             }),

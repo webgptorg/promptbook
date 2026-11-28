@@ -25,6 +25,7 @@ import { markitdownScraperMetadata } from './register-metadata';
  *
  * @see https://github.com/microsoft/markitdown
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/markitdown`
  * @public exported from `@promptbook/pdf`
  */
@@ -95,8 +96,6 @@ export class MarkitdownScraper implements Converter, Scraper {
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
             const src = source.filename || source.url || null;
 
-            // console.log('!!', { src, source, cacheFilehandler });
-
             if (src === null) {
                 throw new UnexpectedError('Source has no filename or url');
             }
@@ -111,8 +110,6 @@ export class MarkitdownScraper implements Converter, Scraper {
                 throw new Error(`Markitdown could not convert the "${source.source}"`);
                 // <- TODO: [🍀] Make MarkitdownError
             }
-
-            // console.log('!!', { result, cacheFilehandler });
 
             // Note: Try to cache the converted content, but don't fail if the filesystem is read-only
             try {
@@ -180,10 +177,8 @@ export class MarkitdownScraper implements Converter, Scraper {
     }
 }
 
-/**
- * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
- * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
- * TODO: [🪂] Do it in parallel
- * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node scraper implementation [MarkitdownScraper](src/scrapers/markitdown/MarkitdownScraper.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
+// TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
+// TODO: [🪂] Do it in parallel
+// Note: No need to aggregate usage here, it is done by intercepting the llmTools

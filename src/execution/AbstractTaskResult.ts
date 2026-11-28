@@ -1,4 +1,4 @@
-import { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep } from 'type-fest';
 import type { ErrorJson } from '../errors/utils/ErrorJson';
 
 /**
@@ -23,7 +23,5 @@ export type AbstractTaskResult = {
     readonly warnings: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 };
 
-/**
- * TODO: [🧠] Should this file be in /execution or /types folder?
- * TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`
- */
+// TODO: [🧠] Should this file be in /execution or /types folder?
+// TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`

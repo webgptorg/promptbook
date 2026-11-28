@@ -3,18 +3,21 @@
  *
  * @example 'helloWorld'
  * @example 'iLovePromptbook'
+ *
  * @public exported from `@promptbook/utils`
  */
 export type string_camelCase = string;
 
 /**
+ * Type describing char type.
+ *
  * @private type of `normalizeTo_camelCase`
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'OTHER';
 
 /**
  * Normalizes a given text to camelCase format.
- * 
+ *
  * Note: [🔂] This function is idempotent.
  *
  * @param text The text to be normalized.
@@ -22,6 +25,7 @@ type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'OTHER';
  * @returns The camelCase formatted string.
  * @example 'helloWorld'
  * @example 'iLovePromptbook'
+ *
  * @public exported from `@promptbook/utils`
  */
 export function normalizeTo_camelCase(text: string, _isFirstLetterCapital = false): string_camelCase {
@@ -68,6 +72,4 @@ export function normalizeTo_camelCase(text: string, _isFirstLetterCapital = fals
     return normalizedName;
 }
 
-/**
- * TODO: [🌺] Use some intermediate util splitWords
- */
+// TODO: [🌺] Use some intermediate util splitWords

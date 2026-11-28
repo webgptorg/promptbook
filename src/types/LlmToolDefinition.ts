@@ -1,4 +1,20 @@
-import type { string_markdown_text, string_name } from './typeAliases';
+import type { string_markdown_text } from './string_markdown';
+import type { string_name } from './string_name';
+
+/**
+ * Minimal recursive JSON Schema entry used by tool definitions.
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+type LlmToolJsonSchema = {
+    type?: string;
+    description?: string;
+    properties?: Record<string, LlmToolJsonSchema>;
+    required?: string[];
+    items?: LlmToolJsonSchema;
+    enum?: Array<string | number | boolean | null>;
+    additionalProperties?: boolean;
+};
 
 /**
  * Definition of a tool that can be used by the model
@@ -19,5 +35,8 @@ export type LlmToolDefinition = {
     /**
      * Parameters of the tool in JSON Schema format
      */
-    readonly parameters: Record<string, unknown>;
+    readonly parameters: LlmToolJsonSchema & {
+        readonly type: 'object';
+        readonly properties: Record<string, LlmToolJsonSchema>;
+    };
 };

@@ -1,8 +1,9 @@
 import { $provideServer } from '@/src/tools/$provideServer';
-import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../src/errors/assertsError';
+import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { textColor } from '../../../../../../src/utils/color/operators/furthest';
 import { grayscale } from '../../../../../../src/utils/color/operators/grayscale';
@@ -11,14 +12,26 @@ import { getAgentName, getAgentProfile } from './_utils';
 // export const runtime = 'edge';
 // <- Note: On Vercel Edge runtime some modules are not working *(like `crypto`)*
 
+/**
+ * Constant for alt.
+ */
 export const alt = 'Agent Profile';
+/**
+ * Map of size.
+ */
 export const size = {
     width: 1200,
     height: 630,
 };
 
+/**
+ * Constant for content type.
+ */
 export const contentType = 'image/png';
 
+/**
+ * Handles image.
+ */
 export default async function Image({ params }: { params: Promise<{ agentName: string }> }) {
     try {
         const agentName = await getAgentName(params);
@@ -48,7 +61,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                             justifyContent: 'center',
                         }}
                     >
-                        {/* Note: `next/image` is not working propperly with `next/og` */}
+                        {/* Note: `next/image` is not working properly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             style={{
@@ -56,13 +69,11 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                                 backgroundColor: agentColor.toHex(),
                                 borderRadius: '50%',
                                 aspectRatio: '1 / 1',
+                                imageRendering: 'pixelated',
                             }}
                             src={
-                                agentProfile.meta.image ||
-                                generatePlaceholderAgentProfileImageUrl(
-                                    agentProfile.permanentId || agentName,
-                                    publicUrl,
-                                )
+                                resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
+                                `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
                             }
                             alt="Agent Icon"
                         />
@@ -106,6 +117,4 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
     }
 }
 
-/**
- * TODO: [🦚] DRY
- */
+// TODO: [🦚] DRY

@@ -1,22 +1,25 @@
-import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
+import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { Expectations } from '../pipeline/PipelineJson/Expectations';
-import type { ChatModelRequirements } from './ModelRequirements';
-import type { CompletionModelRequirements } from './ModelRequirements';
-import type { EmbeddingModelRequirements } from './ModelRequirements';
-import type { ImageGenerationModelRequirements } from './ModelRequirements';
-import type { ModelRequirements } from './ModelRequirements';
-import type { Parameters } from './typeAliases';
-import type { string_pipeline_url_with_task_hash } from './typeAliases';
-import type { string_postprocessing_function_name } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_template } from './typeAliases';
-import type { string_title } from './typeAliases';
+import type { LlmToolDefinition } from './LlmToolDefinition';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ImageGenerationModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
+import type { Parameters } from './Parameters';
+import type { string_postprocessing_function_name } from './string_person_fullname';
+import type { string_pipeline_url_with_task_hash } from './string_pipeline_url';
+import type { string_prompt, string_template } from './string_prompt';
+import type { string_title } from './string_title';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#prompt
  */
 export type Prompt = CompletionPrompt | ChatPrompt | ImagePrompt | EmbeddingPrompt /* <- [🤖] */;
@@ -48,6 +51,25 @@ export type ChatPrompt = CommonPrompt & {
      * Optional chat thread (history of previous messages)
      */
     thread?: ChatMessage[];
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
+
+    /**
+     * Optional tools that can be called by the model
+     */
+    tools?: Array<LlmToolDefinition>;
+
+    /**
+     * Optional file attachments
+     */
+    files?: Array<File>;
 };
 
 /**
@@ -60,6 +82,15 @@ export type ImagePrompt = CommonPrompt & {
      * Requirements for image generation model
      */
     modelRequirements: ImageGenerationModelRequirements;
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
 };
 
 /**
@@ -141,9 +172,7 @@ export type CommonPrompt = {
     // <- Note: [🧆] Look here when adding new properties to `Prompt`
 };
 
-/**
- * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
- * TODO: [✔] Check ModelRequirements in runtime
- * TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
- * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
- */
+// TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
+// TODO: [✔] Check ModelRequirements in runtime
+// TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
+// TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt

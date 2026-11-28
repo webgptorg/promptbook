@@ -1,133 +1,92 @@
-import { getCommitmentDefinition } from '../../commitments/index';
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
-import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
-import type { string_model_name } from '../../types/typeAliases';
+import type { string_model_name } from '../../types/string_model_name';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import { extractMcpServers } from './createAgentModelRequirements';
+import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
+import { applyCommitmentsToAgentModelRequirements } from './createAgentModelRequirementsWithCommitments/applyCommitmentsToAgentModelRequirements';
+import { augmentAgentModelRequirementsFromSource } from './createAgentModelRequirementsWithCommitments/augmentAgentModelRequirementsFromSource';
+import { filterCommitmentsForAgentModelRequirements } from './createAgentModelRequirementsWithCommitments/filterCommitmentsForAgentModelRequirements';
+import { materializeInlineKnowledgeSources } from './createAgentModelRequirementsWithCommitments/materializeInlineKnowledgeSources';
+import { deduplicateSystemMessage } from './deduplicateSystemMessage';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
-import { parseParameters } from './parseParameters';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
 import type { string_book } from './string_book';
 
 /**
- * Creates agent model requirements using the new commitment system
- * This function uses a reduce-like pattern where each commitment applies its changes
- * to build the final requirements starting from a basic empty model
+ * Creates agent model requirements by parsing commitments, applying them in source order,
+ * and finalizing derived sections such as imports, example interactions, and inline knowledge uploads.
  *
- * @public exported from `@promptbook/core`
+ * @param agentSource - Agent source book to parse.
+ * @param modelName - Optional override for the agent model name.
+ * @param options - Additional options such as reference and teammate resolvers.
+ * @returns Fully prepared model requirements for the parsed agent source.
+ *
+ * @private internal utility of `createAgentModelRequirements`
  */
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_book,
     modelName?: string_model_name,
+    options?: CreateAgentModelRequirementsOptions,
 ): Promise<AgentModelRequirements> {
-    // Parse the agent source to extract commitments
     const parseResult = parseAgentSourceWithCommitments(agentSource);
+    const filteredCommitments = filterCommitmentsForAgentModelRequirements(parseResult.commitments);
 
-    // Apply DELETE filtering: remove prior commitments tagged by parameters targeted by DELETE/CANCEL/DISCARD/REMOVE
-    const filteredCommitments: ParsedCommitment[] = [];
-    for (const commitment of parseResult.commitments) {
-        // Handle DELETE-like commitments by invalidating prior tagged commitments
-        if (
-            commitment.type === 'DELETE' ||
-            commitment.type === 'CANCEL' ||
-            commitment.type === 'DISCARD' ||
-            commitment.type === 'REMOVE'
-        ) {
-            const targets = parseParameters(commitment.content)
-                .map((p) => p.name.trim().toLowerCase())
-                .filter(Boolean);
-
-            if (targets.length === 0) {
-                // Ignore DELETE with no targets; also don't pass the DELETE further
-                continue;
-            }
-
-            // Drop prior kept commitments that contain any of the targeted tags
-            for (let i = filteredCommitments.length - 1; i >= 0; i--) {
-                const prev = filteredCommitments[i]!;
-                const prevParams = parseParameters(prev.content).map((p) => p.name.trim().toLowerCase());
-                const hasIntersection = prevParams.some((n) => targets.includes(n));
-                if (hasIntersection) {
-                    filteredCommitments.splice(i, 1);
-                }
-            }
-
-            // Do not keep the DELETE commitment itself
-            continue;
-        }
-
-        filteredCommitments.push(commitment);
+    let requirements = createInitialAgentModelRequirements(parseResult.agentName, modelName);
+    if (options?.isTeamToolRegistrationDisabled) {
+        requirements = {
+            ...requirements,
+            _metadata: { ...requirements._metadata, isTeamToolRegistrationDisabled: true },
+        };
     }
+    requirements = await applyCommitmentsToAgentModelRequirements(requirements, filteredCommitments, options);
+    requirements = await augmentAgentModelRequirementsFromSource(requirements, parseResult, agentSource);
+    requirements = await materializeInlineKnowledgeSources(requirements, options?.inlineKnowledgeSourceUploader);
 
-    // Start with basic agent model requirements
-    let requirements = createBasicAgentModelRequirements(parseResult.agentName);
+    return finalizeRequirements(requirements);
+}
 
-    // Store the agent name in metadata so commitments can access it
-    requirements = {
-        ...requirements,
-        metadata: {
-            ...requirements.metadata,
-            agentName: parseResult.agentName,
+/**
+ * Creates the initial requirements object with the parsed agent name stored in metadata and an optional model override.
+ *
+ * @param agentName - Parsed agent name from the source prelude.
+ * @param modelName - Optional explicit model name override.
+ * @returns Initial requirements before any commitment is applied.
+ *
+ * @private internal utility of `createAgentModelRequirementsWithCommitments`
+ */
+function createInitialAgentModelRequirements(
+    agentName: string | null,
+    modelName?: string_model_name,
+): AgentModelRequirements {
+    const initialRequirements = createBasicAgentModelRequirements(agentName);
+    const requirementsWithMetadata: AgentModelRequirements = {
+        ...initialRequirements,
+        _metadata: {
+            ...initialRequirements._metadata,
+            agentName,
         },
     };
 
-    // Override model name if provided
-    if (modelName) {
-        requirements = {
-            ...requirements,
-            modelName,
-        };
+    if (!modelName) {
+        return requirementsWithMetadata;
     }
-
-    // Apply each commitment in order using reduce-like pattern
-    for (let i = 0; i < filteredCommitments.length; i++) {
-        const commitment = filteredCommitments[i]!;
-
-        // CLOSED commitment should work only if its the last commitment in the book
-        if (commitment.type === 'CLOSED' && i !== filteredCommitments.length - 1) {
-            continue;
-        }
-
-        const definition = getCommitmentDefinition(commitment.type);
-        if (definition) {
-            try {
-                requirements = definition.applyToAgentModelRequirements(requirements, commitment.content);
-            } catch (error) {
-                console.warn(`Failed to apply commitment ${commitment.type}:`, error);
-                // Continue with other commitments even if one fails
-            }
-        }
-    }
-
-    // Handle MCP servers (extract from original agent source)
-    const mcpServers = extractMcpServers(agentSource);
-    if (mcpServers.length > 0) {
-        requirements = {
-            ...requirements,
-            mcpServers,
-        };
-    }
-
-    // Add non-commitment lines to system message if they exist
-    const nonCommitmentContent = parseResult.nonCommitmentLines
-        .filter((line, index) => index > 0 || !parseResult.agentName) // Skip first line if it's the agent name
-        .filter((line) => line.trim()) // Remove empty lines
-        .join('\n')
-        .trim();
-
-    if (nonCommitmentContent) {
-        requirements = {
-            ...requirements,
-            systemMessage: requirements.systemMessage + '\n\n' + nonCommitmentContent,
-        };
-    }
-
-    // Remove comment lines (lines starting with #) from the final system message
-    // while preserving the original content with comments in metadata
-    const cleanedSystemMessage = removeCommentsFromSystemMessage(requirements.systemMessage);
 
     return {
+        ...requirementsWithMetadata,
+        modelName,
+    };
+}
+
+/**
+ * Performs the final system-message cleanup pass after all other augmentation steps are complete.
+ *
+ * @param requirements - Fully built requirements before final cleanup.
+ * @returns Requirements with comment lines removed and repeated instructions deduplicated in the final system message.
+ *
+ * @private internal utility of `createAgentModelRequirementsWithCommitments`
+ */
+function finalizeRequirements(requirements: AgentModelRequirements): AgentModelRequirements {
+    return {
         ...requirements,
-        systemMessage: cleanedSystemMessage,
+        systemMessage: deduplicateSystemMessage(removeCommentsFromSystemMessage(requirements.systemMessage)),
     };
 }

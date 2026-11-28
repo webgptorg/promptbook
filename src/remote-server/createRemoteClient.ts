@@ -1,10 +1,18 @@
 import type { Socket } from 'socket.io-client';
-import { io } from 'socket.io-client';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import { CONNECTION_RETRIES_LIMIT, CONNECTION_TIMEOUT_MS } from '../config';
+import { createLazyModuleLoader } from '../utils/misc/createLazyModuleLoader';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
-import { CONNECTION_RETRIES_LIMIT } from '../config';
-import { CONNECTION_TIMEOUT_MS } from '../config';
 import type { RemoteClientOptions } from './types/RemoteClientOptions';
+
+/**
+ * Loads the Socket.io client (`socket.io-client`) on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private internal utility of `createRemoteClient`
+ */
+const loadSocketIoClientModule = createLazyModuleLoader(() => import('socket.io-client'));
 
 /**
  * Creates a connection to the remote proxy server.
@@ -44,6 +52,8 @@ export async function createRemoteClient<TCustomOptions = undefined>(
             ),
         );
     }
+
+    const { io } = await loadSocketIoClientModule();
 
     return new Promise((resolve, reject) => {
         const socket = io(remoteServerUrl, {

@@ -2,13 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '../../../components/Homepage/Card';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 
+/**
+ * Handles browser test client.
+ */
 export function BrowserTestClient() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [facebookStreamUrl, setFacebookStreamUrl] = useState<string | null>(null);
     const [goal, setGoal] = useState<string>('');
     const [plan, setPlan] = useState<string | null>(null);
     const [isConfirming, setIsConfirming] = useState<boolean>(false);
+    const { formatText } = useAgentNaming();
 
     useEffect(() => {
         return () => {
@@ -142,7 +147,7 @@ export function BrowserTestClient() {
                 </div>
 
                 <div className="mb-4 space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Goal for Agent</label>
+                    <label className="block text-sm font-medium text-gray-700">{formatText('Goal for Agent')}</label>
                     <div className="flex gap-2">
                         <input
                             type="text"

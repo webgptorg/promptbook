@@ -1,0 +1,13 @@
+{"type":"system","subtype":"init","model":"fixture-model"}
+{"type":"stream_event","event":{"type":"message_start","message":{"id":"message-one"}}}
+{"type":"stream_event","event":{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}}
+{"type":"stream_event","event":{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I’ll inspect "}}}
+{"type":"stream_event","event":{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"src/世界.ts 👩‍💻."}}}
+{"type":"stream_event","event":{"type":"content_block_stop","index":0}}
+{"type":"assistant","message":{"id":"message-one","content":[{"type":"text","text":"I’ll inspect src/世界.ts 👩‍💻."},{"type":"tool_use","id":"tool-one","name":"Read","input":{"file_path":"src/世界.ts"}}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"tool-one","content":"export const answer = 42;"}]}}
+{"type":"assistant","message":{"id":"message-two","content":[{"type":"tool_use","id":"tool-two","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"tool-two","is_error":true,"content":"FAIL missing assertion"}]}}
+{"type":"future_notice","message":"Keep this unfamiliar message"}
+{"type":"assistant","message":{"id":"message-three","content":[{"type":"text","text":"The tests need attention."}]}}
+{"type":"result","subtype":"success","result":"The tests need attention.","total_cost_usd":0,"usage":{"input_tokens":10,"output_tokens":5}}

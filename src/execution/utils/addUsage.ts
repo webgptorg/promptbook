@@ -13,6 +13,14 @@ import { ZERO_USAGE } from './usage-constants';
 export function addUsage(...usageItems: ReadonlyArray<Usage>): Usage {
     return usageItems.reduce<Usage>((acc: WritableDeep<Usage>, item) => {
         acc.price.value += item.price?.value || 0;
+        if (item.price?.isUncertain) {
+            acc.price.isUncertain = true;
+        }
+
+        acc.duration.value += item.duration?.value || 0;
+        if (item.duration?.isUncertain) {
+            acc.duration.isUncertain = true;
+        }
 
         for (const key of Object.keys(acc.input)) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment

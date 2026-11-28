@@ -1,24 +1,26 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS } from '../../config';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_AUTO_INSTALLED } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import {
+    DEFAULT_CSV_SETTINGS,
+    DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+    DEFAULT_IS_AUTO_INSTALLED,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_EXECUTION_ATTEMPTS,
+    DEFAULT_MAX_PARALLEL_COUNT,
+    DEFAULT_SCRAPE_CACHE_DIRNAME,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 
 import { assertsError } from '../../errors/assertsError';
 import { serializeError } from '../../errors/utils/serializeError';
-import type { InputParameters } from '../../types/typeAliases';
-import type { number_percent } from '../../types/typeAliases';
+import type { LlmCall } from '../../types/LlmCall';
+import type { number_percent } from '../../types/number_percent';
+import type { InputParameters } from '../../types/Parameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { ExecutionTask } from '../ExecutionTask';
 import { createTask } from '../ExecutionTask';
-import type { LlmCall } from '../../types/LlmCall';
 import type { PipelineExecutor } from '../PipelineExecutor';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { UNCERTAIN_USAGE } from '../utils/usage-constants';
@@ -30,6 +32,7 @@ import { executePipeline } from './10-executePipeline';
  *
  * @returns The executor function
  * @throws {PipelineLogicError} on logical error in the pipeline
+ *
  * @public exported from `@promptbook/core`
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
@@ -158,7 +161,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     const cv = newOngoingResult as PartialDeep<PipelineExecutorResult>;
 
                     // Calculate progress based on parameters resolved vs total parameters
-                    const totalParameters = pipeline.parameters.filter((p) => !p.isInput).length;
+                    const totalParameters = pipeline.parameters.filter((parameter) => !parameter.isInput).length;
                     let resolvedParameters = 0;
                     let currentTaskTitle = '';
 

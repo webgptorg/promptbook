@@ -1,1 +1,1 @@
-TODO: Maybe make from some of theese utilities the official `@promptbook/utils` and export it publically
+TODO: Maybe make from some of these utilities the official `@promptbook/utils` and export it publically

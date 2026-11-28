@@ -1,5 +1,7 @@
 import type { Promisable } from 'type-fest';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import { forTime } from 'waitasecond';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_title } from '../../types/string_title';
 import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
@@ -21,7 +23,11 @@ export class DummySearchEngine implements SearchEngine {
         return;
     }
 
-    public async search(query: string): Promise<SearchResult[]> {
+    public async search(query: string, options: Record<string, unknown> = {}): Promise<SearchResult[]> {
+        console.log('DummySearchEngine.search', { query, options });
+        await forTime(Math.random() * 500 + 100); // Simulate some delay
+        // <- TODO: [🕓] `await forRandom(...)`
+
         return [
             {
                 title: 'Dummy Result 1 for ' + query,

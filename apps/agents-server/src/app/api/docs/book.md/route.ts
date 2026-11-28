@@ -1,61 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import spaceTrim from 'spacetrim';
-import { getGroupedCommitmentDefinitions } from '../../../../../../../src/commitments';
-import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
+import { NextRequest } from 'next/server';
+import {
+    createBookLanguageDocumentationMarkdownResponse,
+    parseBookLanguageDocumentationExportOptions,
+} from '../../../../utils/bookLanguageDocumentation/createBookLanguageDocumentationMarkdownResponse';
+import { getRequestServerLanguage } from '../../../../utils/localization/getRequestServerLanguage';
 
-export const dynamic = 'force-static';
+/**
+ * Forces dynamic evaluation so markdown is generated from freshest source blocks.
+ */
+export const dynamic = 'force-dynamic';
 
+/**
+ * Disables incremental revalidation for this route.
+ */
+export const revalidate = 0;
+
+/**
+ * Backward-compatible route for historical `/api/docs/book.md` links.
+ *
+ * The output is shared with the canonical `/api/docs/book-language.md` route.
+ */
 export async function GET(request: NextRequest) {
-    keepUnused(request);
+    const language = await getRequestServerLanguage();
+    const options = parseBookLanguageDocumentationExportOptions(request.nextUrl.searchParams, language);
 
-    const groupedCommitments = getGroupedCommitmentDefinitions();
-
-    const content = spaceTrim(
-        (block) => `
-            # Promptbook Documentation
-
-            Promptbook is a language for defining AI agents. It is based on Markdown and uses a set of commitments to define the behavior of the agent.
-
-            ## Commitments
-
-            The following commands (commitments) are available in Promptbook:
-
-            ${block(
-                groupedCommitments
-                    .map(({ primary, aliases }) => {
-                        const title = primary.type;
-                        const description = primary.description;
-                        const documentation = primary.documentation;
-                        const aliasList = aliases.length > 0 ? `**Aliases:** ${aliases.join(', ')}` : '';
-
-                        return spaceTrim(
-                            (block) => `
-                                ### ${title}
-
-                                ${description}
-
-                                ${aliasList}
-
-                                #### Usage
-
-                                ${block(getSafeCodeBlock(documentation))}
-                            `,
-                        );
-                    })
-                    .join('\n\n'),
-            )}
-        `,
-    );
-
-    return new NextResponse(content, {
-        headers: {
-            'Content-Type': 'text/markdown; charset=utf-8',
-        },
-    });
-}
-
-function getSafeCodeBlock(content: string, lang = 'markdown'): string {
-    const maxBackticks = Math.max(0, ...(content.match(/`+/g) || []).map((m) => m.length));
-    const fence = '`'.repeat(Math.max(3, maxBackticks + 1));
-    return `${fence}${lang}\n${content}\n${fence}`;
+    return createBookLanguageDocumentationMarkdownResponse(options);
 }

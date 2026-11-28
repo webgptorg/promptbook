@@ -153,4 +153,99 @@ describe('unwrapResult', () => {
     it('should work in real-world scenarios', () => {
         expect(unwrapResult('\n\n' + `UnicornTech Solutions`)).toBe(just('UnicornTech Solutions'));
     });
+
+    it('should extract content from single markdown code block', () => {
+        expect(
+            unwrapResult(
+                spaceTrim(`
+            \`\`\`
+            Unwrapped text
+            \`\`\`
+        `),
+            ),
+        ).toBe('Unwrapped text');
+    });
+
+    it('should extract content from single markdown code block with language', () => {
+        expect(
+            unwrapResult(
+                spaceTrim(`
+            \`\`\`foo
+            Unwrapped text
+            \`\`\`
+        `),
+            ),
+        ).toBe('Unwrapped text');
+        expect(
+            unwrapResult(
+                spaceTrim(`
+            \`\`\`javascript
+            const x = 1;
+            \`\`\`
+        `),
+            ),
+        ).toBe('const x = 1;');
+        expect(
+            unwrapResult(
+                spaceTrim(`
+            \`\`\`python
+            print("hello")
+            \`\`\`
+        `),
+            ),
+        ).toBe('print("hello")');
+    });
+
+    it('should extract content from single markdown code block with whitespace', () => {
+        expect(unwrapResult('  \n```foo\nUnwrapped text\n```  \n')).toBe('Unwrapped text');
+    });
+
+    it('should extract multi-line content from single markdown code block', () => {
+        expect(
+            unwrapResult(
+                spaceTrim(`
+                    \`\`\`typescript
+                    function hello() {
+                        console.log("world");
+                    }
+                    \`\`\`
+                `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    function hello() {
+                        console.log("world");
+                    }
+                `),
+            ),
+        );
+    });
+
+    it('should NOT unwrap when there are multiple code blocks', () => {
+        const multipleBlocks = spaceTrim(`
+            \`\`\`
+            First block
+            \`\`\`
+
+            \`\`\`
+            Second block
+            \`\`\`
+        `);
+        expect(unwrapResult(multipleBlocks)).toBe(just(multipleBlocks));
+    });
+
+    it('should extract content from code block with leading text', () => {
+        expect(
+            unwrapResult(
+                spaceTrim(`
+                    Here is the result:
+
+                    \`\`\`
+                    Unwrapped text
+                    \`\`\`
+                `),
+            ),
+        ).toBe('Unwrapped text');
+    });
 });

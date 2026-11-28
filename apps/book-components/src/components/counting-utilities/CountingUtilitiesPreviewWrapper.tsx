@@ -1,6 +1,9 @@
 import { Eye } from 'lucide-react';
 import CountingUtilitiesPreview from './CountingUtilitiesPreview';
 
+/**
+ * Handles counting utilities preview wrapper.
+ */
 export default function CountingUtilitiesPreviewWrapper() {
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">

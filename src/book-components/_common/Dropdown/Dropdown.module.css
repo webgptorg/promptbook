@@ -12,6 +12,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    color: inherit;
     transition: background-color 0.2s ease-in-out;
 }
 
@@ -40,10 +41,21 @@
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     z-index: 1;
     border-radius: 5px;
+    border: 1px solid rgba(209, 213, 219, 0.9);
     overflow: hidden;
 }
 
 .menuItem {
     width: 100%;
     text-align: left;
+}
+
+:global([data-book-editor-theme='dark']) .button:hover {
+    background-color: rgba(148, 163, 184, 0.12);
+}
+
+:global([data-book-editor-theme='dark']) .menu {
+    background-color: rgba(8, 15, 28, 0.98);
+    border-color: rgba(51, 65, 85, 0.9);
+    box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
 }

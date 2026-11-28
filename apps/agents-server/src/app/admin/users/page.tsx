@@ -2,6 +2,9 @@ import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { UsersList } from '../../../components/UsersList/UsersList';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 
+/**
+ * Handles admin users page.
+ */
 export default async function AdminUsersPage() {
     const isAdmin = await isUserAdmin();
 

@@ -14,11 +14,11 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * USER MESSAGE Hello, I have a problem.
  * ```
- * 
+ *
  * @private [🪔] Maybe export the commitments through some package
  */
 export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'USER MESSAGE'> {
-    constructor() {
+    public constructor() {
         super('USER MESSAGE');
     }
 
@@ -72,8 +72,8 @@ export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'U
 
         return {
             ...requirements,
-            metadata: {
-                ...requirements.metadata,
+            _metadata: {
+                ...requirements._metadata,
                 pendingUserMessage: content,
             },
         };

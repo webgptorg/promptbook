@@ -33,6 +33,4 @@ export const pdfScraperMetadata = $deepFreeze({
  */
 export const _PdfScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register(pdfScraperMetadata);
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

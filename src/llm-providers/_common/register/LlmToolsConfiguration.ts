@@ -1,4 +1,4 @@
-import type { string_title } from '../../../types/typeAliases';
+import type { string_title } from '../../../types/string_title';
 import type { Registered } from '../../../utils/misc/$Register';
 import type { LlmToolsOptions } from './LlmToolsOptions';
 
@@ -28,8 +28,6 @@ export type LlmToolsConfiguration = ReadonlyArray<
     }
 >;
 
-/**
- * TODO: [🧠][🌰] `title` is redundant BUT maybe allow each provider pass it's own title for tracking purposes
- * TODO: Maybe instead of `LlmToolsConfiguration[number]` make `LlmToolsConfigurationItem`
- * TODO: [®] DRY Register logic
- */
+// TODO: [🧠][🌰] `title` is redundant BUT maybe allow each provider pass it's own title for tracking purposes
+// TODO: Maybe instead of `LlmToolsConfiguration[number]` make `LlmToolsConfigurationItem`
+// TODO: [®] DRY Register logic

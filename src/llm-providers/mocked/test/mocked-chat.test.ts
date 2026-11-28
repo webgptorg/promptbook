@@ -10,7 +10,7 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(
+        await expect(
             pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
         ).resolves.toMatchObject({
             isSuccessful: true,
@@ -35,7 +35,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({}).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
+        await expect(pipelineExecutor({}).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
             isSuccessful: false,
             errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {
@@ -109,6 +109,9 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
     */
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`
@@ -150,7 +153,5 @@ async function getPipelineExecutor() {
     return pipelineExecutor;
 }
 
-/**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
- * Note: [🤖] For each new model variant consider adding new testing unit like "faked-completion.test.ts", "mocked-chat.test.ts" and "mocked-completion.test.ts"
- */
+// TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
+// Note: [🤖] For each new model variant consider adding new testing unit like "faked-completion.test.ts", "mocked-chat.test.ts" and "mocked-completion.test.ts"

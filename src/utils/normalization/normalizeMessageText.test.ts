@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { normalizeMessageText } from './normalizeMessageText';
 
@@ -11,16 +12,34 @@ describe('how normalizeMessageText works', () => {
     });
 
     it('will normalize multiline text', () => {
-        expect(normalizeMessageText(`
+        expect(
+            normalizeMessageText(
+                spaceTrim(`
             Hello
             World
-        `)).toEqual('Hello\nWorld');
+        `),
+            ),
+        ).toEqual(
+            spaceTrim(`
+            Hello
+            World
+        `),
+        );
     });
 
     it('will normalize multiline text with indentation', () => {
-        expect(normalizeMessageText(`
+        expect(
+            normalizeMessageText(
+                spaceTrim(`
             Hello
                 World
-        `)).toEqual('Hello\n    World');
+        `),
+            ),
+        ).toEqual(
+            spaceTrim(`
+            Hello
+                World
+        `),
+        );
     });
 });

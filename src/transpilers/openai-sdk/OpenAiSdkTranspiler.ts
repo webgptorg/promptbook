@@ -1,13 +1,13 @@
-import spaceTrim from 'spacetrim';
-import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
-import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
-import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
+import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { string_script } from '../../types/typeAliases';
+import type { string_script } from '../../types/string_markdown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { BookTranspiler } from '../_common/BookTranspiler';
+import { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
+import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
+import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 
 /**
  * Transpiler to Javascript code using OpenAI SDK.
@@ -24,39 +24,19 @@ export const OpenAiSdkTranspiler = {
         tools: ExecutionTools,
         options?: BookTranspilerOptions,
     ): Promise<string_script> {
-        const { agentName } = await parseAgentSource(book);
-        const modelRequirements = await createAgentModelRequirements(book);
-        const { commitments } = parseAgentSourceWithCommitments(book);
-
-        const knowledgeCommitments = commitments.filter((commitment) => commitment.type === 'KNOWLEDGE');
-        const directKnowledge = knowledgeCommitments
-            .map((commitment) => commitment.content.trim())
-            .filter((content) => {
-                try {
-                    new URL(content);
-                    return false;
-                } catch {
-                    return true;
-                }
-            });
-
-        const knowledgeSources = knowledgeCommitments
-            .map((commitment) => commitment.content.trim())
-            .filter((content) => {
-                try {
-                    new URL(content);
-                    return true;
-                } catch {
-                    return false;
-                }
-            });
+        const {
+            agentName,
+            modelRequirements,
+            directKnowledge,
+            knowledgeSources,
+            usedToolFunctions,
+            isKnowledgeHandledWithRetrieval,
+            transpiledTeam,
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
 
-        const KNOWLEDGE_THRESHOLD = 1000;
-
-        if (directKnowledge.join('\n').length > KNOWLEDGE_THRESHOLD || knowledgeSources.length > 0) {
+        if (isKnowledgeHandledWithRetrieval) {
             return spaceTrim(
                 (block) => `
                     #!/usr/bin/env node
@@ -103,6 +83,15 @@ export const OpenAiSdkTranspiler = {
                         }
                     }
 
+                    ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
+
+                    // ---- TOOLS ----
+                    const tools = {
+                        ${block(formatUsedToolFunctions(usedToolFunctions))}
+                    };
+
+                    const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+
                     // ---- CLI SETUP ----
                     const rl = readline.createInterface({
                         input: process.stdin,
@@ -113,7 +102,7 @@ export const OpenAiSdkTranspiler = {
                         {
                             role: 'system',
                             content: spaceTrim(\`
-                                ${block(modelRequirements.systemMessage)}
+                                ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
                             \`),
                         },
                     ];
@@ -126,31 +115,70 @@ export const OpenAiSdkTranspiler = {
                             context = relevantNodes.map((node) => node.getContent()).join('\\n\\n');
                         }
 
-                        const userMessage = spaceTrim(\`
-                            ${block(
-                                spaceTrim(`
-                                    Here is some additional context to help you answer the question:
-                                    \${context}
+                        if (context) {
+                            question = spaceTrim(\`
+                                ${block(
+                                    spaceTrim(`
+                                        Here is some additional context to help you answer the question:
+                                        \${context}
 
-                                    ---
+                                        ---
 
-                                    My question is:
-                                    \${question}
-                                `),
-                                // <- TODO: !!! Maybe block in the spaceTrim shoud do the spaceTrim automatically?
-                            )}
-                        \`);
+                                        My question is:
+                                        \${question}
+                                    `),
+                                    // <- TODO: !!! Maybe block in the spaceTrim shoud do the spaceTrim automatically?
+                                )}
+                            \`);
+                        }
 
+                        chatHistory.push({ role: 'user', content: question });
 
-                        chatHistory.push({ role: 'user', content: userMessage });
+                        await performAiCall();
+                    }
 
+                    async function performAiCall() {
                         const response = await client.chat.completions.create({
                             model: 'gpt-4o',
                             messages: chatHistory,
                             temperature: ${modelRequirements.temperature},
+                            ${
+                                modelRequirements.tools && modelRequirements.tools.length > 0
+                                    ? `tools: toolDefinitions.map(tool => ({ type: 'function', function: tool })),`
+                                    : ''
+                            }
                         });
 
-                        const answer = response.choices[0].message.content;
+                        const message = response.choices[0].message;
+
+                        if (message.tool_calls && message.tool_calls.length > 0) {
+                            chatHistory.push(message);
+
+                            for (const toolCall of message.tool_calls) {
+                                const functionName = toolCall.function.name;
+                                const functionArgs = JSON.parse(toolCall.function.arguments);
+
+                                console.log(\`🛠️ Calling tool \${functionName}...\`);
+                                let result;
+                                try {
+                                    result = await tools[functionName](functionArgs);
+                                } catch (error) {
+                                    result = \`Error: \${error.message}\`;
+                                }
+
+                                chatHistory.push({
+                                    tool_call_id: toolCall.id,
+                                    role: 'tool',
+                                    name: functionName,
+                                    content: typeof result === 'string' ? result : JSON.stringify(result),
+                                });
+                            }
+
+                            await performAiCall();
+                            return;
+                        }
+
+                        const answer = message.content;
                         console.log('\\n🧠 ${
                             agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                         }:', answer, '\\n');
@@ -199,6 +227,15 @@ export const OpenAiSdkTranspiler = {
                     apiKey: process.env.OPENAI_API_KEY,
                 });
 
+                ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
+
+                // ---- TOOLS ----
+                const tools = {
+                    ${block(formatUsedToolFunctions(usedToolFunctions))}
+                };
+
+                const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+
                 // ---- CLI SETUP ----
                 const rl = readline.createInterface({
                     input: process.stdin,
@@ -209,21 +246,58 @@ export const OpenAiSdkTranspiler = {
                     {
                         role: 'system',
                         content: spaceTrim(\`
-                            ${block(modelRequirements.systemMessage)}
+                            ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
                         \`),
                     },
                 ];
 
                 async function ask(question) {
                     chatHistory.push({ role: 'user', content: question });
+                    await performAiCall();
+                }
 
+                async function performAiCall() {
                     const response = await client.chat.completions.create({
                         model: 'gpt-4o',
                         messages: chatHistory,
                         temperature: ${modelRequirements.temperature},
+                        ${
+                            modelRequirements.tools && modelRequirements.tools.length > 0
+                                ? `tools: toolDefinitions.map(tool => ({ type: 'function', function: tool })),`
+                                : ''
+                        }
                     });
 
-                    const answer = response.choices[0].message.content;
+                    const message = response.choices[0].message;
+
+                    if (message.tool_calls && message.tool_calls.length > 0) {
+                        chatHistory.push(message);
+
+                        for (const toolCall of message.tool_calls) {
+                            const functionName = toolCall.function.name;
+                            const functionArgs = JSON.parse(toolCall.function.arguments);
+
+                            console.log(\`🛠️ Calling tool \${functionName}...\`);
+                            let result;
+                            try {
+                                result = await tools[functionName](functionArgs);
+                            } catch (error) {
+                                result = \`Error: \${error.message}\`;
+                            }
+
+                            chatHistory.push({
+                                tool_call_id: toolCall.id,
+                                role: 'tool',
+                                name: functionName,
+                                content: typeof result === 'string' ? result : JSON.stringify(result),
+                            });
+                        }
+
+                        await performAiCall();
+                        return;
+                    }
+
+                    const answer = message.content;
                     console.log('\\n🧠 ${
                         agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                     }:', answer, '\\n');
@@ -253,4 +327,4 @@ export const OpenAiSdkTranspiler = {
 
         return source;
     },
-} as const satisfies BookTranspiler;
+} as const satisfies BookTranspiler; /* <- Note: [🤛] */

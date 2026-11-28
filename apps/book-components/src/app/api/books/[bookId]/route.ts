@@ -7,8 +7,9 @@ import { assertsError } from '../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
 
 /**
+ * GET /api/books/[bookId] -> return content of the .book file.
  *
- * @returns GET /api/books/[bookId] -> return content of the .book file
+ * @returns
  */
 export async function GET(request: NextRequest, todoWhatIsThis: TODO_any) {
     try {

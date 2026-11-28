@@ -1,12 +1,20 @@
+/**
+ * Props for attachment icon.
+ */
 type AttachmentIconProps = {
     size?: number;
     color?: string;
 };
 
 /**
- * Renders an attachment icon
+ * Renders an attachment icon.
  *
- * @public exported from `@promptbook/components`
+ * This icon is typically used in chat interfaces to indicate the ability to
+ * upload or view files associated with a message.
+ *
+ * @param props - SVG properties augmented with an optional `size`
+ *
+ * @private internal subcomponent used by various components
  */
 export function AttachmentIcon({ size = 24, color = 'currentColor' }: AttachmentIconProps) {
     return (

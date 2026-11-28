@@ -1,12 +1,15 @@
-import spaceTrim from 'spacetrim';
-import { REMOTE_SERVER_URLS } from '../../../servers';
+import { spaceTrim } from 'spacetrim';
+import { PUBLIC_AGENTS_SERVERS } from '../../../servers';
 import { CLAIM, IS_COST_PREVENTED, NAME } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { $detectRuntimeEnvironment } from '../environment/$detectRuntimeEnvironment';
 import { valueToString } from '../parameters/valueToString';
 // [😺]> import logoAsset from './logo-blue-white-256.png';
 
+/**
+ * Options for about promptbook information.
+ */
 export type AboutPromptbookInformationOptions = {
     /**
      * Include information about available servers
@@ -58,10 +61,8 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
                 ## Servers
 
                 ${block(
-                    REMOTE_SERVER_URLS.map(
-                        ({ title, urls, description }, index) =>
-                            `${index + 1}. ${title} ${description} ${urls.join(', ')}
-                    `,
+                    PUBLIC_AGENTS_SERVERS.map(
+                        ({ title, url, description }, index) => `${index + 1}. ${title} ${description} ${url}`,
                     ).join('\n'),
                 )}
             `,
@@ -97,6 +98,4 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
     return fullInfo;
 }
 
-/**
- * TODO: [🗽] Unite branding and make single place for it
- */
+// TODO: [🗽] Unite branding and make single place for it

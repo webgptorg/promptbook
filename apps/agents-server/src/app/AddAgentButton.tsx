@@ -1,67 +1,68 @@
 'use client';
 
-import { string_book } from '@promptbook-local/types';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Card } from '../components/Homepage/Card';
-import { NewAgentDialog } from '../components/NewAgentDialog/NewAgentDialog';
-import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from './actions';
+import { FileCard } from '../components/Homepage/FileCard';
+import { useAgentNaming } from '../components/AgentNaming/AgentNamingContext';
+import { showAlert } from '../components/AsyncDialogs/asyncDialogs';
+import { useNewAgentDialog } from '../components/NewAgentDialog/useNewAgentDialog';
+import { useServerLanguage } from '../components/ServerLanguage/ServerLanguageProvider';
 
-export function AddAgentButton() {
-    const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [agentSource, setAgentSource] = useState<string_book>('' as string_book);
+/**
+ * Props for the AddAgentButton component.
+ */
+type AddAgentButtonProps = {
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
+    /**
+     * Folder identifier for the current list view, or null for the root.
+     */
+    readonly currentFolderId: number | null;
+};
 
-    const handleAddAgent = async () => {
-        setIsLoading(true);
-        try {
-            const boilerplate = await $generateAgentBoilerplateAction();
-            setAgentSource(boilerplate);
-            setIsDialogOpen(true);
-        } catch (error) {
+/**
+ * Renders the add-agent card and creation dialog workflow.
+ */
+export function AddAgentButton({ currentFolderId, creationScope }: AddAgentButtonProps) {
+    const { formatText } = useAgentNaming();
+    const { t } = useServerLanguage();
+    const addButtonLabel = formatText(t('agentCreation.addButtonLabel'));
+
+    const { isPreparingDialog, openNewAgentDialog, dialog } = useNewAgentDialog({
+        creationScope,
+        onCreateFailed: async (error) => {
+            console.error('Failed to create agent:', error);
+            await showAlert({
+                title: t('agentCreation.createFailedTitle'),
+                message: error instanceof Error ? error.message : t('agentCreation.createFailedMessage'),
+            }).catch(() => undefined);
+        },
+        onPrepareFailed: async (error) => {
             console.error('Failed to generate agent boilerplate', error);
-            // TODO: Add proper error handling and UI feedback
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleCreate = async (source: string_book) => {
-        // Note: [🧠] Logic for creation is now handled inside the dialog (waiting for promise), here we just handle navigation
-        const { permanentId } = await $createAgentFromBookAction(source);
-
-        if (permanentId) {
-            router.push(`/agents/${permanentId}`);
-        } else {
-            router.refresh();
-        }
-    };
+            await showAlert({
+                title: t('agentCreation.createFailedTitle'),
+                message: error instanceof Error ? error.message : t('agentCreation.createFailedMessage'),
+            }).catch(() => undefined);
+        },
+    });
 
     return (
         <>
             <div
-                onClick={isLoading ? undefined : handleAddAgent}
-                className={`cursor-pointer h-full group ${isLoading ? 'pointer-events-none' : ''}`}
+                onClick={isPreparingDialog ? undefined : () => void openNewAgentDialog({ folderId: currentFolderId })}
+                className={`cursor-pointer h-full group ${isPreparingDialog ? 'pointer-events-none' : ''}`}
             >
-                <Card className="flex items-center justify-center text-lg font-medium text-gray-500 group-hover:text-blue-500 group-hover:border-blue-400 border-dashed border-2">
-                    {isLoading ? (
+                <FileCard className="flex items-center justify-center text-sm font-medium text-gray-500 group-hover:text-blue-500 group-hover:border-blue-400 border-dashed border-2 border-gray-300">
+                    {isPreparingDialog ? (
                         <>
                             <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                            Preparing...
+                            {t('agentCreation.preparing')}
                         </>
                     ) : (
-                        '+ Add New Agent'
+                        addButtonLabel
                     )}
-                </Card>
+                </FileCard>
             </div>
 
-            <NewAgentDialog
-                isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
-                initialAgentSource={agentSource}
-                onCreate={handleCreate}
-            />
+            {dialog}
         </>
     );
 }

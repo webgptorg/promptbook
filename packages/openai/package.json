@@ -1,7 +1,7 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.104.0-12",
-    "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
+    "version": "0.114.0-50",
+    "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -100,16 +100,22 @@
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/openai.index.d.ts",
+    "types": "./esm/src/_packages/openai.index.d.ts",
+    "typings": "./esm/src/_packages/openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.104.0-12"
+        "@promptbook/core": "0.114.0-50"
     },
     "dependencies": {
+        "@openai/agents": "0.4.15",
         "bottleneck": "2.19.5",
         "colors": "1.4.0",
-        "crypto": "1.0.1",
-        "openai": "4.63.0",
-        "socket.io-client": "4.7.5",
+        "crypto-js": "4.2.0",
+        "jsdom": "25.0.1",
+        "openai": "6.18.0",
+        "socket.io-client": "4.8.3",
         "spacetrim": "0.11.60"
+    },
+    "browser": {
+        "jsdom": false
     }
 }

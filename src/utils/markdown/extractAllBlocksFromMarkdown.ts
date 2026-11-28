@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { capitalize } from '../normalization/capitalize';
 
 /**
@@ -35,11 +35,12 @@ export type MarkdownCodeBlock = {
  * @param markdown any valid markdown
  * @returns code blocks with language and content
  * @throws {ParseError} if block is not closed properly
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllBlocksFromMarkdown(markdown: string_markdown): ReadonlyArray<MarkdownCodeBlock> {
     const codeBlocks: Array<MarkdownCodeBlock> = [];
-    const lines = markdown.split('\n');
+    const lines = markdown.split(/\r?\n/);
 
     // Note: [0] Ensure that the last block notated by gt > will be closed
     lines.push('');
@@ -102,6 +103,4 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Readonl
     return codeBlocks;
 }
 
-/**
- * TODO: Maybe name for `blockNotation` instead of  '```' and '>'
- */
+// TODO: Maybe name for `blockNotation` instead of  '```' and '>'

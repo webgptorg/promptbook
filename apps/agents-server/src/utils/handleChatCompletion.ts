@@ -1,14 +1,16 @@
-import { $getTableName } from '@/src/database/$getTableName';
-import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent, computeAgentHash, parseAgentSource, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
-import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
-import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
+import { HTTP_STATUS_CODES } from '../constants';
+import { respondIfClientVersionIsOutdated } from './clientVersionGuard';
+import { createHandleChatCompletionJsonResponse } from './handleChatCompletion/createHandleChatCompletionJsonResponse';
+import { createHandleChatCompletionPromptContext } from './handleChatCompletion/createHandleChatCompletionPromptContext';
+import { createHandleChatCompletionStreamResponse } from './handleChatCompletion/createHandleChatCompletionStreamResponse';
+import { parseHandleChatCompletionRequest } from './handleChatCompletion/parseHandleChatCompletionRequest';
+import { resolveHandleChatCompletionRuntime } from './handleChatCompletion/resolveHandleChatCompletionRuntime';
 import { validateApiKey } from './validateApiKey';
 
+/**
+ * Handles convert open Ai chat completion requests routed through the Agents Server.
+ */
 export async function handleChatCompletion(
     request: NextRequest,
     params: { agentName?: string },
@@ -16,7 +18,11 @@ export async function handleChatCompletion(
 ) {
     const { agentName: agentNameFromParams } = params;
 
-    // Validate API key explicitly (in addition to middleware)
+    const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json', { mode: 'api' });
+    if (versionMismatchResponse) {
+        return versionMismatchResponse;
+    }
+
     const apiKeyValidation = await validateApiKey(request);
     if (!apiKeyValidation.isValid) {
         return NextResponse.json(
@@ -26,390 +32,58 @@ export async function handleChatCompletion(
                     type: 'authentication_error',
                 },
             },
-            { status: 401 },
+            { status: HTTP_STATUS_CODES.UNAUTHORIZED },
         );
     }
     const apiKey = apiKeyValidation.token || null;
 
     try {
-        const body = await request.json();
-        const { messages, stream, model } = body;
-
-        const agentName = agentNameFromParams || model;
-
-        if (!agentName) {
-            return NextResponse.json(
-                {
-                    error: {
-                        message: 'Agent name is required. Please provide it in the URL or as the "model" parameter.',
-                        type: 'invalid_request_error',
-                    },
-                },
-                { status: 400 },
-            );
-        }
-
-        if (!messages || !Array.isArray(messages) || messages.length === 0) {
-            return NextResponse.json(
-                {
-                    error: {
-                        message: 'Messages array is required and cannot be empty.',
-                        type: 'invalid_request_error',
-                    },
-                },
-                { status: 400 },
-            );
-        }
-
-        // Check if agent is deleted
-        if (await isAgentDeleted(agentName)) {
-            return NextResponse.json(
-                {
-                    error: {
-                        message: 'This agent has been deleted. You can restore it from the Recycle Bin.',
-                        type: 'agent_deleted',
-                    },
-                },
-                { status: 410 }, // Gone - indicates the resource is no longer available
-            );
-        }
-
-        const collection = await $provideAgentCollectionForServer();
-        let agentSource: string_book;
-        try {
-            agentSource = await collection.getAgentSource(agentName);
-        } catch (error) {
-            return NextResponse.json(
-                { error: { message: `Agent '${agentName}' not found.`, type: 'invalid_request_error' } },
-                { status: 404 },
-            );
-        }
-
-        if (!agentSource) {
-            return NextResponse.json(
-                { error: { message: `Agent '${agentName}' not found.`, type: 'invalid_request_error' } },
-                { status: 404 },
-            );
-        }
-
-        // Note: Handle system messages as CONTEXT
-        const systemMessages = messages.filter((msg: TODO_any) => msg.role === 'system');
-        if (systemMessages.length > 0) {
-            const contextString = systemMessages.map((msg: TODO_any) => `CONTEXT ${msg.content}`).join('\n');
-            agentSource = `${agentSource}\n\n${contextString}` as string_book;
-        }
-
-        const threadMessages = messages.filter((msg: TODO_any) => msg.role !== 'system');
-
-        if (threadMessages.length === 0) {
-            return NextResponse.json(
-                {
-                    error: {
-                        message: 'Messages array must contain at least one non-system message.',
-                        type: 'invalid_request_error',
-                    },
-                },
-                { status: 400 },
-            );
-        }
-
-        const agentHash = computeAgentHash(agentSource);
-        const supabase = $provideSupabaseForServer();
-        const { data: assistantCache } = await supabase
-            .from(await $getTableName('OpenAiAssistantCache'))
-            .select('assistantId')
-            .eq('agentHash', agentHash)
-            .single();
-
-        let openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
-
-        if (assistantCache?.assistantId) {
-            console.log(
-                `[🐱‍🚀] Reusing assistant ${assistantCache.assistantId} for agent ${agentName} (hash: ${agentHash})`,
-            );
-            openAiAssistantExecutionTools = openAiAssistantExecutionTools.getAssistant(assistantCache.assistantId);
-        } else {
-            console.log(`[🐱‍🚀] Creating NEW assistant for agent ${agentName} (hash: ${agentHash})`);
-            // Parse to get instructions and name
-            const parsed = parseAgentSource(agentSource);
-            const name = parsed.agentName || agentName;
-            // Extract PERSONA
-            const baseInstructions = parsed.personaDescription || 'You are a helpful assistant.';
-
-            // Note: Append context to instructions
-            const contextLines = agentSource.split('\n').filter((line) => line.startsWith('CONTEXT '));
-            const contextInstructions = contextLines.join('\n');
-            const instructions = contextInstructions
-                ? `${baseInstructions}\n\n${contextInstructions}`
-                : baseInstructions;
-
-            // Create assistant
-            const newAssistantTools = await openAiAssistantExecutionTools.createNewAssistant({
-                name,
-                instructions,
-                // knowledgeSources?
-            });
-
-            // Save to cache
-            const newAssistantId = newAssistantTools.assistantId;
-            if (newAssistantId) {
-                await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
-                    agentHash,
-                    assistantId: newAssistantId,
-                });
-                openAiAssistantExecutionTools = newAssistantTools;
-            }
-        }
-
-        const agent = new Agent({
-            agentSource,
-            executionTools: {
-                llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
-            },
-            isVerbose: true, // or false
+        const parsedRequest = parseHandleChatCompletionRequest({
+            body: await request.json(),
+            agentNameFromParams,
+            request,
         });
+        if (parsedRequest instanceof NextResponse) {
+            return parsedRequest;
+        }
 
-        const userAgent = request.headers.get('user-agent');
-        const ip =
-            request.headers.get('x-forwarded-for') ||
-            request.headers.get('x-real-ip') ||
-            request.headers.get('x-client-ip');
-
-        // Note: Capture language and platform information
-        const language = request.headers.get('accept-language');
-        // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
-        const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
-
-        // Prepare thread and content
-        const lastMessage = threadMessages[threadMessages.length - 1];
-        const previousMessages = threadMessages.slice(0, -1);
-
-        const thread: ChatMessage[] = previousMessages.map((msg: TODO_any, index: number) => ({
-            // channel: 'PROMPTBOOK_CHAT',
-            id: `msg-${index}`, // Placeholder ID
-            sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard OpenAI roles
-            content: msg.content,
-            isComplete: true,
-            date: new Date(), // We don't have the real date, using current
-        }));
-
-        // Note: Identify the user message
-        const userMessageContent = {
-            role: 'USER',
-            content: lastMessage.content,
-        };
-
-        await supabase.from(await $getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(userMessageContent),
-            previousMessageHash: null,
-            agentName,
-            agentHash,
-            message: userMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
-            source: 'OPENAI_API_COMPATIBILITY',
-            apiKey,
+        const runtime = await resolveHandleChatCompletionRuntime({
+            request,
+            agentName: parsedRequest.agentName,
+            messages: parsedRequest.messages,
+            isPrivateModeEnabled: parsedRequest.isPrivateModeEnabled,
         });
+        if (runtime instanceof NextResponse) {
+            return runtime;
+        }
 
-        const prompt: Prompt = {
+        const promptContext = await createHandleChatCompletionPromptContext({
+            request,
             title,
-            content: lastMessage.content,
-            modelRequirements: {
-                modelVariant: 'CHAT',
-                // We could pass 'model' from body if we wanted to enforce it, but Agent usually has its own config
-            },
-            parameters: {},
-            thread,
-        } as Prompt;
-        // Note: Casting as Prompt because the type definition might require properties we don't strictly use or that are optional but TS complains
+            apiKey,
+            parsedRequest,
+            runtime,
+        });
 
-        if (stream) {
-            const encoder = new TextEncoder();
-            const readableStream = new ReadableStream({
-                async start(controller) {
-                    const runId = `chatcmpl-${Math.random().toString(36).substring(2, 15)}`;
-                    const created = Math.floor(Date.now() / 1000);
-
-                    // Note: Send the initial chunk with role
-                    const initialChunkData = {
-                        id: runId,
-                        object: 'chat.completion.chunk',
-                        created,
-                        model: model || 'promptbook-agent',
-                        choices: [
-                            {
-                                index: 0,
-                                delta: {
-                                    role: 'assistant',
-                                    content: '',
-                                },
-                                finish_reason: null,
-                            },
-                        ],
-                    };
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(initialChunkData)}\n\n`));
-
-                    let previousContent = '';
-
-                    try {
-                        const result = await agent.callChatModelStream(prompt, (chunk: ChatPromptResult) => {
-                            const fullContent = chunk.content;
-                            const deltaContent = fullContent.substring(previousContent.length);
-                            previousContent = fullContent;
-
-                            if (deltaContent) {
-                                const chunkData = {
-                                    id: runId,
-                                    object: 'chat.completion.chunk',
-                                    created,
-                                    model: model || 'promptbook-agent',
-                                    choices: [
-                                        {
-                                            index: 0,
-                                            delta: {
-                                                content: deltaContent,
-                                            },
-                                            finish_reason: null,
-                                        },
-                                    ],
-                                };
-                                controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkData)}\n\n`));
-                            }
-                        });
-
-                        // Note: Identify the agent message
-                        const agentMessageContent = {
-                            role: 'MODEL',
-                            content: result.content,
-                        };
-
-                        // Record the agent message
-                        await supabase.from(await $getTableName('ChatHistory')).insert({
-                            createdAt: new Date().toISOString(),
-                            messageHash: computeHash(agentMessageContent),
-                            previousMessageHash: computeHash(userMessageContent),
-                            agentName,
-                            agentHash,
-                            message: agentMessageContent,
-                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                            url: request.url,
-                            ip,
-                            userAgent,
-                            language,
-                            platform,
-                            source: 'OPENAI_API_COMPATIBILITY',
-                            apiKey,
-                        });
-
-                        // Note: [🐱‍🚀] Save the learned data
-                        const newAgentSource = agent.agentSource.value;
-                        if (newAgentSource !== agentSource) {
-                            await collection.updateAgentSource(agentName, newAgentSource);
-                        }
-
-                        const doneChunkData = {
-                            id: runId,
-                            object: 'chat.completion.chunk',
-                            created,
-                            model: model || 'promptbook-agent',
-                            choices: [
-                                {
-                                    index: 0,
-                                    delta: {},
-                                    finish_reason: 'stop',
-                                },
-                            ],
-                        };
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(doneChunkData)}\n\n`));
-                        controller.enqueue(encoder.encode('[DONE]'));
-                    } catch (error) {
-                        console.error('Error during streaming:', error);
-                        // OpenAI stream doesn't usually send error JSON in stream, just closes or sends error text?
-                        // But we should try to close gracefully or error.
-                        controller.error(error);
-                    }
-                    controller.close();
-                },
-            });
-
-            return new Response(readableStream, {
-                headers: {
-                    'Content-Type': 'text/event-stream',
-                    'Cache-Control': 'no-cache',
-                    Connection: 'keep-alive',
-                },
-            });
-        } else {
-            const result = await agent.callChatModel(prompt);
-
-            // Note: Identify the agent message
-            const agentMessageContent = {
-                role: 'MODEL',
-                content: result.content,
-            };
-
-            // Record the agent message
-            await supabase.from(await $getTableName('ChatHistory')).insert({
-                createdAt: new Date().toISOString(),
-                messageHash: computeHash(agentMessageContent),
-                previousMessageHash: computeHash(userMessageContent),
-                agentName,
-                agentHash,
-                message: agentMessageContent,
-                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                url: request.url,
-                ip,
-                userAgent,
-                language,
-                platform,
-                source: 'OPENAI_API_COMPATIBILITY',
-                apiKey,
-            });
-
-            // Note: [🐱‍🚀] Save the learned data
-            const newAgentSource = agent.agentSource.value;
-            if (newAgentSource !== agentSource) {
-                await collection.updateAgentSource(agentName, newAgentSource);
-            }
-
-            return NextResponse.json({
-                id: `chatcmpl-${Math.random().toString(36).substring(2, 15)}`,
-                object: 'chat.completion',
-                created: Math.floor(Date.now() / 1000),
-                model: model || 'promptbook-agent',
-                choices: [
-                    {
-                        index: 0,
-                        message: {
-                            role: 'assistant',
-                            content: result.content,
-                        },
-                        finish_reason: 'stop',
-                    },
-                ],
-                usage: {
-                    prompt_tokens: result.usage?.input?.tokensCount?.value || 0,
-                    completion_tokens: result.usage?.output?.tokensCount?.value || 0,
-                    total_tokens:
-                        (result.usage?.input?.tokensCount?.value || 0) +
-                        (result.usage?.output?.tokensCount?.value || 0),
-                },
-            });
-        }
+        return parsedRequest.stream
+            ? createHandleChatCompletionStreamResponse({
+                  request,
+                  title,
+                  parsedRequest,
+                  runtime,
+                  promptContext,
+              })
+            : createHandleChatCompletionJsonResponse({
+                  title,
+                  parsedRequest,
+                  runtime,
+                  promptContext,
+              });
     } catch (error) {
         console.error(`Error in ${title} handler:`, error);
         return NextResponse.json(
             { error: { message: (error as Error).message || 'Internal Server Error', type: 'server_error' } },
-            { status: 500 },
+            { status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR },
         );
     }
 }
-
-/**
- * TODO: [🈹] Maybe move chat thread handling here
- */

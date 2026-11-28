@@ -1,4 +1,4 @@
-import type { number_percent } from '../../../types/typeAliases';
+import type { number_percent } from '../../../types/number_percent';
 import type { ColorTransformer } from './ColorTransformer';
 import { lighten } from './lighten';
 

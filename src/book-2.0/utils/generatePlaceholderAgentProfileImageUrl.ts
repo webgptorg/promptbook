@@ -1,10 +1,6 @@
-import { CORE_SERVER } from '../../../servers';
-import type {
-    string_agent_name,
-    string_agent_permanent_id,
-    string_url,
-    string_url_image,
-} from '../../types/typeAliases';
+import type { string_agent_name, string_agent_permanent_id } from '../../types/string_agent_name';
+import type { string_url } from '../../types/string_url';
+import type { string_url_image } from '../../types/string_url_image';
 
 /**
  * Generates an image for the agent to use as profile image
@@ -16,7 +12,7 @@ import type {
  */
 export function generatePlaceholderAgentProfileImageUrl(
     agentIdOrName: string_agent_permanent_id | string_agent_name,
-    agentsServerUrl: URL | string_url = CORE_SERVER.urls[0]!,
+    agentsServerUrl: URL | string_url,
 ): string_url_image {
     if (typeof agentsServerUrl === 'string') {
         agentsServerUrl = new URL(agentsServerUrl);
@@ -25,6 +21,4 @@ export function generatePlaceholderAgentProfileImageUrl(
     return `${agentsServerUrl.href}agents/${agentIdOrName}/images/default-avatar.png`;
 }
 
-/**
- * TODO: [🤹] Figure out best placeholder image generator https://i.pravatar.cc/1000?u=568
- */
+// TODO: [🤹] Figure out best placeholder image generator https://i.pravatar.cc/1000?u=568

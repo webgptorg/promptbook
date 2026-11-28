@@ -2,15 +2,43 @@ import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import type { MessageSortField, MessageSortOrder } from '../../../utils/messagesAdmin';
 
+/**
+ * Size of default page.
+ */
 const DEFAULT_PAGE_SIZE = 20;
+/**
+ * Size of max page.
+ */
 const MAX_PAGE_SIZE = 100;
 
+/**
+ * Parses positive int.
+ */
 function parsePositiveInt(value: string | null, fallback: number): number {
     if (!value) return fallback;
     const parsed = parseInt(value, 10);
     if (Number.isNaN(parsed) || parsed <= 0) return fallback;
     return parsed;
+}
+
+/**
+ * Parses message table sort field.
+ */
+function parseMessageSortField(value: string | null): MessageSortField {
+    if (value === 'channel' || value === 'direction' || value === 'content') {
+        return value;
+    }
+
+    return 'createdAt';
+}
+
+/**
+ * Parses message table sort order.
+ */
+function parseMessageSortOrder(value: string | null): MessageSortOrder {
+    return value === 'asc' ? 'asc' : 'desc';
 }
 
 /**
@@ -29,6 +57,8 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get('search')?.trim() || '';
         const channel = searchParams.get('channel');
         const direction = searchParams.get('direction');
+        const sortBy = parseMessageSortField(searchParams.get('sortBy'));
+        const sortOrder = parseMessageSortOrder(searchParams.get('sortOrder'));
 
         const supabase = $provideSupabase();
 
@@ -52,8 +82,7 @@ export async function GET(request: NextRequest) {
             query = query.ilike('content', `%${escaped}%`);
         }
 
-        // Default sort by createdAt desc
-        query = query.order('createdAt', { ascending: false });
+        query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
@@ -70,7 +99,7 @@ export async function GET(request: NextRequest) {
 
         // Fetch attempts for these messages
         if (messages && messages.length > 0) {
-            const messageIds = messages.map((m) => m.id);
+            const messageIds = messages.map((message) => message.id);
             const { data: attempts, error: attemptsError } = await supabase
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .from(await $getTableName('MessageSendAttempt'))
@@ -84,7 +113,7 @@ export async function GET(request: NextRequest) {
                 // Attach attempts to messages
                 for (const message of messages) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (message as any).sendAttempts = attempts?.filter((a: any) => a.messageId === message.id) || [];
+                    (message as any).sendAttempts = attempts?.filter((attempt: any) => attempt.messageId === message.id) || [];
                 }
             }
         }
@@ -94,6 +123,8 @@ export async function GET(request: NextRequest) {
             total: count ?? 0,
             page,
             pageSize,
+            sortBy,
+            sortOrder,
         });
     } catch (error) {
         console.error('List messages error:', error);

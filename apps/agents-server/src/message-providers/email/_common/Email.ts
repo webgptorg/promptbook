@@ -40,6 +40,9 @@ type Email = Message<string_email> & {
     readonly attachments: Array<File>;
 };
 
+/**
+ * Type describing email address.
+ */
 export type EmailAddress = {
     /**
      * Everything outside of `<>` in email address

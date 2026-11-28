@@ -2,8 +2,14 @@ import { $provideBrowserForServer } from '@/src/tools/$provideBrowserForServer';
 import { NextResponse } from 'next/server';
 import { just } from '../../../../../../../src/utils/organization/just';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -39,7 +45,7 @@ export async function GET() {
                     controller.enqueue(buffer);
 
                     // Short delay
-                    await new Promise((r) => setTimeout(r, 200));
+                    await new Promise((resolve) => setTimeout(resolve, 200));
                 }
             } catch (error) {
                 console.error('Stream error:', error);

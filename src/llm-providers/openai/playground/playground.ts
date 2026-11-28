@@ -7,11 +7,18 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import type { Prompt } from '../../../types/Prompt';
+import { JavascriptEvalExecutionTools } from '../../../scripting/javascript/JavascriptEvalExecutionTools';
+import type { ChatPrompt, Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 // import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
+import { join } from 'path';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
 import type { Usage } from '../../../execution/Usage';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
+import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
+import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
 import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
+import { OpenAiAgentKitExecutionTools } from '../OpenAiAgentKitExecutionTools';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
@@ -24,20 +31,55 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  OpenAI Playground`);
 
     // Do here stuff you want to test
     //========================================>
 
-    const openAiExecutionTools = new OpenAiExecutionTools(
+    const script = new JavascriptEvalExecutionTools({
+        functions: {
+            // TODO: !!!! Normalize function names:
+            get_coupon_code: async (params: { productCategory: string; discountPercentage: number }) => {
+                // Simulate generating a coupon code based on product category and discount percentage
+                const { productCategory, discountPercentage } = params;
+                const code = `SAVE${discountPercentage}${productCategory.toUpperCase().slice(0, 3)}2025`;
+
+                console.log(
+                    `!!!! [🛠️] Generated coupon code: ${code} for category: ${productCategory} with discount: ${discountPercentage}%`,
+                );
+
+                return code;
+            },
+        },
+    });
+
+    let openAiExecutionTools = new OpenAiExecutionTools(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
         {
             isVerbose: true,
             userId: 'playground',
             apiKey: process.env.OPENAI_API_KEY!,
+            executionTools: { script },
         },
     );
+
+    openAiExecutionTools = cacheLlmTools(openAiExecutionTools, {
+        storage: new FileCacheStorage(
+            { fs: $provideFilesystemForNode() },
+            {
+                rootFolderPath: join(
+                    process.cwd(),
+                    DEFAULT_EXECUTION_CACHE_DIRNAME,
+                    // <- TODO: [🦒] Allow to override (pass different value into the function)
+                ),
+            },
+        ),
+        // isCacheReloaded: isCacheReloaded,
+    });
 
     const openAiExecutionToolsWithUsage = countUsage(openAiExecutionTools);
 
@@ -59,7 +101,53 @@ async function playground() {
     );
     /**/
 
+    /*/
+    const openAiAgentKitExecutionTools = new OpenAiAgentKitExecutionTools({
+        isVerbose: true,
+        userId: 'playground',
+        apiKey: process.env.OPENAI_API_KEY!,
+        executionTools: { script },
+    });
+
+    const agentKitPrompt = {
+        title: 'AgentKit Coupon Demo',
+        parameters: {},
+        content: `Generate a coupon code for electronics with 15% off using the tool.`,
+        tools: [
+            {
+                name: 'get_coupon_code',
+                description: 'Generate a coupon code based on product category and discount percentage',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        productCategory: {
+                            type: 'string',
+                            description: 'The category of the product (e.g., electronics, clothing)',
+                        },
+                        discountPercentage: {
+                            type: 'number',
+                            description: 'The discount percentage to apply',
+                        },
+                    },
+                    required: ['productCategory', 'discountPercentage'],
+                },
+            },
+        ],
+        modelRequirements: {
+            modelVariant: 'CHAT',
+            systemMessage:
+                'Use the get_coupon_code tool to generate the coupon. Do not invent coupon codes.',
+        },
+    } satisfies ChatPrompt;
+    const agentKitResult = await openAiAgentKitExecutionTools.callChatModel!(agentKitPrompt);
+    console.info({ agentKitResult });
+    console.info(colors.cyan(usageToHuman(agentKitResult.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(agentKitPrompt.content));
+    console.info(colors.bgGreen(' AgentKit: ') + colors.green(agentKitResult.content));
+    /**/
+
     keepUnused(openAiExecutionTools);
+    keepUnused(OpenAiAgentKitExecutionTools);
     // keepUnused(openAiAssistantExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
@@ -70,7 +158,7 @@ async function playground() {
     console.info({ models });
     /**/
 
-    /**/
+    /*/
     const imagePrompt = {
         title: 'Hello',
         parameters: {},
@@ -100,35 +188,89 @@ async function playground() {
     console.info(colors.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+    /**/
     const chatPrompt = {
         title: 'Prague',
         parameters: {},
-        thread: [
-            // <- TODO: !!! Maybe rename to `previousMessages`
+        // thread: [
+        //     // <- TODO: !!! Maybe rename to `previousMessages`
+        //     {
+        //         sender: 'user', // <- [👥] TODO: Standardize to `role: 'USER' | 'ASSISTANT'
+        //         content: 'Where is Prague ',
+        //     },
+        //     {
+        //         sender: 'assistant',
+        //         content: 'Prague is a beautiful city located in the Czech Republic.',
+        //     },
+        // ],
+        content: `Give me a coupons for grocery shopping in electronics store with a 20% discount.`,
+
+        tools: [
             {
-                sender: 'user', // <- [👥] TODO: Standardize to `role: 'USER' | 'ASSISTANT'
-                content: 'Where is Prague ',
-            },
-            {
-                sender: 'assistant',
-                content: 'Prague is a beautiful city located in the Czech Republic.',
+                name: 'get_coupon_code',
+
+                description: 'Generate a coupon code based on product category and discount percentage',
+
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        productCategory: {
+                            type: 'string',
+                            description: 'The category of the product (e.g., electronics, clothing)',
+                        },
+                        discountPercentage: {
+                            type: 'number',
+                            description: 'The discount percentage to apply',
+                        },
+                    },
+                    required: ['productCategory', 'discountPercentage'],
+                },
             },
         ],
-        content: `Tell me more`,
+
         modelRequirements: {
             modelVariant: 'CHAT',
-            systemMessage: 'You are an helpful assistant who provides short and concise answers.',
+            systemMessage:
+                'You are an helpful assistant who can provide coupon codes, via the get_coupon_code tool. Do not make up coupon codes on your own. Do not provide more that 25% discount and more than 5 coupons per message.',
             // modelName: 'gpt-3.5-turbo',
             modelName: 'gpt-5',
             temperature: 1.5,
         },
-    } /* as const * / satisfies Prompt;
+    } /* as const */ satisfies ChatPrompt; /* <- Note: [🤛] */
     const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
     console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
+    /**/
+
+    /**/
+    // TODO: !!!!! Test
+    const chatPromptWithFiles = {
+        title: 'Chat with files',
+        parameters: {},
+        content: `What is in these images?`,
+
+        files: [
+            // Note: In node.js we need to mock the File object or use a real one if available
+            // For playground purposes, we can use a small transparent pixel
+            new File(
+                // cspell:disable
+                [Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')],
+                // cspell:enable
+                'pixel.gif',
+                { type: 'image/gif' },
+            ),
+        ],
+        modelRequirements: {
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4o',
+        },
+    } satisfies ChatPrompt;
+    const chatPromptWithFilesResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPromptWithFiles);
+    console.info({ chatPromptWithFilesResult });
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPromptWithFiles.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptWithFilesResult.content));
     /**/
 
     /*/
@@ -260,7 +402,5 @@ async function playground() {
     //========================================/
 }
 
-/**
- * TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [openai playground](src/llm-providers/openai/playground/playground.ts) should never be published in any package
+// TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly

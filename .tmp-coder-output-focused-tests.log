@@ -1,0 +1,54 @@
+PASS scripts/run-codex-prompts/ui/renderCoderRunUi.test.ts
+PASS scripts/run-codex-prompts/ui/output/coderOutputTrace.test.ts
+PASS scripts/run-codex-prompts/ui/output/coderOutputExecution.test.ts
+PASS scripts/run-agent-messages/ui/loadAgentRunUiMetadata.test.ts
+PASS scripts/run-codex-prompts/ui/output/CoderRunOutput.test.ts
+PASS scripts/run-codex-prompts/runners/openai-codex/CodexFailureHandling.test.ts
+PASS scripts/run-agent-messages/ui/buildAgentRunUiFrame.test.ts
+PASS scripts/run-codex-prompts/runners/common/createAuthenticationAwarePromptRunner.test.ts
+PASS scripts/run-codex-prompts/runners/claude-code/buildClaudeScript.test.ts
+PASS scripts/run-codex-prompts/ui/coderRunUiRefresh.test.ts
+PASS scripts/run-codex-prompts/ui/buildCoderRunUiFrame.test.ts
+PASS scripts/run-codex-prompts/ui/buildCoderRunUiTerminalFrameUpdate.test.ts
+PASS scripts/run-codex-prompts/runners/qwen-code/buildQwenCodeScript.test.ts
+PASS scripts/run-codex-prompts/runners/qwen-code/qwen-code-pricing.test.ts
+PASS scripts/run-codex-prompts/runners/common/modelPricing.test.ts
+PASS scripts/run-codex-prompts/common/applyCoderRunControlKey.test.ts
+PASS scripts/run-codex-prompts/ui/refreshCoderRunUiSubscriptionUsage.test.ts
+PASS scripts/run-codex-prompts/runners/openai-codex/OpenAiCodexRunner.test.ts
+  ● Console
+
+    console.warn
+      [codex] Rate limit/quota detected (Error: rate limit reached). Retry #1 in 0s at 2026-09-27T06:45:45.433Z.
+
+      179 |
+      180 |                 if (options.shouldPrintLiveOutput ?? true) {
+    > 181 |                     console.warn(
+          |                             ^
+      182 |                         colors.yellow(
+      183 |                             `[codex] Rate limit/quota detected (${summary}). Retry #${retryIndex} in ${formatDelay(
+      184 |                                 delayMs,
+
+      at OpenAiCodexRunner.runPrompt (scripts/run-codex-prompts/runners/openai-codex/OpenAiCodexRunner.ts:181:29)
+
+PASS scripts/run-codex-prompts/runners/claude-code/ClaudeCodeRunner.test.ts
+PASS scripts/run-codex-prompts/runners/claude-code/parseClaudeCodeSubscriptionUsage.test.ts
+PASS scripts/run-codex-prompts/runners/openai-codex/parseCodexLoginMethodFromOutput.test.ts
+PASS scripts/run-codex-prompts/runners/common/extractHarnessAuthenticationFailureReason.test.ts
+PASS scripts/run-codex-prompts/runners/github-copilot/buildGitHubCopilotScript.test.ts
+PASS scripts/run-codex-prompts/runners/github-copilot/GitHubCopilotRunner.test.ts
+PASS scripts/run-codex-prompts/runners/openai-codex/buildCodexScript.test.ts
+PASS scripts/run-codex-prompts/runners/claude-code/ClaudeCodeSessionResurrection.test.ts
+PASS scripts/run-codex-prompts/ui/startCoderRunUiSubscriptionUsageRefresh.test.ts
+PASS scripts/run-codex-prompts/ui/CoderRunUiState.test.ts
+PASS scripts/run-codex-prompts/runners/openai-codex/buildCodexUsageFromOutput.test.ts
+PASS scripts/run-codex-prompts/common/runGoScript/createScriptOutputLineReader.test.ts
+PASS scripts/run-codex-prompts/runners/gemini/gemini-pricing.test.ts
+PASS scripts/run-codex-prompts/runners/gemini/buildGeminiScript.test.ts
+PASS scripts/run-codex-prompts/runners/openai-codex/getCodexSubscriptionUsage.test.ts
+
+Test Suites: 33 passed, 33 total
+Tests:       172 passed, 172 total
+Snapshots:   0 total
+Time:        13.528 s, estimated 20 s
+Ran all test suites matching /scripts\\run-codex-prompts\\ui|scripts\\run-codex-prompts\\runners|scripts\\run-codex-prompts\\common\\applyCoderRunControlKey.test.ts|scripts\\run-codex-prompts\\common\\runGoScript\\createScriptOutputLineReader.test.ts|scripts\\run-codex-prompts\\common\\runGoScript\\scriptExecutionLog.test.ts|scripts\\run-agent-messages\\ui/i.

@@ -1,5 +1,8 @@
 import { ConfigChecker } from 'configchecker';
 
+/**
+ * Constant for config.
+ */
 const config = ConfigChecker.from({
     ...process.env,
 
@@ -27,7 +30,8 @@ const config = ConfigChecker.from({
 /**
  * Public URL of the deployment, e.g. "https://my-app.vercel.app"
  *
- * Note: When `SERVERS` are used, this URL will be overridden by the server URL.
+ * Note: When a request resolves through the global `_Server` registry,
+ * this URL will be overridden by the matched server domain.
  */
 export const NEXT_PUBLIC_SITE_URL = config.get('NEXT_PUBLIC_SITE_URL').url().value;
 
@@ -114,15 +118,35 @@ export const NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA = config.get('NEXT_PUBLIC_VERCE
 export const NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID = config.get('NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID').value;
 
 /**
- * List of servers where agents can be hosted
+ * Supabase table prefix
  *
- * List of domains where the agents-server is deployed, this overrides the `NEXT_PUBLIC_SITE_URL` and `SUPABASE_TABLE_PREFIX` for each server.
+ * This remains the fallback/default prefix used before `_Server` contains records
+ * or for local development requests.
  */
-export const SERVERS = config.get('SERVERS').list().value;
+const rawSupabaseTablePrefix = config.get('SUPABASE_TABLE_PREFIX').value;
 
 /**
  * Supabase table prefix
  *
- * Note: When `SERVERS` are used, this prefix will be overridden by the server `server_<server_id>_`.
+ * This remains the fallback/default prefix used before `_Server` contains records
+ * or for local development requests.
  */
-export const SUPABASE_TABLE_PREFIX = config.get('SUPABASE_TABLE_PREFIX').default('').value;
+export const SUPABASE_TABLE_PREFIX = typeof rawSupabaseTablePrefix === 'string' ? rawSupabaseTablePrefix : '';
+
+/**
+ * WebSocket endpoint URL for remote Playwright browser server (e.g., ws://browser-server:3000).
+ *
+ * When set, browser automation will connect to this remote server instead of launching a local browser.
+ * This is useful for environments like Vercel where running a full browser locally is not possible.
+ * Leave empty to use local browser mode.
+ */
+const rawRemoteBrowserUrl = config.get('REMOTE_BROWSER_URL').value;
+
+/**
+ * WebSocket endpoint URL for remote Playwright browser server (e.g., ws://browser-server:3000).
+ *
+ * When set, browser automation will connect to this remote server instead of launching a local browser.
+ * This is useful for environments like Vercel where running a full browser locally is not possible.
+ * Leave empty to use local browser mode.
+ */
+export const REMOTE_BROWSER_URL = typeof rawRemoteBrowserUrl === 'string' ? rawRemoteBrowserUrl : '';

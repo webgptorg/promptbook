@@ -1,8 +1,11 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { PipelineString } from '../../../pipeline/PipelineString';
-import type { string_markdown_text } from '../../../types/typeAliases';
+import type { string_markdown_text } from '../../../types/string_markdown';
 import { deflatePipeline } from './deflatePipeline';
 
+/**
+ * Options for add pipeline command.
+ */
 type AddPipelineCommandOptions = {
     commandString: string_markdown_text;
     pipelineString: PipelineString;
@@ -18,7 +21,7 @@ export function addPipelineCommand(options: AddPipelineCommandOptions): Pipeline
 
     const deflatedPipelineString = deflatePipeline(pipelineString);
 
-    const lines = deflatedPipelineString.split('\n');
+    const lines = deflatedPipelineString.split(/\r?\n/);
     const newLines: Array<string> = [];
     let isCommandAdded = false;
 
@@ -71,7 +74,5 @@ export function addPipelineCommand(options: AddPipelineCommandOptions): Pipeline
     return spaceTrim(newLines.join('\n')) as PipelineString;
 }
 
-/**
- * TODO: [🧠] What is the better solution - `- xxx`, - `-   xxx` or preserve (see also next TODO)
- * TODO: When existing commands 1) as 2) number 3) list, add 4) new command as next number
- */
+// TODO: [🧠] What is the better solution - `- xxx`, - `-   xxx` or preserve (see also next TODO)
+// TODO: When existing commands 1) as 2) number 3) list, add 4) new command as next number

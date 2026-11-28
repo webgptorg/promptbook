@@ -1,5 +1,8 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of multi participant scenario.
+ */
 export const multiParticipantScenario = {
     name: 'Chat with multiple AI Avatars',
     messages: [

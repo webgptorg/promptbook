@@ -1,18 +1,23 @@
 .AvatarProfile {
     display: flex;
     align-items: flex-start;
+    gap: 14px;
     padding: 16px;
-    border-radius: 8px;
-    background: #f0f4f8;
-    border: 1px solid #e0e7ef;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12), 0 6px 14px rgba(15, 23, 42, 0.08);
+    width: 100%;
 }
 
 .Avatar {
-    width: 64px;
-    height: 64px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
     object-fit: cover;
-    margin-right: 16px;
+    background-color: #e2e8f0;
+    border: 2px solid #ffffff;
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.16);
     flex-shrink: 0;
 }
 
@@ -23,37 +28,41 @@
 
 .AgentName {
     margin: 0;
-    font-size: 1.25em;
+    font-size: 1.1em;
     font-weight: 600;
-    color: #2a3b4d;
+    color: #1e293b;
 }
 
 .AgentTitle {
     margin: 4px 0 0 0;
     font-size: 1em;
     font-weight: 500;
-    color: #5a6b7d;
+    color: #64748b;
 }
 
 .AgentDescription {
-    margin: 8px 0 0 0;
+    margin: 6px 0 0 0;
     font-size: 0.9em;
-    color: #5a6b7d;
+    color: #64748b;
+    line-height: 1.4;
 }
 
-.viewSourceButton {
-    margin-top: 12px;
-    padding: 8px 12px;
-    border: 1px solid #e0e7ef;
-    border-radius: 6px;
-    background-color: #fff;
-    color: #2a3b4d;
-    font-size: 0.9em;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.viewProfileButton {
+    margin-top: 10px;
+    padding: 6px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 999px;
+    background-color: #ffffff;
+    color: #1f2937;
+    font-size: 0.85em;
+    font-weight: 600;
+    text-decoration: none;
+    align-self: flex-start;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.viewSourceButton:hover {
-    background-color: #f0f4f8;
+.viewProfileButton:hover {
+    background-color: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.7);
+    color: #0f172a;
 }

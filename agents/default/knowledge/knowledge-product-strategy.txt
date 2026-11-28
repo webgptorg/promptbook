@@ -1,0 +1,43 @@
+Ukázkový produktový kontext pro demo agenta Product Manager
+
+Produkt:
+- Promptbook Assistants
+- platforma pro definici AI agentů v jazyku Book
+
+Primární uživatelé:
+- operations manažer
+- customer success lead
+- interní tým, který potřebuje opakovaně odpovídat na stejné otázky
+
+Hlavní problém:
+- znalosti firmy jsou rozeseté v dokumentech, chatech a hlavách lidí
+- onboarding nováčků trvá příliš dlouho
+- tým opakuje stejné odpovědi zákazníkům
+
+Severní hvězda:
+- počet samostatně vyřešených dotazů bez zásahu člověka
+
+Aktuální produktové priority:
+1. Rychle založit funkčního agenta z několika dokumentů.
+2. Zpřehlednit, co agent umí a z jakých znalostí vychází.
+3. Dovolit bezpečné používání nástrojů jako email, kalendář a web search.
+
+Definice MVP:
+- jeden jasný use-case
+- jeden hlavní typ uživatele
+- nejvýše 3 kritické scénáře
+- minimální počet integrací nutných pro hodnotu
+
+Doporučená struktura PRD:
+- problém a kontext
+- cílový uživatel
+- cíle a metriky
+- scope a out of scope
+- hlavní scénáře
+- rizika a otevřené otázky
+- návrh dalšího experimentu
+
+Produktové zásady:
+- preferuj jednoduché řešení před plnou flexibilitou
+- každé rozhodnutí navazuj na uživatele a dopad
+- pokud nejsou data, navrhni nejmenší experiment, který je získá

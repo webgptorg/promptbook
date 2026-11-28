@@ -1,13 +1,11 @@
 .AvatarProfileTooltip {
     position: fixed;
     z-index: 1000;
-    padding: 20px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 300px;
-    /* [🧠] What is the best max-width for the tooltip */
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    width: 320px;
+    max-width: 90vw;
 }
 
 .arrow {
@@ -15,9 +13,9 @@
     width: 0;
     height: 0;
     border-style: solid;
-    top: -10px;
-    left: 20px;
-    border-width: 0 10px 10px 10px;
-    border-color: transparent transparent white transparent;
-    filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
+    top: -9px;
+    left: 28px;
+    border-width: 0 9px 9px 9px;
+    border-color: transparent transparent #ffffff transparent;
+    filter: drop-shadow(0 -3px 4px rgba(15, 23, 42, 0.15));
 }

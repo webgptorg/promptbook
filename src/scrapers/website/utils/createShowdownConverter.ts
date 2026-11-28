@@ -1,4 +1,4 @@
-import { Converter as ShowdownConverter } from 'showdown';
+import showdown from 'showdown';
 
 /**
  * Create a new showdown converter instance
@@ -6,7 +6,7 @@ import { Converter as ShowdownConverter } from 'showdown';
  * @private utility of `WebsiteScraper`
  */
 export function createShowdownConverter() {
-    return new ShowdownConverter({
+    return new showdown.Converter({
         flavor: 'github',
         /*
         > import showdownHighlight from 'showdown-highlight';

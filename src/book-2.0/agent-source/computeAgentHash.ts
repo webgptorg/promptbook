@@ -1,6 +1,6 @@
-import { string_agent_hash } from '../../types/typeAliases';
+import type { string_agent_hash } from '../../types/string_agent_name';
 import { computeHash } from '../../utils/misc/computeHash';
-import { string_book } from './string_book';
+import type { string_book } from './string_book';
 
 /**
  * Computes SHA-256 hash of the agent source

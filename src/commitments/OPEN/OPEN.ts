@@ -14,11 +14,11 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * OPEN
  * ```
- * 
+ *
  * @private [🪔] Maybe export the commitments through some package
  */
 export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
-    constructor() {
+    public constructor() {
         super('OPEN');
     }
 
@@ -26,7 +26,7 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
      * Short one-line description of OPEN.
      */
     get description(): string {
-        return 'Allow the agent to be modified by conversation (default).';
+        return 'Allow the agent to be modified by conversation (default) and optionally guide the teacher.';
     }
 
     /**
@@ -65,17 +65,15 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
         // But to be explicit we can set it
 
         const updatedMetadata = {
-            ...requirements.metadata,
+            ...requirements._metadata,
             isClosed: false,
         };
 
         return {
             ...requirements,
-            metadata: updatedMetadata,
+            _metadata: updatedMetadata,
         };
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -3,10 +3,16 @@
 import CountingUtilitiesPreview from './counting-utilities/CountingUtilitiesPreview';
 import HumanizeAiTextPreview from './humanize-ai-text/HumanizeAiTextPreview';
 
+/**
+ * Props for utility preview.
+ */
 type UtilityPreviewProps = {
     utilityId: string;
 };
 
+/**
+ * Handles utility preview.
+ */
 export default function UtilityPreview({ utilityId }: UtilityPreviewProps) {
     if (utilityId === 'humanize-ai-text') {
         return <HumanizeAiTextPreview />;

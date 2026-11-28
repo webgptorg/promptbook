@@ -14,6 +14,4 @@ export type PromptbookServer_ListModels_Response = {
     readonly models: ReadonlyArray<AvailableModel>;
 };
 
-/**
- * TODO: [👒] Listing models (and checking configuration) probably should go through REST API not Socket.io
- */
+// TODO: [👒] Listing models (and checking configuration) probably should go through REST API not Socket.io

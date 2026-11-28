@@ -2,12 +2,14 @@
 
 import { CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
-import { string_css_class } from '../../types/typeAliases';
+import type { string_css_class } from '../../types/string_markdown';
 import { just } from '../../utils/organization/just';
 import { PromptbookAgentSeamlessIntegration } from './PromptbookAgentSeamlessIntegration';
 
 /**
- * @private props of PromptbookAgentIntegration component
+ * Props of PromptbookAgentIntegration component.
+ *
+ * @private
  */
 export type PromptbookAgentIntegrationProps = {
     /**
@@ -39,6 +41,22 @@ export type PromptbookAgentIntegrationProps = {
      * Callback when the window is opened or closed
      */
     onOpenChange?(isOpen: boolean): void;
+
+    /**
+     * Controlled open state of the seamless widget.
+     *
+     * When omitted, the widget manages its own open state.
+     *
+     * @default undefined
+     */
+    readonly isOpen?: boolean;
+
+    /**
+     * Initial open state of the seamless widget in uncontrolled mode.
+     *
+     * @default false
+     */
+    readonly defaultOpen?: boolean;
 
     /**
      * Optional CSS class name which will be added to root element
@@ -79,6 +97,8 @@ export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProp
         formfactor = 'seamless',
         meta,
         onOpenChange,
+        isOpen,
+        defaultOpen = false,
         className,
         style,
         isFocusedOnLoad = false,
@@ -90,7 +110,17 @@ export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProp
     } else if (formfactor === 'seamless') {
         return (
             <PromptbookAgentSeamlessIntegration
-                {...{ agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad, isIframeUsed }}
+                {...{
+                    agentUrl,
+                    meta,
+                    onOpenChange,
+                    isOpen,
+                    defaultOpen,
+                    className,
+                    style,
+                    isFocusedOnLoad,
+                    isIframeUsed,
+                }}
             />
         );
     } else if (formfactor === 'book') {
@@ -104,7 +134,5 @@ export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProp
     }
 }
 
-/**
- * TODO: !!! Load the full branding
- * TODO: !!! <promptbook-agent> element
- */
+// TODO: !!! Load the full branding
+// TODO: !!! <promptbook-agent> element

@@ -7,6 +7,7 @@ import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
  *
  * @param pipeline The pipeline to clone.
  * @returns A new PipelineJson object with the same properties as the input.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function clonePipeline(pipeline: PipelineJson): PipelineJson {
@@ -45,6 +46,4 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
     };
 }
 
-/**
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🍙] Make some standard order of json properties

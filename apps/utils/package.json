@@ -1,9 +1,11 @@
 {
     "name": "promptbook-utils-app",
     "scripts": {
-        "dev": "(npx kill-port 4024 || true) && next dev -p 4024",
+        "predev": "npx kill-port 4024",
+        "dev": "next dev -p 4024",
         "test-build": "npm run build",
-        "build": "(npx kill-port 4024 || true) && next build",
+        "prebuild": "npx kill-port 4024",
+        "build": "next build",
         "start": "next start -p 4024",
         "lint": "next lint --max-warnings=0",
         "postinstall": "cd ../../ && npm ci"

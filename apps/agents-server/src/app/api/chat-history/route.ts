@@ -2,13 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { parsePositiveUserId } from '../../../utils/parsePositiveUserId';
 
+/**
+ * Size of default page.
+ */
 const DEFAULT_PAGE_SIZE = 20;
+/**
+ * Size of max page.
+ */
 const MAX_PAGE_SIZE = 100;
 
+/**
+ * Type describing sort field.
+ */
 type SortField = 'createdAt' | 'agentName' | 'id';
+/**
+ * Type describing sort order.
+ */
 type SortOrder = 'asc' | 'desc';
 
+/**
+ * Parses positive int.
+ */
 function parsePositiveInt(value: string | null, fallback: number): number {
     if (!value) return fallback;
     const parsed = parseInt(value, 10);
@@ -16,11 +32,17 @@ function parsePositiveInt(value: string | null, fallback: number): number {
     return parsed;
 }
 
+/**
+ * Parses sort field.
+ */
 function parseSortField(value: string | null): SortField {
     if (value === 'agentName' || value === 'id') return value;
     return 'createdAt';
 }
 
+/**
+ * Parses sort order.
+ */
 function parseSortOrder(value: string | null): SortOrder {
     return value === 'asc' ? 'asc' : 'desc';
 }
@@ -32,6 +54,7 @@ function parseSortOrder(value: string | null): SortOrder {
  * - page: number (1-based)
  * - pageSize: number (items per page)
  * - agentName: filter by agent name
+ * - chatId: filter by canonical chat id
  * - search: free-text search across agentName, url and ip
  * - sortBy: createdAt | agentName | id (default: createdAt)
  * - sortOrder: asc | desc (default: desc)
@@ -45,11 +68,10 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
 
         const page = parsePositiveInt(searchParams.get('page'), 1);
-        const pageSize = Math.min(
-            MAX_PAGE_SIZE,
-            parsePositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE),
-        );
+        const pageSize = Math.min(MAX_PAGE_SIZE, parsePositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE));
         const agentName = searchParams.get('agentName');
+        const chatId = searchParams.get('chatId');
+        const userId = parsePositiveUserId(searchParams.get('userId'));
         const search = searchParams.get('search')?.trim() || '';
         const sortBy = parseSortField(searchParams.get('sortBy'));
         const sortOrder = parseSortOrder(searchParams.get('sortOrder'));
@@ -57,12 +79,18 @@ export async function GET(request: NextRequest) {
         const supabase = $provideSupabase();
         const table = await $getTableName('ChatHistory');
 
-        let query = supabase
-            .from(table)
-            .select('*', { count: 'exact' });
+        let query = supabase.from(table).select('*', { count: 'exact' });
 
         if (agentName) {
             query = query.eq('agentName', agentName);
+        }
+
+        if (chatId) {
+            query = query.eq('chatId', chatId);
+        }
+
+        if (userId !== null) {
+            query = query.eq('userId', userId);
         }
 
         if (search) {
@@ -74,9 +102,7 @@ export async function GET(request: NextRequest) {
             // - url
             // - ip
             const escaped = search.replace(/%/g, '\\%').replace(/_/g, '\\_');
-            query = query.or(
-                `agentName.ilike.%${escaped}%,url.ilike.%${escaped}%,ip.ilike.%${escaped}%`,
-            );
+            query = query.or(`agentName.ilike.%${escaped}%,url.ilike.%${escaped}%,ip.ilike.%${escaped}%`);
         }
 
         query = query.order(sortBy, { ascending: sortOrder === 'asc' });
@@ -129,10 +155,7 @@ export async function DELETE(request: NextRequest) {
         const supabase = $provideSupabase();
         const table = await $getTableName('ChatHistory');
 
-        const { error } = await supabase
-            .from(table)
-            .delete()
-            .eq('agentName', agentName);
+        const { error } = await supabase.from(table).delete().eq('agentName', agentName);
 
         if (error) {
             console.error('Clear chat history error:', error);

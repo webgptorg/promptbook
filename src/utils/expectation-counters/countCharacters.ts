@@ -17,7 +17,5 @@ export function countCharacters(text: string): ExpectationAmount {
     return text.length;
 }
 
-/**
- * TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
- * TODO: [🧠][✌️] Make some Promptbook-native token system
- */
+// TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+// TODO: [🧠][✌️] Make some Promptbook-native token system

@@ -32,10 +32,10 @@ export type SendMessageToLlmChatFunction = {
  * ```tsx
  * const sendMessage = useSendMessageToLlmChat();
  * return (
- *   <>
- *     <button onClick={() => sendMessage('Hello!')}>Hello</button>
- *     <LlmChat llmTools={llmTools} sendMessage={sendMessage} />
- *   </>
+ * <>
+ * <button onClick={() => sendMessage('Hello!')}>Hello</button>
+ * <LlmChat llmTools={llmTools} sendMessage={sendMessage} />
+ * </>
  * );
  * ```
  *

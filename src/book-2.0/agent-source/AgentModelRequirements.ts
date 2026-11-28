@@ -1,6 +1,7 @@
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_knowledge_source_link } from '../../types/string_knowledge_source_content';
+import type { chococake } from '../../utils/organization/really_any';
 
 /**
  * Model requirements for an agent
@@ -14,19 +15,27 @@ export type AgentModelRequirements = {
     readonly systemMessage: string;
 
     /**
+     * Text appended to every user prompt after the user's input and before tools/messages.
+     *
+     * This allows commitments to emphasize important rules or reminders that should be
+     * visible in the prompt in addition to the system message.
+     */
+    readonly promptSuffix: string;
+
+    /**
      * The model name to use for this agent
      */
     readonly modelName: string;
 
     /**
-     * Optional list of MCP servers that the agent can connect to
+     * List of imported agent URLs
      */
-    readonly mcpServers?: ReadonlyArray<string>;
+    readonly importedAgentUrls?: ReadonlyArray<string_agent_url>;
 
     /**
-     * Optional link to the parent agent from which this agent inherits
+     * List of imported file URLs or paths
      */
-    readonly parentAgentUrl?: string_knowledge_source_link;
+    readonly importedFileUrls?: ReadonlyArray<string>;
 
     /**
      * Optional list of knowledge source links that the agent can use
@@ -36,7 +45,7 @@ export type AgentModelRequirements = {
     /**
      * List of sample conversations (question/answer pairs)
      */
-    readonly samples?: ReadonlyArray<{ question: string; answer: string }>;
+    readonly samples?: ReadonlyArray<{ question: string | null; answer: string }>;
 
     /**
      * Temperature for the agent's responses, controlling randomness
@@ -59,13 +68,27 @@ export type AgentModelRequirements = {
     readonly tools?: ReadonlyArray<LlmToolDefinition>;
 
     /**
+     * Optional list of MCP servers that the agent can connect to
+     */
+    readonly mcpServers?: ReadonlyArray<string>;
+
+    /**
+     * The URL of the parent agent to inherit from, or null if there is no parent (i.e., do not inherit from any agent)
+     */
+    readonly parentAgentUrl: string_agent_url | null;
+
+    /**
+     * Is the agent closed to modification by conversation (i.e., it will not learn from interactions and its source code will remain static during conversation)
+     */
+    readonly isClosed: boolean;
+
+    /**
      * Arbitrary metadata storage for commitments
      * Each commitment can store its own data here
      */
-    readonly metadata?: Record<string, TODO_any>;
+    readonly _metadata?: Record<string, chococake>;
 };
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here
 
-/**
- * TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
- */
+// TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
+// TODO: [🧠] `isClosed` and `parentAgentUrl` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place

@@ -4,6 +4,9 @@ import { aboutPromptbookInformation } from './aboutPromptbookInformation';
 // [😺]> import logoAsset from './logo-blue-white-256.png';
 // [😺]> import logo3dAsset from './logo-design-cube.stl';
 
+/**
+ * Props for about promptbook information.
+ */
 type AboutPromptbookInformationProps = AboutPromptbookInformationOptions;
 
 /**
@@ -19,7 +22,5 @@ export function AboutPromptbookInformation(props: AboutPromptbookInformationProp
     );
 }
 
-/**
- * TODO: !!! Remove "x" from filename
- * TODO: [🗽] Unite branding and make single place for it
- */
+// TODO: !!! Remove "x" from filename
+// TODO: [🗽] Unite branding and make single place for it
