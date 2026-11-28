@@ -12,6 +12,8 @@ import { certificateValidity, createAcmeChallengeCertificate, createCertificateR
  * Subdirectory of the App data directory holding the served certificates and their keys.
  */
 const TLS_DIRECTORY = 'tls';
+/** Public key history comfortably exceeds the lifetime of any normally renewed certificate. */
+const MAX_KNOWN_PUBLIC_KEYS = 128;
 
 /**
  * The ACME account key (mode 0600) and the account record.
@@ -125,7 +127,7 @@ export class CertificateManager {
         if (remembered) {
             try {
                 const keys: unknown = JSON.parse(remembered);
-                if (!Array.isArray(keys) || keys.length > 128 || keys.some(key => typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key))) throw new Error('invalid keys');
+                if (!Array.isArray(keys) || keys.length > MAX_KNOWN_PUBLIC_KEYS || keys.some(key => typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key))) throw new Error('invalid keys');
                 for (const key of keys) this.knownKeys.add(key);
             } catch { this.options.log?.('The certificate public-key history is unreadable; older certificates may require review in Security.', 'warning'); }
         }
@@ -187,7 +189,7 @@ export class CertificateManager {
     private async rememberKey(hash: string): Promise<void> {
         if (this.knownKeys.has(hash)) return;
         this.knownKeys.add(hash);
-        while (this.knownKeys.size > 128) this.knownKeys.delete(this.knownKeys.values().next().value!);
+        while (this.knownKeys.size > MAX_KNOWN_PUBLIC_KEYS) this.knownKeys.delete(this.knownKeys.values().next().value!);
         await writePrivateFile(join(this.options.directory, TLS_DIRECTORY), 'known-public-keys.json', JSON.stringify([...this.knownKeys]) + '\n');
     }
 

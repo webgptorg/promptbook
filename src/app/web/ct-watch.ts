@@ -1,6 +1,17 @@
 import { createHash, X509Certificate } from 'node:crypto';
 import { httpsRequest } from '../net.js';
 
+/** An exact engine hostname should have very few unexpired issuances; overflow remains a failed scan. */
+const MAX_CT_CERTIFICATES = 64;
+/** Bounded size of one DER or PEM certificate response. */
+const MAX_CT_CERTIFICATE_BYTES = 131_072;
+/** The contract's hourly certificate-transparency cadence. */
+const CT_CHECK_INTERVAL_MS = 3_600_000;
+/** A stalled log lookup cannot hold the watcher indefinitely. */
+const CT_SCAN_TIMEOUT_MS = 30_000;
+/** Largest issuer label accepted by the security contract. */
+const CT_ISSUER_LENGTH = 512;
+
 /** The existing security-panel contract; certificates and issuer names are public metadata. @private App TLS */
 export type CtCheck = { readonly at: string; readonly result: 'ok' | 'unexpected-certificate' | 'failed'; readonly unexpectedCertificates: readonly { readonly sha256: string; readonly issuer: string; readonly notBefore: string; readonly notAfter: string }[] };
 
@@ -31,13 +42,13 @@ export function publicCtSource(env: NodeJS.ProcessEnv): CtSource {
             if (!Number.isFinite(expiry)) throw new Error('Invalid certificate expiry.');
             if (expiry > Date.now()) ids.add(String(row.id));
         }
-        if (ids.size > 64) throw new Error('Certificate log result exceeds the scan bound.');
+        if (ids.size > MAX_CT_CERTIFICATES) throw new Error('Certificate log result exceeds the scan bound.');
         const certificates: Uint8Array[] = [];
         const pending = [...ids];
         await Promise.all(Array.from({ length: Math.min(4, pending.length) }, async () => {
             while (pending.length) {
                 const id = pending.shift()!;
-                certificates.push(await get(`https://crt.sh/?d=${id}`, 128 * 1024));
+                certificates.push(await get(`https://crt.sh/?d=${id}`, MAX_CT_CERTIFICATE_BYTES));
             }
         }));
         return certificates;
@@ -57,7 +68,7 @@ export class CertificateTransparencyWatch {
     }) {}
 
     /** Arms the actual hourly timer; the first scan waits until the engine has its own key. */
-    public start(): void { this.timer = setInterval(() => void this.check(), 3_600_000).unref(); this.observe(); }
+    public start(): void { this.timer = setInterval(() => void this.check(), CT_CHECK_INTERVAL_MS).unref(); this.observe(); }
 
     /** Certificate issuance may finish after the origin has started. */
     public observe(): void { if (!this.last && this.options.knownKeys().length) void this.check(); }
@@ -71,7 +82,7 @@ export class CertificateTransparencyWatch {
         if (this.running) return await this.running;
         this.running = (async () => {
             try {
-                const certificates = await this.options.source(this.options.hostname, AbortSignal.any([this.abort.signal, AbortSignal.timeout(30_000)]));
+                const certificates = await this.options.source(this.options.hostname, AbortSignal.any([this.abort.signal, AbortSignal.timeout(CT_SCAN_TIMEOUT_MS)]));
                 const known = new Set(this.options.knownKeys());
                 const unexpected = new Map<string, CtCheck['unexpectedCertificates'][number]>();
                 for (const bytes of certificates) {
@@ -79,7 +90,7 @@ export class CertificateTransparencyWatch {
                     if (!certificate.checkHost(this.options.hostname, { subject: 'never' })) throw new Error('Certificate log returned another hostname.');
                     if (Date.parse(certificate.validTo) <= Date.now() || known.has(certificatePublicKeyHash(certificate))) continue;
                     const sha256 = certificate.fingerprint256.replaceAll(':', '').toLowerCase();
-                    unexpected.set(sha256, { sha256, issuer: certificate.issuer.slice(0, 512) || 'Unknown issuer', notBefore: new Date(certificate.validFrom).toISOString(), notAfter: new Date(certificate.validTo).toISOString() });
+                    unexpected.set(sha256, { sha256, issuer: certificate.issuer.slice(0, CT_ISSUER_LENGTH) || 'Unknown issuer', notBefore: new Date(certificate.validFrom).toISOString(), notAfter: new Date(certificate.validTo).toISOString() });
                 }
                 if (this.abort.signal.aborted) return;
                 this.last = { at: new Date().toISOString(), result: unexpected.size ? 'unexpected-certificate' : 'ok', unexpectedCertificates: [...unexpected.values()].slice(0, 16) };

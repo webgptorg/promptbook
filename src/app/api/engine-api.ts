@@ -74,7 +74,7 @@ export type EngineApiDeps = {
     readonly security: () => AppSecurityFacts | undefined;
     /** `GET /security` → `ui`: the served engine UI (a verified bundle, or the engine's own page) and its last check. */
     readonly ui: () => Record<string, unknown>;
-    readonly updates?: Pick<UiLoader, 'checkNow' | 'revision' | 'servedVersion' | 'waitForChange'>;
+    readonly updates?: Pick<UiLoader, 'checkNow' | 'revision' | 'servedVersion' | 'waitForChange' | 'available'>;
     readonly aiTools?: ProjectAiTools;
     readonly log?: (text: string, level: 'info' | 'warning' | 'error') => void;
 };
@@ -283,7 +283,7 @@ export class EngineApi {
 
     /** The capabilities available at this stage of the engine's lifecycle. */
     private get capabilities(): readonly { readonly id: string; readonly version: number }[] {
-        const base = [...ADVERTISED_CAPABILITIES, ...(this.deps.updates ? [{ id: 'updates', version: 1 }] : []), ...(this.deps.aiTools ? [{ id: 'ai-tools', version: 1 }] : [])];
+        const base = [...ADVERTISED_CAPABILITIES, ...(this.deps.updates?.available ? [{ id: 'updates', version: 1 }] : []), ...(this.deps.aiTools ? [{ id: 'ai-tools', version: 1 }] : [])];
         if (this.deps.agenda) return [...base, { id: 'wallet', version: 1 }, { id: 'tasks', version: 1 }];
         return this.deps.onboarding ? [...base, { id: 'files', version: 1 }] : base;
     }

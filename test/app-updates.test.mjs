@@ -100,3 +100,10 @@ test('UP-08/12/13: the API enforces permissions, audits and emits updates to a s
     assert.ok(saved.audit.some(entry=>entry.action==='updates.ui-check' && entry.outcome==='denied'));
     assert.ok(saved.audit.some(entry=>entry.action==='updates.ui-check' && entry.outcome==='success'));
 });
+
+test('UP-09: a disabled loader records the same unavailable check it answers, without scheduling or fetching',async t=>{
+    const directory=await temporaryDirectory(t,'disabled UI updates');
+    const loader=await UiLoader.create({directory,env:{}});await loader.start();t.after(()=>loader.stop());
+    const result=await loader.checkNow();assert.equal(result.kind,'ok');assert.equal(result.data.outcome,'unavailable');
+    assert.deepEqual(loader.status('').lastUpdateCheck,result.data);assert.equal(loader.status('').nextCheckAt,null);assert.equal(loader.revision,1);
+});

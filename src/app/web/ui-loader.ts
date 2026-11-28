@@ -378,6 +378,9 @@ export class UiLoader {
         return Boolean(this.options.trust && this.options.releaseUrl);
     }
 
+    /** An unconfigured loader cannot offer update management for a verified UI bundle. */
+    public get available(): boolean { return this.enabled; }
+
     /** Persists the state (temporary file, fsync, rename). */
     private async save(): Promise<void> {
         await writePrivateFile(join(this.options.directory, UI_DIRECTORY), 'state.json', `${JSON.stringify(this.state, null, 2)}\n`);
@@ -444,7 +447,12 @@ export class UiLoader {
         }
         this.lastRequested = now;
         await this.check();
-        return { kind: 'ok', data: this.lastCheck ?? { at: wholeSeconds(now, 'floor'), outcome: 'unavailable', version: null, reason: null, revocationReason: null, eligibleAt: null } };
+        if (!this.enabled) {
+            this.record('unavailable', null);
+            this.changeRevision++;
+            for (const listener of this.listeners) listener();
+        }
+        return { kind: 'ok', data: this.lastCheck! };
     }
 
     /** Monotonic revision of completed checks, including refused and failed checks. */

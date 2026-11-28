@@ -10,6 +10,13 @@ import type { HarnessToolRecord } from '../tools/model.js';
 import { api, type ContractResponse } from '../vendor/app-platform.js';
 import type { AccessStore, Actor } from './web/access.js';
 
+/** Provider calls and diagnostics stay bounded independently from a browser's polling. */
+const AI_CHECK_TIMEOUT_MS = 30_000;
+/** Largest untrusted diagnostic shown by the AI-tool contract. */
+const AI_DIAGNOSTIC_LENGTH = 2048;
+/** Maximum version text accepted by the AI-tool contract. */
+const AI_VERSION_LENGTH = 64;
+
 /** One observed harness, with its current project-scoped invocation context. @private App AI tools */
 export type AiToolTarget = { readonly plugin: HarnessPlugin; readonly tool: HarnessToolRecord; readonly context: HarnessContext; readonly inspection: HarnessInspection; readonly configured: boolean };
 
@@ -46,7 +53,8 @@ function fail(code: string): ContractResponse { return { kind: 'problem', proble
 
 /** Redacts first, then removes terminal escapes and bounds a provider diagnostic. */
 function safeDiagnostic(text: string, context: HarnessContext, extra: readonly string[] = []): string {
-    return stripAnsi(createRedactor(extra, context.env)(text)).replace(/[\x00-\x1f\x7f]/g, ' ').trim().slice(0, 2048) || 'The provider could not verify a response.';
+    // eslint-disable-next-line no-control-regex -- Provider terminal controls must never reach a browser diagnostic.
+    return stripAnsi(createRedactor(extra, context.env)(text)).replace(/[\x00-\x1f\x7f]/g, ' ').trim().slice(0, AI_DIAGNOSTIC_LENGTH) || 'The provider could not verify a response.';
 }
 
 /** Classifies real provider failures; only authentication failures stop automatic chat retries. */
@@ -111,7 +119,7 @@ export class ProjectAiTools {
         const checked = this.observations.get(id);
         const needs = target.inspection.problem === 'signed-out';
         const missing = !target.inspection.installed;
-        return { id, name: target.plugin.displayName, version: target.inspection.version?.slice(0, 64) ?? null,
+        return { id, name: target.plugin.displayName, version: target.inspection.version?.slice(0, AI_VERSION_LENGTH) ?? null,
             auth: !missing && target.configured && target.inspection.authentication !== 'none' ? { method: target.tool.authentication === 'API_KEY' ? 'api-key' : 'account', account: null } : null,
             signInMethods: this.methods(target), checking: this.checks.has(id), checkedAt: checked?.checkedAt ?? null,
             status: missing ? 'not-installed' : needs || !checked ? 'needs-sign-in' : checked.status,
@@ -144,9 +152,9 @@ export class ProjectAiTools {
             if (limit && Date.now() - limit.at < 60_000 && limit.count >= 30) return fail('rate-limited');
             if (!limit || Date.now() - limit.at >= 60_000) this.rate.set(client, { at: Date.now(), count: 1 }); else limit.count++;
             if (this.rate.size > 1000) for (const [key, entry] of this.rate) if (Date.now() - entry.at >= 60_000) this.rate.delete(key);
-            const context = { ...target.context, signal: AbortSignal.any([this.abort.signal, AbortSignal.timeout(30_000)]) };
+            const context = { ...target.context, signal: AbortSignal.any([this.abort.signal, AbortSignal.timeout(AI_CHECK_TIMEOUT_MS)]) };
             const work = Promise.resolve().then(async () => {
-                const result = await (this.backend.verify ?? verifyHarness)(target.plugin, context, await target.plugin.inspect(context), 30_000);
+                const result = await (this.backend.verify ?? verifyHarness)(target.plugin, context, await target.plugin.inspect(context), AI_CHECK_TIMEOUT_MS);
                 const current = await this.target(id);
                 if (!current || JSON.stringify(current.tool) !== JSON.stringify(target.tool) || context.signal.aborted) return;
                 this.observations.set(id, result.call ? { checkedAt: new Date().toISOString(), status: 'signed-in', problem: null } : observation(result.diagnostic, context));
@@ -255,7 +263,7 @@ export class ProjectAiTools {
     private async verifyAndCommit(signIn: SignIn, context: HarnessContext, key?: string): Promise<void> {
         const generation = signIn.generation;
         signIn.prompt = undefined;
-        const result = await (this.backend.verify ?? verifyHarness)(signIn.target.plugin, context, await signIn.target.plugin.inspect(context), 30_000);
+        const result = await (this.backend.verify ?? verifyHarness)(signIn.target.plugin, context, await signIn.target.plugin.inspect(context), AI_CHECK_TIMEOUT_MS);
         if (!this.current(signIn.toolId, signIn.id, signIn.actor) || generation !== signIn.generation || context.signal?.aborted) return;
         if (!result.call) throw new Error(safeDiagnostic(result.diagnostic, context, key ? [key] : []));
         await signIn.access.commitAiToolCredentials(signIn.actor, signIn.toolId, async () => {
