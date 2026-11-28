@@ -1,4 +1,4 @@
-import type { string_executable_path } from '../../types/typeAliases';
+import type { string_executable_path } from '../../types/string_filename';
 import { locateApp } from '../locateApp';
 
 /**
@@ -16,7 +16,5 @@ export function locatePandoc(): Promise<string_executable_path | null> {
     });
 }
 
-/**
- * TODO: [🧠][♿] Maybe export through `@promptbook/node` OR `@promptbook/documents`
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node executable locator [locatePandoc](src/executables/apps/locatePandoc.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][♿] Maybe export through `@promptbook/node` OR `@promptbook/documents`

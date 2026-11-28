@@ -2,6 +2,9 @@ import { forTime } from 'waitasecond';
 import { just } from '../../../../src/utils/organization/just';
 import { $randomToken } from '../../../../src/utils/random/$randomToken';
 
+/**
+ * Constant for long running task.
+ */
 let longRunningTask: {
     taskId: string;
     tick: number;
@@ -9,6 +12,9 @@ let longRunningTask: {
     updatedAt: Date;
 } | null = null;
 
+/**
+ * Gets long running task.
+ */
 export function getLongRunningTask() {
     if (longRunningTask !== null) {
         return longRunningTask;

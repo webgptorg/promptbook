@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { string_knowledge_source_link } from '../../../../../src/types/typeAliases';
 import { $provideFilesystemForNode } from '../../../../../src/scrapers/_common/register/$provideFilesystemForNode';
 import type { ScraperSourceHandler } from '../../../../../src/scrapers/_common/Scraper';
@@ -121,7 +122,15 @@ export async function resolveWebsiteKnowledgeSourcesForServer(
                 continue;
             }
 
-            const inlineSource = createInlineKnowledgeSourceFile(`Source URL: ${source}\n\n${markdown}`);
+            const inlineSource = createInlineKnowledgeSourceFile(
+                spaceTrim(
+                    (block) => `
+                        Source URL: ${source}
+
+                        ${block(markdown)}
+                    `,
+                ),
+            );
             const uploadedSource = await uploadInlineKnowledgeSource(inlineSource);
             resolvedKnowledgeSources.push(uploadedSource);
         } catch (error) {

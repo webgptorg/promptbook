@@ -1,7 +1,8 @@
 ## How to Contribute
 
 -   **Add changes in [Changelog](/changelog/_current-preversion.md)**
--   **Test your changes** to ensure they work as expected, use `npm test`
+-   **Test are run automatically** after your work is performed and before the work is commited. But if you want to run them manually, look at `package.json` scripts for all available test commands.
+-   **DO NOT commit your changes** changes you make will go through the automatic testing and committing process after you finish your work.
 
 ## Code Style
 
@@ -43,9 +44,96 @@ Do not edit these places manually, as they will be overwritten by the code gener
     -   **Promptbook Engine** is the core engine that powers AI agents, it is located in `/src` folder. It is framework-agnostic and can be used in different applications. It can run as standalone javascript/typescript library, CLI environment, or be integrated into different applications. It can be also runned in Agent Server:
     -   **Agent Server** is a specific application that uses the Promptbook Engine to provide a web and API interface for creating and interacting with AI agents. It is located in `/apps/agents-server` folder.
 -   **Commitments** are basic syntax elements that add specific functionalities to AI agents
-    -   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE`, `META IMAGE`, etc.
+    -   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE CALENDAR`, `USE PROJECT`, `META IMAGE`, etc.
     -   Commitments are in the folder `/src/commitments`
-    -   Each commitment starts with a keyword, e.g., `KNOWLEDGE`, `USE BROWSER`, etc. on a begining of the line and end by new co
+    -   Each commitment starts with a keyword, e.g., `KNOWLEDGE`, `USE PROJECT`, etc. on a begining of the line and end by new co
     -   Agent source with commitments is parsed by two functions:
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
+
+## Common rules
+
+-   Always analyze the context and requirements before generating any code.
+-   Write clear, maintainable, and well-documented code.
+-   Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
+    -   When this entity is exported from the file and it is under `src` folder _(not for example in the `apps` folder)_, it must be marked either as `@public` or `@private` at the end of the JSDoc comment.
+    -   For example: "@private internal utility of <Chat/>" / "@public exported from `@promptbook/browser`"
+    -   If you don't know, prefer to mark it as private, we can always change it to public later, but changing from public to private may cause breaking changes.
+-   You (the AI coding agent) are running inside a Node process, so do not kill all Node processes such as `taskkill /F /IM node.exe`. If you need to stop something you spawned, kill only that specific process, for example by PID or by port.
+
+## Additional context
+
+-   Look at attached images if there are present
+-   Attached images are in folder `prompts` on the root of the project
+    -   For example the ![alt text](screenshots/foo.png) is image file `prompts/screenshots/foo.png`
+
+### Agents server installed on VPS _(as additional context)_
+
+-   There are two distinct things:
+    1. Entire VPS
+    2. Each server
+-   On one VPS there can be multiple servers and each server has its own domain
+-   Most things (like agents, projects, metadata, etc.) are living on each server and some things (like environment variables, superadmin, etc.) are bound to entire VPS
+-   Purpose of this is to be able to run multiple clients on one VPS and each client can have its own server with its own domain and settings
+-   The entire VPS is managed by superadmin and each server is managed by normal admin of that server _(or superadmin can also manage each server)_
+-   Superadmin has always name `admin` and password hardcoded in environment variable `ADMIN_PASSWORD`
+-   The VPS is installed by running [the `install.sh`](install.sh) script on a fresh VPS
+-   Servers can be added and removed by superadmin on `/superadmin/servers` page
+
+### The Agents Server menu _(as additional context)_
+
+The menu of the agent server looks like this:
+
+1. The navigation hierarchy
+    - Icon and Server name _(for example Promptbook Agents Server)_
+    - arrow ">" and Agents or picked agent name (organized in folders)
+    - arrow ">" and the view Profile / Chat / Book of the agent or nothing if no agent is picked
+2. The menu items
+    - Documentation
+    - System
+3. Control panel and user menu
+    - Control panel
+    - User menu with the avatar and the name of the user
+
+### Database migrations for Agents server _(as additional context)_
+
+-   Migrations are located in `apps/agents-server/src/database/migrations`
+-   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+-   Migrations should be backwards compatible:
+    -   Meaning that earlier versions of the server should be able to run with the database after migration without any issues.
+    -   This is important because we want to have the same database for production and preview environments.
+    -   This database will be migrated to the latest version of the preview environment, but the production environment should be able to run with it without any issues.
+    -   The only thing that can happen is that older versions of the server will not be able to use new features.
+    -   Adding new columns, tables, etc. is fine, but do not remove or rename existing ones, and do not change the meaning of existing columns or tables.
+    -   When in doubt, prefer to add new things instead of changing existing ones.
+
+### Metadata of Agents server _(as additional context)_
+
+-   There is a table called `Metadata`.
+-   It has `key` and `value` fields.
+-   It is a similar concept to configuration, but this configuration can be changed by administrators in the Agents Server website.
+
+### Book Language blueprint _(as additional context)_
+
+Book language is a domain-specific language used for defining AI agents in the Promptbook Engine and Agents server.
+It has lightweight syntax and keywords (the commitments) that allow you to define the "soul" of the agent.
+The book language is designed to be human-readable and easy to write, while also being powerful enough to express complex agent behaviors.
+
+Every agent has its source defined in the book language, which is called "agent source". The agent source is parsed and processed by the Promptbook Engine to create the actual AI agent that can interact with users and perform tasks.
+This agent source is internally converted to a structured format called "agent model requirements" which are the actual raw technical instructions for the AI model to run the agent.
+
+There is a standalone book language documentation on each agent server on `/api/docs/book.md` route, for example `https://live.ptbk.io/api/docs/book-language.md?language=en`.
+Use it as a reference for the syntax and semantics of the book language, and modify `apps/agents-server/src/utils/bookLanguageDocumentation/createStandaloneBookLanguageMarkdown.ts` if it is relevant to the change you are doing.
+
+#### Commitments _(as additional context and part of Book Language)_
+
+Commitments are basic syntax elements that add specific functionalities to AI agents written in `book` language.
+
+-   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE CALENDAR`, `USE PROJECT`, `META IMAGE`, `CLOSED`, etc.
+-   They are in the folder `src/commitments`.
+-   Each commitment starts with a keyword, e.g. `PERSONA`, `KNOWLEDGE`, `USE PROJECT`, etc. on a beginning of the line and ends by a new commitment or the end of the book.
+-   There is a general pattern that the commitment keyword is followed by a space and then by the content of the commitment, for example:
+    -   `PERSONA You are a helpful assistant that helps with cooking recipes.`
+    -   `USE MCP https://mcp.example.com/server`
+-   In the commitment context, you can reference external agents, for example:
+    -   `TEAM You can talk to {Criminal lawyer} and {Financial advisor}`

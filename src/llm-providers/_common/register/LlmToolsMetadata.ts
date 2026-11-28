@@ -1,5 +1,6 @@
 import { MODEL_ORDERS, MODEL_TRUST_LEVELS } from '../../../constants';
-import type { string_name, string_title } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/string_name';
+import type { string_title } from '../../../types/string_title';
 import type { Registered } from '../../../utils/misc/$Register';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
@@ -56,9 +57,7 @@ export type LlmToolsMetadata = Registered & {
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null;
 };
 
-/**
- * TODO: [🕛] Extend this
- * TODO: Add configuration schema and maybe some documentation link
- * TODO: Maybe constrain LlmToolsConfiguration[number] by generic to ensure that `createConfigurationFromEnv` and `getBoilerplateConfiguration` always create same `packageName` and `className`
- * TODO: [®] DRY Register logic
- */
+// TODO: [🕛] Extend this
+// TODO: Add configuration schema and maybe some documentation link
+// TODO: Maybe constrain LlmToolsConfiguration[number] by generic to ensure that `createConfigurationFromEnv` and `getBoilerplateConfiguration` always create same `packageName` and `className`
+// TODO: [®] DRY Register logic

@@ -7,13 +7,11 @@ import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
  *
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
+ * TODO: [🧠] Which package should export this?
+ *
  * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
- *
- * TODO: [🧠] Which package should export this?
  */
 export const _OpenAiSdkTranspilerRegistration: Registration = $bookTranspilersRegister.register(OpenAiSdkTranspiler);
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

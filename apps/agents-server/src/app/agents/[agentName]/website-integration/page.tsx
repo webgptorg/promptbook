@@ -1,18 +1,39 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { headers } from 'next/headers';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
-import { getAgentProfile } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
-export const generateMetadata = generateAgentMetadata;
+/**
+ * Formats an integration-page comment for use inside a copyable code snippet.
+ *
+ * @param integrationPageUrl - Absolute integration-page URL.
+ * @param style - Comment syntax matching the snippet language.
+ * @returns Comment line linking back to the integration page.
+ */
+function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash' | 'hash' | 'html'): string {
+    const commentPrefix = style === 'hash' ? '# ' : style === 'html' ? '<!-- ' : '// ';
+
+    const commentSuffix = style === 'html' ? ' -->' : '';
+
+    return `${commentPrefix}${integrationPageUrl}${commentSuffix}`;
+}
+
+/**
+ * Builds canonical website-integration path for one local agent id.
+ */
+function buildCanonicalAgentWebsiteIntegrationPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/website-integration`;
+}
 
 /**
  * Renders website integration guidance for a single agent.
@@ -22,13 +43,22 @@ export const generateMetadata = generateAgentMetadata;
  */
 export default async function WebsiteIntegrationAgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentWebsiteIntegrationPath);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return <ForbiddenPage />;
+    }
+
     const agentNaming = await getAgentNaming();
-    const { meta } = await getAgentProfile(agentName);
+    const agentProfile = await getAgentProfile(agentName);
+    const { meta } = agentProfile;
     const { fullname, color, image, ...restMeta } = meta;
     const { publicUrl } = await $provideServer();
     const agentUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
+    const integrationPageUrl = `${publicUrl.href}agents/${encodeURIComponent(
+        agentProfile.permanentId || agentName,
+    )}/integration`;
 
     const reactCode = spaceTrim(
         (block) => `
@@ -36,6 +66,7 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
 
             export function YourComponent() {
                 return(
+                    ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
                     <PromptbookAgentIntegration
                         agentUrl="${agentUrl}"
                         meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
@@ -51,6 +82,7 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
         (block) => `
             <script src="${publicUrl.href}api/embed.js" async defer></script>
 
+            ${formatIntegrationPageComment(integrationPageUrl, 'html')}
             <promptbook-agent-integration
                 agent-url="${agentUrl}"
                 meta='${block(metaJsonString)}'
@@ -92,7 +124,5 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     );
 }
 
-/**
- * TODO: Make this page better, bring from Promptbook.Studio
- * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
- */
+// TODO: Make this page better, bring from Promptbook.Studio
+// TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents

@@ -4,12 +4,21 @@ import { createContext, type ReactNode, useContext, useMemo } from 'react';
 import { createDefaultSoundSystem } from '../../utils/sound/createDefaultSoundSystem';
 import type { ChatSoundSystem } from '@promptbook-local/components';
 
+/**
+ * Type describing sound system context value.
+ */
 type SoundSystemContextValue = {
     readonly soundSystem?: ChatSoundSystem;
 };
 
+/**
+ * Constant for sound system context.
+ */
 const SoundSystemContext = createContext<SoundSystemContextValue>({ soundSystem: undefined });
 
+/**
+ * Props for sound system provider.
+ */
 type SoundSystemProviderProps = {
     readonly children: ReactNode;
     readonly initialIsSoundsOn?: boolean;

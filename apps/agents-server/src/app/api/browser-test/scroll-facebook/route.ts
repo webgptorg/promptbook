@@ -2,8 +2,14 @@ import { $provideBrowserForServer } from '@/src/tools/$provideBrowserForServer';
 import { NextResponse } from 'next/server';
 import { just } from '../../../../../../../src/utils/organization/just';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

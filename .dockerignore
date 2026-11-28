@@ -1,0 +1,14 @@
+.git
+.github
+node_modules
+coverage
+test-results
+**/node_modules
+**/.env*
+**/.next
+**/.next-e2e
+**/.playwright-cli
+**/.promptbook
+**/coverage
+**/test-results
+**/*.tsbuildinfo

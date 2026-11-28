@@ -13,7 +13,5 @@ import { createDeepseekExecutionTools } from './createDeepseekExecutionTools';
  */
 export const _DeepseekRegistration: Registration = $llmToolsRegister.register(createDeepseekExecutionTools);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -3,6 +3,7 @@ import { EMAIL_PROVIDERS } from '../../message-providers';
 import type { MessageProvider } from '../../message-providers/interfaces/MessageProvider';
 import type { OutboundEmail } from '../../message-providers/email/_common/Email';
 import { createMessage } from './createMessage';
+import { humanizeOutboundEmail } from './humanizeOutboundEmail';
 import { sendMessageAttempt } from './sendMessageAttempt';
 
 /**
@@ -63,14 +64,15 @@ export function isSendMessageDeliveryError(error: unknown): error is SendMessage
  * Persists a message and, for outbound emails, creates send attempts until one provider succeeds.
  */
 export async function sendMessage(message: OutboundEmail, options?: SendMessageOptions): Promise<SendMessageResult> {
-    const insertedMessage = await createMessage(message);
+    const email = humanizeOutboundEmail(message);
+    const insertedMessage = await createMessage(email);
     const baseResult: SendMessageResult = {
         messageId: insertedMessage.id,
         status: 'stored-only',
         attempts: [],
     };
 
-    if (message.direction !== 'OUTBOUND' || message.channel !== 'EMAIL') {
+    if (email.direction !== 'OUTBOUND' || email.channel !== 'EMAIL') {
         return baseResult;
     }
 
@@ -88,7 +90,7 @@ export async function sendMessage(message: OutboundEmail, options?: SendMessageO
             messageId: insertedMessage.id,
             providerName,
             provider,
-            message,
+            message: email,
         });
 
         baseResult.attempts.push(attempt);

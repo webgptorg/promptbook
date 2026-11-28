@@ -1,4 +1,4 @@
-import type { string_model_name } from '../../types/typeAliases';
+import type { string_model_name } from '../../types/string_model_name';
 import type { OpenAiVectorStoreHandlerOptions } from './OpenAiVectorStoreHandler';
 
 /**

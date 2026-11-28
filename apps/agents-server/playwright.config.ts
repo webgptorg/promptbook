@@ -1,52 +1,46 @@
-import { defineConfig, devices } from 'playwright/test';
 import path from 'path';
+import { defineConfig, devices } from 'playwright/test';
 
 /**
- * Local host and port used by the mocked Supabase API during integration tests.
+ * Shape of the shared CommonJS module used by the E2E build, server, and Playwright configuration.
  */
-const MOCK_SUPABASE_PORT = 54321;
-
-/**
- * Base URL served by the mocked Supabase API.
- */
-const MOCK_SUPABASE_URL = `http://127.0.0.1:${MOCK_SUPABASE_PORT}`;
-
-/**
- * Local host and port used by the Agents Server application during integration tests.
- */
-const APP_PORT = 4440;
-
-/**
- * Base URL served by the Agents Server application during integration tests.
- */
-const APP_URL = `http://127.0.0.1:${APP_PORT}`;
-
-/**
- * Shared environment variables required by the Agents Server in deterministic e2e runs.
- */
-const APP_E2E_ENV = {
-    ADMIN_PASSWORD: 'e2e-admin-password',
-    NEXT_PUBLIC_SITE_URL: APP_URL,
-    SERVERS: `127.0.0.1:${APP_PORT}`,
-    SUPABASE_TABLE_PREFIX: '',
-    NEXT_PUBLIC_SUPABASE_URL: MOCK_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiJ9.e2e-signature',
-    SUPABASE_SERVICE_ROLE_KEY:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.e2e-signature',
+type E2eEnvironmentModule = {
+    readonly APP_E2E_ENV: Readonly<Record<string, string>>;
+    readonly APP_PORT: number;
+    readonly APP_URL: string;
+    readonly MOCK_SUPABASE_PORT: number;
+    readonly MOCK_SUPABASE_URL: string;
 };
+
+const {
+    APP_E2E_ENV,
+    APP_PORT,
+    APP_URL,
+    MOCK_SUPABASE_PORT,
+    MOCK_SUPABASE_URL,
+} = require('./tests/e2e/e2eEnvironment.cjs') as E2eEnvironmentModule;
+
+/**
+ * Maximum time allowed for the production Agents Server bundle used by browser tests.
+ */
+const E2E_WEB_SERVER_TIMEOUT_MS = 30 * 60 * 1000;
 
 /**
  * Directory under the repository root that should hold Playwright artifacts such as recorded videos.
  */
-const E2E_ARTIFACTS_DIR = path.join(
-    __dirname,
-    '..',
-    '..',
-    'other',
-    'integration-tests',
-    'videos',
-);
+const E2E_ARTIFACTS_DIR = path.join(__dirname, '..', '..', 'other', 'integration-tests', 'videos');
+
+/**
+ * Uses the already prepared production build when the test runner created it.
+ * Direct Playwright invocations keep the self-bootstrapping build behavior.
+ */
+const E2E_APP_WEB_SERVER_COMMAND =
+    process.env.PTBK_E2E_BUILD_READY === 'true' ? 'npm run start' : 'node ./scripts/build-e2e.js --start';
+
+/**
+ * Environment inherited by the local E2E web servers.
+ */
+const PROCESS_ENVIRONMENT = process.env as Record<string, string>;
 
 /**
  * Playwright configuration for Agents Server integration tests.
@@ -85,20 +79,24 @@ const config = defineConfig({
             stdout: 'pipe',
             stderr: 'pipe',
             env: {
-                ...process.env,
+                ...PROCESS_ENVIRONMENT,
                 E2E_SUPABASE_PORT: String(MOCK_SUPABASE_PORT),
+                E2E_SERVER_NAME: 'local-e2e',
+                E2E_SERVER_ENVIRONMENT: 'PREVIEW',
+                E2E_SERVER_DOMAIN: `127.0.0.1:${APP_PORT}`,
+                E2E_SERVER_TABLE_PREFIX: '',
             },
         },
         {
-            command: 'npm run build && npm run start',
+            command: E2E_APP_WEB_SERVER_COMMAND,
             cwd: __dirname,
             url: APP_URL,
             reuseExistingServer: false,
-            timeout: 8 * 60 * 1000,
+            timeout: E2E_WEB_SERVER_TIMEOUT_MS,
             stdout: 'pipe',
             stderr: 'pipe',
             env: {
-                ...process.env,
+                ...PROCESS_ENVIRONMENT,
                 ...APP_E2E_ENV,
             },
         },

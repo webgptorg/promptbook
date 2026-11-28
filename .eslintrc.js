@@ -1,4 +1,6 @@
 module.exports = {
+    // Keep nested check checkouts from inheriting the enclosing repository's ESLint configuration.
+    root: true,
     // Note: Look more at ./CONTRIBUTING.md for more details
     env: {
         browser: true,
@@ -23,6 +25,7 @@ module.exports = {
         // 'jest/valid-expect': 'error',
 
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
         // '@typescript-eslint/no-floating-promises': 'error',
 
         'no-magic-numbers': [

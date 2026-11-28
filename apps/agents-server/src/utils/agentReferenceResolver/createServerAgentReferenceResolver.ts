@@ -1,4 +1,6 @@
+import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
+import type { TeammateProfile } from '../../../../../src/book-2.0/agent-source/TeammateProfileResolver';
 import {
     VOID_PSEUDO_AGENT_REFERENCE,
     createPseudoAgentUrl,
@@ -6,13 +8,13 @@ import {
     resolvePseudoAgentKindFromReference,
 } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
-import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { BookCommitment } from '../../../../../src/commitments/_base/BookCommitment';
 import {
     type AgentReferenceResolutionIssue,
     type IssueTrackingAgentReferenceResolver,
 } from './AgentReferenceResolutionIssue';
 import { extractAgentReferenceTokens } from './extractAgentReferenceTokens';
+import { resolveAgentRouteIdentifier } from '../agentIdentifier';
 
 /**
  * Dependencies required to resolve local/federated compact references.
@@ -42,10 +44,18 @@ const BASE58_PATTERN = /^[1-9A-HJ-NP-Za-km-z]+$/;
 const MAX_TRACKED_RESOLUTION_ISSUES = 200;
 
 /**
+ * Upper bound for one federated-agent lookup request before falling back to an empty cache.
+ *
+ * @private
+ */
+const FEDERATED_AGENT_LOOKUP_TIMEOUT_MS = 1_500;
+
+/**
  * Creates a resolver backed by the Agents Server collection and configured federated servers.
  *
  * @param options - Resolver dependencies
  * @returns Agent reference resolver for the current agents server instance
+ *
  * @private
  */
 export async function createServerAgentReferenceResolver(
@@ -65,6 +75,7 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
     private readonly federatedServers: string[];
     private readonly localNameToUrl = new Map<string, string>();
     private readonly localIdToUrl = new Map<string, string>();
+    private readonly localUrlToProfile = new Map<string, TeammateProfile>();
     private readonly remoteCaches = new Map<string, RemoteAgentLookup>();
     private readonly remoteRequests = new Map<string, Promise<RemoteAgentLookup>>();
     private readonly resolutionIssues: Array<AgentReferenceResolutionIssue> = [];
@@ -85,11 +96,22 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
     public async initialize(): Promise<void> {
         const agents = await this.agentCollection.listAgents();
         for (const agent of agents) {
-            const url = this.buildLocalAgentUrl(agent.permanentId || agent.agentName);
+            const routeIdentifier = resolveAgentRouteIdentifier(agent);
+            const url = this.buildLocalAgentUrl(routeIdentifier);
             this.localNameToUrl.set(normalizeAgentName(agent.agentName), url);
             this.localNameToUrl.set(agent.agentName, url);
             if (agent.permanentId) {
                 this.localIdToUrl.set(agent.permanentId, url);
+            }
+
+            const profile: TeammateProfile = {
+                agentName: agent.agentName,
+                personaDescription: agent.personaDescription,
+            };
+            this.localUrlToProfile.set(url, profile);
+
+            if (routeIdentifier !== agent.agentName) {
+                this.localUrlToProfile.set(this.buildLocalAgentUrl(agent.agentName), profile);
             }
         }
     }
@@ -101,6 +123,19 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
         const issues = [...this.resolutionIssues];
         this.resolutionIssues.length = 0;
         return issues;
+    }
+
+    /**
+     * Returns the human-readable agent profile for a teammate URL if it belongs to this server.
+     *
+     * Used during TEAM commitment processing to enrich tool definitions with real agent names
+     * and profile descriptions instead of technical IDs.
+     *
+     * @param url - Canonical teammate URL from the resolved TEAM commitment content.
+     * @returns Agent profile or `null` when the URL is not a local agent.
+     */
+    public async resolveTeammateProfile(url: string): Promise<TeammateProfile | null> {
+        return this.localUrlToProfile.get(url) ?? null;
     }
 
     /**
@@ -246,12 +281,13 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
 
         const normalized = normalizeAgentName(value);
         const isBase58 = BASE58_PATTERN.test(value);
+        const localById = this.localIdToUrl.get(value);
+
+        if (localById) {
+            return localById;
+        }
 
         if (isBase58) {
-            const local = this.localIdToUrl.get(value);
-            if (local) {
-                return local;
-            }
             const remote = await this.lookupFederatedAgentById(value);
             if (remote) {
                 return remote;
@@ -361,7 +397,9 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
         const endpoint = `${baseUrl}/api/agents`;
 
         try {
-            const response = await fetch(endpoint);
+            const response = await fetch(endpoint, {
+                signal: AbortSignal.timeout(FEDERATED_AGENT_LOOKUP_TIMEOUT_MS),
+            });
             if (!response.ok) {
                 return lookup;
             }

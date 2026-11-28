@@ -5,6 +5,8 @@ import type { BookCommitment } from '../../../../../src/commitments/_base/BookCo
 import type { ParsedCommitment } from '../../../../../src/commitments/_base/ParsedCommitment';
 import { consumeAgentReferenceResolutionIssues } from './AgentReferenceResolutionIssue';
 import { extractAgentReferenceTokens } from './extractAgentReferenceTokens';
+import type { MissingCoreAgentRecovery } from './MissingCoreAgentRecovery';
+import { getEffectiveExplicitFromCommitment } from '../explicitFromCommitment';
 
 /**
  * Monaco-compatible diagnostic payload for unresolved compact agent references.
@@ -39,14 +41,38 @@ export type AgentReferenceDiagnostic = {
      * Optional source label shown by Monaco.
      */
     readonly source?: string;
+
+    /**
+     * Optional marker severity. Missing references use Monaco's default error severity.
+     */
+    readonly severity?: 'error' | 'warning' | 'info' | 'hint';
 };
 
+/**
+ * Type describing missing agent reference.
+ */
 export type MissingAgentReference = {
     readonly reference: string;
     readonly token: string;
     readonly commitmentType: BookCommitment;
+
+    /**
+     * Whether the reference is implied by the Book language itself instead of being written in the book.
+     *
+     * A book without any `FROM` commitment implicitly inherits from `@Adam`, so a missing Adam has to be reported
+     * even though no token points at it.
+     */
+    readonly isImplicit?: boolean;
+
+    /**
+     * Reinstatement offered when the missing reference points to one of the bundled core agents.
+     */
+    readonly coreAgentRecovery?: MissingCoreAgentRecovery;
 };
 
+/**
+ * Result of agent reference diagnostics.
+ */
 export type AgentReferenceDiagnosticsResult = {
     readonly diagnostics: Array<AgentReferenceDiagnostic>;
     readonly missingAgentReferences: Array<MissingAgentReference>;
@@ -180,11 +206,18 @@ export async function createUnresolvedAgentReferenceDiagnostics(
 function collectAgentReferenceTokenLocations(agentSource: string_book): Array<AgentReferenceTokenLocation> {
     const parsed = parseAgentSourceWithCommitments(agentSource);
     const sourceLines = agentSource.split(/\r?\n/);
+    const effectiveFromCommitment = getEffectiveExplicitFromCommitment(agentSource);
     const tokenLocations: Array<AgentReferenceTokenLocation> = [];
 
     for (let commitmentIndex = 0; commitmentIndex < parsed.commitments.length; commitmentIndex++) {
         const commitment = parsed.commitments[commitmentIndex];
         if (!commitment || !isAgentReferenceCommitmentType(commitment.type)) {
+            continue;
+        }
+
+        // A parent is singular: only the final FROM participates in resolution, so diagnostics must not report an
+        // overridden reference as missing. The Book editor separately marks every duplicate FROM with an explanation.
+        if (commitment.type === 'FROM' && effectiveFromCommitment?.lineIndex !== commitment.lineNumber - 1) {
             continue;
         }
 

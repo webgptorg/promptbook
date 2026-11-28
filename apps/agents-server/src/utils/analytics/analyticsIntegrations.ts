@@ -8,6 +8,7 @@ import {
 
 /**
  * Escapes single quotes and backslashes to safely inject user-provided IDs into JavaScript strings.
+ *
  * @private
  */
 function escapeForSingleQuotes(value: string): string {
@@ -16,6 +17,7 @@ function escapeForSingleQuotes(value: string): string {
 
 /**
  * Builds the Google Analytics snippet powered by gtag.js.
+ *
  * @private
  */
 function buildGoogleAnalyticsSnippet(settings: AnalyticsSettings): string | null {
@@ -45,6 +47,7 @@ function buildGoogleAnalyticsSnippet(settings: AnalyticsSettings): string | null
         '    function gtag() {',
         '        window.dataLayer.push(arguments);',
         '    }',
+        '    window.gtag = gtag;',
         '    gtag(\'js\', new Date());',
         '    gtag(\'config\', measurementId, {',
         `        send_page_view: ${sendPageView},`,
@@ -57,6 +60,7 @@ function buildGoogleAnalyticsSnippet(settings: AnalyticsSettings): string | null
 
 /**
  * Builds the Smartsapp JavaScript integration snippet.
+ *
  * @private
  */
 function buildSmartsappSnippet(settings: AnalyticsSettings): string | null {
@@ -98,6 +102,7 @@ function buildSmartsappSnippet(settings: AnalyticsSettings): string | null {
 
 /**
  * Builds the analytics integration JavaScript that is injected alongside custom scripts.
+ *
  * @private
  */
 export async function getAnalyticsCustomJavascript(): Promise<string> {

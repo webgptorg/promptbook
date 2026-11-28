@@ -1,11 +1,11 @@
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
-import type { string_name } from '../../types/typeAliases';
+import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import type { string_name } from '../../types/string_name';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
-import type { DeepseekExecutionToolsOptions } from './DeepseekExecutionToolsOptions';
 import { DEEPSEEK_MODELS } from './deepseek-models';
+import type { DeepseekExecutionToolsOptions } from './DeepseekExecutionToolsOptions';
 
 /**
  * Profile for Deepseek provider
@@ -54,8 +54,6 @@ export const createDeepseekExecutionTools = Object.assign(
         packageName: '@promptbook/deepseek',
         className: 'DeepseekExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor;
+) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

@@ -12,7 +12,6 @@ import type { ExecCommandOptions } from './ExecCommandOptions';
 /**
  * Run one command in a shell
  *
- *
  * Note: There are 2 similar functions in the codebase:
  * - `$execCommand` which runs a single command
  * - `$execCommands` which runs multiple commands
@@ -108,8 +107,9 @@ export function $execCommand(options: ExecCommandOptions): Promise<$side_effect 
                 }
             };
 
+            // `exit` can arrive before the stdout/stderr pipes finish. Git metadata and hook diagnostics
+            // must be complete before a following repository inspection uses the command's result.
             commandProcess.on('close', finishWithCode);
-            commandProcess.on('exit', finishWithCode);
             commandProcess.on('disconnect', () => {
                 // Note: Unexpected disconnection should always result in rejection
                 reject(new Error(`Command "${humanReadableCommand}" disconnected`));
@@ -132,6 +132,4 @@ export function $execCommand(options: ExecCommandOptions): Promise<$side_effect 
     });
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node command-execution helper [$execCommand](src/utils/execCommand/$execCommand.ts) should never be published into packages that could be imported into browser environment

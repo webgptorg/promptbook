@@ -3,6 +3,9 @@ import { serializeError } from '@promptbook-local/utils';
 import { NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
         const browserContext = await $provideBrowserForServer();

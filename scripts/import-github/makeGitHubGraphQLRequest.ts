@@ -2,8 +2,10 @@ import { TODO_any } from '../../src/utils/organization/TODO_any';
 
 /**
  * Executes a GitHub GraphQL query using the service token, handling error reporting.
+ *
  * @param query GraphQL document to send to the GitHub API.
  * @param variables Optional variables to send alongside the query.
+ *
  * @private function of ImportGitHub
  */
 export async function makeGitHubGraphQLRequest<T>(

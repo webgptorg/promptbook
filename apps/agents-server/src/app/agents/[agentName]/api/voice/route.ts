@@ -1,27 +1,41 @@
 import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { createAgentForbiddenResponse, resolveAgentAccess } from '@/src/utils/agentAccess';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
-import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
+import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
+import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { Agent, computeAgentHash } from '@promptbook-local/core';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { Agent, computeAgentHash, createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
+import { resolveTeamInternalAgentAccessToken } from '../../../../../../../../src/commitments/_common/teamInternalAgentAccess';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { textToSpeechText } from '../../../../../utils/textToSpeechText';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
 
+/**
+ * Constant for max duration.
+ */
 export const maxDuration = 300;
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS(request: Request) {
     keepUnused(request);
 
@@ -30,11 +44,14 @@ export async function OPTIONS(request: Request) {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Promptbook-Team-Agent-Access-Token',
         },
     });
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const metadata = await getMetadataMap([
         'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
@@ -68,6 +85,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         return versionMismatchResponse;
     }
 
+    const access = await resolveAgentAccess(agentName, { request, allowTeamInternalAccess: true });
+    if (!access.isAllowed && access.visibility !== null) {
+        return createAgentForbiddenResponse();
+    }
+
     // Note: Parse FormData for audio file
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File | null;
@@ -85,21 +107,35 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agentPermanentId = await collection.getAgentPermanentId(agentName);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
-        const agentSource = await collection.getAgentSource(agentName);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const localServerUrl = new URL(request.url).origin;
+        const resolvedAgentContext = await resolveServerAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
-        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
+        const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
         const projectGithubToken = await resolveUseProjectGithubToken({
             userId: currentUserIdentity?.userId,
             agentPermanentId,
         });
-        const emailSmtpCredential = useEmailConfiguration.isEnabled
-            ? await resolveUseEmailSmtpCredential({
-                  userId: currentUserIdentity?.userId,
-                  agentPermanentId,
-              })
-            : undefined;
+        const calendarGoogleAccessToken =
+            calendarConnections.length > 0
+                ? await resolveUseCalendarGoogleToken({
+                      userId: currentUserIdentity?.userId,
+                      agentPermanentId,
+                  })
+                : undefined;
+        const emailSmtpCredential = await resolveUseEmailSmtpCredential({
+            userId: currentUserIdentity?.userId,
+            agentPermanentId,
+        });
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {
@@ -143,7 +179,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             projectRepositories,
             projectGithubToken,
             emailSmtpCredential,
-            emailFromAddress: useEmailConfiguration.senderEmail,
+            calendarGoogleAccessToken,
+            calendarConnections,
+            localServerUrl,
+            teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
+        });
+        const modelRequirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({
@@ -152,6 +195,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 llm: openAiAgentKitExecutionTools,
             },
             agentSource,
+            precomputedModelRequirements: modelRequirements,
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
@@ -209,12 +253,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             previousMessageHash: userMessageHash,
             usage: response.usage,
         });
+        if (response.toolCalls && response.toolCalls.length > 0) {
+            await logCalendarToolCallsActivity({
+                userId: currentUserIdentity?.userId ?? null,
+                agentPermanentId,
+                toolCalls: response.toolCalls,
+            });
+        }
 
         // Learning
         if (!isPrivateModeEnabled) {
-            const newAgentSource = agent.agentSource.value;
-            if (newAgentSource !== agentSource) {
-                await collection.updateAgentSource(agentName, newAgentSource);
+            const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
+                unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
+                resolvedAgentSourceBeforeLearning: agentSource,
+                resolvedAgentSourceAfterLearning: agent.agentSource.value,
+            });
+
+            if (learnedAgentSource !== null) {
+                await collection.updateAgentSource(agentPermanentId, learnedAgentSource);
             }
         }
 

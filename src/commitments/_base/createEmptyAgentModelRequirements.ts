@@ -12,7 +12,7 @@ export function createEmptyAgentModelRequirements(): AgentModelRequirements {
         systemMessage: '',
         promptSuffix: '',
         // modelName: 'gpt-5',
-        modelName: 'gemini-2.5-flash-lite', // <- TODO: !!! Pick best model in agents NOT the default one
+        modelName: 'gpt-5.4-mini', // <- TODO: !!! Pick best model in agents NOT the default one
         temperature: 0.7,
         topP: 0.9,
         topK: 50,
@@ -36,6 +36,4 @@ export function createBasicAgentModelRequirements(agentName: string | null): Age
     };
 }
 
-/**
- * TODO: [🐤] Deduplicate `AgentModelRequirements` and `ModelRequirements` model requirements
- */
+// TODO: [🐤] Deduplicate `AgentModelRequirements` and `ModelRequirements` model requirements

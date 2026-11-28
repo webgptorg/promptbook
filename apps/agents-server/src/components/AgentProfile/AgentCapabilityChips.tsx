@@ -1,14 +1,12 @@
 import { AgentBasicInformation, AgentCapability } from '@promptbook-local/types';
 import {
     Book,
+    Calendar,
     Code,
-    Clock8Icon,
     ExternalLink,
     FileText,
-    Globe,
     Link,
     MapPin,
-    Search,
     Shield,
     ShieldAlert,
     ShieldQuestionMarkIcon,
@@ -17,7 +15,9 @@ import {
     Users,
 } from 'lucide-react';
 import NextLink from 'next/link';
+import { isVoidPseudoAgentReference } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import { simplifyKnowledgeLabel } from '@/src/utils/knowledge/simplifyKnowledgeLabel';
+import { buildFreshAgentChatHrefFromAgentUrl } from '../../utils/agentRouting/agentRouteHrefs';
 import { TeamCommitmentChip } from './TeamCommitmentChip';
 
 /**
@@ -30,12 +30,18 @@ export const HOMEPAGE_CAPABILITY_CHIPS_LIMIT = 3;
  */
 export const AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT = 7;
 
+/**
+ * Constant for max individual knowledge chips.
+ */
 const MAX_INDIVIDUAL_KNOWLEDGE_CHIPS = 2;
 
+/**
+ * Collection of capability priority buckets.
+ */
 const CAPABILITY_PRIORITY_BUCKETS: ReadonlyArray<ReadonlyArray<AgentCapability['type']>> = [
     ['team'],
     ['inheritance', 'import'],
-    ['browser', 'search-engine', 'time', 'user-location', 'image-generator', 'email', 'privacy', 'project', 'wallet'],
+    ['user-location', 'image-generator', 'privacy', 'project', 'calendar'],
     ['knowledge'],
 ];
 
@@ -62,6 +68,11 @@ type AgentCapabilityChipsProps = {
      * Visual size preset for chip rendering.
      */
     readonly size?: AgentCapabilityChipsSize;
+
+    /**
+     * Capability types that should be omitted from this chip list.
+     */
+    readonly hiddenCapabilityTypes?: ReadonlyArray<AgentCapability['type']>;
 };
 
 /**
@@ -87,13 +98,23 @@ type OrderedCapability = {
 /**
  * Render capability chips for an agent with priority, grouping, and limits.
  */
-export function AgentCapabilityChips({ agent, className, maxChips, size = 'default' }: AgentCapabilityChipsProps) {
+export function AgentCapabilityChips({
+    agent,
+    className,
+    maxChips,
+    size = 'default',
+    hiddenCapabilityTypes = [],
+}: AgentCapabilityChipsProps) {
     if (!agent.capabilities || agent.capabilities.length === 0) {
         return null;
     }
 
     const maxChipsToDisplay = maxChips ?? AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT;
-    const displayedCapabilities = selectCapabilitiesForDisplay(agent.capabilities, maxChipsToDisplay);
+    const displayedCapabilities = selectCapabilitiesForDisplay(
+        agent.capabilities,
+        maxChipsToDisplay,
+        hiddenCapabilityTypes,
+    );
 
     if (displayedCapabilities.length === 0) {
         return null;
@@ -118,6 +139,8 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                     } else if (href.startsWith('/')) {
                         href = `/agents${href}`;
                     }
+
+                    href = buildFreshAgentChatHrefFromAgentUrl(href);
                 }
 
                 const displayLabel =
@@ -145,11 +168,8 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
 
                 const Icon =
                     {
-                        Globe,
-                        Search,
                         Book,
                         FileText,
-                        Clock: Clock8Icon,
                         SquareArrowOutUpRight,
                         SquareArrowUpRight,
                         ShieldAlert,
@@ -159,6 +179,7 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                         Shield,
                         Users,
                         Code,
+                        Calendar,
                         // <- [??] Add icons for new capabilities here
                     }[capability.iconName] || ShieldQuestionMarkIcon;
 
@@ -205,12 +226,13 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
 function selectCapabilitiesForDisplay(
     capabilities: Array<AgentCapability>,
     maxChips: number,
+    hiddenCapabilityTypes: ReadonlyArray<AgentCapability['type']>,
 ): Array<AgentCapability> {
     if (maxChips <= 0) {
         return [];
     }
 
-    const normalizedCapabilities = normalizeCapabilities(capabilities);
+    const normalizedCapabilities = normalizeCapabilities(capabilities, hiddenCapabilityTypes);
     const groupedCapabilities = groupKnowledgeCapabilities(normalizedCapabilities);
     const prioritizedCapabilities = groupedCapabilities
         .map((item, index) => ({
@@ -240,11 +262,23 @@ function selectCapabilitiesForDisplay(
  * @param capabilities - Raw capability list from the agent.
  * @returns Normalized capabilities with ordering metadata.
  */
-function normalizeCapabilities(capabilities: Array<AgentCapability>): Array<OrderedCapability> {
+function normalizeCapabilities(
+    capabilities: Array<AgentCapability>,
+    hiddenCapabilityTypes: ReadonlyArray<AgentCapability['type']>,
+): Array<OrderedCapability> {
+    const hiddenCapabilityTypeSet = new Set(hiddenCapabilityTypes);
+
     return capabilities
         .map((capability, index) => ({ capability, order: index }))
         .filter((item) => {
-            if (item.capability.type === 'inheritance' && item.capability.agentUrl === 'VOID') {
+            if (hiddenCapabilityTypeSet.has(item.capability.type)) {
+                return false;
+            }
+
+            if (
+                item.capability.type === 'inheritance' &&
+                isVoidPseudoAgentReference(item.capability.agentUrl || item.capability.label)
+            ) {
                 return false;
             }
 

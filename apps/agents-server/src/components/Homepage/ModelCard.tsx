@@ -2,12 +2,18 @@ import Link from 'next/link';
 import React from 'react';
 import { Card } from './Card';
 
+/**
+ * Props for model card.
+ */
 type ModelCardProps = {
     modelName: string;
     modelTitle: string;
     modelDescription?: string;
 };
 
+/**
+ * Handles model card.
+ */
 export function ModelCard({ modelName, modelTitle, modelDescription }: ModelCardProps) {
     return (
         <Link href={`#[🐱‍🚀]`}>

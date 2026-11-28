@@ -1,9 +1,13 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { resolveAgentAccess } from '@/src/utils/agentAccess';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
-import { Agent } from '@promptbook-local/core';
+import { Agent, createAgentModelRequirements } from '@promptbook-local/core';
 import { ChatMessage, Prompt, TODO_any } from '@promptbook-local/types';
 import { $getCurrentDate } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,8 +17,14 @@ import { z } from 'zod';
 // Note: This works in stateful environments or single-instance deployments.
 // In serverless with multiple instances, this will fail if POST lands on a different instance.
 // However, for standard deployments or sticky sessions, it works.
+/**
+ * Constant for sessions.
+ */
 const sessions = new Map<string, SSENextJsTransport>();
 
+/**
+ * Class implementing SSE next Js transport.
+ */
 class SSENextJsTransport implements Transport {
     public onmessage?: (message: JSONRPCMessage) => void;
     public onclose?: () => void;
@@ -52,13 +62,26 @@ class SSENextJsTransport implements Transport {
     }
 }
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
+    const access = await resolveAgentAccess(agentName, { request, allowTeamInternalAccess: true });
+    if (!access.isAllowed && access.visibility !== null) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // Check if agent exists
     try {
         const collection = await $provideAgentCollectionForServer();
-        await collection.getAgentSource(agentName);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        await resolveServerAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
     } catch (error) {
         return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
     }
@@ -99,12 +122,30 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 async ({ messages }) => {
                     try {
                         const collection = await $provideAgentCollectionForServer();
-                        const agentSource = await collection.getAgentSource(agentName);
+                        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+                        const resolvedAgentContext = await resolveServerAgentContext({
+                            collection,
+                            agentIdentifier: agentName,
+                            localServerUrl: new URL(request.url).origin,
+                            fallbackResolver: baseAgentReferenceResolver,
+                        });
+                        const agentSource = resolvedAgentContext.resolvedAgentSource;
+                        const modelRequirements = await createAgentModelRequirements(
+                            agentSource,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                                agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+                                inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+                            },
+                        );
 
                         const executionTools = await $provideExecutionToolsForServer();
                         const agent = new Agent({
                             agentSource,
                             executionTools,
+                            precomputedModelRequirements: modelRequirements,
                             isVerbose: true,
                             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
                         });
@@ -177,6 +218,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest /*, { params }: { params: Promise<{ agentName: string }> }*/) {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');

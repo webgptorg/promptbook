@@ -3,7 +3,7 @@
 
 ## 💜 The Promptbook Project
 
-Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
+Promptbook project is an ecosystem centered around the **Agents Server** - a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
 
 <table>
   <thead>
@@ -14,9 +14,9 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </thead>
   <tbody>
     <tr>
-      <td><a href="https://gallery.ptbk.io/">Agents Server</a></td>
+      <td><a href="https://gallery.ptbk.io/"><strong>⭐ Agents Server</strong></a></td>
       <td>
-          Place where you "AI agents live". It allows to create, manage, deploy, and interact with AI agents created in Book language.
+          The primary way to use Promptbook. A production-ready platform where your AI agents live - create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
       </td>
     </tr>
     <tr>
@@ -30,9 +30,8 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
       <td>
-          Promptbook engine can run AI agents based on Book language.
-          It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Promptbook Agent Server as Docker Package</a>
-          Agent Server is based on Promptbook Engine.
+          The open-source core that powers the Agents Server. Can also be used as a standalone TypeScript/JavaScript library to embed agent capabilities into your own applications.
+          Released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a>.
       </td>
     </tr>
     

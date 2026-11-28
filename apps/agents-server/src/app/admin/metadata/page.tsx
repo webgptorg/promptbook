@@ -1,7 +1,11 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { AdminConfigurationShell } from '../_components/AdminConfigurationShell';
 import { MetadataClient } from './MetadataClient';
 
+/**
+ * Handles metadata page.
+ */
 export default async function MetadataPage() {
     const isAdmin = await isUserAdmin();
 
@@ -9,5 +13,9 @@ export default async function MetadataPage() {
         return <ForbiddenPage />;
     }
 
-    return <MetadataClient />;
+    return (
+        <AdminConfigurationShell activePage="metadata">
+            <MetadataClient />
+        </AdminConfigurationShell>
+    );
 }

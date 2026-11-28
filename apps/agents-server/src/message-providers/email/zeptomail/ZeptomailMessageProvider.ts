@@ -5,6 +5,9 @@ import { SendMailClient } from 'zeptomail';
 import { MessageProvider } from '../../interfaces/MessageProvider';
 import { OutboundEmail } from '../_common/Email';
 
+/**
+ * Class implementing zeptomail message provider.
+ */
 export class ZeptomailMessageProvider implements MessageProvider {
     constructor(private readonly apiKey: string) {}
 

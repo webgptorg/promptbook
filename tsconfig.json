@@ -12,6 +12,12 @@
         "noUncheckedIndexedAccess": true,
         "module": "esnext",
         "moduleResolution": "node",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["apps/agents-server/*"],
+            "@common/*": ["apps/_common/*"],
+            "@promptbook-local/*": ["src/_packages/*.index"]
+        },
         "isolatedModules": false,
         "resolveJsonModule": true,
         "downlevelIteration": true,
@@ -22,5 +28,8 @@
         "jsx": "react-jsx"
     },
     "include": ["src", "books", "src/cli/test/ptbk.test.ts", "src/remote-server/other/index.umd.js"],
-    "exclude": ["src/scrapers/pdf/lib/pdf2md"]
+    "exclude": ["src/scrapers/pdf/lib/pdf2md"],
+    "ts-node": {
+        "transpileOnly": true
+    }
 }

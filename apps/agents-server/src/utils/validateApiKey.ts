@@ -1,7 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 import { $getTableName } from '../database/$getTableName';
+import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
+import { parseSessionToken, SESSION_COOKIE_NAME } from './session';
 
+/**
+ * Result of Api key validation.
+ */
 export type ApiKeyValidationResult = {
     isValid: boolean;
     token?: string;
@@ -18,10 +22,13 @@ export type ApiKeyValidationResult = {
 export async function validateApiKey(request: NextRequest): Promise<ApiKeyValidationResult> {
     const authHeader = request.headers.get('authorization');
 
-    // If no auth header, check if user has a session cookie (logged in via web)
+    // If no auth header, check if user has a valid signed session cookie (logged in via web).
+    // The cookie value must pass HMAC-signature verification — merely sending a `sessionToken`
+    // cookie with arbitrary content must NOT authenticate the request.
     if (!authHeader) {
-        const hasSession = request.cookies.has('sessionToken');
-        if (hasSession) {
+        const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+        const session = parseSessionToken(sessionToken);
+        if (session !== null) {
             return { isValid: true };
         }
         return {
@@ -53,42 +60,8 @@ export async function validateApiKey(request: NextRequest): Promise<ApiKeyValida
         };
     }
 
-    /*
-    Note: [🐔] This code was commented out because results of it are unused
-    
-    // Determine the table prefix based on the host
-    const host = request.headers.get('host');
-    let tablePrefix = SUPABASE_TABLE_PREFIX;
-
-    
-    if (host && SERVERS && SERVERS.length > 0) {
-        if (SERVERS.some((server) => server === host)) {
-            let serverName = host;
-            serverName = serverName.replace(/\.ptbk\.io$/, '');
-            serverName = normalizeTo_PascalCase(serverName);
-            tablePrefix = `server_${serverName}_`;
-        }
-    }
-    */
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-        console.error('Supabase configuration missing for API key validation');
-        return {
-            isValid: false,
-            error: 'Server configuration error',
-        };
-    }
-
     try {
-        const supabase = createClient(supabaseUrl, supabaseKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-            },
-        });
+        const supabase = $provideSupabaseForServer();
 
         const { data, error } = await supabase
             .from(await $getTableName(`ApiTokens`))

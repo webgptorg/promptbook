@@ -1,3 +1,6 @@
+/**
+ * Constant for page item.
+ */
 const PageItem = require('./PageItem');
 
 // A text item, i.e. a line or a word within a page

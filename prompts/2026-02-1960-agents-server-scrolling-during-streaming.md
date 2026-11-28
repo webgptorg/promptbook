@@ -1,4 +1,4 @@
-[.] **<- Note: Done in `2026-02-1890-agents-server-scrolling-during-streaming.md`**
+[.] _<- Note: Done in `2026-02-1890-agents-server-scrolling-during-streaming.md`_
 
 [✨📊] qux
 

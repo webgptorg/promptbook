@@ -67,16 +67,17 @@ export type SoundSystemOptions = {
  * - Preloading of sound assets
  * - Prevention of sound overlap
  *
- * @example
  * ```typescript
  * const soundSystem = new SoundSystem({
- *   message_send: { path: '/sounds/whoosh.mp3', volume: 0.3 },
- *   message_receive: { path: '/sounds/ding.mp3', volume: 0.4 }
+ * message_send: { path: '/sounds/whoosh.mp3', volume: 0.3 },
+ * message_receive: { path: '/sounds/ding.mp3', volume: 0.4 }
  * });
  *
  * soundSystem.play('message_send');
  * soundSystem.setEnabled(false);
  * ```
+ *
+ * @example
  */
 export class SoundSystem implements ChatSoundSystem {
     private sounds: Map<SoundEvent, HTMLAudioElement[]> = new Map();

@@ -1,6 +1,6 @@
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 import type { Registration } from '../../utils/misc/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
@@ -19,7 +19,7 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
     title: 'Anthropic Claude',
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
-    envVariables: ['ANTHROPIC_CLAUDE_API_KEY'],
+    envVariables: ['ANTHROPIC_API_KEY', 'ANTHROPIC_CLAUDE_API_KEY'],
     trustLevel: 'CLOSED',
     order: MODEL_ORDERS.TOP_TIER,
 
@@ -39,13 +39,16 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
         // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
-        if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
+        // Note: `ANTHROPIC_API_KEY` takes precedence over the deprecated `ANTHROPIC_CLAUDE_API_KEY`
+        const apiKey = env.ANTHROPIC_API_KEY ?? env.ANTHROPIC_CLAUDE_API_KEY;
+
+        if (typeof apiKey === 'string') {
             return {
                 title: 'Claude (from env)',
                 packageName: '@promptbook/anthropic-claude',
                 className: 'AnthropicClaudeExecutionTools',
                 options: {
-                    apiKey: env.ANTHROPIC_CLAUDE_API_KEY!,
+                    apiKey,
                 } satisfies AnthropicClaudeExecutionToolsOptions,
             };
         }
@@ -54,6 +57,4 @@ export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetad
     },
 });
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

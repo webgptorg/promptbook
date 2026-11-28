@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { padBook } from './padBook';
 
 /**
@@ -36,6 +36,7 @@ export function validateBook(source: string): string_book {
  * Default book
  *
  * @deprecated Use `$generateBookBoilerplate` instead
+ *
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_BOOK = padBook(
@@ -43,7 +44,7 @@ export const DEFAULT_BOOK = padBook(
         spaceTrim(`
             AI Avatar
 
-            PERSONA A friendly AI assistant that helps you with your tasks
+            GOAL Help users with their tasks as a friendly AI assistant.
         `),
     ),
 );

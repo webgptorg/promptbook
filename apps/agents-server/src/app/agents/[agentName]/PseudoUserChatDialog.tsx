@@ -3,6 +3,8 @@
 import { MessageCircle, SendHorizontal, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
 
 /**
  * Props for pseudo-user chat dialog shown when agent talks to `{User}`.
@@ -53,6 +55,12 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputId = useId();
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const { t } = useServerLanguage();
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges: reply.length > 0,
+        isCloseBlocked: isSubmitting,
+        onClose,
+    });
 
     useEffect(() => {
         if (!isOpen) {
@@ -71,7 +79,7 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
     }
 
     return (
-        <Dialog onClose={isSubmitting ? () => undefined : onClose} className="w-full max-w-xl p-0 overflow-hidden">
+        <Dialog onClose={requestClose} className="w-full max-w-xl p-0 overflow-hidden">
             <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -79,16 +87,16 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
                             <MessageCircle className="h-4 w-4" />
                         </span>
                         <div>
-                            <p className="text-sm font-semibold text-gray-900">Agent asks you directly</p>
-                            <p className="text-xs text-gray-500">One reply only</p>
+                            <p className="text-sm font-semibold text-gray-900">{t('pseudoUserChat.headerTitle')}</p>
+                            <p className="text-xs text-gray-500">{t('pseudoUserChat.headerSubtitle')}</p>
                         </div>
                     </div>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={requestClose}
                         disabled={isSubmitting}
                         className="rounded-md p-1 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Close"
+                        aria-label={t('pseudoUserChat.closeAriaLabel')}
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -122,14 +130,14 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
                     }}
                 >
                     <label htmlFor={inputId} className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        {userName} reply
+                        {t('pseudoUserChat.replyLabel', { userName })}
                     </label>
                     <textarea
                         id={inputId}
                         ref={textareaRef}
                         value={reply}
                         onChange={(event) => setReply(event.target.value)}
-                        placeholder="Write one reply for the agent..."
+                        placeholder={t('pseudoUserChat.replyPlaceholder')}
                         rows={4}
                         disabled={isSubmitting}
                         className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100"
@@ -138,11 +146,11 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
                     <div className="flex items-center justify-end gap-2">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={requestClose}
                             disabled={isSubmitting}
                             className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Cancel
+                            {t('pseudoUserChat.cancelLabel')}
                         </button>
                         <button
                             type="submit"
@@ -150,7 +158,7 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
                             className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <SendHorizontal className="h-4 w-4" />
-                            Send reply
+                            {t('pseudoUserChat.sendReplyLabel')}
                         </button>
                     </div>
                 </form>

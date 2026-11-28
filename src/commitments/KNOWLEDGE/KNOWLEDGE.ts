@@ -1,11 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
+import type { string_knowledge_source_link } from '../../types/string_knowledge_source_content';
+import type { InlineKnowledgeSourceFile } from '../../utils/knowledge/inlineKnowledgeSource';
+import { createInlineKnowledgeSourceFile } from '../../utils/knowledge/inlineKnowledgeSource';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
-import {
-    InlineKnowledgeSourceFile,
-    createInlineKnowledgeSourceFile,
-} from '../../utils/knowledge/inlineKnowledgeSource';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -36,6 +34,13 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
      */
     get description(): string {
         return 'Add domain **knowledge** via direct text or external sources (RAG).';
+    }
+
+    /**
+     * Marks KNOWLEDGE as one of the priority commitments surfaced first in catalogues.
+     */
+    public override get isImportant(): boolean {
+        return true;
     }
 
     /**
@@ -85,7 +90,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             KNOWLEDGE Academic research requires careful citation and verification
             KNOWLEDGE https://example.com/research-guidelines.pdf
             ACTION Can help with literature reviews and data analysis
-            STYLE Present information in clear, academic format
+            WRITING RULES Present information in clear, academic format
             \`\`\`
         `);
     }

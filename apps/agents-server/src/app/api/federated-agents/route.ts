@@ -3,8 +3,14 @@ import { getMetadata } from '../../../database/getMetadata';
 import { getCurrentUser } from '../../../utils/getCurrentUser';
 import { getFederatedServers } from '../../../utils/getFederatedServers';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
         const currentUser = await getCurrentUser();
@@ -18,7 +24,7 @@ export async function GET() {
             });
         }
 
-        const federatedServers = await getFederatedServers({ excludeHiddenCoreServer: true });
+        const federatedServers = await getFederatedServers();
 
         return NextResponse.json({
             federatedServers,

@@ -6,6 +6,9 @@ import { DEFAULT_BOOK } from '@promptbook-local/core';
 import type { string_book } from '@promptbook-local/types';
 import { useState } from 'react';
 
+/**
+ * Handles idependent editors page.
+ */
 export default function IdependentEditorsPage() {
     const [book1, setBook1] = useState<string_book>(DEFAULT_BOOK);
     const [book2, setBook2] = useState<string_book>(DEFAULT_BOOK);

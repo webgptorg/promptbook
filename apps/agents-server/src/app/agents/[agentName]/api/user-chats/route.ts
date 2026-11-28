@@ -1,7 +1,17 @@
+import { isAgentGoalChatId, prependAgentGoalChatSummarySeed } from '@/src/utils/agentGoalChat';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import {
+    createUserChat,
+    createUserChatDetailPayload,
+    createUserChatSummaryFromSeed,
+    getUserChat,
+    listUserChatJobActivityCounts,
+    listUserChatSummarySeeds,
+    USER_CHAT_SOURCES,
+} from '@/src/utils/userChat';
+import { listUserChatTimeoutActivities } from '@/src/utils/userChatTimeout/userChatTimeoutStore';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
-import { createUserChat, createUserChatSummary, listUserChats } from '@/src/utils/userChat';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveUserChatScope } from './resolveUserChatScope';
 
 /**
@@ -19,27 +29,78 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         if (scopeResult.error === 'UNAUTHORIZED') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {
         const requestUrl = new URL(request.url);
         const requestedChatId = normalizeOptionalString(requestUrl.searchParams.get('chat'));
-        const chats = await listUserChats({
-            userId: scopeResult.scope.userId,
+        const showExternalChats = normalizeBooleanFlag(requestUrl.searchParams.get('showExternalChats'));
+        const chatSummarySeeds = await prependAgentGoalChatSummarySeed({
+            chatSummarySeeds: await listUserChatSummarySeeds({
+                userId: scopeResult.scope.userId,
+                viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+                viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+                agentPermanentId: scopeResult.scope.agentPermanentId,
+                includeExternalChats: showExternalChats,
+            }),
             agentPermanentId: scopeResult.scope.agentPermanentId,
+            isAgentGoalChatVisible: scopeResult.scope.viewerCanAccessAgentGoalChat,
         });
+        const activityUserId =
+            (scopeResult.scope.viewerIsAdmin || scopeResult.scope.viewerIsSuperAdmin) && showExternalChats
+                ? undefined
+                : scopeResult.scope.userId;
+        const [timeoutActivities, jobActivityCounts] = await Promise.all([
+            listUserChatTimeoutActivities({
+                userId: activityUserId,
+                agentPermanentId: scopeResult.scope.agentPermanentId,
+                chatIds: chatSummarySeeds.map((chat) => chat.id),
+            }),
+            listUserChatJobActivityCounts({
+                userId: activityUserId,
+                agentPermanentId: scopeResult.scope.agentPermanentId,
+                chatIds: chatSummarySeeds.map((chat) => chat.id),
+            }),
+        ]);
 
-        const activeChat =
-            (requestedChatId ? chats.find((chat) => chat.id === requestedChatId) : null) ||
-            chats[0] ||
-            null;
+        // Note: The pinned goal chat is opened only on explicit request, never as the default thread
+        const defaultChatSummarySeed =
+            chatSummarySeeds.find((chat) => !isAgentGoalChatId(chat.id)) || chatSummarySeeds[0] || null;
+        const activeChatSummarySeed =
+            (requestedChatId ? chatSummarySeeds.find((chat) => chat.id === requestedChatId) : null) ||
+            defaultChatSummarySeed;
+        const activeChat = activeChatSummarySeed
+            ? await getUserChat({
+                  userId: scopeResult.scope.userId,
+                  viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+                  viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+                  viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
+                  agentPermanentId: scopeResult.scope.agentPermanentId,
+                  chatId: activeChatSummarySeed.id,
+              })
+            : null;
+        const activeChatDetail = activeChat
+            ? await createUserChatDetailPayload(activeChat, { viewerUserId: scopeResult.scope.userId })
+            : null;
+        const chatSummaries = chatSummarySeeds.map((chat) =>
+            createUserChatSummaryFromSeed(chat, {
+                timeoutActivity: timeoutActivities[chat.id],
+                activeJobCount: jobActivityCounts[chat.id],
+                viewerUserId: scopeResult.scope.userId,
+            }),
+        );
 
         return NextResponse.json({
-            chats: chats.map(createUserChatSummary),
-            activeChatId: activeChat?.id || null,
-            activeMessages: activeChat?.messages || [],
-            activeDraftMessage: activeChat?.draftMessage || null,
+            chats: activeChatDetail ? replaceChatSummary(chatSummaries, activeChatDetail.chat) : chatSummaries,
+            activeChatId: activeChatDetail?.chat.id || null,
+            activeMessages: activeChatDetail?.messages || [],
+            activeDraftMessage: activeChatDetail?.draftMessage || null,
+            activeJobs: activeChatDetail?.activeJobs || [],
+            activeTimeouts: activeChatDetail?.activeTimeouts || [],
         });
     } catch (error) {
         return NextResponse.json(
@@ -64,6 +125,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         if (scopeResult.error === 'UNAUTHORIZED') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
@@ -78,18 +142,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const chat = await createUserChat({
             userId: scopeResult.scope.userId,
             agentPermanentId: scopeResult.scope.agentPermanentId,
+            source: USER_CHAT_SOURCES.WEB_UI,
             chatId,
             messages,
         });
 
-        return NextResponse.json(
-            {
-                chat: createUserChatSummary(chat),
-                messages: chat.messages,
-                draftMessage: chat.draftMessage,
-            },
-            { status: 201 },
-        );
+        return NextResponse.json(await createUserChatDetailPayload(chat), { status: 201 });
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to create chat.' },
@@ -108,4 +166,21 @@ function normalizeOptionalString(value: string | null | undefined): string | und
 
     const normalized = value.trim();
     return normalized.length > 0 ? normalized : undefined;
+}
+
+/**
+ * Parses one permissive boolean query flag.
+ */
+function normalizeBooleanFlag(value: string | null): boolean {
+    return value === '1' || value === 'true' || value === '';
+}
+
+/**
+ * Replaces one summary inside the list with a refreshed canonical version.
+ */
+function replaceChatSummary(
+    chats: ReadonlyArray<ReturnType<typeof createUserChatSummaryFromSeed>>,
+    refreshedChat: ReturnType<typeof createUserChatSummaryFromSeed>,
+): Array<ReturnType<typeof createUserChatSummaryFromSeed>> {
+    return chats.map((chat) => (chat.id === refreshedChat.id ? refreshedChat : chat));
 }

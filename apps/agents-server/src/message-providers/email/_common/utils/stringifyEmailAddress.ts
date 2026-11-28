@@ -14,6 +14,4 @@ export function stringifyEmailAddress(emailAddress: EmailAddress): string_email 
     return fullEmail;
 }
 
-/**
- * TODO: [🎾] Implement and test here escaping
- */
+// TODO: [🎾] Implement and test here escaping

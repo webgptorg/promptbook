@@ -8,7 +8,7 @@ Agents are defined in [Book Files](./book-file.md) using a set of [Commitments](
 
 -   **Persona**: Every agent has a defined [personality](../commitments/persona.md), such as a "Friendly Lawyer" or a "Grumpy Programmer."
 -   **Knowledge**: Agents can be provided with specific [knowledge bases](../commitments/knowledge.md) (files, websites, or direct text) to inform their responses.
--   **Capabilities**: Agents can be granted special abilities through [USE commitments](../commitments/use.md), such as [browsing the web](../commitments/use-browser.md) or [using a calculator](../technical/tools.md).
+-   **Capabilities**: Agents can be granted special abilities through [USE commitments](../commitments/use.md), such as [connecting external tools](../commitments/use-mcp.md) or [using a calculator](../technical/tools.md).
 -   **Consistency**: Through [Rules](../commitments/rule.md), an agent's behavior is kept within desired boundaries.
 
 ## Example
@@ -18,11 +18,10 @@ Catherine Brown
 
 PERSONA You are a professional architect specializing in sustainable design.
 RULE Always prioritize ecological impact in your suggestions.
-USE SEARCH ENGINE
 KNOWLEDGE https://sustainable-architecture-manual.com/
 ```
 
-In this example, "Catherine Brown" is an agent who acts as a specialized architect. She has access to a specific manual and can search the web for the latest green building materials.
+In this example, "Catherine Brown" is an agent who acts as a specialized architect. She has access to a specific manual about the latest green building materials.
 
 ## Related Concepts
 

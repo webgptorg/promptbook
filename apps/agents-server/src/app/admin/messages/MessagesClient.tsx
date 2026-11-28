@@ -1,37 +1,49 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { Card } from '../../../components/Homepage/Card';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import {
     $fetchMessages,
     type MessageRow,
-    type MessageSendAttemptRow,
+    type MessageSortField,
+    type MessageSortOrder,
 } from '../../../utils/messagesAdmin';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { resolveNextAdminTableSortState } from '../_components/adminTableSorting';
+import { MessageParticipants } from './MessageParticipants';
+import { MessageStatus } from './MessageStatus';
 
-function formatDate(dateString: string | null | undefined): string {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return dateString;
-    return date.toLocaleString();
+/**
+ * Formats date.
+ */
+function formatDate(dateString: string | null | undefined, language: ServerLanguageCode): string {
+    return formatServerLanguageHumanReadableDate(dateString, language, { fallbackLabel: '-' });
 }
 
+/**
+ * Gets message preview.
+ */
 function getMessagePreview(content: string, maxLength = 120): string {
     if (!content) return '-';
     return content.length > maxLength ? `${content.slice(0, maxLength)}…` : content;
 }
 
-function getStatusBadge(attempts: MessageSendAttemptRow[] | undefined) {
-    if (!attempts || attempts.length === 0) {
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Pending</span>;
-    }
-    const success = attempts.find(a => a.isSuccessful);
-    if (success) {
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Sent ({success.providerName})</span>;
-    }
-    return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed ({attempts.length})</span>;
+/**
+ * Resolves the initial direction used when switching message sort fields.
+ */
+function resolveMessageDefaultSortOrder(sortBy: MessageSortField): MessageSortOrder {
+    return sortBy === 'createdAt' ? 'desc' : 'asc';
 }
 
+/**
+ * Handles messages client.
+ */
 export function MessagesClient() {
+    const { language } = useServerLanguage();
     const [items, setItems] = useState<MessageRow[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -40,6 +52,8 @@ export function MessagesClient() {
     const [search, setSearch] = useState('');
     const [channel, setChannel] = useState('');
     const [direction, setDirection] = useState('');
+    const [sortBy, setSortBy] = useState<MessageSortField>('createdAt');
+    const [sortOrder, setSortOrder] = useState<MessageSortOrder>('desc');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +72,8 @@ export function MessagesClient() {
                     search: search || undefined,
                     channel: channel || undefined,
                     direction: direction || undefined,
+                    sortBy,
+                    sortOrder,
                 });
 
                 if (isCancelled) return;
@@ -79,7 +95,7 @@ export function MessagesClient() {
         return () => {
             isCancelled = true;
         };
-    }, [page, pageSize, search, channel, direction]);
+    }, [page, pageSize, search, channel, direction, sortBy, sortOrder]);
 
     const totalPages = useMemo(() => {
         if (total <= 0 || pageSize <= 0) return 1;
@@ -98,6 +114,19 @@ export function MessagesClient() {
             setPageSize(next);
             setPage(1);
         }
+    };
+
+    const handleSortChange = (nextSortBy: MessageSortField): void => {
+        const nextSortState = resolveNextAdminTableSortState({
+            currentSortBy: sortBy,
+            currentSortOrder: sortOrder,
+            nextSortBy,
+            resolveDefaultSortOrder: resolveMessageDefaultSortOrder,
+        });
+
+        setSortBy(nextSortState.sortBy);
+        setSortOrder(nextSortState.sortOrder);
+        setPage(1);
     };
 
     const pagination = (
@@ -147,7 +176,13 @@ export function MessagesClient() {
                         Inspect all inbound and outbound messages and their statuses.
                     </p>
                 </div>
-                <div className="flex items-end gap-4 text-sm text-gray-500 md:text-right">
+                <div className="flex flex-wrap items-end gap-4 text-sm text-gray-500 md:text-right">
+                    <Link
+                        href="/admin/messages/send-email"
+                        className="rounded-md border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                    >
+                        Send test email
+                    </Link>
                     <div>
                         <div className="text-xl font-semibold text-gray-900">{total.toLocaleString()}</div>
                         <div className="text-xs uppercase tracking-wide text-gray-400">Total messages</div>
@@ -186,7 +221,10 @@ export function MessagesClient() {
                             <select
                                 id="channelFilter"
                                 value={channel}
-                                onChange={(e) => { setChannel(e.target.value); setPage(1); }}
+                                onChange={(e) => {
+                                    setChannel(e.target.value);
+                                    setPage(1);
+                                }}
                                 className="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All</option>
@@ -202,7 +240,10 @@ export function MessagesClient() {
                             <select
                                 id="directionFilter"
                                 value={direction}
-                                onChange={(e) => { setDirection(e.target.value); setPage(1); }}
+                                onChange={(e) => {
+                                    setDirection(e.target.value);
+                                    setPage(1);
+                                }}
                                 className="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All</option>
@@ -246,11 +287,47 @@ export function MessagesClient() {
                         <table className="min-w-full divide-y divide-gray-200 text-sm">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Time</th>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Channel</th>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Direction</th>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="time"
+                                        sortBy="createdAt"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Time
+                                    </AdminSortableTableHeaderCell>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="channel"
+                                        sortBy="channel"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Channel
+                                    </AdminSortableTableHeaderCell>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="direction"
+                                        sortBy="direction"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Direction
+                                    </AdminSortableTableHeaderCell>
                                     <th className="px-4 py-3 text-left font-medium text-gray-500">Sender/Recipients</th>
-                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Content</th>
+                                    <AdminSortableTableHeaderCell
+                                        className="px-4 py-3 text-left font-medium text-gray-500"
+                                        label="content"
+                                        sortBy="content"
+                                        activeSortBy={sortBy}
+                                        sortOrder={sortOrder}
+                                        onSortChange={handleSortChange}
+                                    >
+                                        Content
+                                    </AdminSortableTableHeaderCell>
                                     <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
                                 </tr>
                             </thead>
@@ -258,28 +335,24 @@ export function MessagesClient() {
                                 {items.map((row) => (
                                     <tr key={row.id}>
                                         <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {formatDate(row.createdAt)}
+                                            {formatDate(row.createdAt, language)}
                                         </td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {row.channel}
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.channel}</td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.direction}</td>
+                                        <td className="max-w-sm px-4 py-3 align-top text-gray-700">
+                                            <MessageParticipants
+                                                channel={row.channel}
+                                                sender={row.sender}
+                                                recipients={row.recipients}
+                                            />
                                         </td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {row.direction}
-                                        </td>
-                                        <td className="max-w-xs px-4 py-3 text-gray-700">
-                                            <div className="truncate" title={JSON.stringify({ sender: row.sender, recipients: row.recipients }, null, 2)}>
-                                                {/* Simple preview of sender/recipients */}
-                                                S: {JSON.stringify(row.sender)}<br/>
-                                                R: {JSON.stringify(row.recipients)}
-                                            </div>
-                                        </td>
-                                        <td className="max-w-md px-4 py-3 text-gray-700">
+                                        <td className="max-w-md px-4 py-3 align-top text-gray-700">
                                             <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
                                                 {getMessagePreview(row.content)}
                                             </div>
                                         </td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            {getStatusBadge(row.sendAttempts)}
+                                        <td className="px-4 py-3 align-top text-gray-700">
+                                            <MessageStatus direction={row.direction} attempts={row.sendAttempts} />
                                         </td>
                                     </tr>
                                 ))}

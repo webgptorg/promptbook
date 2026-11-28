@@ -1,10 +1,10 @@
-import { SHA256 as sha256 } from 'crypto-js';
+import CryptoJS from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
 import { dirname, join } from 'path';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
-import type { string_file_extension } from '../../../types/typeAliases';
+import type { string_file_extension } from '../../../types/string_sha256';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { titleToName } from '../../../utils/normalization/titleToName';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
@@ -45,7 +45,7 @@ export async function getScraperIntermediateSource(
     const { rootDirname, cacheDirname, intermediateFilesStrategy, extension, isVerbose } = options;
 
     // TODO: [👬] DRY
-    const hash = sha256(
+    const hash = CryptoJS.SHA256(
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         hexEncoder.parse(
             sourceFilename || url || 'untitled',
@@ -132,10 +132,8 @@ export async function getScraperIntermediateSource(
     return fileHandler;
 }
 
-/**
- * Note: Not using `FileCacheStorage` for two reasons:
- * 1) Need to store more than serialized JSONs
- * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: [😡]
- * TODO: [🐱‍🐉][🧠] Make some smart crop
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node scraper helper [getScraperIntermediateSource](src/scrapers/_common/utils/getScraperIntermediateSource.ts) should never be published into packages that could be imported into browser environment
+// Note: Not using `FileCacheStorage` for two reasons:
+// 1. Need to store more than serialized JSONs.
+// 2. Need to switch between a `rootDirname` and `cacheDirname` <- TODO: [😡]
+// TODO: [🐱‍🐉][🧠] Make some smart crop

@@ -1,0 +1,13 @@
+{"type":"thread.started","thread_id":"fixture-thread"}
+{"type":"turn.started"}
+{"type":"item.started","item":{"id":"message-one","type":"agent_message","text":"I’ll inspect"}}
+{"type":"item.updated","item":{"id":"message-one","type":"agent_message","text":"I’ll inspect src/世界.ts 👩‍💻."}}
+{"type":"item.completed","item":{"id":"message-one","type":"agent_message","text":"I’ll inspect src/世界.ts 👩‍💻."}}
+{"type":"item.completed","item":{"id":"message-one","type":"agent_message","text":"I’ll inspect src/世界.ts 👩‍💻."}}
+{"type":"item.started","item":{"id":"command-one","type":"command_execution","command":"npm test","status":"in_progress"}}
+{"type":"item.completed","item":{"id":"command-one","type":"command_execution","command":"npm test","aggregated_output":"PASS src/example.test.ts\n1 test passed","exit_code":0,"status":"completed"}}
+{"type":"item.completed","item":{"id":"files-one","type":"file_change","changes":[{"path":"src/世界.ts","kind":"update"}],"status":"completed"}}
+{"type":"item.completed","item":{"id":"command-two","type":"command_execution","command":"node missing.js","aggregated_output":"Cannot find module","exit_code":1,"status":"failed"}}
+{"type":"future_notice","message":"Keep this unfamiliar message"}
+{"type":"item.completed","item":{"id":"message-two","type":"agent_message","text":"The tests passed; the extra command failed."}}
+{"type":"turn.completed","usage":{"input_tokens":10,"output_tokens":5}}

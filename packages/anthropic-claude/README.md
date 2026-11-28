@@ -1,8 +1,8 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# ✨ Promptbook: AI Agents
+# 🐙 Promptbook: Invisible AI Agents
 
-Turn your company's scattered knowledge into AI ready Books
+Create persistent AI agents that turn your company's scattered knowledge into action - powered by the [Agents Server](https://gallery.ptbk.io/)
 
 
 
@@ -19,11 +19,27 @@ Turn your company's scattered knowledge into AI ready Books
 [![🧪 Test types](https://github.com/webgptorg/promptbook/actions/workflows/test-types.yml/badge.svg)](https://github.com/webgptorg/promptbook/actions/workflows/test-types.yml)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
+## 🚀 Quick deploy
 
 
-## 🌟 New Features
 
--   **Gemini 3 Support**
+Run the standalone VPS installer _(for example on DigitalOcean)_ only on a fresh server. Interactive mode asks for the installation values:
+
+```bash
+sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/install.sh | bash
+```
+
+Non-interactive mode takes defaults from command-line options. Use `--env live`, `--env preview`, `--env production`, or `--env lts` to pick the installed environment; the default is `preview`. When `--openai-api-key` is provided with the default OpenAI Codex runner, the installer installs and configures Codex automatically; other runner authentication can be configured later from the UI or SSH:
+
+```bash
+sudo curl -fsSL https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/install.sh | bash -s -- \
+    --non-interactive \
+    --yes-i-understand-that-script-should-be-run-on-fresh-server \
+    --env preview \
+    --domain my-server.com \
+    --openai-api-key sk-proj-xxx \
+    --admin-password xxx
+```
 
 
 
@@ -305,19 +321,27 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 📖 The Book Whitepaper
 
-Nowadays, the biggest challenge for most business applications isn't the raw capabilities of AI models. Large language models such as GPT-5.2 and Claude-4.5 are incredibly capable.
+Promptbook lets you create **persistent AI agents** that work on real goals for your company. The [**Agents Server**](https://gallery.ptbk.io/) is the heart of the project - a place where your AI agents live, remember context, collaborate in teams, and get things done.
+
+Nowadays, the biggest challenge for most business applications isn't the raw capabilities of AI models. Large language models such as Claude Mythos, GPT-5.6 or Kimi K2.7 are incredibly capable.
 
 The main challenge lies in **managing the context**, providing rules and knowledge, and narrowing the personality.
 
-In Promptbook, you can define your context **using simple Books** that are very explicit, easy to understand and write, reliable, and highly portable.
+In Promptbook, you define your agents **using simple Books** - a human-readable language that is explicit, easy to understand and write, reliable, and highly portable. You then deploy them to the **Agents Server**, where they run persistently and work toward their goals.
 
 <table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
-**<ins>Paul Smith</ins>**<br/>
+**<ins>Lawyer</ins>**<br/>
 <br/>
-**PERSONA** You are a company lawyer.<br/>
+GOAL You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
+Respond to incoming legal inquiries via email and keep the company website updated with the latest legal policies.<br/>
+<br/>
 **RULE** You are knowledgeable, professional, and detail-oriented.<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
+<br/>
+<br/>
 TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
 </td></tr></table>
@@ -341,6 +365,22 @@ Personas define the character of your AI persona, its role, and how it should in
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
 **PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+
+</td></tr></table>
+
+#### `Goal` commitment
+
+Goals define what the agent should actively work toward. Unlike a chatbot that only responds when asked, an agent with goals takes initiative and works on tasks persistently on the Agents Server.
+
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
+
+**<ins>Company Lawyer</ins>**<br/>
+<br/>
+GOAL<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+GOAL Respond to incoming legal inquiries via email within 24 hours.<br/>
+GOAL Keep the company website updated with the latest legal policies and compliance information.<br/>
 
 </td></tr></table>
 
@@ -358,9 +398,9 @@ Promptbook Engine will automatically enforce this knowledge during interactions.
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
-<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+GOAL Respond to incoming legal inquiries via email within 24 hours.<br/>
+GOAL Keep the company website updated with the latest legal policies and compliance information.<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
 </td></tr></table>
@@ -377,12 +417,34 @@ Depending on rule strictness, Promptbook will either propagate it to the prompt 
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
-<br/>
-**RULE** Always ensure compliance with laws and regulations.<br/>
+GOAL Respond to incoming legal inquiries via email within 24 hours.<br/>
+GOAL Keep the company website updated with the latest legal policies and compliance information.<br/>
+**RULE** Always ensure compliance with local laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
+
+</td></tr></table>
+
+#### `Use` commitments
+
+Use commitments grant the agent real capabilities - tools it can use to interact with the outside world. `USE CALENDAR` lets the agent work with a calendar, `USE PROJECT` gives it access to a code repository, `USE MCP` connects any external Model Context Protocol server, and many more.
+
+These are what turn a chatbot into a persistent agent that actually does work.
+
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
+
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+GOAL Respond to incoming legal inquiries via email within 24 hours.<br/>
+GOAL Keep the company website updated with the latest legal policies and compliance information.<br/>
+**RULE** Always ensure compliance with local laws and regulations.<br/>
+**RULE** Never provide legal advice outside your area of expertise.<br/>
+**RULE** Never provide legal advice about criminal law.<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
 </td></tr></table>
@@ -397,32 +459,28 @@ Team commitment allows you to define the team structure and advisory fellow memb
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
-<br/>
-**RULE** Always ensure compliance with laws and regulations.<br/>
+GOAL Respond to incoming legal inquiries via email within 24 hours.<br/>
+GOAL Keep the company website updated with the latest legal policies and compliance information.<br/>
+**RULE** Always ensure compliance with local laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
 </td></tr></table>
 
-
-
 ### Promptbook Ecosystem
 
-!!!@@@
+Promptbook is an ecosystem of tools centered around the **Agents Server** - a production-ready platform for running persistent AI agents.
 
-#### Promptbook Server
+#### Agents Server
 
-!!!@@@
+The [**Agents Server**](https://gallery.ptbk.io/) is the primary way to use Promptbook. It is a web application where your AI agents live and work. You can create agents, give them knowledge and rules using the Book language, organize them into teams, and let them work on goals persistently. The Agents Server provides a UI for managing agents, an API for integrating them into your applications, and can be self-hosted via [Docker](https://hub.docker.com/r/hejny/promptbook/) or deployed on Vercel.
 
 #### Promptbook Engine
 
-!!!@@@
-
-
+The [Promptbook Engine](https://github.com/webgptorg/promptbook) is the open-source core that powers everything. It parses the Book language, applies commitments, manages LLM provider integrations, and executes agents. The Agents Server is built on top of the Engine. If you need to embed agent capabilities directly into your own application, you can use the Engine as a standalone TypeScript/JavaScript library via [NPM packages](https://www.npmjs.com/package/@promptbook/core).
 
 
 
@@ -436,7 +494,7 @@ TEAM You are part of the legal team of Paul Smith & Associés, you discuss with 
 
 ## 💜 The Promptbook Project
 
-Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
+Promptbook project is an ecosystem centered around the **Agents Server** - a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
 
 <table>
   <thead>
@@ -447,9 +505,9 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </thead>
   <tbody>
     <tr>
-      <td><a href="https://gallery.ptbk.io/">Agents Server</a></td>
+      <td><a href="https://gallery.ptbk.io/"><strong>⭐ Agents Server</strong></a></td>
       <td>
-          Place where you "AI agents live". It allows to create, manage, deploy, and interact with AI agents created in Book language.
+          The primary way to use Promptbook. A production-ready platform where your AI agents live - create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
       </td>
     </tr>
     <tr>
@@ -463,16 +521,13 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
       <td>
-          Promptbook engine can run AI agents based on Book language.
-          It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Promptbook Agent Server as Docker Package</a>
-          Agent Server is based on Promptbook Engine.
+          The open-source core that powers the Agents Server. Can also be used as a standalone TypeScript/JavaScript library to embed agent capabilities into your own applications.
+          Released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a>.
       </td>
     </tr>
     
   </tbody>
 </table>
-
-
 
 ### 🌐 Community & Social Media
 
@@ -530,8 +585,6 @@ Join our growing community of developers and users:
 
 
 
-
-
 ## 📚 Documentation
 
 See detailed guides and API reference in the [docs](https://github.com/webgptorg/promptbook/discussions/categories/concepts) or [online](https://discord.gg/x3QWNaa89N).
@@ -540,9 +593,16 @@ See detailed guides and API reference in the [docs](https://github.com/webgptorg
 
 For information on reporting security vulnerabilities, see our [Security Policy](./SECURITY.md).
 
-## 📦 Packages _(for developers)_
+## 📦 Deployment & Packages
 
-This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+The fastest way to get started is with the **Agents Server**:
+
+-   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Self-host the Agents Server with full control over your data
+-   ☁️ **[Hosted Agents Server](https://gallery.ptbk.io/)** - Start creating agents immediately, no setup required
+
+### NPM Packages _(for developers embedding the Engine)_
+
+If you want to embed the Promptbook Engine directly into your application, the library is divided into several packages published from a [single monorepo](https://github.com/webgptorg/promptbook).
 You can install all of them at once:
 
 ```bash
@@ -561,7 +621,6 @@ Or you can install them separately:
 -   **[@promptbook/browser](https://www.npmjs.com/package/@promptbook/browser)** - Core of the library for browser environment
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
 -   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
--   _(Not finished)_ **[@promptbook/wizard](https://www.npmjs.com/package/@promptbook/wizard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
 -   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
@@ -583,10 +642,155 @@ Or you can install them separately:
 -   **[@promptbook/templates](https://www.npmjs.com/package/@promptbook/templates)** - Useful templates and examples of books which can be used as a starting point
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/color](https://www.npmjs.com/package/@promptbook/color)** - Color manipulation library
--   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
--   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
+-   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 
 
+
+### 🤖 Promptbook Coder
+
+`ptbk coder` is Promptbook's workflow layer for AI-assisted software changes. Instead of opening one chat and manually copy-pasting tasks, you keep a queue of coding prompts in `prompts/*.md`, let a coding agent execute the next ready task, and then verify the result before archiving the prompt.
+
+Promptbook Coder is **not another standalone coding model**. It is an orchestration layer over coding agents such as **GitHub Copilot**, **OpenAI Codex**, **Claude Code**, **Opencode**, **Cline**, and **Gemini CLI**. The difference is that Promptbook Coder adds a repeatable repository workflow on top of them:
+
+-   prompt files with explicit statuses like `[ ]`, `[^]`, `[x]`, and `[-]`
+-   automatic selection of the next runnable task, including priority support
+-   shared project context loaded from `AGENTS.md` by default
+-   automatic `git add`, commit, and push after each successful prompt
+-   dedicated coding-agent Git identity and optional GPG signing
+-   verification and repair flow for work that is done, partial, or broken
+-   helper commands for generating boilerplates and finding refactor prompts
+
+In short: tools like Claude Code, Codex, or GitHub Copilot are the **engines**; Promptbook Coder is the **workflow** that keeps coding work structured, reviewable, and repeatable across many prompts.
+
+#### How the workflow works
+
+1. `ptbk coder init` prepares the project for the coder workflow, seeds project-owned generic templates in `prompts/templates/`, creates a starter `AGENTS.md` context file, adds helper `npm run coder:*` scripts, ensures `.gitignore` ignores `node_modules` and `/.promptbook`, creates missing `.gitattributes` for LF line endings, and configures VS Code prompt screenshots in `prompts/screenshots/`.
+2. `ptbk coder generate-boilerplates` creates prompt files in `prompts/`.
+3. You replace placeholder `@@@` sections with real coding tasks.
+4. `ptbk coder run` sends the next ready `[ ]` prompt to the selected coding agent and immediately marks it as in progress `[^]`, naming the harness, the model and the step which is running.
+5. Promptbook Coder marks the prompt as done `[x]`, records runner metadata, then stages, commits, and pushes the resulting changes.
+6. `ptbk coder verify` reviews completed prompts, archives finished files to `prompts/done/`, and appends a repair prompt when more work is needed.
+
+Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treated as not fully written, and prompts with more `!` markers have higher priority. A prompt left as `[^]` was interrupted in the middle of its implementation — the in-progress status is never reverted, so a killed or crashed coder always leaves that signal behind, and `--git-changes continue` resumes exactly that prompt with its uncommitted changes still in place.
+
+#### Features
+
+-   **Multi-runner execution:** `openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`, `qwen-code`
+-   **Project defaults:** Developer, invocation cwd, and project `AGENTS.md`; `--agent`, `--path`, and `--context` independently override them
+-   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
+-   **Unattended or interactive runs:** default auto mode, or `--no-auto` to wait for user confirmation before each prompt
+-   **Git safety:** clean working tree check by default, or `--git-changes ignore` to keep the changes and `--git-changes continue` to resume an interrupted prompt
+-   **Opt-in remote pushes:** commits stay local unless you explicitly pass `--auto-push`
+-   **Prompt triage:** `--priority` to process only more important tasks first
+-   **Failure logging:** failed runs write a neighboring `.error.log`
+-   **Line-ending normalization:** changed files are normalized back to LF by default
+
+#### Local usage in this repository
+
+When working on Promptbook itself, the repository usually runs the CLI straight from source:
+
+```bash
+npx ts-node ./src/cli/test/ptbk.ts coder init
+
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/common.md
+
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/agents-server.md
+
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book
+
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --auto-push
+
+npx ts-node ./src/cli/test/ptbk.ts coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --git-changes ignore
+
+npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates
+
+npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates --level xhigh
+
+npx ts-node ./src/cli/test/ptbk.ts coder verify
+```
+
+#### Using `ptbk coder` in an external project
+
+If you want to use the workflow in another repository, install the package and invoke the `ptbk` binary directly.
+
+```bash
+npm install ptbk
+
+ptbk coder init
+
+ptbk coder generate-boilerplates
+
+ptbk coder generate-boilerplates --template prompts/templates/common.md
+
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --check "npm run check"
+
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --auto-push
+
+ptbk coder run --harness github-copilot --model gpt-5.4 --thinking-level xhigh --agent agents/coding/developer.book --check "npm run check" --git-changes ignore
+
+ptbk coder find-refactor-candidates
+
+ptbk coder find-refactor-candidates --level xhigh
+
+ptbk coder verify
+```
+
+`ptbk coder init` also bootstraps a starter `AGENTS.md`, adds `package.json` scripts for the four main coder commands, adds `node_modules` and the shared `/.promptbook` temp ignore to `.gitignore`, and configures `.vscode/settings.json` so pasted images from `prompts/*.md` land in `prompts/screenshots/`. It creates a missing `.gitattributes` with `* text=auto eol=lf` and preserves existing attributes.
+
+#### What each command does
+
+| Command                               | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---- | ----- | ------------------------------------------------------------------------ |
+| `ptbk coder init`                     | Creates `prompts/`, `prompts/done/`, the project-generic template files materialized in `prompts/templates/` (currently `common.md`), and a starter `AGENTS.md`; ensures `.env` contains `CODING_AGENT_GIT_NAME` and `CODING_AGENT_GIT_SIGNING_KEY`; adds helper coder scripts to `package.json`; ensures `.gitignore` contains `node_modules` and `/.promptbook`; creates missing `.gitattributes` with `* text=auto eol=lf`; and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
+| `ptbk coder generate-boilerplates`    | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root.                                                                                                                                                                                                                                                                         |
+| `ptbk coder run`                      | Picks the next ready prompt, can run project checks before coding to stop or repair pre-existing failures, appends optional context, runs it through the selected coding agent, can optionally check each attempt with the project command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                      |
+| `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow                                                                                                                                                                                                                                                                                                                                                         | low | medium | high | xhigh | extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
+| `ptbk coder verify`                   | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results.                                                                                                                                                                                                                                                                                                                                                    |
+
+#### Most useful `ptbk coder run` flags
+
+A **check** is the project's aggregate validation: tests, linting, typechecking, builds, generated-code consistency,
+and other quality checks. `ptbk init` and `ptbk coder init` preserve an existing `scripts.check`, or compose available
+validation scripts and report their scope. Configure the failing setup placeholder if the project has none.
+
+```bash
+ptbk coder run --harness openai-codex --check "npm run check" --check-before yes-and-fix
+ptbk coder run --harness openai-codex --check "npm run lint && npm run build && npm test"
+```
+
+The default preflight mode remains `no`. Enabled preflight uses `npm run check` when no command is supplied;
+post-prompt verification remains opt-in. Initial checks and repairs use the same command and actual process result.
+Replace retired `--test` and `--test-before` with `--check` and `--check-before`. Init migrates recognized generated
+scripts while preserving custom validation. For conflicts or custom callers, it reports the exact entries/files to
+review: preserve the required validation in `check`, update references, then remove the unused legacy entry.
+Automation that invokes `npm run test-for-ptbk-coder` must switch to `npm run check`. Restart an already-running
+Coder invocation with the new flags to release its captured legacy command; initialization creates no compatibility alias.
+
+| Flag                       | Purpose                                                                                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--harness <name>`         | Selects the coding harness.                                                                                                                                                                           |
+| `--agent <book>`           | Selects the primary Book; defaults to the selected project's `agents/developer.book`.                                                                                                                 |
+| `--path <directory>`       | Selects the project; defaults to invocation cwd. Relative paths start there, not at the CLI installation or enclosing Git root.                                                                       |
+| `--model <model>`          | Chooses the runner model; required for `openai-codex`, `gemini` and `qwen-code`, optional for `github-copilot`.                                                                                       |
+| `--context <text-or-file>` | Replaces the default project `AGENTS.md` with inline instructions or a project-relative file; an empty value disables context.                                                                        |
+| `--check <command>`        | Runs a verification command after each prompt attempt and feeds failing output back for retries.                                                                                                      |
+| `--check-before <mode>`    | Runs project checks before coding: `no` (default), `yes-and-fail` (stop with results), or `yes-and-fix` (create one repair prompt first); defaults to `npm run check` when enabled without `--check`. |
+| `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                                                                                                                          |
+| `--no-auto`                | Waits for user confirmation before each prompt instead of running automatically through the queue.                                                                                                    |
+| `--git-changes <mode>`     | Decides what happens with a dirty working tree: `fail` (default), `ignore` to keep the changes, or `continue` to resume the single interrupted `[^]` prompt with them.                                |
+| `--priority <n>`           | Runs only prompts at or above the given priority.                                                                                                                                                     |
+| `--dry-run`                | Prints which prompts are ready instead of executing them.                                                                                                                                             |
+| `--allow-credits`          | Lets OpenAI Codex spend credits when required.                                                                                                                                                        |
+| `--auto-push`              | Pushes each successful coding-agent commit to the configured remote.                                                                                                                                  |
+| `--auto-migrate`           | Runs testing-server database migrations after each successful prompt.                                                                                                                                 |
+
+#### Typical usage pattern
+
+1. Initialize once with `ptbk coder init`.
+2. Customize `prompts/templates/*.md` if needed, then create or write prompt files in `prompts/`.
+3. Customize `agents/developer.book` and `AGENTS.md`; the runner selects both automatically. Use `--path` for another project or `--agent` and `--context` for explicit overrides.
+4. Run unattended batches by default, or pass `--no-auto` to confirm each prompt interactively.
+5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
 
 
 
@@ -607,8 +811,6 @@ The following glossary is used to clarify certain concepts:
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 _Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 ### 💯 Core concepts
 
@@ -671,7 +873,17 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 
 
 
+## � Agents Server
+
+The **[Agents Server](https://gallery.ptbk.io/)** is the primary way to use Promptbook. It is a production-ready platform where you create, deploy, and manage persistent AI agents that work toward goals. Agents remember context across conversations, collaborate in teams, and follow the rules and knowledge you define in the Book language.
+
+-   **Hosted** at [gallery.ptbk.io](https://gallery.ptbk.io/) - start creating agents immediately
+-   **Self-hosted** via [Docker](https://hub.docker.com/r/hejny/promptbook/) - full control over your data and infrastructure
+-   **API** for integrating agents into your own applications
+
 ## 🚂 Promptbook Engine
+
+The Engine is the open-source core that powers the Agents Server. If you need to embed agent capabilities directly into your TypeScript/JavaScript application, you can use it as a standalone library.
 
 ![Schema of Promptbook Engine](./documents/promptbook-engine.svg)
 
@@ -679,21 +891,22 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 
 ### ➕ When to use
 
--   When you are writing app that generates complex things via LLM - like **websites, articles, presentations, code, stories, songs**,...
--   When you want to **separate code from text prompts**
--   When you want to describe **complex prompt pipelines** and don't want to do it in the code
--   When you want to **orchestrate multiple prompts** together
--   When you want to **reuse** parts of prompts in multiple places
--   When you want to **version** your prompts and **test multiple versions**
--   When you want to **log** the execution of prompts and backtrace the issues
+-   When you want to **deploy persistent AI agents** that work on goals for your company
+-   When you need agents with **specific personalities, knowledge, and rules** tailored to your business
+-   When you want agents that **collaborate in teams** and consult each other
+-   When you need to **integrate AI agents into your existing applications** via API
+-   When you want to **self-host** your AI agents with full control over data and infrastructure
+-   When you are writing an app that generates complex things via LLM - like **websites, articles, presentations, code, stories, songs**,...
+-   When you want to **version** your agent definitions and **test multiple versions**
+-   When you want to **log** agent execution and backtrace issues
 
 [See more](https://github.com/webgptorg/promptbook/discussions/111)
 
 ### ➖ When not to use
 
--   When you have already implemented single simple prompt and it works fine for your job
+-   When a single simple prompt already works fine for your job
 -   When [OpenAI Assistant (GPTs)](https://help.openai.com/en/articles/8673914-gpts-vs-assistants) is enough for you
--   When you need streaming _(this may be implemented in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/102))_.
+-   When you need streaming _(this may be implemented in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/102))_
 -   When you need to use something other than JavaScript or TypeScript _(other languages are on the way, [see the discussion](https://github.com/webgptorg/promptbook/discussions/101))_
 -   When your main focus is on something other than text - like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
 -   When you need to use recursion _([see the discussion](https://github.com/webgptorg/promptbook/discussions/38))_

@@ -1,3 +1,5 @@
+import { spaceTrim } from 'spacetrim';
+
 /**
  * Supported presentation variants for the application error page.
  */
@@ -24,6 +26,16 @@ export const DEFAULT_APPLICATION_ERROR_SERVER_NAME = 'Promptbook Agents Server';
 export const DEFAULT_APPLICATION_ERROR_VARIANT: ApplicationErrorVariant = 'advanced';
 
 /**
+ * Prefix used for downloaded application error report filenames.
+ */
+const APPLICATION_ERROR_REPORT_FILENAME_PREFIX = 'application-error-report';
+
+/**
+ * File extension used by exported application error reports.
+ */
+const APPLICATION_ERROR_REPORT_FILENAME_EXTENSION = '.md';
+
+/**
  * Raw text used when an exception does not include a stack or message.
  */
 const UNKNOWN_ERROR_HASH_SOURCE = 'unknown error';
@@ -42,6 +54,46 @@ const DECIMAL_BASE = 10;
  * Length of the digest string rendered in the UI.
  */
 const DIGEST_LENGTH = 10;
+
+/**
+ * Marker shown in markdown reports when optional values are missing.
+ */
+const MISSING_REPORT_VALUE_MARKDOWN = '_Unavailable_';
+
+/**
+ * Regex used to normalize report filenames to filesystem-friendly segments.
+ */
+const NON_FILENAME_CHARACTERS_PATTERN = /[^a-z0-9-]+/g;
+
+/**
+ * Regex used to merge repeated filename separators.
+ */
+const REPEATED_DASH_PATTERN = /-+/g;
+
+/**
+ * Regex used to trim separators from filename edges.
+ */
+const EDGE_DASH_PATTERN = /^-+|-+$/g;
+
+/**
+ * Regex used to sanitize code fence boundaries inside markdown blocks.
+ */
+const CODE_FENCE_PATTERN = /```/g;
+
+/**
+ * Regex matching webpack/Next.js chunk-load failures caused by stale or missing build assets.
+ */
+const CHUNK_LOAD_ERROR_MESSAGE_PATTERN = /loading (css )?chunk .* failed/i;
+
+/**
+ * Regex matching browsers that fail while fetching one dynamically imported module.
+ */
+const DYNAMIC_IMPORT_FETCH_ERROR_MESSAGE_PATTERN = /failed to fetch dynamically imported module/i;
+
+/**
+ * Regex matching Next.js-managed build asset URLs.
+ */
+const NEXT_BUILD_ASSET_PATH_PATTERN = /\/_next\/static\/(?:chunks|css)\//i;
 
 /**
  * Shape sent from the app error boundary to server-side Sentry forwarding.
@@ -126,6 +178,32 @@ export function createApplicationErrorDigest(error: ApplicationBoundaryError | n
 }
 
 /**
+ * Detects client-side build-asset errors that are commonly fixed by reloading the document once.
+ *
+ * @param error - Captured boundary exception.
+ * @returns True when the current document should be hard-refreshed instead of only retrying React navigation.
+ */
+export function isApplicationErrorRecoverableByHardRefresh(error: ApplicationBoundaryError | null): boolean {
+    const errorName = error?.name?.trim() || '';
+    const errorMessage = error?.message?.trim() || '';
+    const errorStack = error?.stack?.trim() || '';
+    const errorDetails = `${errorName}\n${errorMessage}\n${errorStack}`;
+
+    if (errorName === 'ChunkLoadError') {
+        return true;
+    }
+
+    if (CHUNK_LOAD_ERROR_MESSAGE_PATTERN.test(errorDetails)) {
+        return true;
+    }
+
+    return (
+        DYNAMIC_IMPORT_FETCH_ERROR_MESSAGE_PATTERN.test(errorDetails) &&
+        NEXT_BUILD_ASSET_PATH_PATTERN.test(errorDetails)
+    );
+}
+
+/**
  * Formats descriptive text shown beneath the application error headline.
  *
  * @param error - Captured boundary exception.
@@ -133,6 +211,10 @@ export function createApplicationErrorDigest(error: ApplicationBoundaryError | n
  * @returns Friendly summary of what happened.
  */
 export function describeApplicationError(error: ApplicationBoundaryError | null, serverName: string): string {
+    if (isApplicationErrorRecoverableByHardRefresh(error)) {
+        return `The browser could not load the latest application files for ${serverName}. Refreshing the page usually resolves this after a deployment or stale cached shell.`;
+    }
+
     if (error?.message) {
         return `${error.message.trim()} - the server for ${serverName} logged this failure.`;
     }
@@ -178,4 +260,130 @@ export function createApplicationErrorReportPayload(
         pageUrl,
         reportedAt: new Date().toISOString(),
     };
+}
+
+/**
+ * Normalizes one value for safe inclusion inside markdown fenced code blocks.
+ *
+ * @param value - Raw text value.
+ * @returns Sanitized text that cannot prematurely terminate the fence.
+ */
+function sanitizeForCodeFence(value: string): string {
+    return value.replace(CODE_FENCE_PATTERN, '\\`\\`\\`');
+}
+
+/**
+ * Formats optional report values into consistent markdown output.
+ *
+ * @param value - Optional text value.
+ * @returns Markdown-safe text or an explicit missing marker.
+ */
+function formatOptionalReportValue(value: string | undefined): string {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : MISSING_REPORT_VALUE_MARKDOWN;
+}
+
+/**
+ * Converts arbitrary deployment names into filesystem-safe filename segments.
+ *
+ * @param value - Raw deployment/server name.
+ * @returns Normalized lowercase segment without unsafe characters.
+ */
+function normalizeFilenameSegment(value: string): string {
+    const normalized = value
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_]+/g, '-')
+        .replace(NON_FILENAME_CHARACTERS_PATTERN, '-')
+        .replace(REPEATED_DASH_PATTERN, '-')
+        .replace(EDGE_DASH_PATTERN, '');
+
+    return normalized || 'server';
+}
+
+/**
+ * Converts ISO timestamps into filesystem-safe sortable identifiers.
+ *
+ * @param reportedAt - Browser-side report timestamp.
+ * @returns Safe timestamp segment usable inside filenames.
+ */
+function createFilenameTimestamp(reportedAt: string): string {
+    const parsedTimestamp = new Date(reportedAt);
+    const isoTimestamp = Number.isNaN(parsedTimestamp.getTime())
+        ? new Date().toISOString()
+        : parsedTimestamp.toISOString();
+
+    return isoTimestamp.replace(/[:.]/g, '-');
+}
+
+/**
+ * Builds the markdown report text shown to users for copy/download actions.
+ *
+ * @param report - Structured browser report payload.
+ * @param headline - User-facing title shown on the error page.
+ * @param description - User-facing explanation shown on the error page.
+ * @returns Markdown report with both friendly and low-level diagnostic context.
+ */
+export function createApplicationErrorReportMarkdown(
+    report: ApplicationErrorReportPayload,
+    headline: string,
+    description: string,
+): string {
+    const payloadJson = JSON.stringify(report, null, 2);
+    const errorMessage = formatOptionalReportValue(report.errorMessage);
+    const errorStack = formatOptionalReportValue(report.errorStack);
+    const pageUrl = formatOptionalReportValue(report.pageUrl);
+    const nextDigest = formatOptionalReportValue(report.nextDigest);
+
+    return spaceTrim(
+        (block) => `
+            # Application Error Report
+
+            ## Human Summary
+            ${block(sanitizeForCodeFence(headline.trim()))}
+
+            ${block(sanitizeForCodeFence(description.trim()))}
+
+            ## Correlation
+            - Server: \`${sanitizeForCodeFence(report.serverName)}\`
+            - Variant: \`${sanitizeForCodeFence(report.variant)}\`
+            - Digest: \`${sanitizeForCodeFence(report.digest)}\`
+            - Next.js digest: \`${sanitizeForCodeFence(nextDigest)}\`
+            - Reported at (UTC): \`${sanitizeForCodeFence(report.reportedAt)}\`
+
+            ## Request Context
+            - Page URL: \`${sanitizeForCodeFence(pageUrl)}\`
+
+            ## Exception
+            - Name: \`${sanitizeForCodeFence(report.errorName)}\`
+
+            ### Message
+            \`\`\`text
+            ${block(sanitizeForCodeFence(errorMessage))}
+            \`\`\`
+
+            ### Stack Trace
+            \`\`\`text
+            ${block(sanitizeForCodeFence(errorStack))}
+            \`\`\`
+
+            ## Raw Report Payload
+            \`\`\`json
+            ${block(sanitizeForCodeFence(payloadJson))}
+            \`\`\`
+        `,
+    );
+}
+
+/**
+ * Creates a deterministic markdown filename for downloadable error reports.
+ *
+ * @param report - Structured browser report payload.
+ * @returns Filesystem-safe filename ending with `.md`.
+ */
+export function createApplicationErrorReportFilename(report: ApplicationErrorReportPayload): string {
+    const serverSegment = normalizeFilenameSegment(report.serverName);
+    const timestampSegment = createFilenameTimestamp(report.reportedAt);
+
+    return `${APPLICATION_ERROR_REPORT_FILENAME_PREFIX}-${serverSegment}-${timestampSegment}${APPLICATION_ERROR_REPORT_FILENAME_EXTENSION}`;
 }

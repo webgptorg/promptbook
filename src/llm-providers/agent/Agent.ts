@@ -1,4 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import type {
     AgentBasicInformation,
     AgentCapability,
@@ -13,18 +14,14 @@ import { PROMPT_PARAMETER_SELF_LEARNING_ENABLED } from '../../constants';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
+import type { string_agent_hash, string_agent_name } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts, string_markdown } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_prompt } from '../../types/string_prompt';
+import type { string_date_iso8601 } from '../../types/string_token';
+import type { string_url_image } from '../../types/string_url_image';
 import type { SelfLearningToolCallResult, ToolCall } from '../../types/ToolCall';
-import type {
-    string_agent_hash,
-    string_agent_name,
-    string_agent_url,
-    string_color,
-    string_date_iso8601,
-    string_fonts,
-    string_markdown,
-    string_prompt,
-    string_url_image,
-} from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
 import { normalizeMessageText } from '../../utils/normalization/normalizeMessageText';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
@@ -104,7 +101,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
     /**
      * Capabilities of the agent
-     * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+     * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
      */
     public capabilities: Array<AgentCapability> = [];
 
@@ -133,6 +130,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public meta: {
         fullname?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
         link?: string;
         font?: string_fonts;
         color?: string_color;
@@ -166,6 +164,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             llmTools: getSingleLlmExecutionTools(options.executionTools.llm),
             assistantPreparationMode: options.assistantPreparationMode,
             agentSource: agentSource.value, // <- TODO: [🐱‍🚀] Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
+            precomputedModelRequirements: options.precomputedModelRequirements,
         });
         // TODO: [🐱‍🚀] Add `Agent` simple "mocked" learning by appending to agent source
         // TODO: [🐱‍🚀] Add `Agent` learning by promptbookAgent
@@ -322,6 +321,4 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     }
 }
 
-/**
- * TODO: [🧠][😰]Agent is not working with the parameters, should it be?
- */
+// TODO: [🧠][😰]Agent is not working with the parameters, should it be?

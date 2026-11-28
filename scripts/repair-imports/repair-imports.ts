@@ -4,13 +4,19 @@
 import colors from 'colors';
 import commander from 'commander';
 import { basename, dirname, join, relative } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
+import {
+    findLocallyMockedModulePaths,
+    parseNamedImportSpecifiers,
+    renderNamedImportStatement,
+    resolveImportEntity,
+} from './utils/repairImportUtils';
 /*
 import { findAllProjectFiles } from '../utils/findAllProjectFiles';
 import { execCommands } from '../utils/execCommand/execCommands';
@@ -18,16 +24,32 @@ import { splitArrayIntoChunks } from './utils/splitArrayIntoChunks';
 */
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: repair-imports.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--organize', `Organize imports`, false);
 program.option('--organize-all', `Organize all imports`, false);
 program.option('--commit', `Auto commit`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { organize: is organized, organize all: is organized all, commit: is commited }.
+ */
 const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited } = program.opts();
 
 /**
@@ -47,6 +69,9 @@ repairImports({ isOrganized, isOrganizedAll, isCommited })
         process.exit(0);
     });
 
+/**
+ * Repairs imports.
+ */
 async function repairImports({
     isOrganized,
     // isOrganizedAll,
@@ -62,7 +87,11 @@ async function repairImports({
         throw new Error(`Working tree is not clean`);
     }
 
-    const allEntities = await findAllProjectEntities();
+    const allEntities = await findAllProjectEntities({
+        includeScripts: true,
+        isApplicationSourceIncluded: true,
+        allowDuplicateNames: true,
+    });
     const files = await readAllProjectFiles();
     const unfoundEntities: Array<{ entity: string; filePath: string }> = [];
 
@@ -95,40 +124,47 @@ async function repairImports({
 
         const matches = Array.from(
             file.content.matchAll(
-                /**/ /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'\..*?';$/gm,
+                /**/ /^import\s+(?<topLevelType>type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'(?<importPath>\..*?)';$/gm,
                 //   /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'((.*?\.index))';$/gm,
             ),
         );
 
         if (matches.length === 0) {
             console.info(colors.gray('/' + relative(process.cwd(), file.path).split('\\').join('/')));
+            continue;
         } else {
             console.info(
                 colors.green('/' + relative(process.cwd(), file.path).split('\\').join('/') + ` (${matches.length}x)`),
             );
         }
 
+        const locallyMockedModulePaths = findLocallyMockedModulePaths(file.path, file.content);
+
         for (const match of matches) {
-            if (
-                file.path.includes('AzureOpenAiExecutionTools.ts') &&
-                match.groups!.importedEntities.includes('Usage')
-            ) {
-                console.log({ match });
+            const currentImportPath = match.groups!.importPath;
+
+            if (locallyMockedModulePaths.has(currentImportPath)) {
+                continue;
             }
 
-            const importedEntities = match
-                .groups!.importedEntities.split(',')
-                .map((importedEntity) => spaceTrim(importedEntity))
-                .filter((entity) => entity !== '');
+            const importedEntities = parseNamedImportSpecifiers(
+                match.groups!.importedEntities,
+                Boolean(match.groups!.topLevelType),
+            );
 
             const validImports: string[] = [];
             let hasUnfoundEntities = false;
 
             for (const importedEntity of importedEntities) {
-                const entity = allEntities.find(({ name }) => name === importedEntity);
+                const entity = resolveImportEntity({
+                    allEntities,
+                    currentFilePath: file.path,
+                    currentImportPath,
+                    importedName: importedEntity.importedName,
+                });
 
                 if (!entity) {
-                    unfoundEntities.push({ entity: importedEntity, filePath: file.path });
+                    unfoundEntities.push({ entity: importedEntity.importedName, filePath: file.path });
                     hasUnfoundEntities = true;
                 } else {
                     let importFrom = relative(dirname(file.path), entity.filename)
@@ -144,7 +180,10 @@ async function repairImports({
                     }
 
                     validImports.push(
-                        `import ${!entity.isType ? `` : `type `}{ ${importedEntity} } from '${importFrom}';`,
+                        renderNamedImportStatement({
+                            importFrom,
+                            importedSpecifier: importedEntity,
+                        }),
                     );
                 }
             }
@@ -227,6 +266,4 @@ async function repairImports({
     */
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [repair-imports](scripts/repair-imports/repair-imports.ts) should never be published in any package

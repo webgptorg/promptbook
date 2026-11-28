@@ -1,5 +1,6 @@
-import glob from 'glob-promise';
 import { basename } from 'path';
+import { findFilesByGlob } from '../../../src/utils/files/findFilesByGlob';
+import { isPromptDocumentationFile } from './isPromptDocumentationFile';
 
 /**
  * Configuration for calculating the next prompt numbering sequence.
@@ -52,7 +53,7 @@ export async function getPromptNumbering(options: PromptNumberingOptions): Promi
 
     const step = options.step ?? 10;
 
-    const promptFiles = await glob('**/*.md', {
+    const promptFiles = await findFilesByGlob('**/*.md', {
         cwd: options.promptsDir,
         ignore: options.ignoreGlobs,
         nodir: true,
@@ -62,6 +63,9 @@ export async function getPromptNumbering(options: PromptNumberingOptions): Promi
     let highestNumber = -step;
 
     for (const file of promptFiles) {
+        if (isPromptDocumentationFile(file)) {
+            continue;
+        }
         const match = basename(file).match(numberPattern);
         if (!match?.[1]) {
             continue;
@@ -95,6 +99,4 @@ export function buildPromptFilename(datePrefix: string, number: number, slug: st
     return `${datePrefix}-${formatPromptNumber(number)}-${slug}.md`;
 }
 
-/**
- * Note: [?] Code in this file should never be published in any package
- */
+// Note: [?] Code in this file should never be published in any package

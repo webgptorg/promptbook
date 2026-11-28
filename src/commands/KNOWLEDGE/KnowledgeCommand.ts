@@ -1,9 +1,10 @@
-import type { string_knowledge_source_content } from '../../types/typeAliases';
+import type { string_knowledge_source_content } from '../../types/string_knowledge_source_content';
 
 /**
  * Parsed KNOWLEDGE command
  *
  * @see ./knowledgeCommandParser.ts for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export type KnowledgeCommand = {

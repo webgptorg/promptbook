@@ -1,23 +1,95 @@
-import { spawn } from 'child_process';
+import { spaceTrim } from 'spacetrim';
+import { createScriptOutputLineReader, type ScriptOutputLineReader } from './createScriptOutputLineReader';
 import type { RunScriptUntilMarkerIdleOptions } from './RunScriptUntilMarkerIdleOptions';
+import { appendScriptExecutionLogFinish, appendScriptExecutionLogStart } from './scriptExecutionLog';
+import { $spawnLoggedBashScript } from './$spawnLoggedBashScript';
+import { $terminateLoggedBashProcessTree } from './$terminateLoggedBashProcessTree';
+import { printLiveScriptChunk } from './printLiveScriptChunk';
 import { toPosixPath } from './toPosixPath';
+
+/**
+ * Maximum number of output characters included in thrown error messages.
+ */
+const OUTPUT_SNIPPET_MAX_CHARS = 8000;
+
+/**
+ * Trims output to a safe size for one thrown error message.
+ */
+function createOutputSnippet(output: string): string {
+    const normalized = output.trim();
+    if (normalized.length <= OUTPUT_SNIPPET_MAX_CHARS) {
+        return normalized;
+    }
+
+    return spaceTrim(
+        (block) => `
+            ${block(normalized.slice(0, OUTPUT_SNIPPET_MAX_CHARS))}
+
+            ...[truncated]
+        `,
+    );
+}
+
+/**
+ * Builds one command failure message that keeps a useful snippet of CLI output.
+ */
+function buildCommandFailureMessage(scriptPathPosix: string, code: number | null, fullOutput: string): string {
+    const outputSnippet = createOutputSnippet(fullOutput);
+
+    if (!outputSnippet) {
+        return `Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}`;
+    }
+
+    return spaceTrim(
+        (block) => `
+            Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}
+
+            ${block(outputSnippet)}
+        `,
+    );
+}
 
 /**
  * Runs a script until a completion marker is observed and output is idle for a set timeout.
  * Returns the captured output.
  */
 export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions): Promise<string> {
+    options.signal?.throwIfAborted();
     const { scriptPath, completionLineMatcher, idleTimeoutMs } = options;
     const scriptPathPosix = toPosixPath(scriptPath);
+    const shouldPrintLiveOutput = options.shouldPrintLiveOutput ?? true;
+    await appendScriptExecutionLogStart(options);
+    options.signal?.throwIfAborted();
 
     return await new Promise<string>((resolve, reject) => {
-        const commandProcess = spawn('bash', [scriptPathPosix], { env: process.env });
-        let stdoutBuffer = '';
-        let stderrBuffer = '';
+        const commandProcess = $spawnLoggedBashScript({
+            projectPath: options.projectPath,
+            scriptPath,
+            logPath: options.logPath,
+            isLoginShell: options.isLoginShell,
+        });
+        const outputLineReaders: Readonly<Record<'stdout' | 'stderr', ScriptOutputLineReader>> = {
+            stdout: createScriptOutputLineReader(),
+            stderr: createScriptOutputLineReader(),
+        };
         let fullOutput = '';
         let markerSeen = false;
+        let isCompletedAfterIdleTimeout = false;
         let idleTimer: NodeJS.Timeout | undefined;
         let settled = false;
+        let isSettling = false;
+
+        /**
+         * Appends the final log footer before settling.
+         */
+        const finishLog = async (status: string, details?: unknown): Promise<void> => {
+            await appendScriptExecutionLogFinish({
+                scriptPath,
+                logPath: options.logPath,
+                status,
+                details,
+            });
+        };
 
         /**
          * Ensures the promise settles only once.
@@ -27,11 +99,40 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
                 return;
             }
             settled = true;
+            options.signal?.removeEventListener('abort', cancel);
             if (idleTimer) {
                 clearTimeout(idleTimer);
                 idleTimer = undefined;
             }
             handler();
+        };
+
+        /**
+         * Appends the final log footer and settles the promise exactly once.
+         */
+        const settleWithLog = (status: string, handler: () => void, details?: unknown): void => {
+            if (isSettling || settled) {
+                return;
+            }
+
+            isSettling = true;
+            void finishLog(status, details).finally(() => {
+                settleOnce(handler);
+            });
+        };
+
+        /**
+         * Stops a marker-completed process tree after its trailing output becomes idle.
+         */
+        const finishAfterIdleTimeout = (): void => {
+            isCompletedAfterIdleTimeout = true;
+            idleTimer = undefined;
+
+            try {
+                $terminateLoggedBashProcessTree(commandProcess);
+            } catch {
+                // The close handler below still settles normally when Bash already exited before the idle timer fired.
+            }
         };
 
         /**
@@ -41,17 +142,16 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
             if (idleTimer) {
                 clearTimeout(idleTimer);
             }
-            idleTimer = setTimeout(() => {
-                commandProcess.kill();
-                settleOnce(() => resolve(fullOutput));
-            }, idleTimeoutMs);
+            idleTimer = setTimeout(finishAfterIdleTimeout, idleTimeoutMs);
         };
 
         /**
          * Processes completed output lines to detect completion markers.
          */
-        const handleLines = (lines: string[]): void => {
+        const handleLines = (lines: readonly string[]): void => {
             for (const line of lines) {
+                options.onOutputLine?.(line);
+
                 if (completionLineMatcher.test(line)) {
                     markerSeen = true;
                     scheduleIdleExit();
@@ -68,25 +168,8 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
          */
         const handleChunk = (chunk: string, source: 'stdout' | 'stderr'): void => {
             fullOutput += chunk;
-            if (source === 'stderr') {
-                if (chunk.trim()) {
-                    console.warn(chunk);
-                }
-            } else {
-                console.info(chunk);
-            }
-
-            if (source === 'stdout') {
-                stdoutBuffer += chunk;
-                const lines = stdoutBuffer.split(/\r?\n/);
-                stdoutBuffer = lines.pop() ?? '';
-                handleLines(lines);
-            } else {
-                stderrBuffer += chunk;
-                const lines = stderrBuffer.split(/\r?\n/);
-                stderrBuffer = lines.pop() ?? '';
-                handleLines(lines);
-            }
+            printLiveScriptChunk(chunk, source, shouldPrintLiveOutput);
+            handleLines(outputLineReaders[source].readCompletedLines(chunk));
 
             if (markerSeen && chunk.length > 0) {
                 scheduleIdleExit();
@@ -100,26 +183,54 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
          * Handles process exit and resolves or rejects accordingly.
          */
         const handleExit = (code: number | null): void => {
-            settleOnce(() => {
-                if (code === 0 || markerSeen) {
+            if (options.signal?.aborted) {
+                settleWithLog('cancelled', () => reject(options.signal!.reason), options.signal.reason);
+                return;
+            }
+            const failure =
+                code === 0 || markerSeen
+                    ? undefined
+                    : new Error(buildCommandFailureMessage(scriptPathPosix, code, fullOutput));
+            const status = isCompletedAfterIdleTimeout
+                ? 'completed after idle timeout'
+                : failure
+                ? `failed with exit code ${code ?? 'unknown'}`
+                : 'succeeded';
+
+            settleWithLog(status, () => {
+                if (!failure) {
                     resolve(fullOutput);
                     return;
                 }
-                reject(new Error(`Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}`));
+
+                reject(failure);
             });
         };
 
+        // Wait for `close`, not only `exit`, because the Bash wrapper can still be flushing its tee process
+        // substitutions after the direct shell exits.
         commandProcess.on('close', handleExit);
-        commandProcess.on('exit', handleExit);
         commandProcess.on('disconnect', () => {
-            settleOnce(() => {
-                reject(new Error(`Command "bash ${scriptPathPosix}" disconnected`));
-            });
+            const failure = new Error(buildCommandFailureMessage(scriptPathPosix, null, fullOutput));
+            settleWithLog('failed after disconnect', () => reject(failure), failure);
         });
         commandProcess.on('error', (error) => {
-            settleOnce(() => {
-                reject(new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}`));
-            });
+            const outputSnippet = createOutputSnippet(fullOutput);
+            const failureMessage = outputSnippet
+                ? spaceTrim(
+                      (block) => `
+                          Command "bash ${scriptPathPosix}" failed: ${error.message}
+
+                          ${block(outputSnippet)}
+                      `,
+                  )
+                : `Command "bash ${scriptPathPosix}" failed: ${error.message}`;
+            const failure = new Error(failureMessage);
+            settleWithLog('failed before completion', () => reject(failure), failure);
         });
+        /** Cancels this shell tree without treating a previously seen completion marker as success. */
+        const cancel = (): void => $terminateLoggedBashProcessTree(commandProcess);
+        options.signal?.addEventListener('abort', cancel, { once: true });
+        if (options.signal?.aborted) cancel();
     });
 }

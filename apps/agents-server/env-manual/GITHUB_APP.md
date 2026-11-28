@@ -25,14 +25,14 @@ This document explains how to configure GitHub App authentication in Agents Serv
 
 ## 2. Configure Agents Server metadata
 
-GitHub App configuration now lives in **Metadata** so you can customize it per server listed in `SERVERS`.
+GitHub App configuration now lives in **Metadata** so you can customize it per server registered in the global `_Server` table.
 
 1. Open Agents Server → **System → Metadata**.
 2. Click **Add metadata entry** (or edit existing values) and configure the following keys:
     - **GITHUB_APP_ID** – numeric GitHub App ID from the app settings.
     - **GITHUB_APP_SLUG** – slug used in `https://github.com/apps/<slug>`.
     - **GITHUB_APP_PRIVATE_KEY** – PEM-encoded private key. Replace literal newlines with `\n` when editing through the UI and keep the `BEGIN/END` markers.
-    - **GITHUB_APP_STATE_SECRET** (optional, recommended) – random string used to sign OAuth/connect state. If unset, `ADMIN_PASSWORD` will be used as a fallback.
+    - **GITHUB_APP_STATE_SECRET** (optional, recommended) – random string used to sign OAuth/connect state.
 
 The values stored in Metadata override any legacy `.env` entries and can differ per server host.
 

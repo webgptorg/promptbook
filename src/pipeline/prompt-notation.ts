@@ -1,8 +1,8 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { REPLACING_NONCE } from '../constants';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import type { string_prompt } from '../types/typeAliases';
+import type { string_prompt } from '../types/string_prompt';
 import type { really_unknown } from '../utils/organization/really_unknown';
 import { templateParameters } from '../utils/parameters/templateParameters';
 import { valueToString } from '../utils/parameters/valueToString';
@@ -66,6 +66,7 @@ function isPromptString(value: really_unknown): value is PromptString {
  * @param strings
  * @param values
  * @returns prompt content wrapped as a PromptString
+ *
  * @public exported from `@promptbook/utils`
  */
 export function prompt(strings: TemplateStringsArray, ...values: Array<really_unknown>): PromptString {
@@ -187,12 +188,11 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
  * 3) `book` for notating and validating entire books exported from `@promptbook/utils`
  *
  * @alias prompt
+ *
  * @public exported from `@promptbook/utils`
  */
 export const promptTemplate = prompt;
 
-/**
- * TODO: Maybe split into multiple files
- * TODO: [🧠][🈴] Where is the best location for this file
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: Maybe split into multiple files
+// TODO: [🧠][🈴] Where is the best location for this file
+// Note: [💞] Ignore a discrepancy between file name and entity name

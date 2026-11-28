@@ -2,17 +2,18 @@
     margin: 10px 0;
     border-radius: 5px;
     overflow: hidden;
-    border: 1px solid #444; /* Dark mode border */
+    border: 1px solid #d0d7e2;
+    background: #ffffff;
     width: 100%;
     max-width: 100%;
 }
 
 .CodeBlockHeader {
-    background-color: #2d2d2d;
-    color: #ccc;
+    background-color: #f8fafc;
+    color: #475569;
     padding: 5px 10px;
     font-size: 0.8em;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid #d0d7e2;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -28,7 +29,7 @@
 .CreateAgentButton {
     background: transparent;
     border: none;
-    color: #aaa;
+    color: #64748b;
     cursor: pointer;
     font-size: inherit;
     padding: 0;
@@ -41,7 +42,30 @@
 .CopyButton:hover,
 .DownloadButton:hover,
 .CreateAgentButton:hover {
-    color: #fff;
+    color: #0f172a;
+}
+
+.CodeBlock[data-code-theme='dark'] {
+    border-color: #334155;
+    background: #0f172a;
+}
+
+.CodeBlock[data-code-theme='dark'] .CodeBlockHeader {
+    background-color: #111827;
+    color: #cbd5e1;
+    border-bottom-color: #334155;
+}
+
+.CodeBlock[data-code-theme='dark'] .CopyButton,
+.CodeBlock[data-code-theme='dark'] .DownloadButton,
+.CodeBlock[data-code-theme='dark'] .CreateAgentButton {
+    color: #94a3b8;
+}
+
+.CodeBlock[data-code-theme='dark'] .CopyButton:hover,
+.CodeBlock[data-code-theme='dark'] .DownloadButton:hover,
+.CodeBlock[data-code-theme='dark'] .CreateAgentButton:hover {
+    color: #f8fafc;
 }
 
 .CodeBlock :global(.monaco-editor),

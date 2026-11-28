@@ -246,7 +246,7 @@ rawResponse {
             "message": {
                 "role": "assistant",
                 "content": "Here’s a quick overview of Prague (Praha):\n\n- Location: Capital of the Czech Republic, in Central Europe, on the Vltava River (region of Bohemia).\n- Population: About 1.3 million (metro ~2.5–2.7 million).\n- Heritage: Historic center is a UNESCO World Heritage Site.\n- Highlights: Old Town Square and Astronomical Clock, Charles Bridge, Prague Castle and St. Vitus Cathedral, Jewish Quarter (Josefov), Wenceslas Square, Vyšehrad, Petrín Hill, Dancing House.\n- History: Capital of the Kingdom of Bohemia; seat of Holy Roman Emperor Charles IV; birthplace of the 1989 Velvet Revolution; Charles University (1348).\n- Culture: “City of a Hundred Spires”; rich classical music scene (Dvořák, Smetana, Mozart ties); excellent beer culture (Pilsner).\n- Language/Currency: Czech; Czech koruna (CZK). EU
-and Schengen member; euro not widely used.\n- Climate: Temperate continental—cold winters, warm summers. Best times: spring and fall.\n- Getting around: Walkable center; extensive metro/tram network; Václav Havel Airport (PRG).\n- Food to try: Svíčková, goulash with dumplings, chlebíčky (open-faced sandwiches), koláče; trdelník is popular but touristy.",
+and Schengen member; euro not widely used.\n- Climate: Temperate continental-cold winters, warm summers. Best times: spring and fall.\n- Getting around: Walkable center; extensive metro/tram network; Václav Havel Airport (PRG).\n- Food to try: Svíčková, goulash with dumplings, chlebíčky (open-faced sandwiches), koláče; trdelník is popular but touristy.",
                 "refusal": null,
                 "annotations": []
             },
@@ -283,7 +283,7 @@ and Schengen member; euro not widely used.\n- Climate: Temperate continental—c
       '- History: Capital of the Kingdom of Bohemia; seat of Holy Roman Emperor Charles IV; birthplace of the 1989 Velvet Revolution; Charles University (1348).\n' +
       '- Culture: “City of a Hundred Spires”; rich classical music scene (Dvořák, Smetana, Mozart ties); excellent beer culture (Pilsner).\n' +
       '- Language/Currency: Czech; Czech koruna (CZK). EU and Schengen member; euro not widely used.\n' +
-      '- Climate: Temperate continental—cold winters, warm summers. Best times: spring and fall.\n' +
+      '- Climate: Temperate continental-cold winters, warm summers. Best times: spring and fall.\n' +
       '- Getting around: Walkable center; extensive metro/tram network; Václav Havel Airport (PRG).\n' +
       '- Food to try: Svíčková, goulash with dumplings, chlebíčky (open-faced sandwiches), koláče; trdelník is popular but touristy.',
     modelName: 'gpt-5-2025-08-07',
@@ -326,7 +326,7 @@ Usage:
 - History: Capital of the Kingdom of Bohemia; seat of Holy Roman Emperor Charles IV; birthplace of the 1989 Velvet Revolution; Charles University (1348).
 - Culture: “City of a Hundred Spires”; rich classical music scene (Dvořák, Smetana, Mozart ties); excellent beer culture (Pilsner).
 - Language/Currency: Czech; Czech koruna (CZK). EU and Schengen member; euro not widely used.
-- Climate: Temperate continental—cold winters, warm summers. Best times: spring and fall.
+- Climate: Temperate continental-cold winters, warm summers. Best times: spring and fall.
 - Getting around: Walkable center; extensive metro/tram network; Václav Havel Airport (PRG).
 - Food to try: Svíčková, goulash with dumplings, chlebíčky (open-faced sandwiches), koláče; trdelník is popular but touristy.
 💬 OpenAI callChatModel call {

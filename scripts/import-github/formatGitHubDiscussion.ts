@@ -1,6 +1,9 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { GENERATOR_WARNING } from '../../src/config';
 
+/**
+ * Type describing git hub discussion for formatting.
+ */
 type GitHubDiscussionForFormatting = {
     number: number;
     title: string;
@@ -22,21 +25,21 @@ type GitHubDiscussionForFormatting = {
 
 /**
  * Formats a GitHub discussion as Markdown with metadata and optional comments.
+ *
  * @private function of ImportGitHub
  */
 export function formatGitHubDiscussion(discussion: GitHubDiscussionForFormatting): string {
     const comments = discussion.comments.nodes
-        .map(
-            (comment) =>
-                spaceTrim(
-                    (block) => `
+        .map((comment) =>
+            spaceTrim(
+                (block) => `
                             ### Comment by ${comment.author?.login || 'ghost'} on ${new Date(
-                        comment.createdAt,
-                    ).toLocaleString()}
+                    comment.createdAt,
+                ).toLocaleString()}
 
                             ${block(comment.body)}
                         `,
-                ),
+            ),
         )
         .join('\n\n---\n\n');
 

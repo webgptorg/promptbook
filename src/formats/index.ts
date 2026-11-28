@@ -10,6 +10,4 @@ import { XmlFormatParser } from './xml/XmlFormatParser';
  */
 export const FORMAT_DEFINITIONS = [JsonFormatParser, XmlFormatParser, TextFormatParser, CsvFormatParser] as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

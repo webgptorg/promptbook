@@ -24,6 +24,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Scrape knowledge from Markdown (playground)`);
 
@@ -68,6 +71,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [markdown-scraper-playground](src/scrapers/markdown/playground/markdown-scraper-playground.ts) should never be published in any package

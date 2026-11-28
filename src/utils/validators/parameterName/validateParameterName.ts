@@ -1,7 +1,7 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { RESERVED_PARAMETER_NAMES } from '../../../constants';
 import { ParseError } from '../../../errors/ParseError';
-import type { string_parameter_name, string_reserved_parameter_name } from '../../../types/typeAliases';
+import type { string_parameter_name, string_reserved_parameter_name } from '../../../types/string_name';
 import { normalizeTo_camelCase } from '../../normalization/normalizeTo_camelCase';
 import { removeDiacritics } from '../../normalization/removeDiacritics';
 import { removeEmojis } from '../../normalization/removeEmojis';
@@ -16,6 +16,7 @@ import { removeQuotes } from '../../normalization/removeQuotes';
  * @param parameterName The parameter name to validate and normalize.
  * @returns The validated and normalized parameter name.
  * @throws {ParseError} If the parameter name is empty, reserved, or contains invalid characters.
+ *
  * @private within the repository
  */
 export function validateParameterName(parameterName: string): string_parameter_name {

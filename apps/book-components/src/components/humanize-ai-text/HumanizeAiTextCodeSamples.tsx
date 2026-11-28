@@ -1,11 +1,19 @@
 import { Code as CodeIcon } from 'lucide-react';
+import { spaceTrim } from 'spacetrim';
 import { Code } from '../Code/Code';
 
+/**
+ * Handles humanize Ai text code samples.
+ */
 export default function HumanizeAiTextCodeSamples() {
     const samples = [
         {
             name: 'Humanize AI Text2',
-            code: `import { humanizeAiText } from '@promptbook/utils';\n\nhumanizeAiText('Hello World');`,
+            code: spaceTrim(`
+                import { humanizeAiText } from '@promptbook/utils';
+
+                humanizeAiText('Hello World');
+            `),
         },
     ];
 

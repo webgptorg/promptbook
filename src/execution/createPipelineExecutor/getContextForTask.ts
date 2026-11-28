@@ -1,8 +1,8 @@
 import type { ReadonlyDeep } from 'type-fest';
 import { RESERVED_PARAMETER_MISSING_VALUE } from '../../constants';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
+import type { string_parameter_value } from '../../types/string_name';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 
 /**
@@ -12,6 +12,7 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
  *
  * @param task - The task for which the context is being generated. This should be a deeply immutable TaskJson object.
  * @returns The context as a string, formatted as markdown and parameter value.
+ *
  * @private internal utility of `createPipelineExecutor`
  */
 export async function getContextForTask(

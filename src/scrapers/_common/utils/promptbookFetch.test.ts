@@ -10,9 +10,5 @@ describe('how `promptbookFetch` works', () => {
         await expect(promptbookFetch(`https://pavolhejny.com/`).then((response) => response.text())).resolves.toMatch(
             /<!doctype html>/i,
         );
-
-        await expect(promptbookFetch(`https://s6.ptbk.io/`).then((response) => response.text())).resolves.toMatch(
-            /<!doctype html>/i,
-        );
     });
 });

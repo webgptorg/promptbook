@@ -1,15 +1,33 @@
-import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 
 /**
- * Definition of a commitment that can be applied to agent model requirements
+ * Optional UI/docs-only deprecation metadata for one commitment keyword.
+ *
+ * @private internal type of `CommitmentDefinition`
+ */
+type CommitmentDeprecation = {
+    /**
+     * Human-readable deprecation note shown in editors and documentation.
+     */
+    readonly message: string;
+
+    /**
+     * Preferred replacement commitments, when applicable.
+     */
+    readonly replacedBy?: ReadonlyArray<string>;
+};
+
+/**
+ * Definition of a commitment that can be applied to agent model requirements.
  *
  * Each commitment is self-contained and manages its own logic for:
  * - Creating regex patterns for parsing
  * - Applying its effects to agent model requirements
+ *
+ * @public exported from `@promptbook/core`
  */
-
 export type CommitmentDefinition = {
     /**
      * The type/name of this commitment (e.g., 'PERSONA', 'KNOWLEDGE', etc.)
@@ -29,11 +47,40 @@ export type CommitmentDefinition = {
     readonly icon: string;
 
     /**
+     * Whether this commitment should be prioritized in menus, documentation, and intellisense.
+     */
+    readonly isImportant: boolean;
+
+    /**
+     * Whether this commitment is unfinished and not ready to use.
+     *
+     * Unfinished commitments are surfaced with low-level caution in the UI,
+     * documentation, and editor diagnostics.
+     */
+    readonly isUnfinished: boolean;
+
+    /**
+     * Whether this commitment is low-level and should be surfaced with caution.
+     *
+     * Low-level commitments are fully implemented, but they are intended for
+     * advanced use and are not used by most users.
+     */
+    readonly isLowLevel: boolean;
+
+    /**
      * Human-readable markdown documentation for this commitment.
      * Should explain what the commitment does and include example usage.
      * This is available at runtime for UIs, docs, and tooling.
      */
     readonly documentation: string;
+
+    /**
+     * Optional deprecation metadata for backward-compatible commitment aliases.
+     *
+     * This is intentionally UI/docs metadata only. It must not change runtime
+     * model requirements on its own.
+     */
+    readonly deprecation?: CommitmentDeprecation;
 
     /**
      * Creates a regex pattern to match this commitment in agent source

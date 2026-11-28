@@ -78,7 +78,7 @@
             > Now Promptbook's no ordinary textual spree,
             > It's a recipe, my friend, for wizardry.
             > With wits and bytes it stirs the pot,
-            > A .ptbk.md file—you know it's hot!
+            > A .ptbk.md file-you know it's hot!
             >
             > Orchestrate models, large and grand,
             > Promptbook takes you by the hand.
@@ -87,7 +87,7 @@
             >
             > Need a sonnet or a quirky rhyme?
             > Promptbook's got your back each time.
-            > "Manipulate natural text," they say—
+            > "Manipulate natural text," they say-
             > With Promptbook, command and it will obey.
             >
             > Imagine models jamming like a band,

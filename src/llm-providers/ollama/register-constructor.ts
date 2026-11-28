@@ -13,7 +13,5 @@ import { createOllamaExecutionTools } from './createOllamaExecutionTools';
  */
 export const _OllamaRegistration: Registration = $llmToolsRegister.register(createOllamaExecutionTools);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

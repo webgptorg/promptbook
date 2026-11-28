@@ -1,4 +1,4 @@
-import { promptbookCli } from './promptbookCli';
+import { $runPromptbookCli } from './$runPromptbookCli';
 
 /**
  * Note: [🔺] Purpose of this file is to export CLI for production environment
@@ -11,10 +11,8 @@ import { promptbookCli } from './promptbookCli';
  */
 export const _CLI = {
     // Note: [🥠]
-    _initialize_promptbookCli: promptbookCli,
+    _initialize_promptbookCli: $runPromptbookCli,
 };
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI entrypoint [main](src/cli/main.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

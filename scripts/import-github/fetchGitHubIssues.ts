@@ -1,5 +1,9 @@
+import { spaceTrim } from 'spacetrim';
 import { makeGitHubGraphQLRequest } from './makeGitHubGraphQLRequest';
 
+/**
+ * Type describing git hub issue.
+ */
 type GitHubIssue = {
     number: number;
     title: string;
@@ -21,6 +25,9 @@ type GitHubIssue = {
     };
 };
 
+/**
+ * Response for git hub issues.
+ */
 type GitHubIssuesResponse = {
     repository: {
         issues: {
@@ -35,6 +42,7 @@ type GitHubIssuesResponse = {
 
 /**
  * Fetches all GitHub issues for the Promptbook repository via pagination.
+ *
  * @private function of ImportGitHub
  */
 export async function fetchGitHubIssues(): Promise<GitHubIssue[]> {
@@ -42,7 +50,7 @@ export async function fetchGitHubIssues(): Promise<GitHubIssue[]> {
     let hasNextPage = true;
     let endCursor: string | null = null;
 
-    const query = `
+    const query = spaceTrim(`
         query($cursor: String) {
             repository(owner: "webgptorg", name: "promptbook") {
                 issues(first: 100, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
@@ -77,7 +85,7 @@ export async function fetchGitHubIssues(): Promise<GitHubIssue[]> {
                 }
             }
         }
-    `;
+    `);
 
     while (hasNextPage) {
         const data = await makeGitHubGraphQLRequest<GitHubIssuesResponse>(query, { cursor: endCursor });

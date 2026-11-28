@@ -10,6 +10,7 @@ import type { TODO_any } from '../organization/TODO_any';
  * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
  *
  * @returns The same object as the input, but deeply frozen
+ *
  * @public exported from `@promptbook/utils`
  */
 export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<$side_effect & TObject> {
@@ -30,6 +31,4 @@ export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<$side_e
     return objectValue as ReadonlyDeep<TObject>;
 }
 
-/**
- * TODO: [🧠] Is there a way how to meaningfully test this utility
- */
+// TODO: [🧠] Is there a way how to meaningfully test this utility

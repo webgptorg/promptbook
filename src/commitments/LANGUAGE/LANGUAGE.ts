@@ -70,21 +70,16 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
             return requirements;
         }
 
-        // Add language rule to the system message
-        const languageSection = this.createSystemMessageSection(
-            'Language:',
-            spaceTrim(
-                (block) => `
-                    ${block(trimmedContent)}
-                    <- You are speaking these languages in your responses to the user.
-                `,
-            ),
+        const languageSection = spaceTrim(
+            (block) => `
+                ## Language
+
+                -   Your language is ${block(trimmedContent)}
+            `,
         );
 
         return this.appendToSystemMessage(requirements, languageSection, '\n\n');
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,8 +1,9 @@
 'use client';
 
-import { CLAIM, NAME, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { CLAIM, NAME } from '@promptbook-local/core';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { HeadlessLink } from '../_utils/headlessParam';
+import { getCommitFooterEmoji } from './getCommitFooterEmoji';
 
 /**
  * Title/url pair used to extend the footer via metadata.
@@ -15,12 +16,25 @@ export type FooterLink = {
 };
 
 /**
+ * Lightweight precomputed version metadata rendered in the footer.
+ *
+ * @private Internal to `apps/agents-server`
+ */
+export type FooterVersionInfo = {
+    label: string;
+    url: string;
+    commitSha: string | null;
+    releasedAtLabel: string | null;
+};
+
+/**
  * Configuration passed to `Footer` from the layout container.
  *
  * @private Internal to `apps/agents-server`
  */
 type FooterProps = {
     extraLinks?: FooterLink[];
+    version: FooterVersionInfo;
 };
 
 /**
@@ -29,22 +43,25 @@ type FooterProps = {
  * @private Internal to `apps/agents-server`
  */
 export function Footer(props: FooterProps) {
-    const { extraLinks = [] } = props;
+    const { extraLinks = [], version } = props;
     const { t } = useServerLanguage();
+    const versionText = version.releasedAtLabel ? `${version.label}, ${version.releasedAtLabel}` : version.label;
 
     return (
-        <footer className="border-t bg-white">
+        <footer className="border-t border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-950">
             <div className="container mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     {/* Company Info */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{NAME}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">{NAME}</h3>
                         <p className="text-sm text-muted-foreground text-gray-500">{CLAIM}</p>
                     </div>
 
                     {/* Products */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{t('footer.productSectionTitle')}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                            {t('footer.productSectionTitle')}
+                        </h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <HeadlessLink href="/get-started" className="text-gray-500 hover:text-gray-900">
@@ -79,7 +96,9 @@ export function Footer(props: FooterProps) {
 
                     {/* Company */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{t('footer.companySectionTitle')}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                            {t('footer.companySectionTitle')}
+                        </h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a
@@ -109,7 +128,9 @@ export function Footer(props: FooterProps) {
 
                     {/* Social */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">{t('footer.connectSectionTitle')}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                            {t('footer.connectSectionTitle')}
+                        </h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a
@@ -143,7 +164,9 @@ export function Footer(props: FooterProps) {
                     {/* Extra Links from Metadata */}
                     {extraLinks.length > 0 && (
                         <div className="space-y-4">
-                            <h3 className="font-bold">{t('footer.linksSectionTitle')}</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                                {t('footer.linksSectionTitle')}
+                            </h3>
                             <ul className="space-y-2 text-sm">
                                 {extraLinks.map((link, index) => (
                                     <li key={index}>
@@ -162,17 +185,22 @@ export function Footer(props: FooterProps) {
                     )}
                 </div>
 
-                <div className="border-t mt-8 pt-8 text-center text-sm text-gray-500">
+                <div className="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
                     <p>
                         &copy; {new Date().getFullYear()} Promptbook
                         <br />
-                        {t('footer.allRightsReserved')}
-                        <br />
-                        {t('footer.madeInCzechRepublic')}
+                        {t('footer.madeInCzechRepublic', { emoji: getCommitFooterEmoji(version.commitSha) })}
                         {/* <- TODO: !!!!!!!! Put here Prague outline */}
                     </p>
-                    <p className="mt-2 text-xs text-gray-400">
-                        {t('footer.engineVersion')} {PROMPTBOOK_ENGINE_VERSION}
+                    <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
+                        <a
+                            href={version.url}
+                            className="hover:text-gray-600 dark:hover:text-slate-300"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {versionText}
+                        </a>
                     </p>
                 </div>
                 {/*

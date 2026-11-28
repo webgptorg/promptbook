@@ -1,5 +1,8 @@
 import type { Json } from '../database/schema';
 
+/**
+ * Type describing message row.
+ */
 export type MessageRow = {
     id: number;
     createdAt: string;
@@ -14,6 +17,9 @@ export type MessageRow = {
     sendAttempts?: MessageSendAttemptRow[];
 };
 
+/**
+ * Type describing message send attempt row.
+ */
 export type MessageSendAttemptRow = {
     id: number;
     createdAt: string;
@@ -23,19 +29,43 @@ export type MessageSendAttemptRow = {
     raw: Json;
 };
 
+/**
+ * Message list sort fields supported by the admin API.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export type MessageSortField = 'createdAt' | 'channel' | 'direction' | 'content';
+
+/**
+ * Message list sort direction supported by the admin API.
+ *
+ * @private internal admin utility of Agents Server
+ */
+export type MessageSortOrder = 'asc' | 'desc';
+
+/**
+ * Response for messages list.
+ */
 export type MessagesListResponse = {
     items: MessageRow[];
     total: number;
     page: number;
     pageSize: number;
+    sortBy: MessageSortField;
+    sortOrder: MessageSortOrder;
 };
 
+/**
+ * Type describing messages list params.
+ */
 export type MessagesListParams = {
     page?: number;
     pageSize?: number;
     search?: string;
     channel?: string;
     direction?: string;
+    sortBy?: MessageSortField;
+    sortOrder?: MessageSortOrder;
 };
 
 /**
@@ -49,6 +79,8 @@ function buildQuery(params: MessagesListParams): string {
     if (params.search) searchParams.set('search', params.search);
     if (params.channel) searchParams.set('channel', params.channel);
     if (params.direction) searchParams.set('direction', params.direction);
+    if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
     const qs = searchParams.toString();
     return qs ? `?${qs}` : '';

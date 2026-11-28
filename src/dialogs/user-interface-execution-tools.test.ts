@@ -42,6 +42,9 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
     });
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`

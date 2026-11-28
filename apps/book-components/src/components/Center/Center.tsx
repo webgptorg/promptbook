@@ -1,5 +1,8 @@
 import { CSSProperties, ReactNode } from 'react';
 
+/**
+ * Handles center.
+ */
 export function Center({ children }: { children: ReactNode }) {
     const style: CSSProperties = {
         display: 'flex',

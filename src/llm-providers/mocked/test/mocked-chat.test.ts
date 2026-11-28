@@ -109,6 +109,9 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with example chat
     */
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`
@@ -150,7 +153,5 @@ async function getPipelineExecutor() {
     return pipelineExecutor;
 }
 
-/**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
- * Note: [🤖] For each new model variant consider adding new testing unit like "faked-completion.test.ts", "mocked-chat.test.ts" and "mocked-completion.test.ts"
- */
+// TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
+// Note: [🤖] For each new model variant consider adding new testing unit like "faked-completion.test.ts", "mocked-chat.test.ts" and "mocked-completion.test.ts"

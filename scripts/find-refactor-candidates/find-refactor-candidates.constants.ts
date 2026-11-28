@@ -31,34 +31,14 @@ export const SOURCE_FILE_IGNORE_GLOBS: ReadonlyArray<string> = [
 ];
 
 /**
- * Default maximum line count for source files.
- */
-export const DEFAULT_MAX_LINE_COUNT = 2000;
-
-/**
- * Per-extension line count limits.
- */
-export const LINE_COUNT_LIMITS_BY_EXTENSION: Readonly<Record<string, number>> = {
-    '.ts': 2000,
-    '.tsx': 2000,
-    '.js': 2000,
-    '.jsx': 2000,
-};
-
-/**
  * Glob patterns that are exempt from line-count checks.
  */
 export const LINE_COUNT_EXEMPT_GLOBS: ReadonlyArray<string> = ['other/cspell-dictionaries/**/*.txt'];
 
 /**
- * Maximum number of entities before a file is flagged.
+ * File extensions eligible for structural AST analysis.
  */
-export const MAX_ENTITIES_PER_FILE = 20;
-
-/**
- * File extensions eligible for entity counting.
- */
-export const ENTITY_COUNT_EXTENSIONS: ReadonlyArray<string> = ['.ts', '.tsx', '.js', '.jsx'];
+export const STRUCTURAL_ANALYSIS_EXTENSIONS: ReadonlyArray<string> = ['.ts', '.tsx', '.js', '.jsx'];
 
 /**
  * Markers that identify generated files which should be skipped.

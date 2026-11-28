@@ -5,8 +5,9 @@ import { AgentsServerDatabase } from './schema';
 /**
  * Internal cache for `$provideSupabaseForBrowser`
  *
- * @private
  * @singleton
+ *
+ * @private
  */
 let supabase: SupabaseClient<AgentsServerDatabase>;
 
@@ -36,6 +37,4 @@ export function $provideSupabaseForBrowser(): typeof supabase {
     return supabase;
 }
 
-/**
- * Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file
- */
+// Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file

@@ -3,12 +3,12 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
+import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatProps } from '../Chat/ChatProps';
 import type { SendMessageToLlmChatFunction } from '../hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { AgentChipData } from '../AgentChip/AgentChip';
 
 /**
  * Determines how the chat reset action should behave when user clicks "New chat".

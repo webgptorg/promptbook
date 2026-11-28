@@ -6,17 +6,9 @@ import { loginAsAdmin } from './support/auth';
  */
 test.describe('Agents Server API authorization', () => {
     test('returns unauthorized metadata API response for anonymous users', async ({ page }) => {
-        await page.goto('/');
-        const response = await page.evaluate(async () => {
-            const metadataResponse = await fetch('/api/metadata');
-            return {
-                status: metadataResponse.status,
-                body: (await metadataResponse.json()) as unknown,
-            };
-        });
-
-        expect(response.status).toBe(401);
-        expect(response.body).toMatchObject({ error: 'Unauthorized' });
+        const metadataResponse = await page.request.get('/api/metadata');
+        expect(metadataResponse.status()).toBe(401);
+        expect(await metadataResponse.json()).toMatchObject({ error: 'Unauthorized' });
     });
 
     test('allows admin metadata API access and blocks admin password changes through API', async ({ page }) => {
@@ -50,6 +42,7 @@ test.describe('Agents Server API authorization', () => {
                 body: (await response.json()) as unknown,
             };
         });
+
         expect(changePasswordResponse.status).toBe(403);
         expect(changePasswordResponse.body).toMatchObject({
             error: 'You cannot change the admin password. Please update the `ADMIN_PASSWORD` environment variable.',

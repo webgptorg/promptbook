@@ -1,11 +1,16 @@
 import { writeFile } from 'fs/promises';
 import moment from 'moment';
 import { extname } from 'path';
+import { spaceTrim } from 'spacetrim';
+import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 
+/**
+ * Options for write prompt error log.
+ */
 type WritePromptErrorLogOptions = {
     file: PromptFile;
     section: PromptSection;
@@ -16,36 +21,41 @@ type WritePromptErrorLogOptions = {
 
 /**
  * Writes the failure details for a single prompt run next to the prompt markdown file.
+ *
+ * Returns the path of the written log so callers can include it in a commit.
  */
-export async function writePromptErrorLog(options: WritePromptErrorLogOptions): Promise<void> {
+export async function writePromptErrorLog(options: WritePromptErrorLogOptions): Promise<string> {
     const logPath = buildPromptErrorLogPath(options.file.path);
     const label = buildPromptLabelForDisplay(options.file, options.section);
     const summary = buildPromptSummary(options.file, options.section);
-    const details = buildErrorDetails(options.error);
+    const details = formatUnknownErrorDetails(options.error);
 
     const modelSuffix = options.modelName ? ` (${options.modelName})` : '';
     const runnerLabel = `${options.runnerName || 'unknown'}${modelSuffix}`;
 
-    const log = [
-        `Timestamp: ${moment().toISOString()}`,
-        `Prompt: ${label}`,
-        `Prompt file: ${options.file.path}`,
-        `Prompt section: ${options.section.index + 1}`,
-        `Prompt summary: ${summary}`,
-        `Runner: ${runnerLabel}`,
-        '',
-        'CLI output and error:',
-        details,
-        '',
-    ].join('\n');
+    const log = spaceTrim(
+        (block) => `
+            Timestamp: ${moment().toISOString()}
+            Prompt: ${label}
+            Prompt file: ${options.file.path}
+            Prompt section: ${options.section.index + 1}
+            Prompt summary: ${summary}
+            Runner: ${runnerLabel}
+
+            CLI output and error:
+            ${block(details)}
+        `,
+    );
 
     await writeFile(logPath, log, 'utf-8');
+
+    return logPath;
 }
 
 /**
  * Returns the failure log path for a prompt markdown file.
  */
-function buildPromptErrorLogPath(promptPath: string): string {
+export function buildPromptErrorLogPath(promptPath: string): string {
     const extension = extname(promptPath);
 
     if (extension.toLowerCase() === '.md') {
@@ -53,19 +63,4 @@ function buildPromptErrorLogPath(promptPath: string): string {
     }
 
     return `${promptPath}.error.log`;
-}
-
-/**
- * Formats unknown error values into a readable log payload.
- */
-function buildErrorDetails(error: unknown): string {
-    if (error instanceof Error) {
-        return error.stack || error.message;
-    }
-
-    if (typeof error === 'string') {
-        return error;
-    }
-
-    return JSON.stringify(error, null, 2);
 }

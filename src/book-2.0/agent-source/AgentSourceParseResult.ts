@@ -1,5 +1,6 @@
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
-import { string_agent_name } from '../../types/typeAliases';
+import type { string_agent_name } from '../../types/string_agent_name';
+import type { ParsedUnknownCommitment } from './ParsedUnknownCommitment';
 
 /**
  * Result of parsing agent source for commitments
@@ -8,7 +9,7 @@ import { string_agent_name } from '../../types/typeAliases';
  */
 export type AgentSourceParseResult = {
     /**
-     * The agent name (first line)
+     * The agent name taken from the first non-empty line after leading whitespace-only lines.
      */
     agentName: string_agent_name | null;
 
@@ -21,6 +22,11 @@ export type AgentSourceParseResult = {
      * All parsed commitments
      */
     commitments: ParsedCommitment[];
+
+    /**
+     * Uppercase commitment blocks whose types are not registered by Promptbook.
+     */
+    unknownCommitments: ParsedUnknownCommitment[];
 
     /**
      * Lines that are not commitments (for system message)

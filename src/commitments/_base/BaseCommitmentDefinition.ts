@@ -1,7 +1,7 @@
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createCommitmentRegex, createCommitmentTypeRegex } from '../../book-2.0/agent-source/createCommitmentRegex';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
-import { string_javascript_name } from '../../types/typeAliases';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import type { BookCommitment } from './BookCommitment';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 
@@ -42,10 +42,38 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     public abstract get icon(): string;
 
     /**
+     * Whether this commitment should be prioritized in menus, documentation, and intellisense.
+     */
+    public get isImportant(): boolean {
+        return false;
+    }
+
+    /**
+     * Whether this commitment is unfinished and not ready to use.
+     */
+    public get isUnfinished(): boolean {
+        return false;
+    }
+
+    /**
+     * Whether this commitment is low-level and should be surfaced with caution.
+     */
+    public get isLowLevel(): boolean {
+        return false;
+    }
+
+    /**
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */
     public abstract get documentation(): string;
+
+    /**
+     * Optional UI/docs-only deprecation metadata.
+     */
+    public get deprecation(): CommitmentDefinition['deprecation'] {
+        return undefined;
+    }
 
     /**
      * Creates a regex pattern to match this commitment in agent source
@@ -177,6 +205,71 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
         } else {
             return this.appendToSystemMessage(requirements, commentSection);
         }
+    }
+
+    /**
+     * Helper method to append a bullet point to an existing `## SectionTitle` section in the system
+     * message, or to create a new section when it does not yet exist.
+     *
+     * Handles the case where the same commitment type appears multiple times in the book source and
+     * all entries should be grouped under one shared heading rather than emitting a duplicate block.
+     *
+     * @param requirements - Current model requirements.
+     * @param sectionTitle - Section title without the `##` prefix.
+     * @param bulletContent - Bullet content without the leading `-   ` prefix.
+     * @returns Requirements with the bullet appended to the section.
+     */
+    protected appendBulletPointToSection(
+        requirements: AgentModelRequirements,
+        sectionTitle: string,
+        bulletContent: string,
+    ): AgentModelRequirements {
+        const sectionHeader = `## ${sectionTitle}`;
+        const bullet = `-   ${bulletContent}`;
+
+        if (requirements.systemMessage.includes(sectionHeader)) {
+            // Append bullet to end of existing section, before the next h2 heading or end of message
+            const newSystemMessage = requirements.systemMessage.replace(
+                new RegExp(
+                    `(## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n\\n)([\\s\\S]*?)(?=\\n\\n##|$)`,
+                ),
+                `$1$2\n${bullet}`,
+            );
+            return { ...requirements, systemMessage: newSystemMessage };
+        }
+
+        return this.appendToSystemMessage(requirements, `${sectionHeader}\n\n${bullet}`, '\n\n');
+    }
+
+    /**
+     * Helper method to replace an existing `## SectionTitle` section in the system message, or to
+     * append a new one when the section does not yet exist.
+     *
+     * Use this when a commitment type can appear multiple times and each subsequent occurrence should
+     * update the single shared section rather than appending a duplicate block.
+     *
+     * @param requirements - Current model requirements.
+     * @param sectionTitle - Section title without the `##` prefix.
+     * @param sectionContent - Full section content including the `## Title` header line.
+     * @returns Requirements with the section replaced or appended.
+     */
+    protected replaceOrCreateSection(
+        requirements: AgentModelRequirements,
+        sectionTitle: string,
+        sectionContent: string,
+    ): AgentModelRequirements {
+        const sectionHeader = `## ${sectionTitle}`;
+
+        if (requirements.systemMessage.includes(sectionHeader)) {
+            // Replace all text from the heading until the next h2 heading or end of message
+            const newSystemMessage = requirements.systemMessage.replace(
+                new RegExp(`## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?(?=\\n\\n##|$)`),
+                sectionContent,
+            );
+            return { ...requirements, systemMessage: newSystemMessage };
+        }
+
+        return this.appendToSystemMessage(requirements, sectionContent, '\n\n');
     }
 
     /**

@@ -1,5 +1,6 @@
 import type { Promisable } from 'type-fest';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_title } from '../../types/string_title';
 import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
@@ -56,7 +57,9 @@ export class BingSearchEngine implements SearchEngine {
 }
 
 /**
- * @see https://learn.microsoft.com/en-us/bing/search-apis/bing-web-search/reference/response-objects
+ * Https://learn.microsoft.com/en-us/bing/search-apis/bing-web-search/reference/response-objects.
+ *
+ * @see
  */
 type BingSearchResponse = {
     webPages?: {

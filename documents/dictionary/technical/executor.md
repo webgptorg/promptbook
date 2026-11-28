@@ -17,7 +17,7 @@ The `PipelineExecutor` is used to run [Pipelines](../core/pipeline.md). It follo
 The `AgentExecutor` (often accessed via the `Agent` class) is used for modern [Agents](../core/agent.md). It is more dynamic and conversational:
 -   It maintains the state of the conversation.
 -   It applies the agent's [PERSONA](../commitments/persona.md) and [RULES](../commitments/rule.md) to every interaction.
--   It manages the agent's capabilities, such as [Browsing](../commitments/use-browser.md) or [Searching](../commitments/use-search-engine.md).
+-   It manages the agent's capabilities, such as [external tools](../commitments/use-mcp.md).
 -   It can use [Knowledge](./scraping.md) sources to inform its responses.
 
 ## Responsibilities of an Executor

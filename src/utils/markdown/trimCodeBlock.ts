@@ -5,7 +5,7 @@ import { spaceTrim } from 'spacetrim';
  *
  * Note: [🔂] This function is idempotent.
  * Note: This is useful for post-processing of the result of the chat LLM model
- *       when the model wraps the result in the (markdown) code block.
+ * when the model wraps the result in the (markdown) code block.
  *
  * @public exported from `@promptbook/markdown-utils`
  */

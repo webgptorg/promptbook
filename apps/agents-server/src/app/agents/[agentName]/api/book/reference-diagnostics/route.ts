@@ -1,8 +1,12 @@
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { createBookScopedAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { createAgentInheritanceDiagnostics } from '@/src/utils/agentReferenceResolver/createAgentInheritanceDiagnostics';
 import { createUnresolvedAgentReferenceDiagnostics } from '@/src/utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { createAgentNameCollisionDiagnostics } from '@/src/utils/agentReferenceResolver/createAgentNameCollisionDiagnostics';
+import { resolveCoreAgentAwareMissingReferences } from '@/src/utils/agentReferenceResolver/resolveCoreAgentAwareMissingReferences';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { string_book } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
@@ -18,6 +22,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     agentName = decodeURIComponent(agentName);
 
     try {
+        if (!(await getCurrentUser())) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         const forceRefresh = isTruthySearchParam(new URL(request.url).searchParams.get('forceRefresh'));
         const agentSource = (await request.text()) as string_book;
         const collection = await $provideAgentCollectionForServer();
@@ -30,17 +41,35 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             fallbackResolver: baseAgentReferenceResolver,
         });
 
-        const [referenceDiagnostics, nameCollisionDiagnostics] = await Promise.all([
-            createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver),
-            createAgentNameCollisionDiagnostics(agentSource, parentAgentPermanentId, collection),
-        ]);
+        const localServerUrl = new URL(request.url).origin;
+        const [referenceDiagnostics, nameCollisionDiagnostics, inheritanceDiagnostics, isReinstateAllowed] =
+            await Promise.all([
+                createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver),
+                createAgentNameCollisionDiagnostics(agentSource, parentAgentPermanentId, collection),
+                createAgentInheritanceDiagnostics({
+                    agentSource,
+                    agentPermanentId: parentAgentPermanentId,
+                    collection,
+                    localServerUrl,
+                }),
+                isUserAdmin(),
+            ]);
+        const missingAgentReferences = await resolveCoreAgentAwareMissingReferences({
+            agentSource,
+            missingAgentReferences: referenceDiagnostics.missingAgentReferences,
+            isReinstateAllowed,
+        });
 
         return new Response(
             JSON.stringify({
                 isSuccessful: true,
                 agentName,
-                diagnostics: [...referenceDiagnostics.diagnostics, ...nameCollisionDiagnostics],
-                missingAgentReferences: referenceDiagnostics.missingAgentReferences,
+                diagnostics: [
+                    ...referenceDiagnostics.diagnostics,
+                    ...nameCollisionDiagnostics,
+                    ...inheritanceDiagnostics,
+                ],
+                missingAgentReferences,
             }),
             {
                 status: 200,
@@ -71,5 +100,7 @@ function isTruthySearchParam(value: string | null): boolean {
     }
 
     const normalizedValue = value.trim().toLowerCase();
-    return normalizedValue === '1' || normalizedValue === 'true' || normalizedValue === 'yes' || normalizedValue === 'on';
+    return (
+        normalizedValue === '1' || normalizedValue === 'true' || normalizedValue === 'yes' || normalizedValue === 'on'
+    );
 }

@@ -3,11 +3,17 @@
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../_common/components/Tabs/Tabs';
 
+/**
+ * Props for website integration tabs.
+ */
 type WebsiteIntegrationTabsProps = {
     reactCode: string;
     htmlCode: string;
 };
 
+/**
+ * Handles website integration tabs.
+ */
 export function WebsiteIntegrationTabs({ reactCode, htmlCode }: WebsiteIntegrationTabsProps) {
     return (
         <Tabs defaultValue="react" className="w-full">

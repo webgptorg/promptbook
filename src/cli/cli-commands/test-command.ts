@@ -3,9 +3,8 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { readFile } from 'fs/promises';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -18,6 +17,7 @@ import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
+import { findFilesByGlob } from '../../utils/files/findFilesByGlob';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
@@ -89,7 +89,7 @@ export function $initializeTestCommand(program: Program): $side_effect {
 
             const ignore = (ignoreRaw as string).split(',').map((pattern) => pattern.trim());
 
-            const filenames = await glob(filesGlob!, { ignore });
+            const filenames = await findFilesByGlob(filesGlob!, { ignore });
             //                       <- TODO: [😶]
 
             // console.log({ filesGlob, ignore, filenames });
@@ -137,10 +137,8 @@ export function $initializeTestCommand(program: Program): $side_effect {
     );
 }
 
-/**
- * TODO: [😶] Unite folder listing
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
- * Note: This is named "test-command.ts" to avoid name collision with jest unit test files
- */
+// Note: [🟡] Code for CLI command [test-command](src/cli/cli-commands/test-command.ts) should never be published outside of `@promptbook/cli`
+// TODO: [😶] Unite folder listing
+// Note: [💞] Ignore a discrepancy between file name and entity name
+// TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
+// Note: This is named "test-command.ts" to avoid name collision with jest unit test files

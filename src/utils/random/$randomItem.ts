@@ -10,6 +10,4 @@ export function $randomItem<TItem>(...items: Array<TItem>): TItem {
     return items[Math.floor(Math.random(/* <- TODO: [🐉] Probably use seed random */) * items.length)]!;
 }
 
-/**
- * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
- */
+// TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

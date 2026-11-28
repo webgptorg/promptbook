@@ -1,10 +1,21 @@
 import colors from 'colors';
-import type {
+import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import type { RefactorCandidateLevel } from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
+import {
+    DEFAULT_REFACTOR_CANDIDATE_LEVEL,
+    getRefactorCandidateLevelDescription,
+    REFACTOR_CANDIDATE_LEVEL_VALUES,
+} from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { createPositiveIntegerOptionParser } from '../common/createPositiveIntegerOptionParser';
+import { $preflightWorkspaceRepository } from '../common/workspaceRepository';
+import { addWorkspaceRepositoryOptions } from '../common/workspaceRepositoryCliOptions';
+import { normalizeProjectCliOptions } from '../common/projectCliOptions';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
@@ -17,26 +28,55 @@ import { handleActionErrors } from '../common/handleActionErrors';
 export function $initializeCoderFindRefactorCandidatesCommand(program: Program): $side_effect {
     const command = program.command('find-refactor-candidates');
     command.description(
-        spaceTrim(`
-            Scan source files to identify refactoring candidates
+        spaceTrim(
+            (block) => `
+                Scan source files to identify refactoring candidates
 
-            Flags files that exceed:
-            - Line count limits (500 lines per file by extension)
-            - Entity count limits (max 4 entities per file)
+                Levels:
+                ${block(
+                    REFACTOR_CANDIDATE_LEVEL_VALUES.map(
+                        (level) => `- ${level}: ${getRefactorCandidateLevelDescription(level)}`,
+                    ).join('\n'),
+                )}
 
-            Generates refactor prompts with guidance for identified candidates.
-        `),
+                Generates refactor prompts with guidance for identified candidates.
+            `,
+        ),
+    );
+    command.addOption(
+        new Option('--level <level>', `Set scan aggressiveness (${REFACTOR_CANDIDATE_LEVEL_VALUES.join(', ')})`)
+            .choices([...REFACTOR_CANDIDATE_LEVEL_VALUES])
+            .default(DEFAULT_REFACTOR_CANDIDATE_LEVEL),
+    );
+    command.option(
+        '--limit <candidate-count>',
+        'Create at most this many refactor prompts, keeping the most important candidates',
+        createPositiveIntegerOptionParser('--limit'),
     );
 
+    addWorkspaceRepositoryOptions(command);
+
     command.action(
-        handleActionErrors(async () => {
+        handleActionErrors(async (cliOptions) => {
+            const projectOptions = normalizeProjectCliOptions(cliOptions);
+            const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL, limit } = cliOptions as {
+                readonly level?: RefactorCandidateLevel;
+                readonly limit?: number;
+            };
+
+            const workspace = await $preflightWorkspaceRepository({
+                ...projectOptions,
+                policy: 'mutate',
+                isAskingQuestionsEnabled: cliOptions.questions,
+            });
+
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findRefactorCandidates } = await import(
                 '../../../../scripts/find-refactor-candidates/find-refactor-candidates'
             );
 
             try {
-                await findRefactorCandidates();
+                await findRefactorCandidates({ level, limit, projectPath: workspace.projectPath });
             } catch (error) {
                 assertsError(error);
                 console.error(colors.bgRed(`${error.name}`));
@@ -49,7 +89,5 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
     );
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [find-refactor-candidates](src/cli/cli-commands/coder/find-refactor-candidates.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

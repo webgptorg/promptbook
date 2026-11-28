@@ -17,6 +17,7 @@ import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
  * @param rawResponse The raw response from Anthropic Claude API
  * @param duration The duration of the execution
  * @throws {PipelineExecutionError} If the usage is not defined in the response from Anthropic Claude
+ *
  * @private internal utility of `AnthropicClaudeExecutionTools`
  */
 export function computeAnthropicClaudeUsage(
@@ -63,6 +64,4 @@ export function computeAnthropicClaudeUsage(
     };
 }
 
-/**
- * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
- */
+// TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`

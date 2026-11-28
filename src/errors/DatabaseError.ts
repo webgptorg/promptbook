@@ -11,6 +11,4 @@ export class DatabaseError extends Error {
     }
 }
 
-/**
- * TODO: [🐱‍🚀] Explain that NotFoundError ([🐱‍🚀] and other specific errors) has priority over DatabaseError in some contexts
- */
+// TODO: [🐱‍🚀] Explain that NotFoundError ([🐱‍🚀] and other specific errors) has priority over DatabaseError in some contexts

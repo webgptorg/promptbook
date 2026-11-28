@@ -1,12 +1,7 @@
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { MetadataRoute } from 'next';
-import { headers } from 'next/headers';
-import { Color } from '../../../../src/utils/color/Color';
 import { getMetadata } from '../database/getMetadata';
 import { $provideServer } from '../tools/$provideServer';
-import { formatAgentNamingText } from '../utils/agentNaming';
-import { getAgentNaming } from '../utils/getAgentNaming';
-import { getAgentProfile } from './agents/[agentName]/_utils';
 
 /**
  * Manifest for PWA Progressive Web App
@@ -15,104 +10,19 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     const { publicUrl } = await $provideServer();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverDescription = (await getMetadata('SERVER_DESCRIPTION')) || 'Agents server powered by Promptbook';
-    const agentNaming = await getAgentNaming();
 
-    const referer = (await headers()).get('referer') || '';
-    const isAgentManifest = referer.includes('/agents/');
-
-    if (!isAgentManifest) {
-        return {
-            name: serverName,
-            short_name: serverName,
-            description: serverDescription,
-            start_url: publicUrl.href + '?utm_source=pwa&utm_medium=install&utm_campaign=agents_server_app',
-            display_override: ['fullscreen', 'minimal-ui'],
-            display: 'standalone',
-            background_color: PROMPTBOOK_COLOR.toHex(),
-            theme_color: PROMPTBOOK_COLOR.toHex(),
-            icons: [
-                // TODO: Create icons for the server homepage
-            ],
-            scope: publicUrl.href,
-        } satisfies MetadataRoute.Manifest;
-    }
-
-    const agentName = decodeURIComponent(referer.split('/agents/')[1]?.split('/')[0]);
-
-    try {
-        const agentProfile = await getAgentProfile(agentName);
-
-        const name = agentProfile.meta.fullname || agentProfile.agentName;
-        const short_name = agentProfile.agentName;
-        const descriptionFallback = `${formatAgentNamingText('Agent', agentNaming)} ${name}`;
-        const description = agentProfile.meta.description || agentProfile.personaDescription || descriptionFallback;
-
-        // Extract brand color from meta
-        const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);
-        const theme_color = brandColor.toHex();
-        const background_color = '#ffffff';
-
-        const agentUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
-
-        const icons: MetadataRoute.Manifest['icons'] = [
-            {
-                src: `${agentUrl}/images/icon-256.png`,
-                sizes: '256x256',
-                type: 'image/png',
-                purpose: 'any',
-            },
-            {
-                src: `${agentUrl}/images/icon-256.png`,
-                sizes: '256x256',
-                type: 'image/png',
-                purpose: 'maskable',
-            },
-        ];
-
-        const screenshots: MetadataRoute.Manifest['screenshots'] = [
-            {
-                src: `${agentUrl}/images/screenshot-fullhd.png`,
-                sizes: '1920x1080',
-                type: 'image/png',
-                form_factor: 'wide',
-                label: 'Full HD Screenshot',
-            },
-            {
-                src: `${agentUrl}/images/screenshot-phone.png`,
-                sizes: '1080x1920',
-                type: 'image/png',
-                form_factor: 'narrow',
-                label: 'Phone Screenshot',
-            },
-        ];
-
-        return {
-            id: agentUrl,
-            name,
-            short_name,
-            description,
-            start_url: `${agentUrl}?headless&utm_source=pwa&utm_medium=install&utm_campaign=agent_app`,
-            scope: agentUrl,
-            display_override: ['fullscreen', 'minimal-ui'],
-            display: 'standalone',
-            background_color,
-            theme_color,
-            icons,
-            screenshots,
-        } satisfies MetadataRoute.Manifest;
-    } catch (error) {
-        console.warn(`Failed to generate manifest for agent ${agentName}`, error);
-        return {
-            name: agentName,
-            short_name: agentName,
-            start_url: `${publicUrl.href}agents/${encodeURIComponent(
-                agentName,
-            )}?headless&utm_source=pwa&utm_medium=install&utm_campaign=agent_app`,
-            display_override: ['fullscreen', 'minimal-ui'],
-            display: 'standalone',
-            background_color: '#ffffff',
-            theme_color: PROMPTBOOK_COLOR.toHex(),
-            icons: [],
-        } satisfies MetadataRoute.Manifest;
-    }
+    return {
+        name: serverName,
+        short_name: serverName,
+        description: serverDescription,
+        start_url: publicUrl.href + '?utm_source=pwa&utm_medium=install&utm_campaign=agents_server_app',
+        display_override: ['fullscreen', 'minimal-ui'],
+        display: 'standalone',
+        background_color: PROMPTBOOK_COLOR.toHex(),
+        theme_color: PROMPTBOOK_COLOR.toHex(),
+        icons: [
+            // TODO: Create icons for the server homepage
+        ],
+        scope: publicUrl.href,
+    } satisfies MetadataRoute.Manifest;
 }

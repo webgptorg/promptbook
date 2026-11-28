@@ -3,7 +3,7 @@
 import { CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import type { string_css_class } from '../../../types/typeAliases';
+import type { string_css_class } from '../../../types/string_markdown';
 import {
     resolveAgentAvatarFallbackUrl,
     resolveAgentAvatarImageUrl,
@@ -98,6 +98,4 @@ export function AvatarProfile(props: AvatarProfileProps) {
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

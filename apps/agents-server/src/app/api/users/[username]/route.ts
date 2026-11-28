@@ -3,7 +3,11 @@ import { NextResponse } from 'next/server';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { getPasswordValidationMessage, hashPassword } from '../../../../utils/auth';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
+import { PUBLIC_USER_SELECT_COLUMNS, toPublicUser, type PublicUser } from '../../../../utils/publicUser';
 
+/**
+ * Handles patch.
+ */
 export async function PATCH(request: Request, { params }: { params: Promise<{ username: string }> }) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -31,7 +35,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
             .from(await $getTableName('User'))
             .update(updates)
             .eq('username', usernameParam)
-            .select('id, username, createdAt, updatedAt, isAdmin')
+            .select(PUBLIC_USER_SELECT_COLUMNS)
             .single();
 
         if (error) {
@@ -42,7 +46,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        return NextResponse.json(updatedUser);
+        return NextResponse.json(toPublicUser(updatedUser as unknown as PublicUser));
     } catch (error) {
         console.error('Update user error:', error);
         const passwordValidationMessage = getPasswordValidationMessage(error);
@@ -55,6 +59,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
     }
 }
 
+/**
+ * Handles delete.
+ */
 export async function DELETE(request: Request, { params }: { params: Promise<{ username: string }> }) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

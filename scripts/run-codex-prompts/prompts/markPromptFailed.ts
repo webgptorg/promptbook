@@ -1,32 +1,58 @@
 import moment from 'moment';
-import { formatRunnerSignature } from './formatRunnerSignature';
+import { formatPromptAttemptMetadata } from './formatPromptAttemptMetadata';
+import { formatRunnerSignature, type FormatRunnerSignatureOptions } from './formatRunnerSignature';
+import { formatPromptRunnerAttribution, type PromptRunnerAttribution } from './promptRunnerAttribution';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
+import { writePromptStatusLine } from './writePromptStatusLine';
+
+/**
+ * Input for marking one prompt section as failed.
+ */
+export type MarkPromptFailedOptions = FormatRunnerSignatureOptions & {
+    /**
+     * Prompt file the marked section belongs to.
+     */
+    readonly file: PromptFile;
+
+    /**
+     * Section which could not be implemented.
+     */
+    readonly section: PromptSection;
+
+    /**
+     * Chronological runner report read from a prompt left in the middle of its implementation.
+     */
+    readonly previousRunnerSignatures?: PromptRunnerAttribution;
+
+    /**
+     * Moment the failed prompt round started, used to report how long the attempt took.
+     */
+    readonly promptExecutionStartedDate: moment.Moment;
+
+    /**
+     * How many coding attempts the prompt has taken before it was given up on.
+     */
+    readonly attemptCount: number;
+};
 
 /**
  * Marks a prompt section as failed and records runner details.
  */
-export function markPromptFailed(
-    file: PromptFile,
-    section: PromptSection,
-    runnerName: string | undefined,
-    modelName: string | undefined,
-    promptExecutionStartedDate: moment.Moment,
-): void {
-    if (section.statusLineIndex === undefined) {
-        throw new Error(`Prompt ${section.index + 1} in ${file.name} does not have a status line.`);
-    }
+export function markPromptFailed(options: MarkPromptFailedOptions): void {
+    const { file, section, previousRunnerSignatures, promptExecutionStartedDate, attemptCount } = options;
 
-    const line = file.lines[section.statusLineIndex];
-    if (line === undefined) {
-        throw new Error(`Prompt ${section.index + 1} in ${file.name} points to a missing status line.`);
-    }
-    const runnerSignature = formatRunnerSignature(runnerName, modelName);
+    const attribution = formatPromptRunnerAttribution({
+        currentRunnerSignature: formatRunnerSignature(options),
+        previousRunnerSignatures,
+    });
+    const attemptMetadata = formatPromptAttemptMetadata('failed', attemptCount);
     const duration = moment().diff(promptExecutionStartedDate);
     const durationString = moment.duration(duration).humanize();
+    const failureDetails =
+        attemptMetadata === ''
+            ? `failed after ${durationString} ${attribution}`
+            : `${attemptMetadata}${durationString} ${attribution}`;
 
-    file.lines[section.statusLineIndex] = line.replace(
-        /\[\s*\]\s*!*\s*$/,
-        `[!] failed after ${durationString} by ${runnerSignature}`,
-    );
+    writePromptStatusLine(file, section, `[!] ${failureDetails}`);
 }

@@ -43,7 +43,14 @@ describe('parseAgentSourceWithCommitments with code blocks in commitments', () =
         // 2. NOTE with nested code block
         expect(result.commitments[1]?.type).toBe('NOTE');
         expect(result.commitments[1]?.content).toBe(
-            'This is a note\n' + '\n' + '\n' + '```\n' + 'Test nested text in the note\n' + '```',
+            spaceTrim(`
+            This is a note
+
+
+            \`\`\`
+            Test nested text in the note
+            \`\`\`
+        `),
         );
 
         // 3. NOTE And another note
@@ -55,14 +62,16 @@ describe('parseAgentSourceWithCommitments with code blocks in commitments', () =
         // 4. RULE with poem code block
         expect(result.commitments[3]?.type).toBe('RULE');
         expect(result.commitments[3]?.content).toBe(
-            'Write poems.\n' +
-                '\n' +
-                '```\n' +
-                'Roses are red,\n' +
-                'Violets are blue,\n' +
-                'Sugar is sweet,\n' +
-                'And so are you.\n' +
-                '```',
+            spaceTrim(`
+            Write poems.
+
+            \`\`\`
+            Roses are red,
+            Violets are blue,
+            Sugar is sweet,
+            And so are you.
+            \`\`\`
+        `),
         );
     });
 

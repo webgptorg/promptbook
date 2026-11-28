@@ -1,6 +1,7 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { string_title } from '../../types/string_title';
 import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
 
 /**
@@ -10,15 +11,15 @@ import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
  * `MultipleLlmExecutionTools` object. It provides failover and aggregation logic:
  *
  * 1.  **Failover**: When a model call is made, it tries providers in the order they were provided.
- *     If the first provider doesn't support the requested model or fails, it tries the next one.
+ * If the first provider doesn't support the requested model or fails, it tries the next one.
  * 2.  **Aggregation**: `listModels` returns a combined list of all models available from all providers.
  * 3.  **Empty case**: If no tools are provided, it logs a warning (as Promptbook requires LLMs to function).
+ *
+ * Tip: You don't have to use this function directly, just pass an array of LlmExecutionTools to the `ExecutionTools`.
  *
  * @param title - A descriptive title for this collection of joined tools
  * @param llmExecutionTools - An array of execution tools to be joined
  * @returns A single unified execution tool wrapper
- *
- * Tip: You don't have to use this function directly, just pass an array of LlmExecutionTools to the `ExecutionTools`.
  *
  * @public exported from `@promptbook/core`
  */
@@ -66,7 +67,5 @@ export function joinLlmExecutionTools(
     );
 }
 
-/**
- * TODO: [🙆] `getSingleLlmExecutionTools` vs `joinLlmExecutionTools` - explain difference or pick one
- * TODO: [👷‍♂️] Write a comprehensive manual about how to construct and use LLM execution tools in Promptbook
- */
+// TODO: [🙆] `getSingleLlmExecutionTools` vs `joinLlmExecutionTools` - explain difference or pick one
+// TODO: [👷‍♂️] Write a comprehensive manual about how to construct and use LLM execution tools in Promptbook

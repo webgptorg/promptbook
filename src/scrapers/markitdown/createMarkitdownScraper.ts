@@ -20,7 +20,5 @@ export const createMarkitdownScraper = Object.assign(
     markitdownScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

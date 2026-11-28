@@ -1,4 +1,5 @@
-import type { string_markdown, string_url } from '../types/typeAliases';
+import type { string_markdown } from '../types/string_markdown';
+import type { string_url } from '../types/string_url';
 
 /**
  * Result of a file security check.

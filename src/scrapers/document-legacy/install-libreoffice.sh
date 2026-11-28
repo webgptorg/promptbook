@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # install-libreoffice.sh
 
 # TODO: [👩🏼‍🤝‍🧑🏽] This is a draft of auto-installation script for LibreOffice

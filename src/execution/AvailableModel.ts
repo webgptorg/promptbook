@@ -1,11 +1,9 @@
 import type { ModelVariant } from '../types/ModelVariant';
-import type {
-    number_usd,
-    string_model_description,
-    string_model_name,
-    string_title,
-    string_url,
-} from '../types/typeAliases';
+import type { number_usd } from '../types/number_usd';
+import type { string_model_name } from '../types/string_model_name';
+import type { string_model_description } from '../types/string_persona_description';
+import type { string_title } from '../types/string_title';
+import type { string_url } from '../types/string_url';
 
 /**
  * Represents a model that can be used for prompt execution
@@ -60,7 +58,5 @@ export type AvailableModel = {
     readonly isDeprecated?: boolean;
 };
 
-/**
- * TODO: [🕛] Extend this from sth like `AgentBasicInformation` / `ModelBasicInformation`
- * TODO: [🧠] Maybe rename to something else - like `ModelInformation` or `ModelMetadata`
- */
+// TODO: [🕛] Extend this from sth like `AgentBasicInformation` / `ModelBasicInformation`
+// TODO: [🧠] Maybe rename to something else - like `ModelInformation` or `ModelMetadata`

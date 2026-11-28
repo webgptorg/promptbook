@@ -4,7 +4,7 @@
 
 [ ] !
 
-@@@@@@@@
+@@@@
 
 [✨👆] Allow to define multiple agents in one book.
 

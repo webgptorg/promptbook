@@ -3,24 +3,31 @@
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { getThinkingMessages, resolveThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
-import { isAgentDeleted } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile, isAgentDeleted } from '../_utils';
 import { AgentBookAndChat } from './AgentBookAndChat';
 
-export const generateMetadata = generateAgentMetadata;
+/**
+ * Builds canonical split book/chat path for one local agent id.
+ */
+function buildCanonicalAgentBookAndChatPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/book+chat`;
+}
 
+/**
+ * Handles agent book and chat page.
+ */
 export default async function AgentBookAndChatPage({ params }: { params: Promise<{ agentName: string }> }) {
     const requestHeaders = await headers();
     $sideEffect(requestHeaders);
 
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentBookAndChatPath);
 
     const isDeleted = await isAgentDeleted(agentName);
 
@@ -32,19 +39,31 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
         );
     }
 
-    if (!(await isUserAdmin())) {
-        /* <- TODO: [👹] Here should be user permissions */
+    if (!(await getCurrentUser())) {
         return <ForbiddenPage />;
     }
 
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(agentName);
-    const agentUrl = `/agents/${agentName}`;
-    const thinkingMessages = await getThinkingMessages();
+    const agentSourcePromise = collection.getAgentSource(agentName);
+    const agentProfilePromise = getAgentProfile(agentName);
+    const serverThinkingMessagesPromise = getThinkingMessages();
+    const agentUrl = `/agents/${encodeURIComponent(agentName)}`;
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
+    const chatConfigurationPromise = loadChatConfiguration();
+    const [
+        agentSource,
+        agentProfile,
+        serverThinkingMessages,
+        { chatFailMessage, isFileAttachmentsEnabled, feedbackMode },
+    ] = await Promise.all([
+        agentSourcePromise,
+        agentProfilePromise,
+        serverThinkingMessagesPromise,
+        chatConfigurationPromise,
+    ]);
+    const thinkingMessages = resolveThinkingMessages(agentProfile.thinkingMessages, serverThinkingMessages);
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
@@ -56,7 +75,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 chatFailMessage={chatFailMessage ?? undefined}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
+                feedbackMode={feedbackMode}
             />
         </div>
     );

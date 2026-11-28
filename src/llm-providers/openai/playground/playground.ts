@@ -18,8 +18,8 @@ import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$p
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
 import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
-import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 import { OpenAiAgentKitExecutionTools } from '../OpenAiAgentKitExecutionTools';
+import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
     .catch((error) => {
@@ -31,6 +31,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  OpenAI Playground`);
 
@@ -233,7 +236,7 @@ async function playground() {
             modelName: 'gpt-5',
             temperature: 1.5,
         },
-    } /* as const */ satisfies ChatPrompt;
+    } /* as const */ satisfies ChatPrompt; /* <- Note: [🤛] */
     const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
@@ -399,7 +402,5 @@ async function playground() {
     //========================================/
 }
 
-/**
- * TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [openai playground](src/llm-providers/openai/playground/playground.ts) should never be published in any package
+// TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly

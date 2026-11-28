@@ -19,6 +19,4 @@ export function $detectRuntimeEnvironment() {
     };
 }
 
-/**
- * TODO: [🎺] Also detect and report node version here
- */
+// TODO: [🎺] Also detect and report node version here

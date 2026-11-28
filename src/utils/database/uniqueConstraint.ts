@@ -53,6 +53,7 @@ function isUniqueConstraintViolation(error?: PostgrestError | null): boolean {
  * @param error - Resulting Postgrest error from Supabase.
  * @param translations - Array of translations keyed by constraint suffix.
  * @returns A translated error when the constraint suffix matches, otherwise `null`.
+ *
  * @private Internal helper for Supabase-backed collections
  */
 export function translateSupabaseUniqueConstraintError(
@@ -79,6 +80,4 @@ export function translateSupabaseUniqueConstraintError(
     return null;
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

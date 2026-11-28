@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { MockedChatDelayConfig } from '../../../../../src/book-components/Chat/MockedChat/MockedChat';
 import { MockedChat } from '../../../../../src/book-components/Chat/MockedChat/MockedChat';
 import { MOCKED_CHAT_DELAY_CONFIGS } from '../../../../../src/book-components/Chat/MockedChat/constants';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 
+/**
+ * Handles mocked chat preview.
+ */
 export default function MockedChatPreview() {
     const PREDEFINED_CONFIG_NAMES = Object.keys(MOCKED_CHAT_DELAY_CONFIGS);
 

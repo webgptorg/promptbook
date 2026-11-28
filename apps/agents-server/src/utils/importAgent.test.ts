@@ -71,6 +71,4 @@ describe('how `importAgent` works', () => {
     // <- TODO: !!!! What about non-existent server?
 });
 
-/**
- * TODO: [🐱‍🚀][🏠] Test local requesting agents by name and permanent ID
- */
+// TODO: [🐱‍🚀][🏠] Test local requesting agents by name and permanent ID

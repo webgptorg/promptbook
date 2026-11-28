@@ -1,19 +1,20 @@
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import type { ImagePromptResult } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
+import type { string_date_iso8601 } from '../../types/string_token';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
-import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
 import { GOOGLE_MODELS } from './google-models';
+import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
 
 /**
  * Profile for Google Gemini provider
@@ -79,7 +80,13 @@ type GoogleImageData = {
     readonly contentType: string;
 };
 
+/**
+ * Constant for default google generative AI base URL.
+ */
 const DEFAULT_GOOGLE_GENERATIVE_AI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+/**
+ * Map of google image response modalities.
+ */
 const GOOGLE_IMAGE_RESPONSE_MODALITIES: GoogleImageGenerationRequest['generationConfig'] = {
     responseModalities: ['TEXT', 'IMAGE'],
 };
@@ -277,9 +284,7 @@ export const createGoogleExecutionTools = Object.assign(
         packageName: '@promptbook/google',
         className: 'GoogleExecutionTools',
     },
-) satisfies LlmExecutionToolsConstructor;
+) satisfies LlmExecutionToolsConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: !!!!! Rename to `createGoogleLlmExecutionTools`, `...GoogleLlmExecutionTools`
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: !!!!! Rename to `createGoogleLlmExecutionTools`, `...GoogleLlmExecutionTools`
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

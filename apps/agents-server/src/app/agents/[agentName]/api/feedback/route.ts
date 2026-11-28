@@ -4,6 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
 import { $getTableName } from '../../../../../database/$getTableName';
 
+/**
+ * Request for feedback.
+ */
 type FeedbackRequest = {
     agentHash: string;
     rating?: string;
@@ -13,6 +16,9 @@ type FeedbackRequest = {
     expectedAnswer?: string;
 };
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     try {
         const { agentName } = await params;

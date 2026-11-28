@@ -2,6 +2,9 @@ import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { UserProfileClient } from './UserProfileClient';
 
+/**
+ * Handles user profile page.
+ */
 export default async function UserProfilePage() {
     const currentUser = await getCurrentUser();
     if (!currentUser) {

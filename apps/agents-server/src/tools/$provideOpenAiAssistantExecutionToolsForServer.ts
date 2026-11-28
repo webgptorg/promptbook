@@ -1,8 +1,8 @@
 'use server';
 
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
-import { getAllCommitmentsToolFunctionsForNode } from '../../../../src/commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
+import { getAllToolFunctionsForServer } from './getAllToolFunctionsForServer';
 
 /**
  * Cache of provided OpenAiAssistantExecutionTools
@@ -32,7 +32,7 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
         executionTools: {
             script: new JavascriptExecutionTools({
                 isVerbose,
-                functions: getAllCommitmentsToolFunctionsForNode(),
+                functions: getAllToolFunctionsForServer(),
             }),
         },
         isCreatingNewAssistantsAllowed: true,
@@ -42,6 +42,4 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
     return llmExecutionTools;
 }
 
-/**
- * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
- */
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

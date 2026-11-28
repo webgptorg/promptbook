@@ -1,5 +1,8 @@
 import { ElevenLabsRealtimeAgent } from '../../components/ElevenLabsRealtimeAgent';
 
+/**
+ * Handles eleven labs realtime agent page.
+ */
 export default function ElevenLabsRealtimeAgentPage() {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">

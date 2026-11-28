@@ -1,10 +1,10 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import { parseNumber } from '../../utils/misc/parseNumber';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -12,11 +12,12 @@ import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '.
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
-import { WrappedError } from '../../errors/WrappedError';
-import { assertsError } from '../../errors/assertsError';
+ * import { WrappedError } from '../../errors/WrappedError';
+ * import { assertsError } from '../../errors/assertsError';
  * Parses the expect command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {

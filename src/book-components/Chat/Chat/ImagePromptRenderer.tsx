@@ -1,15 +1,27 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { constructImageFilename } from '../../../utils/normalization/constructImageFilename';
 import styles from './Chat.module.css';
 
+/**
+ * Type describing image prompt generation status.
+ */
 type ImagePromptGenerationStatus = 'loading' | 'success' | 'error';
 
+/**
+ * Constant for generated image cache.
+ */
 const generatedImageCache = new Map<string, string>();
+/**
+ * Constant for pending image fetches.
+ */
 const pendingImageFetches = new Map<string, Promise<string>>();
 
+/**
+ * Fetches generated image Url.
+ */
 async function fetchGeneratedImageUrl(filename: string): Promise<string> {
     const cached = generatedImageCache.get(filename);
     if (cached) {

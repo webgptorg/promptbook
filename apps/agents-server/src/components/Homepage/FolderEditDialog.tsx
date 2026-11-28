@@ -4,6 +4,7 @@ import { CheckIcon, MoreHorizontalIcon, PaletteIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { resolveFolderColor } from '../../utils/agentOrganization/folderAppearance';
 import { Dialog } from '../Portal/Dialog';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 import {
     FOLDER_ICON_OPTIONS,
     FOLDER_ICON_PRIMARY_OPTIONS,
@@ -93,13 +94,23 @@ export function FolderEditDialog(props: FolderEditDialogProps) {
     const iconOptions = isIconPickerExpanded ? FOLDER_ICON_OPTIONS : FOLDER_ICON_PRIMARY_OPTIONS;
     const showMoreIconButton = !isIconPickerExpanded && FOLDER_ICON_OPTIONS.length > FOLDER_ICON_PRIMARY_OPTIONS.length;
     const iconGridClassName = `grid grid-cols-4 gap-2 ${isIconPickerExpanded ? 'max-h-64 overflow-y-auto pr-1' : ''}`;
+    const initialResolvedColor = useMemo(() => resolveFolderColor(initialValues.color), [initialValues.color]);
+    const hasUnsavedChanges = useMemo(
+        () => name !== initialValues.name || icon !== initialValues.icon || color !== initialResolvedColor,
+        [color, icon, initialResolvedColor, initialValues.icon, initialValues.name, name],
+    );
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges,
+        isCloseBlocked: isSubmitting,
+        onClose,
+    });
 
     if (!isOpen) {
         return null;
     }
 
     return (
-        <Dialog onClose={isSubmitting ? () => undefined : onClose} className="w-full max-w-lg p-6">
+        <Dialog onClose={requestClose} className="w-full max-w-lg p-6">
             <form
                 className="space-y-6"
                 onSubmit={(event) => {
@@ -211,7 +222,7 @@ export function FolderEditDialog(props: FolderEditDialogProps) {
                 <div className="flex items-center justify-end gap-3">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={requestClose}
                         disabled={isSubmitting}
                         className="rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
                     >

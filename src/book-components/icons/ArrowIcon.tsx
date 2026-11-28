@@ -63,6 +63,7 @@ const ARROW_ROTATION_BY_DIRECTION: Record<ArrowDirection, number> = {
  *
  * @param direction - Raw direction value.
  * @returns Lowercase arrow direction.
+ *
  * @private internal helper for `<ArrowIcon/>`
  */
 function normalizeArrowDirection(direction: ArrowDirectionInput): ArrowDirection {
@@ -83,6 +84,7 @@ export function ArrowIcon({ direction, size = 24, className }: ArrowIconProps) {
             width={size}
             height={size}
             viewBox="0 0 24 24"
+            // fill="currentColor"
             fill="currentColor"
             aria-hidden="true"
             className={classNames('shrink-0', className)}

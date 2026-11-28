@@ -1,50 +1,202 @@
 'use strict';
 
+/**
+ * Constant for { spawn }.
+ */
 const { spawn } = require('node:child_process');
+/**
+ * Constant for { mkdir, write file }.
+ */
 const { mkdir, writeFile } = require('node:fs/promises');
+/**
+ * Constant for path.
+ */
 const path = require('node:path');
 
+/**
+ * Constant for app root.
+ */
 const APP_ROOT = path.resolve(__dirname, '..');
+/**
+ * Constant for port.
+ */
 const PORT = Number.parseInt(process.env.PRE_RENDER_PORT ?? '4440', 10) || 4440;
+/**
+ * Constant for home URL.
+ */
 const HOME_URL = `http://127.0.0.1:${PORT}/`;
-const OUTPUT_DIR = path.join(APP_ROOT, '.next', 'prerendered');
+/**
+ * Marker printed by `next start` once the production server accepts requests.
+ */
+const SERVER_READY_MARKER = 'Ready in';
+/**
+ * Constant for output dir.
+ */
+const OUTPUT_DIR = path.join(APP_ROOT, process.env.NEXT_DIST_DIR || '.next', 'prerendered');
+/**
+ * Constant for output file.
+ */
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'home.html');
-const WAIT_INTERVAL_MS = 500;
+/**
+ * Constant for wait timeout ms.
+ */
 const WAIT_TIMEOUT_MS = 15000;
-let spawnError = null;
+/**
+ * Timeout for the final homepage download once the server is confirmed ready.
+ */
+const HOME_REQUEST_TIMEOUT_MS = 30000;
+/**
+ * Timeout for stopping the temporary production server before escalating cleanup.
+ */
+const STOP_SERVER_TIMEOUT_MS = 10000;
+/**
+ * When enabled, homepage prerender failures abort the whole build.
+ */
+const IS_STRICT_PRERENDER_ENABLED = process.env.PRERENDER_HOMEPAGE_STRICT === 'true';
 
 /**
- * Sleeps for the requested amount of time.
+ * Detects child-process termination errors that can be safely ignored during cleanup.
  *
- * @param ms - Milliseconds to wait.
- * @returns Promise that resolves after the delay.
+ * Windows can report `EPERM` when the child is already shutting down, so cleanup must stay best-effort.
+ *
+ * @param error - Unknown kill failure thrown by Node.
+ * @returns Whether the error should be ignored.
  */
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+function isIgnorableStopServerError(error) {
+    return (
+        error instanceof Error &&
+        'code' in error &&
+        (error.code === 'EPERM' || error.code === 'ESRCH')
+    );
 }
 
 /**
- * Waits for the production server to respond on the home page.
+ * Waits for `next start` to report that it is ready to serve requests.
  *
- * @throws When the server did not start within the timeout window.
+ * HTTP probes are intentionally avoided here because the Agents Server middleware
+ * can trigger remote agent lookups even for seemingly lightweight routes.
+ *
+ * @param serverProcess - Spawned `next start` child process.
+ * @returns Promise that resolves once the server reports readiness.
+ * @throws When the server exits or does not become ready in time.
  */
-async function waitForServer() {
-    const deadline = Date.now() + WAIT_TIMEOUT_MS;
-    while (Date.now() < deadline) {
-        if (spawnError) {
-            throw spawnError;
-        }
-        try {
-            const response = await fetch(HOME_URL, { method: 'HEAD', cache: 'no-store' });
-            if (response.ok) {
+function waitForServerReady(serverProcess) {
+    return new Promise((resolve, reject) => {
+        let settled = false;
+        let stdoutBuffer = '';
+
+        const cleanup = () => {
+            clearTimeout(timeoutId);
+            serverProcess.stdout?.off('data', handleStdout);
+            // Keep the `error` listener attached after readiness so Windows shutdown can emit
+            // a final `kill EPERM` event without turning cleanup into an uncaught exception.
+            serverProcess.off('exit', handleExit);
+        };
+
+        const settle = (handler, value) => {
+            if (settled) {
                 return;
             }
-        } catch (error) {
-            // Roll through the polling cycle until the server accepts a connection.
+
+            settled = true;
+            cleanup();
+            handler(value);
+        };
+
+        const handleStdout = (chunk) => {
+            stdoutBuffer = `${stdoutBuffer}${chunk.toString()}`.slice(-4096);
+            if (stdoutBuffer.includes(SERVER_READY_MARKER)) {
+                settle(resolve);
+            }
+        };
+
+        const handleError = (error) => {
+            settle(reject, error);
+        };
+
+        const handleExit = (code, signal) => {
+            settle(
+                reject,
+                new Error(
+                    `Production server exited before it became ready (code: ${String(code)}, signal: ${String(signal)})`,
+                ),
+            );
+        };
+
+        const timeoutId = setTimeout(() => {
+            settle(
+                reject,
+                new Error(`Timed out waiting ${WAIT_TIMEOUT_MS}ms for \`next start\` to report readiness.`),
+            );
+        }, WAIT_TIMEOUT_MS);
+
+        serverProcess.stdout?.on('data', handleStdout);
+        serverProcess.on('error', handleError);
+        serverProcess.on('exit', handleExit);
+
+        if (stdoutBuffer.includes(SERVER_READY_MARKER)) {
+            settle(resolve);
         }
-        await sleep(WAIT_INTERVAL_MS);
+    });
+}
+
+/**
+ * Waits briefly for the temporary production server to exit after cleanup starts.
+ *
+ * @param serverProcess - Spawned `next start` child process.
+ * @param gracefulExit - Promise resolved by the child `exit` event.
+ * @returns Whether the child exited within the timeout window.
+ */
+async function waitForServerStop(serverProcess, gracefulExit) {
+    if (serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+        return true;
     }
-    throw new Error(`Unable to reach ${HOME_URL} within ${WAIT_TIMEOUT_MS}ms`);
+
+    return await Promise.race([
+        gracefulExit.then(() => true),
+        new Promise((resolve) => setTimeout(() => resolve(false), STOP_SERVER_TIMEOUT_MS)),
+    ]);
+}
+
+/**
+ * Force-stops the temporary production server when normal shutdown does not finish in time.
+ *
+ * Windows can leave `next start` alive after an `EPERM` kill attempt, so use `taskkill`
+ * against the exact PID before giving up on cleanup.
+ *
+ * @param serverProcess - Spawned `next start` child process.
+ */
+async function forceStopServer(serverProcess) {
+    if (serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+        return;
+    }
+
+    if (process.platform !== 'win32') {
+        try {
+            serverProcess.kill('SIGKILL');
+        } catch (error) {
+            if (!isIgnorableStopServerError(error)) {
+                throw error;
+            }
+        }
+        return;
+    }
+
+    await new Promise((resolve, reject) => {
+        const taskKillProcess = spawn('taskkill', ['/PID', String(serverProcess.pid), '/T', '/F'], {
+            stdio: 'ignore',
+        });
+
+        taskKillProcess.on('error', reject);
+        taskKillProcess.on('exit', (code) => {
+            if (code === 0 || serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+                resolve();
+                return;
+            }
+
+            reject(new Error(`Failed to stop temporary production server process ${serverProcess.pid} with taskkill.`));
+        });
+    });
 }
 
 /**
@@ -65,23 +217,38 @@ async function prerenderHomePage() {
 
     let aborted = false;
     const stopServer = () => {
-        if (!aborted) {
-            aborted = true;
+        if (aborted) {
+            return;
+        }
+
+        aborted = true;
+
+        if (serverProcess.killed || serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+            return;
+        }
+
+        try {
             serverProcess.kill();
+        } catch (error) {
+            if (!isIgnorableStopServerError(error)) {
+                throw error;
+            }
         }
     };
-
-    serverProcess.on('error', (error) => {
-        spawnError = error;
-        stopServer();
-    });
+    const detachStopServerHandlers = () => {
+        process.off('SIGINT', stopServer);
+        process.off('SIGTERM', stopServer);
+    };
 
     process.on('SIGINT', stopServer);
     process.on('SIGTERM', stopServer);
 
     try {
-        await waitForServer();
-        const response = await fetch(HOME_URL, { cache: 'no-store' });
+        await waitForServerReady(serverProcess);
+        const response = await fetch(HOME_URL, {
+            cache: 'no-store',
+            signal: AbortSignal.timeout(HOME_REQUEST_TIMEOUT_MS),
+        });
         if (!response.ok) {
             throw new Error(`Failed to download ${HOME_URL} (${response.status})`);
         }
@@ -90,12 +257,33 @@ async function prerenderHomePage() {
         await writeFile(OUTPUT_FILE, html, 'utf8');
         console.log(`Prerendered home page and saved to ${OUTPUT_FILE}`);
     } finally {
+        detachStopServerHandlers();
         stopServer();
-        await gracefulExit;
+
+        if (!(await waitForServerStop(serverProcess, gracefulExit))) {
+            console.warn(
+                `Timed out waiting ${STOP_SERVER_TIMEOUT_MS}ms for the temporary production server to stop. Trying a forceful shutdown.`,
+            );
+            await forceStopServer(serverProcess);
+
+            if (!(await waitForServerStop(serverProcess, gracefulExit))) {
+                console.warn(
+                    `Timed out waiting ${STOP_SERVER_TIMEOUT_MS}ms for the temporary production server after forceful shutdown.`,
+                );
+            }
+        }
     }
 }
 
 prerenderHomePage().catch((error) => {
-    console.error('Prerender homepage failed:', error instanceof Error ? error.message : error);
-    process.exitCode = 1;
+    if (IS_STRICT_PRERENDER_ENABLED) {
+        console.error('Prerender homepage failed:', error instanceof Error ? error.message : error);
+        process.exitCode = 1;
+        return;
+    }
+
+    console.warn(
+        'Skipping homepage prerender:',
+        error instanceof Error ? error.message : error,
+    );
 });

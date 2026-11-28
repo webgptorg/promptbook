@@ -1,0 +1,99 @@
+import type { CreateCanvasForAsciiArt } from '../../../src/avatars/renderAvatarVisualAsciiArt';
+import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
+import {
+    createTerminalAgentAvatarVisual,
+    TERMINAL_AGENT_AVATAR_VISUAL_COLUMNS,
+    TERMINAL_AGENT_AVATAR_VISUAL_ROWS,
+    type TerminalAgentAvatarVisual,
+    type TerminalAgentAvatarVisualFrameOptions,
+} from '../../../src/utils/agents/terminalAgentAvatarVisual';
+import { $detectTerminalAnsiColorDepth } from '../../../src/utils/ascii-art/$detectTerminalAnsiColorDepth';
+import { keepUnused } from '../../../src/utils/organization/keepUnused';
+
+/**
+ * Output width of the coder-run agent visual in terminal character cells.
+ *
+ * @private internal constant of coder run UI
+ */
+export const CODER_RUN_AGENT_VISUAL_COLUMNS = TERMINAL_AGENT_AVATAR_VISUAL_COLUMNS;
+
+/**
+ * Output height of the coder-run agent visual in terminal character cells.
+ *
+ * @private internal constant of coder run UI
+ */
+export const CODER_RUN_AGENT_VISUAL_ROWS = TERMINAL_AGENT_AVATAR_VISUAL_ROWS;
+
+/**
+ * Options passed by the terminal UI when rendering one animated agent visual frame.
+ *
+ * @private internal type of coder run UI
+ */
+export type CoderRunAgentVisualFrameOptions = TerminalAgentAvatarVisualFrameOptions;
+
+/**
+ * Runtime renderer for the `--agent` avatar visual shown in the coder-run terminal UI.
+ *
+ * @private internal type of coder run UI
+ */
+export type CoderRunAgentVisual = TerminalAgentAvatarVisual;
+
+/**
+ * Builds the ANSI ASCII-art visual of the `--agent` book shown above the coder-run dashboard.
+ *
+ * The agent's avatar visual is resolved the same way as on the website - the `META AVATAR`
+ * commitment wins, then the `META VISUAL` commitment, then the shared default visual.
+ * Character-based visuals such as `AsciiOctopus` paint the terminal grid directly, while pixel-based
+ * visuals are rendered through the shared canvas avatar pipeline into terminal ASCII art, using a
+ * transparent horizontal canvas instead of the website's framed 1:1 surface.
+ *
+ * The visual is decorative, so any failure returns `null` and the caller renders no header visual at all.
+ *
+ * @param agentSource Source of the `--agent` book file.
+ * @returns ANSI-colored ASCII-art renderer or `null` when the visual cannot be rendered.
+ */
+export async function buildCoderRunAgentVisual(agentSource: string_book): Promise<CoderRunAgentVisual | null> {
+    try {
+        const agentVisual = createTerminalAgentAvatarVisual({
+            agentSource,
+            colorDepth: $detectTerminalAnsiColorDepth(),
+            createCanvas: await createOptionalNodeCanvasFactory(),
+        });
+
+        return {
+            isAnimated: agentVisual.isAnimated,
+            renderFrame({ animationTimeMs }) {
+                try {
+                    return agentVisual.renderFrame({ animationTimeMs });
+                } catch (error) {
+                    keepUnused(error);
+                    return [];
+                }
+            },
+        };
+    } catch (error) {
+        // Note: The agent visual is decorative - on any failure the coder UI shows no header visual
+        keepUnused(error);
+        return null;
+    }
+}
+
+/**
+ * Loads the optional Node.js canvas factory which rasterizes pixel-based avatar visuals.
+ *
+ * @returns Canvas factory or `undefined` when the optional native module is not installed.
+ *
+ * @private helper of `buildCoderRunAgentVisual`
+ */
+async function createOptionalNodeCanvasFactory(): Promise<CreateCanvasForAsciiArt | undefined> {
+    try {
+        // Note: `@napi-rs/canvas` is an optional native module, so it is imported dynamically and lazily
+        const { createCanvas } = await import('@napi-rs/canvas');
+
+        return (width: number, height: number) => createCanvas(width, height) as unknown as HTMLCanvasElement;
+    } catch (error) {
+        // Note: Character-based visuals paint the terminal grid directly, so they render without any canvas
+        keepUnused(error);
+        return undefined;
+    }
+}

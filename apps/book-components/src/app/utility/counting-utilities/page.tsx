@@ -7,6 +7,9 @@ import { Footer } from '@/components/Footer/Footer';
 import { Header } from '@/components/Header/Header';
 import { Download, Tag, User } from 'lucide-react';
 
+/**
+ * Handles counting utilities page.
+ */
 export default function CountingUtilitiesPage() {
     const utility = {
         name: 'Counting Utilities',

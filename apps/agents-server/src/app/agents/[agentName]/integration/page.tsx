@@ -1,29 +1,38 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
-import { $provideServer } from '@/src/tools/$provideServer';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
-import { formatAgentNamingText } from '@/src/utils/agentNaming';
-import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { getMetadata } from '@/src/database/getMetadata';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
+import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import spaceTrim from 'spacetrim';
-import { Color } from '../../../../../../../src/utils/color/Color';
+import { spaceTrim } from 'spacetrim';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
-import { getAgentName, getAgentProfile } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
-import { generateAgentMetadata } from '../generateAgentMetadata';
 import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
+import { CalendarIntegrationSection } from './CalendarIntegrationSection';
 import { PromptbookSdkTabs } from './PromptbookSdkTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
+
+/**
+ * Builds canonical integration path for one local agent id.
+ */
+function buildCanonicalAgentIntegrationPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/integration`;
+}
 
 /**
  * Parses boolean metadata values stored as strings.
@@ -48,7 +57,20 @@ function parseBooleanMetadataValue(raw: string | null, fallback: boolean): boole
     return fallback;
 }
 
-export const generateMetadata = generateAgentMetadata;
+/**
+ * Formats an integration-page comment for use inside a copyable code snippet.
+ *
+ * @param integrationPageUrl - Absolute integration-page URL.
+ * @param style - Comment syntax matching the snippet language.
+ * @returns Comment line linking back to the integration page.
+ */
+function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash' | 'hash' | 'html'): string {
+    const commentPrefix = style === 'hash' ? '# ' : style === 'html' ? '<!-- ' : '// ';
+
+    const commentSuffix = style === 'html' ? ' -->' : '';
+
+    return `${commentPrefix}${integrationPageUrl}${commentSuffix}`;
+}
 
 /**
  * Props for AgentIntegrationPage.
@@ -63,7 +85,13 @@ type AgentIntegrationPageProps = {
 export default async function AgentIntegrationPage({ params }: AgentIntegrationPageProps) {
     $sideEffect(headers());
 
-    const agentName = await getAgentName(params);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentIntegrationPath);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return <ForbiddenPage />;
+    }
+
     const isAdmin = await isUserAdmin();
     const agentNaming = await getAgentNaming();
 
@@ -82,8 +110,11 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
     }
 
     const { publicUrl } = await $provideServer();
+    const agentPermanentId = agentProfile.permanentId || agentName;
+    const agentPublicId = encodeURIComponent(agentProfile.permanentId || agentName);
     const baseUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
     const agentApiBase = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
+    const integrationPageUrl = `${publicUrl.href}agents/${agentPublicId}/integration`;
     const rootUrl = publicUrl.href.replace(/\/$/, '');
     const isEmbeddingAllowed = parseBooleanMetadataValue(await getMetadata('IS_EMBEDDING_ALLOWED'), true);
 
@@ -120,6 +151,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
 
             export function YourComponent() {
                 return(
+                    ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
                     <PromptbookAgentIntegration
                         agentUrl="${baseUrl}"
                         meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
@@ -135,6 +167,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
         (block) => `
             <script src="${publicUrl.href}api/embed.js" async defer></script>
 
+            ${formatIntegrationPageComment(integrationPageUrl, 'html')}
             <promptbook-agent-integration
                 agent-url="${baseUrl}"
                 meta='${block(metaJsonString)}'
@@ -146,6 +179,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
     const iframeTitle = agentProfile.meta.fullname || agentName;
     const iframeIntegrationCode = spaceTrim(
         (block) => `
+            ${formatIntegrationPageComment(integrationPageUrl, 'html')}
             <iframe
                 src="${headlessChatUrl}"
                 title="${block(iframeTitle)}"
@@ -162,6 +196,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
         import { RemoteAgent } from '@promptbook/core';
 
         async function main() {
+            ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
             const agent = await RemoteAgent.connect({
                 agentUrl: '${baseUrl}',
             });
@@ -187,6 +222,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
         import { RemoteAgent } from '@promptbook/core';
 
         export function RemoteAgentChat() {
+            ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
             const agentUrl = '${baseUrl}';
             const agentPromise = useMemo(() => RemoteAgent.connect({ agentUrl }), [agentUrl]);
             const [agent, setAgent] = useState<RemoteAgent | null>(null);
@@ -209,24 +245,25 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                 return <div>Connecting to agent...</div>;
             }
 
-            return <AgentChat agent={agent} visual="STANDALONE" />;
+            return <AgentChat agent={agent} layout="STANDALONE" />;
         }
     `);
 
     // MCP Config
     const mcpConfigCode = spaceTrim(`
         {
-          "mcpServers": {
-            "${agentName}": {
-              "command": "npx",
-              "args": [
-                "-y",
-                "@promptbook/cli",
-                "mcp",
-                "${baseUrl}"
-              ]
+            ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
+            "mcpServers": {
+                "${agentName}": {
+                    "command": "npx",
+                    "args": [
+                        "-y",
+                        "@promptbook/cli",
+                        "mcp",
+                        "${baseUrl}"
+                    ]
+                }
             }
-          }
         }
     `);
 
@@ -250,10 +287,12 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                     <img
                         src={
                             resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
-                            `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
+                            `/agents/${encodeURIComponent(
+                                agentProfile.permanentId || agentName,
+                            )}/images/default-avatar.png`
                         }
                         alt={agentProfile.meta.fullname || agentName}
-                        className="w-16 h-16 rounded-full object-cover border-2"
+                        className="w-16 h-16 rounded-full object-cover border-2 agent-avatar-pixelated"
                         style={{ borderColor: primaryColor }}
                     />
                     <div className="flex-1">
@@ -295,9 +334,9 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-white/60 p-5 shadow-sm">
                                 <div>
                                     <p className="text-sm text-gray-600">
-                                        Embed the same experience by pointing your iframe to <code>{headlessChatUrl}</code>.
-                                        This route renders the headless chat UI without the chat-selection sidebar while
-                                        keeping chat history persistence.
+                                        Embed the same experience by pointing your iframe to{' '}
+                                        <code>{headlessChatUrl}</code>. This route renders the headless chat UI without
+                                        the chat-selection sidebar while keeping chat history persistence.
                                     </p>
                                 </div>
                                 <CodePreview code={iframeIntegrationCode} language="xml" />
@@ -314,8 +353,8 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             </div>
                         ) : (
                             <div className="mt-6 rounded-xl border border-orange-200 bg-orange-50/80 p-4 text-sm text-orange-800">
-                                Embedding is disabled by the <code>IS_EMBEDDING_ALLOWED</code> metadata entry.
-                                Enable it to show the iframe preview and code snippet.
+                                Embedding is disabled by the <code>IS_EMBEDDING_ALLOWED</code> metadata entry. Enable it
+                                to show the iframe preview and code snippet.
                             </div>
                         )}
                     </div>
@@ -336,19 +375,19 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                                 </p>
                             </div>
                         </div>
-                        <PromptbookSdkTabs
-                            nodeCode={promptbookSdkNodeCode}
-                            browserCode={promptbookSdkBrowserCode}
-                        />
+                        <PromptbookSdkTabs nodeCode={promptbookSdkNodeCode} browserCode={promptbookSdkBrowserCode} />
                     </div>
 
                     <ApiKeyIntegrationSections
                         agentName={agentName}
                         agentApiBase={agentApiBase}
+                        integrationPageUrl={integrationPageUrl}
                         isAdmin={isAdmin}
                         initialApiKey={apiKey}
                         hasApiKey={hasApiKey}
                     />
+
+                    <CalendarIntegrationSection agentName={agentName} agentPermanentId={agentPermanentId} />
 
                     {/* MCP Integration */}
                     <div className="p-6 rounded-xl border-2 border-orange-200 bg-orange-50/30 shadow-sm">
@@ -368,7 +407,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                         </div>
                         <CodePreview
                             code={mcpConfigCode.replace(rootUrl + '/api', agentApiBase + '/api')}
-                            language="json"
+                            language="jsonc"
                         />
                     </div>
                 </div>

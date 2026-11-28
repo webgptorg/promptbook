@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 
 /**
  * Default prompt message used for unsaved-change confirmations.
@@ -9,13 +9,14 @@ const DEFAULT_UNSAVED_CHANGES_MESSAGE = 'You have unsaved changes. Closing will 
 
 /**
  * Options that control how the unsaved changes guard behaves.
+ *
  * @private @@@
  */
 export type UseUnsavedChangesGuardOptions = {
     /** Whether there are unsaved edits that need confirmation before closing. */
     hasUnsavedChanges: boolean;
     /**
-     * When true, blocks in-app route transitions triggered by links/back navigation.
+     * When true, prompts before in-app route transitions triggered by links/back navigation.
      *
      * @default false
      */
@@ -28,6 +29,7 @@ export type UseUnsavedChangesGuardOptions = {
 
 /**
  * Result returned by the useUnsavedChangesGuard hook.
+ *
  * @private @@@
  */
 export type UseUnsavedChangesGuardResult = {
@@ -35,7 +37,29 @@ export type UseUnsavedChangesGuardResult = {
      * Call before closing a dialog or navigating away; returns true when closing is allowed.
      */
     confirmBeforeClose: () => boolean;
+    /**
+     * Call before intentional navigation; returns true when leaving the page is allowed.
+     */
+    confirmBeforeNavigation: () => boolean;
+    /**
+     * Arms one navigation so it can leave without triggering a second unload prompt.
+     */
+    allowNextNavigation: () => void;
 };
+
+/**
+ * Temporarily bypasses the next `beforeunload` prompt so an already-confirmed
+ * navigation does not trigger a second browser dialog.
+ *
+ * @param skipNextUnloadPromptRef - Mutable ref that controls the bypass.
+ */
+function armTemporaryUnloadBypass(skipNextUnloadPromptRef: MutableRefObject<boolean>): void {
+    skipNextUnloadPromptRef.current = true;
+
+    window.setTimeout(() => {
+        skipNextUnloadPromptRef.current = false;
+    }, 0);
+}
 
 /**
  * Returns true for plain left-clicks without modifier keys.
@@ -92,12 +116,14 @@ function shouldGuardAnchorNavigation(anchor: HTMLAnchorElement): boolean {
 
 /**
  * React hook that blocks modal closing and browser unloads when unsaved changes exist.
+ *
  * @private @@@
  */
 export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): UseUnsavedChangesGuardResult {
     const { hasUnsavedChanges, preventInAppNavigation = false, message } = options;
     const promptMessage = message ?? DEFAULT_UNSAVED_CHANGES_MESSAGE;
     const isRevertingPopStateRef = useRef(false);
+    const skipNextUnloadPromptRef = useRef(false);
 
     useEffect(() => {
         if (!hasUnsavedChanges) {
@@ -105,6 +131,11 @@ export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): 
         }
 
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (skipNextUnloadPromptRef.current) {
+                skipNextUnloadPromptRef.current = false;
+                return undefined;
+            }
+
             event.preventDefault();
             event.returnValue = promptMessage;
             return promptMessage;
@@ -129,13 +160,23 @@ export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): 
                 return;
             }
 
-            event.preventDefault();
-            event.stopPropagation();
+            if (!window.confirm(promptMessage)) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
+            armTemporaryUnloadBypass(skipNextUnloadPromptRef);
         };
 
         const handlePopState = () => {
             if (isRevertingPopStateRef.current) {
                 isRevertingPopStateRef.current = false;
+                return;
+            }
+
+            if (window.confirm(promptMessage)) {
+                armTemporaryUnloadBypass(skipNextUnloadPromptRef);
                 return;
             }
 
@@ -150,8 +191,9 @@ export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): 
             document.removeEventListener('click', handleDocumentClick, true);
             window.removeEventListener('popstate', handlePopState);
             isRevertingPopStateRef.current = false;
+            skipNextUnloadPromptRef.current = false;
         };
-    }, [hasUnsavedChanges, preventInAppNavigation]);
+    }, [hasUnsavedChanges, preventInAppNavigation, promptMessage]);
 
     const confirmBeforeClose = useCallback(() => {
         if (!hasUnsavedChanges) {
@@ -165,5 +207,19 @@ export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): 
         return window.confirm(promptMessage);
     }, [hasUnsavedChanges, promptMessage]);
 
-    return { confirmBeforeClose };
+    const confirmBeforeNavigation = useCallback(() => {
+        const confirmed = confirmBeforeClose();
+
+        if (confirmed) {
+            armTemporaryUnloadBypass(skipNextUnloadPromptRef);
+        }
+
+        return confirmed;
+    }, [confirmBeforeClose]);
+
+    const allowNextNavigation = useCallback(() => {
+        armTemporaryUnloadBypass(skipNextUnloadPromptRef);
+    }, []);
+
+    return { confirmBeforeClose, confirmBeforeNavigation, allowNextNavigation };
 }

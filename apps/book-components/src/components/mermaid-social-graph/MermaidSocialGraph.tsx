@@ -2,13 +2,20 @@
 
 import mermaid from 'mermaid';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 
+/**
+ * Type describing node.
+ */
 type Node = {
     id: string;
     label: string;
     type?: 'person' | 'organization' | 'group';
 };
 
+/**
+ * Type describing edge.
+ */
 type Edge = {
     from: string;
     to: string;
@@ -16,6 +23,9 @@ type Edge = {
     type?: 'friend' | 'colleague' | 'family' | 'follows' | 'member';
 };
 
+/**
+ * Props for mermaid social graph.
+ */
 type MermaidSocialGraphProps = {
     nodes: Node[];
     edges: Edge[];
@@ -24,6 +34,9 @@ type MermaidSocialGraphProps = {
     direction?: 'TB' | 'TD' | 'BT' | 'RL' | 'LR';
 };
 
+/**
+ * Collection of default nodes.
+ */
 const defaultNodes: Node[] = [
     { id: 'alice', label: 'Alice', type: 'person' },
     { id: 'bob', label: 'Bob', type: 'person' },
@@ -34,6 +47,9 @@ const defaultNodes: Node[] = [
     { id: 'team', label: 'Dev Team', type: 'group' },
 ];
 
+/**
+ * Collection of default edges.
+ */
 const defaultEdges: Edge[] = [
     { from: 'alice', to: 'bob', label: 'friends', type: 'friend' },
     { from: 'bob', to: 'charlie', label: 'colleagues', type: 'colleague' },
@@ -45,6 +61,9 @@ const defaultEdges: Edge[] = [
     { from: 'diana', to: 'eve', label: 'friends', type: 'friend' },
 ];
 
+/**
+ * Handles mermaid social graph.
+ */
 export default function MermaidSocialGraph({
     nodes = defaultNodes,
     edges = defaultEdges,
@@ -73,11 +92,12 @@ export default function MermaidSocialGraph({
         });
 
         // Add styling classes
-        syntax += `
-    classDef person fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef organization fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef group fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    `;
+        syntax += spaceTrim(`
+            classDef person fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+            classDef organization fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+            classDef group fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+        `);
+        syntax += '\n';
 
         // Apply classes to nodes
         nodes.forEach((node) => {
@@ -186,6 +206,4 @@ export default function MermaidSocialGraph({
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

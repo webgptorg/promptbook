@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { CommandType } from '../../../commands/_common/types/CommandType';
 import type { PipelineString } from '../../../pipeline/PipelineString';
 

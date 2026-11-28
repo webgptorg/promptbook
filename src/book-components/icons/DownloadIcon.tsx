@@ -1,6 +1,6 @@
 'use client';
 
-import { SVGProps } from 'react';
+import type { SVGProps } from 'react';
 
 /**
  * Renders a download icon.
@@ -9,6 +9,7 @@ import { SVGProps } from 'react';
  * of files or assets.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function DownloadIcon(props: SVGProps<SVGSVGElement> & { size?: number }) {

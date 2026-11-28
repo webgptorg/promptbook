@@ -6,11 +6,22 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { basename, join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { runCodexPrompts } from './main/runCodexPrompts';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red('CWD must be root of the project'));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: run-codex-prompts.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
@@ -30,8 +41,6 @@ runCodexPrompts()
  */
 export { toPosixPath } from './common/runGoScript/toPosixPath';
 
-/**
- * TODO: !!!!! Codex is just one runner, rename to `runCodexPrompts` -> `runAgentPrompts`
- * TODO: !!!!! Remake using commander `import commander from 'commander';`
- * Note: [?] Code in this file should never be published in any package
- */
+// TODO: !!!!! Codex is just one runner, rename to `runCodexPrompts` -> `runAgentPrompts`
+// TODO: !!!!! Remake using commander `import commander from 'commander';`
+// Note: [?] Code in this file should never be published in any package

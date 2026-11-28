@@ -52,6 +52,11 @@ type AgentProfileWrapperProps = {
      */
     readonly isAdmin: boolean;
 
+    /**
+     * Indicates whether the current request belongs to a logged-in user.
+     */
+    readonly isAuthenticated: boolean;
+
     /***
      * Indicates if the agent operates in headless mode
      */
@@ -61,6 +66,11 @@ type AgentProfileWrapperProps = {
      * Folder context for navigating to the agent's folder.
      */
     readonly folderContext?: AgentFolderContext | null;
+
+    /**
+     * Whether the projects view link should be shown in the agent menu.
+     */
+    readonly isProjectsViewVisible?: boolean;
 
     /***
      * Actions to be rendered within the agent profile
@@ -73,9 +83,24 @@ type AgentProfileWrapperProps = {
     readonly children: React.ReactNode;
 };
 
+/**
+ * Handles agent profile wrapper.
+ */
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
-    const { agent, agentUrl, publicUrl, agentEmail, agentName, isAdmin, isHeadless, folderContext, actions, children } =
-        props;
+    const {
+        agent,
+        agentUrl,
+        publicUrl,
+        agentEmail,
+        agentName,
+        isAdmin,
+        isAuthenticated,
+        isHeadless,
+        folderContext,
+        isProjectsViewVisible = false,
+        actions,
+        children,
+    } = props;
     const router = useRouter();
 
     // Derived agentName from agent data
@@ -89,26 +114,20 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
      */
     const handleAgentRenamed = useCallback(
         (payload: AgentContextMenuRenamePayload) => {
-            const nextAgentName = payload.agent.agentName;
-            const usesPermanentId = Boolean(permanentId && agentName === permanentId);
+            const nextAgentIdentifier = payload.agent.permanentId || payload.agent.agentName;
 
-            if (!nextAgentName) {
+            if (!nextAgentIdentifier) {
                 return;
             }
 
-            if (usesPermanentId) {
-                router.refresh();
-                return;
-            }
-
-            if (nextAgentName !== agentName) {
-                router.replace(`/agents/${encodeURIComponent(nextAgentName)}`);
+            if (nextAgentIdentifier !== agentName) {
+                router.replace(`/agents/${encodeURIComponent(nextAgentIdentifier)}`);
                 return;
             }
 
             router.refresh();
         },
-        [agentName, permanentId, router],
+        [agentName, router],
     );
 
     return (
@@ -128,7 +147,9 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
                     agentUrl={agentUrl}
                     agentEmail={agentEmail}
                     folderContext={folderContext}
+                    isProjectsViewVisible={isProjectsViewVisible}
                     isAdmin={isAdmin}
+                    isAuthenticated={isAuthenticated}
                     onShowQrCode={onShowQrCode}
                     onAgentRenamed={handleAgentRenamed}
                 />

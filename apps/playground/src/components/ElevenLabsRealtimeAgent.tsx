@@ -3,10 +3,16 @@
 import { useConversation } from '@elevenlabs/react';
 import { useCallback } from 'react';
 
+/**
+ * Props for eleven labs realtime agent.
+ */
 type ElevenLabsRealtimeAgentProps = {
     systemMessage?: string;
 };
 
+/**
+ * Constant for eleven labs realtime agent.
+ */
 export const ElevenLabsRealtimeAgent = ({ systemMessage }: ElevenLabsRealtimeAgentProps) => {
     const { status, startSession, endSession, isSpeaking } = useConversation({
         onConnect: () => console.log('Connected'),

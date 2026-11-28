@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
+import type { string_book } from '@promptbook-local/types';
 import { $getTableName } from '../../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../../database/$provideSupabaseForServer';
+import { $provideAgentCollectionForServer } from '../../../../../tools/$provideAgentCollectionForServer';
 import {
     buildFolderTree,
     collectDescendantFolderIds,
 } from '../../../../../utils/agentOrganization/folderTree';
-import { isAgentVisibility } from '../../../../../utils/agentVisibility';
+import { invalidateCachedActiveOrganizationSnapshots } from '../../../../../utils/agentOrganization/loadAgentOrganizationState';
+import { normalizeAgentVisibility, setAgentSourceVisibility } from '../../../../../utils/agentVisibility';
 import { getCurrentUser } from '../../../../../utils/getCurrentUser';
 
 /**
@@ -34,8 +37,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
         return NextResponse.json({ success: false, error: 'Invalid JSON payload.' }, { status: 400 });
     }
 
-    const visibility = payload?.visibility;
-    if (!isAgentVisibility(visibility)) {
+    const visibility = normalizeAgentVisibility(payload?.visibility);
+    if (!visibility) {
         return NextResponse.json(
             { success: false, error: 'Invalid visibility value. Must be PRIVATE, UNLISTED, or PUBLIC.' },
             { status: 400 },
@@ -60,15 +63,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
     const { childrenByParentId } = buildFolderTree(folderRows);
     const descendantFolderIds = collectDescendantFolderIds(numericFolderId, childrenByParentId);
 
-    const updateResult = await supabase
+    const agentResult = await supabase
         .from(agentTable)
-        .update({ visibility })
+        .select('agentName, permanentId, agentSource')
         .in('folderId', descendantFolderIds)
         .is('deletedAt', null);
 
-    if (updateResult.error) {
-        return NextResponse.json({ success: false, error: updateResult.error.message }, { status: 500 });
+    if (agentResult.error) {
+        return NextResponse.json({ success: false, error: agentResult.error.message }, { status: 500 });
     }
+
+    const collection = await $provideAgentCollectionForServer();
+    for (const agent of agentResult.data || []) {
+        const agentIdentifier = agent.permanentId || agent.agentName;
+        const nextAgentSource = setAgentSourceVisibility(agent.agentSource as string_book, visibility);
+        await collection.updateAgentSource(agentIdentifier, nextAgentSource);
+    }
+
+    invalidateCachedActiveOrganizationSnapshots();
 
     return NextResponse.json({ success: true });
 }

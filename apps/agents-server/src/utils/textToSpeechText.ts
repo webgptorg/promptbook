@@ -7,9 +7,10 @@ import { stripMarkdownText } from './stripMarkdownText';
  * fences, citations, and URLs while collapsing whitespace so the resulting
  * text can be spoken without confusing markup.
  *
+ * TTS providers; returns an empty string when the input is empty.
+ *
  * @param text - Markdown text coming from the Agent Server chat.
  * @returns Text that is trimmed, punctuation-friendly, and safe to send to
- *          TTS providers; returns an empty string when the input is empty.
  */
 export function textToSpeechText(text: string | null | undefined): string {
     if (!text) {

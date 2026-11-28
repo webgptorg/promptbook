@@ -1,8 +1,55 @@
 'use client';
 
+import {
+    Archive,
+    File,
+    FileCode,
+    FileJson,
+    FileSpreadsheet,
+    FileText,
+    Globe2,
+    ImageIcon,
+    Music,
+    Presentation,
+    Table,
+    Video,
+    type LucideIcon,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useResolvedCitationLabel } from '../hooks/useResolvedCitationLabel';
+import type { CitationLabelResolver } from '../types/CitationLabelResolver';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
-import { getCitationLabel, isCitationUrl, isPlainTextCitation } from '../utils/citationHelpers';
+import type { CitationSourceDisplay, CitationSourceKind } from '../utils/resolveCitationSourceDisplay';
+import { resolveCitationSourceDisplay } from '../utils/resolveCitationSourceDisplay';
 import styles from './SourceChip.module.css';
+
+/**
+ * Icon size used by source-chip SVG graphics.
+ *
+ * @private utility constant of `<SourceChip/>`
+ */
+const SOURCE_CHIP_ICON_SIZE = 15;
+
+/**
+ * Source kind to icon map used when no thumbnail is available.
+ *
+ * @private utility constant of `<SourceChip/>`
+ */
+const SOURCE_CHIP_ICON_BY_KIND: Readonly<Record<CitationSourceKind, LucideIcon>> = {
+    archive: Archive,
+    audio: Music,
+    code: FileCode,
+    document: FileText,
+    file: File,
+    image: ImageIcon,
+    json: FileJson,
+    'plain-text': FileText,
+    presentation: Presentation,
+    spreadsheet: FileSpreadsheet,
+    table: Table,
+    video: Video,
+    website: Globe2,
+};
 
 /**
  * Props for SourceChip component
@@ -26,6 +73,14 @@ export type SourceChipProps = {
      * Optional suffix text to display after the citation label.
      */
     suffix?: string;
+    /**
+     * Optional resolver for richer citation labels.
+     */
+    resolveCitationLabel?: CitationLabelResolver;
+    /**
+     * Controls whether the technical citation id is shown inside the chip label.
+     */
+    isCitationIdVisible?: boolean;
 };
 
 /**
@@ -34,17 +89,25 @@ export type SourceChipProps = {
  * This component is used to display RAG source citations in chat messages.
  * It displays the source document name and citation ID.
  *
- * @example
  * ```tsx
  * <SourceChip
- *   citation={{ id: '5:13', source: 'document.pdf' }}
- *   onClick={(citation) => console.log('clicked', citation)}
+ * citation={{ id: '5:13', source: 'document.pdf' }}
+ * onClick={(citation) => console.log('clicked', citation)}
  * />
  * ```
  *
+ * @example
+ *
  * @private utility of `ChatMessageItem` component
  */
-export function SourceChip({ citation, onClick, className, suffix }: SourceChipProps) {
+export function SourceChip({
+    citation,
+    onClick,
+    className,
+    suffix,
+    resolveCitationLabel,
+    isCitationIdVisible = true,
+}: SourceChipProps) {
     const handleClick = (event: React.MouseEvent) => {
         event.stopPropagation();
         if (onClick) {
@@ -53,23 +116,16 @@ export function SourceChip({ citation, onClick, className, suffix }: SourceChipP
     };
 
     // Keep source chips concise and human-readable for CDN-backed knowledge files.
-    const normalizedSource = citation.source.trim();
-    const displayName = getCitationLabel(citation);
-
-    // Get file extension for icon
-    const fileExtension = (normalizedSource || citation.source).split('.').pop()?.toLowerCase() || 'file';
-    const icon = isPlainTextCitation(citation)
-        ? '📝'
-        : isCitationUrl(normalizedSource)
-        ? '🌐'
-        : getFileIcon(fileExtension);
+    const displayName = useResolvedCitationLabel(citation, resolveCitationLabel);
+    const sourceDisplay = resolveCitationSourceDisplay(citation);
+    const title = displayName === citation.source ? citation.source : `${displayName}\n${citation.source}`;
 
     return (
-        <button className={`${styles.sourceChip} ${className || ''}`} onClick={handleClick} title={citation.source}>
-            <span className={styles.icon}>{icon}</span>
+        <button type="button" className={`${styles.sourceChip} ${className || ''}`} onClick={handleClick} title={title}>
+            <SourceChipVisual sourceDisplay={sourceDisplay} />
             <span className={styles.label}>
-                {displayName}
-                <span className={styles.citationId}> [{citation.id}]</span>
+                <span className={styles.labelText}>{displayName}</span>
+                {isCitationIdVisible && <span className={styles.citationId}> [{citation.id}]</span>}
             </span>
             {suffix && <span className={styles.suffix}>{suffix}</span>}
         </button>
@@ -77,39 +133,41 @@ export function SourceChip({ citation, onClick, className, suffix }: SourceChipP
 }
 
 /**
- * Gets an appropriate emoji icon for a file type
+ * Renders either an image thumbnail or a semantic source icon.
+ *
+ * @private component of `<SourceChip/>`
  */
-function getFileIcon(extension: string): string {
-    const iconMap: Record<string, string> = {
-        pdf: '📄',
-        doc: '📝',
-        docx: '📝',
-        txt: '📝',
-        md: '📝',
-        html: '🌐',
-        htm: '🌐',
-        json: '📋',
-        xml: '📋',
-        csv: '📊',
-        xls: '📊',
-        xlsx: '📊',
-        ppt: '📊',
-        pptx: '📊',
-        jpg: '🖼️',
-        jpeg: '🖼️',
-        png: '🖼️',
-        gif: '🖼️',
-        svg: '🖼️',
-        mp4: '🎥',
-        mov: '🎥',
-        avi: '🎥',
-        mp3: '🎵',
-        wav: '🎵',
-        zip: '📦',
-        rar: '📦',
-        tar: '📦',
-        gz: '📦',
-    };
+function SourceChipVisual(props: { readonly sourceDisplay: CitationSourceDisplay }) {
+    const { sourceDisplay } = props;
+    const [isThumbnailUnavailable, setIsThumbnailUnavailable] = useState(false);
 
-    return iconMap[extension] || '📄';
+    useEffect(() => {
+        setIsThumbnailUnavailable(false);
+    }, [sourceDisplay.thumbnailUrl]);
+
+    if (sourceDisplay.thumbnailUrl && !isThumbnailUnavailable) {
+        return (
+            <span className={styles.icon} aria-hidden="true">
+                <img
+                    src={sourceDisplay.thumbnailUrl}
+                    alt=""
+                    className={styles.thumbnail}
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    onError={() => {
+                        setIsThumbnailUnavailable(true);
+                    }}
+                />
+            </span>
+        );
+    }
+
+    const Icon = SOURCE_CHIP_ICON_BY_KIND[sourceDisplay.kind];
+
+    return (
+        <span className={styles.icon} aria-hidden="true">
+            <Icon size={SOURCE_CHIP_ICON_SIZE} className={styles.iconSvg} strokeWidth={2.35} />
+        </span>
+    );
 }

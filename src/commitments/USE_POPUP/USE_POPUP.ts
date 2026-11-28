@@ -1,7 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
 
@@ -114,11 +115,12 @@ export class UsePopupCommitmentDefinition extends BaseCommitmentDefinition<'USE 
             },
             spaceTrim(
                 (block) => `
-                    Tool:
-                    - You can open a popup window with a specific URL using the tool "open_popup".
-                    - Use this when you want the user to see or interact with a specific website.
+                    ## Popup
+
+                    -   You can open a popup window with a specific URL using the tool \`open_popup\`.
+                    -   Use this when you want the user to see or interact with a specific website.
                     ${block(extraInstructions)}
-            `,
+                `,
             ),
         );
     }
@@ -158,6 +160,4 @@ export class UsePopupCommitmentDefinition extends BaseCommitmentDefinition<'USE 
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

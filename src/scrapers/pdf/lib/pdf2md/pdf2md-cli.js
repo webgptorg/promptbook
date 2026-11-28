@@ -2,12 +2,27 @@
 
 /* eslint no-console: 0 */
 
+/**
+ * Constant for fs.
+ */
 const fs = require('fs');
+/**
+ * Constant for path.
+ */
 const path = require('path');
 
+/**
+ * Constant for pdf2md.
+ */
 const pdf2md = require('./pdf2md');
+/**
+ * Constant for { get file and folder paths, get all file and folder paths }.
+ */
 const { getFileAndFolderPaths, getAllFileAndFolderPaths } = require('./util/cli');
 
+/**
+ * Constant for argv.
+ */
 var argv = require('minimist')(process.argv.slice(2));
 
 if (!argv['inputFolderPath']) {
@@ -23,6 +38,9 @@ if (!argv['inputFolderPath']) {
     run(folderPath, outputPath, recursive);
 }
 
+/**
+ * Handles run.
+ */
 function run(folderPath, outputPath, recursive = true) {
     var [filenames, folderPaths] = getFileAndFolderPaths(folderPath);
     var [allFilePaths] = getAllFileAndFolderPaths(filenames, folderPaths, recursive);
@@ -35,6 +53,9 @@ function run(folderPath, outputPath, recursive = true) {
     createMarkdownFiles(allFilePaths, allOutputPaths);
 }
 
+/**
+ * Creates output dirs.
+ */
 function makeOutputDirs(allOutputPaths) {
     allOutputPaths.forEach((outputPath) => {
         outputPath = outputPath.split('/').slice(0, -1).join('/');
@@ -44,6 +65,9 @@ function makeOutputDirs(allOutputPaths) {
     });
 }
 
+/**
+ * Creates markdown files.
+ */
 async function createMarkdownFiles(filenames, allOutputPaths) {
     // If outputPath specified, supply callbacks to log progress
     for (let i = 0; i < filenames.length; ++i) {

@@ -81,6 +81,4 @@ export class MetaVoiceCommitmentDefinition extends BaseCommitmentDefinition<'MET
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

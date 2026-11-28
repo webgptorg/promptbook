@@ -1,7 +1,7 @@
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $registeredScrapersMessage } from '../../scrapers/_common/register/$registeredScrapersMessage';
@@ -58,7 +58,5 @@ export function $initializeListScrapersCommand(program: Program): $side_effect {
     );
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [list-scrapers](src/cli/cli-commands/list-scrapers.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

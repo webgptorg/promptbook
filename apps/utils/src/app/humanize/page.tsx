@@ -3,6 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { HumanizeAiTextComponent } from './HumanizeAiTextComponent';
 
+/**
+ * Handles humanize Ai text page.
+ */
 export default function HumanizeAiTextPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">

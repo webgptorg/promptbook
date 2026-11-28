@@ -1,6 +1,7 @@
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import type { string_agent_url, string_knowledge_source_link } from '../../types/typeAliases';
-import { chococake } from '../../utils/organization/really_any';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_knowledge_source_link } from '../../types/string_knowledge_source_content';
+import type { chococake } from '../../utils/organization/really_any';
 
 /**
  * Model requirements for an agent
@@ -89,7 +90,5 @@ export type AgentModelRequirements = {
 };
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here
 
-/**
- * TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
- * TODO: [🧠] `isClosed` and `parentAgentUrl` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place
- */
+// TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
+// TODO: [🧠] `isClosed` and `parentAgentUrl` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place

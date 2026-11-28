@@ -55,6 +55,9 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
     });
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`

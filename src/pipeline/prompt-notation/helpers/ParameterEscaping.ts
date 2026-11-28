@@ -25,6 +25,7 @@ const PROMPT_PARAMETER_ESCAPE_WITH_BRACES_PATTERN = /[{}$`]/g;
  * Normalizes a JSON string so it can be safely rendered without double escaping.
  *
  * @param value Candidate JSON string.
+ *
  * @private function of ParameterEscaping
  */
 function normalizeJsonString(value: string): string | null {
@@ -39,6 +40,7 @@ function normalizeJsonString(value: string): string | null {
  * Hides brackets in a string to avoid confusion with template parameters.
  *
  * @param value Input string with literal brackets.
+ *
  * @private function of ParameterEscaping
  */
 function hideBrackets(value: string): string {
@@ -49,6 +51,7 @@ function hideBrackets(value: string): string {
  * Restores hidden brackets.
  *
  * @param value String with hidden brackets.
+ *
  * @private function of ParameterEscaping
  */
 function restoreBrackets(value: string): string {
@@ -59,6 +62,7 @@ function restoreBrackets(value: string): string {
  * Decides whether a parameter can be inlined safely.
  *
  * @param value Parameter rendered as string.
+ *
  * @private function of ParameterEscaping
  */
 function shouldInlineParameterValue(value: string): boolean {
@@ -74,6 +78,7 @@ function shouldInlineParameterValue(value: string): boolean {
  *
  * @param value Parameter value to escape.
  * @param options Escape options for additional characters.
+ *
  * @private function of ParameterEscaping
  */
 function escapePromptParameterValue(value: string, options: { includeBraces: boolean }): string {

@@ -1,4 +1,4 @@
-import type { number_percent } from '../../../types/typeAliases';
+import type { number_percent } from '../../../types/number_percent';
 import { Color } from '../Color';
 import { hslToRgb } from '../internal-utils/hslToRgb';
 import { rgbToHsl } from '../internal-utils/rgbToHsl';
@@ -22,6 +22,4 @@ export function lighten(amount: number_percent): ColorTransformer {
     };
 }
 
-/**
- * TODO: Maybe implement by mix+hsl
- */
+// TODO: Maybe implement by mix+hsl

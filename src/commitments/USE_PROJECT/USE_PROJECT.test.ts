@@ -3,6 +3,18 @@ import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentMode
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../_common/toolRuntimeContext';
 import { UseProjectCommitmentDefinition } from './USE_PROJECT';
 
+/**
+ * Stable Windows-1250 sample text fixture used to verify fallback decoding in `project_read_file`.
+ */
+const WINDOWS_1250_SAMPLE_TEXT = 'Příliš žluťoučký kůň';
+
+/**
+ * Stable Windows-1250 bytes for `WINDOWS_1250_SAMPLE_TEXT`.
+ */
+const WINDOWS_1250_SAMPLE_BYTES = Uint8Array.from([
+    80, 248, 237, 108, 105, 154, 32, 158, 108, 117, 157, 111, 117, 232, 107, 253, 32, 107, 249, 242,
+]);
+
 describe('USE PROJECT commitment', () => {
     const commitment = new UseProjectCommitmentDefinition();
     const basicRequirements = createBasicAgentModelRequirements('test-agent');
@@ -136,6 +148,51 @@ describe('USE PROJECT commitment', () => {
                 }),
             ]),
         );
+    });
+
+    it('returns decoded text metadata from project_read_file', async () => {
+        const fetchMock = jest.fn(async () => {
+            return new Response(
+                JSON.stringify({
+                    type: 'file',
+                    name: 'notes.txt',
+                    path: 'notes.txt',
+                    sha: 'abc123',
+                    size: WINDOWS_1250_SAMPLE_BYTES.length,
+                    content: Buffer.from(WINDOWS_1250_SAMPLE_BYTES).toString('base64'),
+                }),
+                {
+                    status: 200,
+                    statusText: 'OK',
+                },
+            );
+        });
+        globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+        const toolFunctions = commitment.getToolFunctions();
+        const readFileTool = toolFunctions.project_read_file!;
+        const resultText = await readFileTool({
+            repository: 'example/project',
+            path: 'notes.txt',
+            [TOOL_RUNTIME_CONTEXT_ARGUMENT]: JSON.stringify({
+                projects: {
+                    githubToken: 'ghp_test_token',
+                    repositories: ['https://github.com/example/project'],
+                },
+            }),
+        });
+
+        const result = JSON.parse(resultText) as {
+            wasBinary: boolean;
+            encodingUsed: string;
+            warnings: string[];
+            content: string | null;
+        };
+
+        expect(result.wasBinary).toBe(false);
+        expect(result.encodingUsed).toBe('windows-1250');
+        expect(result.content).toBe(WINDOWS_1250_SAMPLE_TEXT);
+        expect(result.warnings).toContain('Encoding was guessed as `windows-1250`.');
     });
 
     it('rejects repositories outside USE PROJECT configuration', async () => {

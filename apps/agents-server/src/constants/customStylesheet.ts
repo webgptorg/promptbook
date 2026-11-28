@@ -2,6 +2,7 @@ import {
     chatCssClassDescriptions,
     chatCssClassNames,
 } from '../../../../src/book-components/Chat/Chat/chatCssClassNames';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Upper bound for persisted custom CSS length.
@@ -39,31 +40,30 @@ export const customStylesheetClassEntries: ReadonlyArray<CustomStylesheetClassEn
  * selector strings sourced from one place (DRY).
  */
 export function createDefaultCustomStylesheetCss(): string {
-    return [
-        '/* Custom CSS for Promptbook Agents Server */',
-        '/* This stylesheet is loaded on every page. */',
-        '',
-        '/* Chat message defaults */',
-        `.${chatCssClassNames.agentResponse} .${chatCssClassNames.messageContent} {`,
-        '    /* border-left: 3px solid rgba(56, 189, 248, 0.7); */',
-        '}',
-        '',
-        `.${chatCssClassNames.userMessage} .${chatCssClassNames.messageContent} {`,
-        '    /* border-right: 3px solid rgba(59, 130, 246, 0.7); */',
-        '}',
-        '',
-        '/* Improve long text readability */',
-        `.${chatCssClassNames.messageContent} {`,
-        '    /* line-height: 1.6; */    ',
-        '}',
-        '',
-        '/* Example avatar style override */',
-        `.${chatCssClassNames.agentAvatar},`,
-        `.${chatCssClassNames.userAvatar} {`,
-        '    /* box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18); */',
-        '}',
-        '',
-        '/* Add your custom rules below */',
-        '',
-    ].join('\n');
+    return spaceTrim(`
+        /* Custom CSS for Promptbook Agents Server */
+        /* This stylesheet is loaded on every page. */
+
+        /* Chat message defaults */
+        .${chatCssClassNames.agentResponse} .${chatCssClassNames.messageContent} {
+            /* border-left: 3px solid rgba(56, 189, 248, 0.7); */
+        }
+
+        .${chatCssClassNames.userMessage} .${chatCssClassNames.messageContent} {
+            /* border-right: 3px solid rgba(59, 130, 246, 0.7); */
+        }
+
+        /* Improve long text readability */
+        .${chatCssClassNames.messageContent} {
+            /* line-height: 1.6; */
+        }
+
+        /* Example avatar style override */
+        .${chatCssClassNames.agentAvatar},
+        .${chatCssClassNames.userAvatar} {
+            /* box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18); */
+        }
+
+        /* Add your custom rules below */
+    `);
 }

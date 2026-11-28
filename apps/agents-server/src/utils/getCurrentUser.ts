@@ -1,9 +1,14 @@
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../database/schema';
+import { isAdminPasswordEqual } from './isAdminPasswordEqual';
 import { getSession } from './session';
 
+/**
+ * Type describing user profile row.
+ */
 type UserProfileRow = Pick<AgentsServerDatabase['public']['Tables']['User']['Row'], 'id' | 'profileImageUrl'>;
 
 /**
@@ -31,11 +36,13 @@ export type UserInfo = {
 };
 
 /**
- * Loads the currently authenticated user and their avatar configuration.
+ * Loads the currently authenticated user and their avatar configuration once per request.
+ *
+ * @returns Current user snapshot or `null` for anonymous requests.
  *
  * @private Internal helper shared by server UI/layout layers.
  */
-export async function getCurrentUser(): Promise<UserInfo | null> {
+const getCachedCurrentUser = cache(async (): Promise<UserInfo | null> => {
     const session = await getSession();
     if (session) {
         const supabase = $provideSupabaseForServer();
@@ -69,7 +76,7 @@ export async function getCurrentUser(): Promise<UserInfo | null> {
     if (process.env.ADMIN_PASSWORD) {
         const cookieStore = await cookies();
         const adminToken = cookieStore.get('adminToken');
-        if (adminToken?.value === process.env.ADMIN_PASSWORD) {
+        if (adminToken?.value !== undefined && isAdminPasswordEqual(adminToken.value)) {
             return {
                 username: 'admin',
                 isAdmin: true,
@@ -79,4 +86,13 @@ export async function getCurrentUser(): Promise<UserInfo | null> {
     }
 
     return null;
+});
+
+/**
+ * Loads the currently authenticated user and their avatar configuration.
+ *
+ * @private Internal helper shared by server UI/layout layers.
+ */
+export async function getCurrentUser(): Promise<UserInfo | null> {
+    return getCachedCurrentUser();
 }

@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { isValidAgentUrl } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { isVoidPseudoAgentReference } from '../../book-2.0/agent-source/pseudoAgentReferences';
-import type { string_agent_url } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/string_agent_url';
+import { isValidAgentUrl } from '../../utils/validators/url/isValidAgentUrl';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -46,12 +46,25 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
 
             Inherits agent source from another agent.
 
+            Every agent inherits from the core agent \`@Adam\` unless it says otherwise, so writing no ${this.type} at all
+            is the same as writing \`${this.type} @Adam\`. Write \`${this.type} @Null\` to inherit from nothing.
+
+            An agent has exactly one parent, so when ${this.type} is written more than once, the last one wins and
+            overrides every earlier one.
+
             ## Examples
 
             \`\`\`book
             My AI Agent
 
             FROM https://s6.ptbk.io/benjamin-white
+            RULE Speak only in English.
+            \`\`\`
+
+            \`\`\`book
+            My Standalone Agent
+
+            FROM @Null
             RULE Speak only in English.
             \`\`\`
         `);
@@ -96,6 +109,4 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

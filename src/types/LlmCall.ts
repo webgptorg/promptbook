@@ -1,5 +1,5 @@
 import type { ExecutionPromptReportJson } from '../execution/execution-report/ExecutionPromptReportJson';
-import type { string_model_name } from './typeAliases';
+import type { string_model_name } from './string_model_name';
 
 /**
  * Represents a single LLM call with its report.
@@ -18,6 +18,4 @@ export type LlmCall = {
     readonly report: ExecutionPromptReportJson;
 };
 
-/**
- * TODO: !!! Maybe different shape of LlmCall
- */
+// TODO: !!! Maybe different shape of LlmCall

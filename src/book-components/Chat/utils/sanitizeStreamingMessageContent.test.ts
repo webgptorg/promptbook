@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { getLatestStreamingFeatureBoundary, sanitizeStreamingMessageContent } from './sanitizeStreamingMessageContent';
 
 describe('sanitizeStreamingMessageContent', () => {
@@ -12,7 +13,13 @@ describe('sanitizeStreamingMessageContent', () => {
     });
 
     it('does not trim when the code fence is closed', () => {
-        const message = 'Done:\n```geojson\n{}\n```\nExtra text';
+        const message = spaceTrim(`
+            Done:
+            \`\`\`geojson
+            {}
+            \`\`\`
+            Extra text
+        `);
         expect(sanitizeStreamingMessageContent(message, { isComplete: false })).toBe(message);
     });
 

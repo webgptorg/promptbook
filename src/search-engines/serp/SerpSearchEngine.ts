@@ -1,5 +1,6 @@
 import type { Promisable } from 'type-fest';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_title } from '../../types/string_title';
 import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
@@ -57,7 +58,9 @@ export class SerpSearchEngine implements SearchEngine {
 }
 
 /**
- * @see https://serpapi.com/search-api
+ * Https://serpapi.com/search-api.
+ *
+ * @see
  */
 type SerpSearchResponse = {
     organic_results?: Array<{

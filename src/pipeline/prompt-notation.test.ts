@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
-import { PromptString, prompt } from './prompt-notation';
+import { spaceTrim } from 'spacetrim';
+import { prompt, PromptString } from './prompt-notation';
 
 describe('how prompt tag function works', () => {
     it('should return PromptString for a plain prompt', () => {
@@ -107,7 +107,10 @@ describe('how prompt tag function works', () => {
     });
 
     it('should format multiline data parameters on their own line', () => {
-        const notes = 'First line\nSecond line';
+        const notes = spaceTrim(`
+            First line
+            Second line
+        `);
         const notesPrompt = prompt`
             Notes:
             ${notes}
@@ -189,6 +192,4 @@ describe('how prompt tag function works', () => {
     });
 });
 
-/**
- * TODO: [??][??] Where is the best location for this file
- */
+// TODO: [??][??] Where is the best location for this file

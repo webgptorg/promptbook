@@ -1,6 +1,8 @@
 'use client';
 
 import { showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { useServerLanguage } from '@/src/components/ServerLanguage/ServerLanguageProvider';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
 import { useEffect, useMemo, useState } from 'react';
 
 /**
@@ -42,6 +44,7 @@ type UserMemoryClientProps = {
  */
 export function UserMemoryClient(props: UserMemoryClientProps) {
     const { agents } = props;
+    const { language } = useServerLanguage();
     const [memories, setMemories] = useState<UserMemoryEntry[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [saving, setSaving] = useState<boolean>(false);
@@ -445,7 +448,7 @@ export function UserMemoryClient(props: UserMemoryClientProps) {
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-xs text-gray-500">
-                                            {new Date(memory.updatedAt).toLocaleString()}
+                                            {formatServerLanguageHumanReadableDate(memory.updatedAt, language)}
                                         </td>
                                         <td className="px-4 py-3 text-right text-sm">
                                             {isEditing ? (
@@ -491,4 +494,3 @@ export function UserMemoryClient(props: UserMemoryClientProps) {
         </div>
     );
 }
-

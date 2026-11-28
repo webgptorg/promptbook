@@ -1,10 +1,14 @@
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { loadAgentOrganizationState } from '@/src/utils/agentOrganization/loadAgentOrganizationState';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { UserWalletClient, type UserWalletAgentOption } from './UserWalletClient';
+import { UserWalletClient } from './UserWalletClient';
+import type { UserWalletAgentOption } from './UserWalletAgentOption';
 
 /**
- * User wallet management page.
+ * Agent wallet management page.
+ *
+ * Note: The route stays `/system/user-wallet` for backwards compatibility, but the wallet records
+ * belong to agents - every agent has its own wallet.
  */
 export default async function UserWalletPage() {
     const currentUser = await getCurrentUser();

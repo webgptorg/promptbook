@@ -34,12 +34,12 @@ RULE Write emails to customers according to the instructions from user.
 
 IMAP / POP3 credentials
 
--   @@@
 -   Commitment `USE EMAIL agent@example.com` should also allow the agent to receive emails, not only send emails. For this, the agent will need IMAP or POP3 credentials in addition to SMTP credentials for sending emails.
 -   Request the user to add the IMAP/POP3 credentials into the wallet together with the SMTP credentials when the agent is using `USE EMAIL` commitment, and give instructions on how to do it, similar to how it is done for SMTP credentials.
+-   Agent should be able to check for new emails, and when there are new emails, it should be able to read them and process them according to the rules defined in the book. - - For example, it can have a rule like `RULE When there is a new email, read it and write a response email and summarize to chat` and it should be able to do it.
 -   Keep this logic together because they are related
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   @@@
+-   All the messages in both inbound and outbound should be backed up into the `Message` table.
 -   Do a proper analysis of the current functionality @@@ before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, for example for email receiving queue, do it
@@ -80,4 +80,3 @@ SMTP credentials are missing in wallet. Add ACCESS_TOKEN record with service "sm
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

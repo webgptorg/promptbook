@@ -3,6 +3,9 @@
 import { CountUtils } from '@promptbook-local/utils';
 import { useState } from 'react';
 
+/**
+ * Handles counting utilities preview.
+ */
 export default function CountingUtilitiesPreview() {
     const [text, setText] = useState('');
 

@@ -1,26 +1,31 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createTeamToolName } from '../../book-2.0/agent-source/createTeamToolName';
-import { parseTeamCommitmentContent, type TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
+import type { TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
+import { parseTeamCommitmentContent } from '../../book-2.0/agent-source/parseTeamCommitment';
+import type { PseudoAgentKind } from '../../book-2.0/agent-source/pseudoAgentReferences';
 import {
     createPseudoUserTeammateLabel,
     resolvePseudoAgentKindFromUrl,
-    type PseudoAgentKind,
 } from '../../book-2.0/agent-source/pseudoAgentReferences';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { ChatPrompt } from '../../types/Prompt';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import type { ToolCall } from '../../types/ToolCall';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import {
+    createTeamInternalAgentAccessHeaders,
+    TEAM_INTERNAL_AGENT_ACCESS_HEADER,
+} from '../_common/teamInternalAgentAccess';
+import type { ToolRuntimeContext } from '../_common/toolRuntimeContext';
 import {
     parseToolRuntimeContext,
     serializeToolRuntimeContext,
     TOOL_RUNTIME_CONTEXT_ARGUMENT,
     TOOL_RUNTIME_CONTEXT_PARAMETER,
-    type ToolRuntimeContext,
 } from '../_common/toolRuntimeContext';
 
 /**
@@ -32,6 +37,21 @@ type TeamToolEntry = {
     toolName: string_javascript_name;
     teammate: TeamTeammate;
     agentName: string;
+    /**
+     * Human-readable description of what the teammate does.
+     * Sourced from the pre-resolved agent profile (personaDescription) or TEAM commitment instructions.
+     */
+    description: string | null;
+};
+
+/**
+ * One model-facing detail carried by a teammate entry.
+ *
+ * @private
+ */
+type TeamEntryDetail = {
+    label: 'TEAM instructions' | 'Profile';
+    content: string;
 };
 
 /**
@@ -80,8 +100,26 @@ type TeamToolArgs = {
     [TOOL_RUNTIME_CONTEXT_ARGUMENT]?: unknown;
 };
 
+/**
+ * Map of team tool functions.
+ */
 const teamToolFunctions: Record<string_javascript_name, ToolFunction> = {};
+/**
+ * Map of team tool titles.
+ */
 const teamToolTitles: Record<string_javascript_name, string> = {};
+/**
+ * Shared TEAM usage rules appended ahead of teammate listings.
+ *
+ * @private
+ */
+const TEAM_SYSTEM_MESSAGE_GUIDANCE = spaceTrim(`
+    -   If a teammate is relevant to the request, consult that teammate using the matching tool.
+    -   Do not ask the user for information that a listed teammate can provide directly.
+`);
+/**
+ * Constant for remote agents by Url.
+ */
 const remoteAgentsByUrl = new Map<string, Promise<RemoteAgent>>();
 
 /**
@@ -111,10 +149,17 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
     }
 
     /**
+     * Marks TEAM as one of the priority commitments surfaced first in catalogues.
+     */
+    public override get isImportant(): boolean {
+        return true;
+    }
+
+    /**
      * Icon for this commitment.
      */
     get icon(): string {
-        return '??';
+        return '👥';
     }
 
     /**
@@ -126,12 +171,24 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
 
             Registers teammate agents that the current agent can consult via tools.
 
+            The primary agent sends a question and relevant context to a teammate and receives an attributed answer.
+            Each teammate uses its own Book. Declaring a team makes advisers available when relevant; it does not
+            merge their rules into the primary agent or start every teammate automatically.
+
+            In \`ptbk coder run\` and \`ptbk coder plan\`, TEAM entries in the selected Book, its ancestors and imports
+            use the existing reference rules: \`@Name\`, \`{Agent Name}\`, \`{./lawyer.book}\`, project paths such as
+            \`{agents/lawyer.book}\`, and HTTP(S) Book URLs. Local advisers require no Agents Server. A remote Book
+            must be readable through its normal endpoint; private or inaccessible sources return errors.
+            Coding harnesses expose scoped command tools; planning uses restricted host tools and currently requires
+            OpenAI Codex. Planning restrictions apply to every adviser, including custom Developer Books.
+            The primary agent retains responsibility for the task, PRD proposals and final output.
+
             ## Examples
 
             \`\`\`book
             Legal Assistant
 
-            PERSONA An expert software developer
+            GOAL Get expert software-development advice from the teammate when legal discussion needs technical context.
             TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss the legal aspects.
             \`\`\`
         `);
@@ -165,20 +222,38 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                   }>
                 | undefined) || [];
 
+        const preResolvedProfiles = (requirements._metadata?.preResolvedTeammateProfiles || {}) as Record<
+            string,
+            { agentName: string; personaDescription: string | null }
+        >;
+
         const resolvedTeammates: TeamTeammate[] = resolveTeamTeammateLabels(trimmedContent, teammates);
+        const toolUrls = new Map(existingTeammates.map((teammate) => [teammate.toolName, teammate.url]));
 
         const teamEntries: TeamToolEntry[] = resolvedTeammates.map((teammate) => {
+            const profile = preResolvedProfiles[teammate.url];
+            const resolvedLabel = profile?.agentName || teammate.label;
             const existingTeammate = existingTeammates.find((entry) => entry.url === teammate.url);
+            const baseToolName = existingTeammate?.toolName || createTeamToolName(teammate.url, resolvedLabel);
+            let toolName = baseToolName;
+            let suffix = 1;
+            // Explicit paths can identify distinct Books with the same display name or normalized label.
+            while (toolUrls.has(toolName) && toolUrls.get(toolName) !== teammate.url) {
+                toolName = `${baseToolName}_${++suffix}`;
+            }
+            toolUrls.set(toolName, teammate.url);
             return {
-                toolName: (existingTeammate?.toolName ||
-                    createTeamToolName(teammate.url, teammate.label)) as string_javascript_name,
-                teammate,
+                toolName: toolName as string_javascript_name,
+                teammate: { ...teammate, label: resolvedLabel },
                 agentName,
+                description: profile?.personaDescription || null,
             };
         });
 
-        for (const entry of teamEntries) {
-            registerTeamTool(entry);
+        if (!requirements._metadata?.isTeamToolRegistrationDisabled) {
+            for (const entry of teamEntries) {
+                registerTeamTool(entry);
+            }
         }
 
         const existingTools: readonly LlmToolDefinition[] = requirements.tools || [];
@@ -191,7 +266,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
 
             updatedTools.push({
                 name: entry.toolName,
-                description: `Consult teammate ${entry.teammate.label}`,
+                description: buildTeamToolDescription(entry),
                 parameters: {
                     type: 'object',
                     properties: {
@@ -229,11 +304,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             });
         }
 
-        const teamOverviewText = createTeamOverviewText(trimmedContent, teamEntries);
-        const teamSystemMessage = this.createSystemMessageSection(
-            'Teammates:',
-            buildTeamSystemMessageBody(teamOverviewText, teamEntries),
-        );
+        const teamSystemMessage = this.createSystemMessageSection('Teammates', buildTeamSystemMessageBody(teamEntries));
 
         return this.appendToSystemMessage(
             {
@@ -280,31 +351,98 @@ function resolveTeamTeammateLabels(teamContent: string, teammates: ReadonlyArray
 }
 
 /**
- * Rewrites TEAM commitment content into a URL-free teammate overview text.
+ * Builds the textual TEAM section body for the final system message.
+ *
+ * Each teammate is listed with its tool name, TEAM instructions, and optional profile hints.
  */
-function createTeamOverviewText(teamContent: string, teamEntries: ReadonlyArray<TeamToolEntry>): string {
-    let overviewText = teamContent;
+function buildTeamSystemMessageBody(teamEntries: ReadonlyArray<TeamToolEntry>): string {
+    const teammateSections = teamEntries.map((entry, index) => {
+        const toolLine = `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``;
+        const detailLines = collectTeamEntryDetails(entry).map(formatTeamEntryDetailLine);
 
-    for (const entry of teamEntries) {
-        overviewText = overviewText.split(entry.teammate.url).join(entry.teammate.label);
-    }
+        if (detailLines.length === 0) {
+            return toolLine;
+        }
 
-    return overviewText.trim();
+        return spaceTrim(
+            (block) => `
+                ${toolLine}
+                ${block(detailLines.join('\n'))}
+            `,
+        );
+    });
+
+    return spaceTrim(
+        (block) => `
+            ${block(TEAM_SYSTEM_MESSAGE_GUIDANCE)}
+
+            ${block(teammateSections.join('\n\n'))}
+        `,
+    );
 }
 
 /**
- * Builds the textual TEAM section body for the final system message.
+ * Builds the model-visible description for one teammate tool.
+ *
+ * @private
  */
-function buildTeamSystemMessageBody(teamOverviewText: string, teamEntries: ReadonlyArray<TeamToolEntry>): string {
-    const teammateLines = teamEntries.map(
-        (entry, index) => `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``,
-    );
+function buildTeamToolDescription(entry: TeamToolEntry): string {
+    const detailLines = collectTeamEntryDetails(entry).map(({ label, content }) => `${label}: ${content}`);
 
-    if (!teamOverviewText) {
-        return teammateLines.join('\n');
+    return spaceTrim(
+        (block) => `
+            Consult teammate ${entry.teammate.label}
+            ${block(detailLines.join('\n'))}
+        `,
+    );
+}
+
+/**
+ * Collects structured teammate details that should stay visible to the model.
+ *
+ * @private
+ */
+function collectTeamEntryDetails(entry: TeamToolEntry): TeamEntryDetail[] {
+    const details: TeamEntryDetail[] = [];
+    const instructions = entry.teammate.instructions.trim();
+    const description = entry.description?.trim() || '';
+
+    if (instructions) {
+        details.push({
+            label: 'TEAM instructions',
+            content: instructions,
+        });
     }
 
-    return `${teamOverviewText}\n\n${teammateLines.join('\n')}`;
+    if (description) {
+        details.push({
+            label: 'Profile',
+            content: description,
+        });
+    }
+
+    return details;
+}
+
+/**
+ * Formats one teammate detail line for the TEAM system-message section.
+ *
+ * @private
+ */
+function formatTeamEntryDetailLine(detail: TeamEntryDetail): string {
+    return indentMultilineText(`${detail.label}: ${detail.content}`, '   ');
+}
+
+/**
+ * Indents all lines of one potentially multi-line text block.
+ *
+ * @private
+ */
+function indentMultilineText(text: string, prefix: string): string {
+    return text
+        .split('\n')
+        .map((line) => `${prefix}${line}`)
+        .join('\n');
 }
 
 /**
@@ -332,7 +470,18 @@ function buildTeammateMetadata(entry: TeamToolEntry): TeamToolResult['teammate']
  * Builds the teammate request text, optionally including context.
  */
 function buildTeammateRequest(message: string, context?: string): string {
-    return context ? `${message}\n\nContext:\n${context}` : message;
+    if (!context) {
+        return message;
+    }
+
+    return spaceTrim(
+        (block) => `
+            ${block(message)}
+
+            Context:
+            ${block(context)}
+        `,
+    );
 }
 
 /**
@@ -426,22 +575,28 @@ function createPseudoVoidTeamToolResult(entry: TeamToolEntry, request: string): 
 /**
  * Resolves a RemoteAgent for the given teammate URL, caching the connection.
  */
-async function getRemoteTeammateAgent(agentUrl: string): Promise<RemoteAgent> {
-    const cached: Promise<RemoteAgent> | undefined = remoteAgentsByUrl.get(agentUrl);
+async function getRemoteTeammateAgent(agentUrl: string, runtimeContext: ToolRuntimeContext): Promise<RemoteAgent> {
+    const requestHeaders = createTeamInternalAgentAccessHeaders({
+        agentUrl,
+        localServerUrl: runtimeContext.agentsServer?.localServerUrl,
+        accessToken: runtimeContext.agentsServer?.teamInternalAccessToken,
+    });
+    const cacheKey = `${agentUrl}|${requestHeaders[TEAM_INTERNAL_AGENT_ACCESS_HEADER] || ''}`;
+    const cached: Promise<RemoteAgent> | undefined = remoteAgentsByUrl.get(cacheKey);
     if (cached) {
         return cached;
     }
 
     const connection: Promise<RemoteAgent> = (async (): Promise<RemoteAgent> => {
         const { RemoteAgent } = await import('../../llm-providers/agent/RemoteAgent');
-        return RemoteAgent.connect({ agentUrl });
+        return RemoteAgent.connect({ agentUrl, requestHeaders });
     })();
-    remoteAgentsByUrl.set(agentUrl, connection);
+    remoteAgentsByUrl.set(cacheKey, connection);
 
     try {
         return await connection;
     } catch (error) {
-        remoteAgentsByUrl.delete(agentUrl);
+        remoteAgentsByUrl.delete(cacheKey);
         throw error;
     }
 }
@@ -478,11 +633,9 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
         let toolCalls: ReadonlyArray<ToolCall> | undefined;
 
         try {
-            const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url);
-            const prompt: ChatPrompt = buildTeammatePrompt(
-                request,
-                createTeamConversationRuntimeContext(args[TOOL_RUNTIME_CONTEXT_ARGUMENT]),
-            );
+            const runtimeContext = createTeamConversationRuntimeContext(args[TOOL_RUNTIME_CONTEXT_ARGUMENT]);
+            const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url, runtimeContext);
+            const prompt: ChatPrompt = buildTeammatePrompt(request, runtimeContext);
             const teammateResult: PromptResult = await remoteAgent.callChatModel(prompt);
             response = teammateResult.content || '';
             toolCalls =
@@ -520,6 +673,4 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
     };
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

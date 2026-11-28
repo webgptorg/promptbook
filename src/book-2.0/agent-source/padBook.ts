@@ -1,7 +1,7 @@
 import type { string_book } from './string_book';
 
 /**
- *  Number of padding lines to add at the end of the book content
+ * Number of padding lines to add at the end of the book content
  *
  * @public exported from `@promptbook/core`
  */
@@ -43,6 +43,4 @@ export function padBook(content: string_book): string_book {
     return (content + '\n'.repeat(linesToAdd)) as string_book;
 }
 
-/**
- * TODO: [🧠] Maybe export
- */
+// TODO: [🧠] Maybe export

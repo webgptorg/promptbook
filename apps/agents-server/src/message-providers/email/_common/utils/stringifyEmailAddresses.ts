@@ -9,6 +9,4 @@ export function stringifyEmailAddresses(emailAddresses: Array<EmailAddress>): st
     return emailAddresses.map((emailAddress) => stringifyEmailAddress(emailAddress)).join(', ');
 }
 
-/**
- * TODO: [🎾] Implement and test here escaping
- */
+// TODO: [🎾] Implement and test here escaping

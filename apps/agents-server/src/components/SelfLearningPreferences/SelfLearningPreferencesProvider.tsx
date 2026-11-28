@@ -2,15 +2,27 @@
 
 import { createContext, type Dispatch, type ReactNode, type SetStateAction, useContext, useEffect, useMemo, useState } from 'react';
 
+/**
+ * Constant for self learning storage key.
+ */
 const SELF_LEARNING_STORAGE_KEY = 'promptbook-self-learning-enabled';
 
+/**
+ * Type describing self learning preferences context value.
+ */
 type SelfLearningPreferencesContextValue = {
     readonly isSelfLearningEnabled: boolean;
     readonly setIsSelfLearningEnabled: Dispatch<SetStateAction<boolean>>;
 };
 
+/**
+ * Constant for self learning preferences context.
+ */
 const SelfLearningPreferencesContext = createContext<SelfLearningPreferencesContextValue | null>(null);
 
+/**
+ * Props for self learning preferences provider.
+ */
 type SelfLearningPreferencesProviderProps = {
     readonly children: ReactNode;
 };

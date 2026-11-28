@@ -21,11 +21,14 @@ npm run generate-prompt-boilerplate
 ### Via Promptbook CLI (recommended for external users):
 
 ```bash
+# Initialize the project once to materialize the default project templates
+ptbk coder init
+
 # External usage (when promptbook is installed globally)
 ptbk coder generate-boilerplates --count 5
 
 # Internal usage (within Promptbook repository)
-npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/templates/common.md
 ```
 
 ### Direct execution (legacy):
@@ -44,26 +47,39 @@ ptbk coder generate-boilerplates --count 100
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100
 ```
 
+### Generate more prompts in each file (advanced):
+
+`--count` accepts both the `N` and the `N*M` notation — `N` files with `M` prompts in each of them. A plain `--count N` is the same as `--count N*1`, and the default is `5*1`. Every single generated prompt is one separate task, so the prompts within one file are separated by `---` and each of them gets its own fresh emoji tag.
+
+```bash
+# Via CLI (recommended)
+ptbk coder generate-boilerplates --count 10*7
+
+# Direct (legacy)
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 10*7
+```
+
 ### Select a template:
 
 ```bash
 # Via CLI (recommended)
-ptbk coder generate-boilerplates --template common
 ptbk coder generate-boilerplates --template agents-server
+ptbk coder generate-boilerplates --template prompts/templates/common.md
+ptbk coder generate-boilerplates --template foo/bar/custom.md
 
 # Direct (legacy)
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template common
-npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template agents-server
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template prompts/templates/common.md
 ```
 
 ### Combine options:
 
 ```bash
 # Via CLI (recommended)
-ptbk coder generate-boilerplates --count 100 --template agents-server
+ptbk coder generate-boilerplates --count 100 --template prompts/templates/common.md
 
 # Direct (legacy)
-npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100 --template agents-server
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100 --template prompts/templates/common.md
 ```
 
 ## Output
@@ -78,7 +94,7 @@ The script creates 5 files with the following pattern:
 
 Where `XXXX` is the next available sequential number.
 
-When using `--template agents-server`, generated filenames include the template prefix in slug part (for example: `2026-02-2210-agents-server-qux.md`).
+When using `--template agents-server` or another template whose filename is not `common`, generated filenames include the template prefix in slug part (for example: `2026-02-2210-agents-server-qux.md`).
 
 ## How it works
 
@@ -95,8 +111,8 @@ When using `--template agents-server`, generated filenames include the template 
     -   `EMOJIS_OF_SINGLE_PICTOGRAM` from `src/utils/emojis.ts`
     -   `difference` from `src/utils/sets/difference.ts`
     -   `$shuffleItems` from `src/utils/shuffleItems.ts`
--   External dependencies: `glob-promise`, `chalk`, `dotenv`
+-   External dependencies: `glob`, `chalk`, `dotenv`
 
 ## Integration
 
-The script follows the same pattern as other project scripts like `find-fresh-emoji-tag` and integrates seamlessly with the existing codebase structure.
+The script follows the same pattern as other project scripts like `find-fresh-emoji-tags` and integrates seamlessly with the existing codebase structure.

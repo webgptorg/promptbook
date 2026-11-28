@@ -2,22 +2,23 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { CSSProperties, useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type {
-    number_percent,
-    number_positive,
-    string_css_value,
-    string_knowledge_source_content,
-} from '../../types/typeAliases';
+import type { number_percent } from '../../types/number_percent';
+import type { number_positive } from '../../types/number_positive';
+import type { string_knowledge_source_content } from '../../types/string_knowledge_source_content';
+import type { string_css_value } from '../../types/string_markdown';
 import { countLines } from '../../utils/expectation-counters/countLines';
+import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
+import type { BookEditorTheme } from './BookEditorTheme';
+import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
 
 /**
  * Monaco diagnostic shown inside `BookEditor`.
@@ -122,6 +123,16 @@ export type BookEditorProps = {
      * Optional CSS style which will be added to root <div/> element
      */
     readonly style?: CSSProperties;
+
+    /**
+     * Resolved host application theme.
+     *
+     * `<BookEditor/>` accepts this for integration compatibility, but the notebook
+     * editor itself is intentionally rendered as light paper in every app theme.
+     *
+     * @default 'LIGHT'
+     */
+    readonly theme?: BookEditorTheme;
 
     /**
      * Height of the `BookEditor` component
@@ -251,6 +262,22 @@ export type BookEditorProps = {
          */
         readonly roomName: string;
     };
+
+    /**
+     * Stable Monaco model path used to restore cursor/scroll view state across remounts.
+     *
+     * Keep this unique per logical book editor document.
+     *
+     * @private Internal to Promptbook app integrations.
+     */
+    readonly monacoModelPath?: string;
+
+    /**
+     * Additional actions merged into the BookEditor actionbar and hoisted header menu.
+     *
+     * @private Internal to Promptbook app integrations.
+     */
+    readonly hoistedMenuItems?: ReadonlyArray<HoistedMenuItem>;
 };
 
 /**
@@ -263,6 +290,7 @@ export function BookEditor(props: BookEditorProps) {
         agentSource,
         className,
         style,
+        theme: hostTheme = BOOK_EDITOR_RENDER_THEME,
         zoom = 1,
         value,
         onChange,
@@ -272,15 +300,18 @@ export function BookEditor(props: BookEditorProps) {
         isBorderRadiusDisabled = false,
         isReadonly = false,
         translations,
-        isUploadButtonShown = true,
+        isUploadButtonShown = false,
         isCameraButtonShown,
-        isDownloadButtonShown = true,
-        isAboutButtonShown = true,
-        isFullscreenButtonShown = true,
+        isDownloadButtonShown = false,
+        isAboutButtonShown = false,
+        isFullscreenButtonShown = false,
         sync,
+        monacoModelPath,
+        hoistedMenuItems,
     } = props;
 
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const renderedTheme = resolveBookEditorRenderTheme(hostTheme);
 
     /**
      * Toggles fullscreen mode for the editor.
@@ -292,6 +323,7 @@ export function BookEditor(props: BookEditorProps) {
     const editorContent = (
         <div
             data-book-component="BookEditor"
+            data-book-editor-theme={renderedTheme.toLowerCase()}
             className={classNames(
                 styles.BookEditor,
                 isVerbose && styles.isVerbose,
@@ -334,6 +366,9 @@ export function BookEditor(props: BookEditorProps) {
                 isFullscreen={isFullscreen}
                 sync={sync}
                 zoom={zoom}
+                monacoModelPath={monacoModelPath}
+                hoistedMenuItems={hoistedMenuItems}
+                theme={renderedTheme}
             />
         </div>
     );
@@ -341,6 +376,4 @@ export function BookEditor(props: BookEditorProps) {
     return isFullscreen && typeof document !== 'undefined' ? createPortal(editorContent, document.body) : editorContent;
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

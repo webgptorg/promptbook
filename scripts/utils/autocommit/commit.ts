@@ -1,10 +1,14 @@
 import colors from 'colors';
 import { mkdir, unlink, writeFile } from 'fs/promises';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { resolvePromptbookTemporaryPath } from '../../../src/utils/filesystem/promptbookTemporaryPath';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
+/**
+ * Handles commit.
+ */
 export async function commit(addPaths: ReadonlyArray<string>, message: string): Promise<void> {
     console.log(colors.blue('--- Commit ---'));
     console.log(colors.blue(message));
@@ -12,7 +16,7 @@ export async function commit(addPaths: ReadonlyArray<string>, message: string): 
     const projectPath = process.cwd();
     // const addPath = '.';
 
-    const commitMessageFilePath = join(process.cwd(), '.tmp', 'COMMIT_MESSAGE');
+    const commitMessageFilePath = resolvePromptbookTemporaryPath(projectPath, 'scripts', 'autocommit', 'COMMIT_MESSAGE');
     const commitMessage = spaceTrim(
         (block) => `
         ${block(message)}
@@ -60,6 +64,4 @@ export async function commit(addPaths: ReadonlyArray<string>, message: string): 
     }
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [commit](scripts/utils/autocommit/commit.ts) should never be published in any package

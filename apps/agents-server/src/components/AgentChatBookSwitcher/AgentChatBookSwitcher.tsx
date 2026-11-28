@@ -48,8 +48,8 @@ export function AgentChatBookSwitcher({ agentName, activeTab }: AgentChatBookSwi
                 const baseStyles =
                     'flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors';
                 const variantStyles = isActive
-                    ? 'bg-white border-slate-200 text-slate-900 shadow-sm'
-                    : 'border-transparent text-slate-500 hover:border-slate-200 hover:text-slate-900';
+                    ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-600 dark:bg-slate-900/90 dark:text-slate-50 dark:shadow-slate-950/30'
+                    : 'border-transparent text-slate-500 hover:border-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-slate-100';
 
                 return (
                     <Link

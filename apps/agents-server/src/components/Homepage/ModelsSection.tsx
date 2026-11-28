@@ -3,12 +3,18 @@ import React from 'react';
 import { Section } from './Section';
 import { ModelCard } from './ModelCard';
 
+/**
+ * Information about model.
+ */
 type ModelInfo = {
     modelName: string;
     modelTitle?: string;
     modelDescription?: string;
 };
 
+/**
+ * Props for models section.
+ */
 type ModelsSectionProps = {
     /**
      * Full list of models to display.
@@ -35,6 +41,9 @@ type ModelsSectionProps = {
     showViewAllLink?: boolean;
 };
 
+/**
+ * Handles models section.
+ */
 export function ModelsSection(props: ModelsSectionProps) {
     const { models, title, maxVisible, showViewAllLink } = props;
 

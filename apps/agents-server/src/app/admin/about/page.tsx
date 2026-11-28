@@ -23,7 +23,6 @@ import {
     NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
     NEXT_PUBLIC_VERCEL_TARGET_ENV,
     NEXT_PUBLIC_VERCEL_URL,
-    SERVERS,
     SUPABASE_TABLE_PREFIX,
 } from '../../../../config';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
@@ -31,7 +30,11 @@ import { Card } from '../../../components/Homepage/Card';
 import { Section } from '../../../components/Homepage/Section';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { getSession } from '../../../utils/session';
+import { listRegisteredServersUsingServiceRole } from '../../../utils/serverRegistryNode';
 
+/**
+ * Constant for promptbook about text.
+ */
 const promptbookAboutText = aboutPromptbookInformation({
     isServersInfoIncluded: false,
     isRuntimeEnvironmentInfoIncluded: false,
@@ -77,6 +80,9 @@ const formatOptionalValue = (value?: string | URL | null): string => {
  */
 const formatMemory = (bytes: number): string => `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
 
+/**
+ * Type describing request headers.
+ */
 type RequestHeaders = Awaited<ReturnType<typeof headers>>;
 
 /**
@@ -110,17 +116,21 @@ function formatDuration(seconds: number): string {
 }
 
 /**
- * Joins a list of strings or falls back to an empty placeholder.
+ * Formats registered server records for the diagnostics page.
  *
- * @param values - Array of strings that may be missing.
- * @returns A comma separated list or the fallback text.
+ * @param values - Registered servers.
+ * @returns Readable one-line summary or fallback text.
  */
-function formatList(values?: string[] | null): string {
+function formatRegisteredServers(
+    values?: Array<{ name: string; environment: string; domain: string; tablePrefix: string }> | null,
+): string {
     if (!values || values.length === 0) {
         return 'Not configured';
     }
 
-    return values.join(', ');
+    return values
+        .map((server) => `${server.name} [${server.environment}] -> ${server.domain} (${server.tablePrefix})`)
+        .join(', ');
 }
 
 /**
@@ -204,6 +214,7 @@ export default async function AdminAboutPage() {
     const requestHeaders = await headers();
     const cookieStore = await cookies();
     const session = await getSession();
+    const registeredServers = await listRegisteredServersUsingServiceRole().catch(() => []);
     const adminTokenCookie = cookieStore.get('adminToken');
     const sessionCookie = cookieStore.get('sessionToken');
     const cookieNames = cookieStore.getAll().map((cookie) => cookie.name);
@@ -342,7 +353,7 @@ export default async function AdminAboutPage() {
     ];
 
     const serverConfigInfo: InfoListItem[] = [
-        { label: 'Active SERVERS', value: renderOptionalMonoValue(formatList(SERVERS)) },
+        { label: 'Registered servers', value: renderOptionalMonoValue(formatRegisteredServers(registeredServers)) },
         { label: 'Supabase table prefix', value: formatOptionalValue(SUPABASE_TABLE_PREFIX) },
         { label: 'Admin password configured', value: adminPasswordConfigured ? 'Yes' : 'No' },
     ];
@@ -402,7 +413,7 @@ export default async function AdminAboutPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <div className="container mx-auto px-4 py-16">
                 <Card className="mb-10 space-y-4">
                     <div>

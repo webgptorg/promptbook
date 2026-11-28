@@ -1,9 +1,9 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
-import Anthropic from '@anthropic-ai/sdk';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -13,15 +13,13 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_name,
-    string_title,
-} from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_model_name } from '../../types/string_model_name';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
+import type { string_date_iso8601 } from '../../types/string_token';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
+import { createLazyModuleLoader } from '../../utils/misc/createLazyModuleLoader';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -40,10 +38,20 @@ const ANTHROPIC_PROVIDER_PROFILE: ChatParticipant = {
 } as const;
 
 /**
+ * Loads the Anthropic Claude SDK (`@anthropic-ai/sdk`) on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private internal utility of `AnthropicClaudeExecutionTools`
+ */
+const loadAnthropicClaudeModule = createLazyModuleLoader(() => import('@anthropic-ai/sdk'));
+
+/**
  * Execution Tools for calling Anthropic Claude API.
  *
- * @public exported from `@promptbook/anthropic-claude`
  * @deprecated use `createAnthropicClaudeExecutionTools` instead
+ *
+ * @public exported from `@promptbook/anthropic-claude`
  */
 export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
@@ -82,6 +90,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
             const anthropicOptions: ClientOptions = { ...this.options };
             delete (anthropicOptions as chococake).isVerbose;
             delete (anthropicOptions as chococake).isProxied;
+
+            const { Anthropic } = await loadAnthropicClaudeModule();
             this.client = new Anthropic(anthropicOptions);
         }
 
@@ -239,12 +249,10 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
     // <- Note: [🤖] getDefaultXxxModel
 }
 
-/**
- * TODO:  [🍆] JSON mode
- * TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
- * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom OpenAiError
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- * TODO: [📅] Maybe instead of `RemoteLlmExecutionToolsOptions` use `proxyWithAnonymousRemoteServer` (if implemented)
- */
+// TODO:  [🍆] JSON mode
+// TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
+// TODO: Maybe Create some common util for callChatModel and callCompletionModel
+// TODO: Maybe make custom OpenAiError
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+// TODO: [📅] Maybe instead of `RemoteLlmExecutionToolsOptions` use `proxyWithAnonymousRemoteServer` (if implemented)

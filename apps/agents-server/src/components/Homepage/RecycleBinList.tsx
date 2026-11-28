@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
+import { useCurrentPathQueryNavigation } from '../_utils/useCurrentPathQueryNavigation';
 import { AgentCard } from './AgentCard';
 import { FolderCard } from './FolderCard';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
@@ -50,8 +52,9 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const { agents, folders, canRestore, publicUrl } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
+    const updateCurrentPathQuery = useCurrentPathQueryNavigation();
     const { formatText } = useAgentNaming();
-    const folderPathSegments = parseFolderPath(searchParams.get('folder'));
+    const folderPathSegments = parseFolderPath(searchParams?.get('folder') ?? null);
     const currentFolderId = useMemo(
         () => resolveFolderIdFromPath([...folders], folderPathSegments),
         [folders, folderPathSegments],
@@ -87,7 +90,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const navigateToFolder = (folderId: number | null) => {
         const { folderById } = buildFolderMaps(folders);
         const targetSegments = getFolderPathSegments(folderId, folderById).map((folder) => folder.name);
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() ?? '');
 
         if (targetSegments.length === 0) {
             params.delete('folder');
@@ -95,7 +98,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
             params.set('folder', buildFolderPath(targetSegments));
         }
 
-        router.push(`?${params.toString()}`, { scroll: false });
+        updateCurrentPathQuery(params);
     };
 
     /**
@@ -204,7 +207,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
                         key={agent.permanentId || agent.agentName}
                         agent={agent}
                         publicUrl={publicUrl}
-                        href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
+                        href={buildFreshAgentChatHref(agent.permanentId || agent.agentName)}
                         isAdmin={canRestore}
                         onRestore={handleRestoreAgent}
                     />

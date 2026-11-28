@@ -1,10 +1,15 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { useState } from 'react';
 import { LoginForm } from '../LoginForm/LoginForm';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
+/**
+ * Props for login dialog.
+ */
 type LoginDialogProps = {
     /**
      * Optional heading shown in the dialog.
@@ -32,18 +37,24 @@ type LoginDialogProps = {
  * Renders the login dialog inside the async modal shell.
  *
  * @param props - Dialog configuration.
+ *
  * @private @@@
  */
 export function LoginDialog(props: LoginDialogProps) {
     const { title, description, refreshAfterSuccess, onSuccess, onCancel } = props;
     const { t } = useServerLanguage();
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges,
+        onClose: onCancel,
+    });
     const dialogTitle = title ?? t('login.dialogTitle');
     const dialogDescription = description ?? t('login.dialogDescription');
 
     return (
-        <Dialog onClose={onCancel} className="w-full max-w-md p-6">
+        <Dialog onClose={requestClose} className="w-full max-w-md p-6">
             <button
-                onClick={onCancel}
+                onClick={requestClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
                 type="button"
             >
@@ -56,7 +67,11 @@ export function LoginDialog(props: LoginDialogProps) {
                 <p className="text-sm text-gray-500 mt-1">{dialogDescription}</p>
             </div>
 
-            <LoginForm onSuccess={onSuccess} refreshAfterSuccess={refreshAfterSuccess} />
+            <LoginForm
+                onSuccess={onSuccess}
+                refreshAfterSuccess={refreshAfterSuccess}
+                onDirtyChange={setHasUnsavedChanges}
+            />
         </Dialog>
     );
 }

@@ -4,8 +4,10 @@ import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provi
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { parseBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
 import { resolvePseudoAgentDescriptor } from '../pseudoAgents';
+import { isSameAgentPermanentId } from '../agentIdentifier';
 import { normalizeAgentName } from '../../../../../src/_packages/core.index';
 import type { PseudoAgentKind } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
+import { cache } from 'react';
 
 /**
  * Prefix used by canonical agent URLs in the application.
@@ -39,6 +41,9 @@ type RemoteAgentRouteTarget = {
     url: string;
 };
 
+/**
+ * Type describing pseudo agent route target.
+ */
 type PseudoAgentRouteTarget = {
     kind: 'pseudo';
     pseudoAgentKind: PseudoAgentKind;
@@ -52,15 +57,21 @@ type PseudoAgentRouteTarget = {
 export type AgentRouteTarget = LocalAgentRouteTarget | RemoteAgentRouteTarget | PseudoAgentRouteTarget;
 
 /**
- * Resolves any incoming `/agents/:agentId` token into a canonical target URL.
+ * Resolves any incoming `/agents/:agentId` token into a canonical target URL without memoization.
  *
  * Supported inputs include plain IDs/names, `@name`, `{name}`, `{id}`, and absolute `/agents/...` URLs.
  * Pseudo-agent tokens such as `{User}`, `{Void}`, or `{Null}` resolve to dedicated documentation pages.
  *
  * @param rawReference - Raw decoded route parameter value.
+ * @param options - Optional cache-bypass controls used by create-agent flows.
  * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
  */
-export async function resolveAgentRouteTarget(rawReference: string): Promise<AgentRouteTarget | null> {
+async function resolveAgentRouteTargetUncached(
+    rawReference: string,
+    options?: {
+        readonly forceRefresh?: boolean;
+    },
+): Promise<AgentRouteTarget | null> {
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(rawReference);
     if (parsedBookScopedAgentIdentifier) {
         const { publicUrl } = await $provideServer();
@@ -92,7 +103,14 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
         };
     }
 
-    const resolver = await $provideAgentReferenceResolver();
+    if (!options?.forceRefresh) {
+        const fastLocalRouteTarget = await resolveFastLocalAgentRouteTarget(normalizedReference, localServerUrl);
+        if (fastLocalRouteTarget) {
+            return fastLocalRouteTarget;
+        }
+    }
+
+    const resolver = await $provideAgentReferenceResolver({ forceRefresh: options?.forceRefresh });
     let resolvedUrlValue: string;
 
     try {
@@ -133,6 +151,64 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
         canonicalAgentId,
         canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
     };
+}
+
+/**
+ * Resolves the common local-agent case without constructing the heavier shared reference resolver.
+ *
+ * Normal page and chat routes almost always target one local agent by its stored name or permanent id.
+ * Handling that case up front keeps route resolution cheap while still falling back to the full TEAM/federation
+ * resolver for aliases, remote agents, and fuzzy matches.
+ *
+ * @param reference - Normalized route/reference text.
+ * @param localServerUrl - Normalized URL of the current Agents Server instance.
+ * @returns Local route target or `null` when a direct lookup does not match.
+ */
+async function resolveFastLocalAgentRouteTarget(
+    reference: string,
+    localServerUrl: string,
+): Promise<AgentRouteTarget | null> {
+    const collection = await $provideAgentCollectionForServer();
+    const directMatch = await collection.findAgentBasicInformation(reference);
+
+    if (!directMatch) {
+        return null;
+    }
+
+    const canonicalAgentId = directMatch.permanentId || directMatch.agentName;
+
+    return {
+        kind: 'local',
+        canonicalAgentId,
+        canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
+    };
+}
+
+/**
+ * Memoized route-target resolver used for normal page rendering.
+ */
+const getCachedAgentRouteTarget = cache(async (rawReference: string): Promise<AgentRouteTarget | null> => {
+    return resolveAgentRouteTargetUncached(rawReference);
+});
+
+/**
+ * Resolves any incoming `/agents/:agentId` token into a canonical target URL.
+ *
+ * @param rawReference - Raw decoded route parameter value.
+ * @param options - Optional cache-bypass controls used by create-agent flows.
+ * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
+ */
+export async function resolveAgentRouteTarget(
+    rawReference: string,
+    options?: {
+        readonly forceRefresh?: boolean;
+    },
+): Promise<AgentRouteTarget | null> {
+    if (options?.forceRefresh) {
+        return resolveAgentRouteTargetUncached(rawReference, options);
+    }
+
+    return getCachedAgentRouteTarget(rawReference);
 }
 
 /**
@@ -234,21 +310,7 @@ async function resolveLocalAgentRouteTarget(
     localServerUrl: string,
 ): Promise<AgentRouteTarget | null> {
     const collection = await $provideAgentCollectionForServer();
-    const agents = await collection.listAgents();
-    const normalizedReference = normalizeAgentName(reference);
-
-    const agentMatch = agents.find((agent: { agentName: string; permanentId?: string }) => {
-        if (agent.agentName === reference || agent.permanentId === reference) {
-            return true;
-        }
-
-        const normalizedAgentName = normalizeAgentName(agent.agentName);
-        if (normalizedAgentName === normalizedReference) {
-            return true;
-        }
-
-        return false;
-    });
+    const agentMatch = await findLocalAgentRouteMatch(collection, reference);
 
     if (!agentMatch) {
         return null;
@@ -261,4 +323,39 @@ async function resolveLocalAgentRouteTarget(
         canonicalAgentId,
         canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
     };
+}
+
+/**
+ * Finds a local agent route match without loading the whole collection when possible.
+ *
+ * @param collection - Agents collection backing local routes.
+ * @param reference - Normalized route/reference text.
+ * @returns Matching local agent profile or `null`.
+ */
+async function findLocalAgentRouteMatch(
+    collection: Awaited<ReturnType<typeof $provideAgentCollectionForServer>>,
+    reference: string,
+): Promise<{ agentName: string; permanentId?: string | null } | null> {
+    const directMatch = await collection.findAgentBasicInformation(reference);
+    if (directMatch) {
+        return directMatch;
+    }
+
+    const agents = await collection.listAgents();
+    const normalizedReference = normalizeAgentName(reference);
+
+    return (
+        agents.find((agent: { agentName: string; permanentId?: string | null }) => {
+            if (agent.agentName === reference || isSameAgentPermanentId(agent.permanentId, reference)) {
+                return true;
+            }
+
+            const normalizedAgentName = normalizeAgentName(agent.agentName);
+            if (normalizedAgentName === normalizedReference) {
+                return true;
+            }
+
+            return false;
+        }) || null
+    );
 }

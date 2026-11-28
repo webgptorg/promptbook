@@ -1,269 +1,1024 @@
 import colors from 'colors';
 import moment from 'moment';
-import { join } from 'path';
-import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
+import { join, relative, resolve } from 'path';
+import type { string_book } from '../../../src/book-2.0/agent-source/string_book';
+import type { GitChangesMode } from '../../../src/cli/cli-commands/coder/GitChangesMode';
+import { resolveProjectDirectory } from '../../../src/cli/cli-commands/common/projectCliOptions';
+import { validateCoderRunOptions } from '../../../src/cli/cli-commands/common/validateCoderRunOptions';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
+import type { CoderRunPauseCheckpointOptions, WaitForCoderRunPauseCheckpoint } from '../common/CoderRunPauseCheckpoint';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
-import { printCommitMessage } from '../common/printCommitMessage';
-import { waitForEnter } from '../common/waitForEnter';
-import { checkPause, listenForPause } from '../common/waitForPause';
-import { commitChanges } from '../git/commitChanges';
+import { loadCachedAveragePromptDurationMs } from '../common/coderRunEstimateCache';
+import { createFreeDiskSpaceGuard, type FreeDiskSpaceGuard } from '../common/createFreeDiskSpaceGuard';
+import type { PromptRunnerMetadata } from '../common/PromptRunnerMetadata';
+import { sleepWithCountdown } from '../common/sleepWithCountdown';
+import { resolveCoderProjectContext } from '../common/resolveCoderProjectContext';
+import { listenForCoderRunControls } from '../common/listenForCoderRunControls';
+import {
+    announcePauseTargetLabel,
+    checkPause,
+    getEndAfterCurrentPromptState,
+    resetCoderRunControls,
+    resetPauseTargetLabel,
+} from '../common/waitForPause';
+import { waitForSkippableWorldTimeDeadline } from '../common/waitForSkippableWorldTimeDeadline';
+import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
+import {
+    captureCoderCommitScope,
+    continueCoderCommitScopeOwnership,
+    type CoderCommitScope,
+} from '../git/coderCommitScope';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
-import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
-import { buildCommitMessage } from '../prompts/buildCommitMessage';
+import { pullLatestChanges } from '../git/pullLatestChanges';
+import { runIsolatedPromptRound } from '../isolation/runIsolatedPromptRound';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
-import { buildScriptPath } from '../prompts/buildScriptPath';
+import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
+import { isPromptCompatibleWithRunner, type PromptRunnerIdentity } from '../prompts/isPromptCompatibleWithRunner';
 import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
-import { markPromptDone } from '../prompts/markPromptDone';
-import { markPromptFailed } from '../prompts/markPromptFailed';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
 import { printStats } from '../prompts/printStats';
+import { normalizePriorityFilter, type PriorityFilter } from '../prompts/priorityFilter';
 import { printUpcomingTasks } from '../prompts/printUpcomingTasks';
+import { resolveInterruptedPrompt } from '../prompts/resolveInterruptedPrompt';
 import { summarizePrompts } from '../prompts/summarizePrompts';
+import type { PromptFile } from '../prompts/types/PromptFile';
+import type { PromptSelection } from '../prompts/types/PromptSelection';
+import type { PromptStats } from '../prompts/types/PromptStats';
 import { waitForPromptStart } from '../prompts/waitForPromptStart';
-import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
-import { writePromptFile } from '../prompts/writePromptFile';
-import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
-import { ClineRunner } from '../runners/cline/ClineRunner';
-import { DEFAULT_GEMINI_MODEL, GeminiRunner } from '../runners/gemini/GeminiRunner';
-import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
-import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-
-const PROMPTS_DIR = join(process.cwd(), 'prompts');
-const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
-const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
-
-type RunnerAgentName = NonNullable<RunOptions['agentName']>;
-
-const RUNNER_LABELS: Record<RunnerAgentName, string> = {
-    'openai-codex': 'OpenAI Codex',
-    cline: 'Cline',
-    'claude-code': 'Claude Code',
-    opencode: 'Opencode',
-    gemini: 'Gemini CLI',
-};
-
-/**
- * Runner metadata used in prompt status lines.
- */
-type RunnerMetadata = {
-    runnerName: string;
-    modelName?: string;
-};
+import { buildCoderRunAgentVisual } from '../ui/buildCoderRunAgentVisual';
+import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
+import {
+    startCoderRunUiSubscriptionUsageRefresh,
+    type CoderRunUiSubscriptionUsageRefreshHandle,
+} from '../ui/startCoderRunUiSubscriptionUsageRefresh';
+import { resolveCoderCheckCommand, type CheckBeforeMode } from '../checks/CheckBeforeMode';
+import { assertProjectCheckIsConfigured } from '../checks/projectCheck';
+import { resolveRunnerModel } from './resolvePromptRunner';
+import { prepareCoderPromptExecution } from './prepareCoderPromptExecution';
+import { runCoderCheckRepair } from '../checks/runCoderCheckRepair';
+import { withCoderWorkspaceLock } from '../common/withCoderWorkspaceLock';
+import { runPromptRound } from './runPromptRound';
 
 /**
- * Resolves runner metadata for prompt status lines.
+ * Prompt queue snapshot for one top-level loop iteration.
  */
-function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMetadata {
-    const runnerName = options.agentName ? RUNNER_LABELS[options.agentName] ?? 'unknown' : 'unknown';
-    let modelName: string | undefined;
-
-    if (options.agentName === 'openai-codex') {
-        modelName = actualModel;
-    } else if (options.agentName === 'gemini') {
-        modelName = actualModel;
-    } else if (options.agentName === 'cline') {
-        modelName = CLINE_MODEL;
-    } else if (options.agentName === 'opencode') {
-        modelName = options.model;
-    }
-
-    return { runnerName, modelName };
-}
+type PromptQueueSnapshot = {
+    promptFiles: PromptFile[];
+    stats: PromptStats;
+    nextPrompt?: PromptSelection;
+};
 
 /**
  * Main entry point for running prompts with the selected agent.
  *
  * @param providedOptions - Optional pre-parsed options. If not provided, will parse from process.argv
+ *
  * @public exported from `@promptbook/cli`
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
-    const options = providedOptions ?? parseRunOptions(process.argv.slice(2));
+    const normalizedOptions = normalizeRunOptions(providedOptions ?? parseRunOptions(process.argv.slice(2)));
+    validateCoderRunOptions(normalizedOptions);
+    // CLI-preflighted workspaces are already canonical. For direct runs without an explicit project path, preserve
+    // `process.cwd()` as written because macOS may expose the same temporary directory through `/var` and `/private/var`.
+    const projectPath =
+        normalizedOptions.workspace?.projectPath ??
+        (providedOptions?.projectPath === undefined
+            ? normalizedOptions.projectPath!
+            : await resolveProjectDirectory(normalizedOptions.projectPath!));
+    const options = { ...normalizedOptions, projectPath };
+    if (options.dryRun) return runCodexPromptsWithOwnership(options);
+    return withCoderWorkspaceLock(options.workspace ?? projectPath, () => runCodexPromptsWithOwnership(options));
+}
+
+/** Executes the queue while its caller owns the workspace, or performs a read-only preview. */
+async function runCodexPromptsWithOwnership(options: RunOptions & { readonly projectPath: string }): Promise<void> {
+    const projectPath = options.projectPath;
+    resetCoderRunControls();
+
     const runStartDate = moment();
-    const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
-    listenForPause();
+    const { isRichUiEnabled, progressDisplay, uiHandle } = createRunDisplays(options, runStartDate);
+    const waitForRequestedPause = createPauseWaiter({
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        // Note: Every pause checkpoint of the whole run goes through this one waiter, so watching the free disk
+        //       space here covers each round, each verification and each runner without repeating the check
+        guardFreeDiskSpace: createFreeDiskSpaceGuard({
+            inspectedPath: projectPath,
+            isAskingQuestionsEnabled: options.isAskingQuestionsEnabled ?? true,
+        }),
+    });
+
+    startPauseListenerIfNeeded(isRichUiEnabled);
+
+    let subscriptionUsageRefresh: CoderRunUiSubscriptionUsageRefreshHandle | undefined;
 
     try {
-        if (options.dryRun) {
-            const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-            const stats = summarizePrompts(promptFiles, options.priority);
-            printStats(stats, options.priority);
-            console.info(colors.yellow('Following prompts need to be written:'));
-            printPromptsToBeWritten(promptFiles, options.priority);
+        const projectContext =
+            options.projectContext ??
+            (await resolveCoderProjectContext({
+                ...options,
+                projectPath,
+            }));
+        if (await runDryRunIfRequested(options, projectContext.agentBook?.agentReferences)) {
             return;
         }
-
-        let runner: PromptRunner;
-        let actualCodexModel: string | undefined;
-        let actualGeminiModel: string | undefined;
-        const agentName = options.agentName;
-
-        if (!agentName) {
-            throw new Error('Missing --agent in non-dry run mode');
+        await assertProjectCheckIsConfigured(options.checkCommand, projectPath);
+        let ownershipScope =
+            options.noCommit && (options.workspace || options.checkCommand || options.normalizeLineEndings)
+                ? await captureCoderCommitScope(options.workspace ?? projectPath, { isContentSnapshotRequired: true })
+                : undefined;
+        const retainScope = options.noCommit
+            ? (scope: CoderCommitScope): void => {
+                  ownershipScope = scope;
+              }
+            : undefined;
+        const resolvedCoderContext = projectContext.context;
+        const { runner, actualRunnerModel, runnerMetadata, resolvedCoderAgent } = await prepareCoderPromptExecution(
+            options,
+        );
+        const resolvedAgentSystemMessage = resolvedCoderAgent?.systemMessage;
+        if (ownershipScope) {
+            // Preparation can initialize Books. Carry their content as owned work without losing the user boundary.
+            ownershipScope = continueCoderCommitScopeOwnership(
+                await captureCoderCommitScope(options.workspace ?? projectPath, {
+                    isContentSnapshotRequired: true,
+                }),
+                ownershipScope,
+                (resolvedCoderAgent?.createdAgentBookPaths ?? []).map((path) =>
+                    relative(ownershipScope!.repositoryRoot ?? projectPath, resolve(projectPath, path)).replace(
+                        /\\/gu,
+                        '/',
+                    ),
+                ),
+            );
         }
-
-        if (agentName === 'openai-codex') {
-            let modelToUse: string;
-            if (!options.model) {
-                console.error(colors.red('Error: --model is required when using --agent openai-codex'));
-                console.error('');
-                console.error(colors.cyan('Available models:'));
-                const codexModels = OPENAI_MODELS.filter((m) => m.modelVariant === 'CHAT').map((m) => m.modelName);
-                codexModels.forEach((model) => {
-                    console.error(colors.gray(`  - ${model}`));
-                });
-                console.error('');
-                console.error(colors.cyan('Example usage:'));
-                console.error(colors.gray(`  --agent openai-codex --model gpt-5.2-codex`));
-                console.error(colors.gray(`  --agent openai-codex --model default`));
-                process.exit(1);
-            } else if (options.model === 'default') {
-                modelToUse = DEFAULT_CODEX_MODEL;
-            } else {
-                modelToUse = options.model;
-            }
-
-            actualCodexModel = modelToUse;
-            runner = new OpenAiCodexRunner({
-                codexCommand: 'codex',
-                model: modelToUse,
-                sandbox: 'danger-full-access',
-                askForApproval: 'never',
-            });
-        } else if (agentName === 'cline') {
-            runner = new ClineRunner({
-                model: CLINE_MODEL,
-            });
-        } else if (agentName === 'claude-code') {
-            runner = new ClaudeCodeRunner();
-        } else if (agentName === 'opencode') {
-            runner = new OpencodeRunner({
-                model: options.model,
-            });
-        } else if (agentName === 'gemini') {
-            let modelToUse: string;
-            if (!options.model) {
-                console.error(colors.red('Error: --model is required when using --agent gemini'));
-                console.error('');
-                console.error(colors.cyan('Example usage:'));
-                console.error(colors.gray(`  --agent gemini --model ${DEFAULT_GEMINI_MODEL}`));
-                console.error(colors.gray('  --agent gemini --model default'));
-                process.exit(1);
-            } else if (options.model === 'default') {
-                modelToUse = DEFAULT_GEMINI_MODEL;
-            } else {
-                modelToUse = options.model;
-            }
-
-            actualGeminiModel = modelToUse;
-            runner = new GeminiRunner({
-                model: modelToUse,
-            });
-        } else {
-            throw new Error(`Unknown agent: ${agentName}`);
-        }
-
+        const promptRunnerIdentity: PromptRunnerIdentity = {
+            harnessName: options.agentName,
+            modelName: actualRunnerModel,
+            agentReferences: resolvedCoderAgent?.agentReferences,
+        };
         console.info(colors.green(`Running prompts with ${runner.name}`));
-        const runnerMetadata = getRunnerMetadata(options, actualCodexModel ?? actualGeminiModel);
+
+        initializeRunUi(uiHandle, runner.name, actualRunnerModel, options);
+        await initializeRunUiAgentVisual(uiHandle, resolvedCoderAgent?.agentSource);
+        // Note: The usage keeps refreshing on its own clock from here on, so a long prompt no longer freezes it
+        subscriptionUsageRefresh = startCoderRunUiSubscriptionUsageRefresh({
+            runner,
+            uiState: uiHandle?.state,
+        });
+        await seedCachedAveragePromptDuration({
+            options,
+            actualRunnerModel,
+            progressDisplay,
+            uiHandle,
+        });
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
+        let previousRoundStartTime: number | undefined;
+        let previousRoundEndTime: number | undefined;
+        let completedRunCount = 0;
+        let hasRunCheckBefore = false;
+        // Note: Only the very first round resumes the interrupted prompt, every later round starts from a clean tree
+        let isContinuingInterruptedPrompt = options.gitChanges === 'continue';
 
         while (just(true)) {
-            await checkPause();
-            const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-            const stats = summarizePrompts(promptFiles, options.priority);
-            progressDisplay?.update(stats);
-            printStats(stats, options.priority);
+            if (options.autoPull && !options.dryRun) {
+                await waitForRequestedPause({
+                    checkpointLabel: 'pulling the latest repository changes',
+                    phase: 'loading',
+                    statusMessage: 'Pulling latest changes...',
+                });
+            }
+            await pullLatestChangesIfEnabled({
+                options,
+                isRichUiEnabled,
+            });
 
-            const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
-
-            if (!hasShownUpcomingTasks) {
-                if (stats.toBeWritten > 0) {
-                    console.info(colors.yellow('Following prompts need to be written:'));
-                    printPromptsToBeWritten(promptFiles, options.priority);
-                    console.info('');
-                }
-                printUpcomingTasks(listUpcomingTasks(promptFiles, options.priority));
-                hasShownUpcomingTasks = true;
+            if (!hasRunCheckBefore && options.checkBefore !== 'no') {
+                await waitForRequestedPause({
+                    checkpointLabel: 'loading prompts before running initial checks',
+                    phase: 'loading',
+                    statusMessage: 'Loading prompts before running initial checks...',
+                });
+                await loadPromptQueueSnapshot({
+                    options,
+                    isRichUiEnabled,
+                    progressDisplay,
+                    uiHandle,
+                    promptRunnerIdentity,
+                    isContinuingInterruptedPrompt,
+                });
             }
 
-            if (!nextPrompt) {
-                if (stats.toBeWritten > 0) {
-                    console.info(colors.yellow('No prompts ready for agent.'));
-                } else {
-                    console.info(colors.green('All prompts are done.'));
+            if (!hasRunCheckBefore) {
+                hasWaitedForStart = await runCheckBeforeIfNeeded({
+                    options,
+                    runner,
+                    runnerMetadata,
+                    resolvedCoderContext,
+                    resolvedAgentSystemMessage,
+                    isRichUiEnabled,
+                    progressDisplay,
+                    uiHandle,
+                    waitForRequestedPause,
+                    hasWaitedForStart,
+                    isContinuingInterruptedPrompt,
+                    ownershipScope,
+                    onScopeRetained: retainScope,
+                });
+                hasRunCheckBefore = true;
+            }
+
+            await waitForRequestedPause({
+                checkpointLabel: 'loading prompts',
+                phase: 'loading',
+                statusMessage: 'Loading prompts...',
+            });
+            const promptQueueSnapshot = await loadPromptQueueSnapshot({
+                options,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+                promptRunnerIdentity,
+                isContinuingInterruptedPrompt,
+            });
+
+            hasShownUpcomingTasks ||= showUpcomingTasksOnce({
+                projectPath,
+                hasShownUpcomingTasks,
+                promptFiles: promptQueueSnapshot.promptFiles,
+                stats: promptQueueSnapshot.stats,
+                priorityFilter: options.priorityFilter,
+                isRichUiEnabled,
+                promptRunnerIdentity,
+            });
+
+            if (!promptQueueSnapshot.nextPrompt) {
+                if (isEndAfterCurrentPromptRequested(completedRunCount)) {
+                    finishWhenEndAfterCurrentPromptIsRequested({
+                        completedRunCount,
+                        isRichUiEnabled,
+                        uiHandle,
+                    });
+                    return;
                 }
+
+                if (options.keepAlive) {
+                    announceKeepAliveStatus(promptQueueSnapshot, isRichUiEnabled, uiHandle);
+                    // Note: The keep-alive poll runs in the `waiting` phase, where `S  Skip current waiting`
+                    //       is offered, so pressing `S` looks for new prompts right away
+                    await waitForSkippableWorldTimeDeadline({
+                        deadlineTimeMs: Date.now() + KEEP_ALIVE_POLL_INTERVAL_MS,
+                        pollIntervalMs: KEEP_ALIVE_POLL_INTERVAL_MS,
+                    });
+                    continue;
+                }
+                finishWhenNoPromptIsAvailable(promptQueueSnapshot, isRichUiEnabled, uiHandle);
                 return;
             }
 
-            if (options.waitForUser) {
-                await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
-                hasWaitedForStart = true;
+            const nextPrompt = promptQueueSnapshot.nextPrompt!;
+            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section, projectPath);
+
+            // Wait between prompt rounds (skipped for the first round)
+            if (previousRoundStartTime !== undefined && previousRoundEndTime !== undefined) {
+                await waitBetweenPromptRoundsIfNeeded({
+                    options,
+                    previousRoundStartTime,
+                    previousRoundEndTime,
+                    isRichUiEnabled,
+                    progressDisplay,
+                    uiHandle,
+                });
             }
 
-            if (!options.ignoreGitChanges) {
-                await ensureWorkingTreeClean();
+            if (isEndAfterCurrentPromptRequested(completedRunCount)) {
+                finishWhenEndAfterCurrentPromptIsRequested({
+                    completedRunCount,
+                    isRichUiEnabled,
+                    uiHandle,
+                });
+                return;
             }
 
-            const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
-            const codexPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
+            hasWaitedForStart = await waitForPromptConfirmationIfNeeded({
+                options,
+                nextPrompt,
+                promptLabel,
+                hasWaitedForStart,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+            });
 
-            const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
-            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
-
-            console.info(colors.blue(`Processing ${promptLabel}`));
-
-            const promptExecutionStartedDate = moment();
-            try {
-                const result = await runner.runPrompt({
-                    prompt: codexPrompt,
-                    scriptPath,
-                    projectPath: process.cwd(),
+            if (isCleanWorkingTreeRequired(options.gitChanges, isContinuingInterruptedPrompt)) {
+                await waitForRequestedPause({
+                    checkpointLabel: 'checking the git working tree',
+                    phase: 'loading',
+                    statusMessage: 'Checking the working tree...',
                 });
+                await ensureWorkingTreeClean(options.workspace?.repositoryRoot ?? projectPath);
+            }
 
-                markPromptDone(
-                    nextPrompt.file,
-                    nextPrompt.section,
-                    result.usage,
-                    runnerMetadata.runnerName,
-                    runnerMetadata.modelName,
-                    promptExecutionStartedDate,
-                );
-                await writePromptFile(nextPrompt.file);
+            const currentRoundStartTime = Date.now();
+            // Note: An isolated round implements the prompt in a temporary worktree and merges it back afterwards
+            const runCurrentPromptRound = options.isIsolated ? runIsolatedPromptRound : runPromptRound;
+            await runCurrentPromptRound({
+                options,
+                runner,
+                runnerMetadata,
+                nextPrompt,
+                promptLabel,
+                resolvedCoderContext,
+                resolvedAgentSystemMessage,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+                waitForRequestedPause,
+                ownershipScope,
+                onScopeRetained: retainScope,
+            });
+            isContinuingInterruptedPrompt = false;
+            previousRoundStartTime = currentRoundStartTime;
+            previousRoundEndTime = Date.now();
+            completedRunCount += 1;
 
-                if (options.waitForUser) {
-                    printCommitMessage(commitMessage);
-                    await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
-                }
-
-                await commitChanges(commitMessage);
-            } catch (error) {
-                markPromptFailed(
-                    nextPrompt.file,
-                    nextPrompt.section,
-                    runnerMetadata.runnerName,
-                    runnerMetadata.modelName,
-                    promptExecutionStartedDate,
-                );
-                await writePromptFile(nextPrompt.file);
-                await writePromptErrorLog({
-                    file: nextPrompt.file,
-                    section: nextPrompt.section,
-                    runnerName: runnerMetadata.runnerName,
-                    modelName: runnerMetadata.modelName,
-                    error,
+            if (isRunLimitReached({ completedRunCount, limit: options.limit })) {
+                finishWhenRunLimitIsReached({
+                    completedRunCount,
+                    isRichUiEnabled,
+                    uiHandle,
                 });
+                return;
+            }
 
-                throw error;
+            if (isEndAfterCurrentPromptRequested(completedRunCount)) {
+                finishWhenEndAfterCurrentPromptIsRequested({
+                    completedRunCount,
+                    isRichUiEnabled,
+                    uiHandle,
+                });
+                return;
             }
         }
     } finally {
-        progressDisplay?.stop();
+        subscriptionUsageRefresh?.stop();
+        cleanupRunDisplays(progressDisplay, uiHandle, options);
+        resetCoderRunControls();
+    }
+}
+
+/**
+ * Decides whether the working tree has to be verified clean before the next prompt starts.
+ *
+ * `--git-changes continue` waives the check for the single round which resumes the interrupted prompt,
+ * because that round is started exactly for the uncommitted changes the interrupted prompt left behind.
+ */
+function isCleanWorkingTreeRequired(gitChanges: GitChangesMode, isContinuingInterruptedPrompt: boolean): boolean {
+    if (gitChanges === 'ignore') {
+        return false;
+    }
+
+    return !isContinuingInterruptedPrompt;
+}
+
+/**
+ * Pulls the latest repository state before loading prompts when the feature is enabled.
+ */
+async function pullLatestChangesIfEnabled(options: { options: RunOptions; isRichUiEnabled: boolean }): Promise<void> {
+    const { options: runOptions, isRichUiEnabled } = options;
+
+    if (!runOptions.autoPull || runOptions.dryRun) {
+        return;
+    }
+
+    if (!isRichUiEnabled) {
+        console.info(colors.gray('Pulling latest changes before the next prompt...'));
+    }
+
+    await pullLatestChanges(runOptions.workspace?.repositoryRoot ?? runOptions.projectPath);
+}
+
+/**
+ * Creates the progress display and rich UI handles used during the run.
+ */
+function createRunDisplays(
+    options: RunOptions,
+    runStartDate: moment.Moment,
+): {
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+} {
+    const isRichUiEnabled = !options.dryRun && !options.noUi && Boolean(process.stdout.isTTY);
+    const progressDisplay =
+        options.dryRun || options.noUi || isRichUiEnabled
+            ? undefined
+            : new CliProgressDisplay(runStartDate, options.priorityFilter, options.limit);
+    const uiHandle =
+        isRichUiEnabled || options.uiState
+            ? renderCoderRunUi(runStartDate, {
+                  state: options.uiState,
+              })
+            : undefined;
+
+    return {
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+    };
+}
+
+/**
+ * Normalizes legacy and current priority options into one validated run option shape.
+ */
+function normalizeRunOptions(options: RunOptions): RunOptions {
+    const checkBefore: CheckBeforeMode = options.checkBefore ?? 'no';
+    const priorityFilter = normalizePriorityFilter({
+        priority: options.priority,
+        minimumPriority: options.minimumPriority ?? options.priorityFilter?.minimumPriority,
+        maximumPriority: options.maximumPriority ?? options.priorityFilter?.maximumPriority,
+    });
+
+    return {
+        ...options,
+        projectPath: options.workspace?.projectPath ?? options.projectPath ?? process.cwd(),
+        checkBefore,
+        checkCommand: resolveCoderCheckCommand(options.checkCommand?.trim(), checkBefore),
+        priority: priorityFilter.minimumPriority ?? 0,
+        minimumPriority: priorityFilter.minimumPriority,
+        maximumPriority: priorityFilter.maximumPriority,
+        priorityFilter,
+    };
+}
+
+/**
+ * Runs the optional pre-coding verification and, when requested, its one repair prompt.
+ */
+async function runCheckBeforeIfNeeded(options: {
+    options: RunOptions;
+    runner: PromptRunner;
+    runnerMetadata: PromptRunnerMetadata;
+    resolvedCoderContext?: string;
+    resolvedAgentSystemMessage?: string;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+    waitForRequestedPause: WaitForCoderRunPauseCheckpoint;
+    hasWaitedForStart: boolean;
+    isContinuingInterruptedPrompt: boolean;
+    ownershipScope?: CoderCommitScope;
+    onScopeRetained?: (scope: CoderCommitScope) => void;
+}): Promise<boolean> {
+    const {
+        options: runOptions,
+        runner,
+        runnerMetadata,
+        resolvedCoderContext,
+        resolvedAgentSystemMessage,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        waitForRequestedPause,
+        hasWaitedForStart,
+        isContinuingInterruptedPrompt,
+        ownershipScope,
+        onScopeRetained,
+    } = options;
+
+    let updatedHasWaitedForStart = hasWaitedForStart;
+    const result = await runCoderCheckRepair({
+        projectPath: runOptions.projectPath!,
+        workspace: runOptions.workspace,
+        checkCommand: runOptions.checkCommand!,
+        mode: runOptions.checkBefore ?? 'no',
+        intent: 'run',
+        isCommitEnabled: !runOptions.noCommit,
+        isAutoPushEnabled: runOptions.autoPush,
+        isWorkingTreeCleanRequired: isCleanWorkingTreeRequired(runOptions.gitChanges, isContinuingInterruptedPrompt),
+        preserveLogs: runOptions.preserveLogs,
+        ownershipScope,
+        onScopeRetained,
+        waitForPauseCheckpoint: waitForRequestedPause,
+        onInitialCheckStarted: () => uiHandle?.startCapturingAgentOutput(),
+        onInitialCheckFinished: () => uiHandle?.stopCapturingAgentOutput(),
+        onRepairCreated: async (repairPrompt) => {
+            updatedHasWaitedForStart = await waitForPromptConfirmationIfNeeded({
+                options: runOptions,
+                nextPrompt: repairPrompt,
+                promptLabel: buildPromptLabelForDisplay(
+                    repairPrompt.file,
+                    repairPrompt.section,
+                    runOptions.projectPath,
+                ),
+                hasWaitedForStart,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+            });
+        },
+        prepareRepair: async () => async (repairPrompt, commitScope) => {
+            // A repair is authored in this worktree even when ordinary queued tasks use --isolate.
+            await runPromptRound({
+                options: runOptions,
+                runner,
+                runnerMetadata,
+                nextPrompt: repairPrompt,
+                promptLabel: buildPromptLabelForDisplay(
+                    repairPrompt.file,
+                    repairPrompt.section,
+                    runOptions.projectPath,
+                ),
+                resolvedCoderContext,
+                resolvedAgentSystemMessage,
+                isRichUiEnabled,
+                progressDisplay,
+                uiHandle,
+                waitForRequestedPause,
+                commitScope,
+                onScopeRetained,
+            });
+        },
+    });
+    if (result.error !== undefined) throw result.error;
+    return updatedHasWaitedForStart;
+}
+
+/**
+ * Creates a pause waiter that keeps the progress display and rich UI in sync.
+ */
+function createPauseWaiter(options: {
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+    guardFreeDiskSpace: FreeDiskSpaceGuard;
+}): WaitForCoderRunPauseCheckpoint {
+    const { isRichUiEnabled, progressDisplay, uiHandle, guardFreeDiskSpace } = options;
+
+    return async (checkpoint: CoderRunPauseCheckpointOptions): Promise<void> => {
+        uiHandle?.state.setPhase(checkpoint.phase);
+        uiHandle?.state.setStatusMessage(checkpoint.statusMessage);
+        announcePauseTargetLabel(checkpoint.checkpointLabel);
+
+        // Note: Runs after the checkpoint label is announced, so a pause requested because of a full disk
+        //       replaces that label and says why the run is standing still
+        await guardFreeDiskSpace();
+
+        await checkPause({
+            silent: isRichUiEnabled,
+            onPaused: () => {
+                progressDisplay?.pauseTimer();
+                uiHandle?.state.pauseTimer();
+                uiHandle?.state.setPhase('paused');
+                uiHandle?.state.setStatusMessage(`Paused before ${checkpoint.checkpointLabel}`);
+            },
+            onResumed: () => {
+                progressDisplay?.resumeTimer();
+                uiHandle?.state.resumeTimer();
+                uiHandle?.state.setPhase(checkpoint.phase);
+                uiHandle?.state.setStatusMessage(checkpoint.statusMessage);
+            },
+        });
+
+        resetPauseTargetLabel();
+    };
+}
+
+/**
+ * Starts the pause listener only when the rich TTY UI is not consuming keyboard input.
+ */
+function startPauseListenerIfNeeded(isRichUiEnabled: boolean): void {
+    if (!isRichUiEnabled) {
+        listenForCoderRunControls();
+    }
+}
+
+/**
+ * Runs the dry-run reporting mode and returns whether the main execution should stop.
+ */
+async function runDryRunIfRequested(
+    options: RunOptions,
+    agentReferences: ReadonlyArray<string> | undefined,
+): Promise<boolean> {
+    if (!options.dryRun) {
+        return false;
+    }
+
+    const promptRunnerIdentity: PromptRunnerIdentity = {
+        harnessName: options.agentName,
+        modelName: options.agentName ? resolveRunnerModel(options.agentName, options.model) : options.model,
+        agentReferences,
+    };
+    const promptFiles = (
+        await loadPromptFiles(join(options.projectPath!, 'prompts'), {
+            isMissingDirectoryAllowed: true,
+        })
+    ).map((file) => ({
+        ...file,
+        sections: file.sections.filter((section) => isPromptCompatibleWithRunner(file, section, promptRunnerIdentity)),
+    }));
+    const stats = summarizePrompts(promptFiles, options.priorityFilter);
+    printStats(stats, options.priorityFilter);
+    console.info(colors.yellow('Following prompts need to be written:'));
+    printPromptsToBeWritten(promptFiles, options.priorityFilter, options.projectPath);
+    return true;
+}
+
+/**
+ * Seeds the rich UI with the selected runner configuration.
+ */
+function initializeRunUi(
+    uiHandle: CoderRunUiHandle | undefined,
+    runnerName: string,
+    actualRunnerModel: string | undefined,
+    options: RunOptions,
+): void {
+    uiHandle?.state.setConfig({
+        agentName: runnerName,
+        modelName: actualRunnerModel,
+        thinkingLevel: options.thinkingLevel,
+        context: options.context,
+        serverUrl: options.serverUrl,
+        priorityFilter: options.priorityFilter,
+        limit: options.limit,
+        checkCommand: options.checkCommand,
+    });
+    uiHandle?.state.setPhase('loading');
+    uiHandle?.state.setStatusMessage(`Running prompts with ${runnerName}`);
+}
+
+/**
+ * Prepares the `--agent` book avatar ASCII-art renderer and shows it above the dashboard boxes.
+ *
+ * Leaves the header empty when no agent is selected, the UI is disabled, or the visual cannot be rendered.
+ */
+async function initializeRunUiAgentVisual(
+    uiHandle: CoderRunUiHandle | undefined,
+    agentSource: string_book | undefined,
+): Promise<void> {
+    if (!uiHandle || !agentSource) {
+        return;
+    }
+
+    const agentVisual = await buildCoderRunAgentVisual(agentSource);
+
+    if (agentVisual) {
+        uiHandle.state.setAgentVisual(agentVisual);
+    }
+}
+
+/**
+ * Loads prompt files, updates progress displays, and selects the next runnable prompt.
+ */
+async function loadPromptQueueSnapshot(options: {
+    options: RunOptions;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+    promptRunnerIdentity: PromptRunnerIdentity;
+    isContinuingInterruptedPrompt: boolean;
+}): Promise<PromptQueueSnapshot> {
+    const {
+        options: runOptions,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+        promptRunnerIdentity,
+        isContinuingInterruptedPrompt,
+    } = options;
+    uiHandle?.state.setCurrentScriptPath(undefined);
+
+    const promptFiles = await loadPromptFiles(join(runOptions.projectPath!, 'prompts'));
+    const stats = summarizePrompts(promptFiles, runOptions.priorityFilter);
+
+    progressDisplay?.update(stats);
+    uiHandle?.state.updateProgress(stats);
+
+    if (!isRichUiEnabled) {
+        printStats(stats, runOptions.priorityFilter);
+    }
+
+    return {
+        promptFiles,
+        stats,
+        // Note: A resumed prompt is picked by its `[^]` status alone, the priority and runner filters select
+        //       which prompt is started next, not which unfinished work is continued
+        nextPrompt: isContinuingInterruptedPrompt
+            ? resolveInterruptedPrompt(promptFiles)
+            : findNextTodoPrompt(promptFiles, runOptions.priorityFilter, promptRunnerIdentity),
+    };
+}
+
+/**
+ * Prints upcoming tasks only on the first loop iteration in plain-console mode.
+ */
+function showUpcomingTasksOnce(options: {
+    projectPath: string;
+    hasShownUpcomingTasks: boolean;
+    promptFiles: PromptFile[];
+    stats: PromptStats;
+    priorityFilter?: PriorityFilter;
+    isRichUiEnabled: boolean;
+    promptRunnerIdentity: PromptRunnerIdentity;
+}): boolean {
+    const { hasShownUpcomingTasks, promptFiles, stats, priorityFilter, isRichUiEnabled, promptRunnerIdentity } =
+        options;
+
+    if (hasShownUpcomingTasks || isRichUiEnabled) {
+        return true;
+    }
+
+    if (stats.toBeWritten > 0) {
+        console.info(colors.yellow('Following prompts need to be written:'));
+        printPromptsToBeWritten(promptFiles, priorityFilter, options.projectPath);
+        console.info('');
+    }
+
+    printUpcomingTasks(listUpcomingTasks(promptFiles, priorityFilter, promptRunnerIdentity, options.projectPath));
+    return true;
+}
+
+/**
+ * Prints the terminal status when there is no runnable prompt left and tells the caller to stop.
+ */
+function finishWhenNoPromptIsAvailable(
+    promptQueueSnapshot: PromptQueueSnapshot,
+    isRichUiEnabled: boolean,
+    uiHandle?: CoderRunUiHandle,
+): boolean {
+    if (promptQueueSnapshot.nextPrompt) {
+        return false;
+    }
+
+    if (promptQueueSnapshot.stats.forAgent > 0) {
+        announceRunCompletion(
+            'No prompts match the selected harness, model or agent.',
+            colors.yellow,
+            isRichUiEnabled,
+            uiHandle,
+        );
+    } else if (promptQueueSnapshot.stats.toBeWritten > 0) {
+        announceRunCompletion('No prompts ready for agent.', colors.yellow, isRichUiEnabled, uiHandle);
+    } else {
+        announceRunCompletion('All prompts are done.', colors.green, isRichUiEnabled, uiHandle);
+    }
+
+    return true;
+}
+
+/**
+ * Checks whether the configured successful prompt-run limit has been reached.
+ */
+function isRunLimitReached(options: { completedRunCount: number; limit?: number }): boolean {
+    const { completedRunCount, limit } = options;
+
+    return limit !== undefined && completedRunCount >= limit;
+}
+
+/**
+ * Checks whether the user-requested dynamic end control should stop the loop now.
+ */
+function isEndAfterCurrentPromptRequested(completedRunCount: number): boolean {
+    return completedRunCount > 0 && getEndAfterCurrentPromptState();
+}
+
+/**
+ * Updates UI and console output when a user-configured run limit stops the loop.
+ */
+function finishWhenRunLimitIsReached(options: {
+    completedRunCount: number;
+    isRichUiEnabled: boolean;
+    uiHandle?: CoderRunUiHandle;
+}): void {
+    const { completedRunCount, isRichUiEnabled, uiHandle } = options;
+    const runCountLabel = completedRunCount === 1 ? '1 prompt run' : `${completedRunCount} prompt runs`;
+
+    announceRunCompletion(`Run limit reached after ${runCountLabel}.`, colors.green, isRichUiEnabled, uiHandle);
+}
+
+/**
+ * Updates UI and console output when the dynamic `X` control stops the loop after a prompt.
+ */
+function finishWhenEndAfterCurrentPromptIsRequested(options: {
+    completedRunCount: number;
+    isRichUiEnabled: boolean;
+    uiHandle?: CoderRunUiHandle;
+}): void {
+    const { completedRunCount, isRichUiEnabled, uiHandle } = options;
+    const runCountLabel = completedRunCount === 1 ? '1 prompt run' : `${completedRunCount} prompt runs`;
+
+    announceRunCompletion(`End requested after ${runCountLabel}.`, colors.green, isRichUiEnabled, uiHandle);
+}
+
+/**
+ * Updates the UI status message while waiting for new prompts in keepAlive server mode.
+ */
+function announceKeepAliveStatus(
+    promptQueueSnapshot: PromptQueueSnapshot,
+    isRichUiEnabled: boolean,
+    uiHandle?: CoderRunUiHandle,
+): void {
+    let message: string;
+
+    if (promptQueueSnapshot.stats.forAgent > 0) {
+        message = 'No prompts match the selected harness, model or agent. Watching for changes...';
+    } else if (promptQueueSnapshot.stats.toBeWritten > 0) {
+        message = 'No prompts ready for agent. Watching for changes...';
+    } else {
+        message = 'All prompts are done. Watching for changes...';
+    }
+
+    uiHandle?.state.setStatusMessage(message);
+    uiHandle?.state.setPhase('waiting');
+
+    if (!isRichUiEnabled) {
+        console.info(colors.gray(message));
+    }
+}
+
+/**
+ * Updates UI state and plain-console output for the terminal completion message.
+ */
+function announceRunCompletion(
+    message: string,
+    colorize: (message: string) => string,
+    isRichUiEnabled: boolean,
+    uiHandle?: CoderRunUiHandle,
+): void {
+    uiHandle?.state.setStatusMessage(message);
+    uiHandle?.state.setCurrentScriptPath(undefined);
+    uiHandle?.state.setPhase('done');
+
+    if (!isRichUiEnabled) {
+        console.info(colorize(message));
+    }
+}
+
+/**
+ * Waits for the optional user confirmation before starting the selected prompt.
+ */
+async function waitForPromptConfirmationIfNeeded(options: {
+    options: RunOptions;
+    nextPrompt: PromptSelection;
+    promptLabel: string;
+    hasWaitedForStart: boolean;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<boolean> {
+    const {
+        options: runOptions,
+        nextPrompt,
+        promptLabel,
+        hasWaitedForStart,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+    } = options;
+
+    if (!runOptions.waitForUser) {
+        return hasWaitedForStart;
+    }
+
+    progressDisplay?.pauseTimer();
+    uiHandle?.state.pauseTimer();
+    uiHandle?.state.setCurrentPrompt(promptLabel);
+    uiHandle?.state.setPhase('waiting');
+    uiHandle?.state.setStatusMessage(
+        hasWaitedForStart ? 'Waiting for confirmation to continue' : 'Waiting for confirmation to start',
+    );
+    uiHandle?.state.setDetailLines([buildPromptSummary(nextPrompt.file, nextPrompt.section)]);
+
+    if (isRichUiEnabled) {
+        await uiHandle?.waitForEnter(hasWaitedForStart ? 'Continue' : 'Start');
+    } else {
+        await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
+    }
+
+    uiHandle?.state.setDetailLines([]);
+    progressDisplay?.resumeTimer();
+    uiHandle?.state.resumeTimer();
+    return true;
+}
+
+/**
+ * Polling interval when in keepAlive server mode and no runnable prompts are available.
+ */
+const KEEP_ALIVE_POLL_INTERVAL_MS = 5_000;
+
+/**
+ * Waits between prompt rounds according to `--wait-between-prompts` (paced from the previous round's start)
+ * and `--wait-after-prompt` (measured from the previous round's end).
+ * Both phases are shown separately in the UI so the user can see which type of wait is active.
+ */
+async function waitBetweenPromptRoundsIfNeeded(options: {
+    options: RunOptions;
+    previousRoundStartTime: number;
+    previousRoundEndTime: number;
+    isRichUiEnabled: boolean;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<void> {
+    const {
+        options: runOptions,
+        previousRoundStartTime,
+        previousRoundEndTime,
+        isRichUiEnabled,
+        progressDisplay,
+        uiHandle,
+    } = options;
+    const { waitAfterPrompt, waitBetweenPrompts } = runOptions;
+
+    if (waitAfterPrompt <= 0 && waitBetweenPrompts <= 0) {
+        return;
+    }
+
+    const waitBetweenPromptsEndTime = previousRoundStartTime + waitBetweenPrompts;
+    const waitAfterPromptEndTime = previousRoundEndTime + waitAfterPrompt;
+
+    if (Date.now() >= waitBetweenPromptsEndTime && Date.now() >= waitAfterPromptEndTime) {
+        return;
+    }
+
+    progressDisplay?.pauseTimer();
+    uiHandle?.state.pauseTimer();
+    uiHandle?.state.setPhase('waiting');
+
+    // Phase 1: pace from start of previous prompt (`--wait-between-prompts`)
+    if (Date.now() < waitBetweenPromptsEndTime) {
+        await sleepWithCountdown({
+            durationMs: waitBetweenPrompts,
+            deadlineTimeMs: waitBetweenPromptsEndTime,
+            waitKind: 'between-prompts',
+            isRichUiEnabled,
+            uiHandle,
+        });
+    }
+
+    // Phase 2: rest from end of previous prompt (`--wait-after-prompt`)
+    if (Date.now() < waitAfterPromptEndTime) {
+        await sleepWithCountdown({
+            durationMs: waitAfterPrompt,
+            deadlineTimeMs: waitAfterPromptEndTime,
+            waitKind: 'after-prompt',
+            isRichUiEnabled,
+            uiHandle,
+        });
+    }
+
+    progressDisplay?.resumeTimer();
+    uiHandle?.state.resumeTimer();
+}
+
+/**
+ * Loads the cached average prompt duration for the current runner configuration and seeds both
+ * progress displays with it so estimates are shown immediately, even before the first prompt of
+ * the current session completes.
+ */
+async function seedCachedAveragePromptDuration(options: {
+    options: RunOptions;
+    actualRunnerModel: string | undefined;
+    progressDisplay?: CliProgressDisplay;
+    uiHandle?: CoderRunUiHandle;
+}): Promise<void> {
+    const { options: runOptions, actualRunnerModel, progressDisplay, uiHandle } = options;
+    if (!runOptions.agentName) {
+        return;
+    }
+
+    const cachedAveragePromptDurationMs = await loadCachedAveragePromptDurationMs({
+        harness: runOptions.agentName,
+        model: actualRunnerModel ?? runOptions.model,
+        thinkingLevel: runOptions.thinkingLevel,
+    });
+
+    if (cachedAveragePromptDurationMs === undefined) {
+        return;
+    }
+
+    progressDisplay?.setCachedAveragePromptDurationMs(cachedAveragePromptDurationMs);
+    uiHandle?.state.setCachedAveragePromptDurationMs(cachedAveragePromptDurationMs);
+}
+
+/**
+ * Stops active displays and prints the git identity tip for real runs.
+ */
+function cleanupRunDisplays(
+    progressDisplay: CliProgressDisplay | undefined,
+    uiHandle: CoderRunUiHandle | undefined,
+    options: RunOptions,
+): void {
+    progressDisplay?.stop();
+    uiHandle?.cleanup();
+
+    if (!options.dryRun) {
+        printAgentGitIdentityTipIfNeeded();
     }
 }

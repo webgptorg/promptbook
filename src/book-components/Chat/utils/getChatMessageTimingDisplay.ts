@@ -1,4 +1,5 @@
 import moment from 'moment';
+import 'moment/locale/cs';
 import type { ChatMessage } from '../types/ChatMessage';
 
 /**
@@ -24,14 +25,17 @@ export type ChatMessageTimingDisplay = {
 /**
  * Builds display-ready timestamp and duration labels for a chat message.
  *
+ * @param message - Message with optional timestamp metadata.
+ * @param locale - Optional moment locale used for formatting.
+ *
  * @private utility of `<Chat/>` component
  */
-export function getChatMessageTimingDisplay(message: ChatMessage): ChatMessageTimingDisplay | null {
+export function getChatMessageTimingDisplay(message: ChatMessage, locale?: string): ChatMessageTimingDisplay | null {
     if (!message.createdAt) {
         return null;
     }
 
-    const timestamp = moment(message.createdAt);
+    const timestamp = moment(message.createdAt).locale(locale || moment.locale());
     if (!timestamp.isValid()) {
         return null;
     }
@@ -43,7 +47,7 @@ export function getChatMessageTimingDisplay(message: ChatMessage): ChatMessageTi
 
     return {
         timeLabel: timestamp.format('LT'),
-        fullLabel: timestamp.format('YYYY-MM-DD HH:mm:ss'),
+        fullLabel: timestamp.format('L LTS'),
         durationLabel,
     };
 }

@@ -1,5 +1,11 @@
+/**
+ * Constant for fs.
+ */
 const fs = require('fs');
 
+/**
+ * Gets file and folder paths.
+ */
 function getFileAndFolderPaths(folderPath) {
     var filenames = [];
     var folderPaths = [];
@@ -17,6 +23,9 @@ function getFileAndFolderPaths(folderPath) {
     return [filenames, folderPaths];
 }
 
+/**
+ * Gets all file and folder paths.
+ */
 function getAllFileAndFolderPaths(filenames, folderPaths, recursive) {
     var allFolderPaths = folderPaths;
     if (recursive) {

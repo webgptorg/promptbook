@@ -1,9 +1,6 @@
-import {
-    DEFAULT_LINGUISTIC_HASH_LANGUAGE,
-    DEFAULT_LINGUISTIC_HASH_WORD_COUNT,
-    linguisticHash,
-    normalizeLinguisticHashLanguage,
-} from './linguisticHash';
+import { linguisticHash } from './linguisticHash';
+import { DEFAULT_LINGUISTIC_HASH_LANGUAGE, normalizeLinguisticHashLanguage } from './LinguisticHashLanguage';
+import { DEFAULT_LINGUISTIC_HASH_WORD_COUNT } from './linguisticHashWordCount';
 
 describe('linguisticHash', () => {
     it('should return the default number of words', async () => {

@@ -377,9 +377,8 @@ Technically, it's not an error, but it's probably not what you want because it d
 [✨🎩] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ```
 
 ```
-

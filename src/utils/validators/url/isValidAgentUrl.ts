@@ -1,4 +1,4 @@
-import type { string_agent_url } from '../../../types/typeAliases';
+import type { string_agent_url } from '../../../types/string_agent_url';
 import type { really_unknown } from '../../organization/really_unknown';
 import { isValidUrl } from './isValidUrl';
 
@@ -9,6 +9,11 @@ import { isValidUrl } from './isValidUrl';
  * - `isValidUrl` which tests any URL
  * - `isValidAgentUrl` *(this one)* which tests just agent URL
  * - `isValidPipelineUrl` which tests just pipeline URL
+ *
+ * Note: This is a pure structural validator and does not block private/internal network
+ * addresses. Callers that fetch the URL server-side from an untrusted network context must
+ * additionally apply the `assertSafeUrl` SSRF guard from the Agents Server before any
+ * outbound request.
  *
  * @public exported from `@promptbook/utils`
  */
@@ -26,16 +31,7 @@ export function isValidAgentUrl(url: really_unknown): url is string_agent_url {
         return false;
     }
 
-    /*
-    Note: [👣][🧠] Is it secure to allow pipeline URLs on private and unsecured networks?
-    if (isUrlOnPrivateNetwork(url)) {
-        return false;
-    }
-    */
-
     return true;
 }
 
-/**
- * TODO: [🐠] Maybe more info why the URL is invalid
- */
+// TODO: [🐠] Maybe more info why the URL is invalid

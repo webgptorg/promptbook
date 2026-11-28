@@ -1,6 +1,12 @@
+/**
+ * Constant for { enum }.
+ */
 const { Enum } = require('enumify');
 
 // An Markdown word element
+/**
+ * Class implementing word type.
+ */
 class WordType extends Enum {}
 
 module.exports = WordType;

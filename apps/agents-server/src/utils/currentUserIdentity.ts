@@ -16,14 +16,19 @@ const GENERATED_USER_PASSWORD_HASH_PLACEHOLDER = 'auto-generated-user';
 const ENV_ADMIN_PASSWORD_HASH_PLACEHOLDER = 'env-admin-managed';
 
 /**
- * Database row shape for the `User` table.
+ * User row shape needed for request identity resolution.
  */
-type UserRow = AgentsServerDatabase['public']['Tables']['User']['Row'];
+type UserIdentityRow = Pick<AgentsServerDatabase['public']['Tables']['User']['Row'], 'id' | 'username' | 'isAdmin'>;
 
 /**
  * Database insert shape for the `User` table.
  */
 type UserInsert = AgentsServerDatabase['public']['Tables']['User']['Insert'];
+
+/**
+ * Supabase projection for user fields needed by request identity resolution.
+ */
+const USER_IDENTITY_SELECT_COLUMNS = 'id, username, isAdmin';
 
 /**
  * Identity resolved for the current request, including database user id.
@@ -109,7 +114,11 @@ export async function ensureChatHistoryIdentity(): Promise<boolean> {
 /**
  * Attempts to find an existing user row by username and creates one when missing.
  */
-async function findOrCreateUserRow(username: string, isAdmin: boolean, passwordHash: string): Promise<UserRow> {
+async function findOrCreateUserRow(
+    username: string,
+    isAdmin: boolean,
+    passwordHash: string,
+): Promise<UserIdentityRow> {
     const existing = await findUserRowByUsername(username);
     if (existing) {
         return existing;
@@ -118,7 +127,7 @@ async function findOrCreateUserRow(username: string, isAdmin: boolean, passwordH
     try {
         return await insertUserRow({ username, isAdmin, passwordHash });
     } catch (error) {
-        if ((error as { code?: string }).code === '23505') {
+        if (isDuplicateUsernameCreateError(error)) {
             const created = await findUserRowByUsername(username);
             if (created) {
                 return created;
@@ -129,24 +138,51 @@ async function findOrCreateUserRow(username: string, isAdmin: boolean, passwordH
 }
 
 /**
+ * Detects a concurrent username insert collision from Supabase/Postgres errors.
+ *
+ * @param error - Unknown error thrown while creating the user row.
+ * @returns `true` when the error represents the unique username constraint.
+ */
+function isDuplicateUsernameCreateError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+
+    const errorLike = error as { code?: unknown; message?: unknown };
+    if (errorLike.code === '23505') {
+        return true;
+    }
+
+    if (typeof errorLike.message !== 'string') {
+        return false;
+    }
+
+    return errorLike.message.includes('duplicate key value') && errorLike.message.includes('_User_username_idx');
+}
+
+/**
  * Finds one user row by its username.
  */
-async function findUserRowByUsername(username: string): Promise<UserRow | null> {
+async function findUserRowByUsername(username: string): Promise<UserIdentityRow | null> {
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('User');
-    const { data, error } = await supabase.from(tableName).select('*').eq('username', username).maybeSingle();
+    const { data, error } = await supabase
+        .from(tableName)
+        .select(USER_IDENTITY_SELECT_COLUMNS)
+        .eq('username', username)
+        .maybeSingle();
 
     if (error) {
         throw new Error(`Failed to resolve user "${username}": ${error.message}`);
     }
 
-    return (data as UserRow | null) || null;
+    return (data as UserIdentityRow | null) || null;
 }
 
 /**
  * Inserts a new user row for the provided username.
  */
-async function insertUserRow(payload: UserInsert): Promise<UserRow> {
+async function insertUserRow(payload: UserInsert): Promise<UserIdentityRow> {
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('User');
     const now = new Date().toISOString();
@@ -157,16 +193,20 @@ async function insertUserRow(payload: UserInsert): Promise<UserRow> {
             createdAt: payload.createdAt ?? now,
             updatedAt: payload.updatedAt ?? now,
         })
-        .select('*')
+        .select(USER_IDENTITY_SELECT_COLUMNS)
         .maybeSingle();
 
     if (error) {
-        throw new Error(`Failed to create user "${payload.username}": ${error.message}`);
+        const insertError = new Error(`Failed to create user "${payload.username}": ${error.message}`) as Error & {
+            code?: string;
+        };
+        insertError.code = error.code;
+        throw insertError;
     }
 
     if (!data) {
         throw new Error(`Failed to insert user "${payload.username}".`);
     }
 
-    return data as UserRow;
+    return data as UserIdentityRow;
 }

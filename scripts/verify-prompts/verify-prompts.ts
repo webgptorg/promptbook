@@ -1,91 +1,370 @@
 import colors from 'colors';
 import { mkdir, rename, stat } from 'fs/promises';
-import { extname, join, relative } from 'path';
-import prompts from 'prompts';
+import { dirname, extname, join, relative } from 'path';
+import type { WorkspaceRepositoryContext } from '../../src/cli/cli-commands/common/workspaceRepository';
+import { loadPromptsModule } from '../../src/cli/common/loadPromptsModule';
+import type { CoderCommitScope } from '../run-codex-prompts/git/coderCommitScope';
+import type { CoderGitSyncOptions } from '../run-codex-prompts/git/coderGitSync';
+import {
+    $commitCoderChanges,
+    $startCoderGitSync,
+    DISABLED_CODER_GIT_SYNC_OPTIONS,
+} from '../run-codex-prompts/git/coderGitSync';
 import { buildPromptLabelForDisplay } from '../run-codex-prompts/prompts/buildPromptLabelForDisplay';
 import { findNextTodoPrompt } from '../run-codex-prompts/prompts/findNextTodoPrompt';
+import { isPromptSectionUnfinished } from '../run-codex-prompts/prompts/isPromptSectionUnfinished';
 import { loadPromptFiles } from '../run-codex-prompts/prompts/loadPromptFiles';
 import type { PromptFile } from '../run-codex-prompts/prompts/types/PromptFile';
 import type { PromptSection } from '../run-codex-prompts/prompts/types/PromptSection';
 import type { PromptSelection } from '../run-codex-prompts/prompts/types/PromptSelection';
 import { writePromptFile } from '../run-codex-prompts/prompts/writePromptFile';
+import { $orderPromptFiles } from './$orderPromptFiles';
+import type { VerifyPromptsOrder } from './VerifyPromptsOrder';
+import {
+    DEFAULT_VERIFY_PROMPTS_ORDER,
+    parseVerifyPromptsOrder,
+    VERIFY_PROMPTS_ORDER_DESCRIPTIONS,
+} from './VerifyPromptsOrder';
 
-/** Path to the directory that holds the prompt markdown files. */
-const PROMPTS_DIR = join(process.cwd(), 'prompts');
-
-/** Destination directory for resolved prompts. */
-const DONE_PROMPTS_DIR = join(PROMPTS_DIR, 'done');
-
-/** Maximum number of characters to display when previewing a prompt block. */
+/**
+ * Maximum number of characters to display when previewing a prompt block.
+ */
 const SNIPPET_CHAR_LIMIT = 900;
 
-/** Maximum number of file names to show in the pending-files preview. */
+/**
+ * Maximum number of file names to show in the pending-files preview.
+ */
 const MAX_PENDING_FILE_NAMES = 8;
 
-/** Possible user decisions after reviewing a prompt section. */
+/**
+ * Possible user decisions after reviewing a prompt section.
+ */
 type PromptDecision = 'done' | 'not-done';
 
-/** Parse command-line arguments */
-const REVERSE_ORDER = process.argv.includes('--reverse');
+/**
+ * Result of processing one prompt file during verification.
+ */
+type PromptVerificationOutcome = {
+    /**
+     * Whether the file was skipped by the user without any change.
+     */
+    readonly wasSkipped: boolean;
+
+    /**
+     * Commit message describing the applied change, or `null` when nothing was changed.
+     */
+    readonly commitMessage: string | null;
+};
+
+/**
+ * Options supported by the prompt verification helper.
+ */
+export type VerifyPromptsOptions = {
+    /** Resolved project and repository supplied by the workspace preflight. */
+    readonly workspace?: WorkspaceRepositoryContext;
+    /**
+     * Order in which the prompt files are processed.
+     */
+    readonly order?: VerifyPromptsOrder;
+
+    /**
+     * Ignore prompt files whose filename or first prompt line contains one of the provided values.
+     */
+    readonly ignore?: ReadonlyArray<string>;
+
+    /**
+     * Automatic git synchronization applied around each single verification.
+     */
+    readonly gitSync?: CoderGitSyncOptions;
+};
+
+/**
+ * Fully normalized prompt verification options used during one run.
+ */
+type NormalizedVerifyPromptsOptions = {
+    /** Resolved project and repository supplied by the workspace preflight. */
+    readonly workspace?: WorkspaceRepositoryContext;
+    /**
+     * Order in which the prompt files are processed.
+     */
+    readonly order: VerifyPromptsOrder;
+
+    /**
+     * Ignore prompt files whose filename or first prompt line contains one of the provided values.
+     */
+    readonly ignore: ReadonlyArray<string>;
+
+    /**
+     * Automatic git synchronization applied around each single verification.
+     */
+    readonly gitSync: CoderGitSyncOptions;
+};
+
+/**
+ * Default verification options parsed from the current process arguments.
+ */
+const DEFAULT_VERIFY_PROMPTS_OPTIONS = normalizeVerifyPromptsOptions(
+    parseVerifyPromptsCliOptions(process.argv.slice(2)),
+);
 
 /**
  * Starts the verification loop and exits when no `[ ]` prompts remain.
  *
- * @param reverse - Process files in reverse order
  * @public exported from `@promptbook/cli`
  */
-export async function verifyPrompts(reverse: boolean = REVERSE_ORDER): Promise<void> {
+export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERIFY_PROMPTS_OPTIONS): Promise<void> {
+    const normalizedOptions = normalizeVerifyPromptsOptions(options);
+
     console.info(colors.cyan.bold('📋 Prompt verification helper'));
-    if (reverse) {
-        console.info(colors.gray('Processing files in reverse order'));
+    if (normalizedOptions.order !== DEFAULT_VERIFY_PROMPTS_ORDER) {
+        console.info(colors.gray(`Processing files ${VERIFY_PROMPTS_ORDER_DESCRIPTIONS[normalizedOptions.order]}`));
     }
-    const initialFiles = await loadPromptFiles(PROMPTS_DIR);
-    if (reverse) {
-        initialFiles.reverse();
+    if (normalizedOptions.ignore.length > 0) {
+        console.info(colors.gray(`Ignoring candidates matching: ${normalizedOptions.ignore.join(', ')}`));
+    }
+    const { promptFiles: initialFiles, ignoredPromptFiles } = await loadPromptFilesForVerification(normalizedOptions);
+    if (ignoredPromptFiles.length > 0) {
+        console.info(colors.gray(`Ignored ${ignoredPromptFiles.length} prompt file(s) for this run.`));
     }
     displayTopLevelFileList(initialFiles);
-    await prepareArchiveDirectory();
+    await prepareArchiveDirectory(normalizedOptions);
 
     let promptFiles = initialFiles;
     const skippedFiles = new Set<string>();
 
     while (true) {
+        // Note: The git synchronization is applied around each single verification, not once per whole run,
+        //       so each verification commits only the prompt file it has archived or repaired
+        const commitScope = await $startCoderGitSync({
+            gitSync: normalizedOptions.gitSync,
+            workspace: normalizedOptions.workspace,
+        });
+        if (normalizedOptions.gitSync.isAutoPullEnabled) {
+            // Note: The pull can bring in prompt file changes, so the queue is reloaded before it is used
+            promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
+        }
+
         displayPromptOverview(promptFiles);
 
         // First priority: verify files where all prompts are marked as done
         const fileWithAllDone = findFileWithAllDonePrompts(promptFiles, skippedFiles);
         if (fileWithAllDone) {
-            const wasSkipped = await verifyDonePromptsInFile(fileWithAllDone);
-            if (wasSkipped) {
+            const outcome = await verifyDonePromptsInFile(fileWithAllDone);
+            if (outcome.wasSkipped) {
                 skippedFiles.add(fileWithAllDone.path);
             }
-            promptFiles = await loadPromptFiles(PROMPTS_DIR);
-            if (REVERSE_ORDER) {
-                promptFiles.reverse();
-            }
+            await $commitVerificationOutcome(normalizedOptions.gitSync, commitScope, outcome);
+            promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
             continue;
         }
 
         // Second priority: process todo prompts
-        const nextPrompt = findNextTodoPrompt(promptFiles);
+        const nextPrompt = findNextTodoPromptToVerify(promptFiles, skippedFiles);
         if (!nextPrompt) {
-            console.info(colors.green('\n✅ All prompts have been verified.'));
+            console.info(
+                colors.green(
+                    skippedFiles.size === 0
+                        ? '\n✅ All prompts have been verified.'
+                        : '\n✅ All prompts have been verified, except the skipped ones.',
+                ),
+            );
             break;
         }
 
-        await resolvePrompt(nextPrompt);
-        promptFiles = await loadPromptFiles(PROMPTS_DIR);
-        if (REVERSE_ORDER) {
-            promptFiles.reverse();
+        const outcome = await resolvePrompt(nextPrompt);
+        if (outcome.wasSkipped) {
+            skippedFiles.add(nextPrompt.file.path);
+        }
+        await $commitVerificationOutcome(normalizedOptions.gitSync, commitScope, outcome);
+        promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
+    }
+}
+
+/**
+ * Commits and pushes one applied verification when the git synchronization is enabled.
+ */
+async function $commitVerificationOutcome(
+    gitSync: CoderGitSyncOptions,
+    commitScope: CoderCommitScope,
+    outcome: PromptVerificationOutcome,
+): Promise<void> {
+    if (outcome.commitMessage === null) {
+        return;
+    }
+
+    await $commitCoderChanges({ gitSync, commitScope, commitMessage: outcome.commitMessage });
+}
+
+/**
+ * Parses supported command-line arguments for the standalone verification script.
+ */
+function parseVerifyPromptsCliOptions(args: ReadonlyArray<string>): VerifyPromptsOptions {
+    return {
+        order: parseVerifyPromptsOrder(readStringOption(args, '--order')),
+        ignore: readRepeatableStringOption(args, '--ignore'),
+        gitSync: {
+            isCommitEnabled: args.includes('--commit'),
+            isAutoPushEnabled: args.includes('--auto-push'),
+            isAutoPullEnabled: args.includes('--auto-pull'),
+        },
+    };
+}
+
+/**
+ * Loads prompt files and applies ordering plus ignore filters for one verification pass.
+ */
+async function loadPromptFilesForVerification(
+    options: NormalizedVerifyPromptsOptions,
+): Promise<{ promptFiles: PromptFile[]; ignoredPromptFiles: PromptFile[] }> {
+    const loadedPromptFiles = await loadPromptFiles(join(options.workspace?.projectPath ?? process.cwd(), 'prompts'));
+    const { promptFiles, ignoredPromptFiles } = partitionPromptFilesByIgnore(loadedPromptFiles, options.ignore);
+
+    return { promptFiles: $orderPromptFiles(promptFiles, options.order), ignoredPromptFiles };
+}
+
+/**
+ * Splits prompt files into files that should be verified now and files ignored for this run.
+ *
+ * @public exported from `@promptbook/cli`
+ */
+export function partitionPromptFilesByIgnore(
+    promptFiles: ReadonlyArray<PromptFile>,
+    ignoreValues: ReadonlyArray<string>,
+): { promptFiles: PromptFile[]; ignoredPromptFiles: PromptFile[] } {
+    const normalizedIgnoreValues = normalizeIgnoreValues(ignoreValues);
+
+    if (normalizedIgnoreValues.length === 0) {
+        return {
+            promptFiles: [...promptFiles],
+            ignoredPromptFiles: [],
+        };
+    }
+
+    const promptFilesToVerify: PromptFile[] = [];
+    const ignoredPromptFiles: PromptFile[] = [];
+
+    for (const promptFile of promptFiles) {
+        if (matchesIgnoredPromptFile(promptFile, normalizedIgnoreValues)) {
+            ignoredPromptFiles.push(promptFile);
+        } else {
+            promptFilesToVerify.push(promptFile);
         }
     }
+
+    return {
+        promptFiles: promptFilesToVerify,
+        ignoredPromptFiles,
+    };
 }
 
 /**
  * Ensures the destination directory for completed prompts exists.
  */
-async function prepareArchiveDirectory(): Promise<void> {
-    await mkdir(DONE_PROMPTS_DIR, { recursive: true });
+async function prepareArchiveDirectory(options: NormalizedVerifyPromptsOptions): Promise<void> {
+    await mkdir(join(options.workspace?.projectPath ?? process.cwd(), 'prompts/done'), { recursive: true });
+}
+
+/**
+ * Normalizes verification options so the rest of the flow can assume stable defaults.
+ */
+function normalizeVerifyPromptsOptions(options: VerifyPromptsOptions): NormalizedVerifyPromptsOptions {
+    return {
+        workspace: options.workspace,
+        order: options.order ?? DEFAULT_VERIFY_PROMPTS_ORDER,
+        ignore: normalizeIgnoreValues(options.ignore ?? []),
+        gitSync: options.gitSync ?? DISABLED_CODER_GIT_SYNC_OPTIONS,
+    };
+}
+
+/**
+ * Normalizes ignore values and removes empty or duplicate entries case-insensitively.
+ */
+function normalizeIgnoreValues(ignoreValues: ReadonlyArray<string>): ReadonlyArray<string> {
+    const normalizedIgnoreValues: string[] = [];
+    const seenIgnoreValues = new Set<string>();
+
+    for (const ignoreValue of ignoreValues) {
+        const trimmedIgnoreValue = ignoreValue.trim();
+        if (!trimmedIgnoreValue) {
+            continue;
+        }
+
+        const lowerCasedIgnoreValue = trimmedIgnoreValue.toLowerCase();
+        if (seenIgnoreValues.has(lowerCasedIgnoreValue)) {
+            continue;
+        }
+
+        seenIgnoreValues.add(lowerCasedIgnoreValue);
+        normalizedIgnoreValues.push(trimmedIgnoreValue);
+    }
+
+    return normalizedIgnoreValues;
+}
+
+/**
+ * Reads one single-value string option from raw CLI arguments, keeping the last occurrence.
+ */
+function readStringOption(args: ReadonlyArray<string>, flag: string): string | undefined {
+    const values = readRepeatableStringOption(args, flag);
+    return values[values.length - 1];
+}
+
+/**
+ * Reads one repeatable string option from raw CLI arguments.
+ */
+function readRepeatableStringOption(args: ReadonlyArray<string>, flag: string): ReadonlyArray<string> {
+    const values: string[] = [];
+
+    for (let index = 0; index < args.length; index += 1) {
+        const argument = args[index];
+        if (!argument) {
+            continue;
+        }
+
+        if (argument === flag) {
+            const nextValue = args[index + 1];
+            if (nextValue !== undefined && !nextValue.startsWith('--')) {
+                values.push(nextValue);
+                index += 1;
+            }
+            continue;
+        }
+
+        if (argument.startsWith(`${flag}=`)) {
+            values.push(argument.slice(flag.length + 1));
+        }
+    }
+
+    return values;
+}
+
+/**
+ * Resolves whether a prompt file should be ignored for this verification run.
+ */
+function matchesIgnoredPromptFile(promptFile: PromptFile, ignoreValues: ReadonlyArray<string>): boolean {
+    const searchableValues = [promptFile.name, getPromptFileFirstLine(promptFile)].map((value) => value.toLowerCase());
+    return ignoreValues.some((ignoreValue) => {
+        const lowerCasedIgnoreValue = ignoreValue.toLowerCase();
+        return searchableValues.some((searchableValue) => searchableValue.includes(lowerCasedIgnoreValue));
+    });
+}
+
+/**
+ * Returns the first meaningful line of the prompt file after the status line.
+ */
+function getPromptFileFirstLine(promptFile: PromptFile): string {
+    const firstSection = promptFile.sections[0];
+    const startLineIndex =
+        firstSection?.statusLineIndex !== undefined ? firstSection.statusLineIndex + 1 : firstSection?.startLine ?? 0;
+
+    for (let index = startLineIndex; index < promptFile.lines.length; index += 1) {
+        const line = promptFile.lines[index];
+        if (line !== undefined && line.trim() !== '') {
+            return line.trim();
+        }
+    }
+
+    return '';
 }
 
 /**
@@ -94,15 +373,17 @@ async function prepareArchiveDirectory(): Promise<void> {
 function displayTopLevelFileList(promptFiles: PromptFile[]): void {
     console.info(colors.cyan('\nTop-level prompt files:'));
     if (!promptFiles.length) {
-        console.info(colors.gray('  (no markdown files found in prompts/)'));
+        console.info(colors.gray('  (no prompt markdown files found for this run in prompts/)'));
         return;
     }
 
     for (const file of promptFiles) {
         const doneCount = file.sections.filter((section) => section.status === 'done').length;
         const todoCount = file.sections.filter((section) => section.status === 'todo').length;
+        const inProgressCount = file.sections.filter((section) => section.status === 'in-progress').length;
         const notReadyCount = file.sections.filter((section) => section.status === 'not-ready').length;
-        const needsVerification = file.sections.length > 0 && todoCount === 0 && doneCount > 0;
+        const needsVerification =
+            file.sections.length > 0 && !file.sections.some(isPromptSectionUnfinished) && doneCount > 0;
         const statusParts: string[] = [];
 
         if (needsVerification) {
@@ -110,6 +391,9 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
         } else {
             if (todoCount > 0) {
                 statusParts.push(colors.yellow(`${todoCount} todo [ ]`));
+            }
+            if (inProgressCount > 0) {
+                statusParts.push(colors.magenta(`${inProgressCount} in-progress [^]`));
             }
             if (doneCount > 0) {
                 statusParts.push(colors.green(`${doneCount} done [x]`));
@@ -130,7 +414,7 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
 }
 
 /**
- * Finds the first file where at least one prompt is marked as done [x] and no prompts are todo [ ].
+ * Finds the first file where at least one prompt is marked as done [x] and no prompts are todo [ ] or in-progress [^].
  * Completely ignores not-ready prompts like [-], [.], [?], etc.
  * Also excludes files that have been skipped in this session.
  */
@@ -143,19 +427,18 @@ function findFileWithAllDonePrompts(promptFiles: PromptFile[], skippedFiles: Set
         if (skippedFiles.has(file.path)) {
             return false;
         }
-        // File is ready for verification if it has at least one done prompt and no todo prompts
-        const hasTodoPrompts = file.sections.some((section) => section.status === 'todo');
+        // File is ready for verification if it has at least one done prompt and no unfinished prompts
+        const hasUnfinishedPrompts = file.sections.some(isPromptSectionUnfinished);
         const hasDonePrompts = file.sections.some((section) => section.status === 'done');
-        return !hasTodoPrompts && hasDonePrompts;
+        return !hasUnfinishedPrompts && hasDonePrompts;
     });
 }
 
 /**
  * Verifies the last done [x] prompt in a file and decides whether to archive it or add a repair prompt.
  * Ignores not-ready prompts like [-], [.], [?], etc.
- * Returns true if the file was skipped, false otherwise.
  */
-async function verifyDonePromptsInFile(file: PromptFile): Promise<boolean> {
+async function verifyDonePromptsInFile(file: PromptFile): Promise<PromptVerificationOutcome> {
     const doneCount = file.sections.filter((s) => s.status === 'done').length;
 
     console.info(colors.cyan.bold(`\n🔍 Verifying file: ${file.name}`));
@@ -176,7 +459,7 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<boolean> {
 
     if (!lastDoneSection) {
         console.info(colors.gray('No done [x] prompts found in this file.'));
-        return false;
+        return { wasSkipped: false, commitMessage: null };
     }
 
     console.info(colors.gray('Verifying the last [x] prompt in the file...\n'));
@@ -185,15 +468,29 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<boolean> {
 
     if (decision === 'done') {
         await archivePromptFile(file);
-        return false;
+        return { wasSkipped: false, commitMessage: buildArchiveCommitMessage(file) };
     } else if (decision === 'needs-work') {
         console.info(colors.yellow('\n⚠️  This prompt needs repair.'));
         await appendRepairPrompt(file, lastDoneSection);
-        return false;
+        return { wasSkipped: false, commitMessage: buildRepairCommitMessage(file) };
     } else {
         console.info(colors.gray('\n⏩ Skipped, no changes made.'));
-        return true;
+        return { wasSkipped: true, commitMessage: null };
     }
+}
+
+/**
+ * Builds the commit message describing one archived prompt file.
+ */
+function buildArchiveCommitMessage(file: PromptFile): string {
+    return `✅ Prompt done and archived \`${file.name}\``; // <- $commitCoderChanges({
+}
+
+/**
+ * Builds the commit message describing one appended repair prompt.
+ */
+function buildRepairCommitMessage(file: PromptFile): string {
+    return `❌ Repair prompt added into \`${file.name}\``; // <- $commitCoderChanges({
 }
 
 /**
@@ -205,6 +502,7 @@ async function promptForDoneVerification(
     section: PromptSection,
 ): Promise<'done' | 'needs-work' | 'skip'> {
     const promptLabel = buildPromptLabelForDisplay(file, section);
+    const { default: prompts } = await loadPromptsModule();
     const response = await prompts<'verified'>(
         {
             type: 'select',
@@ -283,11 +581,11 @@ function displayPromptOverview(promptFiles: PromptFile[]): void {
 
     const filesNeedingVerification = promptFiles.filter((file) => {
         if (file.sections.length === 0) return false;
-        const hasTodo = file.sections.some((section) => section.status === 'todo');
+        const hasUnfinished = file.sections.some(isPromptSectionUnfinished);
         const hasDone = file.sections.some((section) => section.status === 'done');
-        return !hasTodo && hasDone;
+        return !hasUnfinished && hasDone;
     });
-    const pendingFiles = promptFiles.filter((file) => file.sections.some((section) => section.status === 'todo'));
+    const pendingFiles = promptFiles.filter((file) => file.sections.some(isPromptSectionUnfinished));
 
     if (filesNeedingVerification.length) {
         const formattedNames = formatPendingFileNames(filesNeedingVerification.map((file) => file.name));
@@ -307,17 +605,32 @@ function displayPromptOverview(promptFiles: PromptFile[]): void {
 }
 
 /**
+ * Finds the next todo prompt to ask about, excluding files that have been skipped in this session.
+ */
+export function findNextTodoPromptToVerify(
+    promptFiles: PromptFile[],
+    skippedFiles: ReadonlySet<string>,
+): PromptSelection | undefined {
+    return findNextTodoPrompt(promptFiles.filter((file) => !skippedFiles.has(file.path)));
+}
+
+/**
  * Resolves a single prompt section by asking the user for its status.
  */
-async function resolvePrompt(selection: PromptSelection): Promise<void> {
+async function resolvePrompt(selection: PromptSelection): Promise<PromptVerificationOutcome> {
     displayPromptSnippet(selection);
     const decision = await promptForDecision(selection);
 
     if (decision === 'done') {
         await archivePromptFile(selection.file);
-    } else {
-        await appendRepairPrompt(selection.file, selection.section);
+        return { wasSkipped: false, commitMessage: buildArchiveCommitMessage(selection.file) };
     }
+
+    // Note: A `[ ]` section has not been run yet, so a `Fix` prompt for it would describe work that never happened.
+    //       The section stays in the queue unchanged and its file is skipped for the rest of this run,
+    //       otherwise the same section is offered again on every iteration of the loop
+    console.info(colors.gray('\n⏩ Kept in the queue, no changes made.'));
+    return { wasSkipped: true, commitMessage: null };
 }
 
 /**
@@ -325,6 +638,7 @@ async function resolvePrompt(selection: PromptSelection): Promise<void> {
  */
 async function promptForDecision(selection: PromptSelection): Promise<PromptDecision> {
     const promptLabel = buildPromptLabelForDisplay(selection.file, selection.section);
+    const { default: prompts } = await loadPromptsModule();
     const response = await prompts<'decision'>(
         {
             type: 'select',
@@ -332,14 +646,14 @@ async function promptForDecision(selection: PromptSelection): Promise<PromptDeci
             message: `Is ${colors.bold(promptLabel)} resolved?`,
             choices: [
                 {
-                    title: '✅ Done — archive the prompt',
+                    title: '✅ Done - archive the prompt',
                     value: 'done',
                     // description: 'Move this file under prompts/done',
                 },
                 {
-                    title: '🛠️ Not done — add follow-up prompt',
+                    title: '⏩ Not done - keep it in the queue',
                     value: 'not-done',
-                    // description: 'Append a Fix prompt referencing the previous section',
+                    // description: 'Leave the prompt unchanged and skip this file for the rest of the run',
                 },
             ],
             initial: 0,
@@ -379,7 +693,7 @@ function displayPromptSnippet(selection: PromptSelection): void {
  * Moves a prompt file to the done folder, avoiding name collisions.
  */
 async function archivePromptFile(file: PromptFile): Promise<void> {
-    const destination = join(DONE_PROMPTS_DIR, file.name);
+    const destination = join(dirname(file.path), 'done', file.name);
     const uniqueDestination = await ensureUniqueDestination(destination);
     await rename(file.path, uniqueDestination);
     const relativePath = relative(process.cwd(), uniqueDestination);
@@ -497,7 +811,7 @@ function isNotFound(error: unknown): boolean {
 
 // Note: When run as a standalone script, call the exported function
 if (require.main === module) {
-    verifyPrompts(REVERSE_ORDER).catch((error) => {
+    verifyPrompts(DEFAULT_VERIFY_PROMPTS_OPTIONS).catch((error) => {
         console.error(colors.bgRed('Prompt verification failed:'), error);
         process.exit(1);
     });

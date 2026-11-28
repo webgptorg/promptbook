@@ -14,7 +14,17 @@ import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: update-version-in-config.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
@@ -105,16 +115,17 @@ async function generatePackages({ isCommited }: { isCommited: boolean }): Promis
         await commit(['src'], `🆚 Add \`${version}\` -> \`versions.txt\``);
     }
 
-    let dockerfile: string = await readFile(`./Dockerfile`, 'utf-8');
-    dockerfile = dockerfile.replace(/^RUN\s+npm\s+i\s+ptbk@?.*$/m, `RUN npm i ptbk@${version}`);
-    await writeFile(`./Dockerfile`, dockerfile, 'utf-8');
+    const dockerfile: string = await readFile(`./Dockerfile`, 'utf-8');
+    const updatedDockerfile = dockerfile.replace(/^RUN\s+npm\s+i\s+ptbk@?.*$/m, `RUN npm i ptbk@${version}`);
 
-    if (isCommited) {
-        await commit(['Dockerfile'], `🆚🐋 Update \`${version}\` -> \`Dockerfile\``);
+    if (updatedDockerfile !== dockerfile) {
+        await writeFile(`./Dockerfile`, updatedDockerfile, 'utf-8');
+
+        if (isCommited) {
+            await commit(['Dockerfile'], `🆚🐋 Update \`${version}\` -> \`Dockerfile\``);
+        }
     }
 }
 
-/**
- * TODO: [main] !!3 The version is lagged one behind the actual version
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [update-version-in-config](scripts/update-version-in-config/update-version-in-config.ts) should never be published in any package */
+/** TODO: [main] !!3 The version is lagged one behind the actual version */

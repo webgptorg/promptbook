@@ -1,12 +1,118 @@
-import spaceTrim from 'spacetrim';
-import { CORE_AGENTS_SERVER } from '../../../../servers';
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
-import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
-import { MetadataType } from '../constants/metadataTypes';
 import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
+import {
+    DEFAULT_FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS,
+    FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
+} from '../constants/federatedAgentImport';
+import { MetadataType } from '../constants/metadataTypes';
+import {
+    CHAT_VISUAL_MODE_OPTIONS,
+    CHAT_VISUAL_MODE_METADATA_KEY,
+    DEFAULT_CHAT_VISUAL_MODE,
+} from '../constants/chatVisualMode';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS,
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
+} from '../constants/defaultAgentAvatarVisual';
+import { DEFAULT_THEME_METADATA_KEY, DEFAULT_THEME_MODE, THEME_MODE_OPTIONS } from '../constants/themeMode';
+import { DEFAULT_NAME_POOL, NAME_POOL_METADATA_KEY, NAME_POOL_OPTIONS } from '../constants/namePool';
+import {
+    DEFAULT_NEW_AGENT_WIZARD_MODE,
+    LEGACY_NEW_AGENT_WIZARD_METADATA_KEY,
+    NEW_AGENT_WIZARD_METADATA_KEY,
+    NEW_AGENT_WIZARD_OPTIONS,
+} from '../constants/newAgentWizard';
+import {
+    DEFAULT_SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES,
+    DEFAULT_SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES,
+    DEFAULT_SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES,
+    IS_SHIBBOLETH_AUTH_ACTIVE_METADATA_KEY,
+    SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+    SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES_METADATA_KEY,
+    SHIBBOLETH_IDENTITY_PROVIDER_METADATA_URL_METADATA_KEY,
+    SHIBBOLETH_IDENTITY_PROVIDER_METADATA_XML_METADATA_KEY,
+    SHIBBOLETH_SERVICE_PROVIDER_ENTITY_ID_METADATA_KEY,
+    SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+} from '../constants/shibbolethAuth';
+import {
+    DEFAULT_SERVER_LIMIT_VALUES,
+    MAX_FILE_UPLOAD_SIZE_MB_METADATA_KEY,
+    SERVER_LIMIT_KEYS,
+} from '../constants/serverLimits';
+import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
+import {
+    IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+    SERVER_LANGUAGE_OPTIONS,
+    SERVER_LANGUAGE_METADATA_KEY,
+} from '../languages/ServerLanguageRegistry';
+import { AGENT_VISIBILITY_OPTIONS, DEFAULT_VISIBILITY_METADATA_KEY } from '../utils/agentVisibility';
+import { CHAT_FEEDBACK_MODE_OPTIONS, DEFAULT_CHAT_FEEDBACK_MODE } from '../utils/chatFeedbackMode';
+import { SERVER_VISIBILITY_METADATA_KEY, SERVER_VISIBILITY_OPTIONS } from '../utils/serverVisibility';
+
+/**
+ * One predefined selectable option for a metadata value.
+ */
+export type MetadataDefinitionOption = {
+    /**
+     * Raw value stored in the `Metadata` table.
+     */
+    readonly value: string;
+
+    /**
+     * Human-friendly option label shown in the admin UI.
+     */
+    readonly label: string;
+};
+
+/**
+ * One supported metadata definition surfaced in the admin UI.
+ */
+export type MetadataDefinition = {
+    /**
+     * Metadata key stored in the database.
+     */
+    readonly key: string;
+
+    /**
+     * Default metadata value used when the database row is absent.
+     */
+    readonly value: string;
+
+    /**
+     * Human-readable explanation shown in the admin UI.
+     */
+    readonly note: string;
+
+    /**
+     * Primitive editor type used for the value field.
+     */
+    readonly type: MetadataType;
+
+    /**
+     * Optional predefined values rendered as a select instead of a free-form input.
+     */
+    readonly options?: ReadonlyArray<MetadataDefinitionOption>;
+
+    /**
+     * Optional previous keys that should be read when the canonical key is absent.
+     */
+    readonly legacyKeys?: ReadonlyArray<string>;
+};
+
+/**
+ * Formats metadata option values for notes and validation errors.
+ *
+ * @param options - Selectable metadata options.
+ * @returns Comma-separated list of raw stored values.
+ */
+function formatMetadataOptionValues(options: ReadonlyArray<MetadataDefinitionOption>): string {
+    return options.map(({ value }) => value).join(', ');
+}
 
 /**
  * Default metadata entries produced from the analytics configuration definitions.
+ *
  * @private
  */
 const analyticsMetadataDefaults = ANALYTICS_METADATA_KEYS.map((key) => {
@@ -19,7 +125,10 @@ const analyticsMetadataDefaults = ANALYTICS_METADATA_KEYS.map((key) => {
     };
 });
 
-export const metadataDefaults = [
+/**
+ * Constant for metadata defaults.
+ */
+export const metadataDefaults: ReadonlyArray<MetadataDefinition> = [
     {
         key: 'SERVER_NAME',
         value: 'Promptbook Agents Server',
@@ -29,14 +138,74 @@ export const metadataDefaults = [
     {
         key: SERVER_LANGUAGE_METADATA_KEY,
         value: 'en',
-        note: 'Default language of the server UI. Available values: en, cs.',
+        note: `Default language of the server UI. Available values: ${formatMetadataOptionValues(
+            SERVER_LANGUAGE_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: SERVER_LANGUAGE_OPTIONS,
+    },
+    {
+        key: IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+        value: 'false',
+        note: 'When true, users cannot override SERVER_LANGUAGE in their browser and the server UI language is enforced globally.',
+        type: 'BOOLEAN',
     },
     {
         key: 'SERVER_DESCRIPTION',
         value: 'Agents server powered by Promptbook',
         note: 'The description of the server displayed in the search engine results',
         type: 'TEXT',
+    },
+    {
+        key: SERVER_VISIBILITY_METADATA_KEY,
+        value: 'PRIVATE',
+        note: `Global crawling/indexing mode for this server. Allowed values: ${formatMetadataOptionValues(
+            SERVER_VISIBILITY_OPTIONS,
+        )}. PRIVATE blocks sitemap and indexing; PUBLIC enables indexing for PUBLIC agents.`,
+        type: 'TEXT_SINGLE_LINE',
+        options: SERVER_VISIBILITY_OPTIONS,
+    },
+    {
+        key: IS_SHIBBOLETH_AUTH_ACTIVE_METADATA_KEY,
+        value: 'false',
+        note: 'Enable Shibboleth authentication alongside standard username/password login.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: SHIBBOLETH_IDENTITY_PROVIDER_METADATA_URL_METADATA_KEY,
+        value: '',
+        note: 'URL of the Shibboleth Identity Provider metadata XML. For Silesian University this is https://idp-cro.slu.cz/idp/shibboleth.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_IDENTITY_PROVIDER_METADATA_XML_METADATA_KEY,
+        value: '',
+        note: 'Optional pasted Shibboleth Identity Provider metadata XML. Used instead of SHIBBOLETH_IDP_METADATA_URL when filled.',
+        type: 'TEXT',
+    },
+    {
+        key: SHIBBOLETH_SERVICE_PROVIDER_ENTITY_ID_METADATA_KEY,
+        value: '',
+        note: 'Optional Service Provider entity ID override. When empty, Agents Server uses the generated Shibboleth metadata endpoint URL.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES_METADATA_KEY,
+        value: DEFAULT_SHIBBOLETH_EMAIL_ATTRIBUTE_NAMES,
+        note: 'Space-separated SAML attribute names accepted as the user email during Shibboleth login.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+        value: DEFAULT_SHIBBOLETH_DISPLAY_NAME_ATTRIBUTE_NAMES,
+        note: 'Space-separated SAML attribute names accepted as the user display name during Shibboleth login.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES_METADATA_KEY,
+        value: DEFAULT_SHIBBOLETH_UNSTRUCTURED_NAME_ATTRIBUTE_NAMES,
+        note: 'Space-separated SAML attribute names accepted as the institutional identifier during Shibboleth login.',
+        type: 'TEXT_SINGLE_LINE',
     },
     {
         key: 'AGENT_NAMING',
@@ -49,6 +218,18 @@ export const metadataDefaults = [
         value: DEFAULT_THINKING_MESSAGES.join(' / '),
         note: 'Slash-delimited variants used for the thinking placeholder message (e.g. Thinking...).',
         type: 'TEXT',
+    },
+    {
+        key: TOOL_USAGE_LIMITS_METADATA_KEY,
+        value: JSON.stringify(DEFAULT_TOOL_USAGE_LIMITS),
+        note: 'Deprecated. Manage timeout tool limits in `/admin/limits`; this metadata row is mirrored for backward compatibility.',
+        type: 'TEXT',
+    },
+    {
+        key: 'USER_CHAT_BACKGROUND_CRON_INTERVAL_MINUTES',
+        value: '2',
+        note: 'Expected cron cadence for background durable chat workers (`/api/internal/user-chat-jobs/run` and `/api/internal/user-chat-timeouts/run`).',
+        type: 'NUMBER',
     },
     {
         key: 'SERVER_LOGO_URL',
@@ -80,25 +261,6 @@ export const metadataDefaults = [
         note: 'Comma separated list of allowed IPs or CIDR ranges. If set, only clients from these IPs are allowed to access the server.',
         type: 'IP_RANGE',
     },
-    {
-        key: 'CORE_SERVER',
-        value: CORE_AGENTS_SERVER.url,
-        note: spaceTrim(`
-                Core Promptbook server URL used for agents that are used for common tasks, these agents are called well known agents:
-
-                On the core server, the following well known agents should be hosted: 
-                - \`adam\`: The default ancestor agent for new agents
-                - \`teacher\`: Agent that knows book syntax and can help with self-learning
-            
-            `),
-        type: 'TEXT',
-    },
-    {
-        key: 'IS_CORE_SERVER_HIDDEN',
-        value: 'false',
-        note: 'Hide the core federated server from homepage, navbar, search, and footer links while keeping it available for references when true.',
-        type: 'BOOLEAN',
-    },
     // <- TODO: [🆎] Allow to set well-known agent names via Metadata
 
     {
@@ -106,6 +268,12 @@ export const metadataDefaults = [
         value: '',
         note: 'Comma separated list of federated servers URLs. The server will look to all federated servers and list their agents.',
         type: 'TEXT',
+    },
+    {
+        key: FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
+        value: String(DEFAULT_FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS),
+        note: 'Deprecated. Manage federated import retry delay in `/admin/limits`; this metadata row is mirrored for backward compatibility.',
+        type: 'NUMBER',
     },
     {
         key: 'SHOW_FEDERATED_SERVERS_PUBLICLY',
@@ -132,9 +300,18 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'CHAT_FEEDBACK_MODE',
+        value: DEFAULT_CHAT_FEEDBACK_MODE,
+        note: `Controls post-response feedback UI mode. Allowed values: ${formatMetadataOptionValues(
+            CHAT_FEEDBACK_MODE_OPTIONS,
+        )}.`,
+        type: 'TEXT_SINGLE_LINE',
+        options: CHAT_FEEDBACK_MODE_OPTIONS,
+    },
+    {
         key: 'IS_FEEDBACK_ENABLED',
         value: 'true',
-        note: 'Enable or disable collecting chat feedback and showing the feedback menu entry.',
+        note: 'Legacy feedback toggle kept for backward compatibility. Prefer CHAT_FEEDBACK_MODE for new setups.',
         type: 'BOOLEAN',
     },
     {
@@ -150,6 +327,48 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'IS_CONTROL_PANEL_SOUND_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Sound option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_VIBRATION_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Vibration option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_NOTIFICATIONS_ENABLED',
+        value: 'true',
+        note: 'Show or hide the browser Notifications option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_SELF_LEARNING_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Self-learning option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_PRIVATE_MODE_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Private mode option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_LANGUAGE_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Language section in the user control panel for this server. The section is also hidden automatically when SERVER_LANGUAGE is enforced.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_CHAT_VISUAL_MODE_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Chat visual mode section in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'DEFAULT_IS_SOUNDS_ON',
         value: 'false',
         note: 'Default state for chat sounds when a user has no saved preference. When false, sounds start muted.',
@@ -160,6 +379,45 @@ export const metadataDefaults = [
         value: 'true',
         note: 'Default state for chat vibration feedback when no preference is saved. When true, haptics stay enabled even if sounds are muted.',
         type: 'BOOLEAN',
+    },
+    {
+        key: 'DEFAULT_IS_NOTIFICATIONS_ON',
+        value: 'false',
+        note: 'Default state for browser push notifications when a user has no saved preference. When false, users must opt in before agent replies can trigger notifications.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: DEFAULT_THEME_METADATA_KEY,
+        value: DEFAULT_THEME_MODE,
+        note: `Default theme mode for browsers without a saved preference. Allowed values: ${formatMetadataOptionValues(
+            THEME_MODE_OPTIONS,
+        )}.`,
+        type: 'TEXT_SINGLE_LINE',
+        options: THEME_MODE_OPTIONS,
+    },
+    {
+        key: CHAT_VISUAL_MODE_METADATA_KEY,
+        value: DEFAULT_CHAT_VISUAL_MODE,
+        note: `Default chat visual mode for new browser sessions. Allowed values: ${formatMetadataOptionValues(
+            CHAT_VISUAL_MODE_OPTIONS,
+        )}.`,
+        type: 'TEXT_SINGLE_LINE',
+        options: CHAT_VISUAL_MODE_OPTIONS,
+    },
+    {
+        key: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+        value: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
+        note: `Default built-in avatar visual used for agents without \`META IMAGE\`, \`META AVATAR\`, or \`META VISUAL\`. Allowed values: ${formatMetadataOptionValues(
+            DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.map(({ metadataValue, title }) => ({
+                value: metadataValue,
+                label: title,
+            })),
+        )}.`,
+        type: 'TEXT_SINGLE_LINE',
+        options: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.map(({ metadataValue, title }) => ({
+            value: metadataValue,
+            label: title,
+        })),
     },
     {
         key: 'IS_FOOTER_SHOWN',
@@ -174,16 +432,19 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
-        key: 'MAX_FILE_UPLOAD_SIZE_MB',
-        value: '50', // <- TODO: [🌲] To /config.ts
-        note: 'Maximum size of file that can be uploaded in MB.',
+        key: MAX_FILE_UPLOAD_SIZE_MB_METADATA_KEY,
+        value: String(DEFAULT_SERVER_LIMIT_VALUES[SERVER_LIMIT_KEYS.MAX_FILE_UPLOAD_SIZE_MB]),
+        note: 'Deprecated. Manage file upload size in `/admin/limits`; this metadata row is mirrored for backward compatibility.',
         type: 'NUMBER',
     },
     {
-        key: 'NAME_POOL',
-        value: 'ENGLISH',
-        note: 'Language for generating new agent names. Possible values: ENGLISH, CZECH.',
+        key: NAME_POOL_METADATA_KEY,
+        value: DEFAULT_NAME_POOL,
+        note: `Language for generating new agent names. Allowed values: ${formatMetadataOptionValues(
+            NAME_POOL_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: NAME_POOL_OPTIONS,
     },
     {
         key: 'ADMIN_EMAIL',
@@ -192,10 +453,29 @@ export const metadataDefaults = [
         type: 'TEXT_SINGLE_LINE',
     },
     {
-        key: 'DEFAULT_VISIBILITY',
+        key: DEFAULT_VISIBILITY_METADATA_KEY,
         value: 'UNLISTED',
-        note: 'Default visibility for new agents. Can be PRIVATE, UNLISTED, or PUBLIC.',
+        note: `Default visibility for new agents. Allowed values: ${formatMetadataOptionValues(
+            AGENT_VISIBILITY_OPTIONS,
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
+        options: AGENT_VISIBILITY_OPTIONS,
+    },
+    {
+        key: NEW_AGENT_WIZARD_METADATA_KEY,
+        value: DEFAULT_NEW_AGENT_WIZARD_MODE,
+        note: `Controls the "new agent" flow. Allowed values: ${formatMetadataOptionValues(
+            NEW_AGENT_WIZARD_OPTIONS,
+        )}.`,
+        type: 'TEXT_SINGLE_LINE',
+        options: NEW_AGENT_WIZARD_OPTIONS,
+        legacyKeys: [LEGACY_NEW_AGENT_WIZARD_METADATA_KEY],
+    },
+    {
+        key: 'MANAGEMENT_API_CORS_ORIGINS',
+        value: '*',
+        note: 'Allowed origins for browser-based management API clients and OpenAPI fetches. Use `*` or a comma separated list of exact origins.',
+        type: 'TEXT',
     },
     {
         key: 'GITHUB_APP_ID',
@@ -221,10 +501,75 @@ export const metadataDefaults = [
         note: 'Secret used for signing GitHub App connect state. Keep it unique per deployment.',
         type: 'TEXT_SINGLE_LINE',
     },
+    {
+        key: 'GOOGLE_CALENDAR_CLIENT_ID',
+        value: '',
+        note: 'Google OAuth client ID used for Google Calendar connect flow.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GOOGLE_CALENDAR_CLIENT_SECRET',
+        value: '',
+        note: 'Google OAuth client secret used for Google Calendar connect flow.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GOOGLE_CALENDAR_REDIRECT_URI',
+        value: '',
+        note: 'Redirect URI registered in Google Cloud Console for Calendar OAuth callbacks.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GOOGLE_CALENDAR_STATE_SECRET',
+        value: '',
+        note: 'Secret used for signing Google Calendar OAuth state payloads.',
+        type: 'TEXT_SINGLE_LINE',
+    },
     ...analyticsMetadataDefaults,
-] as const satisfies ReadonlyArray<{
-    key: string;
-    value: string;
-    note: string;
-    type: MetadataType;
-}>;
+];
+
+/**
+ * Lookup map for metadata definitions by key.
+ *
+ * @private
+ */
+const metadataDefinitionMap = new Map<string, MetadataDefinition>(
+    metadataDefaults.map((metadataDefinition) => [metadataDefinition.key, metadataDefinition]),
+);
+
+/**
+ * Returns the curated metadata definition for one key when available.
+ *
+ * @param key - Metadata key to look up.
+ * @returns Matching metadata definition or `undefined`.
+ *
+ * @private
+ */
+export function getMetadataDefinition(key: string): MetadataDefinition | undefined {
+    return metadataDefinitionMap.get(key);
+}
+
+/**
+ * Validates one metadata value against its curated definition.
+ *
+ * @param key - Metadata key being written.
+ * @param value - Raw metadata value being persisted.
+ * @returns Error message when invalid, otherwise `null`.
+ *
+ * @private
+ */
+export function validateMetadataValue(key: string, value: string): string | null {
+    const metadataDefinition = getMetadataDefinition(key);
+
+    if (!metadataDefinition?.options || metadataDefinition.options.length === 0) {
+        return null;
+    }
+
+    if (metadataDefinition.options.some((option) => option.value === value)) {
+        return null;
+    }
+
+    return `Unsupported value for \`${key}\`. Allowed values: ${formatMetadataOptionValues(
+        metadataDefinition.options,
+    )}.`;
+}

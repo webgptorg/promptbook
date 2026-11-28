@@ -1,4 +1,4 @@
-import type { string_url } from '../../types/typeAliases';
+import type { string_url } from '../../types/string_url';
 import { $isRunningInBrowser } from '../environment/$isRunningInBrowser';
 import type { $side_effect } from '../organization/$side_effect';
 import { ObjectUrl } from './ObjectUrl';
@@ -23,6 +23,4 @@ export async function $induceFileDownload(fileOrBlobOrUrl: File | Blob | URL | s
     await objectUrl.destroy();
 }
 
-/**
- * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
- */
+// Note: [🔵] Code for browser file helper [$induceFileDownload](src/utils/files/$induceFileDownload.ts) should never be published outside of `@promptbook/browser`

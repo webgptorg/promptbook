@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
         const apiKey = process.env.ELEVENLABS_API_KEY;

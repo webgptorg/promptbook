@@ -6,6 +6,9 @@ import { SerpSearchEngine } from '../../../../../../src/search-engines/serp/Serp
 import { GoogleSearchEngine } from '../../../../../../src/search-engines/google/GoogleSearchEngine';
 import { SearchResult } from '../../../../../../src/search-engines/SearchResult';
 
+/**
+ * Handles search.
+ */
 export async function search(
     query: string,
     provider: string,

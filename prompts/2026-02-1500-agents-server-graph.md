@@ -13,7 +13,11 @@
 
 [x] ~$0.13 24 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
-[✨🚄] Try to enhance the graph on the agents server homepage.
+---
+
+[x] ~$0.4043 an hour by OpenAI Codex `gpt-5.5`
+
+[✨🚄] Ehance the graph on the agents server homepage.
 
 -   Do a proper analysis of the current graph before you start implementing.
 -   When there are a lot of agents, they are arranged in a circle. This looks very bad. Try to arrange them freely or by their relationships and folders.
@@ -22,6 +26,10 @@
 -   But the agents, servers, and folders are clearly in the clear subsets.
 -   Folders aren't arranged vertically but freely in the graph.
 -   You are working with the [Agents Server](apps/agents-server) with [homepage graph view](https://pavol-hejny.ptbk.io/?view=graph)
+
+---
+
+[.]
 
 ![alt text](prompts/screenshots/2026-02-1500-agents-server-graph-3.png)
 
@@ -46,4 +54,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

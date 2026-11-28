@@ -16,7 +16,7 @@ But often you will struggle with the **limitations of LLMs**, such as **hallucin
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
 3. Orchestrate **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
 
-In all of these situations, but especially in 3., the **✨ Promptbook can make your life waaaaaaaaaay easier**.
+In all of these situations, but especially in 3., the **🐙 Promptbook can make your life waaaaaaaaaay easier**.
 
 -   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic. For this purpose, it introduces a new language called [the **💙 Book**](https://github.com/webgptorg/book).
 -   Book allows you to **focus on the business** logic without having to write code or deal with the technicalities of LLMs.

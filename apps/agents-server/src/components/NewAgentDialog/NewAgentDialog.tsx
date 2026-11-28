@@ -6,9 +6,12 @@ import { useCallback, useState } from 'react';
 import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { FileUploadUnavailableNotice } from '../FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../FileUploadAvailability/FileUploadAvailabilityContext';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-import { useUnsavedChangesGuard } from '../utils/useUnsavedChangesGuard';
+import { usePromptbookTheme } from '../ThemeMode/usePromptbookTheme';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
 /**
  * Props for the NewAgentDialog component.
@@ -28,8 +31,11 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     const [isCreating, setIsCreating] = useState(false);
     const { formatText } = useAgentNaming();
     const { t } = useServerLanguage();
-    const { confirmBeforeClose } = useUnsavedChangesGuard({
+    const fileUploadAvailability = useFileUploadAvailability();
+    const { promptbookTheme } = usePromptbookTheme();
+    const { requestClose } = useDirtyModalGuard({
         hasUnsavedChanges: agentSource !== initialAgentSource,
+        onClose,
     });
     // [✨🧬] const [isInteracted, setIsInteracted] = useState(false);
 
@@ -54,38 +60,46 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     };
 
     const handleClose = useCallback(() => {
-        if (!confirmBeforeClose()) {
-            return;
-        }
-
-        onClose();
-    }, [confirmBeforeClose, onClose]);
+        requestClose();
+    }, [requestClose]);
 
     return (
-        <Dialog onClose={handleClose} className="w-full max-w-4xl h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">
+        <Dialog
+            onClose={handleClose}
+            className="flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden"
+        >
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950/95">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
                     {formatText(t('agentCreation.dialogTitle'))}
                 </h2>
-                <button onClick={handleClose} className="text-gray-400 hover:text-gray-500 transition-colors">
+                <button
+                    onClick={handleClose}
+                    className="text-gray-400 transition-colors hover:text-gray-500 dark:text-slate-400 dark:hover:text-slate-200"
+                >
                     <X className="w-5 h-5" />
                     <span className="sr-only">{t('common.close')}</span>
                 </button>
             </div>
 
             <div
-                className="flex-1 overflow-hidden p-4 relative" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
+                className="relative flex flex-1 flex-col overflow-hidden bg-slate-50/60 p-4 dark:bg-slate-950/55" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
             >
-                <BookEditor
-                    agentSource={agentSource}
-                    onChange={(source) => {
-                        setAgentSource(source);
-                        // [✨🧬] setIsInteracted(true);
-                    }}
-                    height="100%"
-                    isVerbose={false}
-                    onFileUpload={bookEditorUploadHandler}
-                />
+                {!fileUploadAvailability.isUploadAvailable && <FileUploadUnavailableNotice className="mb-3" />}
+                <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200/80 shadow-inner dark:border-slate-800/80">
+                    <BookEditor
+                        className="h-full w-full"
+                        agentSource={agentSource}
+                        onChange={(source) => {
+                            setAgentSource(source);
+                            // [✨🧬] setIsInteracted(true);
+                        }}
+                        height="100%"
+                        isBorderRadiusDisabled
+                        isVerbose={false}
+                        onFileUpload={fileUploadAvailability.isUploadAvailable ? bookEditorUploadHandler : undefined}
+                        theme={promptbookTheme}
+                    />
+                </div>
 
                 {/* TODO: [✨🧬] When creating new agent, show the floating hint
                 {!isInteracted && (
@@ -118,10 +132,10 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                 */}
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/95">
                 <button
                     onClick={handleClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                    className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                     {t('common.cancel')}
                 </button>

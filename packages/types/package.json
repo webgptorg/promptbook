@@ -1,7 +1,7 @@
 {
     "name": "@promptbook/types",
-    "version": "0.111.0-11",
-    "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
+    "version": "0.114.0-50",
+    "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -90,11 +90,9 @@
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
-    "overrides": {
-        "zod": "$zod"
-    },
-    "typings": "./esm/typings/src/_packages/types.index.d.ts",
+    "types": "./esm/src/_packages/types.index.d.ts",
+    "typings": "./esm/src/_packages/types.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.111.0-11"
+        "@promptbook/core": "0.114.0-50"
     }
 }

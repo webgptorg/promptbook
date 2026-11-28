@@ -6,6 +6,9 @@ import { humanizeAiText } from '../../../../../src/utils/markdown/humanizeAiText
 
 /* eslint-disable no-irregular-whitespace */
 
+/**
+ * Constant for default text.
+ */
 const defaultText = spaceTrim(`
     „The City Between Stones and Stars“
 
@@ -18,6 +21,9 @@ const defaultText = spaceTrim(`
     of alchemists, lovers, and kings.
 `);
 
+/**
+ * Handles humanize Ai text component.
+ */
 export function HumanizeAiTextComponent() {
     const [inputText, setInputText] = useState(defaultText);
     const [outputText, setOutputText] = useState(humanizeAiText(defaultText));

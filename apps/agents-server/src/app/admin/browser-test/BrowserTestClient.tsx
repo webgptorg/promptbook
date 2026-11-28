@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 
+/**
+ * Handles browser test client.
+ */
 export function BrowserTestClient() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [facebookStreamUrl, setFacebookStreamUrl] = useState<string | null>(null);

@@ -15,12 +15,10 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
-import type {
-    InputParameters,
-    string_filename,
-    string_parameter_value,
-    string_pipeline_url,
-} from '../types/typeAliases';
+import type { InputParameters } from '../types/Parameters';
+import type { string_filename } from '../types/string_filename';
+import type { string_parameter_value } from '../types/string_name';
+import type { string_pipeline_url } from '../types/string_pipeline_url';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
@@ -171,11 +169,10 @@ class Wizard {
  * Note: This works only in Node.js environment and looks for the configuration, environment, tools and cache in the Node.js environment
  *
  * @singleton
+ *
  * @public exported from `@promptbook/wizard`
  */
 export const wizard = new Wizard();
 
-/**
- * TODO: [🧠] Maybe some way how to handle the progress and streaming?
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node wizard helper [wizard](src/wizard/wizard.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠] Maybe some way how to handle the progress and streaming?

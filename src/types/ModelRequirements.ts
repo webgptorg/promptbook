@@ -1,13 +1,16 @@
+import type OpenAI from 'openai';
 import type { LlmToolDefinition } from './LlmToolDefinition';
 import type { ModelVariant } from './ModelVariant';
-import type { number_model_temperature, number_seed, string_model_name, string_system_message } from './typeAliases';
-import type OpenAI from 'openai';
+import type { number_model_temperature, number_seed } from './number_percent';
+import type { string_model_name } from './string_model_name';
+import type { string_system_message } from './string_prompt';
 
 /**
  * Abstract way to specify the LLM.
  * It does not specify the LLM with concrete version itself, only the requirements for the LLM.
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#model-requirements
  */
 export type ModelRequirements =

@@ -1,5 +1,5 @@
 import { AgentBasicInformation } from '@promptbook-local/types';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { string_prompt_image } from '../../../../../../../../src/types/typeAliases';
 
 /**
@@ -14,6 +14,7 @@ const renderBullets = (items: readonly string[]) => items.map((item) => `-  ${it
  *
  * @param agent - Basic agent information used to personalize the portrait.
  * @returns A prompt string describing the high-end, cinematic, and symbolic avatar.
+ *
  * @private @@@
  */
 export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): string_prompt_image {

@@ -1,46 +1,44 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
-import { createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
-import { keepUnused } from '../../../../../../../../../src/utils/organization/keepUnused';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
-import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import {
+    resolveCachedServerAgentContext,
+    resolveCachedServerAgentModelRequirements,
+} from '@/src/utils/cachedServerAgentRuntime';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 
+/**
+ * Handles get.
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    keepUnused(request /* <- Note: We dont need `request` parameter */);
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
 
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveBookScopedAgentContext({
+        if (!(await getCurrentUser())) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        const [collection, baseAgentReferenceResolver] = await Promise.all([
+            $provideAgentCollectionForServer(),
+            $provideAgentReferenceResolver(),
+        ]);
+        const localServerUrl = new URL(request.url).origin;
+        const resolvedAgentContext = await resolveCachedServerAgentContext({
             collection,
             agentIdentifier: agentName,
-            localServerUrl: new URL(request.url).origin,
+            localServerUrl,
             fallbackResolver: baseAgentReferenceResolver,
         });
-        const agentSource = resolvedAgentContext.resolvedAgentSource;
-        const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
-            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
-            agentReferenceResolver,
+        const { modelRequirements, unresolvedAgentReferences } = await resolveCachedServerAgentModelRequirements({
+            resolvedAgentContext,
+            localServerUrl,
+            fallbackResolver: baseAgentReferenceResolver,
         });
-        const modelRequirements = await createAgentModelRequirements(
-            effectiveAgentSource,
-            undefined,
-            undefined,
-            undefined,
-            {
-                agentReferenceResolver,
-                inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
-            },
-        );
-        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
         if (unresolvedAgentReferences.length > 0) {
             console.warn('[system-message API] Unresolved agent references detected:', unresolvedAgentReferences);
         }
@@ -71,6 +69,4 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     }
 }
 
-/**
- * TODO: [🍞] DRY - Make some common utility for API on one agent
- */
+// TODO: [🍞] DRY - Make some common utility for API on one agent

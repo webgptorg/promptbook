@@ -4,14 +4,15 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     parseBookScopedAgentIdentifier,
-    resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
+import { resolveCachedServerAgentContext } from '@/src/utils/cachedServerAgentRuntime';
+import { cache } from 'react';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
+import { resolveAgentRouteTarget } from '@/src/utils/agentRouting/resolveAgentRouteTarget';
+import { notFound, redirect } from 'next/navigation';
 
 /**
  * Database agent row shape used for folder lookups.
@@ -23,29 +24,85 @@ type AgentRow = AgentsServerDatabase['public']['Tables']['Agent']['Row'];
  */
 type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'];
 
+/**
+ * Collection of agent actions.
+ */
 export const AGENT_ACTIONS = ['Emails', 'Web chat', 'Read documents', 'Browser', 'WhatsApp', '<Coding/>'];
 
+/**
+ * Gets agent name.
+ */
 export async function getAgentName(params: Promise<{ agentName: string }>) {
     const { agentName } = await params;
     return decodeURIComponent(agentName);
 }
 
-export async function getAgentProfile(agentName: string) {
-    const collection = await $provideAgentCollectionForServer();
-    const { publicUrl } = await $provideServer();
-    const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-    const resolvedAgentContext = await resolveBookScopedAgentContext({
+/**
+ * Resolves a decoded route agent identifier into the canonical local permanent id.
+ *
+ * Remote and pseudo-agent route targets are redirected to their canonical URLs, while
+ * unknown agents are handled as a 404.
+ *
+ * @param agentIdentifier - Decoded route agent identifier.
+ * @returns Canonical local agent permanent id.
+ */
+export async function resolveCanonicalLocalAgentId(agentIdentifier: string): Promise<string> {
+    const routeTarget = await resolveAgentRouteTarget(agentIdentifier);
+
+    if (routeTarget === null) {
+        notFound();
+    }
+
+    if (routeTarget.kind === 'remote') {
+        redirect(routeTarget.url);
+    }
+
+    if (routeTarget.kind === 'pseudo') {
+        redirect(routeTarget.canonicalUrl);
+    }
+
+    return routeTarget.canonicalAgentId;
+}
+
+/**
+ * Ensures a route is rendered only on its canonical ID-based path.
+ *
+ * @param agentIdentifier - Decoded route agent identifier.
+ * @param buildCanonicalPath - Builds the canonical path for the current subroute.
+ * @returns Canonical local agent permanent id.
+ */
+export async function enforceCanonicalLocalAgentId(
+    agentIdentifier: string,
+    buildCanonicalPath: (canonicalAgentId: string) => string,
+): Promise<string> {
+    const canonicalAgentId = await resolveCanonicalLocalAgentId(agentIdentifier);
+
+    if (agentIdentifier !== canonicalAgentId) {
+        redirect(buildCanonicalPath(canonicalAgentId));
+    }
+
+    return canonicalAgentId;
+}
+
+/**
+ * Resolves the full agent profile for the current request.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Resolved agent profile with visibility.
+ */
+const getCachedAgentProfile = cache(async (agentName: string) => {
+    const [collection, { publicUrl }, baseAgentReferenceResolver] = await Promise.all([
+        $provideAgentCollectionForServer(),
+        $provideServer(),
+        $provideAgentReferenceResolver(),
+    ]);
+    const resolvedAgentContext = await resolveCachedServerAgentContext({
         collection,
         agentIdentifier: agentName,
         localServerUrl: publicUrl.href,
         fallbackResolver: baseAgentReferenceResolver,
     });
-    const agentSource = resolvedAgentContext.resolvedAgentSource;
-    const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-    const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
-        adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
-        agentReferenceResolver,
-    });
+    const agentProfile = resolvedAgentContext.resolvedAgentProfile;
 
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');
@@ -61,9 +118,25 @@ export async function getAgentProfile(agentName: string) {
     }
 
     return { ...agentProfile, visibility: agentResult.data.visibility };
+});
+
+/**
+ * Resolves the full agent profile for the current request.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Resolved agent profile with visibility.
+ */
+export async function getAgentProfile(agentName: string) {
+    return getCachedAgentProfile(agentName);
 }
 
-export async function isAgentDeleted(agentName: string): Promise<boolean> {
+/**
+ * Checks whether the requested agent is soft-deleted.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Whether the resolved agent row is deleted.
+ */
+const getCachedIsAgentDeleted = cache(async (agentName: string): Promise<boolean> => {
     const supabase = $provideSupabaseForServer();
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
     const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
@@ -78,20 +151,26 @@ export async function isAgentDeleted(agentName: string): Promise<boolean> {
         return false; // If agent doesn't exist or error, consider not deleted
     }
 
-    return result.data[0]!.deletedAt !== null;
+    return result.data[0]!.deletedAt != null;
+});
+
+/**
+ * Checks whether the requested agent is soft-deleted.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Whether the resolved agent row is deleted.
+ */
+export async function isAgentDeleted(agentName: string): Promise<boolean> {
+    return getCachedIsAgentDeleted(agentName);
 }
 
 /**
  * Resolves the folder navigation context for the agent profile menu.
  *
  * @param agentName - Agent name or permanent id to look up.
- * @param isAdmin - Whether the current user has admin access.
  * @returns Folder context for the agent or null when unavailable.
  */
-export async function getAgentFolderContext(
-    agentName: string,
-    isAdmin: boolean,
-): Promise<AgentFolderContext | null> {
+const getCachedAgentFolderContext = cache(async (agentName: string): Promise<AgentFolderContext | null> => {
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
     const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
     const supabase = $provideSupabaseForServer();
@@ -109,7 +188,7 @@ export async function getAgentFolderContext(
     }
 
     const agentRow = agentResult.data[0] as Pick<AgentRow, 'folderId' | 'visibility'>;
-    if (!isAdmin && agentRow.visibility === 'PRIVATE') {
+    if (agentRow.visibility !== 'PUBLIC') {
         return null;
     }
 
@@ -133,6 +212,16 @@ export async function getAgentFolderContext(
     }
 
     return buildAgentFolderContext(folderId, folderById);
+});
+
+/**
+ * Resolves the folder navigation context for the agent profile menu.
+ *
+ * @param agentName - Agent name or permanent id to look up.
+ * @returns Folder context for the agent or null when unavailable.
+ */
+export async function getAgentFolderContext(agentName: string): Promise<AgentFolderContext | null> {
+    return getCachedAgentFolderContext(agentName);
 }
 
 /**
@@ -150,6 +239,4 @@ export function parseBooleanFlag(value?: string | null): boolean {
     return normalized === '1' || normalized === 'true' || normalized === 'yes';
 }
 
-/**
- * TODO: Split to multiple files, refactor
- */
+// TODO: Split to multiple files, refactor
