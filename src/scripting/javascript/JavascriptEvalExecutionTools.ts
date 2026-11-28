@@ -2,6 +2,7 @@
 import _spaceTrim from 'spacetrim';
 import { valueToString } from '../../_packages/utils.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import { assertsError } from '../../errors/assertsError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
@@ -207,9 +208,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 throw new PipelineExecutionError(`Script must return a string, but returned ${valueToString(result)}`);
             }
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             if (error instanceof ReferenceError) {
                 const undefinedName = error.message.split(' ')[0];

@@ -7,6 +7,7 @@ import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/Kno
 import type { KnowledgeSourceJson } from '../../pipeline/PipelineJson/KnowledgeSourceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 
+import { assertsError } from '../../errors/assertsError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
@@ -113,9 +114,7 @@ export async function prepareKnowledgePieces(
 
             knowledgePreparedUnflatten[index] = pieces;
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             console.warn(error);
             // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks

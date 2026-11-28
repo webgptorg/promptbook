@@ -14,6 +14,7 @@ import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { forTime } from 'waitasecond';
 import { saveArchive } from '../../src/conversion/archive/saveArchive';
+import { assertsError } from '../../src/errors/assertsError';
 import { $provideExecutablesForNode } from '../../src/executables/$provideExecutablesForNode';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { validatePipelineString } from '../../src/pipeline/validatePipelineString';
@@ -107,9 +108,7 @@ async function generateExampleJsons({
 
             console.info(colors.green(`📖  Generated .bookc from ${pipelineMarkdownFilePath}`));
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             console.info(colors.bgWhite('========================='));
             console.info(colors.red(`Error in ${pipelineMarkdownFilePath}`));

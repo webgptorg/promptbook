@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { assertsError } from '../../errors/assertsError';
 import type { string_name } from '../../types/typeAliases';
 import type { really_unknown } from '../organization/really_unknown';
 
@@ -110,9 +111,7 @@ export function checkSerializableAsJson(options: CheckSerializableAsJsonOptions)
             try {
                 JSON.stringify(value); // <- TODO: [0]
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 throw new UnexpectedError(
                     spaceTrim(

@@ -8,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import { forTime } from 'waitasecond';
 import { CLAIM } from '../config';
 import { DEFAULT_IS_VERBOSE } from '../config';
+import { assertsError } from '../errors/assertsError';
 import { AuthenticationError } from '../errors/AuthenticationError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { serializeError } from '../errors/utils/serializeError';
@@ -22,6 +23,7 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
+import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import type { InputParameters } from '../types/typeAliases';
 import type { string_pipeline_url } from '../types/typeAliases';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
@@ -62,6 +64,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         port,
         collection,
         createLlmExecutionTools,
+        createExecutionTools,
         isAnonymousModeAllowed,
         isApplicationModeAllowed,
         isVerbose = DEFAULT_IS_VERBOSE,
@@ -74,25 +77,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         login: null,
         ...options,
     };
-    // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
-    let { rootPath = '/' } = options;
-
-    if (!rootPath.startsWith('/')) {
-        rootPath = `/${rootPath}`;
-    } /* not else */
-    if (rootPath.endsWith('/')) {
-        rootPath = rootPath.slice(0, -1);
-    } /* not else */
-    if (rootPath === '/') {
-        rootPath = '';
-    }
-
-    const socketioPath =
-        '/' +
-        `${rootPath}/socket.io`
-            .split('/')
-            .filter((part) => part !== '')
-            .join('/');
 
     const startupDate = new Date();
 
@@ -126,6 +110,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             // Note: Application mode
             const { appId, userId, customOptions } = identification;
             llm = await createLlmExecutionTools!({
+                isAnonymous: false,
                 appId,
                 userId,
                 customOptions,
@@ -136,13 +121,22 @@ export function startRemoteServer<TCustomOptions = undefined>(
             );
         }
 
-        const fs = $provideFilesystemForNode();
-        const executables = await $provideExecutablesForNode();
+        const customExecutionTools = createExecutionTools ? await createExecutionTools(identification) : {};
+
+        const fs = customExecutionTools.fs || $provideFilesystemForNode();
+        const executables = customExecutionTools.executables || (await $provideExecutablesForNode());
+        const scrapers = customExecutionTools.scrapers || (await $provideScrapersForNode({ fs, llm, executables }));
+        const script = customExecutionTools.script || (await $provideScriptingForNode({}));
+        const fetch = customExecutionTools.fetch || promptbookFetch;
+        const userInterface = customExecutionTools.userInterface || undefined;
+
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm, executables }),
-            script: await $provideScriptingForNode({}),
+            scrapers,
+            script,
+            fetch,
+            userInterface,
         } satisfies ExecutionTools;
 
         return tools;
@@ -164,19 +158,22 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 version: '1.0.0',
                 description: 'API documentation for the Promptbook Remote Server',
             },
+            /*
+            TODO:
             servers: [
                 {
                     url: `http://localhost:${port}${rootPath}`,
-                    // <- TODO: !!!!! Probbably: Pass `remoteServerUrl` instead of `port` and `rootPath`
+                    // <- TODO: Pass some public URLs here
                 },
             ],
+            */
         },
         apis: ['./src/remote-server/**/*.ts'], // Adjust path as needed
     };
 
     const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-    app.use([`/api-docs`, `${rootPath}/api-docs`], swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.use(`/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     const runningExecutionTasks: Array<ExecutionTask> = [];
     // <- TODO: [🤬] Identify the users
@@ -193,7 +190,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *       200:
      *         description: Server details in markdown format.
      */
-    app.get(['/', rootPath], async (request, response) => {
+    app.get('/', async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
         }
@@ -214,8 +211,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     ## Details
 
                     **Server port:** ${port}
-                    **Server root path:** ${rootPath}
-                    **Socket.io path:** ${socketioPath}
                     **Startup date:** ${startupDate.toISOString()}
                     **Anonymouse mode:** ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     **Application mode:** ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
@@ -293,7 +288,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *         identification:
      *          type: object
      */
-    app.post([`/login`, `${rootPath}/login`], async (request, response) => {
+    app.post(`/login`, async (request, response) => {
         if (!isApplicationModeAllowed || login === null) {
             response.status(400).send('Application mode is not allowed');
             return;
@@ -319,9 +314,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
             } satisfies LoginResponse<really_any>);
             return;
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             if (error instanceof AuthenticationError) {
                 response.status(401).send({
@@ -355,7 +348,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *               items:
      *                 type: string
      */
-    app.get([`/books`, `${rootPath}/books`], async (request, response) => {
+    app.get(`/books`, async (request, response) => {
         if (collection === null) {
             response.status(500).send('No collection available');
             return;
@@ -392,7 +385,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *       404:
      *         description: Book not found.
      */
-    app.get([`/books/*`, `${rootPath}/books/*`], async (request, response) => {
+    app.get(`/books/*`, async (request, response) => {
         try {
             if (collection === null) {
                 response.status(500).send('No collection nor books available');
@@ -419,9 +412,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 )
                 .send(source.content);
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             response
                 .status(
@@ -476,7 +467,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
      *               items:
      *                 type: object
      */
-    app.get([`/executions`, `${rootPath}/executions`], async (request, response) => {
+    app.get(`/executions`, async (request, response) => {
         response.send(
             runningExecutionTasks.map((runningExecutionTask) => exportExecutionTask(runningExecutionTask, false)),
             // <- TODO: [🧠][👩🏼‍🤝‍🧑🏼] Secure this through some token
@@ -484,7 +475,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         );
     });
 
-    app.get([`/executions/last`, `${rootPath}/executions/last`], async (request, response) => {
+    app.get(`/executions/last`, async (request, response) => {
         // TODO: [🤬] Filter only for user
 
         if (runningExecutionTasks.length === 0) {
@@ -496,7 +487,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         response.send(exportExecutionTask(lastExecutionTask!, true));
     });
 
-    app.get([`/executions/:taskId`, `${rootPath}/executions/:taskId`], async (request, response) => {
+    app.get(`/executions/:taskId`, async (request, response) => {
         const { taskId } = request.params;
 
         // TODO: [🤬] Filter only for user
@@ -548,7 +539,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         pipelineUrl: string_pipeline_url /* TODO: callbackUrl: string_url */;
         inputParameters: InputParameters;
         identification: Identification<TCustomOptions>;
-    }>([`/executions/new`, `${rootPath}/executions/new`], async (request, response) => {
+    }>(`/executions/new`, async (request, response) => {
         try {
             const { inputParameters, identification /* <- [🤬] */ } = request.body;
             const pipelineUrl = request.body.pipelineUrl || request.body.book;
@@ -595,22 +586,28 @@ export function startRemoteServer<TCustomOptions = undefined>(
             // <- TODO: [🧠] Should be here transferred data as POST / PUT
             */
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             response.status(400).send({ error: serializeError(error) });
         }
     });
 
+    /**
+     * Catch-all handler for unmatched routes
+     */
+    app.use((request, response) => {
+        response.status(404).send(`URL "${request.originalUrl}" was not found on Promptbook server.`);
+    });
+
     const httpServer = http.createServer(app);
 
     const server: Server = new Server(httpServer, {
-        path: socketioPath,
-        transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+        path: '/socket.io',
+        transports: ['polling', 'websocket' /*, <- TODO: [🌬] Allow to pass `transports`, add 'webtransport' */],
         cors: {
             origin: '*',
             methods: ['GET', 'POST'],
+            // <- TODO: [🌡] Allow to pass
         },
     });
 
@@ -683,9 +680,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     { promptResult } satisfies PromptbookServer_Prompt_Response /* <- Note: [🤛] */,
                 );
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- Note: [🤛] */);
             } finally {
@@ -715,9 +710,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     { models } satisfies PromptbookServer_ListModels_Response /* <- Note: [🤛] */,
                 );
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
@@ -748,9 +741,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                         { preparedPipeline } satisfies PromptbookServer_PreparePipeline_Response /* <- Note: [🤛] */,
                     );
                 } catch (error) {
-                    if (!(error instanceof Error)) {
-                        throw error;
-                    }
+                    assertsError(error);
 
                     socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
                     // <- TODO: [🚋] There is a problem with the remote server handling errors and sending them back to the client
@@ -814,8 +805,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 }
 
 /**
- * TODO: !! Add CORS and security - probbably via `helmet`
- * TODO: [👩🏾‍🤝‍🧑🏾] Allow to pass custom fetch function here - PromptbookFetch
+ * TODO: [🌡] Add CORS and security - probbably via `helmet`
  * TODO: Split this file into multiple functions - handler for each request
  * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`

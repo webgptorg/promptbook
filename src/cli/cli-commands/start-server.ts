@@ -98,10 +98,9 @@ export function $initializeStartServerCommand(program: Program) {
                 rootUrl = suffixUrl(url, '/books');
             }
 
-            let rootPath = '/';
-
-            if (url !== null) {
-                rootPath = url.pathname;
+            if (url !== null && url.pathname !== '/' && url.pathname !== '') {
+                console.error(colors.red(`URL of the server can not have path, but got "${url.pathname}"`));
+                process.exit(1);
             }
 
             // TODO: DRY [◽]
@@ -110,7 +109,7 @@ export function $initializeStartServerCommand(program: Program) {
                 isCacheReloaded,
             }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-            const llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
+            const { /* [0] strategy,*/ llm } = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
             const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
             const tools = {
                 llm,
@@ -133,7 +132,6 @@ export function $initializeStartServerCommand(program: Program) {
             // console.log(path, await collection.listPipelines());
 
             const server = startRemoteServer({
-                rootPath,
                 port,
                 isAnonymousModeAllowed,
                 isApplicationModeAllowed: true,
@@ -148,6 +146,8 @@ export function $initializeStartServerCommand(program: Program) {
                     TODO_USE({ appId, userId });
                     return llm;
                 },
+
+                // <- TODO: [🧠][0] Maybe pass here strategy
             });
 
             keepUnused(server);

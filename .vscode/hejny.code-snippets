@@ -9,7 +9,7 @@
         "scope": "javascript,javascriptreact,typescript,typescriptreact",
         "prefix": "Catch error instanceof Error",
         "description": "Immediately Invoked Function Expression",
-        "body": ["if (!(error instanceof Error)) {", "    throw error;", "}"]
+        "body": ["assertsError(error);"]
     },
     "eslint-disable": {
         "scope": "typescript,typescriptreact",

@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { assertsError } from '../../errors/assertsError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
@@ -134,7 +135,9 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                         );
                 }
             } catch (error) {
-                if (!(error instanceof Error) || error instanceof UnexpectedError) {
+                assertsError(error);
+
+                if (error instanceof UnexpectedError) {
                     throw error;
                 }
 
@@ -143,7 +146,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
         }
 
         if (errors.length === 1) {
-            throw errors[0];
+            throw errors[0]!.error;
         } else if (errors.length > 1) {
             throw new PipelineExecutionError(
                 // TODO: Tell which execution tools failed like

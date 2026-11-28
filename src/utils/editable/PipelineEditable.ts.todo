@@ -345,9 +345,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
 
             validatePipeline(this.data);
         } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
+            assertsError(error);
 
             this._errors.push(error as PipelineLogicError | ParseError);
         }
@@ -691,9 +689,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
                     pipelineString: newSourceMarkdown,
                 };
             } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
+                assertsError(error);
 
                 // console.log(`!! editMarkdown error`, error);
 

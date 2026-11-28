@@ -15,6 +15,7 @@ import { PipelineLogicError } from './PipelineLogicError';
 import { PipelineUrlError } from './PipelineUrlError';
 import { PromptbookFetchError } from './PromptbookFetchError';
 import { UnexpectedError } from './UnexpectedError';
+import { WrappedError } from './WrappedError';
 
 /**
  * Index of all custom errors
@@ -36,7 +37,10 @@ export const PROMPTBOOK_ERRORS = {
     PipelineExecutionError,
     PipelineLogicError,
     PipelineUrlError,
+    AuthenticationError,
+    PromptbookFetchError,
     UnexpectedError,
+    WrappedError,
     // TODO: [🪑]> VersionMismatchError,
 } as const;
 
@@ -54,8 +58,7 @@ export const COMMON_JAVASCRIPT_ERRORS = {
     TypeError,
     URIError,
     AggregateError,
-    AuthenticationError,
-    PromptbookFetchError,
+
     /*
   Note: Not widely supported
   > InternalError,

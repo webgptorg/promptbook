@@ -743,11 +743,17 @@ Scripting and execution
 
 User system and spending of credits
 
+-   Update `typescript` to `5.2.2`
+-   Remote server requires root url `/`, if you want to run multiple services on the same server, use 3rd or 4th degree subdomain
+-   [🌬] Make websocket transport work
+-   Allow to pass custom execution tools to promptbook server
+-   CLI can be connected to Promptbook remote server
+
 -   Update `typescript` to `5.8.2`
 -   CLI can be connected to Promptbook remote server <!-- <- TODO: !!!!!! Implement -->
     -   Allow to specify `BRING_YOUR_OWN_KEYS` / `REMOTE_SERVER` in cli commands `ptbk run`, `ptbk make`, `ptbk list-models` and `ptbk start-server`
--   CLI can login to Promptbook remote server via username + password and store the token <!-- <- TODO: !!!!!! Implement -->
--   Add login to application mode on remote server<!-- <- TODO: !!!!!! Implement -->
+-   CLI can login to Promptbook remote server via username + password and store the token
+-   Add login to application mode on remote server
 -   Add User token to application mode on remote server
 -   Rename `countTotalUsage` -> `countUsage` and add `spending()`
 -   Rename `PromptResultUsage` -> `Usage`
@@ -761,6 +767,9 @@ User system and spending of credits
 -   `rootPath` is not required anymore
 -   Rename types `PromptbookServer_Identification` -> `Identification`
 -   Change `scraperFetch` -> `promptbookFetch` and add `PromptbookFetchError`
+-   Better error handling in entire Promptbook engine
+-   Catch non-error throws and wrap + rethrow them as `WrappedError`
+-   [Creating a default community health file](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file)
 
 ## Drafts
 

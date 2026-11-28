@@ -5,7 +5,10 @@ import { join } from 'path';
  * @@@
  */
 export async function findAllProjectFiles(): Promise<ReadonlyArray<string>> {
-    return await glob(join(__dirname, '../../src/**/*.{ts,tsx}').split('\\').join('/'));
+    const srcFiles = await glob(join(__dirname, '../../src/**/*.{ts,tsx}').split('\\').join('/'));
+    const serversConfigurationFile = join(__dirname, '../../servers.ts');
+
+    return [...srcFiles, serversConfigurationFile];
 }
 
 /**

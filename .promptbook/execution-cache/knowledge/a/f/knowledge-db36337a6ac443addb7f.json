@@ -1,0 +1,106 @@
+{
+    "date": "2025-04-02T17:59:35.133Z",
+    "promptbookVersion": "0.89.0-12",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Korálky Katlas připravili přehled důležitých bodů, na které je třeba dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace vycházejí ze zkráceného záznamu online setkání.\n\n---"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Korálky Katlas, přehled, důležité body, nákup, bižuterie, bižuterní polotovary, online setkání",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-04-02T17:59:34.017Z",
+            "complete": "2025-04-02T17:59:35.133Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001026
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 127
+                },
+                "charactersCount": {
+                    "value": 400
+                },
+                "wordsCount": {
+                    "value": 53
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 43
+                },
+                "charactersCount": {
+                    "value": 94
+                },
+                "wordsCount": {
+                    "value": 11
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravili přehled důležitých bodů, na které je třeba dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace vycházejí ze zkráceného záznamu online setkání.\n> \n> ---",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravili přehled důležitých bodů, na které je třeba dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace vycházejí ze zkráceného záznamu online setkání.\n> \n> ---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01PfXHmmy7FUdPkTHDsEeKnu",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Korálky Katlas, přehled, důležité body, nákup, bižuterie, bižuterní polotovary, online setkání"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 127,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 43
+            }
+        }
+    }
+}

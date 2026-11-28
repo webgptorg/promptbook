@@ -3,14 +3,14 @@
     "terminals": [
         {
             "name": "👨‍💻⚫ Run CLI example (💸)",
-            "command": "./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "👨‍💻🟣 Run ptbk run-server",
-            "command": "./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -38,7 +38,7 @@
         },
         {
             "name": "👨‍💻🔵 Run CLI `ptbk about`",
-            "command": "./src/cli/test/ptbk.ts about",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts about",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -301,6 +301,12 @@
         {
             "name": "🍴⏬ Git pull all branches",
             "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🆚 Use current version of Promptbook in all Projects",
+            "command": "npm run use-packages",
             "onlySingle": true,
             "focus": true
         },

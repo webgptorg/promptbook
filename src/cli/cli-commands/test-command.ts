@@ -8,6 +8,7 @@ import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { assertsError } from '../../errors/assertsError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
@@ -68,7 +69,7 @@ export function $initializeTestCommand(program: Program) {
                     isCacheReloaded,
                 }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
                 const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-                const llm = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
+                const {  llm } = await $provideLlmToolsForCli({ cliOptions, ...prepareAndScrapeOptions });
                 const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
                 tools = {
                     llm,
@@ -112,9 +113,7 @@ export function $initializeTestCommand(program: Program) {
                         console.info(colors.green(`Validated ${filename}`));
                     }
                 } catch (error) {
-                    if (!(error instanceof Error)) {
-                        throw error;
-                    }
+                    assertsError(error);
 
                     console.info(colors.red(`Pipeline is not valid ${filename}`));
                     console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));

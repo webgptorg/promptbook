@@ -1,5 +1,7 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
+import spaceTrim from 'spacetrim';
+import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { CONNECTION_RETRIES_LIMIT } from '../config';
 import { CONNECTION_TIMEOUT_MS } from '../config';
 import type { RemoteClientOptions } from './types/RemoteClientOptions';
@@ -16,19 +18,39 @@ export async function createRemoteClient<TCustomOptions = undefined>(
 ): Promise<Socket> {
     const { remoteServerUrl } = options;
 
-    let path = new URL(remoteServerUrl).pathname;
-    if (path.endsWith('/')) {
-        path = path.slice(0, -1);
+    if (!isValidUrl(remoteServerUrl)) {
+        throw new Error(`Invalid \`remoteServerUrl\`: "${remoteServerUrl}"`);
     }
 
-    path = `${path}/socket.io`;
+    const remoteServerUrlParsed = new URL(remoteServerUrl);
+
+    if (remoteServerUrlParsed.pathname !== '/' && remoteServerUrlParsed.pathname !== '') {
+        remoteServerUrlParsed.pathname = '/';
+        throw new Error(
+            spaceTrim(
+                (block) =>
+                    `
+                        Remote server requires root url \`/\`
+
+                        You have provided \`remoteServerUrl\`:
+                        ${block(remoteServerUrl)}
+
+                        But something like this is expected:
+                        ${block(remoteServerUrlParsed.href)}
+
+                        Note: If you need to run multiple services on the same server, use 3rd or 4th degree subdomain
+
+                    `,
+            ),
+        );
+    }
 
     return new Promise((resolve, reject) => {
         const socket = io(remoteServerUrl, {
             retries: CONNECTION_RETRIES_LIMIT,
             timeout: CONNECTION_TIMEOUT_MS,
-            path,
-            transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+            path: '/socket.io',
+            transports: ['polling', 'websocket' /*, <- TODO: [🌬] Allow to pass `transports`, add 'webtransport' */],
         });
 
         // console.log('Connecting to', this.options.remoteServerUrl.href, { socket });

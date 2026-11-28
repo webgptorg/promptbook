@@ -8,6 +8,6 @@ import type { string_url } from '../types/typeAliases';
  *
  * It is used in theese places:
  * - Fetching knowledge sources
- * - Callbacks from remote server ([👩🏾‍🤝‍🧑🏾] Not yet implemented)
+ * - Callbacks from remote server
  */
 export type PromptbookFetch = (url: string_url, init?: RequestInit) => Promise<Response>;

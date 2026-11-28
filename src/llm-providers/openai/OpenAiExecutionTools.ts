@@ -2,6 +2,7 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
+import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
@@ -163,6 +164,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
         const rawResponse = await client.chat.completions.create(rawRequest).catch((error) => {
+            assertsError(error);
+
             if (this.options.isVerbose) {
                 console.info(colors.bgRed('error'), error);
             }
@@ -254,6 +257,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
         const rawResponse = await client.completions.create(rawRequest).catch((error) => {
+            assertsError(error);
+
             if (this.options.isVerbose) {
                 console.info(colors.bgRed('error'), error);
             }
@@ -333,6 +338,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚
         }
 
         const rawResponse = await client.embeddings.create(rawRequest).catch((error) => {
+            assertsError(error);
+
             if (this.options.isVerbose) {
                 console.info(colors.bgRed('error'), error);
             }

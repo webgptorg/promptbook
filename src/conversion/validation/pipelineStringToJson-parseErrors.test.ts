@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { ParseError } from '../../errors/ParseError';
+import { assertsError } from '../../errors/assertsError';
 import { compilePipeline } from '../compilePipeline';
 import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
@@ -29,9 +30,7 @@ describe('validatePipeline with parse errors', () => {
                     validatePipeline(pipelineJson);
                     console.error('Pipeline should have ParseError error BUT it does not have any error:\n', name);
                 } catch (error) {
-                    if (!(error instanceof Error)) {
-                        throw error;
-                    }
+                    assertsError(error);
 
                     console.error(`Pipeline should have ParseError error BUT it has ${error.name}:\n`, name);
                 }

@@ -7,6 +7,7 @@ import glob from 'glob-promise';
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
+import { assertsError } from '../../errors/assertsError';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
 import { handleActionErrors } from './common/handleActionErrors';
 
@@ -62,9 +63,7 @@ export function $initializePrettifyCommand(program: Program) {
                         console.info(colors.green(`Prettify ${filename}`));
                     }
                 } catch (error) {
-                    if (!(error instanceof Error)) {
-                        throw error;
-                    }
+                    assertsError(error);
 
                     console.info(colors.red(`Prettify ${error.name} ${filename}`));
                     console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));

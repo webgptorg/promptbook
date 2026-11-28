@@ -1,0 +1,122 @@
+{
+    "date": "2025-04-08T17:32:02.598Z",
+    "promptbookVersion": "0.89.0-21",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook offers enterprise-ready features including security, privacy, encryption, testing, and scalability."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, enterprise-ready, features, security, privacy, encryption, testing, scalability",
+        "modelName": "gpt-4o-2024-08-06",
+        "timing": {
+            "start": "2025-04-08T17:32:00.078Z",
+            "complete": "2025-04-08T17:32:02.597Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 62
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 18
+                },
+                "charactersCount": {
+                    "value": 91
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook offers enterprise-ready features including security, privacy, encryption, testing, and scalability.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook offers enterprise-ready features including security, privacy, encryption, testing, and scalability."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BK75k1SQqfcrHYmSNNstzg96NJPO0",
+            "object": "chat.completion",
+            "created": 1744133520,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Promptbook, enterprise-ready, features, security, privacy, encryption, testing, scalability",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 62,
+                "completion_tokens": 18,
+                "total_tokens": 80,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_898ac29719"
+        }
+    }
+}

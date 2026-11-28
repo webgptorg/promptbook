@@ -1,6 +1,7 @@
-import { $execCommand } from '../../utils/execCommand/$execCommand';
+import { assertsError } from '../../errors/assertsError';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { string_executable_path } from '../../types/typeAliases';
+import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { isExecutable } from '../../utils/files/isExecutable';
 import type { LocateAppOptions } from '../locateApp';
 
@@ -35,9 +36,7 @@ export async function locateAppOnMacOs({
 
         return result.trim() + toExec;
     } catch (error) {
-        if (!(error instanceof Error)) {
-            throw error;
-        }
+        assertsError(error);
 
         return null;
     }

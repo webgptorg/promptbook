@@ -10,7 +10,8 @@ import { translateMessages } from './translateMessages';
 // TODO: Activate TypeScript 3.8 and use top level await instead of wrapped code by main function
 
 main()
-    .catch((error: Error) => {
+    .catch((error) => {
+        assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
         console.error(colors.red(error.stack || error.message));
         process.exit(1);

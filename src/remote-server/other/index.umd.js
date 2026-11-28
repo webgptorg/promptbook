@@ -1707,7 +1707,9 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
           return true;
       }
       catch (error) {
-          if (!(error instanceof Error)) {console.log('!(error instanceof Error)')
+          assertsError(error);
+
+if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(error instanceof Error)')
               throw error;
           }
           if (error.message.includes('Unexpected token')) {
@@ -2124,7 +2126,9 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
                   JSON.stringify(value); // <- TODO: [0]
               }
               catch (error) {
-                  if (!(error instanceof Error)) {console.log('!(error instanceof Error)')
+                  assertsError(error);
+
+if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(error instanceof Error)')
                       throw error;
                   }
                   throw new UnexpectedError(spaceTrim__default["default"](function (block) { return "\n                            `".concat(name, "` is not serializable\n\n                            ").concat(block(error.stack || error.message), "\n\n                            Additional message for `").concat(name, "`:\n                            ").concat(block(message || '(nothing)'), "\n                        "); }));
@@ -3034,7 +3038,9 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
           }
       }
       catch (error) {
-          if (!(error instanceof Error)) {console.log('!(error instanceof Error)')
+          assertsError(error);
+
+if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(error instanceof Error)')
               throw error;
           }
           console.error(error);
@@ -3221,7 +3227,9 @@ at step (C:\\Users\\me\\work\\webgpt\\promptbook-studio\\node_modules\\node_modu
               }
       }
       catch (error) {
-          if (!(error instanceof Error)) {console.log('!(error instanceof Error)')
+          assertsError(error);
+
+if (!(error instanceof Error) || error instanceof WrappedError) {console.log('!(error instanceof Error)')
               throw error;
           }
           throw new ParseError(spaceTrim.spaceTrim(function (block) { return "\n                    Can not extract variables from the script\n                    ".concat(block(error.stack || error.message), "\n\n                    Found variables:\n                    ").concat(Array.from(variables)
