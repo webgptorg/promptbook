@@ -20,8 +20,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'META IMAGE'> {
-    constructor() {
-        super('META IMAGE');
+    public constructor() {
+        super('META IMAGE', ['IMAGE']);
     }
 
     /**
@@ -29,6 +29,13 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
      */
     get description(): string {
         return "Set the agent's profile image URL.";
+    }
+
+    /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🖼️';
     }
 
     /**
@@ -54,7 +61,7 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
 
             META IMAGE https://example.com/professional-avatar.jpg
             PERSONA You are a professional business assistant
-            STYLE Maintain a formal and courteous tone
+            WRITING RULES Maintain a formal and courteous tone
             \`\`\`
 
             \`\`\`book
@@ -62,7 +69,7 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
 
             META IMAGE /assets/creative-bot-avatar.png
             PERSONA You are a creative and inspiring assistant
-            STYLE Be enthusiastic and encouraging
+            WRITING RULES Be enthusiastic and encouraging
             ACTION Can help with brainstorming and ideation
             \`\`\`
         `);
@@ -87,6 +94,4 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

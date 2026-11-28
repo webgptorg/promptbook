@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCENARIO' | 'SCENARIOS'> {
-    constructor(type: 'SCENARIO' | 'SCENARIOS' = 'SCENARIO') {
+    public constructor(type: 'SCENARIO' | 'SCENARIOS' = 'SCENARIO') {
         super(type);
     }
 
@@ -29,6 +29,13 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
      */
     get description(): string {
         return 'Define specific **situations** or contexts for AI responses, with later scenarios having higher priority.';
+    }
+
+    /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🎭';
     }
 
     /**
@@ -115,14 +122,9 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
             return requirements;
         }
 
-        // Create scenario section for system message
-        const scenarioSection = `Scenario: ${trimmedContent}`;
-
         // Scenarios provide important contextual information that affects behavior
-        return this.appendToSystemMessage(requirements, scenarioSection, '\n\n');
+        return this.appendBulletPointToSection(requirements, 'Scenarios', trimmedContent);
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

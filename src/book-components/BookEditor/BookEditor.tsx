@@ -2,17 +2,67 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { CSSProperties, useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type { number_percent, number_positive, string_css_value, string_knowledge_source_content } from '../../types/typeAliases';
+import type { number_percent } from '../../types/number_percent';
+import type { number_positive } from '../../types/number_positive';
+import type { string_knowledge_source_content } from '../../types/string_knowledge_source_content';
+import type { string_css_value } from '../../types/string_markdown';
 import { countLines } from '../../utils/expectation-counters/countLines';
+import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
+import type { BookEditorTheme } from './BookEditorTheme';
+import { BOOK_EDITOR_RENDER_THEME, resolveBookEditorRenderTheme } from './BookEditorTheme';
+
+/**
+ * Monaco diagnostic shown inside `BookEditor`.
+ *
+ * @private internal type of `BookEditor`
+ */
+type BookEditorDiagnostic = {
+    /**
+     * 1-based start line.
+     */
+    readonly startLineNumber: number;
+
+    /**
+     * 1-based start column.
+     */
+    readonly startColumn: number;
+
+    /**
+     * 1-based end line.
+     */
+    readonly endLineNumber: number;
+
+    /**
+     * 1-based end column.
+     */
+    readonly endColumn: number;
+
+    /**
+     * Diagnostic message shown by Monaco.
+     */
+    readonly message: string;
+
+    /**
+     * Marker severity used for color coding in Monaco.
+     *
+     * @default 'error'
+     */
+    readonly severity?: 'error' | 'warning' | 'info' | 'hint';
+
+    /**
+     * Optional source label shown in Monaco hover.
+     */
+    readonly source?: string;
+};
 
 /**
  * Default height of the book editor
@@ -22,6 +72,36 @@ import { BookEditorMonaco } from './BookEditorMonaco';
  * @public exported from `@promptbook/components`
  */
 export const DEFAULT_BOOK_EDITOR_HEIGHT = countLines(DEFAULT_BOOK) * 30 + 20;
+
+/**
+ * Upload progress callback for BookEditor uploads.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type BookEditorUploadProgressCallback = (
+    progress: number_percent,
+    stats?: {
+        loadedBytes: number;
+        totalBytes: number;
+    },
+) => void;
+
+/**
+ * Options for BookEditor uploads.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type BookEditorUploadOptions = {
+    /**
+     * Progress callback invoked during upload.
+     */
+    readonly onProgress?: BookEditorUploadProgressCallback;
+
+    /**
+     * Optional abort signal for canceling an upload.
+     */
+    readonly abortSignal?: AbortSignal;
+};
 
 /**
  * Props of `BookEditor`
@@ -43,6 +123,16 @@ export type BookEditorProps = {
      * Optional CSS style which will be added to root <div/> element
      */
     readonly style?: CSSProperties;
+
+    /**
+     * Resolved host application theme.
+     *
+     * `<BookEditor/>` accepts this for integration compatibility, but the notebook
+     * editor itself is intentionally rendered as light paper in every app theme.
+     *
+     * @default 'LIGHT'
+     */
+    readonly theme?: BookEditorTheme;
 
     /**
      * Height of the `BookEditor` component
@@ -73,9 +163,17 @@ export type BookEditorProps = {
     onChange?(value: string_book): void;
 
     /**
-     * returns the URL of the uploaded file on CDN or storage
+     * Optional Monaco diagnostics shown as squiggle markers in the editor.
      */
-    onFileUpload?(file: File): Promisable<string_knowledge_source_content>;
+    readonly diagnostics?: ReadonlyArray<BookEditorDiagnostic>;
+
+    /**
+     * Returns the URL of the uploaded file on CDN or storage.
+     */
+    onFileUpload?(
+        file: File,
+        options?: BookEditorUploadOptions | BookEditorUploadProgressCallback,
+    ): Promisable<string_knowledge_source_content>;
 
     /**
      * If true, logs verbose debug info to the console and shows additional visual cues
@@ -105,6 +203,18 @@ export type BookEditorProps = {
          */
         readonly readonlyMessage?: string;
     };
+
+    /**
+     * If true, shows the upload button in the action bar.
+     * By default, the upload button is shown.
+     */
+    readonly isUploadButtonShown?: boolean;
+
+    /**
+     * If true, shows the camera button in the action bar.
+     * By default, the camera button is shown on mobile devices.
+     */
+    readonly isCameraButtonShown?: boolean;
 
     /**
      * If true, shows the download button in the action bar.
@@ -152,6 +262,22 @@ export type BookEditorProps = {
          */
         readonly roomName: string;
     };
+
+    /**
+     * Stable Monaco model path used to restore cursor/scroll view state across remounts.
+     *
+     * Keep this unique per logical book editor document.
+     *
+     * @private Internal to Promptbook app integrations.
+     */
+    readonly monacoModelPath?: string;
+
+    /**
+     * Additional actions merged into the BookEditor actionbar and hoisted header menu.
+     *
+     * @private Internal to Promptbook app integrations.
+     */
+    readonly hoistedMenuItems?: ReadonlyArray<HoistedMenuItem>;
 };
 
 /**
@@ -164,22 +290,32 @@ export function BookEditor(props: BookEditorProps) {
         agentSource,
         className,
         style,
+        theme: hostTheme = BOOK_EDITOR_RENDER_THEME,
         zoom = 1,
         value,
         onChange,
+        diagnostics,
         onFileUpload,
         isVerbose = DEFAULT_IS_VERBOSE,
         isBorderRadiusDisabled = false,
         isReadonly = false,
         translations,
-        isDownloadButtonShown = true,
-        isAboutButtonShown = true,
-        isFullscreenButtonShown = true,
+        isUploadButtonShown = false,
+        isCameraButtonShown,
+        isDownloadButtonShown = false,
+        isAboutButtonShown = false,
+        isFullscreenButtonShown = false,
         sync,
+        monacoModelPath,
+        hoistedMenuItems,
     } = props;
 
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const renderedTheme = resolveBookEditorRenderTheme(hostTheme);
 
+    /**
+     * Toggles fullscreen mode for the editor.
+     */
     const handleFullscreenToggle = () => {
         setIsFullscreen(!isFullscreen);
     };
@@ -187,6 +323,7 @@ export function BookEditor(props: BookEditorProps) {
     const editorContent = (
         <div
             data-book-component="BookEditor"
+            data-book-editor-theme={renderedTheme.toLowerCase()}
             className={classNames(
                 styles.BookEditor,
                 isVerbose && styles.isVerbose,
@@ -214,11 +351,14 @@ export function BookEditor(props: BookEditorProps) {
             <BookEditorMonaco
                 value={agentSource || value}
                 onChange={onChange}
+                diagnostics={diagnostics}
                 onFileUpload={onFileUpload}
                 isVerbose={isVerbose}
                 isBorderRadiusDisabled={isBorderRadiusDisabled}
                 isReadonly={isReadonly}
                 translations={translations}
+                isUploadButtonShown={isUploadButtonShown}
+                isCameraButtonShown={isCameraButtonShown}
                 isDownloadButtonShown={isDownloadButtonShown}
                 isAboutButtonShown={isAboutButtonShown}
                 isFullscreenButtonShown={isFullscreenButtonShown}
@@ -226,6 +366,9 @@ export function BookEditor(props: BookEditorProps) {
                 isFullscreen={isFullscreen}
                 sync={sync}
                 zoom={zoom}
+                monacoModelPath={monacoModelPath}
+                hoistedMenuItems={hoistedMenuItems}
+                theme={renderedTheme}
             />
         </div>
     );
@@ -233,6 +376,4 @@ export function BookEditor(props: BookEditorProps) {
     return isFullscreen && typeof document !== 'undefined' ? createPortal(editorContent, document.body) : editorContent;
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

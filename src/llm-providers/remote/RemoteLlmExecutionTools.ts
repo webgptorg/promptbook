@@ -2,7 +2,12 @@ import type { ChatParticipant } from '../../book-components/Chat/types/ChatParti
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
 import { createRemoteClient } from '../../remote-server/createRemoteClient';
 import type { PromptbookServer_ListModels_Request } from '../../remote-server/socket-types/listModels/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from '../../remote-server/socket-types/listModels/PromptbookServer_ListModels_Response';
@@ -11,9 +16,11 @@ import type { PromptbookServer_Prompt_Response } from '../../remote-server/socke
 import type { PromptbookServer_Error } from '../../remote-server/socket-types/_common/PromptbookServer_Error';
 import type { RemoteClientOptions } from '../../remote-server/types/RemoteClientOptions';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 
 /**
  * Profile for Remote provider
@@ -24,8 +31,8 @@ const REMOTE_PROVIDER_PROFILE: ChatParticipant = {
     color: '#6b7280',
 } as const;
 
-keepTypeImported<PromptbookServer_ListModels_Request<really_any>>();
-keepTypeImported<PromptbookServer_Prompt_Request<really_any>>();
+keepTypeImported<PromptbookServer_ListModels_Request<chococake>>();
+keepTypeImported<PromptbookServer_Prompt_Request<chococake>>();
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -34,6 +41,7 @@ keepTypeImported<PromptbookServer_Prompt_Request<really_any>>();
  * This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
+ *
  * @public exported from `@promptbook/remote-client`
  */
 export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmExecutionTools {
@@ -157,11 +165,10 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
     }
 }
 
-/**
- * TODO: Maybe use `$exportJson`
- * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [🍓] Allow to list compatible models with each variant
- * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- * TODO: [🧠] Maybe remove `@promptbook/remote-client` and just use `@promptbook/core`
- */
+// TODO: [🕴] Deprecate pipeline server and all of its components
+// TODO: Maybe use `$exportJson`
+// TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
+// TODO: [🍓] Allow to list compatible models with each variant
+// TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+// TODO: [🧠] Maybe remove `@promptbook/remote-client` and just use `@promptbook/core`

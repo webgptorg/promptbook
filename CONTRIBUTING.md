@@ -26,7 +26,7 @@ Thank you for contributing!
 
 ## How to Get Help
 
-If you're stuck or unsure how to contribute, [just ask!](https://github.com/webgptorg/promptbook/discussions) We welcome questions, ideas, and feedback from everyone—whether you're a developer, designer, writer, or user.
+If you're stuck or unsure how to contribute, [just ask!](https://github.com/webgptorg/promptbook/discussions) We welcome questions, ideas, and feedback from everyone-whether you're a developer, designer, writer, or user.
 
 ## 🎯 Todos
 

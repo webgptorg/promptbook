@@ -1,8 +1,12 @@
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { resolveCanonicalAgentName } from '@/src/utils/resolveCanonicalAgentName';
 import { NextRequest, NextResponse } from 'next/server';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
 import { $getTableName } from '../../../../../database/$getTableName';
 
+/**
+ * Request for feedback.
+ */
 type FeedbackRequest = {
     agentHash: string;
     rating?: string;
@@ -12,6 +16,9 @@ type FeedbackRequest = {
     expectedAnswer?: string;
 };
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     try {
         const { agentName } = await params;
@@ -23,10 +30,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         const supabase = $provideSupabaseForServer();
+        const canonicalAgentName = await resolveCanonicalAgentName(agentName);
+        if (!canonicalAgentName) {
+            console.error('Error finding agent for feedback:', { agentName });
+            return NextResponse.json({ message: 'Agent not found' }, { status: 404 });
+        }
 
         const { error } = await supabase.from(await $getTableName('ChatFeedback')).insert({
             createdAt: new Date().toISOString(),
-            agentName,
+            agentName: canonicalAgentName,
             agentHash,
             rating,
             textRating,
@@ -38,7 +50,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             // For now we leave them null or let Supabase handle default if any (though schema has them nullable)
             url: request.headers.get('referer') || undefined,
             userAgent: request.headers.get('user-agent') || undefined,
-            ip: request.headers.get('x-forwarded-for') || undefined,
+            ip:
+                request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                request.headers.get('x-real-ip') ||
+                undefined,
         });
 
         if (error) {

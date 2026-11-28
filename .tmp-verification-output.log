@@ -1,0 +1,1976 @@
+
+> promptbook@0.113.0-4 test-for-ptbk-coder
+> node ./scripts/test-for-ptbk-coder.js
+
+Note: Running from most lightweight to heaviest tests
+
+> promptbook@0.113.0-4 test-name-discrepancies
+> ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts
+
+🔎🩹 Find name discrepancies
+[32mNo name discrepancies found[39m
+
+> promptbook@0.113.0-4 test-spellcheck
+> bash ./scripts/spellcheck.sh
+
+   1/1885 src/_packages/anthropic-claude.index.ts 916.94ms
+   2/1885 src/_packages/anthropic-claude.readme.md 88.52ms
+   3/1885 src/_packages/azure-openai.index.ts 6.45ms
+   4/1885 src/_packages/azure-openai.readme.md 14.46ms
+   5/1885 src/_packages/browser.index.ts 6.27ms
+   6/1885 src/_packages/browser.readme.md 8.17ms
+   7/1885 src/_packages/cli.index.ts 17.02ms
+   8/1885 src/_packages/cli.readme.md 17.53ms
+   9/1885 src/_packages/color.index.ts 6.65ms
+  10/1885 src/_packages/color.readme.md 11.27ms
+  11/1885 src/_packages/components.index.ts 21.40ms
+  12/1885 src/_packages/components.readme.md 11.39ms
+  13/1885 src/_packages/content/$provideExecutionToolsForNode.md 5.40ms
+  14/1885 src/_packages/content/providers.md 2.14ms
+  15/1885 src/_packages/core.index.ts 40.41ms
+  16/1885 src/_packages/core.readme.md 37.31ms
+  17/1885 src/_packages/deepseek.index.ts 4.26ms
+  18/1885 src/_packages/deepseek.readme.md 1.90ms
+  19/1885 src/_packages/documents.index.ts 3.38ms
+  20/1885 src/_packages/documents.readme.md 2.28ms
+  21/1885 src/_packages/editable.index.ts 10.27ms
+  22/1885 src/_packages/editable.readme.md 5.10ms
+  23/1885 src/_packages/fake-llm.index.ts 2.86ms
+  24/1885 src/_packages/fake-llm.readme.md 1.98ms
+  25/1885 src/_packages/google.index.ts 3.37ms
+  26/1885 src/_packages/google.readme.md 11.84ms
+  27/1885 src/_packages/javascript.index.ts 3.55ms
+  28/1885 src/_packages/javascript.readme.md 5.31ms
+  29/1885 src/_packages/legacy-documents.index.ts 3.28ms
+  30/1885 src/_packages/legacy-documents.readme.md 1.86ms
+  31/1885 src/_packages/markdown-utils.index.ts 6.96ms
+  32/1885 src/_packages/markdown-utils.readme.md 8.79ms
+  33/1885 src/_packages/markitdown.index.ts 2.69ms
+  34/1885 src/_packages/markitdown.readme.md 1.75ms
+  35/1885 src/_packages/node.index.ts 6.25ms
+  36/1885 src/_packages/node.readme.md 6.99ms
+  37/1885 src/_packages/ollama.index.ts 3.23ms
+  38/1885 src/_packages/ollama.readme.md 3.50ms
+  39/1885 src/_packages/openai.index.ts 5.47ms
+  40/1885 src/_packages/openai.readme.md 16.64ms
+  41/1885 src/_packages/pdf.index.ts 3.93ms
+  42/1885 src/_packages/pdf.readme.md 1.70ms
+  43/1885 src/_packages/promptbook.readme.md 1.80ms
+  44/1885 src/_packages/ptbk.readme.md 1.71ms
+  45/1885 src/_packages/README.md 3.54ms
+  46/1885 src/_packages/remote-client.index.ts 3.41ms
+  47/1885 src/_packages/remote-client.readme.md 1.71ms
+  48/1885 src/_packages/remote-server.index.ts 3.89ms
+  49/1885 src/_packages/remote-server.readme.md 5.63ms
+  50/1885 src/_packages/templates.index.ts 2.42ms
+  51/1885 src/_packages/templates.readme.md 2.12ms
+  52/1885 src/_packages/types.index.ts 56.85ms
+  53/1885 src/_packages/types.readme.md 22.59ms
+  54/1885 src/_packages/utils.index.ts 14.20ms
+  55/1885 src/_packages/utils.readme.md 18.42ms
+  56/1885 src/_packages/vercel.index.ts 4.26ms
+  57/1885 src/_packages/vercel.readme.md 5.60ms
+  58/1885 src/_packages/website-crawler.index.ts 2.82ms
+  59/1885 src/_packages/website-crawler.readme.md 1.69ms
+  60/1885 src/_packages/wizard.index.ts 8.45ms
+  61/1885 src/_packages/wizard.readme.md 2.29ms
+  62/1885 src/avatars/Avatar.tsx 26.75ms
+  63/1885 src/avatars/avatarAnimationScheduler.ts 9.69ms
+  64/1885 src/avatars/avatarInteractionUtils.test.ts 6.18ms
+  65/1885 src/avatars/avatarInteractionUtils.ts 11.10ms
+  66/1885 src/avatars/AvatarOrImage.tsx 5.91ms
+  67/1885 src/avatars/avatarPointerTracking.ts 8.86ms
+  68/1885 src/avatars/avatarRenderingUtils.test.ts 6.56ms
+  69/1885 src/avatars/avatarRenderingUtils.ts 13.50ms
+  70/1885 src/avatars/avatarVisibilityTracking.ts 4.67ms
+  71/1885 src/avatars/index.ts 5.09ms
+  72/1885 src/avatars/renderAvatarVisual.ts 5.76ms
+  73/1885 src/avatars/renderAvatarVisualAsciiArt.ts 9.93ms
+  74/1885 src/avatars/types/AvatarDefinition.ts 2.81ms
+  75/1885 src/avatars/types/AvatarVisualDefinition.ts 7.05ms
+  76/1885 src/avatars/visuals/asciiOctopusAvatarVisual.ts 26.05ms
+  77/1885 src/avatars/visuals/avatar3dProjectionShared.ts 8.47ms
+  78/1885 src/avatars/visuals/avatarVisualRegistry.test.ts 3.27ms
+  79/1885 src/avatars/visuals/avatarVisualRegistry.ts 6.80ms
+  80/1885 src/avatars/visuals/fractalAvatarVisual.ts 15.37ms
+  81/1885 src/avatars/visuals/minecraft2AvatarVisual.ts 16.61ms
+  82/1885 src/avatars/visuals/minecraftAvatarVisual.ts 8.37ms
+  83/1885 src/avatars/visuals/minecraftAvatarVisualShared.ts 7.07ms
+  84/1885 src/avatars/visuals/octopus2AvatarVisual.ts 11.04ms
+  85/1885 src/avatars/visuals/octopus3AvatarVisual.test.ts 4.89ms
+  86/1885 src/avatars/visuals/octopus3AvatarVisual.ts 26.62ms
+  87/1885 src/avatars/visuals/octopus3d2AvatarVisual.ts 23.17ms
+  88/1885 src/avatars/visuals/octopus3d3AvatarVisual.ts 33.67ms
+  89/1885 src/avatars/visuals/octopus3d4AvatarVisual.ts 35.44ms
+  90/1885 src/avatars/visuals/octopus3dAvatarVisual.ts 22.24ms
+  91/1885 src/avatars/visuals/octopus3dAvatarVisualShared.ts 10.04ms
+  92/1885 src/avatars/visuals/octopusAvatarVisual.ts 8.76ms
+  93/1885 src/avatars/visuals/octopusAvatarVisualShared.test.ts 9.19ms
+  94/1885 src/avatars/visuals/octopusAvatarVisualShared.ts 17.28ms
+  95/1885 src/avatars/visuals/orbAvatarVisual.test.ts 4.41ms
+  96/1885 src/avatars/visuals/orbAvatarVisual.ts 17.31ms
+  97/1885 src/avatars/visuals/pixelArtAvatarVisual.ts 6.61ms
+  98/1885 src/book-2.0/agent-source/AgentBasicInformation.ts 7.39ms
+  99/1885 src/book-2.0/agent-source/AgentModelRequirements.ts 4.66ms
+ 100/1885 src/book-2.0/agent-source/AgentReferenceResolver.ts 3.17ms
+ 101/1885 src/book-2.0/agent-source/AgentSourceParseResult.ts 2.62ms
+ 102/1885 src/book-2.0/agent-source/agentSourceVisibility.test.ts 2.92ms
+ 103/1885 src/book-2.0/agent-source/agentSourceVisibility.ts 7.69ms
+ 104/1885 src/book-2.0/agent-source/BookEditable.ts 3.31ms
+ 105/1885 src/book-2.0/agent-source/communication-samples.test.ts 4.75ms
+ 106/1885 src/book-2.0/agent-source/computeAgentHash.test.ts 2.51ms
+ 107/1885 src/book-2.0/agent-source/computeAgentHash.ts 2.59ms
+ 108/1885 src/book-2.0/agent-source/createAgentModelRequirements.tools.test.ts 14.22ms
+ 109/1885 src/book-2.0/agent-source/createAgentModelRequirements.ts 8.72ms
+ 110/1885 src/book-2.0/agent-source/createAgentModelRequirements.useCommitmentAggregation.test.ts 7.50ms
+ 111/1885 src/book-2.0/agent-source/createAgentModelRequirements.writing.test.ts 5.65ms
+ 112/1885 src/book-2.0/agent-source/CreateAgentModelRequirementsOptions.ts 4.07ms
+ 113/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.agentReferenceResolver.test.ts 3.77ms
+ 114/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.blocks.test.ts 2.77ms
+ 115/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.closed.test.ts 2.92ms
+ 116/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.delete.test.ts 4.39ms
+ 117/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.import.test.ts 2.99ms
+ 118/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.knowledge.test.ts 3.71ms
+ 119/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.ts 5.85ms
+ 120/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments/applyCommitmentsToAgentModelRequirements.ts 8.87ms
+ 121/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments/augmentAgentModelRequirementsFromSource.ts 13.59ms
+ 122/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments/filterCommitmentsForAgentModelRequirements.ts 7.46ms
+ 123/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments/materializeInlineKnowledgeSources.ts 5.57ms
+ 124/1885 src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments/ParsedAgentSourceWithCommitments.ts 4.58ms
+ 125/1885 src/book-2.0/agent-source/createCommitmentRegex.ts 3.44ms
+ 126/1885 src/book-2.0/agent-source/createDefaultAgentName.ts 2.53ms
+ 127/1885 src/book-2.0/agent-source/createTeamToolName.ts 2.97ms
+ 128/1885 src/book-2.0/agent-source/extractMetaLinks.ts 2.51ms
+ 129/1885 src/book-2.0/agent-source/extractOpenTeacherInstructions.test.ts 2.58ms
+ 130/1885 src/book-2.0/agent-source/extractOpenTeacherInstructions.ts 2.80ms
+ 131/1885 src/book-2.0/agent-source/normalizeAgentName.test.ts 3.97ms
+ 132/1885 src/book-2.0/agent-source/normalizeAgentName.ts 2.45ms
+ 133/1885 src/book-2.0/agent-source/padBook.ts 2.84ms
+ 134/1885 src/book-2.0/agent-source/parseAgentSource.import.test.ts 3.83ms
+ 135/1885 src/book-2.0/agent-source/parseAgentSource.test.ts 16.28ms
+ 136/1885 src/book-2.0/agent-source/parseAgentSource.ts 6.10ms
+ 137/1885 src/book-2.0/agent-source/parseAgentSource/applyMetaCommitment.ts 8.92ms
+ 138/1885 src/book-2.0/agent-source/parseAgentSource/consumeConversationSampleCommitment.ts 3.19ms
+ 139/1885 src/book-2.0/agent-source/parseAgentSource/createCapabilitiesFromCommitment.ts 13.83ms
+ 140/1885 src/book-2.0/agent-source/parseAgentSource/ensureMetaFullname.ts 2.74ms
+ 141/1885 src/book-2.0/agent-source/parseAgentSource/extractAgentProfileText.ts 3.58ms
+ 142/1885 src/book-2.0/agent-source/parseAgentSource/extractInitialMessage.ts 3.91ms
+ 143/1885 src/book-2.0/agent-source/parseAgentSource/extractParsedAgentProfile.ts 5.17ms
+ 144/1885 src/book-2.0/agent-source/parseAgentSource/ParseAgentSourceState.ts 2.64ms
+ 145/1885 src/book-2.0/agent-source/parseAgentSource/ParsedAgentProfile.ts 2.79ms
+ 146/1885 src/book-2.0/agent-source/parseAgentSourcePrelude.ts 4.55ms
+ 147/1885 src/book-2.0/agent-source/parseAgentSourceWithCommitments.blocks.test.ts 3.80ms
+ 148/1885 src/book-2.0/agent-source/parseAgentSourceWithCommitments.title.test.ts 5.68ms
+ 149/1885 src/book-2.0/agent-source/parseAgentSourceWithCommitments.ts 8.72ms
+ 150/1885 src/book-2.0/agent-source/parseAgentSourceWithCommitments.use.test.ts 4.20ms
+ 151/1885 src/book-2.0/agent-source/parseParameters.ts 4.37ms
+ 152/1885 src/book-2.0/agent-source/parseTeamCommitment.ts 9.75ms
+ 153/1885 src/book-2.0/agent-source/pseudoAgentReferences.ts 11.90ms
+ 154/1885 src/book-2.0/agent-source/README.md 2.45ms
+ 155/1885 src/book-2.0/agent-source/removeCommentsFromSystemMessage.ts 2.81ms
+ 156/1885 src/book-2.0/agent-source/string_book.ts 3.45ms
+ 157/1885 src/book-2.0/agent-source/TeammateProfileResolver.ts 2.95ms
+ 158/1885 src/book-2.0/book-language-documentation/bookLanguageCommonPitfalls.ts 3.87ms
+ 159/1885 src/book-2.0/book-language-documentation/BookLanguageDocumentationExample.ts 3.13ms
+ 160/1885 src/book-2.0/book-language-documentation/bookLanguageDocumentationExamples.ts 10.40ms
+ 161/1885 src/book-2.0/book-language-documentation/createStandaloneBookLanguageMarkdown.ts 19.40ms
+ 162/1885 src/book-2.0/book-language-documentation/renderGroupedCommitmentDocumentationMarkdown.test.ts 3.47ms
+ 163/1885 src/book-2.0/book-language-documentation/renderGroupedCommitmentDocumentationMarkdown.ts 4.84ms
+ 164/1885 src/book-2.0/README.md 1.52ms
+ 165/1885 src/book-2.0/utils/generatePlaceholderAgentProfileImageUrl.ts 2.73ms
+ 166/1885 src/book-3.0/agentFolderPaths.ts 2.38ms
+ 167/1885 src/book-3.0/Book.test.ts 5.29ms
+ 168/1885 src/book-3.0/Book.ts 8.53ms
+ 169/1885 src/book-3.0/BookNodeAgentSource.ts 6.11ms
+ 170/1885 src/book-3.0/CliAgent.test.ts 8.07ms
+ 171/1885 src/book-3.0/CliAgent.ts 13.65ms
+ 172/1885 src/book-3.0/cliAgentEnv.ts 3.07ms
+ 173/1885 src/book-3.0/LiteAgent.test.ts 6.78ms
+ 174/1885 src/book-3.0/LiteAgent.ts 17.95ms
+ 175/1885 src/book-components/_common/Dropdown/Dropdown.tsx 3.36ms
+ 176/1885 src/book-components/_common/HamburgerMenu/HamburgerMenu.tsx 4.39ms
+ 177/1885 src/book-components/_common/MenuHoisting/MenuHoistingContext.tsx 3.72ms
+ 178/1885 src/book-components/_common/Modal/Modal.tsx 3.64ms
+ 179/1885 src/book-components/_common/MonacoEditorWithShadowDom.tsx 2.88ms
+ 180/1885 src/book-components/_common/react-utils/classNames.ts 2.16ms
+ 181/1885 src/book-components/_common/react-utils/collectCssTextsForClass.tsx 3.51ms
+ 182/1885 src/book-components/_common/react-utils/escapeHtml.tsx 2.26ms
+ 183/1885 src/book-components/_common/react-utils/escapeRegex.tsx 3.10ms
+ 184/1885 src/book-components/_common/Tooltip/Tooltip.tsx 7.49ms
+ 185/1885 src/book-components/AvatarProfile/AvatarChip/AvatarChip.tsx 3.99ms
+ 186/1885 src/book-components/AvatarProfile/AvatarChip/AvatarChipFromSource.tsx 2.99ms
+ 187/1885 src/book-components/AvatarProfile/AvatarChip/index.ts 1.88ms
+ 188/1885 src/book-components/AvatarProfile/AvatarProfile/AvatarProfile.tsx 5.99ms
+ 189/1885 src/book-components/AvatarProfile/AvatarProfile/AvatarProfileFromSource.tsx 3.27ms
+ 190/1885 src/book-components/AvatarProfile/AvatarProfile/AvatarProfileTooltip.tsx 3.54ms
+ 191/1885 src/book-components/AvatarProfile/README.md 2.05ms
+ 192/1885 src/book-components/BookEditor/BookEditor.tsx 13.03ms
+ 193/1885 src/book-components/BookEditor/BookEditorAboutPromptbookInformation.tsx 5.08ms
+ 194/1885 src/book-components/BookEditor/BookEditorActionbar.tsx 9.37ms
+ 195/1885 src/book-components/BookEditor/BookEditorBrowserConfig.ts 2.61ms
+ 196/1885 src/book-components/BookEditor/BookEditorForClient.tsx 3.37ms
+ 197/1885 src/book-components/BookEditor/BookEditorMonaco.tsx 20.41ms
+ 198/1885 src/book-components/BookEditor/BookEditorMonacoConstants.ts 2.58ms
+ 199/1885 src/book-components/BookEditor/BookEditorMonacoFormatting.ts 3.43ms
+ 200/1885 src/book-components/BookEditor/BookEditorMonacoTokenization.test.ts 3.07ms
+ 201/1885 src/book-components/BookEditor/BookEditorMonacoTokenization.ts 11.86ms
+ 202/1885 src/book-components/BookEditor/BookEditorMonacoUploadPanel.tsx 8.66ms
+ 203/1885 src/book-components/BookEditor/BookEditorTheme.ts 2.83ms
+ 204/1885 src/book-components/BookEditor/createDeprecatedCommitmentDiagnostics.browser.ts 2.45ms
+ 205/1885 src/book-components/BookEditor/createDeprecatedCommitmentDiagnostics.test.ts 5.44ms
+ 206/1885 src/book-components/BookEditor/createDeprecatedCommitmentDiagnostics.ts 5.24ms
+ 207/1885 src/book-components/BookEditor/useBookEditorMonacoDecorations.ts 7.38ms
+ 208/1885 src/book-components/BookEditor/useBookEditorMonacoDiagnostics.ts 5.79ms
+ 209/1885 src/book-components/BookEditor/useBookEditorMonacoInteractions.ts 13.29ms
+ 210/1885 src/book-components/BookEditor/useBookEditorMonacoLanguage.test.ts 12.46ms
+ 211/1885 src/book-components/BookEditor/useBookEditorMonacoLanguage.ts 22.17ms
+ 212/1885 src/book-components/BookEditor/useBookEditorMonacoLifecycle.ts 10.00ms
+ 213/1885 src/book-components/BookEditor/useBookEditorMonacoStyles.ts 6.53ms
+ 214/1885 src/book-components/BookEditor/useBookEditorMonacoUploads.ts 33.87ms
+ 215/1885 src/book-components/Chat/AgentChat/AgentChat.test.tsx 10.83ms
+ 216/1885 src/book-components/Chat/AgentChat/AgentChat.tsx 8.22ms
+ 217/1885 src/book-components/Chat/AgentChat/AgentChatProps.tsx 3.47ms
+ 218/1885 src/book-components/Chat/AgentChip/AgentChip.tsx 5.66ms
+ 219/1885 src/book-components/Chat/AgentChip/index.ts 2.96ms
+ 220/1885 src/book-components/Chat/Chat/Chat.tsx 24.09ms
+ 221/1885 src/book-components/Chat/Chat/ChatActionsBar.test.tsx 6.18ms
+ 222/1885 src/book-components/Chat/Chat/ChatActionsBar.tsx 11.39ms
+ 223/1885 src/book-components/Chat/Chat/ChatCitationModal.tsx 10.16ms
+ 224/1885 src/book-components/Chat/Chat/chatCssClassNames.ts 4.84ms
+ 225/1885 src/book-components/Chat/Chat/ChatInputArea.test.tsx 11.44ms
+ 226/1885 src/book-components/Chat/Chat/ChatInputArea.tsx 28.50ms
+ 227/1885 src/book-components/Chat/Chat/ChatInputAreaDictationPanel.tsx 10.20ms
+ 228/1885 src/book-components/Chat/Chat/ChatInputUploadedFile.ts 2.25ms
+ 229/1885 src/book-components/Chat/Chat/ChatMessageItem.test.tsx 25.03ms
+ 230/1885 src/book-components/Chat/Chat/ChatMessageItem.tsx 51.52ms
+ 231/1885 src/book-components/Chat/Chat/ChatMessageList.tsx 11.97ms
+ 232/1885 src/book-components/Chat/Chat/ChatMessageMap.tsx 18.68ms
+ 233/1885 src/book-components/Chat/Chat/ChatMessageRichContent.tsx 6.21ms
+ 234/1885 src/book-components/Chat/Chat/ChatMessageToolCallChips.tsx 6.21ms
+ 235/1885 src/book-components/Chat/Chat/ChatProps.tsx 37.24ms
+ 236/1885 src/book-components/Chat/Chat/ChatRatingModal.tsx 15.30ms
+ 237/1885 src/book-components/Chat/Chat/ChatReplyPreview.tsx 3.91ms
+ 238/1885 src/book-components/Chat/Chat/ChatSelfLearningSummary.ts 5.87ms
+ 239/1885 src/book-components/Chat/Chat/ChatSoundToggle.tsx 10.55ms
+ 240/1885 src/book-components/Chat/Chat/ChatToolCallModal.test.tsx 12.93ms
+ 241/1885 src/book-components/Chat/Chat/ChatToolCallModal.tsx 10.28ms
+ 242/1885 src/book-components/Chat/Chat/ChatToolCallModalComponents.tsx 5.83ms
+ 243/1885 src/book-components/Chat/Chat/ChatToolCallModalContent.tsx 7.17ms
+ 244/1885 src/book-components/Chat/Chat/CitationIframePreview.test.tsx 7.84ms
+ 245/1885 src/book-components/Chat/Chat/CitationIframePreview.tsx 8.33ms
+ 246/1885 src/book-components/Chat/Chat/ClockIcon.tsx 3.38ms
+ 247/1885 src/book-components/Chat/Chat/constants.tsx 2.86ms
+ 248/1885 src/book-components/Chat/Chat/createChatMessageToolCallRenderModel.ts 12.88ms
+ 249/1885 src/book-components/Chat/Chat/createProgressCardChecklistMarkdown.ts 7.74ms
+ 250/1885 src/book-components/Chat/Chat/ImagePromptRenderer.tsx 6.58ms
+ 251/1885 src/book-components/Chat/Chat/insertDictationChunk.ts 3.84ms
+ 252/1885 src/book-components/Chat/Chat/learnDictationDictionary.ts 3.98ms
+ 253/1885 src/book-components/Chat/Chat/refineFinalDictationChunk.ts 7.24ms
+ 254/1885 src/book-components/Chat/Chat/renderAdvancedToolCallDetails.tsx 22.63ms
+ 255/1885 src/book-components/Chat/Chat/renderEmailToolCallDetails.tsx 8.56ms
+ 256/1885 src/book-components/Chat/Chat/renderMemoryToolCallDetails.tsx 18.01ms
+ 257/1885 src/book-components/Chat/Chat/renderPopupToolCallDetails.tsx 7.66ms
+ 258/1885 src/book-components/Chat/Chat/renderRunBrowserToolCallDetails.tsx 20.06ms
+ 259/1885 src/book-components/Chat/Chat/renderSearchToolCallDetails.tsx 7.50ms
+ 260/1885 src/book-components/Chat/Chat/renderSelfLearningToolCallDetails.tsx 9.89ms
+ 261/1885 src/book-components/Chat/Chat/renderTimeoutToolCallDetails.tsx 16.43ms
+ 262/1885 src/book-components/Chat/Chat/renderTimeToolCallDetails.tsx 7.12ms
+ 263/1885 src/book-components/Chat/Chat/renderToolCallClockPanel.tsx 4.46ms
+ 264/1885 src/book-components/Chat/Chat/renderToolCallDetails.tsx 23.93ms
+ 265/1885 src/book-components/Chat/Chat/renderToolCallProgressPlaceholder.tsx 5.76ms
+ 266/1885 src/book-components/Chat/Chat/renderWalletCredentialToolCallDetails.tsx 9.11ms
+ 267/1885 src/book-components/Chat/Chat/resolveRunBrowserToolCallDetailsState.ts 16.61ms
+ 268/1885 src/book-components/Chat/Chat/resolveSpeechRecognitionUiDescriptor.ts 4.28ms
+ 269/1885 src/book-components/Chat/Chat/resolveToolCallProgressMessage.ts 5.33ms
+ 270/1885 src/book-components/Chat/Chat/StreamingFeaturePlaceholder.tsx 8.09ms
+ 271/1885 src/book-components/Chat/Chat/TeamToolCallModalContent.test.tsx 8.13ms
+ 272/1885 src/book-components/Chat/Chat/TeamToolCallModalContent.tsx 23.52ms
+ 273/1885 src/book-components/Chat/Chat/useChatInputAreaAttachments.ts 7.43ms
+ 274/1885 src/book-components/Chat/Chat/useChatInputAreaComposer.ts 25.84ms
+ 275/1885 src/book-components/Chat/Chat/useChatInputAreaDictation.ts 32.70ms
+ 276/1885 src/book-components/Chat/Chat/useChatInputAreaDictationPersistence.ts 5.89ms
+ 277/1885 src/book-components/Chat/Chat/useChatInputAreaDictationSupport.ts 5.69ms
+ 278/1885 src/book-components/Chat/Chat/useChatMessageAvatarTooltip.ts 6.24ms
+ 279/1885 src/book-components/Chat/Chat/useChatMessageSpeechPlayback.ts 8.42ms
+ 280/1885 src/book-components/Chat/Chat/useChatPostprocessedMessages.ts 5.36ms
+ 281/1885 src/book-components/Chat/Chat/useChatScrollState.ts 13.15ms
+ 282/1885 src/book-components/Chat/Chat/useChatToolCallModalState.ts 16.26ms
+ 283/1885 src/book-components/Chat/Chat/useChatToolCallState.ts 7.67ms
+ 284/1885 src/book-components/Chat/CodeBlock/CodeBlock.tsx 10.03ms
+ 285/1885 src/book-components/Chat/CodeBlock/resolveCodeBlockLanguage.test.ts 2.44ms
+ 286/1885 src/book-components/Chat/CodeBlock/resolveCodeBlockLanguage.ts 3.54ms
+ 287/1885 src/book-components/Chat/effects/ChatEffectsSystem.tsx 5.75ms
+ 288/1885 src/book-components/Chat/effects/components/ConfettiEffect.tsx 4.59ms
+ 289/1885 src/book-components/Chat/effects/components/HeartsEffect.tsx 4.61ms
+ 290/1885 src/book-components/Chat/effects/configs/defaultEffectConfigs.ts 2.82ms
+ 291/1885 src/book-components/Chat/effects/index.ts 3.23ms
+ 292/1885 src/book-components/Chat/effects/types/ChatEffect.ts 2.15ms
+ 293/1885 src/book-components/Chat/effects/types/ChatEffectConfig.ts 2.45ms
+ 294/1885 src/book-components/Chat/effects/types/ChatEffectsSystemProps.ts 3.24ms
+ 295/1885 src/book-components/Chat/effects/types/ChatEffectType.ts 3.09ms
+ 296/1885 src/book-components/Chat/effects/utils/detectEffects.ts 3.70ms
+ 297/1885 src/book-components/Chat/hooks/index.ts 1.81ms
+ 298/1885 src/book-components/Chat/hooks/useChatActionsOverlap.ts 10.07ms
+ 299/1885 src/book-components/Chat/hooks/useChatAutoScroll.test.tsx 8.52ms
+ 300/1885 src/book-components/Chat/hooks/useChatAutoScroll.ts 18.08ms
+ 301/1885 src/book-components/Chat/hooks/useChatCompleteNotification.test.tsx 9.24ms
+ 302/1885 src/book-components/Chat/hooks/useChatCompleteNotification.ts 9.66ms
+ 303/1885 src/book-components/Chat/hooks/useChatRatings.ts 18.41ms
+ 304/1885 src/book-components/Chat/hooks/useResolvedCitationLabel.ts 5.12ms
+ 305/1885 src/book-components/Chat/hooks/useSendMessageToLlmChat.ts 3.66ms
+ 306/1885 src/book-components/Chat/LlmChat/defaults.ts 2.18ms
+ 307/1885 src/book-components/Chat/LlmChat/FriendlyErrorMessage.ts 2.29ms
+ 308/1885 src/book-components/Chat/LlmChat/LlmChat.test.tsx 14.99ms
+ 309/1885 src/book-components/Chat/LlmChat/LlmChat.tsx 5.16ms
+ 310/1885 src/book-components/Chat/LlmChat/LlmChatProps.tsx 8.77ms
+ 311/1885 src/book-components/Chat/LlmChat/useLlmChatMessageHandler.ts 21.33ms
+ 312/1885 src/book-components/Chat/LlmChat/useLlmChatMessages.ts 4.94ms
+ 313/1885 src/book-components/Chat/LlmChat/useLlmChatState.ts 16.06ms
+ 314/1885 src/book-components/Chat/MarkdownContent/MarkdownContent.test.tsx 5.72ms
+ 315/1885 src/book-components/Chat/MarkdownContent/MarkdownContent.tsx 12.08ms
+ 316/1885 src/book-components/Chat/MockedChat/constants.ts 3.76ms
+ 317/1885 src/book-components/Chat/MockedChat/MockedChat.tsx 24.49ms
+ 318/1885 src/book-components/Chat/README.md 5.87ms
+ 319/1885 src/book-components/Chat/save/_common/chatExportRendering.ts 11.49ms
+ 320/1885 src/book-components/Chat/save/_common/ChatSaveFormatDefinition.ts 4.00ms
+ 321/1885 src/book-components/Chat/save/_common/ChatSaveFormatHandler.ts 3.08ms
+ 322/1885 src/book-components/Chat/save/_common/createChatExportFilename.ts 3.28ms
+ 323/1885 src/book-components/Chat/save/_common/getChatSaveFormatDefinitions.ts 2.64ms
+ 324/1885 src/book-components/Chat/save/_common/getPromptbookExportBranding.ts 4.17ms
+ 325/1885 src/book-components/Chat/save/_common/string_chat_format_name.ts 2.26ms
+ 326/1885 src/book-components/Chat/save/html/htmlSaveFormatDefinition.test.ts 7.19ms
+ 327/1885 src/book-components/Chat/save/html/htmlSaveFormatDefinition.ts 23.60ms
+ 328/1885 src/book-components/Chat/save/index.ts 3.71ms
+ 329/1885 src/book-components/Chat/save/json/jsonSaveFormatDefinition.ts 2.69ms
+ 330/1885 src/book-components/Chat/save/markdown/mdSaveFormatDefinition.test.ts 4.22ms
+ 331/1885 src/book-components/Chat/save/markdown/mdSaveFormatDefinition.ts 7.41ms
+ 332/1885 src/book-components/Chat/save/pdf/buildChatPdf.ts 13.08ms
+ 333/1885 src/book-components/Chat/save/pdf/pdfSaveFormatDefinition.test.ts 13.73ms
+ 334/1885 src/book-components/Chat/save/pdf/pdfSaveFormatDefinition.ts 3.49ms
+ 335/1885 src/book-components/Chat/save/react/exports/chat-preview-2025-10-13 (1).jsx 4.97ms
+ 336/1885 src/book-components/Chat/save/react/reactSaveFormatDefinition.test.ts 3.83ms
+ 337/1885 src/book-components/Chat/save/react/reactSaveFormatDefinition.ts 5.29ms
+ 338/1885 src/book-components/Chat/save/text/txtSaveFormatDefinition.ts 2.77ms
+ 339/1885 src/book-components/Chat/SourceChip/index.ts 1.86ms
+ 340/1885 src/book-components/Chat/SourceChip/SourceChip.tsx 6.75ms
+ 341/1885 src/book-components/Chat/types/ChatMessage.ts 11.32ms
+ 342/1885 src/book-components/Chat/types/ChatParticipant.ts 4.33ms
+ 343/1885 src/book-components/Chat/types/CitationLabelResolver.ts 2.30ms
+ 344/1885 src/book-components/Chat/utils/addUtmParamsToUrl.ts 2.41ms
+ 345/1885 src/book-components/Chat/utils/ChatPersistence.test.ts 4.76ms
+ 346/1885 src/book-components/Chat/utils/ChatPersistence.ts 6.10ms
+ 347/1885 src/book-components/Chat/utils/citationHelpers.test.ts 5.18ms
+ 348/1885 src/book-components/Chat/utils/citationHelpers.ts 8.62ms
+ 349/1885 src/book-components/Chat/utils/collectTeamToolCallSummary.ts 6.73ms
+ 350/1885 src/book-components/Chat/utils/createCitationFootnoteRenderModel.test.ts 3.36ms
+ 351/1885 src/book-components/Chat/utils/createCitationFootnoteRenderModel.ts 9.45ms
+ 352/1885 src/book-components/Chat/utils/createShortLinkForChat.ts 2.75ms
+ 353/1885 src/book-components/Chat/utils/createTeamToolNameFromUrl.ts 2.60ms
+ 354/1885 src/book-components/Chat/utils/decodeJsonUnicodeEscapesInMarkdownText.test.ts 2.66ms
+ 355/1885 src/book-components/Chat/utils/decodeJsonUnicodeEscapesInMarkdownText.ts 6.84ms
+ 356/1885 src/book-components/Chat/utils/downloadFile.ts 2.47ms
+ 357/1885 src/book-components/Chat/utils/exportChatHistory.ts 4.83ms
+ 358/1885 src/book-components/Chat/utils/ExportFormat.ts 2.03ms
+ 359/1885 src/book-components/Chat/utils/formatToolCallDateTime.ts 5.23ms
+ 360/1885 src/book-components/Chat/utils/formatToolCallLocalTime.ts 2.48ms
+ 361/1885 src/book-components/Chat/utils/formatToolCallTranslationTemplate.ts 2.65ms
+ 362/1885 src/book-components/Chat/utils/generatePdfContent.ts 3.95ms
+ 363/1885 src/book-components/Chat/utils/generateQrDataUrl.ts 2.12ms
+ 364/1885 src/book-components/Chat/utils/getChatMessageTimingDisplay.ts 4.42ms
+ 365/1885 src/book-components/Chat/utils/getPromptbookBranding.ts 2.16ms
+ 366/1885 src/book-components/Chat/utils/getToolCallChipletInfo.test.ts 3.79ms
+ 367/1885 src/book-components/Chat/utils/getToolCallChipletInfo.timeout.test.ts 4.20ms
+ 368/1885 src/book-components/Chat/utils/getToolCallChipletInfo.ts 19.04ms
+ 369/1885 src/book-components/Chat/utils/isVisibleChatToolCall.ts 2.73ms
+ 370/1885 src/book-components/Chat/utils/loadAgentProfile.ts 8.65ms
+ 371/1885 src/book-components/Chat/utils/messagesToHtml.ts 6.43ms
+ 372/1885 src/book-components/Chat/utils/messagesToJson.ts 3.13ms
+ 373/1885 src/book-components/Chat/utils/messagesToMarkdown.ts 3.83ms
+ 374/1885 src/book-components/Chat/utils/messagesToText.ts 3.17ms
+ 375/1885 src/book-components/Chat/utils/parseCitationMarker.ts 6.93ms
+ 376/1885 src/book-components/Chat/utils/parseCitationsFromContent.test.ts 3.49ms
+ 377/1885 src/book-components/Chat/utils/parseCitationsFromContent.ts 6.62ms
+ 378/1885 src/book-components/Chat/utils/parseImagePrompts.test.ts 3.53ms
+ 379/1885 src/book-components/Chat/utils/parseImagePrompts.ts 4.84ms
+ 380/1885 src/book-components/Chat/utils/parseMessageButtons.test.ts 2.77ms
+ 381/1885 src/book-components/Chat/utils/parseMessageButtons.ts 4.05ms
+ 382/1885 src/book-components/Chat/utils/renderMarkdown.test.ts 3.41ms
+ 383/1885 src/book-components/Chat/utils/renderMarkdown.ts 22.93ms
+ 384/1885 src/book-components/Chat/utils/resolveChatMessageReplyPreviewText.ts 6.17ms
+ 385/1885 src/book-components/Chat/utils/resolveChatMessageReplySenderLabel.ts 4.19ms
+ 386/1885 src/book-components/Chat/utils/resolveCitationUrl.test.ts 2.97ms
+ 387/1885 src/book-components/Chat/utils/resolveCitationUrl.ts 4.95ms
+ 388/1885 src/book-components/Chat/utils/resolveToolCallFromChatMessages.ts 3.37ms
+ 389/1885 src/book-components/Chat/utils/resolveToolCallState.ts 3.39ms
+ 390/1885 src/book-components/Chat/utils/sanitizeStreamingMessageContent.test.ts 3.59ms
+ 391/1885 src/book-components/Chat/utils/sanitizeStreamingMessageContent.ts 6.00ms
+ 392/1885 src/book-components/Chat/utils/splitMessageContentIntoSegments.test.ts 4.18ms
+ 393/1885 src/book-components/Chat/utils/splitMessageContentIntoSegments.ts 10.66ms
+ 394/1885 src/book-components/Chat/utils/thinkingMessageVariants.test.ts 2.96ms
+ 395/1885 src/book-components/Chat/utils/thinkingMessageVariants.ts 3.64ms
+ 396/1885 src/book-components/Chat/utils/timeoutToolCallPresentation.test.ts 5.53ms
+ 397/1885 src/book-components/Chat/utils/timeoutToolCallPresentation.ts 17.46ms
+ 398/1885 src/book-components/Chat/utils/toolCallParsing.test.ts 5.02ms
+ 399/1885 src/book-components/Chat/utils/toolCallParsing.ts 2.95ms
+ 400/1885 src/book-components/Chat/utils/toolCallParsing/extractSearchResults.ts 5.32ms
+ 401/1885 src/book-components/Chat/utils/toolCallParsing/getToolCallResultDate.ts 3.22ms
+ 402/1885 src/book-components/Chat/utils/toolCallParsing/getToolCallTimestamp.ts 3.10ms
+ 403/1885 src/book-components/Chat/utils/toolCallParsing/parseRunBrowserToolResult.ts 12.98ms
+ 404/1885 src/book-components/Chat/utils/toolCallParsing/parseTeamToolResult.ts 2.62ms
+ 405/1885 src/book-components/Chat/utils/toolCallParsing/parseToolCallArguments.ts 2.65ms
+ 406/1885 src/book-components/Chat/utils/toolCallParsing/parseToolCallResult.ts 2.38ms
+ 407/1885 src/book-components/Chat/utils/toolCallParsing/resolveRunBrowserArtifactUrl.ts 3.26ms
+ 408/1885 src/book-components/Chat/utils/toolCallParsing/RunBrowserToolResult.ts 3.33ms
+ 409/1885 src/book-components/Chat/utils/toolCallParsing/TeamToolResult.ts 2.67ms
+ 410/1885 src/book-components/Chat/utils/walletCredentialToolCall.test.ts 6.66ms
+ 411/1885 src/book-components/Chat/utils/walletCredentialToolCall.ts 10.44ms
+ 412/1885 src/book-components/fonts/README.md 1.41ms
+ 413/1885 src/book-components/icons/AboutIcon.tsx 2.85ms
+ 414/1885 src/book-components/icons/ArrowIcon.tsx 4.67ms
+ 415/1885 src/book-components/icons/AttachmentIcon.tsx 2.97ms
+ 416/1885 src/book-components/icons/CameraIcon.tsx 3.30ms
+ 417/1885 src/book-components/icons/CloseIcon.tsx 3.51ms
+ 418/1885 src/book-components/icons/DownloadIcon.tsx 3.17ms
+ 419/1885 src/book-components/icons/EmailIcon.tsx 3.20ms
+ 420/1885 src/book-components/icons/ExitFullscreenIcon.tsx 4.53ms
+ 421/1885 src/book-components/icons/FullscreenIcon.tsx 2.94ms
+ 422/1885 src/book-components/icons/MenuIcon.tsx 3.06ms
+ 423/1885 src/book-components/icons/MicIcon.tsx 2.56ms
+ 424/1885 src/book-components/icons/PauseIcon.tsx 2.41ms
+ 425/1885 src/book-components/icons/PlayIcon.tsx 2.46ms
+ 426/1885 src/book-components/icons/ResetIcon.tsx 2.57ms
+ 427/1885 src/book-components/icons/SaveIcon.tsx 5.74ms
+ 428/1885 src/book-components/icons/SendIcon.tsx 2.53ms
+ 429/1885 src/book-components/icons/SolidArrowButton.tsx 10.26ms
+ 430/1885 src/book-components/icons/StopIcon.tsx 2.16ms
+ 431/1885 src/book-components/icons/TeacherIcon.tsx 4.08ms
+ 432/1885 src/book-components/icons/TemplateIcon.tsx 2.34ms
+ 433/1885 src/book-components/PromptbookAgent/PromptbookAgentIntegration.tsx 5.93ms
+ 434/1885 src/book-components/PromptbookAgent/PromptbookAgentSeamlessIntegration.tsx 29.06ms
+ 435/1885 src/book-components/Qr/BrandedQrCode.tsx 3.19ms
+ 436/1885 src/book-components/Qr/GenericQrCode.tsx 4.66ms
+ 437/1885 src/book-components/Qr/PromptbookQrCode.tsx 11.02ms
+ 438/1885 src/book-components/Qr/useQrCode.ts 3.40ms
+ 439/1885 src/cli/$runPromptbookCli.ts 2.45ms
+ 440/1885 src/cli/cli-commands/_boilerplate.ts 2.92ms
+ 441/1885 src/cli/cli-commands/about.ts 4.49ms
+ 442/1885 src/cli/cli-commands/agent-folder.ts 4.05ms
+ 443/1885 src/cli/cli-commands/agent-folder/agentProjectPaths.ts 6.15ms
+ 444/1885 src/cli/cli-commands/agent-folder/agentRunCliOptions.ts 4.31ms
+ 445/1885 src/cli/cli-commands/agent-folder/init.ts 4.78ms
+ 446/1885 src/cli/cli-commands/agent-folder/initializeAgentProjectConfiguration.ts 5.06ms
+ 447/1885 src/cli/cli-commands/agent-folder/initializeAgentRunnerCommand.ts 6.51ms
+ 448/1885 src/cli/cli-commands/agent-folder/printAgentInitializationSummary.ts 4.93ms
+ 449/1885 src/cli/cli-commands/agent-folder/run.test.ts 8.18ms
+ 450/1885 src/cli/cli-commands/agent-folder/run.ts 5.81ms
+ 451/1885 src/cli/cli-commands/agent-folder/runMultiple.ts 4.46ms
+ 452/1885 src/cli/cli-commands/agent-folder/tick.ts 4.58ms
+ 453/1885 src/cli/cli-commands/agent.ts 3.73ms
+ 454/1885 src/cli/cli-commands/agent/agentCliOptions.ts 5.29ms
+ 455/1885 src/cli/cli-commands/agent/chat.ts 4.68ms
+ 456/1885 src/cli/cli-commands/agent/exec.ts 5.67ms
+ 457/1885 src/cli/cli-commands/agent/run.test.ts 8.30ms
+ 458/1885 src/cli/cli-commands/agents-server.ts 5.27ms
+ 459/1885 src/cli/cli-commands/agents-server/buildAgentsServer.test.ts 10.56ms
+ 460/1885 src/cli/cli-commands/agents-server/buildAgentsServer.ts 48.55ms
+ 461/1885 src/cli/cli-commands/agents-server/ensureAgentsServerEnvFile.ts 7.91ms
+ 462/1885 src/cli/cli-commands/agents-server/ensureAgentsServerGitignoreFile.ts 5.91ms
+ 463/1885 src/cli/cli-commands/agents-server/init.test.ts 8.15ms
+ 464/1885 src/cli/cli-commands/agents-server/init.ts 3.48ms
+ 465/1885 src/cli/cli-commands/agents-server/initializeAgentsServerProjectConfiguration.ts 4.01ms
+ 466/1885 src/cli/cli-commands/agents-server/printAgentsServerInitializationSummary.ts 4.16ms
+ 467/1885 src/cli/cli-commands/agents-server/run.test.ts 8.41ms
+ 468/1885 src/cli/cli-commands/agents-server/run.ts 9.70ms
+ 469/1885 src/cli/cli-commands/agents-server/startAgentsServer.ts 24.89ms
+ 470/1885 src/cli/cli-commands/coder.ts 5.61ms
+ 471/1885 src/cli/cli-commands/coder/agentCodingFile.ts 6.82ms
+ 472/1885 src/cli/cli-commands/coder/agentsFile.ts 2.74ms
+ 473/1885 src/cli/cli-commands/coder/boilerplateTemplates.test.ts 9.07ms
+ 474/1885 src/cli/cli-commands/coder/boilerplateTemplates.ts 9.80ms
+ 475/1885 src/cli/cli-commands/coder/ensureCoderDeveloperAgentFile.ts 5.15ms
+ 476/1885 src/cli/cli-commands/coder/ensureCoderEnvFile.ts 4.36ms
+ 477/1885 src/cli/cli-commands/coder/ensureCoderGitignoreFile.ts 3.36ms
+ 478/1885 src/cli/cli-commands/coder/ensureCoderMarkdownFile.ts 2.90ms
+ 479/1885 src/cli/cli-commands/coder/ensureCoderPackageJsonFile.ts 3.21ms
+ 480/1885 src/cli/cli-commands/coder/ensureCoderVscodeSettingsFile.ts 3.68ms
+ 481/1885 src/cli/cli-commands/coder/ensureDirectory.ts 2.85ms
+ 482/1885 src/cli/cli-commands/coder/find-fresh-emoji-tags.ts 3.66ms
+ 483/1885 src/cli/cli-commands/coder/find-refactor-candidates.test.ts 3.97ms
+ 484/1885 src/cli/cli-commands/coder/find-refactor-candidates.ts 5.78ms
+ 485/1885 src/cli/cli-commands/coder/find-unwritten.ts 3.96ms
+ 486/1885 src/cli/cli-commands/coder/formatDisplayPath.ts 2.52ms
+ 487/1885 src/cli/cli-commands/coder/generate-boilerplates.ts 8.76ms
+ 488/1885 src/cli/cli-commands/coder/getDefaultCoderPackageJsonScripts.ts 2.58ms
+ 489/1885 src/cli/cli-commands/coder/getDefaultCoderVscodeSettings.ts 2.78ms
+ 490/1885 src/cli/cli-commands/coder/getTypescriptModule.test.ts 2.47ms
+ 491/1885 src/cli/cli-commands/coder/getTypescriptModule.ts 2.96ms
+ 492/1885 src/cli/cli-commands/coder/init.ts 4.96ms
+ 493/1885 src/cli/cli-commands/coder/initializeCoderProjectConfiguration.ts 6.53ms
+ 494/1885 src/cli/cli-commands/coder/mergeStringRecordJsonFile.test.ts 3.65ms
+ 495/1885 src/cli/cli-commands/coder/mergeStringRecordJsonFile.ts 8.10ms
+ 496/1885 src/cli/cli-commands/coder/printInitializationSummary.ts 5.86ms
+ 497/1885 src/cli/cli-commands/coder/run.test.ts 5.43ms
+ 498/1885 src/cli/cli-commands/coder/run.ts 10.26ms
+ 499/1885 src/cli/cli-commands/coder/server.ts 10.55ms
+ 500/1885 src/cli/cli-commands/coder/ThinkingLevel.ts 3.27ms
+ 501/1885 src/cli/cli-commands/coder/verify.test.ts 5.00ms
+ 502/1885 src/cli/cli-commands/coder/verify.ts 4.65ms
+ 503/1885 src/cli/cli-commands/coder/waitOptions.ts 2.57ms
+ 504/1885 src/cli/cli-commands/common/handleActionErrors.ts 3.27ms
+ 505/1885 src/cli/cli-commands/common/projectInitialization.ts 10.65ms
+ 506/1885 src/cli/cli-commands/common/promptRunnerCliOptions.ts 16.30ms
+ 507/1885 src/cli/cli-commands/hello.ts 3.13ms
+ 508/1885 src/cli/cli-commands/list-models.ts 4.79ms
+ 509/1885 src/cli/cli-commands/list-scrapers.ts 3.95ms
+ 510/1885 src/cli/cli-commands/login.ts 3.41ms
+ 511/1885 src/cli/cli-commands/make.ts 17.50ms
+ 512/1885 src/cli/cli-commands/prettify.ts 4.82ms
+ 513/1885 src/cli/cli-commands/run.ts 4.13ms
+ 514/1885 src/cli/cli-commands/run/prepareRunCommandResources.ts 9.95ms
+ 515/1885 src/cli/cli-commands/run/resolveRunInputParameters.ts 5.03ms
+ 516/1885 src/cli/cli-commands/run/runCommandAction.ts 6.99ms
+ 517/1885 src/cli/cli-commands/run/runPipelineExecution.ts 6.87ms
+ 518/1885 src/cli/cli-commands/runInteractiveChatbot.ts 5.72ms
+ 519/1885 src/cli/cli-commands/start-agents-server.ts 5.97ms
+ 520/1885 src/cli/cli-commands/start-pipelines-server.ts 9.00ms
+ 521/1885 src/cli/cli-commands/test-command.ts 7.19ms
+ 522/1885 src/cli/common/$addGlobalOptionsToCommand.ts 2.39ms
+ 523/1885 src/cli/common/$deprecateCliCommand.test.ts 3.72ms
+ 524/1885 src/cli/common/$deprecateCliCommand.ts 2.42ms
+ 525/1885 src/cli/common/$provideLlmToolsForCli.ts 6.73ms
+ 526/1885 src/cli/main.ts 2.06ms
+ 527/1885 src/cli/other/install.test.ts 2.13ms
+ 528/1885 src/cli/other/vpsInstall.test.ts 11.26ms
+ 529/1885 src/cli/promptbookCli.ts 9.06ms
+ 530/1885 src/cli/test/ptbk.test.ts 7.05ms
+ 531/1885 src/cli/test/ptbk.ts 1.65ms
+ 532/1885 src/cli/test/tsconfig.json 4.18ms
+ 533/1885 src/collection/agent-collection/AgentCollection.ts 6.36ms
+ 534/1885 src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase.ts 20.16ms
+ 535/1885 src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabaseOptions.ts 2.26ms
+ 536/1885 src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema.ts 8.28ms
+ 537/1885 src/collection/agent-collection/constructors/agent-collection-in-supabase/createAgentPersistenceRecords.test.ts 4.58ms
+ 538/1885 src/collection/agent-collection/constructors/agent-collection-in-supabase/createAgentPersistenceRecords.ts 6.17ms
+ 539/1885 src/collection/agent-collection/constructors/agent-collection-in-supabase/prepareAgentSourceForPersistence.ts 8.45ms
+ 540/1885 src/collection/agent-collection/CreateAgentInput.test.ts 3.19ms
+ 541/1885 src/collection/agent-collection/CreateAgentInput.ts 8.72ms
+ 542/1885 src/collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory.test.ts 4.98ms
+ 543/1885 src/collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory.ts 22.28ms
+ 544/1885 src/collection/pipeline-collection/constructors/createPipelineCollectionFromJson.test.ts 3.45ms
+ 545/1885 src/collection/pipeline-collection/constructors/createPipelineCollectionFromJson.ts 3.34ms
+ 546/1885 src/collection/pipeline-collection/constructors/createPipelineCollectionFromPromise.test.ts 4.06ms
+ 547/1885 src/collection/pipeline-collection/constructors/createPipelineCollectionFromPromise.ts 4.30ms
+ 548/1885 src/collection/pipeline-collection/constructors/createPipelineCollectionFromUrl.ts 4.13ms
+ 549/1885 src/collection/pipeline-collection/constructors/createPipelineSubcollection.ts 3.90ms
+ 550/1885 src/collection/pipeline-collection/PipelineCollection.ts 3.16ms
+ 551/1885 src/collection/pipeline-collection/pipelineCollectionToJson.test.ts 5.18ms
+ 552/1885 src/collection/pipeline-collection/pipelineCollectionToJson.ts 3.32ms
+ 553/1885 src/collection/pipeline-collection/SimplePipelineCollection.ts 5.82ms
+ 554/1885 src/commands/_BOILERPLATE/boilerplateCommand.test.ts 3.31ms
+ 555/1885 src/commands/_BOILERPLATE/BoilerplateCommand.ts 1.88ms
+ 556/1885 src/commands/_BOILERPLATE/boilerplateCommandParser.ts 5.46ms
+ 557/1885 src/commands/_common/getParserForCommand.test.ts 3.54ms
+ 558/1885 src/commands/_common/getParserForCommand.ts 3.54ms
+ 559/1885 src/commands/_common/parseCommand.ts 8.66ms
+ 560/1885 src/commands/_common/stringifyCommand.test.ts 3.45ms
+ 561/1885 src/commands/_common/stringifyCommand.ts 2.65ms
+ 562/1885 src/commands/_common/types/Command.ts 2.01ms
+ 563/1885 src/commands/_common/types/CommandParser.ts 9.25ms
+ 564/1885 src/commands/_common/types/CommandType.ts 3.38ms
+ 565/1885 src/commands/_common/types/CommandUsagePlaces.ts 2.34ms
+ 566/1885 src/commands/BOOK_VERSION/bookVersionCommand.test.ts 3.07ms
+ 567/1885 src/commands/BOOK_VERSION/BookVersionCommand.ts 2.16ms
+ 568/1885 src/commands/BOOK_VERSION/bookVersionCommandParser.ts 6.80ms
+ 569/1885 src/commands/EXPECT/expectCommand.test.ts 4.08ms
+ 570/1885 src/commands/EXPECT/ExpectCommand.ts 2.73ms
+ 571/1885 src/commands/EXPECT/expectCommandParser.ts 7.28ms
+ 572/1885 src/commands/FOREACH/foreachCommand.test.ts 5.07ms
+ 573/1885 src/commands/FOREACH/ForeachCommand.ts 1.87ms
+ 574/1885 src/commands/FOREACH/foreachCommandParser.ts 9.50ms
+ 575/1885 src/commands/FOREACH/ForeachJson.ts 2.98ms
+ 576/1885 src/commands/FORMAT/formatCommand.test.ts 3.07ms
+ 577/1885 src/commands/FORMAT/FormatCommand.ts 2.12ms
+ 578/1885 src/commands/FORMAT/formatCommandParser.ts 5.28ms
+ 579/1885 src/commands/FORMFACTOR/formfactorCommand.test.ts 3.05ms
+ 580/1885 src/commands/FORMFACTOR/FormfactorCommand.ts 3.29ms
+ 581/1885 src/commands/FORMFACTOR/formfactorCommandParser.ts 5.78ms
+ 582/1885 src/commands/index.ts 4.40ms
+ 583/1885 src/commands/JOKER/jokerCommand.test.ts 3.02ms
+ 584/1885 src/commands/JOKER/JokerCommand.ts 2.24ms
+ 585/1885 src/commands/JOKER/jokerCommandParser.ts 6.11ms
+ 586/1885 src/commands/KNOWLEDGE/knowledgeCommand.test.ts 3.57ms
+ 587/1885 src/commands/KNOWLEDGE/KnowledgeCommand.ts 2.50ms
+ 588/1885 src/commands/KNOWLEDGE/knowledgeCommandParser.ts 6.77ms
+ 589/1885 src/commands/KNOWLEDGE/utils/knowledgeSourceContentToName.test.ts 2.61ms
+ 590/1885 src/commands/KNOWLEDGE/utils/knowledgeSourceContentToName.ts 4.24ms
+ 591/1885 src/commands/MODEL/modelCommand.test.ts 4.19ms
+ 592/1885 src/commands/MODEL/ModelCommand.ts 2.53ms
+ 593/1885 src/commands/MODEL/modelCommandParser.ts 11.96ms
+ 594/1885 src/commands/PARAMETER/parameterCommand.test.ts 5.82ms
+ 595/1885 src/commands/PARAMETER/ParameterCommand.ts 2.45ms
+ 596/1885 src/commands/PARAMETER/parameterCommandParser.ts 7.48ms
+ 597/1885 src/commands/PERSONA/personaCommand.test.ts 3.67ms
+ 598/1885 src/commands/PERSONA/PersonaCommand.ts 2.19ms
+ 599/1885 src/commands/PERSONA/personaCommandParser.ts 7.11ms
+ 600/1885 src/commands/POSTPROCESS/postprocessCommand.test.ts 3.03ms
+ 601/1885 src/commands/POSTPROCESS/PostprocessCommand.ts 2.14ms
+ 602/1885 src/commands/POSTPROCESS/postprocessCommandParser.ts 5.19ms
+ 603/1885 src/commands/README.md 8.28ms
+ 604/1885 src/commands/SECTION/sectionCommand.test.ts 2.77ms
+ 605/1885 src/commands/SECTION/SectionCommand.ts 2.02ms
+ 606/1885 src/commands/SECTION/sectionCommandParser.ts 10.32ms
+ 607/1885 src/commands/URL/urlCommand.test.ts 3.87ms
+ 608/1885 src/commands/URL/UrlCommand.ts 1.88ms
+ 609/1885 src/commands/URL/urlCommandParser.ts 5.20ms
+ 610/1885 src/commands/X_ACTION/actionCommand.test.ts 2.59ms
+ 611/1885 src/commands/X_ACTION/ActionCommand.ts 1.81ms
+ 612/1885 src/commands/X_ACTION/actionCommandParser.ts 4.32ms
+ 613/1885 src/commands/X_INSTRUMENT/instrumentCommand.test.ts 3.99ms
+ 614/1885 src/commands/X_INSTRUMENT/InstrumentCommand.ts 1.97ms
+ 615/1885 src/commands/X_INSTRUMENT/instrumentCommandParser.ts 5.14ms
+ 616/1885 src/commitments/_base/BaseCommitmentDefinition.ts 10.38ms
+ 617/1885 src/commitments/_base/BookCommitment.ts 1.60ms
+ 618/1885 src/commitments/_base/CommitmentDefinition.ts 5.34ms
+ 619/1885 src/commitments/_base/createEmptyAgentModelRequirements.ts 5.48ms
+ 620/1885 src/commitments/_base/formatOptionalInstructionBlock.ts 1.85ms
+ 621/1885 src/commitments/_base/NotYetImplementedCommitmentDefinition.ts 3.62ms
+ 622/1885 src/commitments/_base/ParsedCommitment.ts 1.98ms
+ 623/1885 src/commitments/_common/commitmentToolFunctions.ts 4.18ms
+ 624/1885 src/commitments/_common/createSerpSearchToolFunction.ts 3.13ms
+ 625/1885 src/commitments/_common/createWritingCommitmentSections.ts 3.62ms
+ 626/1885 src/commitments/_common/getAllCommitmentDefinitions.test.ts 3.03ms
+ 627/1885 src/commitments/_common/getAllCommitmentDefinitions.ts 2.18ms
+ 628/1885 src/commitments/_common/getAllCommitmentsToolFunctionsForBrowser.ts 2.43ms
+ 629/1885 src/commitments/_common/getAllCommitmentsToolFunctionsForNode.ts 4.58ms
+ 630/1885 src/commitments/_common/getAllCommitmentsToolTitles.ts 3.14ms
+ 631/1885 src/commitments/_common/getAllCommitmentTypes.ts 2.11ms
+ 632/1885 src/commitments/_common/getCommitmentDefinition.ts 2.66ms
+ 633/1885 src/commitments/_common/getCommitmentNoticeMetadata.test.ts 2.90ms
+ 634/1885 src/commitments/_common/getCommitmentNoticeMetadata.ts 4.40ms
+ 635/1885 src/commitments/_common/getGroupedCommitmentDefinitions.openClosed.test.ts 2.42ms
+ 636/1885 src/commitments/_common/getGroupedCommitmentDefinitions.order.test.ts 3.15ms
+ 637/1885 src/commitments/_common/getGroupedCommitmentDefinitions.ts 4.73ms
+ 638/1885 src/commitments/_common/getGroupedCommitmentDefinitions.use.test.ts 2.62ms
+ 639/1885 src/commitments/_common/getGroupedCommitmentDefinitions.writing.test.ts 3.54ms
+ 640/1885 src/commitments/_common/isCommitmentSupported.ts 3.14ms
+ 641/1885 src/commitments/_common/sortCommitmentDefinitions.ts 4.94ms
+ 642/1885 src/commitments/_common/teamInternalAgentAccess.ts 6.10ms
+ 643/1885 src/commitments/_common/toolExecutionEnvelope.ts 3.80ms
+ 644/1885 src/commitments/_common/toolRuntimeContext.ts 8.83ms
+ 645/1885 src/commitments/ACTION/ACTION.test.ts 3.08ms
+ 646/1885 src/commitments/ACTION/ACTION.ts 4.11ms
+ 647/1885 src/commitments/CLOSED/CLOSED.test.ts 2.48ms
+ 648/1885 src/commitments/CLOSED/CLOSED.ts 3.33ms
+ 649/1885 src/commitments/COMPONENT/COMPONENT.ts 3.38ms
+ 650/1885 src/commitments/DELETE/DELETE.test.ts 3.00ms
+ 651/1885 src/commitments/DELETE/DELETE.ts 6.48ms
+ 652/1885 src/commitments/DICTIONARY/DICTIONARY.ts 4.74ms
+ 653/1885 src/commitments/FORMAT/FORMAT.test.ts 3.38ms
+ 654/1885 src/commitments/FORMAT/FORMAT.ts 4.94ms
+ 655/1885 src/commitments/FROM/FROM.ts 3.66ms
+ 656/1885 src/commitments/GOAL/GOAL.ts 5.05ms
+ 657/1885 src/commitments/IMPORT/IMPORT.ts 4.24ms
+ 658/1885 src/commitments/index.test.ts 2.83ms
+ 659/1885 src/commitments/index.ts 10.84ms
+ 660/1885 src/commitments/KNOWLEDGE/KNOWLEDGE.ts 7.50ms
+ 661/1885 src/commitments/LANGUAGE/LANGUAGE.ts 3.58ms
+ 662/1885 src/commitments/MEMORY/createMemorySystemMessage.ts 2.79ms
+ 663/1885 src/commitments/MEMORY/createMemoryToolFunctions.ts 5.35ms
+ 664/1885 src/commitments/MEMORY/createMemoryTools.ts 5.38ms
+ 665/1885 src/commitments/MEMORY/getMemoryCommitmentDocumentation.ts 3.10ms
+ 666/1885 src/commitments/MEMORY/getMemoryToolRuntimeAdapterOrDisabledResult.ts 5.10ms
+ 667/1885 src/commitments/MEMORY/getMemoryToolTitles.ts 2.28ms
+ 668/1885 src/commitments/MEMORY/MEMORY.test.ts 7.14ms
+ 669/1885 src/commitments/MEMORY/MEMORY.ts 5.96ms
+ 670/1885 src/commitments/MEMORY/MemoryToolNames.ts 1.98ms
+ 671/1885 src/commitments/MEMORY/MemoryToolRuntimeAdapter.ts 5.35ms
+ 672/1885 src/commitments/MEMORY/parseMemoryToolArgs.ts 4.10ms
+ 673/1885 src/commitments/MEMORY/resolveMemoryRuntimeContext.ts 3.15ms
+ 674/1885 src/commitments/MEMORY/setMemoryToolRuntimeAdapter.ts 3.16ms
+ 675/1885 src/commitments/MESSAGE_SUFFIX/MESSAGE_SUFFIX.test.ts 2.91ms
+ 676/1885 src/commitments/MESSAGE_SUFFIX/MESSAGE_SUFFIX.ts 3.67ms
+ 677/1885 src/commitments/MESSAGE/AgentMessageCommitmentDefinition.ts 4.13ms
+ 678/1885 src/commitments/MESSAGE/InitialMessageCommitmentDefinition.ts 4.03ms
+ 679/1885 src/commitments/MESSAGE/InternalMessageCommitmentDefinition.ts 3.95ms
+ 680/1885 src/commitments/MESSAGE/MESSAGE.ts 7.27ms
+ 681/1885 src/commitments/MESSAGE/UserMessageCommitmentDefinition.ts 3.84ms
+ 682/1885 src/commitments/META_AVATAR/META_AVATAR.ts 4.26ms
+ 683/1885 src/commitments/META_COLOR/META_COLOR.ts 4.35ms
+ 684/1885 src/commitments/META_DISCLAIMER/META_DISCLAIMER.test.ts 2.86ms
+ 685/1885 src/commitments/META_DISCLAIMER/META_DISCLAIMER.ts 3.68ms
+ 686/1885 src/commitments/META_DOMAIN/META_DOMAIN.ts 3.98ms
+ 687/1885 src/commitments/META_FONT/META_FONT.ts 4.73ms
+ 688/1885 src/commitments/META_IMAGE/META_IMAGE.ts 4.30ms
+ 689/1885 src/commitments/META_INPUT_PLACEHOLDER/META_INPUT_PLACEHOLDER.ts 3.96ms
+ 690/1885 src/commitments/META_LINK/META_LINK.ts 5.69ms
+ 691/1885 src/commitments/META_VISIBILITY/META_VISIBILITY.ts 4.16ms
+ 692/1885 src/commitments/META_VOICE/META_VOICE.ts 6.80ms
+ 693/1885 src/commitments/META/META_DESCRIPTION.ts 5.49ms
+ 694/1885 src/commitments/META/META.ts 6.91ms
+ 695/1885 src/commitments/MODEL/MODEL.test.ts 3.62ms
+ 696/1885 src/commitments/MODEL/MODEL.ts 7.30ms
+ 697/1885 src/commitments/NOTE/NOTE.ts 4.31ms
+ 698/1885 src/commitments/OPEN/OPEN.ts 3.35ms
+ 699/1885 src/commitments/PERSONA/persona-verification-example.md 4.35ms
+ 700/1885 src/commitments/PERSONA/PERSONA.ts 8.10ms
+ 701/1885 src/commitments/README.md 1.82ms
+ 702/1885 src/commitments/RULE/RULE.ts 5.07ms
+ 703/1885 src/commitments/SAMPLE/SAMPLE.ts 4.24ms
+ 704/1885 src/commitments/SCENARIO/SCENARIO.ts 6.53ms
+ 705/1885 src/commitments/STYLE/STYLE.ts 4.91ms
+ 706/1885 src/commitments/TEAM/TEAM.ts 21.19ms
+ 707/1885 src/commitments/TEMPLATE/README.md 5.14ms
+ 708/1885 src/commitments/TEMPLATE/TEMPLATE.test.ts 3.88ms
+ 709/1885 src/commitments/TEMPLATE/TEMPLATE.ts 7.61ms
+ 710/1885 src/commitments/USE_BROWSER/fetchUrlContent.ts 6.47ms
+ 711/1885 src/commitments/USE_BROWSER/fetchUrlContentViaBrowser.ts 3.61ms
+ 712/1885 src/commitments/USE_BROWSER/resolveRunBrowserToolForNode.test.ts 3.13ms
+ 713/1885 src/commitments/USE_BROWSER/resolveRunBrowserToolForNode.ts 3.69ms
+ 714/1885 src/commitments/USE_BROWSER/USE_BROWSER.test.ts 5.94ms
+ 715/1885 src/commitments/USE_BROWSER/USE_BROWSER.ts 9.40ms
+ 716/1885 src/commitments/USE_CALENDAR/calendarReference.ts 8.25ms
+ 717/1885 src/commitments/USE_CALENDAR/callGoogleCalendarApi.ts 5.29ms
+ 718/1885 src/commitments/USE_CALENDAR/createUseCalendarToolFunctions.ts 12.13ms
+ 719/1885 src/commitments/USE_CALENDAR/createUseCalendarTools.ts 6.37ms
+ 720/1885 src/commitments/USE_CALENDAR/getUseCalendarToolTitles.ts 2.63ms
+ 721/1885 src/commitments/USE_CALENDAR/normalizeConfiguredCalendars.ts 3.77ms
+ 722/1885 src/commitments/USE_CALENDAR/resolveUseCalendarToolRuntimeOrWalletCredentialResult.ts 8.27ms
+ 723/1885 src/commitments/USE_CALENDAR/USE_CALENDAR.test.ts 6.94ms
+ 724/1885 src/commitments/USE_CALENDAR/USE_CALENDAR.ts 8.29ms
+ 725/1885 src/commitments/USE_CALENDAR/UseCalendarToolNames.ts 2.54ms
+ 726/1885 src/commitments/USE_CALENDAR/UseCalendarWallet.ts 1.83ms
+ 727/1885 src/commitments/USE_DEEPSEARCH/USE_DEEPSEARCH.test.ts 3.47ms
+ 728/1885 src/commitments/USE_DEEPSEARCH/USE_DEEPSEARCH.ts 7.18ms
+ 729/1885 src/commitments/USE_EMAIL/parseUseEmailCommitmentContent.test.ts 2.38ms
+ 730/1885 src/commitments/USE_EMAIL/parseUseEmailCommitmentContent.ts 3.78ms
+ 731/1885 src/commitments/USE_EMAIL/resolveSendEmailToolForNode.ts 3.61ms
+ 732/1885 src/commitments/USE_EMAIL/sendEmailViaBrowser.ts 4.41ms
+ 733/1885 src/commitments/USE_EMAIL/USE_EMAIL.test.ts 3.99ms
+ 734/1885 src/commitments/USE_EMAIL/USE_EMAIL.ts 8.36ms
+ 735/1885 src/commitments/USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR.test.ts 3.13ms
+ 736/1885 src/commitments/USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR.ts 5.15ms
+ 737/1885 src/commitments/USE_MCP/USE_MCP.ts 3.85ms
+ 738/1885 src/commitments/USE_POPUP/USE_POPUP.ts 8.27ms
+ 739/1885 src/commitments/USE_PRIVACY/USE_PRIVACY.test.ts 4.53ms
+ 740/1885 src/commitments/USE_PRIVACY/USE_PRIVACY.ts 7.99ms
+ 741/1885 src/commitments/USE_PROJECT/callGitHubApi.ts 6.28ms
+ 742/1885 src/commitments/USE_PROJECT/createUseProjectToolFunctions.ts 16.66ms
+ 743/1885 src/commitments/USE_PROJECT/createUseProjectTools.ts 6.01ms
+ 744/1885 src/commitments/USE_PROJECT/getUseProjectToolTitles.ts 3.90ms
+ 745/1885 src/commitments/USE_PROJECT/normalizeConfiguredProjects.ts 2.98ms
+ 746/1885 src/commitments/USE_PROJECT/normalizeOptionalToolText.ts 2.53ms
+ 747/1885 src/commitments/USE_PROJECT/projectReference.test.ts 3.55ms
+ 748/1885 src/commitments/USE_PROJECT/projectReference.ts 8.34ms
+ 749/1885 src/commitments/USE_PROJECT/resolveUseProjectToolRuntimeOrWalletCredentialResult.ts 9.72ms
+ 750/1885 src/commitments/USE_PROJECT/USE_PROJECT.test.ts 9.27ms
+ 751/1885 src/commitments/USE_PROJECT/USE_PROJECT.ts 8.68ms
+ 752/1885 src/commitments/USE_PROJECT/UseProjectToolNames.ts 3.28ms
+ 753/1885 src/commitments/USE_PROJECT/UseProjectWallet.ts 2.30ms
+ 754/1885 src/commitments/USE_SEARCH_ENGINE/USE_SEARCH_ENGINE.test.ts 3.14ms
+ 755/1885 src/commitments/USE_SEARCH_ENGINE/USE_SEARCH_ENGINE.ts 10.37ms
+ 756/1885 src/commitments/USE_SPAWN/resolveSpawnAgentToolForNode.ts 4.31ms
+ 757/1885 src/commitments/USE_SPAWN/spawnAgentViaBrowser.ts 4.01ms
+ 758/1885 src/commitments/USE_SPAWN/USE_SPAWN.test.ts 2.85ms
+ 759/1885 src/commitments/USE_SPAWN/USE_SPAWN.ts 6.67ms
+ 760/1885 src/commitments/USE_TIME/USE_TIME.test.ts 3.20ms
+ 761/1885 src/commitments/USE_TIME/USE_TIME.ts 8.51ms
+ 762/1885 src/commitments/USE_TIMEOUT/createTimeoutSystemMessage.ts 3.20ms
+ 763/1885 src/commitments/USE_TIMEOUT/createTimeoutToolFunctions.ts 10.44ms
+ 764/1885 src/commitments/USE_TIMEOUT/createTimeoutTools.ts 4.80ms
+ 765/1885 src/commitments/USE_TIMEOUT/getTimeoutToolRuntimeAdapterOrDisabledResult.ts 3.56ms
+ 766/1885 src/commitments/USE_TIMEOUT/parseTimeoutToolArgs.ts 10.30ms
+ 767/1885 src/commitments/USE_TIMEOUT/resolveTimeoutRuntimeContext.ts 3.34ms
+ 768/1885 src/commitments/USE_TIMEOUT/setTimeoutToolRuntimeAdapter.ts 2.22ms
+ 769/1885 src/commitments/USE_TIMEOUT/TimeoutToolNames.ts 1.90ms
+ 770/1885 src/commitments/USE_TIMEOUT/TimeoutToolRuntimeAdapter.ts 6.28ms
+ 771/1885 src/commitments/USE_TIMEOUT/USE_TIMEOUT.test.ts 9.10ms
+ 772/1885 src/commitments/USE_TIMEOUT/USE_TIMEOUT.ts 6.22ms
+ 773/1885 src/commitments/USE_USER_LOCATION/USE_USER_LOCATION.test.ts 4.31ms
+ 774/1885 src/commitments/USE_USER_LOCATION/USE_USER_LOCATION.ts 9.30ms
+ 775/1885 src/commitments/USE/aggregateUseCommitmentSystemMessages.ts 8.35ms
+ 776/1885 src/commitments/WALLET/createWalletSystemMessage.ts 2.59ms
+ 777/1885 src/commitments/WALLET/createWalletToolFunctions.ts 5.16ms
+ 778/1885 src/commitments/WALLET/createWalletTools.ts 4.61ms
+ 779/1885 src/commitments/WALLET/getWalletCommitmentDocumentation.ts 2.59ms
+ 780/1885 src/commitments/WALLET/getWalletToolRuntimeAdapterOrDisabledResult.ts 3.29ms
+ 781/1885 src/commitments/WALLET/getWalletToolTitles.ts 2.28ms
+ 782/1885 src/commitments/WALLET/parseWalletToolArgs.ts 5.64ms
+ 783/1885 src/commitments/WALLET/resolveWalletRuntimeContext.ts 2.88ms
+ 784/1885 src/commitments/WALLET/setWalletToolRuntimeAdapter.ts 2.47ms
+ 785/1885 src/commitments/WALLET/WALLET.test.ts 6.32ms
+ 786/1885 src/commitments/WALLET/WALLET.ts 4.29ms
+ 787/1885 src/commitments/WALLET/WalletToolNames.ts 2.00ms
+ 788/1885 src/commitments/WALLET/WalletToolRuntimeAdapter.ts 4.82ms
+ 789/1885 src/commitments/WRITING_RULES/WRITING_RULES.ts 5.33ms
+ 790/1885 src/commitments/WRITING_SAMPLE/WRITING_SAMPLE.ts 4.33ms
+ 791/1885 src/config.test.ts 2.23ms
+ 792/1885 src/config.ts 12.22ms
+ 793/1885 src/constants.ts 8.60ms
+ 794/1885 src/constants/streaming.ts 2.01ms
+ 795/1885 src/conversion/archive/loadArchive.ts 3.09ms
+ 796/1885 src/conversion/archive/saveArchive.ts 3.81ms
+ 797/1885 src/conversion/compilePipeline.test.ts 2.99ms
+ 798/1885 src/conversion/compilePipeline.ts 3.62ms
+ 799/1885 src/conversion/compilePipelineOnRemoteServer.ts 3.35ms
+ 800/1885 src/conversion/parsePipeline.test.ts 3.31ms
+ 801/1885 src/conversion/parsePipeline.ts 4.35ms
+ 802/1885 src/conversion/parsePipeline/applyPipelineHead.ts 4.56ms
+ 803/1885 src/conversion/parsePipeline/createInitialPipelineJson.ts 2.54ms
+ 804/1885 src/conversion/parsePipeline/createUniqueSectionNameResolver.ts 3.49ms
+ 805/1885 src/conversion/parsePipeline/defineParameter.ts 3.94ms
+ 806/1885 src/conversion/parsePipeline/extractPipelineDescription.ts 2.31ms
+ 807/1885 src/conversion/parsePipeline/finalizeParsedPipeline.ts 6.48ms
+ 808/1885 src/conversion/parsePipeline/getPipelineIdentification.ts 2.40ms
+ 809/1885 src/conversion/parsePipeline/parsePreparedPipelineSections.ts 4.09ms
+ 810/1885 src/conversion/parsePipeline/preparePipelineString.ts 5.49ms
+ 811/1885 src/conversion/parsePipeline/processPipelineSection.ts 11.09ms
+ 812/1885 src/conversion/pipelineJsonToString.test.ts 7.72ms
+ 813/1885 src/conversion/pipelineJsonToString.ts 4.22ms
+ 814/1885 src/conversion/pipelineJsonToString/appendMarkdownBlock.ts 3.58ms
+ 815/1885 src/conversion/pipelineJsonToString/createPipelineCommands.ts 3.68ms
+ 816/1885 src/conversion/pipelineJsonToString/createPipelineIntroduction.ts 2.60ms
+ 817/1885 src/conversion/pipelineJsonToString/createTaskSerialization.ts 6.74ms
+ 818/1885 src/conversion/pipelineJsonToString/stringifyCommands.ts 2.16ms
+ 819/1885 src/conversion/pipelineJsonToString/stringifyTask.ts 2.91ms
+ 820/1885 src/conversion/prettify/PrettifyOptions.ts 2.15ms
+ 821/1885 src/conversion/prettify/prettifyPipelineString.ts 4.19ms
+ 822/1885 src/conversion/prettify/renderPipelineMermaidOptions.ts 6.23ms
+ 823/1885 src/conversion/utils/extractParameterNamesFromTask.test.ts 2.78ms
+ 824/1885 src/conversion/utils/extractParameterNamesFromTask.ts 4.76ms
+ 825/1885 src/conversion/validation/_importPipeline.test.ts 4.94ms
+ 826/1885 src/conversion/validation/pipelineStringToJson-parseErrors.test.ts 4.18ms
+ 827/1885 src/conversion/validation/validatePipeline-logicErrors.test.ts 3.59ms
+ 828/1885 src/conversion/validation/validatePipeline.test.ts 3.88ms
+ 829/1885 src/conversion/validation/validatePipeline.ts 29.84ms
+ 830/1885 src/dialogs/callback/CallbackInterfaceTools.ts 3.46ms
+ 831/1885 src/dialogs/callback/CallbackInterfaceToolsOptions.ts 4.69ms
+ 832/1885 src/dialogs/simple-prompt/SimplePromptInterfaceTools.ts 4.86ms
+ 833/1885 src/dialogs/user-interface-execution-tools.test.ts 7.01ms
+ 834/1885 src/errors/0-BoilerplateError.ts 2.20ms
+ 835/1885 src/errors/0-index.ts 5.95ms
+ 836/1885 src/errors/AbstractFormatError.ts 3.38ms
+ 837/1885 src/errors/assertsError.ts 2.86ms
+ 838/1885 src/errors/AuthenticationError.ts 2.53ms
+ 839/1885 src/errors/CollectionError.ts 2.99ms
+ 840/1885 src/errors/ConflictError.ts 1.99ms
+ 841/1885 src/errors/DatabaseError.ts 2.27ms
+ 842/1885 src/errors/EnvironmentMismatchError.ts 1.84ms
+ 843/1885 src/errors/ExpectError.ts 3.39ms
+ 844/1885 src/errors/KnowledgeScrapeError.ts 1.96ms
+ 845/1885 src/errors/LimitReachedError.ts 1.76ms
+ 846/1885 src/errors/MissingToolsError.ts 2.71ms
+ 847/1885 src/errors/NotAllowed.ts 1.87ms
+ 848/1885 src/errors/NotFoundError.ts 1.83ms
+ 849/1885 src/errors/NotYetImplementedError.ts 2.34ms
+ 850/1885 src/errors/ParseError.ts 2.17ms
+ 851/1885 src/errors/PipelineExecutionError.ts 2.76ms
+ 852/1885 src/errors/PipelineLogicError.ts 1.97ms
+ 853/1885 src/errors/PipelineUrlError.ts 1.80ms
+ 854/1885 src/errors/PromptbookFetchError.ts 1.83ms
+ 855/1885 src/errors/UnexpectedError.ts 2.40ms
+ 856/1885 src/errors/utils/deserializeError.test.ts 2.16ms
+ 857/1885 src/errors/utils/deserializeError.ts 2.64ms
+ 858/1885 src/errors/utils/ErrorJson.ts 2.19ms
+ 859/1885 src/errors/utils/getErrorReportUrl.ts 2.82ms
+ 860/1885 src/errors/utils/serializeError.test.ts 2.10ms
+ 861/1885 src/errors/utils/serializeError.ts 2.62ms
+ 862/1885 src/errors/WrappedError.ts 2.43ms
+ 863/1885 src/executables/$provideExecutablesForNode.ts 3.82ms
+ 864/1885 src/executables/apps/locateLibreoffice.test.ts 2.10ms
+ 865/1885 src/executables/apps/locateLibreoffice.ts 2.99ms
+ 866/1885 src/executables/apps/locatePandoc.test.ts 1.93ms
+ 867/1885 src/executables/apps/locatePandoc.ts 2.45ms
+ 868/1885 src/executables/apps/locateVscode.test.ts 1.94ms
+ 869/1885 src/executables/apps/locateVscode.ts 2.81ms
+ 870/1885 src/executables/browsers/locateBrowser.test.ts 2.65ms
+ 871/1885 src/executables/browsers/locateBrowser.ts 2.96ms
+ 872/1885 src/executables/browsers/locateChrome.test.ts 2.25ms
+ 873/1885 src/executables/browsers/locateChrome.ts 3.36ms
+ 874/1885 src/executables/browsers/locateDefaultSystemBrowser.test.ts 2.01ms
+ 875/1885 src/executables/browsers/locateDefaultSystemBrowser.ts 1.92ms
+ 876/1885 src/executables/browsers/locateEdge.test.ts 2.74ms
+ 877/1885 src/executables/browsers/locateEdge.ts 2.68ms
+ 878/1885 src/executables/browsers/locateFirefox.test.ts 1.61ms
+ 879/1885 src/executables/browsers/locateFirefox.ts 1.94ms
+ 880/1885 src/executables/browsers/locateInternetExplorer.test.ts 1.80ms
+ 881/1885 src/executables/browsers/locateInternetExplorer.ts 1.81ms
+ 882/1885 src/executables/browsers/locateSafari.ts 1.83ms
+ 883/1885 src/executables/locateApp.test.ts 2.90ms
+ 884/1885 src/executables/locateApp.ts 3.45ms
+ 885/1885 src/executables/platforms/locateAppOnLinux.ts 2.70ms
+ 886/1885 src/executables/platforms/locateAppOnMacOs.ts 4.03ms
+ 887/1885 src/executables/platforms/locateAppOnWindows.ts 3.19ms
+ 888/1885 src/executables/README.md 1.51ms
+ 889/1885 src/execution/AbstractTaskResult.ts 3.81ms
+ 890/1885 src/execution/assertsTaskSuccessful.ts 3.40ms
+ 891/1885 src/execution/AvailableModel.ts 3.25ms
+ 892/1885 src/execution/CommonToolsOptions.ts 2.68ms
+ 893/1885 src/execution/createPipelineExecutor/$OngoingTaskResult.ts 4.45ms
+ 894/1885 src/execution/createPipelineExecutor/00-createPipelineExecutor.ts 11.16ms
+ 895/1885 src/execution/createPipelineExecutor/00-CreatePipelineExecutorOptions.ts 3.54ms
+ 896/1885 src/execution/createPipelineExecutor/10-executePipeline.ts 14.32ms
+ 897/1885 src/execution/createPipelineExecutor/20-executeTask.ts 9.86ms
+ 898/1885 src/execution/createPipelineExecutor/30-executeFormatSubvalues.ts 10.30ms
+ 899/1885 src/execution/createPipelineExecutor/40-executeAttempts.ts 10.44ms
+ 900/1885 src/execution/createPipelineExecutor/computeCosineSimilarity.ts 2.66ms
+ 901/1885 src/execution/createPipelineExecutor/executeSingleAttempt.ts 14.74ms
+ 902/1885 src/execution/createPipelineExecutor/filterJustOutputParameters.ts 5.30ms
+ 903/1885 src/execution/createPipelineExecutor/getContextForTask.ts 3.40ms
+ 904/1885 src/execution/createPipelineExecutor/getExamplesForTask.ts 3.39ms
+ 905/1885 src/execution/createPipelineExecutor/getKnowledgeForTask.ts 6.28ms
+ 906/1885 src/execution/createPipelineExecutor/getReservedParametersForTask.ts 5.72ms
+ 907/1885 src/execution/createPipelineExecutor/handleAttemptFailure.ts 4.61ms
+ 908/1885 src/execution/createPipelineExecutor/knowledgePiecesToString.ts 2.55ms
+ 909/1885 src/execution/createPipelineExecutor/reportPromptExecution.ts 5.42ms
+ 910/1885 src/execution/EmbeddingVector.ts 1.85ms
+ 911/1885 src/execution/embeddingVectorToString.ts 2.00ms
+ 912/1885 src/execution/Executables.ts 2.78ms
+ 913/1885 src/execution/execution-report/countWorkingDuration.test.ts 2.13ms
+ 914/1885 src/execution/execution-report/countWorkingDuration.ts 2.18ms
+ 915/1885 src/execution/execution-report/ExecutionPromptReportJson.ts 2.42ms
+ 916/1885 src/execution/execution-report/ExecutionReportJson.ts 3.77ms
+ 917/1885 src/execution/execution-report/executionReportJsonToString.ts 10.75ms
+ 918/1885 src/execution/execution-report/ExecutionReportString.ts 2.54ms
+ 919/1885 src/execution/execution-report/ExecutionReportStringOptions.ts 2.88ms
+ 920/1885 src/execution/ExecutionTask.ts 14.06ms
+ 921/1885 src/execution/ExecutionTools.ts 4.70ms
+ 922/1885 src/execution/FilesystemTools.ts 1.80ms
+ 923/1885 src/execution/LlmExecutionTools.ts 7.30ms
+ 924/1885 src/execution/LlmExecutionToolsConstructor.ts 2.28ms
+ 925/1885 src/execution/PipelineExecutor.ts 2.59ms
+ 926/1885 src/execution/PipelineExecutorResult.ts 3.25ms
+ 927/1885 src/execution/PromptbookFetch.test-type.ts 2.11ms
+ 928/1885 src/execution/PromptbookFetch.ts 1.99ms
+ 929/1885 src/execution/PromptResult.ts 4.66ms
+ 930/1885 src/execution/resolveTaskTldr.test.ts 3.00ms
+ 931/1885 src/execution/resolveTaskTldr.ts 6.86ms
+ 932/1885 src/execution/ScriptExecutionTools.ts 3.35ms
+ 933/1885 src/execution/translation/automatic-translate/automatic-translators/AutomaticTranslator.ts 2.10ms
+ 934/1885 src/execution/translation/automatic-translate/automatic-translators/DebugAutomaticTranslator.ts 2.75ms
+ 935/1885 src/execution/translation/automatic-translate/automatic-translators/FakeAutomaticTranslator.ts 3.00ms
+ 936/1885 src/execution/translation/automatic-translate/automatic-translators/LindatAutomaticTranslator.ts 4.20ms
+ 937/1885 src/execution/translation/automatic-translate/automatic-translators/README.md 1.57ms
+ 938/1885 src/execution/translation/automatic-translate/automatic-translators/TranslatorOptions.ts 1.77ms
+ 939/1885 src/execution/translation/automatic-translate/automatic-translators/utils/extractMultiplicatedOccurrence.test.ts 2.53ms
+ 940/1885 src/execution/translation/automatic-translate/automatic-translators/utils/extractMultiplicatedOccurrence.ts 2.84ms
+ 941/1885 src/execution/translation/automatic-translate/translateMessages.ts 4.11ms
+ 942/1885 src/execution/UncertainNumber.ts 2.47ms
+ 943/1885 src/execution/Usage.ts 3.35ms
+ 944/1885 src/execution/UserInterfaceTools.ts 4.05ms
+ 945/1885 src/execution/utils/$provideExecutionToolsForNode.ts 5.53ms
+ 946/1885 src/execution/utils/addUsage.test.ts 5.74ms
+ 947/1885 src/execution/utils/addUsage.ts 3.19ms
+ 948/1885 src/execution/utils/checkExpectations.test.ts 2.55ms
+ 949/1885 src/execution/utils/checkExpectations.ts 4.55ms
+ 950/1885 src/execution/utils/computeUsageCounts.ts 3.99ms
+ 951/1885 src/execution/utils/forEachAsync.ts 5.86ms
+ 952/1885 src/execution/utils/uncertainNumber.ts 2.70ms
+ 953/1885 src/execution/utils/usage-constants.ts 2.88ms
+ 954/1885 src/execution/utils/usageToHuman.ts 4.43ms
+ 955/1885 src/execution/utils/usageToWorktime.test.ts 2.96ms
+ 956/1885 src/execution/utils/usageToWorktime.ts 2.57ms
+ 957/1885 src/execution/utils/validatePromptResult.ts 5.71ms
+ 958/1885 src/expectations/README.md 1.40ms
+ 959/1885 src/file-security-checkers/FileSecurityChecker.ts 2.69ms
+ 960/1885 src/file-security-checkers/FileSecurityCheckResult.ts 2.99ms
+ 961/1885 src/file-security-checkers/virustotal/VirusTotalFileSecurityChecker.test.ts 3.85ms
+ 962/1885 src/file-security-checkers/virustotal/VirusTotalFileSecurityChecker.ts 7.16ms
+ 963/1885 src/formats/_common/FormatParser.ts 4.66ms
+ 964/1885 src/formats/_common/FormatSubvalueParser.ts 5.38ms
+ 965/1885 src/formats/csv/CsvFormatError.ts 2.00ms
+ 966/1885 src/formats/csv/CsvFormatParser.ts 5.61ms
+ 967/1885 src/formats/csv/CsvSettings.ts 2.71ms
+ 968/1885 src/formats/csv/utils/csvParse.ts 2.60ms
+ 969/1885 src/formats/csv/utils/isValidCsvString.test.ts 2.82ms
+ 970/1885 src/formats/csv/utils/isValidCsvString.ts 2.06ms
+ 971/1885 src/formats/index.ts 2.11ms
+ 972/1885 src/formats/json/JsonFormatParser.ts 3.21ms
+ 973/1885 src/formats/json/utils/isValidJsonString.test.ts 2.16ms
+ 974/1885 src/formats/json/utils/isValidJsonString.ts 2.36ms
+ 975/1885 src/formats/json/utils/jsonParse.ts 3.84ms
+ 976/1885 src/formats/README.md 1.84ms
+ 977/1885 src/formats/text/TextFormatParser.ts 4.51ms
+ 978/1885 src/formats/xml/utils/isValidXmlString.test.ts 2.48ms
+ 979/1885 src/formats/xml/utils/isValidXmlString.ts 2.85ms
+ 980/1885 src/formats/xml/XmlFormatParser.ts 3.27ms
+ 981/1885 src/formfactors/_boilerplate/BoilerplateFormfactorDefinition.ts 4.42ms
+ 982/1885 src/formfactors/_common/AbstractFormfactorDefinition.ts 4.97ms
+ 983/1885 src/formfactors/_common/FormfactorDefinition.ts 2.55ms
+ 984/1885 src/formfactors/_common/string_formfactor_name.ts 1.98ms
+ 985/1885 src/formfactors/chatbot/ChatbotFormfactorDefinition.ts 4.17ms
+ 986/1885 src/formfactors/completion/CompletionFormfactorDefinition.ts 4.51ms
+ 987/1885 src/formfactors/generator/GeneratorFormfactorDefinition.ts 3.28ms
+ 988/1885 src/formfactors/generic/GenericFormfactorDefinition.ts 3.61ms
+ 989/1885 src/formfactors/image-generator/ImageGeneratorFormfactorDefinition.ts 3.07ms
+ 990/1885 src/formfactors/index.ts 3.30ms
+ 991/1885 src/formfactors/matcher/MatcherFormfactorDefinition.ts 4.62ms
+ 992/1885 src/formfactors/README.md 1.77ms
+ 993/1885 src/formfactors/sheets/SheetsFormfactorDefinition.ts 3.36ms
+ 994/1885 src/formfactors/translator/TranslatorFormfactorDefinition.ts 4.16ms
+ 995/1885 src/globals.d.ts 2.05ms
+ 996/1885 src/high-level-abstractions/_common/HighLevelAbstraction.ts 3.34ms
+ 997/1885 src/high-level-abstractions/implicit-formfactor/ImplicitFormfactorHla.ts 5.27ms
+ 998/1885 src/high-level-abstractions/index.ts 3.12ms
+ 999/1885 src/high-level-abstractions/quick-chatbot/QuickChatbotHla.ts 5.88ms
+1000/1885 src/high-level-abstractions/README.md 2.51ms
+1001/1885 src/import-plugins/$fileImportPlugins.ts 2.59ms
+1002/1885 src/import-plugins/AgentFileImportPlugin.ts 3.79ms
+1003/1885 src/import-plugins/FileImportPlugin.ts 2.52ms
+1004/1885 src/import-plugins/JsonFileImportPlugin.ts 2.79ms
+1005/1885 src/import-plugins/TextFileImportPlugin.ts 2.77ms
+1006/1885 src/llm-providers/_common/filterModels.ts 6.16ms
+1007/1885 src/llm-providers/_common/register/$llmToolsMetadataRegister.ts 4.06ms
+1008/1885 src/llm-providers/_common/register/$llmToolsRegister.ts 2.73ms
+1009/1885 src/llm-providers/_common/register/$provideEnvFilename.ts 4.16ms
+1010/1885 src/llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv.ts 3.89ms
+1011/1885 src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground.ts 7.88ms
+1012/1885 src/llm-providers/_common/register/$provideLlmToolsForWizardOrCli.ts 8.43ms
+1013/1885 src/llm-providers/_common/register/$provideLlmToolsFromEnv.ts 6.25ms
+1014/1885 src/llm-providers/_common/register/$registeredLlmToolsMessage.ts 18.41ms
+1015/1885 src/llm-providers/_common/register/createLlmToolsFromConfiguration.test.ts 3.33ms
+1016/1885 src/llm-providers/_common/register/createLlmToolsFromConfiguration.ts 7.02ms
+1017/1885 src/llm-providers/_common/register/LlmToolsConfiguration.ts 3.61ms
+1018/1885 src/llm-providers/_common/register/LlmToolsMetadata.ts 4.96ms
+1019/1885 src/llm-providers/_common/register/LlmToolsOptions.ts 2.65ms
+1020/1885 src/llm-providers/_common/utils/assertUniqueModels.ts 6.47ms
+1021/1885 src/llm-providers/_common/utils/cache/CacheItem.ts 3.10ms
+1022/1885 src/llm-providers/_common/utils/cache/cacheLlmTools.ts 18.49ms
+1023/1885 src/llm-providers/_common/utils/cache/CacheLlmToolsOptions.ts 3.99ms
+1024/1885 src/llm-providers/_common/utils/count-total-usage/countUsage.ts 7.25ms
+1025/1885 src/llm-providers/_common/utils/count-total-usage/limitTotalUsage.ts 6.16ms
+1026/1885 src/llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage.ts 2.94ms
+1027/1885 src/llm-providers/_common/utils/pricing.test.ts 2.16ms
+1028/1885 src/llm-providers/_common/utils/pricing.ts 2.27ms
+1029/1885 src/llm-providers/_common/utils/removeUnsupportedModelRequirements.test.ts 3.81ms
+1030/1885 src/llm-providers/_common/utils/removeUnsupportedModelRequirements.ts 5.44ms
+1031/1885 src/llm-providers/_multiple/getSingleLlmExecutionTools.ts 3.19ms
+1032/1885 src/llm-providers/_multiple/joinLlmExecutionTools.ts 5.43ms
+1033/1885 src/llm-providers/_multiple/MultipleLlmExecutionTools.ts 8.79ms
+1034/1885 src/llm-providers/_multiple/playground/playground.ts 7.40ms
+1035/1885 src/llm-providers/_multiple/playground/tsconfig.json 3.02ms
+1036/1885 src/llm-providers/agent/Agent.test.ts 7.93ms
+1037/1885 src/llm-providers/agent/Agent.ts 15.20ms
+1038/1885 src/llm-providers/agent/AgentLlmExecutionTools.test.ts 10.28ms
+1039/1885 src/llm-providers/agent/AgentLlmExecutionTools.ts 22.33ms
+1040/1885 src/llm-providers/agent/AgentLlmExecutionToolsAgentKitRunner.ts 14.20ms
+1041/1885 src/llm-providers/agent/AgentLlmExecutionToolsOpenAiAssistantRunner.ts 10.32ms
+1042/1885 src/llm-providers/agent/AgentLlmExecutionToolsPromptPreparer.ts 12.93ms
+1043/1885 src/llm-providers/agent/AgentOptions.ts 3.42ms
+1044/1885 src/llm-providers/agent/createAgentLlmExecutionTools.ts 2.32ms
+1045/1885 src/llm-providers/agent/CreateAgentLlmExecutionToolsOptions.ts 4.56ms
+1046/1885 src/llm-providers/agent/emitAgentLlmExecutionToolsAssistantPreparationProgress.ts 3.67ms
+1047/1885 src/llm-providers/agent/playground/playground.ts 8.25ms
+1048/1885 src/llm-providers/agent/playground/tsconfig.json 2.85ms
+1049/1885 src/llm-providers/agent/register-configuration.ts 3.46ms
+1050/1885 src/llm-providers/agent/register-constructor.ts 2.20ms
+1051/1885 src/llm-providers/agent/RemoteAgent.test.ts 6.37ms
+1052/1885 src/llm-providers/agent/RemoteAgent.ts 21.35ms
+1053/1885 src/llm-providers/agent/RemoteAgentOptions.ts 2.23ms
+1054/1885 src/llm-providers/agent/self-learning/SelfLearningManager.test.ts 6.22ms
+1055/1885 src/llm-providers/agent/self-learning/SelfLearningManager.ts 18.21ms
+1056/1885 src/llm-providers/anthropic-claude/anthropic-claude-models.ts 9.20ms
+1057/1885 src/llm-providers/anthropic-claude/AnthropicClaudeExecutionTools.ts 10.90ms
+1058/1885 src/llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions.ts 3.20ms
+1059/1885 src/llm-providers/anthropic-claude/computeAnthropicClaudeUsage.test.ts 3.56ms
+1060/1885 src/llm-providers/anthropic-claude/computeAnthropicClaudeUsage.ts 4.30ms
+1061/1885 src/llm-providers/anthropic-claude/createAnthropicClaudeExecutionTools.ts 3.27ms
+1062/1885 src/llm-providers/anthropic-claude/playground/playground.ts 5.22ms
+1063/1885 src/llm-providers/anthropic-claude/playground/tsconfig.json 2.53ms
+1064/1885 src/llm-providers/anthropic-claude/register-configuration.ts 4.22ms
+1065/1885 src/llm-providers/anthropic-claude/register-constructor.ts 3.21ms
+1066/1885 src/llm-providers/azure-openai/AzureOpenAiExecutionTools.ts 11.89ms
+1067/1885 src/llm-providers/azure-openai/AzureOpenAiExecutionToolsOptions.ts 4.10ms
+1068/1885 src/llm-providers/azure-openai/createAzureOpenAiExecutionTools.ts 2.57ms
+1069/1885 src/llm-providers/azure-openai/playground/playground.ts 5.28ms
+1070/1885 src/llm-providers/azure-openai/playground/tsconfig.json 2.52ms
+1071/1885 src/llm-providers/azure-openai/register-configuration.ts 5.42ms
+1072/1885 src/llm-providers/azure-openai/register-constructor.ts 3.05ms
+1073/1885 src/llm-providers/deepseek/createDeepseekExecutionTools.ts 4.50ms
+1074/1885 src/llm-providers/deepseek/deepseek-models.ts 7.71ms
+1075/1885 src/llm-providers/deepseek/DeepseekExecutionToolsOptions.ts 3.83ms
+1076/1885 src/llm-providers/deepseek/other/compatibility-issue.md 2.32ms
+1077/1885 src/llm-providers/deepseek/register-configuration.ts 5.13ms
+1078/1885 src/llm-providers/deepseek/register-constructor.ts 2.98ms
+1079/1885 src/llm-providers/google/createGoogleExecutionTools.ts 11.09ms
+1080/1885 src/llm-providers/google/google-models.ts 10.80ms
+1081/1885 src/llm-providers/google/GoogleExecutionToolsOptions.ts 3.29ms
+1082/1885 src/llm-providers/google/other/compatibility-issue.md 2.18ms
+1083/1885 src/llm-providers/google/register-configuration.ts 3.84ms
+1084/1885 src/llm-providers/google/register-constructor.ts 2.76ms
+1085/1885 src/llm-providers/mocked/$fakeTextToExpectations.ts 5.97ms
+1086/1885 src/llm-providers/mocked/MockedEchoLlmExecutionTools.ts 7.58ms
+1087/1885 src/llm-providers/mocked/MockedFackedLlmExecutionTools.ts 7.60ms
+1088/1885 src/llm-providers/mocked/test/faked-completion.test.ts 5.58ms
+1089/1885 src/llm-providers/mocked/test/fakeTextToExpectations.test.ts 2.82ms
+1090/1885 src/llm-providers/mocked/test/joker.test.ts 4.25ms
+1091/1885 src/llm-providers/mocked/test/mocked-chat.test.ts 6.49ms
+1092/1885 src/llm-providers/mocked/test/mocked-completion.test.ts 6.11ms
+1093/1885 src/llm-providers/ollama/createOllamaExecutionTools.ts 3.06ms
+1094/1885 src/llm-providers/ollama/ollama-models.ts 12.76ms
+1095/1885 src/llm-providers/ollama/OllamaExecutionTools.ts 5.60ms
+1096/1885 src/llm-providers/ollama/OllamaExecutionToolsOptions.ts 2.80ms
+1097/1885 src/llm-providers/ollama/playground/playground.ts 6.01ms
+1098/1885 src/llm-providers/ollama/playground/tsconfig.json 3.60ms
+1099/1885 src/llm-providers/ollama/register-configuration.ts 4.08ms
+1100/1885 src/llm-providers/ollama/register-constructor.ts 3.31ms
+1101/1885 src/llm-providers/openai/computeOpenAiUsage.test.ts 3.04ms
+1102/1885 src/llm-providers/openai/computeOpenAiUsage.ts 5.25ms
+1103/1885 src/llm-providers/openai/createOpenAiAssistantExecutionTools.ts 2.95ms
+1104/1885 src/llm-providers/openai/createOpenAiCompatibleExecutionTools.ts 7.33ms
+1105/1885 src/llm-providers/openai/createOpenAiExecutionTools.ts 3.65ms
+1106/1885 src/llm-providers/openai/openai-models.test.ts 2.17ms
+1107/1885 src/llm-providers/openai/openai-models.ts 19.11ms
+1108/1885 src/llm-providers/openai/OpenAiAgentKitExecutionTools.test.ts 3.89ms
+1109/1885 src/llm-providers/openai/OpenAiAgentKitExecutionTools.ts 22.66ms
+1110/1885 src/llm-providers/openai/OpenAiAgentKitExecutionToolsInputBuilder.ts 8.67ms
+1111/1885 src/llm-providers/openai/OpenAiAgentKitExecutionToolsOptions.ts 2.48ms
+1112/1885 src/llm-providers/openai/OpenAiAgentKitExecutionToolsOutputTypeMapper.ts 7.92ms
+1113/1885 src/llm-providers/openai/OpenAiAgentKitExecutionToolsToolBuilder.ts 21.29ms
+1114/1885 src/llm-providers/openai/OpenAiAssistantExecutionTools.ts 22.26ms
+1115/1885 src/llm-providers/openai/OpenAiAssistantExecutionToolsOptions.ts 3.86ms
+1116/1885 src/llm-providers/openai/OpenAiAssistantExecutionToolsProgressReporter.ts 7.39ms
+1117/1885 src/llm-providers/openai/OpenAiAssistantExecutionToolsPromptBuilder.ts 8.99ms
+1118/1885 src/llm-providers/openai/OpenAiAssistantExecutionToolsStreamRunner.ts 13.81ms
+1119/1885 src/llm-providers/openai/OpenAiAssistantExecutionToolsToolRunner.ts 27.36ms
+1120/1885 src/llm-providers/openai/OpenAiCompatibleExecutionTools.ts 12.25ms
+1121/1885 src/llm-providers/openai/OpenAiCompatibleExecutionToolsOptions.ts 4.36ms
+1122/1885 src/llm-providers/openai/OpenAiCompatibleModelCatalog.ts 5.47ms
+1123/1885 src/llm-providers/openai/OpenAiCompatibleNonChatPromptCaller.ts 13.44ms
+1124/1885 src/llm-providers/openai/OpenAiCompatibleRequestManager.ts 10.28ms
+1125/1885 src/llm-providers/openai/OpenAiExecutionTools.ts 4.99ms
+1126/1885 src/llm-providers/openai/OpenAiExecutionToolsOptions.ts 2.27ms
+1127/1885 src/llm-providers/openai/OpenAiVectorStoreFileBatchHandler.ts 13.90ms
+1128/1885 src/llm-providers/openai/OpenAiVectorStoreFileBatchPoller.ts 19.45ms
+1129/1885 src/llm-providers/openai/OpenAiVectorStoreHandler.ts 9.97ms
+1130/1885 src/llm-providers/openai/OpenAiVectorStoreKnowledgeSourcePreparer.ts 8.79ms
+1131/1885 src/llm-providers/openai/playground/playground.ts 17.05ms
+1132/1885 src/llm-providers/openai/playground/tsconfig.json 2.69ms
+1133/1885 src/llm-providers/openai/register-configuration.ts 6.92ms
+1134/1885 src/llm-providers/openai/register-constructor.ts 4.42ms
+1135/1885 src/llm-providers/openai/utils/buildToolInvocationScript.ts 3.38ms
+1136/1885 src/llm-providers/openai/utils/callOpenAiCompatibleChatModel.ts 14.95ms
+1137/1885 src/llm-providers/openai/utils/mapToolsToOpenAi.ts 2.43ms
+1138/1885 src/llm-providers/openai/utils/OpenAiCompatibleChatProgressReporter.ts 11.27ms
+1139/1885 src/llm-providers/openai/utils/OpenAiCompatibleChatPromptBuilder.ts 8.35ms
+1140/1885 src/llm-providers/openai/utils/OpenAiCompatibleChatToolCaller.ts 15.01ms
+1141/1885 src/llm-providers/openai/utils/OpenAiCompatibleUnsupportedParameterRetrier.ts 6.85ms
+1142/1885 src/llm-providers/openai/utils/uploadFilesToOpenAi.ts 3.76ms
+1143/1885 src/llm-providers/README.md 1.66ms
+1144/1885 src/llm-providers/remote/playground/playground.ts 9.62ms
+1145/1885 src/llm-providers/remote/playground/tsconfig.json 3.12ms
+1146/1885 src/llm-providers/remote/RemoteLlmExecutionTools.ts 10.60ms
+1147/1885 src/llm-providers/vercel/createExecutionToolsFromVercelProvider.ts 13.65ms
+1148/1885 src/llm-providers/vercel/playground/playground.ts 10.83ms
+1149/1885 src/llm-providers/vercel/playground/tsconfig.json 3.73ms
+1150/1885 src/llm-providers/vercel/VercelExecutionToolsOptions.ts 3.49ms
+1151/1885 src/llm-providers/vercel/VercelProvider.ts 2.75ms
+1152/1885 src/migrations/migratePipeline.ts 5.20ms
+1153/1885 src/other/README.md 1.50ms
+1154/1885 src/other/templates/getBookTemplates.ts 6.43ms
+1155/1885 src/personas/preparePersona.ts 8.38ms
+1156/1885 src/personas/README.md 1.65ms
+1157/1885 src/pipeline/book-notation.ts 8.24ms
+1158/1885 src/pipeline/isValidPipelineString.test.ts 2.79ms
+1159/1885 src/pipeline/isValidPipelineString.ts 2.98ms
+1160/1885 src/pipeline/PipelineInterface/constants.ts 2.64ms
+1161/1885 src/pipeline/PipelineInterface/getPipelineInterface.ts 4.17ms
+1162/1885 src/pipeline/PipelineInterface/isPipelineImplementingInterface.ts 2.71ms
+1163/1885 src/pipeline/PipelineInterface/isPipelineInterfacesEqual.ts 3.63ms
+1164/1885 src/pipeline/PipelineInterface/PipelineInterface.ts 2.90ms
+1165/1885 src/pipeline/PipelineInterface/README.md 1.74ms
+1166/1885 src/pipeline/PipelineJson/CommonTaskJson.ts 5.04ms
+1167/1885 src/pipeline/PipelineJson/DialogTaskJson.ts 2.56ms
+1168/1885 src/pipeline/PipelineJson/Expectations.ts 3.82ms
+1169/1885 src/pipeline/PipelineJson/KnowledgePieceJson.ts 3.55ms
+1170/1885 src/pipeline/PipelineJson/KnowledgeSourceJson.ts 3.31ms
+1171/1885 src/pipeline/PipelineJson/ParameterJson.ts 4.99ms
+1172/1885 src/pipeline/PipelineJson/PersonaJson.ts 3.05ms
+1173/1885 src/pipeline/PipelineJson/PipelineJson.ts 6.89ms
+1174/1885 src/pipeline/PipelineJson/PreparationJson.ts 4.36ms
+1175/1885 src/pipeline/PipelineJson/PromptTaskJson.ts 2.68ms
+1176/1885 src/pipeline/PipelineJson/ScriptTaskJson.ts 2.29ms
+1177/1885 src/pipeline/PipelineJson/SimpleTaskJson.ts 2.22ms
+1178/1885 src/pipeline/PipelineJson/TaskJson.ts 2.29ms
+1179/1885 src/pipeline/PipelineString.ts 2.06ms
+1180/1885 src/pipeline/prompt-notation.test.ts 4.96ms
+1181/1885 src/pipeline/prompt-notation.ts 8.42ms
+1182/1885 src/pipeline/prompt-notation/helpers/ParameterEscaping.ts 4.60ms
+1183/1885 src/pipeline/prompt-notation/helpers/ParameterNaming.ts 4.88ms
+1184/1885 src/pipeline/prompt-notation/helpers/ParameterSection.ts 3.72ms
+1185/1885 src/pipeline/validatePipelineString.ts 3.79ms
+1186/1885 src/playground/permanent/_boilerplate.ts 2.17ms
+1187/1885 src/playground/permanent/agent-with-browser-playground.ts 2.71ms
+1188/1885 src/playground/permanent/error-handling-playground.ts 2.68ms
+1189/1885 src/playground/playground.ts 2.46ms
+1190/1885 src/playground/tsconfig.json 2.81ms
+1191/1885 src/postprocessing/README.md 2.68ms
+1192/1885 src/postprocessing/utils/extractBlock.ts 2.75ms
+1193/1885 src/postprocessing/utils/extractJsonBlock.test.ts 3.06ms
+1194/1885 src/postprocessing/utils/extractJsonBlock.ts 3.57ms
+1195/1885 src/prepare/isPipelinePrepared.test.ts 2.90ms
+1196/1885 src/prepare/isPipelinePrepared.ts 4.01ms
+1197/1885 src/prepare/PrepareAndScrapeOptions.ts 3.61ms
+1198/1885 src/prepare/preparePipeline.ts 10.69ms
+1199/1885 src/prepare/preparePipelineOnRemoteServer.ts 4.26ms
+1200/1885 src/prepare/prepareTasks.ts 6.06ms
+1201/1885 src/prepare/unpreparePipeline.ts 4.23ms
+1202/1885 src/remote-server/createRemoteClient.ts 3.69ms
+1203/1885 src/remote-server/http-sample/README.md 2.08ms
+1204/1885 src/remote-server/openapi-types.ts 7.66ms
+1205/1885 src/remote-server/openapi.ts 9.67ms
+1206/1885 src/remote-server/README.md 2.02ms
+1207/1885 src/remote-server/RemoteServer.ts 2.72ms
+1208/1885 src/remote-server/socket-types/_common/PromptbookServer_Error.ts 1.92ms
+1209/1885 src/remote-server/socket-types/_subtypes/Identification.ts 5.73ms
+1210/1885 src/remote-server/socket-types/_subtypes/identificationToPromptbookToken.ts 3.12ms
+1211/1885 src/remote-server/socket-types/_subtypes/promptbookTokenToIdentification.ts 2.48ms
+1212/1885 src/remote-server/socket-types/listModels/PromptbookServer_ListModels_Request.ts 2.42ms
+1213/1885 src/remote-server/socket-types/listModels/PromptbookServer_ListModels_Response.ts 2.56ms
+1214/1885 src/remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Request.ts 3.91ms
+1215/1885 src/remote-server/socket-types/prepare/PromptbookServer_PreparePipeline_Response.ts 2.40ms
+1216/1885 src/remote-server/socket-types/prompt/PromptbookServer_Prompt_Request.ts 2.13ms
+1217/1885 src/remote-server/socket-types/prompt/PromptbookServer_Prompt_Response.ts 2.01ms
+1218/1885 src/remote-server/startAgentServer.ts 4.01ms
+1219/1885 src/remote-server/startRemoteServer.ts 6.60ms
+1220/1885 src/remote-server/startRemoteServer/createRemoteServerExpressApp.ts 2.53ms
+1221/1885 src/remote-server/startRemoteServer/createRemoteServerHandle.ts 2.81ms
+1222/1885 src/remote-server/startRemoteServer/createSocketServer.ts 2.61ms
+1223/1885 src/remote-server/startRemoteServer/getExecutionToolsFromIdentification.ts 6.30ms
+1224/1885 src/remote-server/startRemoteServer/registerBookRoutes.ts 7.17ms
+1225/1885 src/remote-server/startRemoteServer/registerExecutionRoutes.ts 7.76ms
+1226/1885 src/remote-server/startRemoteServer/registerListModelsSocketHandler.ts 4.70ms
+1227/1885 src/remote-server/startRemoteServer/registerLoginRoute.ts 3.73ms
+1228/1885 src/remote-server/startRemoteServer/registerNotFoundRoute.ts 2.09ms
+1229/1885 src/remote-server/startRemoteServer/registerOpenAiCompatibleChatCompletionsRoute.ts 6.27ms
+1230/1885 src/remote-server/startRemoteServer/registerOpenApiRoutes.ts 3.56ms
+1231/1885 src/remote-server/startRemoteServer/registerPreparePipelineSocketHandler.ts 4.03ms
+1232/1885 src/remote-server/startRemoteServer/registerPromptSocketHandler.ts 7.97ms
+1233/1885 src/remote-server/startRemoteServer/registerRemoteServerHttpRoutes.ts 3.42ms
+1234/1885 src/remote-server/startRemoteServer/registerRemoteServerSocketHandlers.ts 4.29ms
+1235/1885 src/remote-server/startRemoteServer/registerServerIndexRoute.ts 6.75ms
+1236/1885 src/remote-server/startRemoteServer/RemoteServerRuntime.ts 2.92ms
+1237/1885 src/remote-server/startRemoteServer/resolveStartRemoteServerConfiguration.ts 3.91ms
+1238/1885 src/remote-server/startRemoteServer/respondToSocketRequest.ts 3.36ms
+1239/1885 src/remote-server/startRemoteServer/SocketResponse.ts 2.30ms
+1240/1885 src/remote-server/startRemoteServer/startListening.ts 2.85ms
+1241/1885 src/remote-server/startRemoteServer/StartRemoteServerConfiguration.ts 3.14ms
+1242/1885 src/remote-server/types/RemoteClientOptions.ts 3.12ms
+1243/1885 src/remote-server/types/RemoteServerOptions.ts 8.86ms
+1244/1885 src/remote-server/ui/renderServerIndexHtml.ts 6.45ms
+1245/1885 src/remote-server/ui/ServerApp.tsx 8.00ms
+1246/1885 src/remote-server/ui/types.ts 3.74ms
+1247/1885 src/scrapers/_boilerplate/BoilerplateScraper.ts 13.10ms
+1248/1885 src/scrapers/_boilerplate/createBoilerplateScraper.ts 3.44ms
+1249/1885 src/scrapers/_boilerplate/playground/boilerplate-scraper-playground.ts 5.26ms
+1250/1885 src/scrapers/_boilerplate/playground/tsconfig.json 3.01ms
+1251/1885 src/scrapers/_boilerplate/README.md 1.42ms
+1252/1885 src/scrapers/_boilerplate/register-constructor.ts 2.90ms
+1253/1885 src/scrapers/_boilerplate/register-metadata.ts 4.42ms
+1254/1885 src/scrapers/_common/Converter.ts 3.69ms
+1255/1885 src/scrapers/_common/prepareKnowledgePieces.test.ts 5.32ms
+1256/1885 src/scrapers/_common/prepareKnowledgePieces.ts 9.87ms
+1257/1885 src/scrapers/_common/register/$provideFilesystemForNode.ts 3.93ms
+1258/1885 src/scrapers/_common/register/$provideScrapersForBrowser.ts 3.88ms
+1259/1885 src/scrapers/_common/register/$provideScrapersForNode.ts 6.15ms
+1260/1885 src/scrapers/_common/register/$provideScriptingForNode.ts 3.84ms
+1261/1885 src/scrapers/_common/register/$registeredScrapersMessage.ts 5.98ms
+1262/1885 src/scrapers/_common/register/$scrapersMetadataRegister.ts 2.38ms
+1263/1885 src/scrapers/_common/register/$scrapersRegister.ts 2.40ms
+1264/1885 src/scrapers/_common/register/ScraperAndConverterMetadata.ts 4.26ms
+1265/1885 src/scrapers/_common/register/ScraperConstructor.ts 3.04ms
+1266/1885 src/scrapers/_common/Scraper.ts 4.35ms
+1267/1885 src/scrapers/_common/ScraperIntermediateSource.ts 2.46ms
+1268/1885 src/scrapers/_common/utils/getScraperIntermediateSource.test.ts 3.97ms
+1269/1885 src/scrapers/_common/utils/getScraperIntermediateSource.ts 7.18ms
+1270/1885 src/scrapers/_common/utils/makeKnowledgeSourceHandler.ts 13.52ms
+1271/1885 src/scrapers/_common/utils/promptbookFetch.test.ts 3.23ms
+1272/1885 src/scrapers/_common/utils/promptbookFetch.ts 5.15ms
+1273/1885 src/scrapers/document-legacy/createLegacyDocumentScraper.ts 3.75ms
+1274/1885 src/scrapers/document-legacy/examples/10-simple.doc.knowledge.json 34.73ms
+1275/1885 src/scrapers/document-legacy/examples/10-simple.rtf.knowledge.json 14.94ms
+1276/1885 src/scrapers/document-legacy/LegacyDocumentScraper.test.ts 7.26ms
+1277/1885 src/scrapers/document-legacy/LegacyDocumentScraper.ts 10.44ms
+1278/1885 src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts 5.45ms
+1279/1885 src/scrapers/document-legacy/playground/tsconfig.json 2.88ms
+1280/1885 src/scrapers/document-legacy/README.md 2.03ms
+1281/1885 src/scrapers/document-legacy/register-constructor.ts 2.63ms
+1282/1885 src/scrapers/document-legacy/register-metadata.ts 4.31ms
+1283/1885 src/scrapers/document/createDocumentScraper.ts 4.00ms
+1284/1885 src/scrapers/document/DocumentScraper.test.ts 6.19ms
+1285/1885 src/scrapers/document/DocumentScraper.ts 12.48ms
+1286/1885 src/scrapers/document/examples/10-simple.docx.knowledge.json 28.05ms
+1287/1885 src/scrapers/document/examples/10-simple.odt.knowledge.json 28.11ms
+1288/1885 src/scrapers/document/playground/document-scraper-playground.ts 5.38ms
+1289/1885 src/scrapers/document/playground/tsconfig.json 3.08ms
+1290/1885 src/scrapers/document/README.md 2.50ms
+1291/1885 src/scrapers/document/register-constructor.ts 2.75ms
+1292/1885 src/scrapers/document/register-metadata.ts 5.54ms
+1293/1885 src/scrapers/markdown/createMarkdownScraper.ts 3.32ms
+1294/1885 src/scrapers/markdown/MarkdownScraper.test.ts 4.25ms
+1295/1885 src/scrapers/markdown/MarkdownScraper.ts 11.79ms
+1296/1885 src/scrapers/markdown/playground/markdown-scraper-playground.ts 5.52ms
+1297/1885 src/scrapers/markdown/playground/tsconfig.json 3.23ms
+1298/1885 src/scrapers/markdown/README.md 2.39ms
+1299/1885 src/scrapers/markdown/register-constructor.ts 2.92ms
+1300/1885 src/scrapers/markdown/register-metadata.ts 4.38ms
+1301/1885 src/scrapers/markitdown/createMarkitdownScraper.ts 3.58ms
+1302/1885 src/scrapers/markitdown/examples/10-simple.pdf.knowledge.json 15.85ms
+1303/1885 src/scrapers/markitdown/examples/collboard-fra1-cdn-digitaloceanspaces-com-ptbk-user-knowledge-source-b-d-10-simple-pdf.knowledge.json 15.18ms
+1304/1885 src/scrapers/markitdown/MarkitdownScraper.ts 10.60ms
+1305/1885 src/scrapers/markitdown/playground/markitdown-scraper-playground.ts 7.37ms
+1306/1885 src/scrapers/markitdown/playground/tsconfig.json 2.91ms
+1307/1885 src/scrapers/markitdown/README.md 1.55ms
+1308/1885 src/scrapers/markitdown/register-constructor.ts 3.64ms
+1309/1885 src/scrapers/markitdown/register-metadata.ts 4.67ms
+1310/1885 src/scrapers/pdf/createPdfScraper.ts 4.14ms
+1311/1885 src/scrapers/pdf/lib/pdf2md/models/Annotation.js 2.20ms
+1312/1885 src/scrapers/pdf/lib/pdf2md/models/HeadlineFinder.js 3.26ms
+1313/1885 src/scrapers/pdf/lib/pdf2md/models/LineConverter.js 11.27ms
+1314/1885 src/scrapers/pdf/lib/pdf2md/models/LineItem.js 3.25ms
+1315/1885 src/scrapers/pdf/lib/pdf2md/models/LineItemBlock.js 2.83ms
+1316/1885 src/scrapers/pdf/lib/pdf2md/models/markdown/BlockType.js 5.74ms
+1317/1885 src/scrapers/pdf/lib/pdf2md/models/markdown/WordFormat.js 2.19ms
+1318/1885 src/scrapers/pdf/lib/pdf2md/models/markdown/WordType.js 2.70ms
+1319/1885 src/scrapers/pdf/lib/pdf2md/models/Metadata.js 2.56ms
+1320/1885 src/scrapers/pdf/lib/pdf2md/models/Page.js 2.56ms
+1321/1885 src/scrapers/pdf/lib/pdf2md/models/PageItem.js 2.35ms
+1322/1885 src/scrapers/pdf/lib/pdf2md/models/ParsedElements.js 2.45ms
+1323/1885 src/scrapers/pdf/lib/pdf2md/models/ParseResult.js 2.00ms
+1324/1885 src/scrapers/pdf/lib/pdf2md/models/StashingStream.js 3.51ms
+1325/1885 src/scrapers/pdf/lib/pdf2md/models/TextItem.js 2.50ms
+1326/1885 src/scrapers/pdf/lib/pdf2md/models/TextItemLineGrouper.js 2.98ms
+1327/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item-block/DetectCodeQuoteBlocks.js 3.39ms
+1328/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item-block/DetectListLevels.js 3.99ms
+1329/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item-block/GatherBlocks.js 6.60ms
+1330/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item/CompactLines.js 4.98ms
+1331/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item/DetectHeaders.js 8.56ms
+1332/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item/DetectListItems.js 4.07ms
+1333/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item/DetectTOC.js 14.96ms
+1334/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item/RemoveRepetitiveElements.js 5.53ms
+1335/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/line-item/VerticalToHorizontal.js 4.65ms
+1336/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/text-item/CalculateGlobalStats.js 5.00ms
+1337/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/ToLineItemBlockTransformation.js 3.95ms
+1338/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/ToLineItemTransformation.js 4.49ms
+1339/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/ToMarkdown.js 3.78ms
+1340/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/ToTextBlocks.js 2.53ms
+1341/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/ToTextItemTransformation.js 3.27ms
+1342/1885 src/scrapers/pdf/lib/pdf2md/models/transformations/Transformation.js 2.53ms
+1343/1885 src/scrapers/pdf/lib/pdf2md/models/Word.js 1.77ms
+1344/1885 src/scrapers/pdf/lib/pdf2md/pdf2md-cli.js 4.53ms
+1345/1885 src/scrapers/pdf/lib/pdf2md/pdf2md.js 3.13ms
+1346/1885 src/scrapers/pdf/lib/pdf2md/README.md 1.89ms
+1347/1885 src/scrapers/pdf/lib/pdf2md/util/cli.js 3.32ms
+1348/1885 src/scrapers/pdf/lib/pdf2md/util/dom-stubs.js 2.79ms
+1349/1885 src/scrapers/pdf/lib/pdf2md/util/dom-stubs/createDocumentStub.js 2.58ms
+1350/1885 src/scrapers/pdf/lib/pdf2md/util/dom-stubs/DOMElement.js 4.05ms
+1351/1885 src/scrapers/pdf/lib/pdf2md/util/dom-stubs/DOMElementSerializer.js 5.02ms
+1352/1885 src/scrapers/pdf/lib/pdf2md/util/dom-stubs/Image.js 1.79ms
+1353/1885 src/scrapers/pdf/lib/pdf2md/util/dom-stubs/xmlEncode.js 2.16ms
+1354/1885 src/scrapers/pdf/lib/pdf2md/util/page-item-functions.js 2.23ms
+1355/1885 src/scrapers/pdf/lib/pdf2md/util/page-number-functions.js 4.99ms
+1356/1885 src/scrapers/pdf/lib/pdf2md/util/pdf.js 5.86ms
+1357/1885 src/scrapers/pdf/lib/pdf2md/util/string-functions.js 5.03ms
+1358/1885 src/scrapers/pdf/lib/pdf2md/util/transformations.js 4.08ms
+1359/1885 src/scrapers/pdf/PdfScraper.ts 6.50ms
+1360/1885 src/scrapers/pdf/playground/pdf-scraper-playground.ts 5.01ms
+1361/1885 src/scrapers/pdf/playground/tsconfig.json 2.72ms
+1362/1885 src/scrapers/pdf/README.md 1.96ms
+1363/1885 src/scrapers/pdf/register-constructor.ts 3.05ms
+1364/1885 src/scrapers/pdf/register-metadata.ts 4.60ms
+1365/1885 src/scrapers/README.md 2.15ms
+1366/1885 src/scrapers/website/createWebsiteScraper.ts 3.19ms
+1367/1885 src/scrapers/website/playground/tsconfig.json 3.02ms
+1368/1885 src/scrapers/website/playground/website-scraper-playground.ts 5.12ms
+1369/1885 src/scrapers/website/README.md 1.90ms
+1370/1885 src/scrapers/website/register-constructor.ts 5.29ms
+1371/1885 src/scrapers/website/register-metadata.ts 4.03ms
+1372/1885 src/scrapers/website/utils/createShowdownConverter.test.ts 3.54ms
+1373/1885 src/scrapers/website/utils/createShowdownConverter.ts 2.28ms
+1374/1885 src/scrapers/website/WebsiteScraper.ts 9.79ms
+1375/1885 src/scripting/_test/custom-function-async.test.ts.test.ts 5.17ms
+1376/1885 src/scripting/_test/custom-function-missing.test.ts 5.07ms
+1377/1885 src/scripting/_test/custom-function-with-dependencies.test.ts 6.76ms
+1378/1885 src/scripting/_test/custom-function.test.ts 4.72ms
+1379/1885 src/scripting/_test/postprocessing.test.ts 5.53ms
+1380/1885 src/scripting/_test/script-execution-errors.test.ts 5.85ms
+1381/1885 src/scripting/_test/script-execution-tools.test.ts 5.51ms
+1382/1885 src/scripting/javascript/JavascriptEvalExecutionTools.test.ts 5.58ms
+1383/1885 src/scripting/javascript/JavascriptEvalExecutionTools.ts 11.07ms
+1384/1885 src/scripting/javascript/JavascriptExecutionTools.ts 2.40ms
+1385/1885 src/scripting/javascript/JavascriptExecutionToolsOptions.ts 3.30ms
+1386/1885 src/scripting/javascript/postprocessing-functions.ts 4.70ms
+1387/1885 src/scripting/javascript/utils/extractVariablesFromJavascript.test.ts 2.77ms
+1388/1885 src/scripting/javascript/utils/extractVariablesFromJavascript.ts 4.22ms
+1389/1885 src/scripting/javascript/utils/extractVariablesFromScript.test.ts 2.29ms
+1390/1885 src/scripting/python/PythonExecutionTools.ts 3.27ms
+1391/1885 src/scripting/typescript/TypescriptExecutionTools.ts 3.15ms
+1392/1885 src/search-engines/_index.ts 2.38ms
+1393/1885 src/search-engines/bing/BingSearchEngine.ts 4.14ms
+1394/1885 src/search-engines/dummy/DummySearchEngine.ts 3.21ms
+1395/1885 src/search-engines/google/GoogleSearchEngine.ts 3.57ms
+1396/1885 src/search-engines/SearchEngine.ts 2.79ms
+1397/1885 src/search-engines/SearchResult.ts 1.90ms
+1398/1885 src/search-engines/serp/SerpSearchEngine.ts 3.59ms
+1399/1885 src/speech-recognition/BrowserSpeechRecognition.ts 5.82ms
+1400/1885 src/speech-recognition/OpenAiSpeechRecognition.test.ts 4.74ms
+1401/1885 src/speech-recognition/OpenAiSpeechRecognition.ts 19.59ms
+1402/1885 src/storage/_common/PromptbookStorage.test-type.ts 2.89ms
+1403/1885 src/storage/_common/PromptbookStorage.ts 2.90ms
+1404/1885 src/storage/blackhole/BlackholeStorage.ts 3.14ms
+1405/1885 src/storage/env-storage/$EnvStorage.ts 5.87ms
+1406/1885 src/storage/file-cache-storage/FileCacheStorage.ts 7.60ms
+1407/1885 src/storage/file-cache-storage/FileCacheStorageOptions.ts 2.48ms
+1408/1885 src/storage/file-cache-storage/utils/nameToSubfolderPath.test.ts 2.00ms
+1409/1885 src/storage/file-cache-storage/utils/nameToSubfolderPath.ts 2.22ms
+1410/1885 src/storage/local-storage/getIndexedDbStorage.ts 3.78ms
+1411/1885 src/storage/local-storage/getLocalStorage.ts 3.46ms
+1412/1885 src/storage/local-storage/getSessionStorage.ts 3.37ms
+1413/1885 src/storage/local-storage/utils/IndexedDbStorageOptions.ts 2.20ms
+1414/1885 src/storage/local-storage/utils/makePromptbookStorageFromIndexedDb.ts 3.91ms
+1415/1885 src/storage/local-storage/utils/makePromptbookStorageFromWebStorage.ts 5.16ms
+1416/1885 src/storage/memory/MemoryStorage.ts 3.04ms
+1417/1885 src/storage/utils/PrefixStorage.ts 3.42ms
+1418/1885 src/transpilers/_common/BookTranspiler.ts 3.12ms
+1419/1885 src/transpilers/_common/BookTranspilerOptions.ts 4.38ms
+1420/1885 src/transpilers/_common/createTranspiledTeamRuntimeSection.ts 14.10ms
+1421/1885 src/transpilers/_common/createZodSchemaSource.ts 7.42ms
+1422/1885 src/transpilers/_common/formatUsedToolFunctions.test.ts 2.72ms
+1423/1885 src/transpilers/_common/formatUsedToolFunctions.ts 6.76ms
+1424/1885 src/transpilers/_common/prepareSdkTranspilerContext.ts 7.80ms
+1425/1885 src/transpilers/_common/register/$bookTranspilersRegister.ts 2.80ms
+1426/1885 src/transpilers/_common/resolveClaudeModelName.ts 2.85ms
+1427/1885 src/transpilers/_common/TranspiledTeamExport.ts 6.14ms
+1428/1885 src/transpilers/_common/transpiledTeamTranspilers.test.ts 5.81ms
+1429/1885 src/transpilers/agent-os/AgentOsTranspiler.test.ts 4.80ms
+1430/1885 src/transpilers/agent-os/AgentOsTranspiler.ts 13.72ms
+1431/1885 src/transpilers/agent-os/register.ts 2.53ms
+1432/1885 src/transpilers/anthropic-claude-managed/AnthropicClaudeManagedTranspiler.test.ts 6.37ms
+1433/1885 src/transpilers/anthropic-claude-managed/AnthropicClaudeManagedTranspiler.ts 16.22ms
+1434/1885 src/transpilers/anthropic-claude-managed/register.ts 2.93ms
+1435/1885 src/transpilers/anthropic-claude-sdk/AnthropicClaudeSdkTranspiler.test.ts 5.90ms
+1436/1885 src/transpilers/anthropic-claude-sdk/AnthropicClaudeSdkTranspiler.ts 15.56ms
+1437/1885 src/transpilers/anthropic-claude-sdk/register.ts 2.58ms
+1438/1885 src/transpilers/e2b/E2BTranspiler.test.ts 4.52ms
+1439/1885 src/transpilers/e2b/E2BTranspiler.ts 9.06ms
+1440/1885 src/transpilers/e2b/register.ts 2.48ms
+1441/1885 src/transpilers/formatted-book-in-markdown/FormattedBookInMarkdownTranspiler.ts 4.13ms
+1442/1885 src/transpilers/formatted-book-in-markdown/register.ts 3.35ms
+1443/1885 src/transpilers/openai-agents/OpenAiAgentsTranspiler.test.ts 6.12ms
+1444/1885 src/transpilers/openai-agents/OpenAiAgentsTranspiler.ts 18.56ms
+1445/1885 src/transpilers/openai-agents/register.ts 2.84ms
+1446/1885 src/transpilers/openai-sdk/OpenAiSdkTranspiler.test.ts 5.77ms
+1447/1885 src/transpilers/openai-sdk/OpenAiSdkTranspiler.ts 11.49ms
+1448/1885 src/transpilers/openai-sdk/playground/playground.ts 3.12ms
+1449/1885 src/transpilers/openai-sdk/playground/tsconfig.json 2.64ms
+1450/1885 src/transpilers/openai-sdk/register.ts 3.05ms
+1451/1885 src/types/Arrayable.ts 1.95ms
+1452/1885 src/types/InputParameters_private.ts 2.90ms
+1453/1885 src/types/IntermediateFilesStrategy.ts 2.25ms
+1454/1885 src/types/LlmCall.ts 2.08ms
+1455/1885 src/types/LlmToolDefinition.ts 2.36ms
+1456/1885 src/types/Message.ts 2.97ms
+1457/1885 src/types/ModelRequirements.ts 7.22ms
+1458/1885 src/types/ModelVariant.ts 3.54ms
+1459/1885 src/types/NonEmptyArray.ts 2.33ms
+1460/1885 src/types/number_bytes.ts 1.80ms
+1461/1885 src/types/number_id.ts 1.59ms
+1462/1885 src/types/number_likeness.ts 1.44ms
+1463/1885 src/types/number_milliseconds.ts 1.83ms
+1464/1885 src/types/number_percent.ts 1.87ms
+1465/1885 src/types/number_positive.ts 1.65ms
+1466/1885 src/types/number_usd.ts 1.96ms
+1467/1885 src/types/Parameters_private.ts 2.36ms
+1468/1885 src/types/Parameters.ts 3.00ms
+1469/1885 src/types/Prompt.ts 6.15ms
+1470/1885 src/types/ReservedParameters_private.ts 2.03ms
+1471/1885 src/types/ScriptLanguage.ts 2.18ms
+1472/1885 src/types/SectionType.ts 4.10ms
+1473/1885 src/types/SpeechRecognition.ts 3.87ms
+1474/1885 src/types/string_agent_hash_private.ts 1.78ms
+1475/1885 src/types/string_agent_name_in_book_private.ts 1.96ms
+1476/1885 src/types/string_agent_name_private.ts 2.11ms
+1477/1885 src/types/string_agent_name.ts 2.02ms
+1478/1885 src/types/string_agent_permanent_id_private.ts 1.88ms
+1479/1885 src/types/string_agent_url_private.ts 1.66ms
+1480/1885 src/types/string_agent_url.ts 1.60ms
+1481/1885 src/types/string_base_url_private.ts 1.80ms
+1482/1885 src/types/string_base_url.ts 1.61ms
+1483/1885 src/types/string_base64_private.ts 2.68ms
+1484/1885 src/types/string_base64.ts 1.89ms
+1485/1885 src/types/string_business_category_name_private.ts 1.73ms
+1486/1885 src/types/string_business_category_name.ts 1.62ms
+1487/1885 src/types/string_char_private.ts 1.60ms
+1488/1885 src/types/string_chat_prompt_private.ts 1.71ms
+1489/1885 src/types/string_completion_prompt_private.ts 1.64ms
+1490/1885 src/types/string_email_private.ts 1.58ms
+1491/1885 src/types/string_email.ts 1.52ms
+1492/1885 src/types/string_filename.ts 2.68ms
+1493/1885 src/types/string_host_private.ts 2.19ms
+1494/1885 src/types/string_host.ts 2.04ms
+1495/1885 src/types/string_href_private.ts 1.95ms
+1496/1885 src/types/string_href.ts 1.73ms
+1497/1885 src/types/string_knowledge_source_content.ts 2.38ms
+1498/1885 src/types/string_markdown.ts 3.69ms
+1499/1885 src/types/string_mime_type_private.ts 1.96ms
+1500/1885 src/types/string_mime_type.ts 2.37ms
+1501/1885 src/types/string_model_description_private.ts 1.85ms
+1502/1885 src/types/string_model_name_private.ts 2.11ms
+1503/1885 src/types/string_model_name.ts 1.76ms
+1504/1885 src/types/string_name_private.ts 1.80ms
+1505/1885 src/types/string_name.ts 3.32ms
+1506/1885 src/types/string_page_private.ts 1.95ms
+1507/1885 src/types/string_page.ts 3.33ms
+1508/1885 src/types/string_parameter_name.ts 2.94ms
+1509/1885 src/types/string_parameter_value_private.ts 1.90ms
+1510/1885 src/types/string_person_fullname.ts 4.68ms
+1511/1885 src/types/string_persona_description_private.ts 1.80ms
+1512/1885 src/types/string_persona_description.ts 1.95ms
+1513/1885 src/types/string_pipeline_root_url_private.ts 1.87ms
+1514/1885 src/types/string_pipeline_root_url.ts 1.66ms
+1515/1885 src/types/string_pipeline_url_private.ts 2.41ms
+1516/1885 src/types/string_pipeline_url.ts 2.02ms
+1517/1885 src/types/string_prompt_image_private.ts 1.71ms
+1518/1885 src/types/string_prompt_private.ts 1.72ms
+1519/1885 src/types/string_prompt.ts 3.75ms
+1520/1885 src/types/string_promptbook_server_url_private.ts 1.86ms
+1521/1885 src/types/string_promptbook_server_url.ts 1.95ms
+1522/1885 src/types/string_reserved_parameter_name_private.ts 2.18ms
+1523/1885 src/types/string_sha256.ts 3.75ms
+1524/1885 src/types/string_system_message_private.ts 1.90ms
+1525/1885 src/types/string_template_private.ts 1.69ms
+1526/1885 src/types/string_text_prompt_private.ts 2.40ms
+1527/1885 src/types/string_title_private.ts 2.94ms
+1528/1885 src/types/string_title.ts 2.10ms
+1529/1885 src/types/string_token.ts 3.61ms
+1530/1885 src/types/string_url_image_private.ts 2.20ms
+1531/1885 src/types/string_url_image.ts 2.54ms
+1532/1885 src/types/string_url_private.ts 1.46ms
+1533/1885 src/types/string_url.ts 2.11ms
+1534/1885 src/types/TaskType.ts 2.19ms
+1535/1885 src/types/ToolCall.ts 6.02ms
+1536/1885 src/types/typeAliasEmoji.ts 4.54ms
+1537/1885 src/types/typeAliases.ts 5.02ms
+1538/1885 src/types/Updatable.ts 3.04ms
+1539/1885 src/utils/agents/resolveAgentAvatarImageUrl.test.ts 4.27ms
+1540/1885 src/utils/agents/resolveAgentAvatarImageUrl.ts 7.69ms
+1541/1885 src/utils/ascii-art/$detectTerminalAnsiColorDepth.ts 3.60ms
+1542/1885 src/utils/ascii-art/convertImageDataToAsciiArt.ts 11.03ms
+1543/1885 src/utils/chat/chatAttachments.test.ts 9.53ms
+1544/1885 src/utils/chat/chatAttachments.ts 5.12ms
+1545/1885 src/utils/chat/chatAttachments/appendChatAttachmentContext.ts 2.65ms
+1546/1885 src/utils/chat/chatAttachments/appendChatAttachmentContextWithContent.ts 3.71ms
+1547/1885 src/utils/chat/chatAttachments/appendChatContextSections.ts 2.49ms
+1548/1885 src/utils/chat/chatAttachments/formatChatAttachmentContentContext.ts 4.33ms
+1549/1885 src/utils/chat/chatAttachments/formatChatAttachmentContext.ts 3.07ms
+1550/1885 src/utils/chat/chatAttachments/normalizeChatAttachments.ts 5.03ms
+1551/1885 src/utils/chat/chatAttachments/resolveChatAttachmentContent.ts 6.34ms
+1552/1885 src/utils/chat/chatAttachments/resolveChatAttachmentContents.ts 3.99ms
+1553/1885 src/utils/chat/constants.ts 2.44ms
+1554/1885 src/utils/chat/decodeChatStreamWhitespaceFromTransport.ts 2.13ms
+1555/1885 src/utils/chat/encodeChatStreamWhitespaceForTransport.ts 1.97ms
+1556/1885 src/utils/chat/escapeRegExp.ts 1.74ms
+1557/1885 src/utils/clientVersion.ts 4.77ms
+1558/1885 src/utils/color/$randomColor.ts 2.20ms
+1559/1885 src/utils/color/Color.test.ts 2.60ms
+1560/1885 src/utils/color/Color.ts 7.24ms
+1561/1885 src/utils/color/ColorValue.ts 3.43ms
+1562/1885 src/utils/color/css-colors.ts 6.60ms
+1563/1885 src/utils/color/internal-utils/checkChannelValue.ts 2.21ms
+1564/1885 src/utils/color/internal-utils/hslToRgb.ts 2.12ms
+1565/1885 src/utils/color/internal-utils/rgbToHsl.ts 2.41ms
+1566/1885 src/utils/color/isHexColorString.ts 1.92ms
+1567/1885 src/utils/color/operators/ColorTransformer.ts 1.60ms
+1568/1885 src/utils/color/operators/darken.ts 1.81ms
+1569/1885 src/utils/color/operators/furthest.ts 2.01ms
+1570/1885 src/utils/color/operators/grayscale.ts 2.56ms
+1571/1885 src/utils/color/operators/lighten.ts 2.41ms
+1572/1885 src/utils/color/operators/mixWithColor.ts 2.35ms
+1573/1885 src/utils/color/operators/nearest.ts 2.34ms
+1574/1885 src/utils/color/operators/negative.ts 1.78ms
+1575/1885 src/utils/color/operators/negativeLightness.ts 2.79ms
+1576/1885 src/utils/color/operators/README.md 1.30ms
+1577/1885 src/utils/color/operators/saturate.ts 2.39ms
+1578/1885 src/utils/color/operators/withAlpha.ts 2.09ms
+1579/1885 src/utils/color/parseColorString.ts 3.11ms
+1580/1885 src/utils/color/parsers/ColorChannelSet.ts 1.57ms
+1581/1885 src/utils/color/parsers/parseHexColor.ts 2.81ms
+1582/1885 src/utils/color/parsers/parseHslColor.ts 2.82ms
+1583/1885 src/utils/color/parsers/parseRgbColor.ts 2.88ms
+1584/1885 src/utils/color/utils/areColorsEqual.ts 1.96ms
+1585/1885 src/utils/color/utils/colorDistance.ts 2.38ms
+1586/1885 src/utils/color/utils/colorHue.ts 1.93ms
+1587/1885 src/utils/color/utils/colorHueDistance.test.ts 2.77ms
+1588/1885 src/utils/color/utils/colorHueDistance.ts 1.91ms
+1589/1885 src/utils/color/utils/colorLuminance.ts 1.68ms
+1590/1885 src/utils/color/utils/colorSatulightion.ts 2.38ms
+1591/1885 src/utils/color/utils/colorSaturation.ts 1.90ms
+1592/1885 src/utils/color/utils/colorToDataUrl.ts 5.44ms
+1593/1885 src/utils/color/utils/mixColors.ts 2.67ms
+1594/1885 src/utils/database/uniqueConstraint.ts 4.82ms
+1595/1885 src/utils/DEFAULT_THINKING_MESSAGES.ts 2.71ms
+1596/1885 src/utils/editable/edit-pipeline-string/addPipelineCommand.test.ts 3.15ms
+1597/1885 src/utils/editable/edit-pipeline-string/addPipelineCommand.ts 4.11ms
+1598/1885 src/utils/editable/edit-pipeline-string/deflatePipeline.test.ts 3.20ms
+1599/1885 src/utils/editable/edit-pipeline-string/deflatePipeline.ts 3.79ms
+1600/1885 src/utils/editable/edit-pipeline-string/removePipelineCommand.test.ts 4.59ms
+1601/1885 src/utils/editable/edit-pipeline-string/removePipelineCommand.ts 3.47ms
+1602/1885 src/utils/editable/types/PipelineEditableSerialized.ts 3.30ms
+1603/1885 src/utils/editable/utils/isFlatPipeline.test.ts 2.62ms
+1604/1885 src/utils/editable/utils/isFlatPipeline.ts 4.14ms
+1605/1885 src/utils/editable/utils/renamePipelineParameter.test.ts 6.83ms
+1606/1885 src/utils/editable/utils/renamePipelineParameter.ts 4.21ms
+1607/1885 src/utils/editable/utils/stringifyPipelineJson.ts 4.49ms
+1608/1885 src/utils/environment/$detectRuntimeEnvironment.ts 2.61ms
+1609/1885 src/utils/environment/$getGlobalScope.ts 2.11ms
+1610/1885 src/utils/environment/$isRunningInBrowser.ts 2.33ms
+1611/1885 src/utils/environment/$isRunningInJest.ts 2.12ms
+1612/1885 src/utils/environment/$isRunningInNode.ts 1.98ms
+1613/1885 src/utils/environment/$isRunningInWebWorker.ts 2.26ms
+1614/1885 src/utils/execCommand/$execCommand.ts 5.41ms
+1615/1885 src/utils/execCommand/$execCommandNormalizeOptions.ts 3.86ms
+1616/1885 src/utils/execCommand/$execCommands.ts 2.60ms
+1617/1885 src/utils/execCommand/execCommand.test.ts 2.76ms
+1618/1885 src/utils/execCommand/execCommandNormalizeOptions.test.ts 3.61ms
+1619/1885 src/utils/execCommand/ExecCommandOptions.ts 4.49ms
+1620/1885 src/utils/expectation-counters/constants.ts 1.96ms
+1621/1885 src/utils/expectation-counters/countCharacters.test.ts 2.66ms
+1622/1885 src/utils/expectation-counters/countCharacters.ts 2.27ms
+1623/1885 src/utils/expectation-counters/countLines.test.ts 1.86ms
+1624/1885 src/utils/expectation-counters/countLines.ts 2.36ms
+1625/1885 src/utils/expectation-counters/countPages.test.ts 6.76ms
+1626/1885 src/utils/expectation-counters/countPages.ts 2.48ms
+1627/1885 src/utils/expectation-counters/countParagraphs.test.ts 1.95ms
+1628/1885 src/utils/expectation-counters/countParagraphs.ts 2.23ms
+1629/1885 src/utils/expectation-counters/countSentences.test.ts 2.69ms
+1630/1885 src/utils/expectation-counters/countSentences.ts 2.51ms
+1631/1885 src/utils/expectation-counters/countWords.test.ts 3.64ms
+1632/1885 src/utils/expectation-counters/countWords.ts 3.04ms
+1633/1885 src/utils/expectation-counters/index.ts 3.06ms
+1634/1885 src/utils/expectation-counters/other/countPages.md 3.29ms
+1635/1885 src/utils/files/$induceBookDownload.ts 3.02ms
+1636/1885 src/utils/files/$induceFileDownload.ts 3.04ms
+1637/1885 src/utils/files/decodeAttachmentAsText.test.ts 4.75ms
+1638/1885 src/utils/files/decodeAttachmentAsText.ts 19.42ms
+1639/1885 src/utils/files/extensionToMimeType.test.ts 2.92ms
+1640/1885 src/utils/files/extensionToMimeType.ts 1.78ms
+1641/1885 src/utils/files/getFileExtension.test.ts 2.16ms
+1642/1885 src/utils/files/getFileExtension.ts 1.79ms
+1643/1885 src/utils/files/isDirectoryExisting.test.ts 2.43ms
+1644/1885 src/utils/files/isDirectoryExisting.ts 3.27ms
+1645/1885 src/utils/files/isExecutable.ts 2.04ms
+1646/1885 src/utils/files/isFileExisting.test.ts 2.62ms
+1647/1885 src/utils/files/isFileExisting.ts 2.56ms
+1648/1885 src/utils/files/listAllFiles.test.ts 2.37ms
+1649/1885 src/utils/files/listAllFiles.ts 3.75ms
+1650/1885 src/utils/files/mimeTypeToExtension.test.ts 2.61ms
+1651/1885 src/utils/files/mimeTypeToExtension.ts 1.94ms
+1652/1885 src/utils/files/ObjectUrl.ts 4.34ms
+1653/1885 src/utils/files/readResponseBytes.ts 3.55ms
+1654/1885 src/utils/filesystem/promptbookTemporaryPath.test.ts 2.79ms
+1655/1885 src/utils/filesystem/promptbookTemporaryPath.ts 4.05ms
+1656/1885 src/utils/isTimingSafeEqualString.ts 3.40ms
+1657/1885 src/utils/knowledge/inlineKnowledgeSource.test.ts 3.16ms
+1658/1885 src/utils/knowledge/inlineKnowledgeSource.ts 5.91ms
+1659/1885 src/utils/knowledge/simplifyKnowledgeLabel.test.ts 2.64ms
+1660/1885 src/utils/knowledge/simplifyKnowledgeLabel.ts 8.12ms
+1661/1885 src/utils/language/getBrowserPreferredSpeechRecognitionLanguage.ts 4.11ms
+1662/1885 src/utils/linguistic-hash/linguisticHash.test.ts 3.98ms
+1663/1885 src/utils/linguistic-hash/linguisticHash.ts 4.15ms
+1664/1885 src/utils/linguistic-hash/LinguisticHashLanguage.ts 3.34ms
+1665/1885 src/utils/linguistic-hash/linguisticHashTypes.ts 1.99ms
+1666/1885 src/utils/linguistic-hash/linguisticHashWordCount.ts 2.36ms
+1667/1885 src/utils/linguistic-hash/linguisticHashWords.cs.ts 3.83ms
+1668/1885 src/utils/linguistic-hash/linguisticHashWords.en.ts 11.29ms
+1669/1885 src/utils/linguistic-hash/linguisticHashWordSelection.ts 5.14ms
+1670/1885 src/utils/markdown/addAutoGeneratedSection.test.ts 3.05ms
+1671/1885 src/utils/markdown/addAutoGeneratedSection.ts 3.49ms
+1672/1885 src/utils/markdown/createMarkdownChart.test.ts 3.56ms
+1673/1885 src/utils/markdown/createMarkdownChart.ts 3.60ms
+1674/1885 src/utils/markdown/createMarkdownTable.test.ts 2.60ms
+1675/1885 src/utils/markdown/createMarkdownTable.ts 2.83ms
+1676/1885 src/utils/markdown/escapeMarkdownBlock.test.ts 2.14ms
+1677/1885 src/utils/markdown/escapeMarkdownBlock.ts 2.01ms
+1678/1885 src/utils/markdown/extractAllBlocksFromMarkdown-real.test.ts 2.97ms
+1679/1885 src/utils/markdown/extractAllBlocksFromMarkdown.test.ts 8.49ms
+1680/1885 src/utils/markdown/extractAllBlocksFromMarkdown.ts 4.86ms
+1681/1885 src/utils/markdown/extractAllListItemsFromMarkdown.test.ts 3.83ms
+1682/1885 src/utils/markdown/extractAllListItemsFromMarkdown.ts 2.78ms
+1683/1885 src/utils/markdown/extractOneBlockFromMarkdown.test.ts 4.28ms
+1684/1885 src/utils/markdown/extractOneBlockFromMarkdown.ts 4.80ms
+1685/1885 src/utils/markdown/flattenMarkdown.test.ts 4.27ms
+1686/1885 src/utils/markdown/flattenMarkdown.ts 3.36ms
+1687/1885 src/utils/markdown/humanizeAiText.test.ts 4.76ms
+1688/1885 src/utils/markdown/humanizeAiText.ts 2.71ms
+1689/1885 src/utils/markdown/humanizeAiTextEllipsis.ts 2.09ms
+1690/1885 src/utils/markdown/humanizeAiTextEmdashed.ts 2.13ms
+1691/1885 src/utils/markdown/humanizeAiTextQuotes.ts 2.36ms
+1692/1885 src/utils/markdown/humanizeAiTextSources.ts 2.64ms
+1693/1885 src/utils/markdown/humanizeAiTextWhitespace.ts 2.20ms
+1694/1885 src/utils/markdown/parseMarkdownSection.test.ts 3.34ms
+1695/1885 src/utils/markdown/parseMarkdownSection.ts 2.90ms
+1696/1885 src/utils/markdown/prettifyMarkdown.ts 2.03ms
+1697/1885 src/utils/markdown/promptbookifyAiText.test.ts 2.63ms
+1698/1885 src/utils/markdown/promptbookifyAiText.ts 3.23ms
+1699/1885 src/utils/markdown/README.md 1.96ms
+1700/1885 src/utils/markdown/removeMarkdownComments.test.ts 3.34ms
+1701/1885 src/utils/markdown/removeMarkdownComments.ts 2.24ms
+1702/1885 src/utils/markdown/removeMarkdownFormatting.test.ts 3.04ms
+1703/1885 src/utils/markdown/removeMarkdownFormatting.ts 2.23ms
+1704/1885 src/utils/markdown/removeMarkdownLinks.test.ts 2.16ms
+1705/1885 src/utils/markdown/removeMarkdownLinks.ts 2.01ms
+1706/1885 src/utils/markdown/splitMarkdownIntoSections.test.ts 3.75ms
+1707/1885 src/utils/markdown/splitMarkdownIntoSections.ts 3.82ms
+1708/1885 src/utils/markdown/trimCodeBlock.test.ts 4.00ms
+1709/1885 src/utils/markdown/trimCodeBlock.ts 2.27ms
+1710/1885 src/utils/markdown/trimEndOfCodeBlock.test.ts 2.52ms
+1711/1885 src/utils/markdown/trimEndOfCodeBlock.ts 2.20ms
+1712/1885 src/utils/misc/$getCurrentDate.ts 2.25ms
+1713/1885 src/utils/misc/$Register.ts 4.74ms
+1714/1885 src/utils/misc/aboutPromptbookInformation.ts 4.45ms
+1715/1885 src/utils/misc/arrayableToArray.test.ts 2.53ms
+1716/1885 src/utils/misc/arrayableToArray.ts 2.17ms
+1717/1885 src/utils/misc/computeHash.test.ts 2.23ms
+1718/1885 src/utils/misc/computeHash.ts 2.32ms
+1719/1885 src/utils/misc/debounce.ts 1.85ms
+1720/1885 src/utils/misc/emojis.ts 5.06ms
+1721/1885 src/utils/misc/FromtoItems.ts 2.10ms
+1722/1885 src/utils/misc/injectCssModuleIntoShadowRoot.tsx 4.03ms
+1723/1885 src/utils/misc/parseNumber.test.ts 4.70ms
+1724/1885 src/utils/misc/parseNumber.ts 3.70ms
+1725/1885 src/utils/misc/xAboutPromptbookInformation.tsx 3.08ms
+1726/1885 src/utils/normalization/capitalize.test.ts 2.12ms
+1727/1885 src/utils/normalization/capitalize.ts 2.22ms
+1728/1885 src/utils/normalization/constructImageFilename.test.ts 2.99ms
+1729/1885 src/utils/normalization/constructImageFilename.ts 3.28ms
+1730/1885 src/utils/normalization/decapitalize.test.ts 2.30ms
+1731/1885 src/utils/normalization/decapitalize.ts 2.01ms
+1732/1885 src/utils/normalization/DIACRITIC_VARIANTS_LETTERS.ts 6.06ms
+1733/1885 src/utils/normalization/IKeywords.ts 3.35ms
+1734/1885 src/utils/normalization/index.ts 1.15ms
+1735/1885 src/utils/normalization/isValidKeyword.test.ts 2.37ms
+1736/1885 src/utils/normalization/isValidKeyword.ts 3.24ms
+1737/1885 src/utils/normalization/nameToUriPart.test.ts 3.66ms
+1738/1885 src/utils/normalization/nameToUriPart.ts 2.44ms
+1739/1885 src/utils/normalization/nameToUriParts.test.ts 3.14ms
+1740/1885 src/utils/normalization/nameToUriParts.ts 2.20ms
+1741/1885 src/utils/normalization/normalize-to-kebab-case.test.ts 3.18ms
+1742/1885 src/utils/normalization/normalize-to-kebab-case.ts 3.98ms
+1743/1885 src/utils/normalization/normalizeMessageText.test.ts 3.67ms
+1744/1885 src/utils/normalization/normalizeMessageText.ts 2.85ms
+1745/1885 src/utils/normalization/normalizeTo_camelCase.test.ts 3.19ms
+1746/1885 src/utils/normalization/normalizeTo_camelCase.ts 4.93ms
+1747/1885 src/utils/normalization/normalizeTo_PascalCase.test.ts 2.42ms
+1748/1885 src/utils/normalization/normalizeTo_PascalCase.ts 2.50ms
+1749/1885 src/utils/normalization/normalizeTo_SCREAMING_CASE.test.ts 2.63ms
+1750/1885 src/utils/normalization/normalizeTo_SCREAMING_CASE.ts 4.20ms
+1751/1885 src/utils/normalization/normalizeTo_snake_case.test.ts 2.31ms
+1752/1885 src/utils/normalization/normalizeTo_snake_case.ts 2.01ms
+1753/1885 src/utils/normalization/normalizeWhitespaces.test.ts 1.99ms
+1754/1885 src/utils/normalization/normalizeWhitespaces.ts 1.96ms
+1755/1885 src/utils/normalization/orderJson.test.ts 2.55ms
+1756/1885 src/utils/normalization/orderJson.ts 2.62ms
+1757/1885 src/utils/normalization/parseKeywords.test.ts 2.68ms
+1758/1885 src/utils/normalization/parseKeywords.ts 3.95ms
+1759/1885 src/utils/normalization/parseKeywordsFromString.test.ts 3.83ms
+1760/1885 src/utils/normalization/parseKeywordsFromString.ts 2.16ms
+1761/1885 src/utils/normalization/removeDiacritics.test.ts 2.43ms
+1762/1885 src/utils/normalization/removeDiacritics.ts 2.19ms
+1763/1885 src/utils/normalization/removeEmojis.test.ts 2.82ms
+1764/1885 src/utils/normalization/removeEmojis.ts 1.88ms
+1765/1885 src/utils/normalization/removeQuotes.test.ts 2.02ms
+1766/1885 src/utils/normalization/removeQuotes.ts 2.24ms
+1767/1885 src/utils/normalization/searchKeywords.test.ts 2.28ms
+1768/1885 src/utils/normalization/searchKeywords.ts 2.25ms
+1769/1885 src/utils/normalization/suffixUrl.test.ts 1.79ms
+1770/1885 src/utils/normalization/suffixUrl.ts 1.95ms
+1771/1885 src/utils/normalization/titleToName.test.ts 3.66ms
+1772/1885 src/utils/normalization/titleToName.ts 2.87ms
+1773/1885 src/utils/normalization/unwrapResult.test.ts 5.64ms
+1774/1885 src/utils/normalization/unwrapResult.ts 5.33ms
+1775/1885 src/utils/organization/___and___.ts 1.64ms
+1776/1885 src/utils/organization/___or___.ts 1.49ms
+1777/1885 src/utils/organization/$side_effect.ts 1.77ms
+1778/1885 src/utils/organization/$sideEffect.ts 2.17ms
+1779/1885 src/utils/organization/empty_object.ts 2.04ms
+1780/1885 src/utils/organization/just_empty_object.ts 1.99ms
+1781/1885 src/utils/organization/just.ts 2.35ms
+1782/1885 src/utils/organization/keepImported.ts 2.38ms
+1783/1885 src/utils/organization/keepTypeImported.ts 2.16ms
+1784/1885 src/utils/organization/keepUnused.ts 2.47ms
+1785/1885 src/utils/organization/preserve.ts 2.67ms
+1786/1885 src/utils/organization/README.md 2.38ms
+1787/1885 src/utils/organization/really_any.ts 1.77ms
+1788/1885 src/utils/organization/really_unknown.ts 1.85ms
+1789/1885 src/utils/organization/spaceTrim.ts 2.55ms
+1790/1885 src/utils/organization/TODO_any.ts 1.69ms
+1791/1885 src/utils/organization/TODO_narrow.ts 1.68ms
+1792/1885 src/utils/organization/TODO_object.ts 1.60ms
+1793/1885 src/utils/organization/TODO_remove_as.ts 1.73ms
+1794/1885 src/utils/organization/TODO_string.ts 1.75ms
+1795/1885 src/utils/organization/TODO_unknown.ts 1.61ms
+1796/1885 src/utils/organization/TODO_USE.ts 2.01ms
+1797/1885 src/utils/parameters/extractParameterNames.test.ts 3.49ms
+1798/1885 src/utils/parameters/extractParameterNames.ts 4.30ms
+1799/1885 src/utils/parameters/mapAvailableToExpectedParameters.test.ts 3.43ms
+1800/1885 src/utils/parameters/mapAvailableToExpectedParameters.ts 5.41ms
+1801/1885 src/utils/parameters/numberToString.test.ts 2.01ms
+1802/1885 src/utils/parameters/numberToString.ts 2.35ms
+1803/1885 src/utils/parameters/templateParameters.test.ts 4.96ms
+1804/1885 src/utils/parameters/templateParameters.ts 6.28ms
+1805/1885 src/utils/parameters/valueToString.test.ts 2.46ms
+1806/1885 src/utils/parameters/valueToString.ts 3.45ms
+1807/1885 src/utils/random/$generateBookBoilerplate.ts 4.97ms
+1808/1885 src/utils/random/$randomAgentPersona.ts 3.39ms
+1809/1885 src/utils/random/$randomAgentRule.ts 3.54ms
+1810/1885 src/utils/random/$randomBase58.ts 2.67ms
+1811/1885 src/utils/random/$randomFullnameWithColor.ts 3.41ms
+1812/1885 src/utils/random/$randomItem.ts 1.95ms
+1813/1885 src/utils/random/$randomSeed.ts 2.08ms
+1814/1885 src/utils/random/$randomToken.ts 2.24ms
+1815/1885 src/utils/random/CzechNamePool.ts 6.82ms
+1816/1885 src/utils/random/EnglishNamePool.ts 5.33ms
+1817/1885 src/utils/random/getNamePool.ts 2.43ms
+1818/1885 src/utils/random/NamePool.ts 1.78ms
+1819/1885 src/utils/serialization/$deepFreeze.ts 2.87ms
+1820/1885 src/utils/serialization/asSerializable.test.ts 2.67ms
+1821/1885 src/utils/serialization/asSerializable.ts 2.83ms
+1822/1885 src/utils/serialization/checkSerializableAsJson.ts 10.94ms
+1823/1885 src/utils/serialization/clonePipeline.ts 3.11ms
+1824/1885 src/utils/serialization/deepClone.test.ts 3.91ms
+1825/1885 src/utils/serialization/deepClone.ts 3.42ms
+1826/1885 src/utils/serialization/exportJson.ts 4.37ms
+1827/1885 src/utils/serialization/isSerializableAsJson.test.ts 3.00ms
+1828/1885 src/utils/serialization/isSerializableAsJson.ts 2.49ms
+1829/1885 src/utils/serialization/jsonStringsToJsons.test.ts 2.22ms
+1830/1885 src/utils/serialization/jsonStringsToJsons.ts 2.30ms
+1831/1885 src/utils/serialization/serializeToPromptbookJavascript.test.ts 2.10ms
+1832/1885 src/utils/serialization/serializeToPromptbookJavascript.ts 5.78ms
+1833/1885 src/utils/sets/difference.test.ts 2.35ms
+1834/1885 src/utils/sets/difference.ts 2.44ms
+1835/1885 src/utils/sets/intersection.test.ts 1.94ms
+1836/1885 src/utils/sets/intersection.ts 2.15ms
+1837/1885 src/utils/sets/union.test.ts 2.21ms
+1838/1885 src/utils/sets/union.ts 2.17ms
+1839/1885 src/utils/take/classes/TakeChain.ts 2.49ms
+1840/1885 src/utils/take/interfaces/ITakeChain.ts 3.45ms
+1841/1885 src/utils/take/interfaces/Takeable.ts 2.53ms
+1842/1885 src/utils/take/take.test.ts 2.87ms
+1843/1885 src/utils/take/take.ts 2.38ms
+1844/1885 src/utils/toolCalls/getToolCallIdentity.ts 2.32ms
+1845/1885 src/utils/toolCalls/mergeToolCalls.ts 8.79ms
+1846/1885 src/utils/toolCalls/resolveToolCallIdempotencyKey.ts 3.72ms
+1847/1885 src/utils/validators/email/isValidEmail.test.ts 1.90ms
+1848/1885 src/utils/validators/email/isValidEmail.ts 1.77ms
+1849/1885 src/utils/validators/filePath/isRootPath.test.ts 1.79ms
+1850/1885 src/utils/validators/filePath/isRootPath.ts 1.94ms
+1851/1885 src/utils/validators/filePath/isValidFilePath.test.ts 5.35ms
+1852/1885 src/utils/validators/filePath/isValidFilePath.ts 3.08ms
+1853/1885 src/utils/validators/javascriptName/isValidJavascriptName.test.ts 2.05ms
+1854/1885 src/utils/validators/javascriptName/isValidJavascriptName.ts 2.48ms
+1855/1885 src/utils/validators/parameterName/validateParameterName.test.ts 2.97ms
+1856/1885 src/utils/validators/parameterName/validateParameterName.ts 3.79ms
+1857/1885 src/utils/validators/semanticVersion/isValidPromptbookVersion.test.ts 2.04ms
+1858/1885 src/utils/validators/semanticVersion/isValidPromptbookVersion.ts 3.38ms
+1859/1885 src/utils/validators/semanticVersion/isValidSemanticVersion.test.ts 2.21ms
+1860/1885 src/utils/validators/semanticVersion/isValidSemanticVersion.ts 2.28ms
+1861/1885 src/utils/validators/url/extractUrlsFromText.test.ts 2.92ms
+1862/1885 src/utils/validators/url/extractUrlsFromText.ts 4.15ms
+1863/1885 src/utils/validators/url/isHostnameOnPrivateNetwork.test.ts 2.10ms
+1864/1885 src/utils/validators/url/isHostnameOnPrivateNetwork.ts 4.99ms
+1865/1885 src/utils/validators/url/isUrlOnPrivateNetwork.test.ts 2.32ms
+1866/1885 src/utils/validators/url/isUrlOnPrivateNetwork.ts 2.41ms
+1867/1885 src/utils/validators/url/isValidAgentUrl.test.ts 2.17ms
+1868/1885 src/utils/validators/url/isValidAgentUrl.ts 2.88ms
+1869/1885 src/utils/validators/url/isValidPipelineUrl.test.ts 2.26ms
+1870/1885 src/utils/validators/url/isValidPipelineUrl.ts 3.01ms
+1871/1885 src/utils/validators/url/isValidUrl.test.ts 2.60ms
+1872/1885 src/utils/validators/url/isValidUrl.ts 2.67ms
+1873/1885 src/utils/validators/url/normalizeDomainForMatching.test.ts 1.84ms
+1874/1885 src/utils/validators/url/normalizeDomainForMatching.ts 2.71ms
+1875/1885 src/utils/validators/uuid/isValidUuid.test.ts 2.21ms
+1876/1885 src/utils/validators/uuid/isValidUuid.ts 1.84ms
+1877/1885 src/version.ts 2.72ms
+1878/1885 src/wizard/$getCompiledBook.ts 8.16ms
+1879/1885 src/wizard/test/books/test.book.md 1.61ms
+1880/1885 src/wizard/test/README.md 1.85ms
+1881/1885 src/wizard/test/sub/books/test.book.md 1.78ms
+1882/1885 src/wizard/test/sub/subsub/books/test.book.md 1.53ms
+1883/1885 src/wizard/test/sub/subsub/subsubsub/books/test.book.md 1.43ms
+1884/1885 src/wizard/test/sub/subsub/subsubsub/README.md 1.33ms
+1885/1885 src/wizard/wizard.ts 7.97ms
+CSpell: Files checked: 1885, Issues found: 0 in 0 files.
+
+> promptbook@0.113.0-4 test-lint
+> eslint src
+
+
+> promptbook@0.113.0-4 test-types
+> tsc
+
+
+> promptbook@0.113.0-4 test-books
+> echo "Note: [⚡️] Skipping the book test because it tests just the old pipeline books which are deprecated"
+
+"Note: [??] Skipping the book test because it tests just the old pipeline books which are deprecated"
+
+> promptbook@0.113.0-4 test-book-components-build
+> echo "Note: Skipping book components build tests because of constants problems with this test"
+
+"Note: Skipping book components build tests because of constants problems with this test"
+
+> promptbook@0.113.0-4 test-package-generation
+> ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler
+
+📦  Generating packages
+[36m0️⃣  Prepare the needed information about the packages[39m
+Promptbook version 0.113.0-4
+[36m1️⃣  Generate entry file for each package[39m
+[32mGenerated index file ./src/_packages/anthropic-claude.index.ts[39m
+[32mGenerated index file ./src/_packages/azure-openai.index.ts[39m
+[32mGenerated index file ./src/_packages/browser.index.ts[39m
+[32mGenerated index file ./src/_packages/cli.index.ts[39m
+[32mGenerated index file ./src/_packages/color.index.ts[39m
+[32mGenerated index file ./src/_packages/components.index.ts[39m
+[32mGenerated index file ./src/_packages/core.index.ts[39m
+[32mGenerated index file ./src/_packages/deepseek.index.ts[39m
+[32mGenerated index file ./src/_packages/documents.index.ts[39m
+[32mGenerated index file ./src/_packages/editable.index.ts[39m
+[32mGenerated index file ./src/_packages/fake-llm.index.ts[39m
+[32mGenerated index file ./src/_packages/google.index.ts[39m
+[32mGenerated index file ./src/_packages/javascript.index.ts[39m
+[32mGenerated index file ./src/_packages/legacy-documents.index.ts[39m
+[32mGenerated index file ./src/_packages/markdown-utils.index.ts[39m
+[32mGenerated index file ./src/_packages/markitdown.index.ts[39m
+[32mGenerated index file ./src/_packages/node.index.ts[39m
+[32mGenerated index file ./src/_packages/ollama.index.ts[39m
+[32mGenerated index file ./src/_packages/openai.index.ts[39m
+[32mGenerated index file ./src/_packages/pdf.index.ts[39m
+[32mGenerated index file ./src/_packages/remote-client.index.ts[39m
+[32mGenerated index file ./src/_packages/remote-server.index.ts[39m
+[32mGenerated index file ./src/_packages/templates.index.ts[39m
+[32mGenerated index file ./src/_packages/types.index.ts[39m
+[32mGenerated index file ./src/_packages/utils.index.ts[39m
+[32mGenerated index file ./src/_packages/vercel.index.ts[39m
+[32mGenerated index file ./src/_packages/website-crawler.index.ts[39m
+[32mGenerated index file ./src/_packages/wizard.index.ts[39m
+[36m2️⃣  Generate package.json, README and other crucial files for each package[39m
+[36m3️⃣  Cleanup build directories for each package[39m
+[33mSkipping the cleanup for bundler[39m
+[36m4️⃣  Generate bundle for each package[39m
+[33mSkipping the bundler[39m
+[36m5️⃣  Postprocess the generated bundle[39m
+[33mSkipping postprocessing[39m
+[36m6️⃣  Add dependencies for each package[39m
+[36m7️⃣  Copy agents-server app to CLI package[39m
+Copying ./apps/agents-server to ./packages/cli/apps/agents-server
+Copying ./apps/_common to ./packages/cli/apps/_common
+Copying ./src to ./packages/cli/src
+Copying ./books to ./packages/cli/books
+Copying ./servers.ts to ./packages/cli/servers.ts
+Copying ./security.config.ts to ./packages/cli/security.config.ts
+[32mAgents-server app copied successfully[39m
+Copying ./agents/default/developer.book to ./packages/cli/agents/default/developer.book
+[36m8️⃣  Test that nothing what should not be published is published[39m
+[33mSkipping the bundler, skipping the tests for bundle content[39m
+[36m9️⃣  Make publishing instructions for Github Actions[39m
+Verification step `test-unit` failed with code 3221225794 and signal null.

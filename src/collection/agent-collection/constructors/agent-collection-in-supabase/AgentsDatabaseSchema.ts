@@ -3,16 +3,23 @@
  * Source of truth: `/apps/agents-server/src/database/schema.sql` *(do not edit table structure here manually)*
  *
  * [💽] Prompt:
- * Re-generate this sub-schema
+ * Re-generate this sub-schema from `/apps/agents-server/src/database/schema.ts` *(which was generated from `/apps/agents-server/src/database/migrations/*.sql`)*
+ * `AgentsDatabaseSchema` is strict subset of `AgentsServerDatabase`
  * Generate Supabase TypeScript schema which is a subset of `AgentsServerDatabase`
  * containing only tables `Agent` and `AgentHistory`
  *
- * NOTE: This file intentionally omits all other tables (EnvironmentVariable, ChatHistory, ChatFeedback)
+ * NOTE: This file intentionally omits all other tables (`Metadata`, `ChatHistory`, `ChatFeedback`, `User`, `LlmCache`, etc.)
  *       and any extra schemas (e.g. `graphql_public`) to remain a strict subset.
  */
 
+/**
+ * Supabase-style JSON helper type.
+ */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+/**
+ * Subset of the Agents Server database schema containing only Agent and AgentHistory tables.
+ */
 export type AgentsDatabaseSchema = {
     // <- TODO: [🧠][🕜] Better naming
     public: {
@@ -23,90 +30,120 @@ export type AgentsDatabaseSchema = {
                     agentName: string; // <- `string_agent_name`
                     createdAt: string; // <- `string_date_iso8601`
                     updatedAt: string | null; // <- `string_date_iso8601`
+                    permanentId: string | null;
                     agentHash: string; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
                     agentProfile: Json; // <- `AgentBasicInformation` (serialized)
                     promptbookEngineVersion: string; // <- `string_promptbook_version`
                     usage: Json | null; // <- `Usage`
                     preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
-                    preparedExternals: Json | null; // <- `PreparedExternals`
+                    folderId: number | null;
+                    sortOrder: number;
+                    deletedAt: string | null;
+                    visibility: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Insert: {
                     id?: number;
                     agentName: string;
-                    createdAt: string;
+                    createdAt?: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash: string;
                     agentSource: string;
                     agentProfile: Json;
                     promptbookEngineVersion: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
-                    preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
+                    deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Update: {
                     id?: number;
                     agentName?: string;
                     createdAt?: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash?: string;
                     agentSource?: string;
                     agentProfile?: Json;
                     promptbookEngineVersion?: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
-                    preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
+                    deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'Agent_folderId_fkey';
+                        columns: ['folderId'];
+                        referencedRelation: 'AgentFolder';
+                        referencedColumns: ['id'];
+                    },
+                ];
             };
             AgentHistory: {
                 Row: {
                     id: number;
                     createdAt: string; // <- `string_date_iso8601`
                     agentName: string; // <- `string_agent_name`
+                    permanentId: string; // <- `string_agent_permanent_id`
                     agentHash: string; // <- `string_agent_hash`
                     previousAgentHash: string | null; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
                     promptbookEngineVersion: string; // <- `string_promptbook_version`
+                    versionName: string | null;
                 };
                 Insert: {
                     id?: number;
-                    createdAt: string;
+                    createdAt?: string;
                     agentName: string;
+                    permanentId: string;
                     agentHash: string;
                     previousAgentHash?: string | null;
                     agentSource: string;
                     promptbookEngineVersion: string;
+                    versionName?: string | null;
                 };
                 Update: {
                     id?: number;
                     createdAt?: string;
                     agentName?: string;
+                    permanentId?: string;
                     agentHash?: string;
                     previousAgentHash?: string | null;
                     agentSource?: string;
                     promptbookEngineVersion?: string;
+                    versionName?: string | null;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'AgentHistory_permanentId_fkey';
+                        columns: ['permanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
             };
         };
-        Views: {
-            [_ in never]: never;
-        };
-        Functions: {
-            [_ in never]: never;
-        };
-        Enums: {
-            [_ in never]: never;
-        };
-        CompositeTypes: {
-            [_ in never]: never;
-        };
+        Views: Record<string, never>;
+        Functions: Record<string, never>;
+        Enums: Record<string, never>;
+        CompositeTypes: Record<string, never>;
     };
 };
 
+/**
+ * Public schema reference for helper types.
+ */
 type PublicSchema = AgentsDatabaseSchema[Extract<keyof AgentsDatabaseSchema, 'public'>];
 
+/**
+ * Helper type to extract table row types from the public schema.
+ */
 export type Tables<
     PublicTableNameOrOptions extends
         | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
@@ -130,6 +167,9 @@ export type Tables<
         : never
     : never;
 
+/**
+ * Helper type to extract table insert types from the public schema.
+ */
 export type TablesInsert<
     PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof AgentsDatabaseSchema },
     TableName extends PublicTableNameOrOptions extends { schema: keyof AgentsDatabaseSchema }
@@ -149,6 +189,9 @@ export type TablesInsert<
         : never
     : never;
 
+/**
+ * Helper type to extract table update types from the public schema.
+ */
 export type TablesUpdate<
     PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof AgentsDatabaseSchema },
     TableName extends PublicTableNameOrOptions extends { schema: keyof AgentsDatabaseSchema }
@@ -168,6 +211,9 @@ export type TablesUpdate<
         : never
     : never;
 
+/**
+ * Helper type to extract enum types from the public schema.
+ */
 export type Enums<
     PublicEnumNameOrOptions extends keyof PublicSchema['Enums'] | { schema: keyof AgentsDatabaseSchema },
     EnumName extends PublicEnumNameOrOptions extends { schema: keyof AgentsDatabaseSchema }
@@ -179,6 +225,9 @@ export type Enums<
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
     : never;
 
+/**
+ * Helper type to extract composite types from the public schema.
+ */
 export type CompositeTypes<
     PublicCompositeTypeNameOrOptions extends
         | keyof PublicSchema['CompositeTypes']

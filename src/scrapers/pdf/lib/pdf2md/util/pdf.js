@@ -1,14 +1,32 @@
+/**
+ * Constant for path.
+ */
 const path = require('path');
+/**
+ * Constant for pdfjs promise.
+ */
 const pdfjsPromise = import('pdfjs-dist/build/pdf.mjs');
 
 pdfjsPromise.then((pdfjs) => {
     pdfjs.GlobalWorkerOptions.workerSrc = `pdfjs-dist/build/pdf.worker.mjs`;
 });
 
+/**
+ * Constant for { find page numbers, find first page, remove page number }.
+ */
 const { findPageNumbers, findFirstPage, removePageNumber } = require('../../lib/util/page-number-functions');
+/**
+ * Constant for text item.
+ */
 const TextItem = require('../models/TextItem');
+/**
+ * Constant for page.
+ */
 const Page = require('../models/Page');
 
+/**
+ * Constant for no op.
+ */
 const NO_OP = () => {};
 
 exports.parse = async function parse(docOptions, callbacks) {
@@ -87,7 +105,7 @@ exports.parse = async function parse(docOptions, callbacks) {
         pages[page.pageNumber - 1].items = textItems;
         pageParsed(pages);
 
-        const fontIds = new Set(textItems.map((t) => t.font));
+        const fontIds = new Set(textItems.map((textItem) => textItem.font));
         for (const fontId of fontIds) {
             if (!fonts.ids.has(fontId) && fontId.startsWith('g_d')) {
                 // Depending on which build of pdfjs-dist is used, the

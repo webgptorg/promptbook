@@ -7,9 +7,9 @@ import type { Takeable } from './interfaces/Takeable';
  *
  * @param {*} initialValue - The initial value.
  * @returns {Proxy<WithTake<TValue>>} - A proxy object with a `take` method.
+ * @deprecated [🤡] Use some better functional library instead of `TakeChain`
  *
  * @private util of `@promptbook/color`
- * @deprecated [🤡] Use some better functional library instead of `TakeChain`
  */
 export function take<TValue extends Takeable>(initialValue: TValue): WithTake<TValue> {
     if (initialValue instanceof TakeChain) {

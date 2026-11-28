@@ -1,6 +1,6 @@
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { string_pipeline_url } from '../../types/string_pipeline_url';
+import type { string_semantic_version } from '../../types/string_sha256';
 import type { ExecutionPromptReportJson } from './ExecutionPromptReportJson';
 
 /**
@@ -12,6 +12,7 @@ import type { ExecutionPromptReportJson } from './ExecutionPromptReportJson';
  * -   _(this)_ **JSON** format
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportJson = {

@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { MockedChatDelayConfig } from '../../../../../src/book-components/Chat/MockedChat/MockedChat';
 import { MockedChat } from '../../../../../src/book-components/Chat/MockedChat/MockedChat';
 import { MOCKED_CHAT_DELAY_CONFIGS } from '../../../../../src/book-components/Chat/MockedChat/constants';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 
+/**
+ * Handles mocked chat preview.
+ */
 export default function MockedChatPreview() {
     const PREDEFINED_CONFIG_NAMES = Object.keys(MOCKED_CHAT_DELAY_CONFIGS);
 
@@ -43,75 +46,85 @@ export default function MockedChatPreview() {
     // Sample messages for demonstration
     const messages: ChatMessage[] = [
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '1',
-            date: new Date(),
-            from: 'USER',
+            createdAt: new Date(),
+            sender: 'USER',
             content: 'Hello! Can you help me understand how MockedChat works?',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '2',
-            date: new Date(),
-            from: 'ASSISTANT',
+            createdAt: new Date(),
+            sender: 'ASSISTANT',
             content:
                 'Of course! MockedChat simulates realistic typing behavior with configurable delays between words and messages.',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '3',
-            date: new Date(),
-            from: 'USER',
+            createdAt: new Date(),
+            sender: 'USER',
             content: 'That sounds really useful for demos and presentations.',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '4',
-            date: new Date(),
-            from: 'ASSISTANT',
+            createdAt: new Date(),
+            sender: 'ASSISTANT',
             content:
                 'Exactly! You can customize the timing to create more realistic chat demonstrations. The component supports delays before first message, thinking time between messages, and word-by-word typing simulation.',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '5',
-            date: new Date(),
-            from: 'USER',
+            createdAt: new Date(),
+            sender: 'USER',
             content: 'Great! How do I adjust those delays?',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '6',
-            date: new Date(),
-            from: 'ASSISTANT',
+            createdAt: new Date(),
+            sender: 'ASSISTANT',
             content:
                 'You can adjust the delays using the `delayConfig` prop, which accepts values in milliseconds for various delay types.',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '7',
-            date: new Date(),
-            from: 'USER',
+            createdAt: new Date(),
+            sender: 'USER',
             content: 'Thanks for the explanation! This will definitely enhance my presentations.',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '8',
-            date: new Date(),
-            from: 'ASSISTANT',
+            createdAt: new Date(),
+            sender: 'ASSISTANT',
             content: "You're welcome! If you have any more questions, feel free to ask.",
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '9',
-            date: new Date(),
-            from: 'USER',
+            createdAt: new Date(),
+            sender: 'USER',
             content: 'One last thing, can you show me an example of a longer message?',
             isComplete: true,
         },
         {
+            // channel: 'PROMPTBOOK_CHAT',
             id: '10',
-            date: new Date(),
-            from: 'ASSISTANT',
+            createdAt: new Date(),
+            sender: 'ASSISTANT',
             content: spaceTrim(`
 
                 Certainly! Here is an example of a longer message that demonstrates how the \`MockedChat\` component can handle more extensive content.

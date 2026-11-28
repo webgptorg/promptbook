@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import { boilerplateCommandParser } from '../_BOILERPLATE/boilerplateCommandParser';
 import { modelCommandParser } from '../MODEL/modelCommandParser';
 import { getParserForCommand } from './getParserForCommand';
@@ -14,6 +14,6 @@ describe('getParserForCommand', () => {
     });
 
     it('should fail getting parser for unknown command', () => {
-        expect(() => stringifyCommand({} as really_any)).toThrowError(/parser is not found/i);
+        expect(() => stringifyCommand({} as chococake)).toThrowError(/parser is not found/i);
     });
 });

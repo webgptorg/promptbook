@@ -9,6 +9,7 @@ import type { BookParameter } from './AgentBasicInformation';
  *
  * @param text - Text to extract parameters from
  * @returns Array of parsed parameters with unified representation
+ *
  * @public exported from `@promptbook/core`
  */
 export function parseParameters(text: string): BookParameter[] {
@@ -55,8 +56,8 @@ export function parseParameters(text: string): BookParameter[] {
     });
 
     // Remove duplicates based on name (keep the first occurrence)
-    const uniqueParameters = parameters.filter((param, index, array) => {
-        return array.findIndex((p) => p.name === param.name) === index;
+    const uniqueParameters = parameters.filter((parameter, index, array) => {
+        return array.findIndex((parameterItem) => parameterItem.name === parameter.name) === index;
     });
 
     return uniqueParameters;

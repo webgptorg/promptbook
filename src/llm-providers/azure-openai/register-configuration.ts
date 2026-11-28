@@ -1,6 +1,6 @@
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 import type { Registration } from '../../utils/misc/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
@@ -82,6 +82,4 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
     },
 });
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

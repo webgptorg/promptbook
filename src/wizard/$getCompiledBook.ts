@@ -1,6 +1,7 @@
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { createPipelineCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
+import type { PipelineCollection } from '../collection/pipeline-collection/PipelineCollection';
 import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { saveArchive } from '../conversion/archive/saveArchive';
 import { compilePipeline } from '../conversion/compilePipeline';
@@ -11,7 +12,8 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
 import { validatePipelineString } from '../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_filename, string_pipeline_url } from '../types/typeAliases';
+import type { string_filename } from '../types/string_filename';
+import type { string_pipeline_url } from '../types/string_pipeline_url';
 import { isDirectoryExisting } from '../utils/files/isDirectoryExisting';
 import { isFileExisting } from '../utils/files/isFileExisting';
 import { isRootPath } from '../utils/validators/filePath/isRootPath';
@@ -48,8 +50,8 @@ export async function $getCompiledBook(
                 // <- TODO: Also test that among the candidates the file is book not just any file
             ) {
                 filePath = filePathCandidate;
-                const pipelineString = validatePipelineString(await fs.readFile(filePath, 'utf-8'));
-                const pipelineJson = await compilePipeline(pipelineString, tools, {
+                const pipelineString: PipelineString = validatePipelineString(await fs.readFile(filePath, 'utf-8'));
+                const pipelineJson: PipelineJson = await compilePipeline(pipelineString, tools, {
                     rootDirname: process.cwd(),
                     ...options,
                 });
@@ -94,15 +96,19 @@ export async function $getCompiledBook(
             // console.log({ rootDirname, booksDirname });
 
             if (await isDirectoryExisting(booksDirname, fs)) {
-                const collection = await createPipelineCollectionFromDirectory(booksDirname, tools, {
-                    isRecursive: true,
-                    rootDirname: booksDirname, // <- TODO: Avoid confusion with `rootDirname` and `booksDirname`
-                    ...options,
-                });
+                const collection: PipelineCollection = await createPipelineCollectionFromDirectory(
+                    booksDirname,
+                    tools,
+                    {
+                        isRecursive: true,
+                        rootDirname: booksDirname, // <- TODO: Avoid confusion with `rootDirname` and `booksDirname`
+                        ...options,
+                    },
+                );
 
                 // console.log('listPipelines', await collection.listPipelines());
 
-                const pipeline = await (async () => {
+                const pipeline: PipelineJson | null = await (async () => {
                     try {
                         return await collection.getPipelineByUrl(pipelineSource);
                     } catch (error) {
@@ -136,7 +142,7 @@ export async function $getCompiledBook(
     if (isValidPipelineUrl(pipelineSource)) {
         // console.log(`Strategy 3️⃣`);
 
-        const response = await fetch(pipelineSource);
+        const response: Response = await fetch(pipelineSource);
 
         if (response.status >= 300) {
             throw new NotFoundError(
@@ -150,7 +156,7 @@ export async function $getCompiledBook(
                 ),
             );
         }
-        const pipelineString = await response.text();
+        const pipelineString: string = await response.text();
 
         // console.log({ pipelineString });
 
@@ -167,7 +173,7 @@ export async function $getCompiledBook(
             );
         }
 
-        const pipelineJson = await compilePipeline(pipelineString, tools, {
+        const pipelineJson: PipelineJson = await compilePipeline(pipelineString, tools, {
             rootDirname: null, // <- TODO: !!6 Allow to use knowledge in pipelines loaded from URLs like `https://raw.githubusercontent.com/webgptorg/book/refs/heads/main/books/templates/chatbot.book`
             ...options,
         });
@@ -179,7 +185,7 @@ export async function $getCompiledBook(
     if (isValidPipelineString(pipelineSource)) {
         // console.log(`Strategy 4️⃣`);
 
-        const pipelineJson = await compilePipeline(pipelineSource, tools, {
+        const pipelineJson: PipelineJson = await compilePipeline(pipelineSource, tools, {
             rootDirname: null,
             ...options,
         });
@@ -205,7 +211,5 @@ export async function $getCompiledBook(
     );
 }
 
-/**
- * TODO: Write unit test
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node wizard helper [$getCompiledBook](src/wizard/$getCompiledBook.ts) should never be published into packages that could be imported into browser environment
+// TODO: Write unit test

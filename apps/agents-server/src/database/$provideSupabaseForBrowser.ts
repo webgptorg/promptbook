@@ -1,14 +1,15 @@
-import { AgentsDatabaseSchema } from '@promptbook-local/types';
 import { $isRunningInBrowser } from '@promptbook-local/utils';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { AgentsServerDatabase } from './schema';
 
 /**
  * Internal cache for `$provideSupabaseForBrowser`
  *
- * @private
  * @singleton
+ *
+ * @private
  */
-let supabase: SupabaseClient<AgentsDatabaseSchema>;
+let supabase: SupabaseClient<AgentsServerDatabase>;
 
 /**
  * Get supabase client
@@ -27,7 +28,7 @@ export function $provideSupabaseForBrowser(): typeof supabase {
 
     if (!supabase) {
         // Create a single supabase client for interacting with your database
-        supabase = createClient<AgentsDatabaseSchema>(
+        supabase = createClient<AgentsServerDatabase>(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         );
@@ -36,6 +37,4 @@ export function $provideSupabaseForBrowser(): typeof supabase {
     return supabase;
 }
 
-/**
- * Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file
- */
+// Note: [🎇] Promptbook Agents Server is not using Supabase in Browser so maybe remove this file

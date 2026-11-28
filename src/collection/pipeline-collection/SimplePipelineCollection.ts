@@ -6,15 +6,16 @@ import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { Prompt } from '../../types/Prompt';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_pipeline_url } from '../../types/string_pipeline_url';
 import type { PipelineCollection } from './PipelineCollection';
 
 /**
  * Library of pipelines that groups together pipelines for an application.
  * This implementation is a very thin wrapper around the Array / Map of pipelines.
  *
- * @private internal function of `createPipelineCollectionFromJson`, use `createPipelineCollectionFromJson` instead
  * @see https://github.com/webgptorg/pipeline#pipeline-collection
+ *
+ * @private internal function of `createPipelineCollectionFromJson`, use `createPipelineCollectionFromJson` instead
  */
 export class SimplePipelineCollection implements PipelineCollection {
     private collection: Map<string_pipeline_url, PipelineJson>;

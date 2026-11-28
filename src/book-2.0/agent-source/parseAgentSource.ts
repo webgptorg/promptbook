@@ -1,13 +1,14 @@
-import spaceTrim from 'spacetrim';
-import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
-import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
+import { createDefaultAgentName } from './createDefaultAgentName';
 import { normalizeAgentName } from './normalizeAgentName';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
+import { ensureMetaFullname } from './parseAgentSource/ensureMetaFullname';
+import { extractAgentProfileText } from './parseAgentSource/extractAgentProfileText';
+import { extractInitialMessage } from './parseAgentSource/extractInitialMessage';
+import { extractParsedAgentProfile } from './parseAgentSource/extractParsedAgentProfile';
 import type { string_book } from './string_book';
-import { createDefaultAgentName } from './createDefaultAgentName';
 
 /**
  * Parses basic information from agent source
@@ -20,82 +21,27 @@ import { createDefaultAgentName } from './createDefaultAgentName';
  */
 export function parseAgentSource(agentSource: string_book): AgentBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
+    const resolvedAgentName = parseResult.agentName || createDefaultAgentName(agentSource);
+    const personaDescription = extractAgentProfileText(parseResult.commitments);
+    const initialMessage = extractInitialMessage(parseResult.commitments);
+    const parsedProfile = extractParsedAgentProfile(parseResult.commitments);
 
-    // Find PERSONA and META commitments
-    let personaDescription: string | null = null;
-
-    for (const commitment of parseResult.commitments) {
-        if (commitment.type !== 'PERSONA') {
-            continue;
-        }
-
-        if (personaDescription === null) {
-            personaDescription = '';
-        } else {
-            personaDescription += `\n\n${personaDescription}`;
-        }
-
-        personaDescription += commitment.content;
-    }
-
-    let initialMessage: string | null = null;
-
-    for (const commitment of parseResult.commitments) {
-        if (commitment.type !== 'INITIAL MESSAGE') {
-            continue;
-        }
-
-        // Note: Initial message override logic - later overrides earlier
-        //       Or should it append? Usually initial message is just one block.
-        //       Let's stick to "later overrides earlier" for simplicity, or just take the last one.
-        initialMessage = commitment.content;
-    }
-
-    const meta: Record<string, string> = {};
-    const links: string[] = [];
-
-    for (const commitment of parseResult.commitments) {
-        if (commitment.type === 'META LINK') {
-            links.push(spaceTrim(commitment.content));
-            continue;
-        }
-
-        if (commitment.type !== 'META') {
-            continue;
-        }
-
-        // Parse META commitments - format is "META TYPE content"
-        const metaTypeRaw = commitment.content.split(' ')[0] || 'NONE';
-
-        if (metaTypeRaw === 'LINK') {
-            links.push(spaceTrim(commitment.content.substring(metaTypeRaw.length)));
-        }
-
-        const metaType = normalizeTo_camelCase(metaTypeRaw);
-        meta[metaType] = spaceTrim(commitment.content.substring(metaTypeRaw.length));
-    }
-
-    // Generate gravatar fallback if no meta image specified
-    if (!meta.image) {
-        meta.image = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
-    }
-
-    // Parse parameters using unified approach - both @Parameter and {parameter} notations
-    // are treated as the same syntax feature with unified representation
-    const parameters = parseParameters(agentSource);
-    const agentHash = computeAgentHash(agentSource);
+    ensureMetaFullname(parsedProfile.meta, resolvedAgentName);
 
     return {
-        agentName: normalizeAgentName(parseResult.agentName || createDefaultAgentName(agentSource)),
-        agentHash,
+        agentName: normalizeAgentName(resolvedAgentName),
+        agentHash: computeAgentHash(agentSource),
+        permanentId: parsedProfile.meta.id,
         personaDescription,
         initialMessage,
-        meta,
-        links,
-        parameters,
+        thinkingMessages: parsedProfile.thinkingMessages,
+        meta: parsedProfile.meta,
+        links: parsedProfile.links,
+        parameters: parseParameters(agentSource),
+        capabilities: parsedProfile.capabilities,
+        samples: parsedProfile.samples,
+        knowledgeSources: parsedProfile.knowledgeSources,
     };
 }
 
-/**
- * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
+// TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

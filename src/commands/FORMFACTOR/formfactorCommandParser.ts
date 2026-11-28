@@ -1,10 +1,10 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
 import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { FormfactorCommand } from './FormfactorCommand';
 
@@ -14,6 +14,7 @@ import type { FormfactorCommand } from './FormfactorCommand';
  * Note: This command is used as a formfactor for new commands and defines the app type format - it should NOT be used in any `.book` file
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorCommand> = {
@@ -62,7 +63,7 @@ export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorComman
 
         const formfactor = FORMFACTOR_DEFINITIONS.find((definition) =>
             [definition.name, ...{ aliasNames: [], ...definition }.aliasNames].includes(
-                formfactorNameCandidate as really_any,
+                formfactorNameCandidate as chococake,
             ),
         );
 

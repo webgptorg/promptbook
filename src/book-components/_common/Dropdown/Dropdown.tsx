@@ -1,21 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MenuIcon } from '../../icons/MenuIcon';
-import styles from './Dropdown.module.css';
+import React, { type ReactNode, useState } from 'react';
+import { HamburgerMenu } from '../HamburgerMenu/HamburgerMenu';
 import { classNames } from '../react-utils/classNames';
-import { JSX } from 'react';
+import styles from './Dropdown.module.css';
 
+/**
+ * Props for dropdown.
+ */
 type DropdownProps = {
     actions: Array<{
-        icon: JSX.Element;
+        icon: ReactNode;
         name: string;
         onClick: () => void;
     }>;
 };
 
 /**
- * @@@
+ * A dropdown menu component that displays a list of actions.
+ *
+ * The menu is toggled by a hamburger menu button. When an action is selected,
+ * the menu automatically closes.
+ *
+ * @param props - Contains an array of actions with icons, names, and click handlers
  *
  * @private internal subcomponent used by various components
  */
@@ -24,9 +31,11 @@ export function Dropdown({ actions }: DropdownProps) {
 
     return (
         <div className={styles.dropdown}>
-            <button className={classNames(styles.button, isOpen && styles.isOpen)} onClick={() => setIsOpen(!isOpen)}>
-                <MenuIcon />
-            </button>
+            <HamburgerMenu
+                className={classNames(styles.button, isOpen && styles.isOpen)}
+                isOpen={isOpen}
+                onClick={() => setIsOpen(!isOpen)}
+            />
             {isOpen && (
                 <div className={styles.menu}>
                     {actions.map(({ icon, name, onClick }) => (

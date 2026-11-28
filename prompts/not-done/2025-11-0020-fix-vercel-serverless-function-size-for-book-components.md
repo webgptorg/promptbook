@@ -147,7 +147,7 @@ Here is the problem:
 
 ---
 
-[ ]
+[-]
 
 [✨‼️] baz
 
@@ -156,7 +156,7 @@ Here is the problem:
 
 ---
 
-[ ]
+[-]
 
 [✨‼️] baz
 
@@ -165,7 +165,7 @@ Here is the problem:
 
 ---
 
-[ ]
+[-]
 
 [✨‼️] baz
 

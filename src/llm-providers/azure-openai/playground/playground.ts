@@ -20,6 +20,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Azure OpenAI Playground`);
 
@@ -76,7 +79,7 @@ async function playground() {
     const completionPromptResult = await azureOpenAiExecutionTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
+    console.info(colors.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -94,7 +97,5 @@ async function playground() {
     //========================================/
 }
 
-/**
- * TODO: Test here that `systemMessage`, `temperature` and `seed` are working correctly
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [azure-openai playground](src/llm-providers/azure-openai/playground/playground.ts) should never be published in any package
+// TODO: Test here that `systemMessage`, `temperature` and `seed` are working correctly

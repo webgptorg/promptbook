@@ -1,6 +1,9 @@
 import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
+/**
+ * Type describing page.
+ */
 type Page = {
     path: string;
     title: string;

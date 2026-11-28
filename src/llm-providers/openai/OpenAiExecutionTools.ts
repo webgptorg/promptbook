@@ -1,7 +1,9 @@
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
@@ -33,19 +35,6 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
     public get profile() {
         return OPENAI_PROVIDER_PROFILE;
     }
-
-    /*
-    Note: Commenting this out to avoid circular dependency
-    /**
-     * Create (sub)tools for calling OpenAI API Assistants
-     *
-     * @param assistantId Which assistant to use
-     * @returns Tools for calling OpenAI API Assistants with same token
-     * /
-    public createAssistantSubtools(assistantId: string_token): OpenAiAssistantExecutionTools {
-        return new OpenAiAssistantExecutionTools({ ...this.options, assistantId });
-    }
-    */
 
     /**
      * List all available models (non dynamically)
@@ -80,6 +69,13 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
      */
     protected getDefaultEmbeddingModel(): AvailableModel {
         return this.getDefaultModel('text-embedding-3-large');
+    }
+
+    /**
+     * Default model for image generation variant.
+     */
+    protected getDefaultImageGenerationModel(): AvailableModel {
+        return this.getDefaultModel('dall-e-3');
     }
 
     // <- Note: [🤖] getDefaultXxxModel

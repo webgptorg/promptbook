@@ -1,5 +1,5 @@
-import { unparse } from 'papaparse';
-import spaceTrim from 'spacetrim';
+import papaparse from 'papaparse';
+import { spaceTrim } from 'spacetrim';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatParser } from '../_common/FormatParser';
@@ -12,8 +12,9 @@ import { isValidCsvString } from './utils/isValidCsvString';
 /**
  * Definition for CSV spreadsheet
  *
+ * TODO: [🏢] Export from package `@promptbook/csv`
+ *
  * @public exported from `@promptbook/core`
- *                          <- TODO: [🏢] Export from package `@promptbook/csv`
  */
 export const CsvFormatParser: FormatParser<
     string /* <- [0] */,
@@ -101,11 +102,11 @@ export const CsvFormatParser: FormatParser<
                             i > index ? { ...row, [outputParameterName]: PENDING_VALUE_PLACEHOLDER } : row,
                         );
                         */
-                        await onProgress(unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS }));
+                        await onProgress(papaparse.unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS }));
                     }
                 }
 
-                return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
+                return papaparse.unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
             },
         },
         {
@@ -148,16 +149,14 @@ export const CsvFormatParser: FormatParser<
                     }),
                 );
 
-                return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
+                return papaparse.unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
             },
         },
     ],
 };
 
-/**
- * TODO: [🍓] In `CsvFormatParser` implement simple `isValid`
- * TODO: [🍓] In `CsvFormatParser` implement partial `canBeValid`
- * TODO: [🍓] In `CsvFormatParser` implement `heal
- * TODO: [🍓] In `CsvFormatParser` implement `subvalueParsers`
- * TODO: [🏢] Allow to expect something inside CSV objects and other formats
- */
+// TODO: [🍓] In `CsvFormatParser` implement simple `isValid`
+// TODO: [🍓] In `CsvFormatParser` implement partial `canBeValid`
+// TODO: [🍓] In `CsvFormatParser` implement `heal
+// TODO: [🍓] In `CsvFormatParser` implement `subvalueParsers`
+// TODO: [🏢] Allow to expect something inside CSV objects and other formats

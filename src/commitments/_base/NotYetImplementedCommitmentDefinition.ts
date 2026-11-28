@@ -13,7 +13,7 @@ import { BaseCommitmentDefinition } from './BaseCommitmentDefinition';
 export class NotYetImplementedCommitmentDefinition<
     TBookCommitment extends string,
 > extends BaseCommitmentDefinition<TBookCommitment> {
-    constructor(type: TBookCommitment) {
+    public constructor(type: TBookCommitment) {
         super(type);
     }
 
@@ -22,6 +22,13 @@ export class NotYetImplementedCommitmentDefinition<
      */
     get description(): string {
         return 'Placeholder commitment that appends content verbatim to the system message.';
+    }
+
+    /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🚧';
     }
 
     /**

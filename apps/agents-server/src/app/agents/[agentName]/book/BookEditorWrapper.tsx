@@ -1,139 +1,97 @@
 'use client';
 
 import { BookEditor } from '@promptbook-local/components';
-import { string_book } from '@promptbook-local/types';
-import { useEffect, useRef, useState } from 'react';
+import type { string_book } from '@promptbook-local/types';
+import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
+import { FileUploadUnavailableNotice } from '../../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
+import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
+import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
+import { BookEditorHistoryPanel } from './BookEditorHistoryPanel';
+import { BookEditorMissingReferences } from './BookEditorMissingReferences';
+import { useBookEditorWrapper } from './useBookEditorWrapper';
 
+/**
+ * Props for the BookEditorWrapper component.
+ */
 type BookEditorWrapperProps = {
     agentName: string;
     initialAgentSource: string_book;
 };
 
-// TODO: !!!! Rename to BookEditorSavingWrapper
+// TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
+/**
+ * Wraps the BookEditor with autosave and file upload support.
+ */
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
-    const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-
-    // Debounce timer ref so we can clear previous pending save
-    const debounceTimerRef = useRef<number | null>(null);
-    // Configurable debounce delay (ms) - tweak if needed
-    const DEBOUNCE_DELAY = 1000;
-
-    const performSave = async (sourceToSave: string_book) => {
-        setSaveStatus('saving');
-        try {
-            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'text/plain' },
-                body: sourceToSave,
-            });
-            if (!response.ok) {
-                throw new Error(`Failed to save: ${response.statusText}`);
-            }
-            setSaveStatus('saved');
-            setTimeout(() => setSaveStatus('idle'), 2000); // Reset status after 2 seconds
-        } catch (error) {
-            console.error('Error saving agent source:', error);
-            setSaveStatus('error');
-            setTimeout(() => setSaveStatus('idle'), 3000);
-        }
-    };
-
-    const scheduleSave = (nextSource: string_book) => {
-        // Clear existing pending save
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-        // We stay 'idle' while typing; could add a 'pending' status in future if desired
-        // Schedule new save
-        debounceTimerRef.current = window.setTimeout(() => {
-            performSave(nextSource);
-        }, DEBOUNCE_DELAY);
-    };
-
-    const handleChange = (newSource: string_book) => {
-        setAgentSource(newSource);
-        scheduleSave(newSource);
-    };
-
-    // Cleanup on unmount to avoid lingering timeouts
-    useEffect(() => {
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, []);
+    const { promptbookTheme } = usePromptbookTheme();
+    const fileUploadAvailability = useFileUploadAvailability();
+    const {
+        agentSource,
+        monacoModelPath,
+        diagnostics,
+        saveStatus,
+        saveErrorMessage,
+        retrySaveNow,
+        handleChange,
+        hoistedMenuItems,
+        missingAgentReferences,
+        creatingReference,
+        handleCreateReferencedAgent,
+        handleCoreAgentsReinstated,
+        historyPanelProps,
+    } = useBookEditorWrapper({ agentName, initialAgentSource });
 
     return (
-        <div className="w-full h-full">
-            {saveStatus !== 'idle' && (
-                <div
-                    role="status"
-                    aria-live="polite"
-                    className={`fixed top-5 right-28 z-50 px-4 py-2 text-sm rounded shadow-md ${
-                        saveStatus === 'saving'
-                            ? 'bg-blue-100 text-blue-800'
-                            : saveStatus === 'saved'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                    }`}
-                >
-                    {saveStatus === 'saving' && '💾 Saving...'}
-                    {saveStatus === 'saved' && '✅ Saved'}
-                    {saveStatus === 'error' && '❌ Failed to save'}
-                </div>
+        <div className="relative flex h-full min-h-0 flex-col">
+            {saveStatus === 'error' && (
+                <SaveFailureNotice
+                    className="mb-3"
+                    message={saveErrorMessage || 'Book save failed. Retry to persist the current source.'}
+                    onRetry={retrySaveNow}
+                />
             )}
+            {!fileUploadAvailability.isUploadAvailable && <FileUploadUnavailableNotice className="mb-3" />}
 
-            <BookEditor
-                className="w-full h-full"
-                isBorderRadiusDisabled
-                height={null}
-                value={agentSource}
-                onChange={handleChange}
-                onFileUpload={async (file) => {
-                    const formData = new FormData();
-                    formData.append('file', file);
+            <div className="flex min-h-0 flex-1 gap-4">
+                <div className="flex min-h-0 min-w-0 flex-1 gap-6">
+                    <div className="min-h-0 min-w-0 flex-1">
+                        <BookEditor
+                            className="h-full w-full"
+                            isBorderRadiusDisabled
+                            height={null}
+                            value={agentSource}
+                            monacoModelPath={monacoModelPath}
+                            onChange={handleChange}
+                            onFileUpload={
+                                fileUploadAvailability.isUploadAvailable ? bookEditorUploadHandler : undefined
+                            }
+                            diagnostics={diagnostics}
+                            hoistedMenuItems={hoistedMenuItems}
+                            theme={promptbookTheme}
+                        />
+                    </div>
 
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData,
-                    });
+                    <BookEditorMissingReferences
+                        className="hidden w-80 shrink-0 flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-md dark:border-slate-700 dark:bg-slate-950/85 dark:shadow-slate-950/30 xl:flex"
+                        missingAgentReferences={missingAgentReferences}
+                        creatingReference={creatingReference}
+                        onCreateReferencedAgent={handleCreateReferencedAgent}
+                        onCoreAgentsReinstated={handleCoreAgentsReinstated}
+                    />
+                </div>
 
-                    if (!response.ok) {
-                        throw new Error(`Failed to upload file: ${response.statusText}`);
-                    }
+                <BookEditorHistoryPanel {...historyPanelProps} theme={promptbookTheme} />
+            </div>
 
-                    const { fileUrl: longFileUrl } = await response.json();
-
-                    const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
-                        .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
-                    const SHORT_URL = `https://ptbk.io/k/`;
-                    // <- TODO: [🌍] Unite this logic in one place
-
-                    const shortFileUrl = longFileUrl.split(LONG_URL).join(SHORT_URL);
-
-                    console.log(`File uploaded:`, {
-                        LONG_URL,
-                        SHORT_URL,
-                        longFileUrl,
-                        shortFileUrl,
-                        file,
-                        formData,
-                        response,
-                    });
-
-                    return shortFileUrl;
-                }}
+            <BookEditorMissingReferences
+                className="mt-4 flex flex-col gap-4 px-4 xl:hidden"
+                missingAgentReferences={missingAgentReferences}
+                creatingReference={creatingReference}
+                onCreateReferencedAgent={handleCreateReferencedAgent}
+                onCoreAgentsReinstated={handleCoreAgentsReinstated}
             />
         </div>
     );
 }
-
-/**
- * TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
- * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- * TODO: !!! Add error handling and retry logic
- * TODO: !!! Show save status indicator
- */

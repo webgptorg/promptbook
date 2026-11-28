@@ -5,10 +5,11 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available OpenAI models with pricing
  *
- * Note: Synced with official API docs at 2025-11-19
+ * Note: Synced with official API docs at 2026-03-22
  *
  * @see https://platform.openai.com/docs/models/
  * @see https://openai.com/api/pricing/
+ *
  * @public exported from `@promptbook/openai`
  */
 export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
@@ -31,6 +32,76 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelName: 'gpt-5',
             modelDescription:
                 "OpenAI's most advanced language model with unprecedented reasoning capabilities and 200K context window. Features revolutionary improvements in complex problem-solving, scientific reasoning, and creative tasks. Demonstrates human-level performance across diverse domains with enhanced safety measures and alignment. Represents the next generation of AI with superior understanding, nuanced responses, and advanced multimodal capabilities. DEPRECATED: Use gpt-5.1 instead.",
+            pricing: {
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.2-codex',
+            modelName: 'gpt-5.2-codex',
+            modelDescription:
+                'High-capability Codex variant tuned for agentic code generation with large contexts and reasoning effort controls. Ideal for long-horizon coding workflows and multi-step reasoning.',
+            pricing: {
+                prompt: pricing(`$1.75 / 1M tokens`),
+                output: pricing(`$14.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.1-codex-max',
+            modelName: 'gpt-5.1-codex-max',
+            modelDescription:
+                'Premium GPT-5.1 Codex flavor that mirrors gpt-5.1 in capability and pricing while adding Codex tooling optimizations.',
+            pricing: {
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.1-codex',
+            modelName: 'gpt-5.1-codex',
+            modelDescription:
+                'Core GPT-5.1 Codex model focused on agentic coding tasks with a balanced trade-off between reasoning and cost.',
+            pricing: {
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.1-codex-mini',
+            modelName: 'gpt-5.1-codex-mini',
+            modelDescription:
+                'Compact, cost-effective GPT-5.1 Codex variant with a smaller context window ideal for cheap assistant iterations that still require coding awareness.',
+            pricing: {
+                prompt: pricing(`$0.25 / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5-codex',
+            modelName: 'gpt-5-codex',
+            modelDescription:
+                'Legacy GPT-5 Codex model built for agentic coding workloads with the same pricing as GPT-5 and a focus on stability.',
             pricing: {
                 prompt: pricing(`$1.25 / 1M tokens`),
                 output: pricing(`$10.00 / 1M tokens`),
@@ -74,8 +145,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Smartest non-reasoning model with 128K context window. Enhanced version of GPT-4 with improved instruction following, better factual accuracy, and reduced hallucinations. Features advanced function calling capabilities and superior performance on coding tasks. Ideal for applications requiring high intelligence without reasoning overhead.',
             pricing: {
-                prompt: pricing(`$3.00 / 1M tokens`),
-                output: pricing(`$12.00 / 1M tokens`),
+                prompt: pricing(`$2.00 / 1M tokens`),
+                output: pricing(`$8.00 / 1M tokens`),
             },
         },
         /**/
@@ -88,8 +159,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Smaller, faster version of GPT-4.1 with 128K context window. Balances intelligence and efficiency with 3x faster inference than base GPT-4.1. Maintains strong capabilities across text generation, reasoning, and coding while offering better cost-performance ratio for most applications.',
             pricing: {
-                prompt: pricing(`$0.80 / 1M tokens`),
-                output: pricing(`$3.20 / 1M tokens`),
+                prompt: pricing(`$0.40 / 1M tokens`),
+                output: pricing(`$1.60 / 1M tokens`),
             },
         },
         /**/
@@ -102,8 +173,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Fastest, most cost-efficient version of GPT-4.1 with 128K context window. Optimized for high-throughput applications requiring good quality at minimal cost. Features 5x faster inference than GPT-4.1 while maintaining adequate performance for most general-purpose tasks.',
             pricing: {
-                prompt: pricing(`$0.20 / 1M tokens`),
-                output: pricing(`$0.80 / 1M tokens`),
+                prompt: pricing(`$0.10 / 1M tokens`),
+                output: pricing(`$0.40 / 1M tokens`),
             },
         },
         /**/
@@ -116,8 +187,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Advanced reasoning model with 128K context window specializing in complex logical, mathematical, and analytical tasks. Successor to o1 with enhanced step-by-step problem-solving capabilities and superior performance on STEM-focused problems. Ideal for professional applications requiring deep analytical thinking and precise reasoning.',
             pricing: {
-                prompt: pricing(`$15.00 / 1M tokens`),
-                output: pricing(`$60.00 / 1M tokens`),
+                prompt: pricing(`$2.00 / 1M tokens`),
+                output: pricing(`$8.00 / 1M tokens`),
             },
         },
         /**/
@@ -130,8 +201,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Enhanced version of o3 with more compute allocated for better responses on the most challenging problems. Features extended reasoning time and improved accuracy on complex analytical tasks. Designed for applications where maximum reasoning quality is more important than response speed.',
             pricing: {
-                prompt: pricing(`$30.00 / 1M tokens`),
-                output: pricing(`$120.00 / 1M tokens`),
+                prompt: pricing(`$20.00 / 1M tokens`),
+                output: pricing(`$80.00 / 1M tokens`),
             },
         },
         /**/
@@ -144,8 +215,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Fast, cost-efficient reasoning model with 128K context window. Successor to o1-mini with improved analytical capabilities while maintaining speed advantages. Features enhanced mathematical reasoning and logical problem-solving at significantly lower cost than full reasoning models.',
             pricing: {
-                prompt: pricing(`$4.00 / 1M tokens`),
-                output: pricing(`$16.00 / 1M tokens`),
+                prompt: pricing(`$1.10 / 1M tokens`),
+                output: pricing(`$4.40 / 1M tokens`),
             },
         },
         /**/
@@ -178,12 +249,19 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         },
         /**/
 
-        /*/
-          {
-              modelTitle: 'dall-e-3',
-              modelName: 'dall-e-3',
-          },
-          /**/
+        /**/
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelTitle: 'dall-e-3',
+            modelName: 'dall-e-3',
+            modelDescription:
+                'DALL·E 3 is the latest version of the DALL·E art generation model. It understands significantly more nuance and detail than our previous systems, allowing you to easily translate your ideas into exceptionally accurate images.',
+            pricing: {
+                prompt: 0,
+                output: 0.04,
+            },
+        },
+        /**/
 
         /*/
           {
@@ -206,12 +284,19 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         },
         /**/
 
-        /*/
-      {
-          modelTitle: 'dall-e-2',
-          modelName: 'dall-e-2',
-      },
-      /**/
+        /**/
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelTitle: 'dall-e-2',
+            modelName: 'dall-e-2',
+            modelDescription:
+                'DALL·E 2 is an AI system that can create realistic images and art from a description in natural language.',
+            pricing: {
+                prompt: 0,
+                output: 0.02,
+            },
+        },
+        /**/
 
         /**/
         {
@@ -547,8 +632,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'May 2024 version of GPT-4o with 128K context window. Features enhanced multimodal capabilities including superior image understanding (up to 20MP), audio processing, and improved reasoning. Optimized for 2x lower latency than GPT-4 Turbo while maintaining high performance. Includes knowledge up to October 2023. Ideal for production applications requiring reliable multimodal capabilities.',
             pricing: {
-                prompt: pricing(`$5.00 / 1M tokens`),
-                output: pricing(`$15.00 / 1M tokens`),
+                prompt: pricing(`$2.50 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
             },
         },
         /**/
@@ -561,8 +646,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 "OpenAI's most advanced general-purpose multimodal model with 128K context window. Optimized for balanced performance, speed, and cost with 2x faster responses than GPT-4 Turbo. Features excellent vision processing, audio understanding, reasoning, and text generation quality. Represents optimal balance of capability and efficiency for most advanced applications.",
             pricing: {
-                prompt: pricing(`$5.00 / 1M tokens`),
-                output: pricing(`$15.00 / 1M tokens`),
+                prompt: pricing(`$2.50 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
             },
         },
         /**/
@@ -645,8 +730,8 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
             modelDescription:
                 'Cost-effective reasoning model with 128K context window optimized for academic and scientific problem-solving. Features efficient performance on STEM tasks with specialized capabilities in mathematics, physics, chemistry, and computer science. Offers 80% of O1 performance on technical domains at significantly lower cost. Ideal for educational applications and research support.',
             pricing: {
-                prompt: pricing(`$3.00 / 1M tokens`),
-                output: pricing(`$12.00 / 1M tokens`),
+                prompt: pricing(`$1.10 / 1M tokens`),
+                output: pricing(`$4.40 / 1M tokens`),
             },
         },
         /**/

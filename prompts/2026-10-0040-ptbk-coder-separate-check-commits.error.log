@@ -1,0 +1,64 @@
+Timestamp: 2026-10-05T13:31:45.048Z
+Prompt: prompts/2026-10-0040-ptbk-coder-separate-check-commits.md#1
+Prompt file: /Users/hejny/work/promptbook/prompts/2026-10-0040-ptbk-coder-separate-check-commits.md
+Prompt section: 1
+Prompt summary: Commit changes made by Coder checks separately from implementation changes
+Runner: OpenAI Codex (gpt-6.1-sol)
+
+CLI output and error:
+NotAllowed:             Coder record failed. The requested persistence step did not finish.
+
+                        Coder record failed. The requested persistence step did not finish.
+
+                    Cannot safely attribute changes overlapping pre-existing user work:
+        - `changelog/_current-preversion.md`
+- `prompts/2026-10-0040-ptbk-coder-separate-check-commits.md`
+- `scripts/run-codex-prompts/README.md`
+- `scripts/run-codex-prompts/checks/CoderCheckExecutionError.ts`
+- `scripts/run-codex-prompts/checks/checkChangesWorkflow.test.ts`
+- `scripts/run-codex-prompts/checks/runCheckBefore.ts`
+- `scripts/run-codex-prompts/checks/runCoderCheck.ts`
+- `scripts/run-codex-prompts/checks/runCoderCheckRepair.test.ts`
+- `scripts/run-codex-prompts/checks/runCoderCheckRepair.ts`
+- `scripts/run-codex-prompts/checks/runPromptWithCheckFeedback.ts`
+- `scripts/run-codex-prompts/common/runGoScript/runBashScriptWithOutput.test.ts`
+- `scripts/run-codex-prompts/common/runGoScript/scriptExecutionLog.ts`
+- `scripts/run-codex-prompts/common/withCoderWorkspaceLock.ts`
+- `scripts/run-codex-prompts/git/CoderPhasePersistence.ts`
+- `scripts/run-codex-prompts/git/CoderPhaseRecovery.ts`
+- `scripts/run-codex-prompts/git/buildCoderCheckCommitMessage.ts`
+- `scripts/run-codex-prompts/git/coderCommitScope.ts`
+- `scripts/run-codex-prompts/git/coderRepositorySnapshot.ts`
+- `scripts/run-codex-prompts/git/commitChanges.ts`
+- `scripts/run-codex-prompts/git/workingTreeChanges.ts`
+- `scripts/run-codex-prompts/isolation/createCoderIsolationWorktree.ts`
+- `scripts/run-codex-prompts/isolation/mergeCoderIsolationWorktree.ts`
+- `scripts/run-codex-prompts/isolation/preserveCoderIsolationRecovery.ts`
+- `scripts/run-codex-prompts/isolation/removeCoderIsolationWorktree.ts`
+- `scripts/run-codex-prompts/isolation/runIsolatedPromptRound.test.ts`
+- `scripts/run-codex-prompts/isolation/runIsolatedPromptRound.ts`
+- `scripts/run-codex-prompts/main/runCodexPrompts.test.ts`
+- `scripts/run-codex-prompts/main/runPromptRound.test.ts`
+- `scripts/run-codex-prompts/main/runPromptRound.ts`
+- `scripts/run-codex-prompts/prompts/buildPromptRunTraceContent.ts`
+- `scripts/run-codex-prompts/prompts/refreshPromptSelection.ts`
+- `src/cli/cli-commands/coder/fixWorkflow.test.ts`
+- `src/cli/cli-commands/common/coderCheckCliOptions.ts`
+- `src/cli/cli-commands/common/workspaceRepository.ts`
+
+        Both staged and unstaged content have been retained. Separate these edits manually before resuming persistence.
+
+            Recover the saved work and retry the Git operation manually; do not rerun the coding agent for this error.
+Original raw bytes/index and the phase result: `/Users/hejny/work/promptbook/.git/ptbk-coder/recovery/5031e8e61813a06ff2ce6e51be76b2a9`.
+
+            Recover the saved work and retry the Git operation manually; do not rerun the coding agent for this error.
+    at CoderPhasePersistence.captureOwnedMutationBoundary (/Users/hejny/work/promptbook/scripts/run-codex-prompts/git/CoderPhasePersistence.ts:136:27)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async /Users/hejny/work/promptbook/scripts/run-codex-prompts/git/CoderPhasePersistence.ts:121:9
+    at async CoderPhasePersistence.withOwnership (/Users/hejny/work/promptbook/scripts/run-codex-prompts/git/CoderPhasePersistence.ts:268:20)
+    at async runRunnerPromptStep (/Users/hejny/work/promptbook/scripts/run-codex-prompts/checks/runPromptWithCheckFeedback.ts:200:45)
+    at async runPromptWithCheckFeedback (/Users/hejny/work/promptbook/scripts/run-codex-prompts/checks/runPromptWithCheckFeedback.ts:114:24)
+    at async preserveArtifactsOnSuccess (/Users/hejny/work/promptbook/scripts/run-codex-prompts/main/runPromptRound.ts:213:36)
+    at async withPromptRuntimeLog (/Users/hejny/work/promptbook/scripts/run-codex-prompts/common/runGoScript/withPromptRuntimeLog.ts:18:16)
+    at async runOwnedPromptRound (/Users/hejny/work/promptbook/scripts/run-codex-prompts/main/runPromptRound.ts:202:5)
+    at async withCoderWorkspaceLock (/Users/hejny/work/promptbook/scripts/run-codex-prompts/common/withCoderWorkspaceLock.ts:42:20)

@@ -1,0 +1,30 @@
+name: ✅ Checks
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    test-books:
+        name: 🧪✨ Test Books
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm i ptbk
+
+            - name: Test Books
+              #  TODO: [🐯] In future maybe remove `--no-prepare`
+              #> env:
+              #>     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+              #>     ANTHROPIC_CLAUDE_API_KEY: ${{ secrets.ANTHROPIC_CLAUDE_API_KEY }}
+              #>     GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+              run: npx ptbk test --no-prepare "./**/*.book" --ignore "./pips/**/*" --verbose --no-interactive

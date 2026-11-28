@@ -1,155 +1,165 @@
-'use server';
-
-import { getSingleLlmExecutionTools } from '@promptbook-local/core';
-import moment from 'moment';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
-import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
+import { redirect } from 'next/navigation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
-import VercelDeploymentCard from '../components/VercelDeploymentCard/VercelDeploymentCard';
-import { getLongRunningTask } from '../deamons/longRunningTask';
-import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
-import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
+import { ForbiddenPage } from '../components/ForbiddenPage/ForbiddenPage';
+import { DefaultAgentsStatusNotice } from '../components/Homepage/DefaultAgentsStatusNotice';
+import { HomepagePrimarySections } from '../components/Homepage/HomepagePrimarySections';
 import { $provideServer } from '../tools/$provideServer';
+import { resolveDefaultAgentsStatus } from '../utils/defaultAgents/resolveDefaultAgentsStatus';
 import { isUserAdmin } from '../utils/isUserAdmin';
-import { getCurrentUser } from '../utils/getCurrentUser';
-import { AuthControls } from '../components/Auth/AuthControls';
-import { UsersList } from '../components/UsersList/UsersList';
-import { AddAgentButton } from './AddAgentButton';
+import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
+import { createServerPublicUrl, resolveRegisteredServerByHost, type ServerRecord } from '../utils/serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistryNode';
+import { isStandaloneVpsRawIpBootstrapActive } from '../utils/standaloneVpsRawIpBootstrap';
+import { getHomePageAgents } from './_data/getHomePageAgents';
 
-// Add calendar formats that include seconds
-const calendarWithSeconds = {
-    sameDay: '[Today at] LTS',
-    nextDay: '[Tomorrow at] LTS',
-    nextWeek: 'dddd [at] LTS',
-    lastDay: '[Yesterday at] LTS',
-    lastWeek: '[Last] dddd [at] LTS',
-    sameElse: 'L [at] LTS',
-};
-
+/**
+ * Renders the simplified agents home page with local and federated agents.
+ */
 export default async function HomePage() {
-    $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
+    const headerStore = await headers();
+    $sideEffect(/* Note: [??] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headerStore);
 
-    const isAdmin = await isUserAdmin(); /* <- TODO: [👹] Here should be user permissions */
-    const currentUser = await getCurrentUser();
+    const ipAddressRouting = await resolveIpAddressRouting(headerStore.get('host'));
+    if (ipAddressRouting === 'LOGIN') {
+        return <ForbiddenPage />;
+    }
 
-    const collection = await $provideAgentCollectionForServer();
-    const agents = await collection.listAgents();
+    if (ipAddressRouting === 'CONFIGURE') {
+        redirect('/superadmin/servers?setup=1');
+    }
 
-    const longRunningTask = getLongRunningTask();
+    if (Array.isArray(ipAddressRouting)) {
+        return <IpAddressDomainChooser servers={ipAddressRouting} />;
+    }
 
-    const executionTools = await $provideExecutionToolsForServer();
-    const models = await getSingleLlmExecutionTools(executionTools.llm).listModels();
+    const [{ publicUrl }, isAdmin, { agents, folders, homepageMessage, currentUser }] = await Promise.all([
+        $provideServer(),
+        isUserAdmin() /* <- TODO: [??] Here should be user permissions */,
+        getHomePageAgents(),
+    ]);
 
-    const host = (await headers()).get('host');
+    // Note: The missing-agents notice is only relevant to admins, who alone can reinstate the bundled agents.
+    const defaultAgentsStatus = isAdmin
+        ? await resolveDefaultAgentsStatus().catch((error) => {
+              console.error('Failed to resolve default agents status:', error);
+              return null;
+          })
+        : null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="agents-server-route-shell min-h-screen">
             <div className="container mx-auto px-4 py-16">
-                <div className="flex justify-end mb-4">
-                    <AuthControls initialUser={currentUser} />
-                </div>
-
-                <>
-                    <h2 className="text-3xl text-gray-900 mt-4 mb-4">Agents ({agents.length})</h2>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {agents.map((agent) => (
-                            <Link key={agent.agentName} href={`/${agent.agentName}`}>
-                                <AvatarProfile
-                                    {...{ agent }}
-                                    style={
-                                        !agent.meta.color
-                                            ? {}
-                                            : {
-                                                  backgroundColor: `${agent.meta.color}22`, // <- TODO: Use Color object here
-                                              }
-                                    }
-                                    className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                                />
-                            </Link>
-                        ))}
-                        {isAdmin && <AddAgentButton />}
-                    </div>
-                </>
-
-                {isAdmin && (
-                    <UsersList />
+                {defaultAgentsStatus && (
+                    <DefaultAgentsStatusNotice
+                        isAnyCoreAgentMissing={defaultAgentsStatus.isAnyCoreAgentMissing}
+                        isAnyDefaultAgentMissing={defaultAgentsStatus.isAnyDefaultAgentMissing}
+                        missingCoreAgentTitles={defaultAgentsStatus.coreAgents
+                            .filter((coreAgent) => !coreAgent.isPresent)
+                            .map((coreAgent) => coreAgent.title)}
+                        missingDefaultAgentTitles={defaultAgentsStatus.defaultAgents
+                            .filter((defaultAgent) => !defaultAgent.isPresent)
+                            .map((defaultAgent) => defaultAgent.title)}
+                    />
                 )}
-
-                {isAdmin && (
-                    <>
-                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">Models ({models.length})</h2>
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {models.map(({ modelName, modelTitle, modelDescription }) => (
-                                <Link key={modelName} href={`#!!!`}>
-                                    <div className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400">
-                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">{modelTitle}</h2>
-                                        <code>{modelName}</code>
-                                        <p className="text-gray-600">{modelDescription}</p>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </>
-                )}
-
-                {isAdmin && (
-                    <>
-                        {/* Note: Shown in <AboutPromptbookInformation />: <h2 className="text-3xl text-gray-900 mt-16 mb-4">About Promptbook</h2> */}
-                        <AboutPromptbookInformation />
-                    </>
-                )}
-
-                {isAdmin && (
-                    <>
-                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">Technical Information</h2>
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            <Link
-                                href={'#'}
-                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                            >
-                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                                    Long running task {longRunningTask.taskId}
-                                </h2>
-                                <p className="text-gray-600">Tick: {longRunningTask.tick}</p>
-                                <p className="text-gray-600">
-                                    Created At:{' '}
-                                    {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
-                                </p>
-                                <p className="text-gray-600">
-                                    Updated At:{' '}
-                                    {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
-                                </p>
-                            </Link>
-
-                            <VercelDeploymentCard />
-
-                            <Link
-                                href={'#'}
-                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                            >
-                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">HTTP Information</h2>
-
-                                <p className="text-gray-600">Host: {host}</p>
-                            </Link>
-
-                            <Link
-                                href={'#'}
-                                className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-                            >
-                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Server</h2>
-
-                                <pre>{JSON.stringify(await $provideServer(), null, 2)}</pre>
-                            </Link>
-                        </div>
-                    </>
-                )}
+                <HomepagePrimarySections
+                    creationScope={JSON.stringify([publicUrl.href, currentUser?.username])}
+                    agents={agents}
+                    folders={folders}
+                    isAdmin={isAdmin}
+                    canOrganize={Boolean(currentUser)}
+                    publicUrl={publicUrl.href}
+                    homepageMessage={homepageMessage}
+                />
             </div>
         </div>
     );
 }
 
 /**
- * TODO: [🕋] Use here `AboutPromptbookInformation`
+ * Resolves special raw-IP behavior for standalone VPS access.
+ *
+ * @param host - Request host header.
+ * @returns Routing instruction or `null` when normal homepage rendering should continue.
  */
+async function resolveIpAddressRouting(
+    host: string | null,
+): Promise<'LOGIN' | 'CONFIGURE' | ReadonlyArray<ServerRecord> | null> {
+    if (!host || !isIpAddressHost(host)) {
+        return null;
+    }
+
+    const registeredServers = await listRegisteredServersUsingServiceRole().catch(() => []);
+    if (resolveRegisteredServerByHost(host, registeredServers)) {
+        return null;
+    }
+
+    if (registeredServers.length === 0) {
+        return (await isUserGlobalAdmin()) ? 'CONFIGURE' : 'LOGIN';
+    }
+
+    if (
+        isStandaloneVpsRawIpBootstrapActive({
+            nextPublicSiteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+            publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+        })
+    ) {
+        return null;
+    }
+
+    if (registeredServers.length === 1) {
+        redirect(createServerPublicUrl(registeredServers[0]!.domain).href);
+    }
+
+    return registeredServers;
+}
+
+/**
+ * Checks whether the request host is a raw IPv4 or IPv6 address.
+ *
+ * @param host - Raw host header.
+ * @returns `true` for IP-address access.
+ */
+function isIpAddressHost(host: string): boolean {
+    const hostname = host
+        .trim()
+        .replace(/^\[(.+)\](?::\d+)?$/u, '$1')
+        .replace(/:\d+$/u, '');
+
+    return /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(hostname) || hostname.includes(':');
+}
+
+/**
+ * Simple domain chooser shown when a raw IP has multiple configured domains.
+ *
+ * @param props - Configured server list.
+ */
+function IpAddressDomainChooser(props: { readonly servers: ReadonlyArray<ServerRecord> }) {
+    return (
+        <div className="min-h-screen bg-slate-50 px-4 py-24">
+            <div className="mx-auto max-w-2xl space-y-6">
+                <div>
+                    <h1 className="text-3xl font-light text-slate-900">Choose a domain</h1>
+                    <p className="mt-2 text-sm text-slate-600">
+                        This VPS has multiple Agents Server domains configured. Open the domain you want to use.
+                    </p>
+                </div>
+                <div className="grid gap-3">
+                    {props.servers.map((server) => {
+                        const url = createServerPublicUrl(server.domain).href;
+                        return (
+                            <Link
+                                key={server.id}
+                                href={url}
+                                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-blue-300 hover:text-blue-700"
+                            >
+                                {server.domain}
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+}

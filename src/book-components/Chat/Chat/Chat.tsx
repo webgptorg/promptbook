@@ -1,34 +1,63 @@
 'use client';
-// <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
+// <- Note: [??] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import spaceTrim from 'spacetrim';
-import { USER_CHAT_COLOR } from '../../../config';
-import type { id } from '../../../types/typeAliases';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
-import { textColor } from '../../../utils/color/operators/furthest';
-import { grayscale } from '../../../utils/color/operators/grayscale';
-import { lighten } from '../../../utils/color/operators/lighten';
-import { countLines } from '../../../utils/expectation-counters/countLines';
-import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
-import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
-import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
+import { SolidArrowButton } from '../../icons/SolidArrowButton';
 import { classNames } from '../../_common/react-utils/classNames';
-import { ArrowIcon } from '../../icons/ArrowIcon';
-import { AttachmentIcon } from '../../icons/AttachmentIcon';
-import { CloseIcon } from '../../icons/CloseIcon';
-import { ResetIcon } from '../../icons/ResetIcon';
-import { SaveIcon } from '../../icons/SaveIcon';
-import { SendIcon } from '../../icons/SendIcon';
-import { TemplateIcon } from '../../icons/TemplateIcon';
-import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
-import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
-import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
+import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
+import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
+import { useChatCompleteNotification } from '../hooks/useChatCompleteNotification';
+import { useChatRatings } from '../hooks/useChatRatings';
 import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
-import { ChatMessageItem } from './ChatMessageItem'; // <- [🥂]
+import { ChatActionsBar } from './ChatActionsBar';
+import { ChatCitationModal } from './ChatCitationModal';
+import { chatCssClassNames, getChatCssClassName } from './chatCssClassNames';
+import { ChatInputArea } from './ChatInputArea';
+import { ChatMessageList } from './ChatMessageList';
 import type { ChatProps } from './ChatProps';
+import { ChatRatingModal } from './ChatRatingModal';
+import { ChatToolCallModal } from './ChatToolCallModal';
+import type { ChatComposerDraft } from './useChatInputAreaComposer';
+import { useChatPostprocessedMessages } from './useChatPostprocessedMessages';
+import { useChatScrollState } from './useChatScrollState';
+import { useChatToolCallState } from './useChatToolCallState';
+
+/**
+ * Returns whether feedback controls should be rendered for the current chat.
+ *
+ * @private function of `<Chat/>`
+ */
+function isChatFeedbackEnabled(onFeedback: ChatProps['onFeedback'], feedbackMode: ChatProps['feedbackMode']): boolean {
+    return !!onFeedback && feedbackMode !== 'off';
+}
+
+/**
+ * Returns whether the actions toolbar should render at all.
+ *
+ * @private function of `<Chat/>`
+ */
+function hasChatActions(
+    postprocessedMessages: ReadonlyArray<ChatMessage>,
+    {
+        onReset,
+        newChatButtonHref,
+        onUseTemplate,
+        extraActions,
+        isSaveButtonEnabled,
+    }: Pick<ChatProps, 'onReset' | 'newChatButtonHref' | 'onUseTemplate' | 'extraActions' | 'isSaveButtonEnabled'>,
+): boolean {
+    const hasMessages = postprocessedMessages.length !== 0;
+
+    return (
+        ((!!onReset || !!newChatButtonHref) && hasMessages) ||
+        (isSaveButtonEnabled && hasMessages) ||
+        !!onUseTemplate ||
+        !!extraActions
+    );
+}
 
 /**
  * Renders a chat with messages and input for new messages
@@ -49,373 +78,232 @@ export function Chat(props: ChatProps) {
         messages,
         onChange,
         onMessage,
+        onActionButton,
+        onQuickMessageButton,
+        onQuickMessageDraftButton,
+        onReplyToMessage,
+        onCancelReply,
         onReset,
+        resetRequiresConfirmation = true,
+        newChatButtonHref,
         onFeedback,
+        feedbackMode = 'stars',
+        feedbackTranslations,
+        timingTranslations,
+        resolveCitationLabel,
         onFileUpload,
-        // isVoiceRecognitionButtonShown,
-        // voiceLanguage = 'en-US',
+        chatLocale,
+        speechRecognition,
         placeholderMessageContent,
         defaultMessage,
-        // tasksProgress,
+        enterBehavior,
+        resolveEnterBehavior,
         children,
         className,
         style,
-        // voiceCallProps,
         isAiTextHumanizedAndPromptbookified = true,
         isVoiceCalling = false,
         isFocusedOnLoad,
-        // isExperimental = false,
-        // TODO: [😅]> isSaveButtonEnabled = false,
-        // exportHeaderMarkdown,
         participants = [],
+        canReplyToMessage,
+        replyingToMessage,
         extraActions,
+        actionsContainer,
         saveFormats,
+        saveFormatHandlers,
         isSaveButtonEnabled = true,
         isCopyButtonEnabled = true,
+        buttonColor: buttonColorRaw,
+        onUseTemplate,
+        onCreateAgent,
+        toolTitles,
+        teammates,
+        teamAgentProfiles,
+        markdownInlineReferences,
+        layout,
+        visualMode = 'ARTICLE_MODE',
+        theme = 'LIGHT',
+        effectConfigs,
+        soundSystem,
+        speechRecognitionLanguage,
+        isSpeechPlaybackEnabled = true,
+        elevenLabsVoiceId,
+        chatUiTranslations,
+        agentIdentifier,
     } = props;
 
-    const { onUseTemplate } = props;
+    const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
+    const agentParticipant = useMemo(
+        () => participants.find((participant) => participant.name === 'AGENT'),
+        [participants],
+    );
 
-    // Use the auto-scroll hook
+    // Note: A `?messageDraft=` quick button prefills the composer with an editable draft instead of
+    //       sending it. `<Chat/>` owns the composer, so it handles the draft itself unless the host
+    //       overrides the behavior via `onQuickMessageDraftButton`.
+    const [composerDraft, setComposerDraft] = useState<ChatComposerDraft | undefined>(undefined);
+    const handleInternalQuickMessageDraftButton = useCallback((messageDraftContent: string) => {
+        setComposerDraft({ content: messageDraftContent });
+    }, []);
+    const resolvedOnQuickMessageDraftButton =
+        onQuickMessageDraftButton ?? (onMessage ? handleInternalQuickMessageDraftButton : undefined);
+    const postprocessedMessages = useChatPostprocessedMessages({
+        messages,
+        isAiTextHumanizedAndPromptbookified,
+    });
     const {
-        isAutoScrolling,
-        chatMessagesRef,
-        handleScroll,
-        handleMessagesChange,
+        actionsRef,
+        ariaLabel,
+        badgeLabel,
+        handleChatScroll,
+        isMobile,
         scrollToBottom,
-        isMobile: isMobileFromHook,
-    } = useChatAutoScroll();
+        setChatMessagesElement,
+        shouldDisableActions,
+        shouldFadeActions,
+        shouldShowScrollToBottom,
+    } = useChatScrollState({
+        messages: postprocessedMessages,
+    });
 
-    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const buttonSendRef = useRef<HTMLButtonElement | null>(null);
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [ratingModalOpen, setRatingModalOpen] = useState(false);
-    const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
-    const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
-    const [textRating, setTextRating] = useState('');
-    const [hoveredRating, setHoveredRating] = useState(0);
-    const [expandedMessageId, setExpandedMessageId] = useState<id | null>(null);
-    // const [copiedToClipboard, setCopiedToClipboard] = useState(false);
-    // const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-    // const [isTyping, setIsTyping] = useState(false);
-    // const [inputValue, setInputValue] = useState('');
-    const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT'); // Simplified light/dark mode
-    const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
-
-    // File upload state
-    const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; file: File; content: string }>>([]);
-    const [isDragOver, setIsDragOver] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
-
-    // Use mobile detection from the hook
-    const isMobile = isMobileFromHook;
-
-    useEffect(
-        (/* Focus textarea on page load */) => {
-            if (!textareaRef.current) {
-                return;
-            }
-
-            // Note: By default, only auto-focus on desktop to prevent mobile keyboard from popping up
-            const isFocused = isFocusedOnLoad ?? !isMobile;
-
-            if (isFocused) {
-                textareaRef.current.focus();
-            }
+    const {
+        state: {
+            ratingModalOpen,
+            selectedMessage,
+            messageRatings,
+            textRating,
+            hoveredRating,
+            expandedMessageId,
+            feedbackStatus,
         },
-        [textareaRef, isMobile],
-    );
+        actions: {
+            setRatingModalOpen,
+            setSelectedMessage,
+            setMessageRatings,
+            setTextRating,
+            setHoveredRating,
+            setExpandedMessageId,
+            handleRating,
+            submitRating,
+        },
+    } = useChatRatings({
+        messages,
+        onFeedback,
+        feedbackMode,
+        feedbackTranslations,
+        isMobile,
+    });
+    const {
+        citationModalOpen,
+        closeCitationModal,
+        closeToolCallModal,
+        openCitation,
+        openToolCall,
+        selectedCitation,
+        selectedMessageAvailableTools,
+        selectedToolCall,
+        selectedToolCallIdentity,
+        toolCallModalOpen,
+    } = useChatToolCallState({
+        messages: postprocessedMessages,
+    });
+    const mode: 'LIGHT' | 'DARK' = theme;
 
-    // File upload handlers inspired by BookEditor
-    const handleFileUpload = useCallback(
-        async (files: FileList | File[]) => {
-            if (!onFileUpload) return;
+    const scrollToBottomCssClassName = getChatCssClassName('scrollToBottom');
 
-            setIsUploading(true);
-            const fileArray = Array.from(files);
-
-            try {
-                // Process files one by one as specified in requirements
-                const newUploadedFiles: Array<{ id: string; file: File; content: string }> = [];
-                for (const file of fileArray) {
-                    const content = await onFileUpload(file);
-                    newUploadedFiles.push({
-                        id: Math.random().toString(36).substring(2),
-                        file,
-                        content,
-                    });
+    const handleButtonClick = useCallback(
+        (originalHandler?: (event: MouseEvent<HTMLButtonElement>) => void) => {
+            return (event: MouseEvent<HTMLButtonElement>) => {
+                if (soundSystem) {
+                    /* not await */ soundSystem.play('button_click');
                 }
-
-                setUploadedFiles((prev) => [...prev, ...newUploadedFiles]);
-
-                // Also append the result of onFileUpload to the message input area
-                if (textareaRef.current && newUploadedFiles.length > 0) {
-                    const currentValue = textareaRef.current.value;
-                    const fileContents = newUploadedFiles.map((f) => f.content).join(' ');
-                    const newValue = currentValue ? `${currentValue} ${fileContents}` : fileContents;
-                    textareaRef.current.value = newValue;
-
-                    // Trigger onChange if it exists
-                    if (onChange) {
-                        onChange(newValue);
-                    }
+                if (originalHandler) {
+                    originalHandler(event);
                 }
-            } catch (error) {
-                console.error('File upload failed:', error);
-                alert('File upload failed. Please try again.');
-            } finally {
-                setIsUploading(false);
-            }
-        },
-        [onFileUpload, onChange],
-    );
-
-    const handleDrop = useCallback(
-        (event: React.DragEvent) => {
-            event.preventDefault();
-            setIsDragOver(false);
-
-            if (!onFileUpload) return;
-
-            const files = event.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileUpload(files);
-            }
-        },
-        [onFileUpload, handleFileUpload],
-    );
-
-    const handleDragOver = useCallback((event: React.DragEvent) => {
-        event.preventDefault();
-        setIsDragOver(true);
-    }, []);
-
-    const handleDragLeave = useCallback((event: React.DragEvent) => {
-        event.preventDefault();
-        setIsDragOver(false);
-    }, []);
-
-    const handleFileInputChange = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const files = event.target.files;
-            if (files && files.length > 0) {
-                handleFileUpload(files);
-            }
-            // Reset input value so same file can be selected again
-            event.target.value = '';
-        },
-        [handleFileUpload],
-    );
-
-    const removeUploadedFile = useCallback((fileId: string) => {
-        setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
-    }, []);
-
-    const handleSend = useCallback(async () => {
-        if (!onMessage) {
-            throw new Error(`Can not find onMessage callback`);
-        }
-
-        const textareaElement = textareaRef.current;
-        const buttonSendElement = buttonSendRef.current;
-
-        if (!textareaElement) {
-            throw new Error(`Can not find textarea`);
-        }
-        if (!buttonSendElement) {
-            throw new Error(`Can not find textarea`);
-        }
-
-        // Check if textarea was focused before sending to preserve focus only in that case
-        const wasTextareaFocused = document.activeElement === textareaElement;
-
-        textareaElement.disabled = true;
-        buttonSendElement.disabled = true;
-
-        try {
-            let messageContent = textareaElement.value;
-
-            // Append file upload results to the message if any files are uploaded
-            if (uploadedFiles.length > 0) {
-                const fileContents = uploadedFiles.map((f) => f.content).join(' ');
-                messageContent = messageContent ? `${messageContent} ${fileContents}` : fileContents;
-            }
-
-            if (spaceTrim(messageContent) === '') {
-                throw new Error(`You need to write some text or upload a file`);
-            }
-
-            await onMessage(messageContent);
-
-            textareaElement.value = '';
-            setUploadedFiles([]); // Clear uploaded files after sending
-
-            // Only restore focus if the textarea was focused when sending the message
-            if (wasTextareaFocused) {
-                textareaElement.focus();
-            }
-        } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
-
-            console.error(error);
-            alert(error.message);
-        } finally {
-            textareaElement.disabled = false;
-            buttonSendElement.disabled = false;
-
-            // Only restore focus if the textarea was focused when sending the message
-            if (wasTextareaFocused) {
-                textareaElement.focus();
-            }
-        }
-    }, [onMessage, uploadedFiles]);
-
-    const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
-
-    const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
-
-    const handleRating = useCallback(async (message: ChatMessage, newRating: number) => {
-        setSelectedMessage(message);
-        setMessageRatings((previousRatings) => {
-            const nextRatings = new Map(previousRatings);
-            nextRatings.set(
-                message.id || message.content /* <- TODO: [🧠][💃] Is `message.content` good replacement for the ID */,
-                newRating,
-            );
-            return nextRatings;
-        });
-        setRatingModalOpen(true);
-    }, []);
-
-    const submitRating = useCallback(async () => {
-        if (!selectedMessage) return;
-        const currentRating = messageRatings.get(selectedMessage.id || selectedMessage.content /* <-[💃] */);
-        if (!currentRating) return;
-
-        // Build chatThread: all messages separated by \n\n---\n\n
-        const chatThread = messages.map((msg) => `${msg.content}`).join('\n\n---\n\n');
-
-        const feedbackData = {
-            message: selectedMessage,
-            rating: currentRating,
-            textRating: textRating,
-            chatThread,
-            expectedAnswer: selectedMessage.expectedAnswer || selectedMessage.content || null,
-            url: window.location.href,
-        };
-
-        // If onFeedback callback is provided, use it; otherwise, log to console
-        if (onFeedback) {
-            try {
-                await onFeedback(feedbackData);
-            } catch (error) {
-                console.error('Error submitting feedback:', error);
-                alert('Failed to submit feedback. Please try again.');
-                return;
-            }
-        } else {
-            console.info('Rating submitted:', {
-                rating: '⭐'.repeat(currentRating),
-                textRating: textRating,
-                chatThread,
-                expectedAnswer: selectedMessage.expectedAnswer || selectedMessage.content || null,
-                url: window.location.href,
-            });
-        }
-
-        setRatingModalOpen(false);
-        setTextRating('');
-        setSelectedMessage(null);
-        setRatingConfirmation('Thank you for your feedback!');
-        setTimeout(() => setRatingConfirmation(null), 3000);
-    }, [selectedMessage, messageRatings, textRating, messages, onFeedback]);
-
-    // Prevent body scroll when modal is open (mobile)
-    useEffect(() => {
-        if (ratingModalOpen && isMobile) {
-            document.body.style.overflow = 'hidden';
-            return () => {
-                document.body.style.overflow = 'unset';
             };
-        }
-    }, [ratingModalOpen, isMobile]);
-
-    // Determine alignment for actions (Reset button) based on the first message
-    const firstMessageFromUser = messages[0]?.from === 'USER';
-    const actionsAlignmentClass = firstMessageFromUser
-        ? styles.actions + ' ' + styles.left
-        : styles.actions + ' ' + styles.right;
-
-    const postprocessedMessages = useMemo<ReadonlyArray<ChatMessage>>(() => {
-        if (!isAiTextHumanizedAndPromptbookified) {
-            return messages;
-        }
-
-        return messages.map((message) => {
-            return { ...message, content: promptbookifyAiText(humanizeAiText(message.content)) };
-        });
-    }, [messages, isAiTextHumanizedAndPromptbookified]);
-
-    // Trigger auto-scroll when messages change
-    useEffect(() => {
-        handleMessagesChange();
-    }, [postprocessedMessages, handleMessagesChange]);
-
-    // Download logic
-    const [showSaveMenu, setShowSaveMenu] = useState(false);
-
-    const handleDownload = useCallback(
-        async (format: string_chat_format_name) => {
-            const formatDefinition = getChatSaveFormatDefinitions([format])[0];
-            if (!formatDefinition) return;
-
-            const date = new Date();
-            const dateName = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
-                .getDate()
-                .toString()
-                .padStart(2, '0')}`;
-
-            const content = await formatDefinition.getContent({ title, messages, participants });
-            const blob = new Blob([content], { type: formatDefinition.mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${normalizeToKebabCase(title)}-${dateName}.${formatDefinition.fileExtension}`;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-            setShowSaveMenu(false);
         },
-        [messages],
+        [soundSystem],
     );
 
-    const isFeedbackEnabled = !!onFeedback;
+    const handleCopy = useCallback(() => {}, []);
+    const isFeedbackEnabled = isChatFeedbackEnabled(onFeedback, feedbackMode);
+    const hasActions = hasChatActions(postprocessedMessages, {
+        onReset,
+        newChatButtonHref,
+        onUseTemplate,
+        extraActions,
+        isSaveButtonEnabled,
+    });
+    const isConstrainedArticleMode = visualMode === 'ARTICLE_MODE' && layout === 'FULL_PAGE';
 
-    // Handler for copy button
-    const handleCopy = () => {};
+    useChatCompleteNotification(messages, soundSystem);
 
     return (
         <>
-            {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
+            {feedbackStatus && (
+                <div
+                    className={classNames(
+                        styles.feedbackStatus,
+                        feedbackStatus.variant === 'success'
+                            ? styles.feedbackStatusSuccess
+                            : styles.feedbackStatusError,
+                    )}
+                    aria-live="polite"
+                    role="status"
+                >
+                    {feedbackStatus.message}
+                </div>
+            )}
 
-            <div className={classNames(className, styles.Chat, useChatCssClassName('Chat'))} {...{ style }}>
-                <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
+            {effectConfigs && effectConfigs.length > 0 && (
+                <ChatEffectsSystem
+                    messages={postprocessedMessages}
+                    effectConfigs={effectConfigs as ReadonlyArray<ChatEffectConfig>}
+                    soundSystem={soundSystem}
+                />
+            )}
+
+            <div
+                className={classNames(
+                    className,
+                    styles.Chat,
+                    layout === 'STANDALONE' && styles.standaloneVisual,
+                    layout === 'FULL_PAGE' && styles.fullPageVisual,
+                    isConstrainedArticleMode && styles.constrainedArticleVisual,
+                    getChatCssClassName('Chat'),
+                    chatCssClassNames.chat,
+                )}
+                data-chat-theme={mode.toLowerCase()}
+                {...{ style }}
+            >
+                <div
+                    className={classNames(
+                        className,
+                        styles.chatMainFlow,
+                        getChatCssClassName('chatMainFlow'),
+                        chatCssClassNames.chatMainFlow,
+                    )}
+                >
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
-                    {!isAutoScrolling && (
+                    {shouldShowScrollToBottom && (
                         <div className={styles.scrollToBottomContainer}>
-                            <button
-                                data-button-type="custom"
-                                className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
-                                onClick={scrollToBottom}
-                            >
-                                <ArrowIcon direction="DOWN" size={33} />
-                            </button>
+                            <div className={styles.scrollToBottomWrapper}>
+                                <SolidArrowButton
+                                    data-button-type="custom"
+                                    direction="down"
+                                    iconSize={33}
+                                    className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
+                                    onClick={handleButtonClick(() => scrollToBottom())}
+                                    aria-label={ariaLabel}
+                                    title={ariaLabel}
+                                />
+                                {badgeLabel && (
+                                    <span className={styles.scrollToBottomBadge} aria-live="polite" role="status">
+                                        {badgeLabel}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     )}
 
@@ -431,389 +319,150 @@ export function Chat(props: ChatProps) {
                         </div>
                     )}
 
-                    <div className={classNames(actionsAlignmentClass)}>
-                        {onReset && postprocessedMessages.length !== 0 && (
-                            <button
-                                className={classNames(styles.chatButton)}
-                                onClick={() => {
-                                    if (!confirm(`Do you really want to reset the chat?`)) {
-                                        return;
-                                    }
+                    <ChatActionsBar
+                        actionsRef={actionsRef}
+                        actionsContainer={actionsContainer}
+                        messages={postprocessedMessages}
+                        participants={participants}
+                        title={title}
+                        onReset={onReset}
+                        resetRequiresConfirmation={resetRequiresConfirmation}
+                        newChatButtonHref={newChatButtonHref}
+                        onUseTemplate={onUseTemplate}
+                        extraActions={extraActions}
+                        saveFormats={saveFormats}
+                        saveFormatHandlers={saveFormatHandlers}
+                        isSaveButtonEnabled={isSaveButtonEnabled}
+                        shouldFadeActions={shouldFadeActions}
+                        shouldDisableActions={shouldDisableActions}
+                        chatUiTranslations={chatUiTranslations}
+                        onButtonClick={handleButtonClick}
+                    />
 
-                                    onReset();
-                                }}
-                            >
-                                <ResetIcon />
-                                <span className={styles.chatButtonText}>New chat</span>
-                            </button>
+                    <ChatMessageList
+                        messages={postprocessedMessages}
+                        participants={participants}
+                        expandedMessageId={expandedMessageId}
+                        messageRatings={messageRatings}
+                        setExpandedMessageId={setExpandedMessageId}
+                        handleRating={handleRating}
+                        mode={mode}
+                        isCopyButtonEnabled={isCopyButtonEnabled}
+                        isFeedbackEnabled={isFeedbackEnabled}
+                        feedbackMode={feedbackMode}
+                        feedbackTranslations={feedbackTranslations}
+                        timingTranslations={timingTranslations}
+                        resolveCitationLabel={resolveCitationLabel}
+                        chatLocale={chatLocale}
+                        onCopy={handleCopy}
+                        onMessage={onMessage}
+                        onActionButton={onActionButton}
+                        onQuickMessageButton={onQuickMessageButton}
+                        onQuickMessageDraftButton={resolvedOnQuickMessageDraftButton}
+                        onReplyToMessage={onReplyToMessage}
+                        canReplyToMessage={canReplyToMessage}
+                        onCreateAgent={onCreateAgent}
+                        toolTitles={toolTitles}
+                        teammates={teammates}
+                        teamAgentProfiles={teamAgentProfiles}
+                        markdownInlineReferences={markdownInlineReferences}
+                        visualMode={visualMode}
+                        soundSystem={soundSystem}
+                        onToolCallClick={openToolCall}
+                        onCitationClick={openCitation}
+                        setChatMessagesElement={setChatMessagesElement}
+                        onScroll={handleChatScroll}
+                        isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
+                        elevenLabsVoiceId={elevenLabsVoiceId}
+                        chatUiTranslations={chatUiTranslations}
+                        chatMessagesClassName={classNames(
+                            isConstrainedArticleMode && styles.articleModeChatMessages,
+                            getChatCssClassName('chatMessages'),
+                            chatCssClassNames.chatMessages,
                         )}
-
-                        {isSaveButtonEnabled && postprocessedMessages.length !== 0 && (
-                            <div className={styles.saveButtonContainer}>
-                                <button
-                                    className={classNames(styles.chatButton)}
-                                    onClick={() => setShowSaveMenu((v) => !v)}
-                                    aria-haspopup="true"
-                                    aria-expanded={showSaveMenu}
-                                >
-                                    <SaveIcon size={18} />
-                                    <span className={styles.chatButtonText}>Save</span>
-                                </button>
-                                {showSaveMenu && (
-                                    <div className={styles.saveMenu}>
-                                        {getChatSaveFormatDefinitions(saveFormats).map((formatDefinition) => (
-                                            <button
-                                                key={formatDefinition.formatName}
-                                                className={styles.saveMenuItem}
-                                                onClick={() =>
-                                                    // TODO: !!! Use here `$induceFileDownload`
-                                                    handleDownload(
-                                                        formatDefinition.formatName as string_chat_format_name,
-                                                    )
-                                                }
-                                            >
-                                                {formatDefinition.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {onUseTemplate && (
-                            <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
-                                <span className={styles.chatButtonText}>Use this template</span>
-                                <TemplateIcon size={16} />
-                            </button>
-                        )}
-
-                        {/* Extra custom action buttons (e.g. Pause/Resume for MockedChat) */}
-                        {extraActions}
-                    </div>
-
-                    <div
-                        className={classNames(
-                            styles.chatMessages,
-                            useChatCssClassName('chatMessages'),
-                            (() => {
-                                // Detect if actions are present
-                                const hasActions =
-                                    (!!onReset && postprocessedMessages.length !== 0) ||
-                                    (isSaveButtonEnabled && postprocessedMessages.length !== 0) ||
-                                    !!onUseTemplate ||
-                                    !!extraActions;
-
-                                if (!hasActions) {
-                                    return false;
-                                }
-
-                                // Detect if first message is long
-                                const firstMsg = postprocessedMessages[0];
-                                const firstMsgContent = firstMsg?.content || '';
-                                const firstMsgLines = firstMsgContent.split('\n').length; // <- TODO: Maybe use official counting functions here
-                                const firstMsgChars = firstMsgContent.length;
-                                const isFirstLong = firstMsgLines > 5 || firstMsgChars > 50;
-
-                                if (!isFirstLong) {
-                                    return false;
-                                }
-
-                                return true;
-                            })() && styles.hasActionsAndFirstMessageIsLong,
-                        )}
-                        ref={chatMessagesRef}
-                        onScroll={handleScroll}
-                    >
-                        {postprocessedMessages.map((message, i) => {
-                            const participant = participants.find((participant) => participant.name === message.from);
-                            const isLastMessage = i === postprocessedMessages.length - 1;
-                            const isExpanded = expandedMessageId === message.id;
-                            const currentRating = messageRatings.get(message.id || message.content /* <-[💃] */) || 0;
-
-                            return (
-                                <ChatMessageItem
-                                    key={message.id}
-                                    message={message}
-                                    participant={participant}
-                                    participants={participants}
-                                    isLastMessage={isLastMessage}
-                                    onMessage={onMessage}
-                                    setExpandedMessageId={setExpandedMessageId}
-                                    isExpanded={isExpanded}
-                                    currentRating={currentRating}
-                                    handleRating={handleRating}
-                                    mode={mode}
-                                    isCopyButtonEnabled={isCopyButtonEnabled}
-                                    isFeedbackEnabled={isFeedbackEnabled}
-                                    onCopy={handleCopy}
-                                />
-                            );
-                        })}
-
-                        <div
-                            // Note: Extra space at bottom for input area
-                            style={{ height: 100 }}
-                        ></div>
-                    </div>
+                        hasActions={hasActions}
+                    />
 
                     {onMessage && (
-                        <div
-                            className={classNames(
-                                styles.chatInput,
-                                useChatCssClassName('chatInput'),
-                                isDragOver && styles.dragOver,
+                        <ChatInputArea
+                            onMessage={onMessage}
+                            onChange={onChange}
+                            onFileUpload={onFileUpload}
+                            speechRecognition={speechRecognition}
+                            speechRecognitionLanguage={speechRecognitionLanguage}
+                            replyingToMessage={replyingToMessage}
+                            onCancelReply={onCancelReply}
+                            defaultMessage={defaultMessage}
+                            draftMessage={composerDraft}
+                            enterBehavior={enterBehavior}
+                            resolveEnterBehavior={resolveEnterBehavior}
+                            placeholderMessageContent={
+                                placeholderMessageContent || chatUiTranslations?.inputPlaceholder
+                            }
+                            isFocusedOnLoad={isFocusedOnLoad}
+                            isMobile={isMobile}
+                            isVoiceCalling={isVoiceCalling}
+                            participants={participants}
+                            buttonColor={buttonColor}
+                            soundSystem={soundSystem}
+                            onButtonClick={handleButtonClick}
+                            chatUiTranslations={chatUiTranslations}
+                            mode={mode}
+                            chatInputClassName={classNames(
+                                isConstrainedArticleMode && styles.articleModeChatInput,
+                                getChatCssClassName('chatInput'),
+                                chatCssClassNames.chatInput,
                             )}
-                            {...(onFileUpload
-                                ? {
-                                      onDrop: handleDrop,
-                                      onDragOver: handleDragOver,
-                                      onDragLeave: handleDragLeave,
-                                  }
-                                : {})}
-                        >
-                            {/* File previews */}
-                            {uploadedFiles.length > 0 && (
-                                <div className={styles.filePreviewContainer}>
-                                    {uploadedFiles.map((uploadedFile) => (
-                                        <div key={uploadedFile.id} className={styles.filePreview}>
-                                            <div className={styles.fileIcon}>📎</div>
-                                            <div className={styles.fileInfo}>
-                                                <div className={styles.fileName}>{uploadedFile.file.name}</div>
-                                                <div className={styles.fileSize}>
-                                                    {(uploadedFile.file.size / 1024).toFixed(1)} KB
-                                                </div>
-                                            </div>
-                                            <button
-                                                className={styles.removeFileButton}
-                                                onClick={() => removeUploadedFile(uploadedFile.id)}
-                                                title="Remove file"
-                                            >
-                                                <CloseIcon /* !!! size={12}*/ />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {(() => {
-                                // Note: Find the isMe participant or fallback to default
-                                const myColor = participants.find((p) => p.isMe)?.color || USER_CHAT_COLOR;
-
-                                const inputBgColor = Color.from(myColor).then(lighten(0.4)).then(grayscale(0.7));
-                                const inputTextColor = inputBgColor.then(textColor);
-                                return (
-                                    <div
-                                        className={styles.inputContainer}
-                                        style={
-                                            {
-                                                // Use a high-contrast placeholder color for visibility
-                                                '--chat-placeholder-color': '#fff',
-                                                // <- TODO: Remove
-                                                '--input-bg-color': inputBgColor.toHex(),
-                                                '--input-text-color': inputTextColor.toHex(),
-                                            } as React.CSSProperties
-                                        }
-                                    >
-                                        <textarea
-                                            ref={(element) => {
-                                                textareaRef.current = element;
-                                            }}
-                                            style={{
-                                                height:
-                                                    Math.max(
-                                                        countLines(textareaRef.current?.value || defaultMessage || ''),
-                                                        (textareaRef.current?.value || defaultMessage || '').split('\n')
-                                                            .length,
-                                                        3,
-                                                    ) *
-                                                        25 +
-                                                    10,
-                                            }}
-                                            defaultValue={defaultMessage}
-                                            placeholder={placeholderMessageContent || 'Write a message...'}
-                                            onKeyDown={(event) => {
-                                                if (!onMessage) {
-                                                    return;
-                                                }
-                                                if (event.shiftKey) {
-                                                    return;
-                                                }
-                                                if (event.key !== 'Enter') {
-                                                    return;
-                                                }
-
-                                                event.preventDefault();
-                                                /* not await */ handleSend();
-                                            }}
-                                            onKeyUp={() => {
-                                                if (!onChange) {
-                                                    return;
-                                                }
-
-                                                onChange(textareaRef.current?.value || '');
-                                            }}
-                                        />
-
-                                        {/* File upload button */}
-                                        {onFileUpload && (
-                                            <>
-                                                <input
-                                                    ref={fileInputRef}
-                                                    type="file"
-                                                    multiple
-                                                    style={{ display: 'none' }}
-                                                    onChange={handleFileInputChange}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className={styles.attachmentButton}
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                    disabled={isUploading}
-                                                    title="Attach file"
-                                                >
-                                                    <AttachmentIcon size={20} />
-                                                </button>
-                                            </>
-                                        )}
-
-                                        <button
-                                            data-button-type="call-to-action"
-                                            ref={buttonSendRef}
-                                            onClick={(event) => {
-                                                if (!onMessage) {
-                                                    return;
-                                                }
-
-                                                event.preventDefault();
-                                                /* not await */ handleSend();
-                                            }}
-                                        >
-                                            <SendIcon size={25} />
-                                        </button>
-                                    </div>
-                                );
-                            })()}
-
-                            {/* Upload progress indicator */}
-                            {isUploading && (
-                                <div className={styles.uploadProgress}>
-                                    <div className={styles.uploadProgressBar}>
-                                        <div className={styles.uploadProgressFill}></div>
-                                    </div>
-                                    <span>Uploading files...</span>
-                                </div>
-                            )}
-
-                            {/* Drag overlay */}
-                            {isDragOver && onFileUpload && (
-                                <div className={styles.dragOverlay}>
-                                    <div className={styles.dragOverlayContent}>
-                                        <AttachmentIcon size={48} />
-                                        <span>Drop files here to upload</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        />
                     )}
                 </div>
             </div>
 
-            {ratingModalOpen && selectedMessage && (
-                <div
-                    className={styles.ratingModal}
-                    onClick={(e) => {
-                        // Close modal when clicking backdrop on mobile
-                        if (e.target === e.currentTarget && isMobile) {
-                            setRatingModalOpen(false);
-                        }
-                    }}
-                >
-                    <div className={styles.ratingModalContent}>
-                        <h3>Rate this response</h3>
-                        <div className={styles.stars}>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <span
-                                    key={star}
-                                    onClick={() =>
-                                        setMessageRatings((previousRatings) => {
-                                            const nextRatings = new Map(previousRatings);
-                                            nextRatings.set(
-                                                selectedMessage.id || selectedMessage.content /* <-[💃] */,
-                                                star,
-                                            );
-                                            return nextRatings;
-                                        })
-                                    }
-                                    onMouseEnter={() => setHoveredRating(star)}
-                                    onMouseLeave={() => setHoveredRating(0)}
-                                    className={styles.ratingModalStar}
-                                    style={{
-                                        color:
-                                            star <=
-                                            (hoveredRating ||
-                                                messageRatings.get(
-                                                    selectedMessage.id || selectedMessage.content /* <-[💃] */,
-                                                ) ||
-                                                0)
-                                                ? '#FFD700'
-                                                : mode === 'LIGHT'
-                                                ? '#ccc'
-                                                : '#555',
-                                    }}
-                                >
-                                    ⭐
-                                </span>
-                            ))}
-                        </div>
-                        Your question:
-                        <textarea
-                            readOnly
-                            value={(() => {
-                                // Try to find the user's message before the selectedMessage
-                                const idx = postprocessedMessages.findIndex((m) => m.id === selectedMessage.id);
-                                if (idx > 0) {
-                                    const prev = postprocessedMessages[idx - 1];
+            <ChatToolCallModal
+                isOpen={toolCallModalOpen}
+                toolCall={selectedToolCall}
+                toolCallIdentity={selectedToolCallIdentity}
+                onClose={closeToolCallModal}
+                toolTitles={toolTitles}
+                resolveCitationLabel={resolveCitationLabel}
+                agentParticipant={agentParticipant}
+                buttonColor={buttonColor}
+                teamAgentProfiles={teamAgentProfiles}
+                chatUiTranslations={chatUiTranslations}
+                locale={chatLocale}
+                availableTools={selectedMessageAvailableTools}
+                mode={mode}
+            />
 
-                                    if (prev!.from === 'USER') {
-                                        return prev!.content;
-                                    }
-                                }
-                                // fallback: find last USER message before selectedMessage
-                                for (let i = messages.findIndex((m) => m.id === selectedMessage.id) - 1; i >= 0; i--) {
-                                    if (messages![i]!.from === 'USER') {
-                                        return messages![i]!.content;
-                                    }
-                                }
-                                return '';
-                            })()}
-                            className={styles.ratingInput}
-                        />
-                        Expected answer:
-                        <textarea
-                            placeholder={selectedMessage.content || 'Expected answer (optional)'}
-                            defaultValue={selectedMessage.expectedAnswer || selectedMessage.content}
-                            onChange={(e) => {
-                                if (selectedMessage) {
-                                    setSelectedMessage({ ...selectedMessage, expectedAnswer: e.target.value });
-                                }
-                            }}
-                            className={styles.ratingInput}
-                        />
-                        Note:
-                        <textarea
-                            // Note: This is correctly mapped to `textRating` not a `note` which is universal column in lot of other tables and means the internal note
-                            placeholder="Add a note (optional)"
-                            defaultValue={textRating}
-                            onChange={(e) => setTextRating(e.target.value)}
-                            className={styles.ratingInput}
-                        />
-                        <div className={styles.ratingActions}>
-                            <button onClick={() => setRatingModalOpen(false)}>Cancel</button>
-                            <button onClick={submitRating}>Submit</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ChatCitationModal
+                isOpen={citationModalOpen}
+                citation={selectedCitation}
+                participants={participants}
+                resolveCitationLabel={resolveCitationLabel}
+                soundSystem={soundSystem}
+                agentIdentifier={agentIdentifier}
+                onClose={closeCitationModal}
+            />
+
+            <ChatRatingModal
+                isOpen={ratingModalOpen}
+                selectedMessage={selectedMessage}
+                postprocessedMessages={postprocessedMessages}
+                messages={messages}
+                hoveredRating={hoveredRating}
+                messageRatings={messageRatings}
+                textRating={textRating}
+                feedbackMode={feedbackMode}
+                feedbackTranslations={feedbackTranslations}
+                mode={mode}
+                isMobile={isMobile}
+                onClose={() => setRatingModalOpen(false)}
+                setHoveredRating={setHoveredRating}
+                setMessageRatings={setMessageRatings}
+                setSelectedMessage={setSelectedMessage}
+                setTextRating={setTextRating}
+                submitRating={submitRating}
+            />
         </>
     );
 }

@@ -1,4 +1,10 @@
-import type { string_agent_hash, string_agent_name, string_color, string_url_image } from '../../types/typeAliases';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
+import type { string_agent_hash, string_agent_name, string_agent_permanent_id } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_url_image } from '../../types/string_url_image';
+import type { AgentVisibility } from './agentSourceVisibility';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -28,6 +34,48 @@ export type BookParameter = {
     description?: string;
 };
 
+/**
+ * Capability of the agent
+ * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
+ */
+export type AgentCapability = {
+    /**
+     * The type of the capability
+     */
+    type:
+        | 'knowledge'
+        | 'user-location'
+        | 'inheritance'
+        | 'import'
+        | 'image-generator'
+        | 'team'
+        | 'popup'
+        | 'privacy'
+        | 'project'
+        | 'calendar';
+
+    /**
+     * The label to display for this capability
+     */
+    label: string;
+
+    /**
+     * The name of the icon to display for this capability
+     */
+    iconName: string;
+
+    /**
+     * Optional link to another agent
+     * This is used for 'inheritance' and 'import' types
+     */
+    agentUrl?: string_agent_url;
+
+    // <- Note: When creating new capabilities, look for [🪀] to add new icons
+};
+
+/**
+ * Information about agent basic.
+ */
 export type AgentBasicInformation = {
     /**
      * Name of the agent
@@ -41,8 +89,15 @@ export type AgentBasicInformation = {
     agentHash: string_agent_hash;
 
     /**
+     * Unique identifier of the agent
+     * This is a random base58 string assigned by the server
+     */
+    permanentId?: string_agent_permanent_id;
+
+    /**
      * Optional description of the agent
-     * This is the line starting with "PERSONA"
+     * This is derived from the last `GOAL` / `GOALS` commitment,
+     * falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.
      */
     personaDescription: string | null;
     // <- TODO: [🕛][🧠]  Maybe rename to just `description`
@@ -54,13 +109,31 @@ export type AgentBasicInformation = {
     initialMessage: string | null;
 
     /**
+     * Optional custom thinking placeholder variants shown while this agent is composing a reply.
+     *
+     * This is derived from `META THINKING MESSAGE` commitments.
+     * Multiple commitments are preserved as multiple variants.
+     */
+    thinkingMessages?: Array<string>;
+
+    /**
      * Metadata commitments parsed from META lines
      * Each META commitment has the format "META TYPE content"
      * When there are multiple meta commitments of the same type, later overrides earlier
      */
     meta: {
+        fullname?: string;
+        description?: string;
+        disclaimer?: string;
+        inputPlaceholder?: string;
+        messageSuffix?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
+        domain?: string;
+        font?: string_fonts;
         color?: string_color;
+        voice?: string;
+        visibility?: AgentVisibility;
         [key: string]: string | undefined;
     };
 
@@ -68,7 +141,7 @@ export type AgentBasicInformation = {
      * Links found in the agent source
      * This corresponds to META LINK commitments
      */
-    links: string[]; // <- TODO: !!!! Better type for URLs
+    links: Array<string_agent_url>;
 
     /**
      * Parameters found in the agent source
@@ -76,11 +149,27 @@ export type AgentBasicInformation = {
      * - @Parameter (single word parameter starting with @)
      * - {parameterName} or {parameter with multiple words} or {parameterName: description text}
      */
-    parameters: BookParameter[];
+    parameters: Array<BookParameter>;
     // <- TODO: [🧠][😰] Maybe remove, Agent is not working with the parameters
+
+    /**
+     * Capabilities of the agent
+     * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
+     */
+    capabilities: Array<AgentCapability>;
+
+    /**
+     * List of sample conversations (question/answer pairs)
+     */
+    samples: Array<{ question: string | null; answer: string }>;
+
+    /**
+     * Knowledge sources (documents, URLs) used by the agent
+     * This is parsed from KNOWLEDGE commitments
+     * Used for resolving document citations when the agent references sources
+     */
+    knowledgeSources: Array<{ url: string; filename: string }>;
 };
 
-/**
- * TODO: !!!!! Make all properties of `AgentBasicInformation` readonly
- * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
+// TODO: [🐱‍🚀] Make all properties of `AgentBasicInformation` readonly
+// TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

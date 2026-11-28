@@ -1,6 +1,9 @@
 import type { QrCodeOptions } from './useQrCode';
 import { useQrCode } from './useQrCode';
 
+/**
+ * Props for branded qr code.
+ */
 type BrandedQrCodeProps = QrCodeOptions & {
     /**
      * Width and height of the QR code canvas
@@ -16,6 +19,8 @@ type BrandedQrCodeProps = QrCodeOptions & {
 };
 
 /**
+ * Handles branded qr code.
+ *
  * @public exported from `@promptbook/components`
  */
 export function BrandedQrCode(props: BrandedQrCodeProps) {

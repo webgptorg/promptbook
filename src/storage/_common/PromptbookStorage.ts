@@ -23,7 +23,5 @@ export type PromptbookStorage<TItem> = {
     removeItem(key: string): Promisable<void>;
 };
 
-/**
- * TODO: [💺] Constrain `TItem` to [🚉] JSON-serializable objects only in type level
- * TODO: [☹️] Unite the storages
- */
+// TODO: [💺] Constrain `TItem` to [🚉] JSON-serializable objects only in type level
+// TODO: [☹️] Unite the storages

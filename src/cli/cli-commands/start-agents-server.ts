@@ -2,10 +2,11 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DEFAULT_AGENTS_DIRNAME } from '../../config';
+import { NETWORK_LIMITS } from '../../constants';
 import { startAgentServer } from '../../remote-server/startAgentServer';
-import type { number_port } from '../../types/typeAliases';
+import type { number_port } from '../../types/number_positive';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { handleActionErrors } from './common/handleActionErrors';
@@ -41,10 +42,10 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
         handleActionErrors(async (path, cliOptions) => {
             const { port: portRaw, reload: isCacheReloaded, verbose: isVerbose } = cliOptions;
 
-            // TODO: !!!! [🌕] DRY
+            // TODO: [🐱‍🚀] [🌕] DRY
 
             const port: number_port = parseInt(portRaw, 10);
-            if (isNaN(port) || port <= 0 || port > 65535) {
+            if (isNaN(port) || port <= 0 || port > NETWORK_LIMITS.MAX_PORT) {
                 console.error(colors.red(`Invalid port number: ${portRaw}`));
                 return process.exit(1);
             }
@@ -87,13 +88,13 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
             TODO_USE(collection);
             */
 
-            // TODO: !!!! Use
+            // TODO: [🐱‍🚀] Use
 
-            // TODO: !!!! Pass collection and tools to the server starter
-            // TODO: !!!! The Next app should be build during the package build step not here
+            // TODO: [🐱‍🚀] Pass collection and tools to the server starter
+            // TODO: [🐱‍🚀] The Next app should be build during the package build step not here
 
             /*
-            // TODO: !!!! Run this conditionally only in production mode in dev mode use `next dev`
+            // TODO: [🐱‍🚀] Run this conditionally only in production mode in dev mode use `next dev`
             await $execCommand({
                 cwd: './apps/agents-server',
                 command: `next build`,
@@ -112,7 +113,5 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
     );
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [start-agents-server](src/cli/cli-commands/start-agents-server.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

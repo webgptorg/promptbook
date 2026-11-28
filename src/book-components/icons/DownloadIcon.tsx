@@ -1,9 +1,14 @@
 'use client';
 
-import { SVGProps } from 'react';
+import type { SVGProps } from 'react';
 
 /**
- * @@@
+ * Renders a download icon.
+ *
+ * This icon is typically used in buttons or links that trigger the downloading
+ * of files or assets.
+ *
+ * @param props - SVG properties augmented with an optional `size`
  *
  * @private internal subcomponent used by various components
  */

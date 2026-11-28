@@ -67,8 +67,8 @@ examples:
       code: |-
           <Chat
               messages={[
-                  { id: '1', from: 'USER', content: 'Hello!', date: new Date(), isComplete: true },
-                  { id: '2', from: 'ASSISTANT', content: 'Hi! How can I help?', date: new Date(), isComplete: true }
+                  { id: '1', sender: 'USER', content: 'Hello!', createdAt: new Date(), isComplete: true },
+                  { id: '2', sender: 'ASSISTANT', content: 'Hi! How can I help?', createdAt: new Date(), isComplete: true }
               ]}
               participants={participants}
               onMessage={handleMessage}
@@ -90,8 +90,8 @@ examples:
       code: |-
           <Chat
               messages={[
-                  { id: '1', from: 'USER', content: 'Question?', date: new Date(), isComplete: true },
-                  { id: '2', from: 'ASSISTANT', content: 'Thinking...', date: new Date(), isComplete: false }
+                  { id: '1', sender: 'USER', content: 'Question?', createdAt: new Date(), isComplete: true },
+                  { id: '2', sender: 'ASSISTANT', content: 'Thinking...', createdAt: new Date(), isComplete: false }
               ]}
               participants={participants}
               onMessage={handleMessage}
@@ -100,8 +100,8 @@ examples:
       code: |-
           <Chat
               messages={[
-                  { id: '1', from: 'USER', content: 'What is the meaning of life?', date: new Date(), isComplete: true },
-                  { id: '2', from: 'ASSISTANT_1', content: "That's a deep question! The meaning of life is often considered to be 42.", date: new Date(), isComplete: true }
+                  { id: '1', sender: 'USER', content: 'What is the meaning of life?', createdAt: new Date(), isComplete: true },
+                  { id: '2', sender: 'ASSISTANT_1', content: "That's a deep question! The meaning of life is often considered to be 42.", createdAt: new Date(), isComplete: true }
               ]}
               participants={participants}
               onMessage={handleMessage}
@@ -116,8 +116,8 @@ examples:
       code: |-
           <Chat
               messages={[
-                  { id: '1', from: 'USER', content: 'Hello! Can you help me?', date: new Date(), isComplete: true },
-                  { id: '2', from: 'ASSISTANT_1', content: 'Of course! What do you need help with?', date: new Date(), isComplete: true }
+                  { id: '1', sender: 'USER', content: 'Hello! Can you help me?', createdAt: new Date(), isComplete: true },
+                  { id: '2', sender: 'ASSISTANT_1', content: 'Of course! What do you need help with?', createdAt: new Date(), isComplete: true }
               ]}
               participants={participants}
               onMessage={handleMessage}

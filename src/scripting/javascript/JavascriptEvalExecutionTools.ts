@@ -23,7 +23,7 @@ import { removeDiacritics as _removeDiacritics } from '../../utils/normalization
 import { removeEmojis as _removeEmojis } from '../../utils/normalization/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../utils/normalization/removeQuotes';
 import { unwrapResult as _unwrapResult } from '../../utils/normalization/unwrapResult';
-import { TODO_any } from '../../utils/organization/TODO_any';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { $preserve } from '../../utils/organization/preserve';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 
@@ -31,7 +31,7 @@ import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionTools
  * ScriptExecutionTools for JavaScript implemented via eval
  *
  * Warning: It is used for testing and mocking
- *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
+ * **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  *
  * @public exported from `@promptbook/javascript`
  */
@@ -185,7 +185,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                         .join('\n'),
                     // <- Note: [🥳] This is for now the only variant how to use parameters in script
                 )}
-                (()=>{ ${script} })()
+                (async ()=>{ ${script} })()
             `,
         );
 
@@ -203,6 +203,17 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         let result: TODO_any;
         try {
             result = await eval(statementToEvaluate);
+
+            if (this.options.isVerbose) {
+                console.info(
+                    _spaceTrim(
+                        (block) => `
+                            🚀 Script evaluated successfully, result:   
+                            ${block(valueToString(result))}
+                        `,
+                    ),
+                );
+            }
 
             if (typeof result !== 'string') {
                 throw new PipelineExecutionError(`Script must return a string, but returned ${valueToString(result)}`);
@@ -274,7 +285,5 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
     }
 }
 
-/**
- * TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
- */
+// TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

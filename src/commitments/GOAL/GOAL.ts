@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 'GOALS'> {
-    constructor(type: 'GOAL' | 'GOALS' = 'GOAL') {
+    public constructor(type: 'GOAL' | 'GOALS' = 'GOAL') {
         super(type);
     }
 
@@ -27,7 +27,21 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
      * Short one-line description of GOAL.
      */
     get description(): string {
-        return 'Define main **goals** the AI assistant should achieve, with later goals having higher priority.';
+        return 'Define the effective agent **goal**; when multiple goals exist, only the last one stays effective.';
+    }
+
+    /**
+     * Marks GOAL as one of the priority commitments surfaced first in catalogues.
+     */
+    public override get isImportant(): boolean {
+        return true;
+    }
+
+    /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🎯';
     }
 
     /**
@@ -37,12 +51,14 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
         return spaceTrim(`
             # ${this.type}
 
-            Defines the main goal which should be achieved by the AI assistant. There can be multiple goals, and later goals are more important than earlier goals.
+            Defines the main goal which should be achieved by the AI assistant.
+            There can be multiple goals in source, but after inheritance/source rewriting only the last \`GOAL\` /\`GOALS\` remains effective.
 
             ## Key aspects
 
             - Both terms work identically and can be used interchangeably.
-            - Later goals have higher priority and can override earlier goals.
+            - Later goals overwrite earlier goals.
+            - The public agent profile text is derived from the last goal.
             - Goals provide clear direction and purpose for the agent's responses.
             - Goals influence decision-making and response prioritization.
 
@@ -55,9 +71,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             \`\`\`book
             Customer Support Agent
 
-            PERSONA You are a helpful customer support representative
             GOAL Resolve customer issues quickly and efficiently
-            GOAL Maintain high customer satisfaction scores
             GOAL Always follow company policies and procedures
             RULE Be polite and professional at all times
             \`\`\`
@@ -65,19 +79,15 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             \`\`\`book
             Educational Assistant
 
-            PERSONA You are an educational assistant specializing in mathematics
             GOAL Help students understand mathematical concepts clearly
-            GOAL Encourage critical thinking and problem-solving skills
             GOAL Ensure all explanations are age-appropriate and accessible
-            STYLE Use simple language and provide step-by-step explanations
+            WRITING RULES Use simple language and provide step-by-step explanations
             \`\`\`
 
             \`\`\`book
             Safety-First Assistant
 
-            PERSONA You are a general-purpose AI assistant
             GOAL Be helpful and informative in all interactions
-            GOAL Provide accurate and reliable information
             GOAL Always prioritize user safety and ethical guidelines
             RULE Never provide harmful or dangerous advice
             \`\`\`
@@ -91,14 +101,17 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             return requirements;
         }
 
-        // Create goal section for system message
-        const goalSection = `Goal: ${trimmedContent}`;
+        const goalSection = spaceTrim(
+            (block) => `
+                ## Goal
 
-        // Goals are important directives, so we add them prominently to the system message
-        return this.appendToSystemMessage(requirements, goalSection, '\n\n');
+                ${block(trimmedContent)}
+            `,
+        );
+        const requirementsWithGoal = this.appendToSystemMessage(requirements, goalSection, '\n\n');
+
+        return this.appendToPromptSuffix(requirementsWithGoal, trimmedContent);
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

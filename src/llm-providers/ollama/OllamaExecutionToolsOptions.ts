@@ -11,6 +11,7 @@ export const DEFAULT_OLLAMA_BASE_URL = 'http://localhost:11434/v1';
  * Options for `createOllamaExecutionTools`
  *
  * This combines options for Promptbook, Google and Vercel together
+ *
  * @public exported from `@promptbook/ollama`
  */
 export type OllamaExecutionToolsOptions = {

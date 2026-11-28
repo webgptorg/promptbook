@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { join } from 'path';
 import { basename } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { createPipelineCollectionFromDirectory } from '../../src/collection/constructors/createPipelineCollectionFromDirectory';
 import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
@@ -117,6 +117,4 @@ async function playground() {
 }
 
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for archived playground [playground-write-pavolhejny-bio](src/playground/backup/playground-write-pavolhejny-bio.txt) should never be published in any package */

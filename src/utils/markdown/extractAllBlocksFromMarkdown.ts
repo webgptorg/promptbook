@@ -1,12 +1,12 @@
 import type { Writable } from 'type-fest';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { capitalize } from '../normalization/capitalize';
 
 /**
  * Single code block inside markdown.
  */
-export type CodeBlock = {
+export type MarkdownCodeBlock = {
     /**
      * Which notation was used to open the code block
      */
@@ -35,16 +35,17 @@ export type CodeBlock = {
  * @param markdown any valid markdown
  * @returns code blocks with language and content
  * @throws {ParseError} if block is not closed properly
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function extractAllBlocksFromMarkdown(markdown: string_markdown): ReadonlyArray<CodeBlock> {
-    const codeBlocks: Array<CodeBlock> = [];
-    const lines = markdown.split('\n');
+export function extractAllBlocksFromMarkdown(markdown: string_markdown): ReadonlyArray<MarkdownCodeBlock> {
+    const codeBlocks: Array<MarkdownCodeBlock> = [];
+    const lines = markdown.split(/\r?\n/);
 
     // Note: [0] Ensure that the last block notated by gt > will be closed
     lines.push('');
 
-    let currentCodeBlock: Writable<CodeBlock> | null = null;
+    let currentCodeBlock: Writable<MarkdownCodeBlock> | null = null;
 
     for (const line of lines) {
         if (line.startsWith('> ') || line === '>') {
@@ -102,6 +103,4 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Readonl
     return codeBlocks;
 }
 
-/**
- * TODO: Maybe name for `blockNotation` instead of  '```' and '>'
- */
+// TODO: Maybe name for `blockNotation` instead of  '```' and '>'

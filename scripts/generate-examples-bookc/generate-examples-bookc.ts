@@ -7,11 +7,11 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
-import glob from 'glob-promise';
 import { basename, dirname, join } from 'path';
 import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { saveArchive } from '../../src/conversion/archive/saveArchive';
 import { assertsError } from '../../src/errors/assertsError';
@@ -21,22 +21,42 @@ import { validatePipelineString } from '../../src/pipeline/validatePipelineStrin
 import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: generate-examples-bookc.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
+/**
+ * Constant for promptbook examples dir.
+ */
 const PROMPTBOOK_EXAMPLES_DIR = join(process.cwd(), 'examples/pipelines');
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.option('--reload', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);
+/**
+ * Constant for { commit: is commited, reload cache: is cache reloaded, verbose: is verbose }.
+ */
 const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } = program.opts();
 
 generateExampleBookc({ isCommited, isCacheReloaded, isVerbose })
@@ -49,6 +69,9 @@ generateExampleBookc({ isCommited, isCacheReloaded, isVerbose })
         process.exit(0);
     });
 
+/**
+ * Generates example bookc.
+ */
 async function generateExampleBookc({
     isCommited,
     isCacheReloaded,
@@ -69,7 +92,9 @@ async function generateExampleBookc({
     //                 <- Note: for example here we don`t want the [🌯]
     const executables = await $provideExecutablesForNode();
 
-    const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_EXAMPLES_DIR, '*.book').split('\\').join('/'));
+    const pipelineMarkdownFilePaths = await findFilesByGlob(
+        join(PROMPTBOOK_EXAMPLES_DIR, '*.book').split('\\').join('/'),
+    );
 
     /*/
     // Note: Keep for testing:
@@ -127,8 +152,6 @@ async function generateExampleBookc({
     console.info(`[ Done 📖  Convert examples .book.md -> .bookc]`);
 }
 
-/**
- * Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
- * TODO: [🍥] When using current time in `preparations` it changes all .bookc files each time so until some more elegant solution omit the time from prepared pipeline
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [generate-examples-bookc](scripts/generate-examples-bookc/generate-examples-bookc.ts) should never be published in any package
+// Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
+// TODO: [🍥] When using current time in `preparations` it changes all .bookc files each time so until some more elegant solution omit the time from prepared pipeline

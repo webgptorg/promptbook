@@ -1,6 +1,7 @@
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { getChatMessageTimingDisplay } from './getChatMessageTimingDisplay';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -28,13 +29,15 @@ export function messagesToMarkdown(
 
     const content = messages
         .map((message) => {
-            const participant = (participants || []).find((participant) => participant.name === message.from);
+            const participant = (participants || []).find((participant) => participant.name === message.sender);
 
-            const fullname = participant?.fullname || message.from;
+            const fullname = participant?.fullname || message.sender;
             const avatarSrc = participant?.avatarSrc;
             const senderMd = `**${fullname}**`;
             const avatarMd = avatarSrc ? `![${fullname}](${avatarSrc}) ` : '';
-            return `${avatarMd}${senderMd}:\n\n${message.content}\n`;
+            const timing = getChatMessageTimingDisplay(message);
+            const timestampLabel = timing ? ` _${timing.fullLabel}_` : '';
+            return `${avatarMd}${senderMd}${timestampLabel}:\n\n${message.content}\n`;
         })
         .join('\n---\n\n');
 

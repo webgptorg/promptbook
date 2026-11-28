@@ -12,6 +12,4 @@ export type ScraperConstructor = Registered &
     ScraperAndConverterMetadata &
     ((tools: Pick<ExecutionTools, 'llm'>, options: PrepareAndScrapeOptions) => Scraper);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

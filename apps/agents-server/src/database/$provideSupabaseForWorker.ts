@@ -1,14 +1,15 @@
-import { AgentsDatabaseSchema } from '@promptbook-local/types';
 import { $isRunningInWebWorker } from '@promptbook-local/utils';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { AgentsServerDatabase } from './schema';
 
 /**
  * Internal cache for `$provideSupabaseForWorker`
  *
- * @private
  * @singleton
+ *
+ * @private
  */
-let supabase: SupabaseClient<AgentsDatabaseSchema>;
+let supabase: SupabaseClient<AgentsServerDatabase>;
 
 /**
  * Get supabase client
@@ -27,7 +28,7 @@ export function $provideSupabaseForWorker(): typeof supabase {
 
     if (!supabase) {
         // Create a single supabase client for interacting with your database
-        supabase = createClient<AgentsDatabaseSchema>(
+        supabase = createClient<AgentsServerDatabase>(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         );

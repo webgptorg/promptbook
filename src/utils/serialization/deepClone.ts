@@ -8,6 +8,7 @@ import type { WritableDeep } from 'type-fest';
  *
  * @param objectValue The object to clone.
  * @returns A deep, writable clone of the input object.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> {
@@ -17,7 +18,7 @@ export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> 
     TODO: [🧠] Is there a better implementation?
     > const propertyNames = Object.getOwnPropertyNames(objectValue);
     > for (const propertyName of propertyNames) {
-    >     const value = (objectValue as really_any)[propertyName];
+    >     const value = (objectValue as chococake)[propertyName];
     >     if (value && typeof value === 'object') {
     >         deepClone(value);
     >     }
@@ -26,6 +27,4 @@ export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> 
     */
 }
 
-/**
- * TODO: [🧠] Is there a way how to meaningfully test this utility
- */
+// TODO: [🧠] Is there a way how to meaningfully test this utility

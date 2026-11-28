@@ -1,5 +1,7 @@
 'use server';
 
+import { _AnthropicClaudeRegistration } from '@promptbook-local/anthropic-claude';
+import { _AzureOpenAiRegistration } from '@promptbook-local/azure-openai';
 import {
     _AnthropicClaudeMetadataRegistration,
     _AzureOpenAiMetadataRegistration,
@@ -16,9 +18,16 @@ import {
     _OpenAiMetadataRegistration,
     _PdfScraperMetadataRegistration,
     _WebsiteScraperMetadataRegistration,
+    cacheLlmTools,
 } from '@promptbook-local/core';
+import { _DeepseekRegistration } from '@promptbook-local/deepseek';
 import { _GoogleRegistration } from '@promptbook-local/google';
-import { _OpenAiRegistration } from '@promptbook-local/openai';
+import { _OllamaRegistration } from '@promptbook-local/ollama';
+import {
+    _OpenAiAssistantRegistration,
+    _OpenAiCompatibleRegistration,
+    _OpenAiRegistration,
+} from '@promptbook-local/openai';
 import { ExecutionTools, TODO_any } from '@promptbook-local/types';
 import { $provideLlmToolsForCli } from '../../../../src/cli/common/$provideLlmToolsForCli';
 import { $provideExecutablesForNode } from '../../../../src/executables/$provideExecutablesForNode';
@@ -26,6 +35,7 @@ import { $provideFilesystemForNode } from '../../../../src/scrapers/_common/regi
 import { $provideScrapersForNode } from '../../../../src/scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../../../src/scrapers/_common/register/$provideScriptingForNode';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
+import { SupabaseCacheStorage } from '../utils/cache/SupabaseCacheStorage';
 
 $sideEffect(
     _AnthropicClaudeMetadataRegistration,
@@ -43,11 +53,17 @@ $sideEffect(
     _MarkitdownScraperMetadataRegistration,
     _PdfScraperMetadataRegistration,
     _WebsiteScraperMetadataRegistration,
-    // <- TODO: !!! Export all registrations from one variabile in `@promptbook/core`
+    // <- TODO: [🐱‍🚀] Export all registrations from one variabile in `@promptbook/core`
 );
+$sideEffect(/* [㊗] */ _AnthropicClaudeRegistration);
+$sideEffect(/* [㊗] */ _AzureOpenAiRegistration);
+$sideEffect(/* [㊗] */ _DeepseekRegistration);
 $sideEffect(/* [㊗] */ _OpenAiRegistration);
+$sideEffect(/* [㊗] */ _OpenAiAssistantRegistration);
+$sideEffect(/* [㊗] */ _OpenAiCompatibleRegistration);
 $sideEffect(/* [㊗] */ _GoogleRegistration);
-// <- TODO: !!!! Allow to dynamically install required metadata
+$sideEffect(/* [㊗] */ _OllamaRegistration);
+// <- TODO: [🐱‍🚀] Allow to dynamically install required metadata
 
 /**
  * Cache of provided execution tools
@@ -55,8 +71,6 @@ $sideEffect(/* [㊗] */ _GoogleRegistration);
  * @private internal cache for `$provideExecutionToolsForServer`
  */
 let executionTools: null | ExecutionTools = null;
-
-
 
 /*
 TODO: [▶️]
@@ -66,25 +80,25 @@ type ProvideExecutionToolsForServerOptions = {
 */
 
 /**
- * !!!!
+ * [🐱‍🚀]
  */
 export async function $provideExecutionToolsForServer(): Promise<ExecutionTools> {
-    // TODO: !!!! [🌕] DRY
+    // TODO: [🐱‍🚀] [🌕] DRY
 
-    // const path = '../../agents'; // <- TODO: !!!! Pass
-    const isVerbose = true; // <- TODO: !!!! Pass
-    const isCacheReloaded = false; // <- TODO: !!!! Pass
+    // const path = '../../agents'; // <- TODO: [🐱‍🚀] Pass
+    const isVerbose = true; // <- TODO: [🐱‍🚀] Pass
+    const isCacheReloaded = false; // <- TODO: [🐱‍🚀] Pass
     const cliOptions = {
         provider: 'BRING_YOUR_OWN_KEYS',
-    } as TODO_any; // <- TODO: !!!! Pass
+    } as TODO_any; // <- TODO: [🐱‍🚀] Pass
 
     if (executionTools !== null) {
-        console.log('!!! Returning cached execution tools');
+        console.log('[🐱‍🚀] Returning cached execution tools');
         return executionTools;
-        // TODO: !!!! Be aware of options changes
+        // TODO: [🐱‍🚀] Be aware of options changes
     }
 
-    console.log('!!! Creating NEW execution tools');
+    console.log('[🐱‍🚀] Creating NEW execution tools');
 
     // TODO: DRY [◽]
     const prepareAndScrapeOptions = {
@@ -92,10 +106,17 @@ export async function $provideExecutionToolsForServer(): Promise<ExecutionTools>
         isCacheReloaded,
     }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
     const fs = await $provideFilesystemForNode(prepareAndScrapeOptions);
-    const { /* [0] strategy,*/ llm } = await $provideLlmToolsForCli({
+    const { /* [0] strategy,*/ llm: llmUncached } = await $provideLlmToolsForCli({
         cliOptions,
         ...prepareAndScrapeOptions,
     });
+
+    const llm = cacheLlmTools(llmUncached, {
+        storage: new SupabaseCacheStorage(),
+        isVerbose,
+        isCacheReloaded,
+    });
+
     const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
 
     executionTools = {
@@ -108,3 +129,5 @@ export async function $provideExecutionToolsForServer(): Promise<ExecutionTools>
 
     return executionTools;
 }
+
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

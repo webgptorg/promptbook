@@ -1,8 +1,8 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../../config';
 import { REPLACING_NONCE } from '../../../constants';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
-import type { string_json } from '../../../types/typeAliases';
+import type { string_json } from '../../../types/string_markdown';
 import { isSerializableAsJson } from '../../serialization/isSerializableAsJson';
 
 /**
@@ -42,9 +42,7 @@ export function stringifyPipelineJson<TType>(pipeline: TType): string_json<TType
     return pipelineJsonStringified as string_json<TType>;
 }
 
-/**
- * TODO: [🐝] Not Working properly @see https://promptbook.studio/examples/mixed-knowledge.book
- * TODO: [🧠][0] Maybe rename to `stringifyPipelineJson`, `stringifyIndexedJson`,...
- * TODO: [🧠] Maybe more elegant solution than replacing via regex
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🐝] Not Working properly @see https://promptbook.studio/examples/mixed-knowledge.book
+// TODO: [🧠][0] Maybe rename to `stringifyPipelineJson`, `stringifyIndexedJson`,...
+// TODO: [🧠] Maybe more elegant solution than replacing via regex
+// TODO: [🍙] Make some standard order of json properties

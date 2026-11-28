@@ -1,7 +1,7 @@
 import type { ParseResult } from 'papaparse';
-import { parse } from 'papaparse';
+import papaparse from 'papaparse';
+import type { Parameters } from '../../../types/Parameters';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import type { Parameters } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { CsvSettings } from '../CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from '../CsvSettings';
@@ -31,6 +31,6 @@ export function csvParse(
         value = value.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     }
 
-    const csv = parse<Parameters>(value, settings);
+    const csv = papaparse.parse<Parameters>(value, settings);
     return csv;
 }

@@ -8,16 +8,16 @@ describe('AgentCollectionInDirectory', () => {
 
     
     /*
-    TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
+    TODO: [🐱‍🚀] ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
     
     import { describe, expect, it } from '@jest/globals';
     import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
     import { AgentCollectionInDirectory } from './AgentCollectionInDirectory';
     
     it('should get agent by name from collection', async () => {
-        // !!!! expect.assertions(1);
+        // [🐱‍🚀] expect.assertions(1);
         const collection = new AgentCollectionInDirectory(
-            './agents/examples',
+            './agents/default',
             {
                 fs: $provideFilesystemForNode(),
             },
@@ -34,12 +34,12 @@ describe('AgentCollectionInDirectory', () => {
     });
     */
     /*
-    TODO: !!!
+    TODO: [🐱‍🚀]
     it('should get lazy-loaded pipeline by url from collection', async () => {
         expect.assertions(1);
 
         const collection = new AgentCollectionInDirectory(
-            './agents/examples',
+            './agents/default',
             { fs: $provideFilesystemForNode() },
             {
                 isVerbose: true,
@@ -61,7 +61,7 @@ describe('AgentCollectionInDirectory', () => {
         expect.assertions(1);
 
         const collection = new AgentCollectionInDirectory(
-            './agents/examples',
+            './agents/default',
             { fs: $provideFilesystemForNode() },
             {
                 isVerbose: true,
@@ -82,7 +82,7 @@ describe('AgentCollectionInDirectory', () => {
         expect(
             (async () => {
                 const collection = new AgentCollectionInDirectory(
-                    './agents/examples',
+                    './agents/default',
                     { fs: $provideFilesystemForNode() },
                     {
                         isVerbose: true,
@@ -99,7 +99,7 @@ describe('AgentCollectionInDirectory', () => {
         expect(
             (async () => {
                 const collection = new AgentCollectionInDirectory(
-                    './agents/examples',
+                    './agents/default',
                     { fs: $provideFilesystemForNode() },
                     {
                         isVerbose: true,
@@ -117,7 +117,7 @@ describe('AgentCollectionInDirectory', () => {
     it('should find pipeline in subdirectory', () =>
         expect(
             (async () => {
-              const collection = await   createAgentCollectionFromDirectory('./agents/examples',{}, {
+              const collection = await   createAgentCollectionFromDirectory('./agents/default',{}, {
                     isVerbose: true,
                     isRecursive: false,
                 });

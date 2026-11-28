@@ -1,9 +1,88 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
+import { invalidateMetadataCache } from '../../../database/getMetadata';
+import { validateMetadataValue } from '../../../database/metadataDefaults';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
-import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * Parsed metadata mutation payload accepted by the write endpoints.
+ */
+type MetadataWritePayload = {
+    key: string;
+    value: string;
+    note: string | null;
+};
+
+/**
+ * Parses and validates one metadata write payload.
+ *
+ * @param request - Incoming HTTP request.
+ * @returns Parsed payload or a ready-made error response.
+ */
+async function parseMetadataWritePayload(
+    request: NextRequest,
+): Promise<{ payload: MetadataWritePayload } | { response: NextResponse }> {
+    let body: unknown;
+
+    try {
+        body = await request.json();
+    } catch {
+        return {
+            response: NextResponse.json({ error: 'Invalid request body' }, { status: 400 }),
+        };
+    }
+
+    if (!body || typeof body !== 'object') {
+        return {
+            response: NextResponse.json({ error: 'Invalid request body' }, { status: 400 }),
+        };
+    }
+
+    const { key, value, note } = body as Record<string, unknown>;
+
+    if (typeof key !== 'string' || key.trim() === '') {
+        return {
+            response: NextResponse.json({ error: 'Key is required' }, { status: 400 }),
+        };
+    }
+
+    if (typeof value !== 'string') {
+        return {
+            response: NextResponse.json({ error: 'Value must be a string' }, { status: 400 }),
+        };
+    }
+
+    if (typeof note !== 'undefined' && typeof note !== 'string' && note !== null) {
+        return {
+            response: NextResponse.json({ error: 'Note must be a string or null' }, { status: 400 }),
+        };
+    }
+
+    const normalizedKey = key.trim();
+    const validationError = validateMetadataValue(normalizedKey, value);
+    if (validationError) {
+        return {
+            response: NextResponse.json({ error: validationError }, { status: 400 }),
+        };
+    }
+
+    return {
+        payload: {
+            key: normalizedKey,
+            value,
+            note: typeof note === 'string' ? note : null,
+        },
+    };
+}
+
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest) {
+    keepUnused(request);
+
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -20,77 +99,68 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    try {
-        const body = await request.json();
-        const { key, value, note } = body;
-
-        if (!key || !value) {
-            return NextResponse.json({ error: 'Key and value are required' }, { status: 400 });
-        }
-
-        const supabase = $provideSupabase();
-        const table = await $getTableName('Metadata');
-
-        const { data, error } = await supabase
-            .from(table)
-            .insert({ key, value, note })
-            .select()
-            .single();
-
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
-        }
-
-        return NextResponse.json(data);
-    } catch (e) {
-        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    const parsedPayload = await parseMetadataWritePayload(request);
+    if ('response' in parsedPayload) {
+        return parsedPayload.response;
     }
+
+    const { key, value, note } = parsedPayload.payload;
+    const supabase = $provideSupabase();
+    const table = await $getTableName('Metadata');
+
+    const { data, error } = await supabase.from(table).insert({ key, value, note }).select().single();
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    invalidateMetadataCache();
+    return NextResponse.json(data);
 }
 
+/**
+ * Handles put.
+ */
 export async function PUT(request: NextRequest) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    try {
-        const body = await request.json();
-        const { key, value, note } = body;
-
-        if (!key || !value) {
-            return NextResponse.json({ error: 'Key and value are required' }, { status: 400 });
-        }
-
-        const supabase = $provideSupabase();
-        const table = await $getTableName('Metadata');
-
-        // Using upsert if it exists or update if strict
-        // Since key is unique, upsert works well, but usually PUT implies update.
-        // Let's use update to be safe and explicit about editing existing.
-        // Actually, for editing, we identify by ID or Key.
-        // Let's use Key as identifier since it is unique.
-
-        const { data, error } = await supabase
-            .from(table)
-            .update({ value, note, updatedAt: new Date().toISOString() })
-            .eq('key', key)
-            .select()
-            .single();
-
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
-        }
-
-        return NextResponse.json(data);
-    } catch (e) {
-        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    const parsedPayload = await parseMetadataWritePayload(request);
+    if ('response' in parsedPayload) {
+        return parsedPayload.response;
     }
+
+    const { key, value, note } = parsedPayload.payload;
+    const supabase = $provideSupabase();
+    const table = await $getTableName('Metadata');
+
+    const { data, error } = await supabase
+        .from(table)
+        .update({ value, note, updatedAt: new Date().toISOString() })
+        .eq('key', key)
+        .select()
+        .single();
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    invalidateMetadataCache();
+    return NextResponse.json(data);
 }
 
+/**
+ * Handles delete.
+ */
 export async function DELETE(request: NextRequest) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -112,5 +182,6 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    invalidateMetadataCache();
     return NextResponse.json({ success: true });
 }

@@ -10,3 +10,5 @@ export const SendIcon = ({ size }: { size: number }) => (
         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
     </svg>
 );
+
+// TODO: !!!! Search ACRY for "currentColor", it probably does not work and make no sense to have it in project

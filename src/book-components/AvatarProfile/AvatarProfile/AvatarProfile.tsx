@@ -1,12 +1,14 @@
 'use client';
 
-import { CSSProperties, useState } from 'react';
+import { CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import type { string_css_class } from '../../../types/typeAliases';
-import { Modal } from '../../_common/Modal/Modal';
+import type { string_css_class } from '../../../types/string_markdown';
+import {
+    resolveAgentAvatarFallbackUrl,
+    resolveAgentAvatarImageUrl,
+} from '../../../utils/agents/resolveAgentAvatarImageUrl';
 import { classNames } from '../../_common/react-utils/classNames';
-import { BookEditor } from '../../BookEditor/BookEditor';
 import styles from './AvatarProfile.module.css';
 
 /**
@@ -21,7 +23,7 @@ export type AvatarProfileProps = {
     readonly agent: AgentBasicInformation;
 
     /**
-     * The source of the agent, which will be displayed in the BookEditor.
+     * The source of the agent, used to enable profile actions in the UI.
      */
     readonly agentSource?: string_book;
 
@@ -37,6 +39,19 @@ export type AvatarProfileProps = {
 };
 
 /**
+ * Builds the default profile URL for a given agent.
+ */
+function buildAgentProfileUrl(agent: AgentBasicInformation): string | null {
+    const agentId = agent.permanentId || agent.agentName;
+
+    if (!agentId) {
+        return null;
+    }
+
+    return `/agents/${encodeURIComponent(agentId)}`;
+}
+
+/**
  * Shows a box with user avatar, name and description
  *
  * @public exported from `@promptbook/components`
@@ -44,41 +59,43 @@ export type AvatarProfileProps = {
 export function AvatarProfile(props: AvatarProfileProps) {
     const { agent, agentSource, className, style } = props;
     const { agentName, personaDescription, meta } = agent;
-    const [isBookEditorVisible, setIsBookEditorVisible] = useState(false);
+    const fallbackAvatarUrl = resolveAgentAvatarFallbackUrl({ agent });
+    const avatarUrl = resolveAgentAvatarImageUrl({ agent });
+    const profileUrl = buildAgentProfileUrl(agent);
+    const displayName = meta.fullname || agentName || 'Agent';
+    const description = personaDescription?.trim();
 
     return (
-        <>
-            <div className={classNames(styles.AvatarProfile, className)} style={style}>
-                <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
-                <div className={styles.AgentInfo}>
-                    <h2 className={styles.AgentName}>{agentName /*  */}</h2>
-                    <p className={styles.AgentDescription}>{personaDescription}</p>
-                    {agentSource !== undefined && (
-                        <button
-                            className={styles.viewSourceButton}
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                setIsBookEditorVisible(true);
-                            }}
-                        >
-                            View Source
-                        </button>
-                    )}
-                </div>
-            </div>
-            {isBookEditorVisible && (
-                <Modal
-                    onClose={() => {
-                        setIsBookEditorVisible(false);
+        <div className={classNames(styles.AvatarProfile, className)} style={style}>
+            {avatarUrl && (
+                <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className={styles.Avatar}
+                    onError={(event) => {
+                        if (fallbackAvatarUrl && event.currentTarget.src !== fallbackAvatarUrl) {
+                            event.currentTarget.src = fallbackAvatarUrl;
+                        }
                     }}
-                >
-                    <BookEditor agentSource={agentSource} />
-                </Modal>
+                />
             )}
-        </>
+            <div className={styles.AgentInfo}>
+                <h2 className={styles.AgentName}>{displayName}</h2>
+                {description && <p className={styles.AgentDescription}>{description}</p>}
+                {agentSource !== undefined && profileUrl && (
+                    <a
+                        className={styles.viewProfileButton}
+                        href={profileUrl}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                        }}
+                    >
+                        View Profile
+                    </a>
+                )}
+            </div>
+        </div>
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

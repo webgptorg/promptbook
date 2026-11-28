@@ -1,12 +1,11 @@
 import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../../constants';
-import { RESERVED_PARAMETER_RESTRICTED } from '../../constants';
+import { RESERVED_PARAMETER_MISSING_VALUE, RESERVED_PARAMETER_RESTRICTED } from '../../constants';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_template } from '../../types/typeAliases';
+import type { Parameters } from '../../types/Parameters';
+import type { string_parameter_name } from '../../types/string_name';
+import type { string_template } from '../../types/string_prompt';
 import type { really_unknown } from '../organization/really_unknown';
 import { valueToString } from './valueToString';
 
@@ -14,12 +13,13 @@ import { valueToString } from './valueToString';
  * Replaces parameters in template with values from parameters object
  *
  * Note: This function is not places strings into string,
- *       It's more complex and can handle this operation specifically for LLM models
+ * It's more complex and can handle this operation specifically for LLM models
  *
  * @param template the template with parameters in {curly} braces
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
  * @throws {PipelineExecutionError} if parameter is not defined, not closed, or not opened
+ *
  * @public exported from `@promptbook/utils`
  */
 export function templateParameters(
@@ -76,7 +76,7 @@ export function templateParameters(
 
         if (parameterValue.includes('\n') && /^\s*\W{0,3}\s*$/.test(precol)) {
             parameterValue = parameterValue
-                .split('\n')
+                .split(/\r?\n/)
                 .map((line, index) => (index === 0 ? line : `${precol}${line}`))
                 .join('\n');
         }

@@ -2,14 +2,11 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { string_markdown } from '../../../types/typeAliases';
+import { StopIcon } from '../../icons/StopIcon';
 import { Chat } from '../Chat/Chat';
-import type { ChatMessage } from '../types/ChatMessage';
-import type { ChatParticipant } from '../types/ChatParticipant';
-/* Context removed – using attachable sendMessage from hook */
-import { ChatPersistence } from '../utils/ChatPersistence';
+import chatStyles from '../Chat/Chat.module.css';
 import type { LlmChatProps } from './LlmChatProps';
+import { useLlmChatState } from './useLlmChatState';
 
 /**
  * LlmChat component that provides chat functionality with LLM integration
@@ -24,247 +21,45 @@ import type { LlmChatProps } from './LlmChatProps';
  * @public exported from `@promptbook/components`
  */
 export function LlmChat(props: LlmChatProps) {
+    const { onInputTextChange, resetMode = 'reset-current' } = props;
     const {
-        llmTools,
-        persistenceKey,
-        onChange,
-        onReset,
-        initialMessages,
-        sendMessage,
-        userParticipantName = 'USER',
-        llmParticipantName = 'ASSISTANT',
-        ...restProps
-    } = props;
+        handleMessage,
+        handleReset,
+        handleStopStreaming,
+        isStreaming,
+        isVoiceCalling,
+        messages,
+        participants,
+        tasksProgress,
+        teammates,
+    } = useLlmChatState(props);
 
-    // Internal state management
-    // DRY: Single factory for seeding initial messages (used on mount and after reset)
-    const buildInitialMessages = useCallback(
-        () => (initialMessages ? ([...initialMessages] as ChatMessage[]) : ([] as ChatMessage[])),
-        [initialMessages],
-    );
-    const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
-    const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
-
-    /**
-     * Tracks whether the user (or system via persistence restoration) has interacted.
-     * We do NOT persist purely initialMessages until the user sends something.
-     */
-    const hasUserInteractedRef = useRef<boolean>(false);
-
-    // Load persisted messages on component mount
-    useEffect(() => {
-        if (persistenceKey && ChatPersistence.isAvailable()) {
-            const persistedMessages = ChatPersistence.loadMessages(persistenceKey);
-            if (persistedMessages.length > 0) {
-                setMessages(persistedMessages);
-                hasUserInteractedRef.current = true; // Persisted conversation exists; allow saving next changes
-                // Notify about loaded messages
-                if (onChange) {
-                    onChange(persistedMessages, participants);
-                }
-            }
-        }
-    }, [persistenceKey]); // Only depend on persistenceKey, not participants or onChange to avoid infinite loops
-
-    // Save messages to localStorage whenever messages change (and persistence is enabled)
-    useEffect(() => {
-        if (persistenceKey && ChatPersistence.isAvailable() && messages.length > 0 && hasUserInteractedRef.current) {
-            ChatPersistence.saveMessages(persistenceKey, messages);
-        }
-    }, [messages, persistenceKey]);
-
-    // Generate participants from llmTools
-    const participants = useMemo<ReadonlyArray<ChatParticipant>>(
-        () =>
-            props.participants || [
-                {
-                    name: userParticipantName,
-                    fullname: 'You',
-                    isMe: true,
-                    color: '#1D4ED8',
-                },
-                // Use the profile from llmTools if available, otherwise fallback to default
-                llmTools.profile || {
-                    name: llmParticipantName,
-                    fullname: llmTools.title || 'AI Assistant',
-                    color: '#10b981',
-                },
-            ],
-        [llmTools.profile, llmTools.title],
-    );
-
-    // Handle user messages and LLM responses
-    const handleMessage = useCallback(
-        async (messageContent: string) => {
-            hasUserInteractedRef.current = true;
-
-            // Add user message
-            const userMessage: ChatMessage = {
-                id: `user_${Date.now()}`,
-                date: new Date(),
-                from: userParticipantName,
-                content: messageContent as string_markdown,
-                isComplete: true,
-            };
-
-            const newMessages = [...messages, userMessage];
-            setMessages(newMessages);
-
-            // Notify about changes
-            if (onChange) {
-                onChange(newMessages, participants);
-            }
-
-            // Add loading message for assistant
-            const loadingMessage: ChatMessage = {
-                id: `assistant_${Date.now()}`,
-                date: new Date(),
-                from: llmParticipantName,
-                content: 'Thinking...' as string_markdown,
-                isComplete: false,
-            };
-
-            const messagesWithLoading = [...newMessages, loadingMessage];
-            setMessages(messagesWithLoading);
-
-            // Notify about changes
-            if (onChange) {
-                onChange(newMessages, participants);
-            }
-
-            // Add task progress for LLM call
-            const taskId = `llm_call_${Date.now()}`;
-            setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 0 }]);
-
-            try {
-                // Build thread: use props.thread if provided, otherwise use current messages
-                const thread = props.thread ? [...props.thread] : [...newMessages];
-                const prompt = {
-                    title: 'User Message',
-                    content: messageContent as string_markdown,
-                    parameters: {},
-                    modelRequirements: {
-                        modelVariant: 'CHAT' as const,
-                    },
-                    thread,
-                };
-
-                // Update task progress
-                setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 50 }]);
-
-                let result;
-
-                if (llmTools.callChatModelStream) {
-                    result = await llmTools.callChatModelStream(prompt, (chunk) => {
-                        const assistantMessage: ChatMessage = {
-                            id: loadingMessage.id,
-                            date: new Date(),
-                            from: llmParticipantName,
-                            content: chunk.content as string_markdown,
-                            isComplete: false,
-                        };
-
-                        const currentMessages = [...newMessages, assistantMessage];
-                        setMessages(currentMessages);
-
-                        if (onChange) {
-                            onChange(currentMessages, participants);
-                        }
-                    });
-                } else if (llmTools.callChatModel) {
-                    result = await llmTools.callChatModel(prompt);
-                } else {
-                    throw new Error('LLM tools do not support chat model calls');
-                }
-
-                // Update task progress to complete
-                setTasksProgress([{ id: taskId, name: 'Response generated', progress: 100 }]);
-
-                // Replace loading message with actual response
-                const assistantMessage: ChatMessage = {
-                    id: loadingMessage.id,
-                    date: new Date(),
-                    from: llmParticipantName,
-                    content: result.content as string_markdown,
-                    isComplete: true,
-                };
-
-                const finalMessages = [...newMessages, assistantMessage];
-                setMessages(finalMessages);
-
-                // Clear task progress after a short delay
-                setTimeout(() => {
-                    setTasksProgress([]);
-                }, 1000);
-
-                // Notify about changes
-                if (onChange) {
-                    onChange(finalMessages, participants);
-                }
-            } catch (error) {
-                console.error('Error calling LLM:', error);
-
-                // Replace loading message with error message
-                const errorMessage: ChatMessage = {
-                    id: loadingMessage.id,
-                    date: new Date(),
-                    from: llmParticipantName,
-                    content: `Sorry, I encountered an error: ${
-                        error instanceof Error ? error.message : 'Unknown error'
-                    }` as string_markdown,
-                    isComplete: true,
-                };
-
-                const finalMessages = [...newMessages, errorMessage];
-                setMessages(finalMessages);
-
-                // Clear task progress
-                setTasksProgress([]);
-
-                // Notify about changes
-                if (onChange) {
-                    onChange(finalMessages, participants);
-                }
-            }
-        },
-        [messages, llmTools, onChange, participants],
-    );
-
-    // Handle chat reset
-    const handleReset = useCallback(async () => {
-        // Re-seed with initialMessages instead of empty array
-        setMessages(buildInitialMessages());
-        setTasksProgress([]);
-        hasUserInteractedRef.current = false;
-
-        // Clear persisted messages if persistence is enabled
-        if (persistenceKey && ChatPersistence.isAvailable()) {
-            ChatPersistence.clearMessages(persistenceKey);
-        }
-
-        if (onReset) {
-            await onReset();
-        }
-
-        // Notify about changes
-        if (onChange) {
-            onChange(buildInitialMessages(), participants);
-        }
-    }, [persistenceKey, onReset, onChange, participants, buildInitialMessages]);
-
-    // Attach internal handler to external sendMessage (from useSendMessageToLlmChat) if provided
-    useEffect(() => {
-        if (sendMessage && sendMessage._attach) {
-            sendMessage._attach(handleMessage);
-        }
-    }, [sendMessage, handleMessage]);
+    const streamingStopAction = isStreaming ? (
+        <button
+            type="button"
+            className={`${chatStyles.chatButton} ${chatStyles.stopButton}`}
+            onClick={handleStopStreaming}
+            aria-label="Stop streaming response"
+            title="Stop streaming response"
+        >
+            <StopIcon size={16} />
+            <span className={chatStyles.chatButtonText}>Stop</span>
+        </button>
+    ) : undefined;
 
     return (
         <Chat
-            {...restProps}
-            {...{ messages, onReset, tasksProgress, participants }}
+            {...props}
+            messages={messages}
             onMessage={handleMessage}
+            onChange={onInputTextChange}
             onReset={handleReset}
+            tasksProgress={tasksProgress}
+            participants={participants}
+            teammates={teammates}
+            resetRequiresConfirmation={resetMode !== 'delegate'}
+            extraActions={streamingStopAction}
+            isVoiceCalling={isVoiceCalling}
         />
     );
 }

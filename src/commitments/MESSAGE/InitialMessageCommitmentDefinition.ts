@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { keepUnused } from '../../utils/organization/keepUnused';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -18,7 +17,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition<'INITIAL MESSAGE'> {
-    constructor() {
+    public constructor() {
         super('INITIAL MESSAGE');
     }
 
@@ -27,6 +26,13 @@ export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition
      */
     get description(): string {
         return 'Defines the **initial message** shown to the user when the chat starts.';
+    }
+
+    /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '👋';
     }
 
     /**
@@ -56,12 +62,14 @@ export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        // INITIAL MESSAGE is for UI display purposes and typically doesn't need to be
-        // added to the system prompt or model requirements directly.
-        // It is extracted separately for the chat interface.
+        // INITIAL MESSAGE is for UI display purposes and for conversation history construction.
 
-        keepUnused(content);
+        const newSample = { question: null, answer: content };
+        const newSamples = [...(requirements.samples || []), newSample];
 
-        return requirements;
+        return {
+            ...requirements,
+            samples: newSamples,
+        };
     }
 }

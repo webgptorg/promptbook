@@ -1,30 +1,36 @@
 import jsonPlugin from '@rollup/plugin-json';
 import typescriptPlugin from '@rollup/plugin-typescript';
 import urlPlugin from '@rollup/plugin-url'; // <- TODO: [😺] Use or uninstall
+import { builtinModules } from 'module';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import postcss from 'rollup-plugin-postcss';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { version } from './package.json';
+import { dependencies, version } from './package.json';
 
 // Note: Note using raw imports via `rollup-plugin-raw` - it is not maintained and has security and compatibility issues
 
+/**
+ * Builds the Rollup configuration for every generated runtime package.
+ */
 export default function () {
     return getPackagesMetadataForRollup()
         .filter(({ isBuilded }) => isBuilded)
-        .map(({ packageBasename, entryIndexFilePath }) => {
+        .map(({ packageBasename, entryIndexFilePath, additionalDependencies }) => {
             const output = [
                 {
                     file: `./packages/${packageBasename}/esm/index.es.js`,
                     format: 'es',
                     sourcemap: true,
+                    inlineDynamicImports: true,
                 },
                 {
                     file: `./packages/${packageBasename}/umd/index.umd.js`,
                     name: `promptbook-${packageBasename}`,
                     format: 'umd',
                     sourcemap: true,
+                    inlineDynamicImports: true,
                 },
             ];
 
@@ -47,74 +53,7 @@ export default function () {
                 }),
             ];
 
-            // External dependencies to reduce bundle size and prevent issues
-            const external = [
-                /*
-                TODO: !!! What allowing of the dependencies makes with bundle size?
-
-                // Node.js built-ins
-                'fs',
-                'fs/promises',
-                'path',
-                'crypto',
-                'http',
-                'https',
-                'url',
-                'stream',
-                'child_process',
-                'os',
-                'util',
-                'events',
-                'buffer',
-                'querystring',
-
-                // Common external dependencies that should not be bundled
-                'spacetrim',
-                'colors',
-                'waitasecond',
-                'moment',
-                'rxjs',
-                'prettier',
-                'papaparse',
-                'crypto-js',
-                'crypto-js/enc-hex',
-                'crypto-js/sha256',
-                'mime-types',
-                'jszip',
-                'dotenv',
-                'bottleneck',
-
-                // LLM provider SDKs
-                '@anthropic-ai/sdk',
-                '@azure/openai',
-                'openai',
-                '@ai-sdk/openai',
-                '@ai-sdk/google',
-                '@ai-sdk/deepseek',
-
-                // Heavy dependencies for specific packages
-                'jsdom',
-                '@mozilla/readability',
-                'showdown',
-                'express',
-                'socket.io',
-                'socket.io-client',
-                'swagger-ui-express',
-                'express-openapi-validator',
-                'prompts',
-                'commander',
-                'glob-promise',
-                'lorem-ipsum',
-                'markitdown-ts',
-
-
-                /**/
-                // React dependencies (for components package)
-                // 'react',
-                // 'react-dom',
-                // 'react/jsx-runtime',
-                // <- TODO: !!! Was rich UI fixed by this
-            ];
+            const external = createPackageExternalPredicate(additionalDependencies);
 
             const packageFullname = `@promptbook/${packageBasename}`;
 
@@ -175,6 +114,32 @@ export default function () {
 }
 
 /**
+ * Keeps declared runtime dependencies and their subpaths out of generated bundles.
+ *
+ * The TypeScript plugin can resolve a dependency to a declaration file, which Rollup cannot execute.
+ * Use the same dependency names as manifest generation instead of maintaining a second package list.
+ *
+ * @param additionalDependencies - Runtime dependencies declared by this package's metadata
+ * @returns Rollup predicate for external module specifiers
+ * @private internal utility of package generation
+ */
+export function createPackageExternalPredicate(additionalDependencies = []) {
+    const externalModuleNames = new Set([...builtinModules, ...Object.keys(dependencies), ...additionalDependencies]);
+
+    return (moduleId) => {
+        if (moduleId.startsWith('node:')) {
+            return true;
+        }
+
+        // Match package boundaries so `zod/v4` is external while `zod-like` and local files stay bundled.
+        const moduleParts = moduleId.split('/');
+        const packageName = moduleId.startsWith('@') ? moduleParts.slice(0, 2).join('/') : moduleParts[0];
+
+        return externalModuleNames.has(packageName);
+    };
+}
+
+/**
  * Gets metadata of all packages of Promptbook ecosystem
  *
  * There are 2 similar functions:
@@ -211,7 +176,21 @@ export function getPackagesMetadataForRollup() {
             packageScope: 'promptbook',
             packageBasename,
             packageFullname: `@promptbook/${packageBasename}`,
-            additionalDependencies: [],
+            additionalDependencies:
+                packageBasename === 'cli'
+                    ? [
+                          'typescript',
+                          'ts-node',
+                          'next',
+                          'lucide-react',
+                          'raw-loader',
+                          'tailwindcss',
+                          '@tailwindcss/typography',
+                          'postcss',
+                          'autoprefixer',
+                          ...Object.keys(dependencies),
+                      ]
+                    : [],
         });
     }
 
@@ -244,11 +223,15 @@ export function getPackagesMetadataForRollup() {
     /**/
 
     /**/
+    // Note: Support building a single package via PACKAGE_BASENAME environment variable
+    const singlePackageBasename = process.env.PACKAGE_BASENAME;
+    if (singlePackageBasename) {
+        return packagesMetadata.filter(({ packageBasename }) => packageBasename === singlePackageBasename);
+    }
+
     return packagesMetadata;
     /**/
 }
 
-/**
- * Note: [🧃] Packages `@promptbook/cli` and `@promptbook/types` are marked as dependencies (not devDependencies) to ensure that they are always installed
- * TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath
- */
+// Note: [🧃] Packages `@promptbook/cli` and `@promptbook/types` are marked as dependencies (not devDependencies) to ensure that they are always installed
+// TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath

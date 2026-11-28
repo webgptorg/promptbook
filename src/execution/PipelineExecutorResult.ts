@@ -1,6 +1,6 @@
-import { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep } from 'type-fest';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { Parameters } from '../types/typeAliases';
+import type { Parameters } from '../types/Parameters';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { ExecutionReportJson } from './execution-report/ExecutionReportJson';
 import type { Usage } from './Usage';
@@ -39,6 +39,4 @@ export type PipelineExecutorResult = AbstractTaskResult & {
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 };
 
-/**
- * TODO: [🧠] Should this file be in /execution or /types folder?
- */
+// TODO: [🧠] Should this file be in /execution or /types folder?

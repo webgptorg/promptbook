@@ -10,13 +10,24 @@ dotenv.config({ path: '.env' });
 
 // TODO: import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import colors from 'colors';
-import { locateChrome } from 'locate-app';
 import { join } from 'path';
 import { chromium } from 'playwright';
+import { spaceTrim } from 'spacetrim';
+import { locateChrome } from '../../executables/browsers/locateChrome';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: agent-with-browser-playground.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
@@ -30,13 +41,16 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Agents Playground`);
 
     // Do here stuff you want to test
     //========================================>
 
-    const browser = await chromium.launch({ headless: false, executablePath: await locateChrome() });
+    const browser = await chromium.launch({ headless: false, executablePath: (await locateChrome()) || undefined });
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -75,6 +89,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for permanent playground [agent-with-browser-playground](src/playground/permanent/agent-with-browser-playground.ts) should never be published in any package

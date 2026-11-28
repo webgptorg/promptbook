@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨☦️] `BookEditor` have action bar, add "Sync status" to it
 
@@ -23,7 +23,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨☦️] `BookEditor` is can be synced by `yjs`
 
@@ -34,7 +34,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨☦️] baz
 
@@ -44,7 +44,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨☦️] baz
 

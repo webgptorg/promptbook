@@ -1,7 +1,9 @@
 import type { AutomaticTranslator } from './AutomaticTranslator';
 
 /**
- * @private still in development [🏳]
+ * Still in development [🏳].
+ *
+ * @private
  */
 export class FakeAutomaticTranslator implements AutomaticTranslator {
     public constructor() {}

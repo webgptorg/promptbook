@@ -3,11 +3,17 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
+import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatProps } from '../Chat/ChatProps';
 import type { SendMessageToLlmChatFunction } from '../hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+
+/**
+ * Determines how the chat reset action should behave when user clicks "New chat".
+ */
+type LlmChatResetMode = 'reset-current' | 'delegate';
 
 /**
  * Props for LlmChat component, derived from ChatProps but with LLM-specific modifications
@@ -47,6 +53,14 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     // <- TODO: [🖱] `LlmChatProps.onChange` and `ChatProps.onChange` are not the same, unite them or distinct by name
 
     /**
+     * Called every time the user types in the input field (for draft message persistence).
+     * This is passed through to the underlying Chat component's onChange handler.
+     *
+     * @private internal utility of <AgentChatHistoryClient/>
+     */
+    onInputTextChange?(messageContent: string): void;
+
+    /**
      * Optional external sendMessage function produced by useSendMessageToLlmChat hook.
      * When provided, LlmChat will attach its internal handler to it (no React context needed).
      */
@@ -65,4 +79,68 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * @default 'ASSISTANT'
      */
     readonly llmParticipantName?: id;
+
+    /**
+     * Optional message to be automatically sent as if the user typed it.
+     * This is useful for seamless transitions from other pages.
+     */
+    readonly autoExecuteMessage?: string;
+
+    /**
+     * Optional attachments that should be sent alongside the auto-executed message.
+     */
+    readonly autoExecuteMessageAttachments?: ChatMessage['attachments'];
+
+    /**
+     * Optional mapping of technical tool names to human-readable titles.
+     * e.g., { "web_search": "Searching the web..." }
+     */
+    readonly toolTitles?: Record<string, string>;
+
+    /**
+     * Optional pre-fetched team agent metadata keyed by TEAM tool name.
+     */
+    readonly teamAgentProfiles?: Record<string, AgentChipData>;
+
+    /**
+     * Custom variants for the placeholder thinking message shown while the agent buffers its response.
+     *
+     * @default Shared thinking message variants
+     */
+    readonly thinkingMessages?: ReadonlyArray<string>;
+
+    /**
+     * Extra prompt parameters to merge into every chat request.
+     */
+    readonly promptParameters?: Record<string, unknown>;
+
+    /**
+     * Human-friendly text shown when `LlmChat` fails to process a message.
+     * Use metadata overrides in apps (like Agents Server) instead of copying this string.
+     */
+    readonly chatFailMessage?: string;
+
+    /**
+     * Controls reset behavior for the action-bar "New chat" button.
+     *
+     * - `'reset-current'`: clears current message state and persistence key (default behavior).
+     * - `'delegate'`: skips internal clearing and only calls `onReset`, letting the host app
+     *   switch/create another immutable chat session.
+     *
+     * @default 'reset-current'
+     */
+    readonly resetMode?: LlmChatResetMode;
+
+    /**
+     * Optional custom error handler that will be called when an error occurs during chat.
+     * If not provided, errors will be displayed as messages in the chat.
+     *
+     * @param error - The error that occurred
+     * @param retry - Function to retry the last failed message
+     */
+    onError?(
+        error: unknown,
+        retry: () => void,
+        failedMessage: { content: string; attachments: ChatMessage['attachments'] },
+    ): void;
 };

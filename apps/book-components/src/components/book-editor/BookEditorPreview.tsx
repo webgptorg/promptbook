@@ -1,6 +1,6 @@
 'use client';
 
-import { BookEditor } from '@promptbook-local/components';
+import { BookEditor, MarkdownContent } from '@promptbook-local/components';
 import {
     createAgentModelRequirements,
     DEFAULT_BOOK,
@@ -9,7 +9,6 @@ import {
 } from '@promptbook-local/core';
 import type { AgentModelRequirements, string_book } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { forTime } from 'waitasecond';
 import styles from './BookEditorPreview.module.css';
 
@@ -228,6 +227,9 @@ export default function BookEditorPreview() {
                                                     Documentation
                                                 </div>
                                                 <div className="text-sm text-blue-800 prose prose-sm prose-blue max-w-none">
+                                                    <MarkdownContent
+                                                        content={doc}
+                                                        /*
                                                     <ReactMarkdown
                                                         components={{
                                                             h1: ({ children }) => (
@@ -276,11 +278,9 @@ export default function BookEditorPreview() {
                                                             em: ({ children }) => (
                                                                 <em className="italic text-blue-700">{children}</em>
                                                             ),
-                                                        }}
-                                                    >
-                                                        {doc}
-                                                    </ReactMarkdown>
-                                                </div>{' '}
+                                                        }}*/
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     ) : null;
@@ -289,7 +289,13 @@ export default function BookEditorPreview() {
 
                             {/* Description in Markdown */}
                             <div style={{ display: 'none' }} className="text-gray-800">
-                                <ReactMarkdown
+                                <MarkdownContent
+                                    content={
+                                        typeof selected.description === 'string'
+                                            ? selected.description
+                                            : String(selected.description ?? '')
+                                    }
+                                    /*
                                     components={{
                                         h1: ({ children }) => (
                                             <h1 className="text-2xl font-bold mb-3 text-gray-900">{children}</h1>
@@ -314,7 +320,8 @@ export default function BookEditorPreview() {
                                     {typeof selected.description === 'string'
                                         ? selected.description
                                         : String(selected.description ?? '')}
-                                </ReactMarkdown>
+                                </ReactMarkdown*/
+                                />
                             </div>
                         </div>
                     ) : (

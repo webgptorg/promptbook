@@ -1,5 +1,5 @@
-import spaceTrim from 'spacetrim';
-import type { string_markdown } from '../../types/typeAliases';
+import { spaceTrim } from 'spacetrim';
+import type { string_markdown } from '../../types/string_markdown';
 import type { UncertainNumber } from '../UncertainNumber';
 import type { Usage } from '../Usage';
 import { usageToWorktime } from './usageToWorktime';
@@ -9,6 +9,7 @@ import { usageToWorktime } from './usageToWorktime';
  */
 type PartialUsage = Partial<Usage> & {
     price: UncertainNumber;
+    duration: UncertainNumber;
     input: Pick<Usage['input'], 'wordsCount'>;
     output: Pick<Usage['output'], 'wordsCount' | 'charactersCount'>;
 };
@@ -33,6 +34,10 @@ export function usageToHuman(usage: PartialUsage): string_markdown {
         reportItems.push(`Cost ${uncertainNumberToHuman(usage.price)} USD`);
     } else {
         reportItems.push(`Negligible cost`);
+    }
+
+    if (usage.duration.value !== 0) {
+        reportItems.push(`Duration ${uncertainNumberToHuman(usage.duration)} seconds`);
     }
 
     const hoursCount = usageToWorktime(usage);
@@ -64,11 +69,9 @@ export function usageToHuman(usage: PartialUsage): string_markdown {
     );
 }
 
-/**
- * TODO: [🍓][🧞‍♂️] Use "$1" not "1 USD"
- * TODO: [🍓][🧞‍♂️] Use markdown formatting like "Cost approximately **$1**"
- * TODO: [🍓][🧞‍♂️] Report in minutes, seconds, days NOT 0.1 hours
- * TODO: [🧠] Maybe make from `uncertainNumberToHuman` separate exported utility
- * TODO: [🧠] Maybe use "~" instead of "approximately"
- * TODO: [🏛] Maybe make some markdown builder
- */
+// TODO: [🍓][🧞‍♂️] Use "$1" not "1 USD"
+// TODO: [🍓][🧞‍♂️] Use markdown formatting like "Cost approximately **$1**"
+// TODO: [🍓][🧞‍♂️] Report in minutes, seconds, days NOT 0.1 hours
+// TODO: [🧠] Maybe make from `uncertainNumberToHuman` separate exported utility
+// TODO: [🧠] Maybe use "~" instead of "approximately"
+// TODO: [🏛] Maybe make some markdown builder

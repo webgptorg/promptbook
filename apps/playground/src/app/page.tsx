@@ -3,6 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getPages } from './getPages';
 
+/**
+ * Handles home page.
+ */
 export default function HomePage() {
     // Note: Pages are discovered automatically from the app directory structure
     // When you add a new page directory with page.tsx, it will appear here automatically

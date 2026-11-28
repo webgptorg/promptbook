@@ -1,14 +1,15 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { number_usd } from '../../types/typeAliases';
+import type { number_usd } from '../../types/number_usd';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { pricing } from '../_common/utils/pricing';
 
 /**
  * List of available Anthropic Claude models with pricing
  *
- * Note: Synced with official API docs at 2025-11-19
+ * Note: Synced with official API docs at 2026-03-22
  *
  * @see https://docs.anthropic.com/en/docs/models-overview
+ *
  * @public exported from `@promptbook/anthropic-claude`
  */
 export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
@@ -21,6 +22,28 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
 > = exportJson({
     name: 'ANTHROPIC_CLAUDE_MODELS',
     value: [
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Opus 4.6',
+            modelName: 'claude-opus-4-6',
+            modelDescription:
+                "Anthropic's most capable model for advanced coding, complex reasoning, and agentic workflows with 1M token context window.",
+            pricing: {
+                prompt: pricing(`$5.00 / 1M tokens`),
+                output: pricing(`$25.00 / 1M tokens`),
+            },
+        },
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'Claude Sonnet 4.6',
+            modelName: 'claude-sonnet-4-6',
+            modelDescription:
+                'Best speed and intelligence balance for production-ready workloads with 1M token context window. Ideal for high-performance, lower-latency applications.',
+            pricing: {
+                prompt: pricing(`$3.00 / 1M tokens`),
+                output: pricing(`$15.00 / 1M tokens`),
+            },
+        },
         {
             modelVariant: 'CHAT',
             modelTitle: 'Claude Sonnet 4.5',
@@ -210,11 +233,9 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
     ],
 });
 
-/**
- * Note: [🤖] Add models of new variant
- * TODO: [🧠][main] !!3 Add embedding models OR Anthropic has only chat+completion models?
- * TODO: [🧠] Some mechanism to propagate unsureness
- * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
- * TODO: [🎰] Some mechanism to auto-update available models
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [🤖] Add models of new variant
+// TODO: [🧠][main] !!3 Add embedding models OR Anthropic has only chat+completion models?
+// TODO: [🧠] Some mechanism to propagate unsureness
+// TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
+// TODO: [🎰] Some mechanism to auto-update available models
+// Note: [💞] Ignore a discrepancy between file name and entity name

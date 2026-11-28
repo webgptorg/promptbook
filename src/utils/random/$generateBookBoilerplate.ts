@@ -1,13 +1,17 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { PartialDeep } from 'type-fest';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
-import type { string_agent_name_in_book } from '../../types/typeAliases';
+import type { string_agent_name_in_book } from '../../types/string_agent_name';
 import { TODO_USE } from '../organization/TODO_USE';
 import { $randomAgentPersona } from './$randomAgentPersona';
-import { $randomFullnameWithColor } from './$randomFullnameWithColor';
+import { $randomAgentRule } from './$randomAgentRule';
+import { getNamePool } from './getNamePool';
 
+/**
+ * Options for generate book boilerplate.
+ */
 type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'parameters'>> & {
     /**
      * Name of the parent agent to inherit from
@@ -15,6 +19,18 @@ type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'p
      * @default 'Adam'
      */
     parentAgentName?: string_agent_name_in_book;
+
+    /**
+     * Name pool to use for generating agent name
+     *
+     * @default 'ENGLISH'
+     */
+    namePool?: string;
+
+    /**
+     * Initial rules for the agent
+     */
+    initialRules?: Array<string>;
 };
 
 /**
@@ -26,19 +42,24 @@ type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'p
  * @public exported from `@promptbook/core`
  */
 export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOptions): string_book {
-    // eslint-disable-next-line prefer-const
-    let { agentName, parentAgentName = 'Adam', personaDescription, meta } = options || {};
-    // eslint-disable-next-line prefer-const
-    let { image, color, ...restMeta } = meta || {};
+    const { parentAgentName = 'Adam', initialRules = [], meta, namePool = 'ENGLISH' } = options || {};
+    let { agentName, personaDescription } = options || {};
+    const { image, ...restMeta } = meta || {};
+    let { color } = meta || {};
 
     if (!agentName) {
-        const randomFullnameWithColor = $randomFullnameWithColor();
+        const namePoolInstance = getNamePool(namePool);
+        const randomFullnameWithColor = namePoolInstance.generateName();
         agentName = randomFullnameWithColor.fullname as string_agent_name_in_book;
         color = color || randomFullnameWithColor.color;
     }
 
     if (!personaDescription) {
-        personaDescription = $randomAgentPersona();
+        personaDescription = $randomAgentPersona(namePool);
+    }
+
+    if (initialRules.length === 0) {
+        initialRules.push($randomAgentRule(namePool));
     }
 
     TODO_USE(parentAgentName);
@@ -51,16 +72,18 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
             (block) => `
                 ${agentName}
     
-                META COLOR ${color || '#3498db' /* <- TODO: [🧠] !!!! Best default color */}
-                PERSONA ${block(personaDescription!)}
+                
+                GOAL ${block(personaDescription!)}
+                ${block(initialRules.map((rule) => `RULE ${rule}`).join('\n'))}
+                CLOSED
             `,
         ),
-        // <- TODO: [🧠] !!!! Also add `META IMAGE` with some cool AI-generated avatar image
     );
+    // Note: `META COLOR ${color || PROMPTBOOK_COLOR.toHex()}` was removed for now
+    // Note: `META FONT Playfair Display, sans-serif` was removed for now
+    // <- TODO: [🈲] Simple and object-constructive way how to create new books
 
     return agentSource;
 }
 
-/**
- * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
- */
+// TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

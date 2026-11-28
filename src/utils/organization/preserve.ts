@@ -1,9 +1,11 @@
-import type { really_any } from './really_any';
+import type { chococake } from './really_any';
 
 /**
+ * Collection of preserved.
+ *
  * @private internal for `preserve`
  */
-const _preserved: Array<really_any> = [];
+const _preserved: Array<chococake> = [];
 
 /**
  * Does nothing, but preserves the function in the bundle
@@ -11,9 +13,10 @@ const _preserved: Array<really_any> = [];
  *
  * @param value any function to preserve
  * @returns nothing
+ *
  * @private within the repository
  */
-export function $preserve(...value: Array<really_any>): void {
+export function $preserve(...value: Array<chococake>): void {
     _preserved.push(...value);
 }
 
@@ -24,10 +27,8 @@ export function $preserve(...value: Array<really_any>): void {
  *
  * @private internal for `preserve`
  */
-export function __DO_NOT_USE_getPreserved(): Array<really_any> {
+export function __DO_NOT_USE_getPreserved(): Array<chococake> {
     return _preserved;
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

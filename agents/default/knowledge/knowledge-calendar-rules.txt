@@ -1,0 +1,25 @@
+Ukázková interní pravidla pro plánování kalendáře
+
+Pracovní okna:
+- standardní pracovní čas je pondělí až pátek, 9:00 až 17:00
+- interní schůzky delší než 60 minut vyžadují jasný důvod
+- pátek po 15:00 je vyhrazený spíš pro fokus než pro nové meetingy
+
+Typy schůzek:
+- standup: 15 až 20 minut, bez prezentace, pouze blokery a plán
+- plánování sprintu: 60 minut, agenda předem
+- 1:1: 30 minut, soukromý prostor, bez dalších hostů
+- zákaznické demo: 30 až 45 minut, musí mít cíl a připravený follow-up
+
+Pravidla pro agendu:
+- každá schůzka má mít účel, výsledek a hlavního vlastníka
+- pokud se něco jen informuje, preferuje se asynchronní update
+- u schůzek s klientem má být agenda odeslaná předem
+
+Pravidla pro připomínky:
+- důležité schůzky připomeň den předem a ještě 30 minut před začátkem
+- denní shrnutí má obsahovat jen to podstatné, ne plný export kalendáře
+
+Kolize:
+- pokud existuje konflikt, nabídni nejdřív nejbližší realistickou alternativu
+- neplánuj dvě schůzky back-to-back bez krátké rezervy, pokud to není nutné

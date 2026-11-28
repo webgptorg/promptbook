@@ -5,9 +5,9 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 /**
  * DELETE commitment definition
  *
- * The DELETE commitment (and its aliases CANCEL, DISCARD, REMOVE) is used to
- * remove or disregard certain information or context. This can be useful for
- * overriding previous commitments or removing unwanted behaviors.
+ * The DELETE commitment (and its aliases CANCEL, DISCARD, REMOVE) is a low-level
+ * unfinished commitment used to remove or disregard certain information or context.
+ * It is intentionally surfaced with caution because it is not ready for broad use yet.
  *
  * Example usage in agent source:
  *
@@ -21,7 +21,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE'> {
-    constructor(type: 'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE') {
+    public constructor(type: 'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE') {
         super(type);
     }
 
@@ -29,7 +29,21 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
      * Short one-line description of DELETE/CANCEL/DISCARD/REMOVE.
      */
     get description(): string {
-        return 'Remove or **disregard** certain information, context, or previous commitments.';
+        return 'Unfinished low-level commitment for removing or disregarding information. Use carefully.';
+    }
+
+    /**
+     * Marks DELETE as unfinished and not ready to use.
+     */
+    public override get isUnfinished(): boolean {
+        return true;
+    }
+
+    /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🗑️';
     }
 
     /**
@@ -39,7 +53,13 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
         return spaceTrim(`
             # DELETE (CANCEL, DISCARD, REMOVE)
 
-            A commitment to remove or disregard certain information or context. This can be useful for overriding previous commitments or removing unwanted behaviors.
+            A low-level unfinished commitment to remove or disregard certain information or context. It is not ready to use broadly yet, so use it carefully.
+
+            ## Status
+
+            - This commitment is unfinished and not ready to use yet.
+            - Treat it as a low-level prompt-surgery tool rather than a general-purpose commitment.
+            - Prefer higher-level commitments when a clearer dedicated commitment exists.
 
             ## Aliases
 
@@ -54,6 +74,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             - Useful for overriding previous commitments in the same agent definition.
             - Can be used to remove inherited behaviors from base personas.
             - Helps fine-tune agent behavior by explicitly removing unwanted elements.
+            - Because this commitment is unfinished, keep an eye on future changes before relying on it in production books.
 
             ## Use cases
 
@@ -61,6 +82,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             - Removing conflicting or outdated instructions
             - Disabling specific response patterns
             - Canceling previous formatting or style requirements
+            - Experimenting with low-level prompt rewrites when you know exactly what needs to be removed
 
             ## Examples
 
@@ -71,7 +93,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             DELETE Casual conversational style
             REMOVE All emoji usage
             GOAL Provide professional business communications
-            STYLE Use formal language and proper business etiquette
+            WRITING RULES Use formal language and proper business etiquette
             \`\`\`
 
             \`\`\`book
@@ -82,7 +104,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             DISCARD Technical jargon explanations
             CANCEL Advanced troubleshooting procedures
             GOAL Help users with simple, easy-to-follow solutions
-            STYLE Use plain language that anyone can understand
+            WRITING RULES Use plain language that anyone can understand
             \`\`\`
 
             \`\`\`book
@@ -99,11 +121,11 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             Concise Information Provider
 
             PERSONA You are a helpful assistant who provides detailed explanations
-            STYLE Include examples, analogies, and comprehensive context
+            WRITING RULES Include examples, analogies, and comprehensive context
             CANCEL Detailed explanation style
             DISCARD Examples and analogies
             GOAL Provide brief, direct answers without unnecessary elaboration
-            STYLE Be concise and to the point
+            WRITING RULES Be concise and to the point
             \`\`\`
         `);
     }
@@ -123,6 +145,4 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

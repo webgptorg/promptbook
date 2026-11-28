@@ -19,7 +19,5 @@ export type LlmExecutionToolsWithTotalUsage = LlmExecutionTools & {
     spending(): Observable<Usage>;
 };
 
-/**
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
- * Note: [🥫] Not using getter `get totalUsage` but `getTotalUsage` to allow this object to be proxied
- */
+// TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
+// Note: [🥫] Not using getter `get totalUsage` but `getTotalUsage` to allow this object to be proxied

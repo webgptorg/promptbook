@@ -3,10 +3,21 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 /* Context removed – using attachable sendMessage from hook */
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
+import { resolveAgentAvatar } from '../../../utils/agents/resolveAgentAvatarImageUrl';
+import { Color } from '../../../utils/color/Color';
+import { saturate } from '../../../utils/color/operators/saturate';
+import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';
 import type { AgentChatProps } from './AgentChatProps';
+
+/**
+ * Stable identifier for the seeded initial agent message.
+ */
+const AGENT_CHAT_INITIAL_MESSAGE_ID = 'agent-initial-message';
 
 /**
  * AgentChat component that provides chat functionality with LLM integration
@@ -21,45 +32,63 @@ import type { AgentChatProps } from './AgentChatProps';
  * @public exported from `@promptbook/components`
  */
 export function AgentChat(props: AgentChatProps) {
-    const { agent, title, persistenceKey, onChange, sendMessage, ...restProps } = props;
+    const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, teamAgentProfiles, ...restProps } = props;
+
+    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
+    const resolvedAgentAvatar = resolveAgentAvatar({ agent });
+    const elevenLabsVoiceId = agent.meta.voice;
 
     return (
-        <LlmChat
-            title={title || `Chat with ${agent.agentName || 'Agent'}`}
-            persistenceKey={persistenceKey || `agent-chat-${agent.agentName}`}
-            userParticipantName="USER"
-            llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
-            initialMessages={[
-                {
-                    from: 'AGENT',
-                    content:
-                        agent.initialMessage ||
-                        spaceTrim(`
+        <>
+            <LlmChat
+                title={title || `Chat with ${agent.meta.fullname || agent.agentName || 'Agent'}`}
+                persistenceKey={persistenceKey || `agent-chat-${agent.agentName}`}
+                userParticipantName="USER"
+                llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
+                initialMessages={[
+                    {
+                        // channel: 'PROMPTBOOK_CHAT',
+                        id: AGENT_CHAT_INITIAL_MESSAGE_ID,
+                        sender: 'AGENT',
+                        content:
+                            agent.initialMessage ||
+                            spaceTrim(`
                                 
-                        Hello! I am ${agent.agentName || 'an AI Agent'}.
+                        Hello! I am ${agent.meta.fullname || agent.agentName || 'an AI Agent'}.
                         
                         [Hello](?message=Hello, can you tell me about yourself?)
                     `),
-                },
-            ]}
-            participants={[
-                {
-                    name: 'AGENT',
-                    fullname: agent.agentName || 'Agent',
-                    avatarSrc: agent.meta.image,
-                    color: agent.meta.color,
-                    isMe: false,
-                    agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: !!!!!! asValue */,
-                },
-                {
-                    name: 'USER',
-                    fullname: 'User',
-                    color: '#115EB6',
-                    isMe: true,
-                },
-            ]}
-            {...{ llmTools: agent, onChange, sendMessage }}
-            {...restProps}
-        />
+                        createdAt: $getCurrentDate(),
+                    },
+                ]}
+                participants={[
+                    {
+                        name: 'AGENT',
+                        fullname: agent.meta.fullname || agent.agentName || 'Agent',
+                        avatarSrc: resolvedAgentAvatar?.type === 'image' ? resolvedAgentAvatar.imageUrl : undefined,
+                        avatarDefinition:
+                            resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : undefined,
+                        avatarVisualId:
+                            resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : undefined,
+                        color: brandColor,
+                        isMe: false,
+                        agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: [🐱‍🚀] asValue */,
+                        knowledgeSources: (agent as TODO_any).knowledgeSources,
+                    },
+                    {
+                        name: 'USER',
+                        fullname: 'User',
+                        color: '#115EB6',
+                        isMe: true,
+                    },
+                ]}
+                buttonColor={brandColor}
+                {...{ llmTools: agent, onChange, sendMessage, toolTitles, teamAgentProfiles }}
+                elevenLabsVoiceId={elevenLabsVoiceId}
+                {...restProps}
+            />
+        </>
     );
 }
+
+// TODO: !!!! Search ACRY ".meta.color" and make sure that we count that we count color can be array

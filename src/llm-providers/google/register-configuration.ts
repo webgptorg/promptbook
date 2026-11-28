@@ -1,5 +1,5 @@
 import { MODEL_ORDERS } from '../../constants';
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import type { Registration } from '../../utils/misc/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
@@ -58,6 +58,4 @@ export const _GoogleMetadataRegistration: Registration = $llmToolsMetadataRegist
     },
 });
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -12,6 +12,7 @@ import { removeEmojis } from './removeEmojis';
  * @param value The title string to be converted to a name.
  * @returns A normalized name derived from the input title.
  * @example 'Hello World!' -> 'hello-world'
+ *
  * @public exported from `@promptbook/utils`
  */
 export function titleToName(value: string): string {

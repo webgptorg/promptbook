@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { really_any } from '../utils/organization/really_any';
+import type { chococake } from '../utils/organization/really_any';
 // import { valueToString } from '../_packages/utils.index';
 import { ADMIN_EMAIL } from '../config';
 
@@ -10,7 +10,7 @@ import { ADMIN_EMAIL } from '../config';
  */
 export class WrappedError extends Error {
     public readonly name = 'WrappedError';
-    public constructor(whatWasThrown: really_any) {
+    public constructor(whatWasThrown: chococake) {
         const tag = `[🤮]`;
         console.error(tag, whatWasThrown);
 

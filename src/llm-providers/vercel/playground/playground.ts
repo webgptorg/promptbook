@@ -24,6 +24,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Vercel Playground`);
 
@@ -33,7 +36,7 @@ async function playground() {
     const openaiVercelProvider = createOpenAI({
         apiKey: process.env.OPENAI_API_KEY,
         // custom settings, e.g.
-        compatibility: 'strict', // strict mode, enable when using the OpenAI API
+        // organization: '...',
     });
 
     const openaiPromptbookExecutionTools = createExecutionToolsFromVercelProvider({
@@ -95,7 +98,7 @@ async function playground() {
     const completionPromptResult = await openaiPromptbookExecutionTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
+    console.info(colors.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -115,8 +118,8 @@ async function playground() {
     const promptResult = await openaiPromptbookExecutionTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(prompt.content));
+    console.info(colors.bgGreen(' Embedding: ') + colors.green(embeddingVectorToString(promptResult.content)));
     /**/
 
     /*/
@@ -126,7 +129,5 @@ async function playground() {
     //========================================/
 }
 
-/**
- * TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [vercel playground](src/llm-providers/vercel/playground/playground.ts) should never be published in any package
+// TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly

@@ -2,10 +2,8 @@ import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/Kno
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../books/books';
 import { readFile } from 'fs/promises';
-import spaceTrim from 'spacetrim';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { spaceTrim } from 'spacetrim';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -16,19 +14,19 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { isFileExisting } from '../../utils/files/isFileExisting';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { documentScraperMetadata } from './register-metadata';
 
 /**
  * Scraper of .docx and .odt files
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/documents`
  */
 export class DocumentScraper implements Converter, Scraper {
@@ -152,7 +150,7 @@ export class DocumentScraper implements Converter, Scraper {
             */
         } satisfies ScraperSourceHandler;
 
-        const knowledge = this.markdownScraper.scrape(markdownSource);
+        const knowledge = await this.markdownScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 
@@ -160,9 +158,7 @@ export class DocumentScraper implements Converter, Scraper {
     }
 }
 
-/**
- * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
- * TODO: [🪂] Do it in parallel 11:11
- * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node scraper implementation [DocumentScraper](src/scrapers/document/DocumentScraper.ts) should never be published into packages that could be imported into browser environment
+// TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
+// TODO: [🪂] Do it in parallel 11:11
+// Note: No need to aggregate usage here, it is done by intercepting the llmTools

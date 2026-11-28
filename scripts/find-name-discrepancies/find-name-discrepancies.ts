@@ -5,15 +5,28 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
 import { basename, join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { findAllProjectFilesWithEntities } from '../utils/findAllProjectFilesWithEntities';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: find-name-discrepancies.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.parse(process.argv);
 
@@ -32,6 +45,9 @@ findNameDiscrepancies()
         process.exit(0);
     });
 
+/**
+ * Finds name discrepancies.
+ */
 async function findNameDiscrepancies() {
     console.info(`🔎🩹 Find name discrepancies`);
 
@@ -98,6 +114,9 @@ async function findNameDiscrepancies() {
                         1) Rename the entity in the file according to the file name
                         2) Rename file to match the entity name
                         3) Add Note: [💞] Ignore a discrepancy between file name and entity name
+
+                        ↗ Then commit with message:
+                        Fix name discrepancies
                     `),
                 ),
             );
@@ -127,6 +146,4 @@ async function findNameDiscrepancies() {
     }
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [find-name-discrepancies](scripts/find-name-discrepancies/find-name-discrepancies.ts) should never be published in any package

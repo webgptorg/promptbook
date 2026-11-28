@@ -33,23 +33,18 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
         return spaceTrim(
             (block) => `
 
-            ${block(spaceTrim(fileContents))}
+                ${block(spaceTrim(fileContents))}
 
-            /*
-                TODO: ${'!'}${'!'}${'!'} ${error.name} occurred during prettify:
+                /*
+                TODO: ${'!'.repeat(3)} ${(error as Error).name} occurred during prettify:
 
+                ${block((error as Error).message)}
+                */
 
-                ${block(error.message)}
-
-
-            */
-
-        `,
+            `,
         );
     }
 }
 
-/**
- * TODO: Use fs/promises instead of fs
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [prettify](scripts/utils/prettify.ts) should never be published in any package
+// TODO: Use fs/promises instead of fs

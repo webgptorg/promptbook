@@ -1,4 +1,5 @@
 import {
+    NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_VERCEL_BRANCH_URL,
     NEXT_PUBLIC_VERCEL_ENV,
     NEXT_PUBLIC_VERCEL_GIT_COMMIT_AUTHOR_LOGIN,
@@ -16,19 +17,15 @@ import {
     NEXT_PUBLIC_VERCEL_TARGET_ENV,
     NEXT_PUBLIC_VERCEL_URL,
 } from '@/config';
-import Link from 'next/link';
+import { TechInfoCard } from '../Homepage/TechInfoCard';
 
 /**
  * [♐️] Expose Vercel environment variables to indentify the deployment
  */
 export default function VercelDeploymentCard() {
     return (
-        <Link
-            href="#"
-            className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
-        >
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Vercel Deployment</h2>
-
+        <TechInfoCard title="Vercel Deployment">
+            <p className="text-gray-600">NEXT_PUBLIC_SITE_URL: {NEXT_PUBLIC_SITE_URL?.href || 'undefined'}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_ENV: {NEXT_PUBLIC_VERCEL_ENV}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_TARGET_ENV: {NEXT_PUBLIC_VERCEL_TARGET_ENV}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_URL: {NEXT_PUBLIC_VERCEL_URL}</p>
@@ -55,6 +52,6 @@ export default function VercelDeploymentCard() {
             <p className="text-gray-600">
                 NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID: {NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID}
             </p>
-        </Link>
+        </TechInfoCard>
     );
 }

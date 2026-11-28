@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
@@ -16,6 +16,7 @@ import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
  * Prepares the knowledge pieces
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
+ *
  * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgePieces(
@@ -62,7 +63,7 @@ export async function prepareKnowledgePieces(
                             The source:
                             ${block(
                                 knowledgeSource.knowledgeSourceContent
-                                    .split('\n')
+                                    .split(/\r?\n/)
                                     .map((line) => `> ${line}`)
                                     .join('\n'),
                             )}
@@ -85,7 +86,7 @@ export async function prepareKnowledgePieces(
                             The source:
                             > ${block(
                                 knowledgeSource.knowledgeSourceContent
-                                    .split('\n')
+                                    .split(/\r?\n/)
                                     .map((line) => `> ${line}`)
                                     .join('\n'),
                             )}

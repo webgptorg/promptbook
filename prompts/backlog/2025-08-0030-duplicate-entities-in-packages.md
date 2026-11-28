@@ -1,4 +1,4 @@
-[ ] <- Note: This crashed multiple times in models `2025-08`, try it later
+[-] <- Note: This crashed multiple times in models `2025-08`, try it later
 
 [✨★] /deep-planning Lot of the code will end up duplicated in multiple published packages
 
@@ -19,18 +19,18 @@ There are lot of entities (functions, classes, types,...) that are duplicated in
 
 ---
 
-[ ]
+[-]
 
 [✨★] qux
 
 ---
 
-[ ]
+[-]
 
 [✨★] qux
 
 ---
 
-[ ]
+[-]
 
 [✨★] qux

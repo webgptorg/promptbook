@@ -3,7 +3,7 @@
 
 ## 💜 The Promptbook Project
 
-Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
+Promptbook project is an ecosystem centered around the **Agents Server** - a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
 
 <table>
   <thead>
@@ -14,9 +14,15 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </thead>
   <tbody>
     <tr>
+      <td><a href="https://gallery.ptbk.io/"><strong>⭐ Agents Server</strong></a></td>
+      <td>
+          The primary way to use Promptbook. A production-ready platform where your AI agents live - create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
+      </td>
+    </tr>
+    <tr>
       <td><a href="https://github.com/webgptorg/book">Book language</a></td>
       <td>
-          Book is a human-understandable markup language for writing AI applications such as chatbots, knowledge bases, agents, avarars, translators, automations and more.
+          Human-friendly, high-level language that abstracts away low-level details of AI. It allows to focus on personality, behavior, knowledge, and rules of AI agents rather than on models, parameters, and prompt engineering.
           <hr>
           There is also <a href="https://github.com/webgptorg/book-extension">a plugin for VSCode</a> to support <code>.book</code> file extension
       </td>
@@ -24,23 +30,15 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
       <td>
-          Promptbook engine can run applications written in Book language. It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Docker HUB</a>
+          The open-source core that powers the Agents Server. Can also be used as a standalone TypeScript/JavaScript library to embed agent capabilities into your own applications.
+          Released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a>.
       </td>
     </tr>
-    <tr>
-      <td><a href="https://promptbook.studio">Promptbook Studio</a></td>
-      <td>
-          Promptbook.studio is a web-based editor and runner for book applications. It is still in the experimental MVP stage.
-      </td>
-    </tr>
+    
   </tbody>
 </table>
 
-Hello world examples:
 
--   [Hello world](https://github.com/webgptorg/hello-world)
--   [Hello world in Node.js](https://github.com/webgptorg/hello-world-node-js)
--   [Hello world in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
 ### 🌐 Community & Social Media
 

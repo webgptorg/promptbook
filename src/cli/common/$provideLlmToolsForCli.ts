@@ -1,6 +1,5 @@
 import colors from 'colors';
-import prompts from 'prompts';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
@@ -9,12 +8,16 @@ import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cac
 import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
-import type { string_promptbook_server_url } from '../../types/typeAliases';
+import type { string_promptbook_server_url } from '../../types/string_promptbook_server_url';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidEmail } from '../../utils/validators/email/isValidEmail';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { loadPromptsModule } from './loadPromptsModule';
 
+/**
+ * Options for provide Llm tools for Cli.
+ */
 type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'> & {
     /**
      * If true, user will be always prompted for login
@@ -35,6 +38,8 @@ type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'
 };
 
 /**
+ * Handles provide Llm tools for Cli.
+ *
  * @private utility of CLI
  */
 export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions): Promise<{
@@ -105,6 +110,7 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
                     ),
                 );
 
+                const { default: prompts } = await loadPromptsModule();
                 const { username, password } = await prompts([
                     {
                         type: 'text',

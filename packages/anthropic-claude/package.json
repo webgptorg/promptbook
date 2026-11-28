@@ -1,12 +1,12 @@
 {
     "name": "@promptbook/anthropic-claude",
-    "version": "0.103.0-48",
-    "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
+    "version": "0.114.0-50",
+    "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
     "repository": {
         "type": "git",
-        "url": "https://github.com/webgptorg/promptbook"
+        "url": "git+https://github.com/webgptorg/promptbook.git"
     },
     "author": "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)",
     "contributors": [
@@ -90,21 +90,26 @@
     },
     "homepage": "https://ptbk.io/",
     "engines": {
-        "node": ">=16.0.0",
+        "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/anthropic-claude.index.d.ts",
+    "types": "./esm/src/_packages/anthropic-claude.index.d.ts",
+    "typings": "./esm/src/_packages/anthropic-claude.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-48"
+        "@promptbook/core": "0.114.0-50"
     },
     "dependencies": {
         "@anthropic-ai/sdk": "0.68.0",
         "bottleneck": "2.19.5",
-        "colors": "^1.4.0",
-        "crypto": "1.0.1",
-        "socket.io-client": "4.7.5",
+        "colors": "1.4.0",
+        "crypto-js": "4.2.0",
+        "jsdom": "25.0.1",
+        "socket.io-client": "4.8.3",
         "spacetrim": "0.11.60"
+    },
+    "browser": {
+        "jsdom": false
     }
 }

@@ -1,4 +1,4 @@
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import type { PipelineInterface } from './PipelineInterface';
 
 /**
@@ -14,15 +14,15 @@ export function isPipelineInterfacesEqual(
     pipelineInterface2: PipelineInterface,
 ): boolean {
     for (const whichParameters of ['inputParameters', 'outputParameters'] as const) {
-        const parameters1 = pipelineInterface1[whichParameters] as really_any; // <- Note: `isPipelineInterfacesEqual` is just temporary solution, no need to fix this
-        const parameters2 = pipelineInterface2[whichParameters] as really_any;
+        const parameters1 = pipelineInterface1[whichParameters] as chococake; // <- Note: `isPipelineInterfacesEqual` is just temporary solution, no need to fix this
+        const parameters2 = pipelineInterface2[whichParameters] as chococake;
 
         if (parameters1.length !== parameters2.length) {
             return false;
         }
 
         for (const parameter of parameters1) {
-            const matchingParameter = parameters2.find(({ name }: really_any) => name === parameter.name);
+            const matchingParameter = parameters2.find(({ name }: chococake) => name === parameter.name);
 
             if (!matchingParameter) {
                 return false;

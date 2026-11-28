@@ -4,6 +4,7 @@
  * @public exported from `@promptbook/color`
  */
 export const CSS_COLORS = {
+    promptbook: '#79EAFD',
     transparent: 'rgba(0,0,0,0)',
     aliceblue: '#f0f8ff',
     antiquewhite: '#faebd7',
@@ -155,6 +156,4 @@ export const CSS_COLORS = {
     yellowgreen: '#9acd32',
 } as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,4 +1,7 @@
-import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
+import type { string_model_name } from '../types/string_model_name';
+import type { string_prompt } from '../types/string_prompt';
+import type { string_date_iso8601 } from '../types/string_token';
+import type { ToolCall } from '../types/ToolCall';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { Usage } from './Usage';
@@ -9,7 +12,11 @@ import type { Usage } from './Usage';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = CompletionPromptResult | ChatPromptResult | EmbeddingPromptResult /* <- [🤖] */;
+export type PromptResult =
+    | CompletionPromptResult
+    | ChatPromptResult
+    | ImagePromptResult
+    | EmbeddingPromptResult /* <- [🤖] */;
 
 /**
  * Completion prompt result
@@ -20,13 +27,25 @@ export type PromptResult = CompletionPromptResult | ChatPromptResult | Embedding
 export type CompletionPromptResult = CommonPromptResult;
 
 /**
- *Chat prompt result
+ * Chat prompt result
  *
  * Note: [🚉] This is fully serializable as JSON
  */
 export type ChatPromptResult = CommonPromptResult & {
     // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+
+    /**
+     * Optional tool calls made during the execution
+     */
+    readonly toolCalls?: ReadonlyArray<ToolCall>;
 };
+
+/**
+ * Image prompt result
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type ImagePromptResult = CommonPromptResult;
 
 /**
  * Embedding prompt  result
@@ -110,11 +129,9 @@ export type CommonPromptResult = {
     readonly rawResponse: TODO_object;
 };
 
-/**
- * TODO: [🧠] Maybe timing more accurate then seconds?
- * TODO: [🧠] Should here be link to the prompt?
- * TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever
- * TODO: [🧠] Maybe remove redundant raw.choices.text
- * TODO: Log raw even if prompt failed - log the raw error
- * TODO: [🏳] Add `TranslationPromptResult`
- */
+// TODO: [🧠] Maybe timing more accurate then seconds?
+// TODO: [🧠] Should here be link to the prompt?
+// TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever
+// TODO: [🧠] Maybe remove redundant raw.choices.text
+// TODO: Log raw even if prompt failed - log the raw error
+// TODO: [🏳] Add `TranslationPromptResult`

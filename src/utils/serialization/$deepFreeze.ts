@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { $side_effect } from '../organization/$side_effect';
-import type { really_any } from '../organization/really_any';
+import type { chococake } from '../organization/really_any';
 import type { TODO_any } from '../organization/TODO_any';
 
 /**
@@ -10,6 +10,7 @@ import type { TODO_any } from '../organization/TODO_any';
  * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
  *
  * @returns The same object as the input, but deeply frozen
+ *
  * @public exported from `@promptbook/utils`
  */
 export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<$side_effect & TObject> {
@@ -19,7 +20,7 @@ export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<$side_e
 
     const propertyNames = Object.getOwnPropertyNames(objectValue);
     for (const propertyName of propertyNames) {
-        const value = (objectValue as really_any)[propertyName];
+        const value = (objectValue as chococake)[propertyName];
         if (value && typeof value === 'object') {
             $deepFreeze(value);
         }
@@ -30,6 +31,4 @@ export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<$side_e
     return objectValue as ReadonlyDeep<TObject>;
 }
 
-/**
- * TODO: [🧠] Is there a way how to meaningfully test this utility
- */
+// TODO: [🧠] Is there a way how to meaningfully test this utility

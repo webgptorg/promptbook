@@ -1,126 +1,121 @@
-import { $getTableName } from '@/src/database/$getTableName';
-import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import { computeHash, serializeError } from '@promptbook-local/utils';
+import type { ChatMessage } from '@promptbook-local/components';
+import { normalizeChatAttachments } from '@promptbook-local/core';
+import { serializeError } from '@promptbook-local/utils';
+import { parseBookScopedAgentIdentifier } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { resolveAgentAccess, PRIVATE_AGENT_FORBIDDEN_MESSAGE } from '@/src/utils/agentAccess';
+import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validateChatMessageContent';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
+import { isAgentDeleted } from '../../_utils';
+import { createAgentChatApiErrorResponse } from './createAgentChatApiErrorResponse';
+import { createAgentChatStreamResponse } from './createAgentChatStreamResponse';
+import { resolveAgentChatRouteContext } from './resolveAgentChatRouteContext';
+
+/**
+ * Shape of the incoming chat API payload.
+ *
+ * `attachments` and `parameters` are normalized later, so they stay unknown here.
+ */
+type ChatRequestBody = {
+    message?: unknown;
+    thread?: ReadonlyArray<ChatMessage>;
+    attachments?: unknown;
+    parameters?: unknown;
+};
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
  */
 export const maxDuration = 300;
 
+/**
+ * Handles options.
+ */
+export async function OPTIONS(request: Request) {
+    keepUnused(request);
+
+    return new Response(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Promptbook-Team-Agent-Access-Token',
+        },
+    });
+}
+
+/**
+ * Handles post.
+ */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+    const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
+    const deletedCheckAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
 
-    const body = await request.json();
-    const { message = 'Tell me more about yourself.', thread } = body;
-    //      <- TODO: !!!! To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
+    const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'stream');
+    if (versionMismatchResponse) {
+        return versionMismatchResponse;
+    }
+
+    const access = await resolveAgentAccess(deletedCheckAgentIdentifier, {
+        request,
+        allowTeamInternalAccess: true,
+    });
+    if (!access.isAllowed && access.visibility !== null) {
+        return createAgentChatApiErrorResponse(PRIVATE_AGENT_FORBIDDEN_MESSAGE, 403, 'forbidden');
+    }
+
+    // Check if agent is deleted
+    if (await isAgentDeleted(deletedCheckAgentIdentifier)) {
+        return createAgentChatApiErrorResponse(
+            'This agent has been deleted. You can restore it from the Recycle Bin.',
+            410, // Gone - indicates the resource is no longer available
+            'agent_deleted',
+        );
+    }
+
+    const rawBody = (await request.json().catch(() => null)) as unknown;
+    if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
+        return createAgentChatApiErrorResponse('Invalid request body.', 400, 'invalid_request_error');
+    }
+
+    const body = rawBody as ChatRequestBody;
+    const messageResolution = resolveChatMessageContentForApiRequest(body.message);
+    if (!messageResolution.isValid) {
+        return createAgentChatApiErrorResponse(
+            messageResolution.issue.message,
+            messageResolution.issue.status,
+            'invalid_request_error',
+        );
+    }
+
+    const message = messageResolution.message;
+    const thread = body.thread ? [...body.thread] : undefined;
+    const attachments = normalizeChatAttachments(body.attachments);
+    const rawParameters = body.parameters ?? {};
+    const isPrivateModeEnabled = isPrivateModeEnabledFromRequest(request);
+    //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
-        const collection = await $provideAgentCollectionForServer();
-        // [▶️] const executionTools = await $provideExecutionToolsForServer();
-        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
-        const agentSource = await collection.getAgentSource(agentName);
-        const agent = new Agent({
-            isVerbose: true, // <- TODO: !!! From environment variable
-            executionTools: {
-                // [▶️] ...executionTools,
-                llm: openAiAssistantExecutionTools, // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
-            },
-            agentSource,
-        });
-
-        const agentHash = computeAgentHash(agentSource);
-        const userAgent = request.headers.get('user-agent');
-        const ip =
-            request.headers.get('x-forwarded-for') ||
-            request.headers.get('x-real-ip') ||
-            request.headers.get('x-client-ip');
-
-        // Note: Capture language and platform information
-        const language = request.headers.get('accept-language');
-        // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
-        const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
-
-        // Note: Identify the user message
-        const userMessageContent = {
-            role: 'USER',
-            content: message,
-        };
-
-        // Record the user message
-        const supabase = $provideSupabaseForServer();
-        await supabase.from(await $getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(userMessageContent),
-            previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
+        const contextResolution = await resolveAgentChatRouteContext({
+            request,
             agentName,
-            agentHash,
-            message: userMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
+            message,
+            thread,
+            attachments,
+            rawParameters,
+            isPrivateModeEnabled,
         });
+        if (!contextResolution.ok) {
+            return contextResolution.response;
+        }
 
-        const encoder = new TextEncoder();
-        const readableStream = new ReadableStream({
-            start(controller) {
-                agent.callChatModelStream!(
-                    {
-                        title: `Chat with agent ${
-                            agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
-                        }`,
-                        parameters: {},
-                        modelRequirements: {
-                            modelVariant: 'CHAT',
-                        },
-                        content: message,
-                        thread,
-                    },
-                    (chunk) => {
-                        controller.enqueue(encoder.encode(chunk.content));
-                    },
-                )
-                    .then(async (response) => {
-                        // Note: Identify the agent message
-                        const agentMessageContent = {
-                            role: 'MODEL',
-                            content: response.content,
-                        };
-
-                        // Record the agent message
-                        await supabase.from(await $getTableName('ChatHistory')).insert({
-                            createdAt: new Date().toISOString(),
-                            messageHash: computeHash(agentMessageContent),
-                            previousMessageHash: computeHash(userMessageContent),
-                            agentName,
-                            agentHash,
-                            message: agentMessageContent,
-                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                            url: request.url,
-                            ip,
-                            userAgent,
-                            language,
-                            platform,
-                        });
-
-                        controller.close();
-                    })
-                    .catch((error) => {
-                        controller.error(error);
-                    });
-            },
-        });
-
-        return new Response(readableStream, {
-            status: 200,
-            headers: { 'Content-Type': 'text/markdown' },
+        return createAgentChatStreamResponse({
+            request,
+            context: contextResolution.context,
         });
     } catch (error) {
         assertsError(error);
@@ -130,20 +125,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         return new Response(
             JSON.stringify(
                 serializeError(error),
-                // <- TODO: !!! Rename `serializeError` to `errorToJson`
+                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
                 4,
-                // <- TODO: !!! Allow to configure pretty print for agent server
+                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
             ),
             {
-                status: 400, // <- TODO: !!! Make `errorToHttpStatusCode`
+                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
                 headers: { 'Content-Type': 'application/json' },
             },
         );
     }
 }
-
-/**
- * TODO: !!!!!! Increase limit on run livetime of requests to this endpoint to 2 minutes
- * TODO: !!!!!! Make api endpoint for feedback on agent responses `/apps/agents-server/src/app/agents/[agentName]/api/feedback/route.ts` and record to `ChatFeedback`
- */

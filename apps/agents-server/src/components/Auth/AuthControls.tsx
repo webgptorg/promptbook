@@ -1,15 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
+/**
+ * Props for auth controls.
+ */
 type AuthControlsProps = {
     initialUser: { username: string; isAdmin: boolean } | null;
 };
 
+/**
+ * Handles auth controls.
+ */
 export function AuthControls({ initialUser }: AuthControlsProps) {
-    const router = useRouter();
-    const [user, setUser] = useState(initialUser);
+    // const router = useRouter();
+    const [user] = useState(initialUser);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -52,7 +58,9 @@ export function AuthControls({ initialUser }: AuthControlsProps) {
             <div className="flex items-center space-x-4">
                 <span className="text-gray-600">
                     Logged in as <strong>{user.username}</strong>
-                    {user.isAdmin && <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Admin</span>}
+                    {user.isAdmin && (
+                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Admin</span>
+                    )}
                 </span>
                 <button
                     onClick={handleLogout}
@@ -90,13 +98,12 @@ export function AuthControls({ initialUser }: AuthControlsProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-700 mb-1">Password</label>
-                                <input
-                                    type="password"
+                                <SecretInput
+                                    label="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded"
                                     required
+                                    inputClassName="h-auto py-2"
                                 />
                             </div>
                             <div className="flex justify-end space-x-2">

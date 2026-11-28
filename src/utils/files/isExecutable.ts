@@ -14,7 +14,5 @@ export async function isExecutable(path: string, fs: FilesystemTools): Promise<b
     }
 }
 
-/**
- * Note: Not [~🟢~] because it is not directly dependent on `fs
- * TODO: [🖇] What about symlinks?
- */
+// Note: Not [~🟢~] because it is not directly dependent on `fs
+// TODO: [🖇] What about symlinks?

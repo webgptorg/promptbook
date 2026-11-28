@@ -28,7 +28,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META LINK'> {
-    constructor() {
+    public constructor() {
         super('META LINK');
     }
 
@@ -37,6 +37,13 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
      */
     get description(): string {
         return 'Provide profile/source links for the person the agent models.';
+    }
+
+    /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🔗';
     }
 
     /**
@@ -73,7 +80,7 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
             META LINK https://twitter.com/devhandle
             PERSONA You are an experienced open source developer
             ACTION Can help with code reviews and architecture decisions
-            STYLE Be direct and technical in explanations
+            WRITING RULES Be direct and technical in explanations
             \`\`\`
         `);
     }
@@ -109,6 +116,4 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

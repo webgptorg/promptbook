@@ -1,5 +1,5 @@
 import { DEFAULT_IS_VERBOSE } from '../../../config';
-import type { string_url } from '../../../types/typeAliases';
+import type { string_url } from '../../../types/string_url';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createPipelineCollectionFromPromise } from './createPipelineCollectionFromPromise';
 
@@ -24,7 +24,9 @@ type CreatePipelineCollectionFromUrlyOptions = {
 
 /**
  * Constructs Promptbook from remote Promptbase URL
+ *
  * @returns PipelineCollection
+ *
  * @public exported from `@promptbook/core`
  */
 export async function createPipelineCollectionFromUrl(
@@ -53,6 +55,4 @@ export async function createPipelineCollectionFromUrl(
     // TODO: Implement via createPipelineCollectionFromPromise
 }
 
-/**
- * TODO: [main] !!4 [🧠] Library precompilation and do not mix markdown and json promptbooks
- */
+// TODO: [main] !!4 [🧠] Library precompilation and do not mix markdown and json promptbooks

@@ -1,10 +1,11 @@
-import type { ModelRequirements } from '../../../types/ModelRequirements';
+import type { ChatModelRequirements, ModelRequirements } from '../../../types/ModelRequirements';
 
 /**
  * Parses an OpenAI error message to identify which parameter is unsupported
  *
  * @param errorMessage The error message from OpenAI API
  * @returns The parameter name that is unsupported, or null if not an unsupported parameter error
+ *
  * @private utility of LLM Tools
  */
 export function parseUnsupportedParameterError(errorMessage: string): string | null {
@@ -31,6 +32,7 @@ export function parseUnsupportedParameterError(errorMessage: string): string | n
  * @param modelRequirements Original model requirements
  * @param unsupportedParameter The parameter to remove
  * @returns New model requirements without the unsupported parameter
+ *
  * @private utility of LLM Tools
  */
 export function removeUnsupportedModelRequirement(
@@ -40,7 +42,7 @@ export function removeUnsupportedModelRequirement(
     const newRequirements = { ...modelRequirements };
 
     // Map of parameter names that might appear in error messages to ModelRequirements properties
-    const parameterMap: Record<string, keyof ModelRequirements> = {
+    const parameterMap: Record<string, keyof ModelRequirements | keyof ChatModelRequirements> = {
         temperature: 'temperature',
         max_tokens: 'maxTokens',
         maxTokens: 'maxTokens',
@@ -58,8 +60,10 @@ export function removeUnsupportedModelRequirement(
 
 /**
  * Checks if an error is an "Unsupported value" error from OpenAI
+ *
  * @param error The error to check
  * @returns true if this is an unsupported parameter error
+ *
  * @private utility of LLM Tools
  */
 export function isUnsupportedParameterError(error: Error): boolean {

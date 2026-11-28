@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import type { ServerInfo } from './types';
 
+/**
+ * Handles key val.
+ */
 function KeyVal(props: { label: string; value: ReactNode }) {
     return (
         <div className="flex items-start gap-2">
@@ -10,6 +13,9 @@ function KeyVal(props: { label: string; value: ReactNode }) {
     );
 }
 
+/**
+ * Handles list.
+ */
 function List(props: { items: ReadonlyArray<string> }) {
     if (!props.items?.length) return <span className="text-gray-500">none</span>;
     return (
@@ -23,6 +29,9 @@ function List(props: { items: ReadonlyArray<string> }) {
     );
 }
 
+/**
+ * Handles section.
+ */
 function Section(props: { title: string; children: ReactNode }) {
     return (
         <section className="mt-8">
@@ -32,6 +41,9 @@ function Section(props: { title: string; children: ReactNode }) {
     );
 }
 
+/**
+ * Handles server body.
+ */
 function ServerBody({ info }: { info: ServerInfo }) {
     return (
         <div className="max-w-4xl mx-auto p-6">
@@ -84,7 +96,12 @@ function ServerBody({ info }: { info: ServerInfo }) {
 }
 
 /**
- * @@@
+ * Renders the full HTML document for the Promptbook Server UI.
+ *
+ * This component provides the root structure of the server information page,
+ * including necessary meta tags, Tailwind CSS styling, and the server details body.
+ *
+ * @param props - Contains server information such as versions, port, and pipelines
  *
  * @private internal utility of Remote Server
  */

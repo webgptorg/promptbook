@@ -3,11 +3,14 @@
  *
  * @example 'HELLO_WORLD'
  * @example 'I_LOVE_PROMPTBOOK'
+ *
  * @public exported from `@promptbook/utils`
  */
 export type string_SCREAMING_CASE = string;
 
 /**
+ * Type describing char type.
+ *
  * @private type of `normalizeTo_SCREAMING_CASE`
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
@@ -21,6 +24,7 @@ type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
  * @returns The normalized text in SCREAMING_CASE format.
  * @example 'HELLO_WORLD'
  * @example 'I_LOVE_PROMPTBOOK'
+ *
  * @public exported from `@promptbook/utils`
  */
 export function normalizeTo_SCREAMING_CASE(text: string): string_SCREAMING_CASE {

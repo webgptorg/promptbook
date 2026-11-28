@@ -1,5 +1,6 @@
 import type { Promisable } from 'type-fest';
-import type { string_file_extension, string_mime_type } from '../../../../types/typeAliases';
+import type { string_mime_type } from '../../../../types/string_mime_type';
+import type { string_file_extension } from '../../../../types/string_sha256';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 
@@ -32,7 +33,7 @@ export type ChatSaveFormatDefinition = {
     /**
      * The function that generates the content of the file to be saved
      */
-    getContent(chatExportData: ChatExportData): Promisable<string>;
+    getContent(chatExportData: ChatExportData): Promisable<ChatSaveFormatContent>;
 };
 
 /**
@@ -56,3 +57,10 @@ type ChatExportData = {
      */
     readonly participants: ReadonlyArray<ChatParticipant>;
 };
+
+/**
+ * Content data that can be wrapped into a browser blob.
+ *
+ * @private Internal helper type for chat save plugins.
+ */
+type ChatSaveFormatContent = string | Blob | ArrayBuffer | ArrayBufferView;

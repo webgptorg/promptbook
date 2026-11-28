@@ -2,30 +2,73 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // Note: Do not import from `../../package.json` because it would be included in the bundle
 // TODO: [🧠] Is there a better way to get the version?
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
-import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
-import { AboutPromptbookInformation } from '../../utils/misc/xAboutPromptbookInformation';
 import { AboutIcon } from '../icons/AboutIcon';
+import { AttachmentIcon } from '../icons/AttachmentIcon';
+import { CameraIcon } from '../icons/CameraIcon';
 import { DownloadIcon } from '../icons/DownloadIcon';
 import { ExitFullscreenIcon } from '../icons/ExitFullscreenIcon';
 import { FullscreenIcon } from '../icons/FullscreenIcon';
 import { Dropdown } from '../_common/Dropdown/Dropdown';
+import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
+import { useMenuHoisting } from '../_common/MenuHoisting/MenuHoistingContext';
 import { Modal } from '../_common/Modal/Modal';
 import styles from './BookEditor.module.css';
+import { BookEditorAboutPromptbookInformation } from './BookEditorAboutPromptbookInformation';
 
+/**
+ * Props for book editor actionbar.
+ */
 type BookEditorActionbarProps = {
     value: string | undefined;
     isDownloadButtonShown?: boolean;
+    isUploadButtonShown?: boolean;
+    isCameraButtonShown?: boolean;
     isAboutButtonShown?: boolean;
     isFullscreenButtonShown?: boolean;
     onFullscreenClick?: () => void;
+    onUploadDocument?: () => void;
+    onTakePhoto?: () => void;
     isFullscreen?: boolean;
+    hoistedMenuItems?: ReadonlyArray<HoistedMenuItem>;
 };
 
+function induceBookDownloadInBrowser(book: string): void {
+    const filename = `${normalizeBookDownloadName(extractBookTitle(book) || 'AI Avatar')}.book`;
+    const objectUrl = URL.createObjectURL(new Blob([book], { type: 'application/json' }));
+    const link = window.document.createElement('a');
+
+    link.href = objectUrl;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(objectUrl);
+}
+
+function extractBookTitle(book: string): string | null {
+    return (
+        book
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .find(Boolean) || null
+    );
+}
+
+function normalizeBookDownloadName(value: string): string {
+    return (
+        value
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^\dA-Za-z]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .toLowerCase() || 'ai-avatar'
+    );
+}
+
 /**
+ * Handles book editor actionbar.
  *
  * @private Internal component used by `BookEditor`
  */
@@ -33,43 +76,97 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
     const {
         value,
         isDownloadButtonShown,
+        isUploadButtonShown,
+        isCameraButtonShown,
         isAboutButtonShown,
         isFullscreenButtonShown,
         onFullscreenClick,
+        onUploadDocument,
+        onTakePhoto,
         isFullscreen,
+        hoistedMenuItems,
     } = props;
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+    const menuHoisting = useMenuHoisting();
 
-    const handleDownload = () => {
-        const book = validateBook(value || DEFAULT_BOOK);
-        /* not await */ $induceBookDownload(book);
-    };
+    // Note: [1] We use ref to avoid re-creating the handleDownload function (and thus the actions array) on every value change
+    const valueRef = useRef(value);
+    useEffect(() => {
+        valueRef.current = value;
+    }, [value]);
 
-    const actions = [];
+    const handleDownload = useCallback(() => {
+        const book = validateBook(valueRef.current || DEFAULT_BOOK);
+        induceBookDownloadInBrowser(book);
+    }, []);
 
-    if (isDownloadButtonShown) {
-        actions.push({
-            icon: <DownloadIcon />,
-            name: 'Download',
-            onClick: handleDownload,
-        });
-    }
+    const actions = useMemo(() => {
+        const _actions: HoistedMenuItem[] = [...(hoistedMenuItems || [])];
 
-    if (isAboutButtonShown) {
-        actions.push({
-            icon: <AboutIcon />,
-            name: 'About',
-            onClick: () => setIsAboutModalOpen(true),
-        });
-    }
+        if (isUploadButtonShown && onUploadDocument) {
+            _actions.push({
+                icon: <AttachmentIcon />,
+                name: 'Upload document',
+                onClick: onUploadDocument,
+            });
+        }
 
-    if (isFullscreenButtonShown && onFullscreenClick) {
-        actions.push({
-            icon: <FullscreenIcon />,
-            name: 'Fullscreen',
-            onClick: onFullscreenClick,
-        });
-    }
+        if (isCameraButtonShown && onTakePhoto) {
+            _actions.push({
+                icon: <CameraIcon />,
+                name: 'Take photo',
+                onClick: onTakePhoto,
+            });
+        }
+
+        if (isDownloadButtonShown) {
+            _actions.push({
+                icon: <DownloadIcon />,
+                name: 'Download',
+                onClick: handleDownload,
+            });
+        }
+
+        if (isAboutButtonShown) {
+            _actions.push({
+                icon: <AboutIcon />,
+                name: 'About',
+                onClick: () => setIsAboutModalOpen(true),
+            });
+        }
+
+        if (isFullscreenButtonShown && onFullscreenClick) {
+            _actions.push({
+                icon: <FullscreenIcon />,
+                name: 'Fullscreen',
+                onClick: onFullscreenClick,
+            });
+        }
+        return _actions;
+    }, [
+        hoistedMenuItems,
+        isUploadButtonShown,
+        onUploadDocument,
+        isCameraButtonShown,
+        onTakePhoto,
+        isDownloadButtonShown,
+        handleDownload,
+        isAboutButtonShown,
+        isFullscreenButtonShown,
+        onFullscreenClick,
+    ]);
+
+    useEffect(() => {
+        if (!menuHoisting || isFullscreen) {
+            return;
+        }
+
+        menuHoisting.setMenu(actions);
+
+        return () => {
+            menuHoisting.setMenu([]);
+        };
+    }, [menuHoisting, actions, isFullscreen]);
 
     if (isFullscreen) {
         return (
@@ -78,6 +175,22 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                     <ExitFullscreenIcon />
                 </button>
             </div>
+        );
+    }
+
+    if (menuHoisting && !isFullscreen) {
+        return (
+            <>
+                {isAboutModalOpen && (
+                    <Modal
+                        onClose={() => {
+                            setIsAboutModalOpen(false);
+                        }}
+                    >
+                        <BookEditorAboutPromptbookInformation />
+                    </Modal>
+                )}
+            </>
         );
     }
 
@@ -100,7 +213,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                         setIsAboutModalOpen(false);
                     }}
                 >
-                    <AboutPromptbookInformation />
+                    <BookEditorAboutPromptbookInformation />
                 </Modal>
             )}
         </div>

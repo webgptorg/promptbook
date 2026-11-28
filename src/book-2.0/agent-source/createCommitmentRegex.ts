@@ -8,11 +8,23 @@ import type { BookCommitment } from '../../commitments/_base/BookCommitment';
  *
  * @private - TODO: [🧠] Maybe should be public?
  */
-export function createCommitmentRegex(commitment: BookCommitment): RegExp {
-    const escapedCommitment = commitment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const keywordPattern = escapedCommitment.split(/\s+/).join('\\s+');
-    const regex = new RegExp(`^\\s*(?<type>${keywordPattern})\\b\\s+(?<contents>.+)$`, 'gim');
-    return regex;
+export function createCommitmentRegex(
+    commitment: BookCommitment,
+    aliases: BookCommitment[] = [],
+    requiresContent = true,
+): RegExp {
+    const allCommitments = [commitment, ...aliases];
+    const patterns = allCommitments.map((commitment) => {
+        const escapedCommitment = commitment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return escapedCommitment.split(/\s+/).join('\\s+');
+    });
+    const keywordPattern = patterns.join('|');
+
+    if (requiresContent) {
+        return new RegExp(`^\\s*(?<type>${keywordPattern})\\b\\s+(?<contents>.+)$`, 'gim');
+    } else {
+        return new RegExp(`^\\s*(?<type>${keywordPattern})\\b(?:\\s+(?<contents>.+))?$`, 'gim');
+    }
 }
 
 /**
@@ -24,9 +36,13 @@ export function createCommitmentRegex(commitment: BookCommitment): RegExp {
  *
  * @private
  */
-export function createCommitmentTypeRegex(commitment: BookCommitment): RegExp {
-    const escapedCommitment = commitment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const keywordPattern = escapedCommitment.split(/\s+/).join('\\s+');
+export function createCommitmentTypeRegex(commitment: BookCommitment, aliases: BookCommitment[] = []): RegExp {
+    const allCommitments = [commitment, ...aliases];
+    const patterns = allCommitments.map((commitment) => {
+        const escapedCommitment = commitment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return escapedCommitment.split(/\s+/).join('\\s+');
+    });
+    const keywordPattern = patterns.join('|');
     const regex = new RegExp(`^\\s*(?<type>${keywordPattern})\\b`, 'gim');
     return regex;
 }

@@ -1,9 +1,9 @@
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 import type { Registration } from '../../utils/misc/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 import { createOpenAiCompatibleExecutionTools } from './createOpenAiCompatibleExecutionTools';
@@ -83,6 +83,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
                 apiKey: 'sk-',
                 assistantId: 'asst_',
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
+                isCreatingNewAssistantsAllowed: false,
             } satisfies OpenAiAssistantExecutionToolsOptions,
         };
     },
@@ -136,9 +137,9 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
                 apiKey: 'sk-',
                 baseURL: 'https://api.openai.com/v1',
                 defaultModelName: 'gpt-4-turbo',
-                isProxied: false as really_any,
-                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL as really_any,
-                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE as really_any,
+                isProxied: false as chococake,
+                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL as chococake,
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE as chococake,
             } satisfies Parameters<typeof createOpenAiCompatibleExecutionTools>[0],
         };
     },
@@ -150,6 +151,4 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
     },
 });
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name
