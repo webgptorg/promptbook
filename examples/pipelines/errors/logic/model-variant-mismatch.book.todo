@@ -1,0 +1,19 @@
+# 🟡 Pick the incompativble combination of model variant and name
+
+Show how to pick exact model
+
+-   INPUT  PARAMETER `{word}` Any single word
+-   OUTPUT PARAMETER `{poem}`
+
+## 💬 Synonym
+
+-   MODEL VARIANT Completion
+-   MODEL NAME `gpt-4-1106-preview`
+
+Synonym for word
+
+```text
+Write poem with word "{word}"
+```
+
+`-> {poem}`

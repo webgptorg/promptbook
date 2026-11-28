@@ -1,5 +1,7 @@
 import { extractMultiplicatedOccurrence } from './extractMultiplicatedOccurrence';
 
+// cspell:disable
+
 describe('how extractMultiplicatedOccurrence works', () => {
     it('extracts correct pattern', () => {
         expect(extractMultiplicatedOccurrence('hellohellohello')).toEqual('hello');

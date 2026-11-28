@@ -1,0 +1,50 @@
+[x] ~$0.17 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨👍] Menu of the agent server app should have icons in the menu bar before the agent name and the action name.
+
+-   It will make the UI more visually appealing and easier to navigate.
+-   Before the agent name, there should be a circle with the agent profile image.
+-   Before the action (Profile/Chat/Book) should be icon get, inspiration from the Agent context menu.
+-   This should be both in the closed and open state.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1460-agents-server-menu-icons.png)
+
+---
+
+[x] ~$0.20 9 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨👍] Menu items of the agent server should have icons of their agents.
+
+-   Now the agent images are shown perfectly for the selected agent, but not for other agents in the select menu items.
+-   For the folders, show the icon of the folder.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![Missing icons in the menu items](prompts/screenshots/2026-02-1460-agents-server-menu-icons-1.png)
+
+---
+
+[-]
+
+[✨👍] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨👍] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -1,0 +1,112 @@
+{
+    "date": "2025-05-06T11:58:30.305Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Evolution of Language Technology Breakthroughs",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:58:07.196Z",
+            "complete": "2025-05-06T11:58:30.305Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000504
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 108
+                },
+                "charactersCount": {
+                    "value": 511
+                },
+                "wordsCount": {
+                    "value": 73
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 12
+                },
+                "charactersCount": {
+                    "value": 46
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> The advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Q7C93r7Nyq89FTpswzaoHw",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Evolution of Language Technology Breakthroughs"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 108,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 12
+            }
+        }
+    }
+}

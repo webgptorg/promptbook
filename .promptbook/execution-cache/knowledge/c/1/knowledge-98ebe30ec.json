@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:08:10.148Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The provided text appears to be a security checkpoint identifier from Vercel, a cloud platform for web deployment. The string \"fra1::1756440454-4iGUBUXXGCy6QRgXVhi1XY6bq2KHH1IU\" is likely a unique token or session ID generated for a specific request or deployment process."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Vercel, security checkpoint, identifier, cloud platform, web deployment, unique token, session ID, request, deployment process",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:08:01.773Z",
+            "complete": "2025-08-29T04:08:10.148Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 115
+                },
+                "charactersCount": {
+                    "value": 466
+                },
+                "wordsCount": {
+                    "value": 67
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 25
+                },
+                "charactersCount": {
+                    "value": 126
+                },
+                "wordsCount": {
+                    "value": 15
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The provided text appears to be a security checkpoint identifier from Vercel, a cloud platform for web deployment. The string \"fra1::1756440454-4iGUBUXXGCy6QRgXVhi1XY6bq2KHH1IU\" is likely a unique token or session ID generated for a specific request or deployment process.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The provided text appears to be a security checkpoint identifier from Vercel, a cloud platform for web deployment. The string \"fra1::1756440454-4iGUBUXXGCy6QRgXVhi1XY6bq2KHH1IU\" is likely a unique token or session ID generated for a specific request or deployment process."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Vercel, security checkpoint, identifier, cloud platform, web deployment, unique token, session ID, request, deployment process",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 115,
+                "completionTokens": 25
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 115
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The provided text appears to be a security checkpoint identifier from Vercel, a cloud platform for web deployment. The string \"fra1::1756440454-4iGUBUXXGCy6QRgXVhi1XY6bq2KHH1IU\" is likely a unique token or session ID generated for a specific request or deployment process."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "97692f43694c8b99-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:07:59 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=05HjTmFx6nGiCmI8juW2rfDcew1B2e59qjt51Pw1Tdw-1756440479-1.0.1.1-0tKZc7MKtaRwV8ayO.kWrLZ6GFSvb4KD_YD6dieldD1VV.Anh9UJTUq2yMtdob3GWBWtxjwE4y.t0nJ0rGsuG8LV4P3u.8aVqBIqTasxvj8; path=/; expires=Fri, 29-Aug-25 04:37:59 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "c1c06d276009ac378ee967f7c3e93f0b"
+                }
+            },
+            "response": {
+                "id": "f5ad1caf-c2c0-41c8-9ee2-03bcfceb1917",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:07:59.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The provided text appears to be a security checkpoint identifier from Vercel, a cloud platform for web deployment. The string \\\"fra1::1756440454-4iGUBUXXGCy6QRgXVhi1XY6bq2KHH1IU\\\" is likely a unique token or session ID generated for a specific request or deployment process.\"}]}"
+            }
+        }
+    }
+}

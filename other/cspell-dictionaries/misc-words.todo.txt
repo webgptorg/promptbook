@@ -1,0 +1,105 @@
+TODO: Fix mispelled words and remove them from misc-words.txt
+
+
+recognisable -> recognizable (US English, "recognisable" is UK English)
+parmeter -> parameter
+thare -> there
+sectiom -> section
+vurnable -> vulnerable
+validaton -> validation
+resoved -> resolved
+unresoved -> unresolved
+rerefenced -> referenced
+catched -> caught
+repared -> repaired
+aviailable -> available
+witch -> which (unless referring to a sorceress)
+strins -> strings
+comfiguration -> configuration
+emuate -> emulate
+onject -> object
+multiplicated -> multiplied (or "complicated")
+markitdown -> markdown
+Prettifyed -> prettified
+prameter -> parameter
+Malfsdxsxed -> (gibberish, but if intended to be a word, it's misspelled)
+Thare -> There
+VURNABLE -> VULNERABLE
+prettifyed -> prettified
+Prettyfies -> prettifies
+Resoved -> Resolved
+LOCALAPPDATA -> LOCALAPPDATA (this is a standard environment variable, not a typo per se, but unusual casing for a general word list)
+Subvalues -> subvalues (consistency with other "sub" prefixed words that are lowercase)
+Subparameters -> subparameters (consistency)
+imporant -> important
+everyhing -> everything
+Arrayable -> arrayable (consistency)
+completelly -> completely
+initializating -> initializing
+setings -> settings
+outpur -> output
+Summarise -> Summarize (US English, "Summarise" is UK English)
+standartize -> standardize
+logi -> logic (or "logo")
+meaningfull -> meaningful
+Aviailable -> Available
+confugured -> configured
+alongsite -> alongside
+choises -> choices
+choise -> choice
+lagacy -> legacy
+whay -> why
+Opeen -> Open
+shoud -> should
+intefrace -> interface
+baar -> bar
+subfinctions -> subfunctions
+maximul -> maximum
+Cutomize -> Customize
+trys -> tries
+signleton -> singleton
+retun -> return
+precol -> pre-call (likely, or needs context)
+diacritless -> diacriticless
+separatelly -> separately
+binded -> bound (past tense of bind)
+knowle -> knowledge (likely)
+malitious -> malicious
+inanonymous -> in anonymous (likely intended as two words)
+itterate -> iterate
+Clening -> Cleaning
+sacraping -> scraping
+Punctation -> Punctuation
+creatortool -> creator tool
+accasable -> accessible
+Disctance -> Distance
+Heigth -> Height
+smalles -> smallest
+Healine -> Headline
+licenes -> licenses
+accros -> across
+annoate -> annotate
+convertable -> convertible
+bhing -> being (likely)
+brrow -> borrow
+bpple -> apple (likely)
+buildin -> built-in (or "building")
+balast -> ballast
+ECECUTE -> EXECUTE
+Maube -> Maybe
+Genetated -> Generated
+itseld -> itself
+Discorered -> Discovered
+cyrilic -> cyrillic
+documentpdf -> document.pdf (likely, or "document PDF")
+whitespacing -> white spacing (or "whitespace")
+interpunction -> interpunction (this is a valid but rare word; "punctuation" is more common)
+cunfused -> confused
+confisused -> confused
+withs -> with
+directlys -> directly
+Thay -> They
+Makeap -> Makeup (or "make up")
+brokes -> breaks (or "broke")
+italix -> italics
+specialise -> specialize (US English, "specialise" is UK English)

@@ -1,0 +1,1 @@
+TODO: [🏢] Allow to expect something inside JSON objects and other formats

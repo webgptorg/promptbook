@@ -1,163 +1,272 @@
 #!/usr/bin/env ts-node
+// generate-packages.ts
 
-import chalk from 'chalk';
+import colors from 'colors';
 import commander from 'commander';
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
-import spaceTrim from 'spacetrim';
-import { PackageJson } from 'type-fest';
-import YAML from 'yaml';
-import { packageNames } from '../../rollup.config';
+import { readFile } from 'fs/promises';
+import { basename, join } from 'path';
+import { spaceTrim } from 'spacetrim';
+import type { PackageJson } from 'type-fest';
+import { assertsError } from '../../src/errors/assertsError';
+import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
-import { execCommand } from '../utils/execCommand/execCommand';
+import { addDependenciesForGeneratedPackages } from './addDependenciesForGeneratedPackages';
+import { assertGeneratedBundlesArePublishSafe } from './assertGeneratedBundlesArePublishSafe';
+import { buildGeneratedPackageBundles } from './buildGeneratedPackageBundles';
+import { copyCoderAgentBooks } from './copyCoderAgentBooks';
+import { copyAgentsServerRuntimePathToCliPackage } from './copyAgentsServerRuntimePathToCliPackage';
+import {
+    collectMainPackageDependencies,
+    collectMainPackageDevelopmentDependencies,
+} from './collectMainPackageDependencies';
+import { generatePackageEntryFiles } from './generatePackageEntryFiles';
+import { generatePackageReadmesAndMetadata } from './generatePackageReadmesAndMetadata';
+import type { PackageMetadata } from './PackageMetadata';
+import { getPackagesMetadata } from './getPackagesMetadata';
+import { logPackageGenerationStep } from './logPackageGenerationStep';
+import { writePublishWorkflow } from './writePublishWorkflow';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: generate-packages.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
+program.option('--skip-bundler', `Skip the build process of bundler`, false);
 program.parse(process.argv);
 
-program.parse(process.argv);
-const { commit: isCommited } = program.opts();
+/**
+ * Constant for { commit: is commited, skip bundler: is bundler skipped }.
+ */
+const { commit: isCommitted, skipBundler: isBundlerSkipped } = program.opts();
 
-generatePackages({ isCommited })
-    .catch((error: Error) => {
-        console.error(chalk.bgRed(error.name));
-        console.error(error);
+/**
+ * Runtime options supported by the package-generation entrypoint.
+ *
+ * @private internal utility of package generation
+ */
+type GeneratePackagesOptions = {
+    readonly isCommitted: boolean;
+    readonly isBundlerSkipped: boolean;
+};
+
+/**
+ * Shared data prepared once and reused across generation phases.
+ *
+ * @private internal utility of package generation
+ */
+type PackageGenerationContext = {
+    readonly allDependencies: Record<string, string>;
+    readonly allDevelopmentDependencies: Record<string, string>;
+    readonly mainPackageJson: PackageJson;
+    readonly mainPackageVersion: string;
+    readonly packagesMetadata: ReadonlyArray<PackageMetadata>;
+};
+
+generatePackages({ isCommitted, isBundlerSkipped })
+    .catch((error) => {
+        assertsError(error);
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {
         process.exit(0);
     });
 
-async function generatePackages({ isCommited }: { isCommited: boolean }) {
+/**
+ * Generates all package files and bundles used in the monorepo.
+ *
+ * @param options - Package generation options
+ * @private internal utility of package generation
+ */
+async function generatePackages({ isCommitted, isBundlerSkipped }: GeneratePackagesOptions): Promise<void> {
     console.info(`📦  Generating packages`);
 
-    if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
-        throw new Error(`Working tree is not clean`);
-    }
+    await assertPackageGenerationWorkingTreeState(isCommitted);
 
-    for (const packageName of packageNames) {
-        await execCommand(`rm -rf ./packages/${packageName}/umd`);
-        await execCommand(`rm -rf ./packages/${packageName}/esm`);
-    }
+    const packageGenerationContext = await preparePackageGenerationContext();
 
-    await execCommand(`npx rollup --config rollup.config.js`);
-
-    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
-
-    console.info(chalk.bgGray(mainPackageJson.version));
-
-    for (const packageName of packageNames) {
-        await writeFile(
-            `./packages/${packageName}/README.md`,
-            spaceTrim(`
-
-                # 📖 Promptbook
-
-                Library to supercharge your use of large language models
-
-                [Read the manual](https://github.com/webgptorg/promptbook)
-
-        `), // <- TODO: [🧠] Maybe make custom README.md for each package
-        );
-
-        const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
-        delete packageJson.scripts;
-        delete packageJson.devDependencies;
-        packageJson.name = `@promptbook/${packageName}`;
-        if (packageName !== 'core') {
-            packageJson.peerDependencies = {
-                '@promptbook/core': packageJson.version,
-            };
-        }
-        const indexContent = await readFile(`./packages/${packageName}/esm/index.es.js`, 'utf-8');
-        for (const dependencyName in packageJson.dependencies) {
-            if (!indexContent.includes(`from '${dependencyName}'`)) {
-                delete packageJson.dependencies[dependencyName];
-            }
-        }
-        packageJson.main = `./umd/index.umd.js`;
-        packageJson.module = `./esm/index.es.js`;
-        packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
-        // TODO: !! Filter out dependencies only for the current package
-        await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
-
-        await writeFile(`./packages/${packageName}/.gitignore`, ['esm', 'umd'].join('\n'));
-        await writeFile(`./packages/${packageName}/.npmignore`, '');
-    }
-
-    await writeFile(
-        `./.github/workflows/publish.yml`,
-        YAML.stringify(
-            {
-                name: 'Publish new version',
-                on: {
-                    push: {
-                        tags: ['v*'],
-                    },
-                },
-                jobs: {
-                    'publish-npm': {
-                        name: 'Publish on NPM package registry',
-                        'runs-on': 'ubuntu-latest',
-                        steps: [
-                            {
-                                name: 'Checkout',
-                                uses: 'actions/checkout@v2',
-                            },
-                            {
-                                name: 'Setup Node.js',
-                                uses: 'actions/setup-node@v1',
-                                with: {
-                                    'node-version': 18,
-                                    'registry-url': 'https://registry.npmjs.org/',
-                                },
-                            },
-                            {
-                                name: 'Install dependencies',
-                                run: 'npm ci',
-                            },
-                            {
-                                name: 'Build packages bundles',
-                                // Note: Generate packages before publishing to put the recent version in each package.json
-                                // TODO: It will be better to have here just "npx rollup --config rollup.config.js" BUT it will not work because:
-                                //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
-                                run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
-                            },
-                            ...packageNames.map((packageName) => ({
-                                name: `Publish @promptbook/${packageName}`,
-                                'working-directory': `./packages/${packageName}`,
-                                run: 'npm publish --access public',
-                                env: {
-                                    NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
-                                },
-                            })),
-                        ],
-                    },
-                },
-            },
-            { indent: 4 },
-        )
-            .split('"')
-            .join("'") /* <- TODO: Can the replace be done directly in YAML.stringify options? */,
+    await generatePackageEntryFiles(packageGenerationContext.packagesMetadata);
+    await generatePackageReadmesAndMetadata(
+        packageGenerationContext.packagesMetadata,
+        packageGenerationContext.mainPackageJson,
     );
-
-    if (isCommited) {
-        await commit('packages', `📦 Generating packages`);
-        await commit('.github', `📦 Update publish workflow for generated packages`);
-    }
-
-    console.info(`[ 📦  Generating packages ]`);
+    await cleanupPackageBuildDirectories(packageGenerationContext.packagesMetadata, isBundlerSkipped);
+    await buildGeneratedPackageBundles(packageGenerationContext.packagesMetadata, isBundlerSkipped);
+    await postprocessGeneratedBundles(packageGenerationContext.packagesMetadata, isBundlerSkipped);
+    await addDependenciesForGeneratedPackages(
+        packageGenerationContext.packagesMetadata,
+        packageGenerationContext.allDependencies,
+        packageGenerationContext.allDevelopmentDependencies,
+        packageGenerationContext.mainPackageVersion,
+    );
+    await maybeCopyAgentsServerAppToCliPackage();
+    await copyCoderAgentBooks(process.cwd(), join(process.cwd(), 'packages/cli'));
+    await assertGeneratedBundlesArePublishSafe(packageGenerationContext.packagesMetadata, isBundlerSkipped);
+    await writePublishWorkflow(packageGenerationContext.packagesMetadata);
+    await maybeCommitGeneratedPackages(isCommitted, packageGenerationContext.mainPackageVersion);
 }
 
 /**
- * TODO: !! [👵] test before publish
- * TODO: !! Add warning to the copy/generated files
- * TODO: !! Use prettier to format the generated files
- * TODO: !! Normalize order of keys in package.json
+ * Ensures `--commit` only runs against a clean repository state.
+ *
+ * @param isCommitted - Whether package generation should auto-commit the result
+ * @private internal utility of package generation
  */
+async function assertPackageGenerationWorkingTreeState(isCommitted: boolean): Promise<void> {
+    if (isCommitted && !(await isWorkingTreeClean(process.cwd()))) {
+        throw new Error(`Working tree is not clean`);
+    }
+}
+
+/**
+ * Loads package metadata and root package information shared across all later phases.
+ *
+ * @returns Prepared generation context
+ * @private internal utility of package generation
+ */
+async function preparePackageGenerationContext(): Promise<PackageGenerationContext> {
+    logPackageGenerationStep(`0️⃣  Prepare the needed information about the packages`);
+
+    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
+
+    console.info(`Promptbook version ${mainPackageJson.version}`);
+
+    const mainPackageVersion = getRequiredMainPackageVersion(mainPackageJson);
+    const allDependencies = collectMainPackageDependencies(mainPackageJson);
+    const allDevelopmentDependencies = collectMainPackageDevelopmentDependencies(mainPackageJson);
+    const packagesMetadata = await getPackagesMetadata();
+
+    return {
+        allDependencies,
+        allDevelopmentDependencies,
+        mainPackageJson,
+        mainPackageVersion,
+        packagesMetadata,
+    };
+}
+
+/**
+ * Verifies that the root package manifest contains a version string.
+ *
+ * @param mainPackageJson - Parsed root package manifest
+ * @returns Required version string
+ * @private internal utility of package generation
+ */
+function getRequiredMainPackageVersion(mainPackageJson: PackageJson): string {
+    if (!mainPackageJson.version) {
+        throw new Error(`Version is not defined in the package.json`);
+    }
+
+    return mainPackageJson.version;
+}
+
+/**
+ * Removes old bundle directories before running Rollup again.
+ *
+ * @param packagesMetadata - Metadata of generated packages
+ * @param isBundlerSkipped - Whether bundling is disabled for this run
+ * @private internal utility of package generation
+ */
+async function cleanupPackageBuildDirectories(
+    packagesMetadata: ReadonlyArray<PackageMetadata>,
+    isBundlerSkipped: boolean,
+): Promise<void> {
+    logPackageGenerationStep(`3️⃣  Cleanup build directories for each package`);
+
+    if (isBundlerSkipped) {
+        console.info(colors.yellow(`Skipping the cleanup for bundler`));
+        return;
+    }
+
+    for (const { isBuilded, packageBasename } of packagesMetadata) {
+        if (!isBuilded) {
+            continue;
+        }
+
+        await $execCommand(`rm -rf ./packages/${packageBasename}/umd`);
+        await $execCommand(`rm -rf ./packages/${packageBasename}/esm`);
+    }
+}
+
+/**
+ * Performs the small cleanup pass applied after successful bundling.
+ *
+ * @param packagesMetadata - Metadata of generated packages
+ * @param isBundlerSkipped - Whether bundling is disabled for this run
+ * @private internal utility of package generation
+ */
+async function postprocessGeneratedBundles(
+    packagesMetadata: ReadonlyArray<PackageMetadata>,
+    isBundlerSkipped: boolean,
+): Promise<void> {
+    logPackageGenerationStep(`5️⃣  Postprocess the generated bundle`);
+
+    if (isBundlerSkipped) {
+        console.info(colors.yellow(`Skipping postprocessing`));
+        return;
+    }
+
+    // Note: Keep `typings` only from `esm` (and remove `umd`)
+    for (const { packageBasename } of packagesMetadata) {
+        await $execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
+    }
+}
+
+/**
+ * Copies the Agents Server app and the repo-relative runtime files it imports into the CLI package.
+ *
+ * @private internal utility of package generation
+ */
+async function maybeCopyAgentsServerAppToCliPackage(): Promise<void> {
+    logPackageGenerationStep(`7️⃣  Copy agents-server app to CLI package`);
+
+    await copyAgentsServerRuntimePathToCliPackage('./apps/agents-server', './packages/cli/apps/agents-server');
+    await copyAgentsServerRuntimePathToCliPackage('./apps/_common', './packages/cli/apps/_common');
+    await copyAgentsServerRuntimePathToCliPackage('./src', './packages/cli/src');
+    await copyAgentsServerRuntimePathToCliPackage('./books', './packages/cli/books');
+    await copyAgentsServerRuntimePathToCliPackage('./servers.ts', './packages/cli/servers.ts');
+    await copyAgentsServerRuntimePathToCliPackage('./security.config.ts', './packages/cli/security.config.ts');
+
+    console.info(colors.green('Agents-server app copied successfully'));
+}
+
+/**
+ * Commits generated files when `--commit` is enabled.
+ *
+ * @param isCommitted - Whether package generation should auto-commit the result
+ * @param mainPackageVersion - Shared Promptbook version
+ * @private internal utility of package generation
+ */
+async function maybeCommitGeneratedPackages(isCommitted: boolean, mainPackageVersion: string): Promise<void> {
+    if (!isCommitted) {
+        return;
+    }
+
+    await commit(
+        ['src/_packages', 'packages', './.github/workflows/publish.yml'],
+        `📦 Generating packages \`${mainPackageVersion}\``,
+    );
+}
+
+// Note: [⚫] Code for repository script [generate-packages](scripts/generate-packages/generate-packages.ts) should never be published in any package
+// TODO: [👵] test before publish
+// TODO: Add warning to the copy/generated files
+// TODO: Use prettier to format the generated files
+// TODO: Normalize order of keys in package.json

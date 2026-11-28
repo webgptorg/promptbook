@@ -1,0 +1,108 @@
+{
+    "date": "2025-07-09T16:04:45.846Z",
+    "promptbookVersion": "0.98.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Key benefits include rapid development, with the ability to build AI applications in minutes rather than weeks, and an enterprise-ready solution with built-in security, privacy, and scalability features."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Rapid development, AI applications, enterprise-ready solution, security, privacy, scalability",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-07-09T16:04:40.112Z",
+            "complete": "2025-07-09T16:04:45.845Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00047250000000000005
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 84
+                },
+                "charactersCount": {
+                    "value": 397
+                },
+                "wordsCount": {
+                    "value": 56
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 21
+                },
+                "charactersCount": {
+                    "value": 93
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Key benefits include rapid development, with the ability to build AI applications in minutes rather than weeks, and an enterprise-ready solution with built-in security, privacy, and scalability features.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Key benefits include rapid development, with the ability to build AI applications in minutes rather than weeks, and an enterprise-ready solution with built-in security, privacy, and scalability features."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01V2GbvKtPKgW5ySk6WPXA2Q",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Rapid development, AI applications, enterprise-ready solution, security, privacy, scalability"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 84,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 21,
+                "service_tier": "standard"
+            }
+        }
+    }
+}

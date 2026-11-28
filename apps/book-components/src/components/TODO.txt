@@ -1,0 +1,2 @@
+TODO: [✨🕳] Move files like preview and component.json to /src/book-components/.../.
+TODO: [🙉] DRY - make some index / register for component previews, DO not duplicate switch cases in multiple places

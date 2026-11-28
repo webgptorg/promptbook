@@ -1,0 +1,10 @@
+
+/node_modules
+
+coverage
+
+bash.exe.stackdump
+
+.~lock.*
+
+.early.coverage

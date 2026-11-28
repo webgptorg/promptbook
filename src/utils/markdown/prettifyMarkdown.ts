@@ -1,35 +1,27 @@
-import { format } from 'prettier';
-import parserHtml from 'prettier/parser-html';
-import type { string_html } from '../../types/typeAliases';
+import type { string_html } from '../../types/string_markdown';
 
 /**
  * Prettify the html code
  *
- * @param html raw html code
+ * @param content raw html code
  * @returns formatted html code
+ * @deprecated Prettier removed from Promptbook due to package size
+ *
+ * @private withing the package because of HUGE size of prettier dependency
  */
-export function prettifyMarkdown(html: string_html): string_html {
-    try {
-        return format(html, {
-            parser: 'markdown',
-            plugins: [parserHtml],
+export function prettifyMarkdown<TContent extends string_html>(content: TContent): TContent {
+    return (content + `\n\n<!-- Note: Prettier removed from Promptbook -->`) as TContent;
+}
 
-            // TODO: DRY - make some import or auto-copy of .prettierrc
-            endOfLine: 'lf',
-            tabWidth: 4,
-            singleQuote: true,
-            trailingComma: 'all',
-            arrowParens: 'always',
-            printWidth: 120,
-            htmlWhitespaceSensitivity: 'ignore',
-            jsxBracketSameLine: false,
-            bracketSpacing: true,
-        });
-    } catch (error) {
-        console.error('There was an error with prettifying the markdown, using the original as the fallback', {
-            error,
-            html,
-        });
-        return html;
-    }
+/**
+ * Async version of prettifyMarkdown using dynamic imports
+ *
+ * @param content raw html code
+ * @returns formatted html code
+ * @deprecated Prettier removed from Promptbook due to package size
+ *
+ * @private withing the package because of HUGE size of prettier dependency
+ */
+export async function prettifyMarkdownAsync<TContent extends string_html>(content: TContent): Promise<TContent> {
+    return prettifyMarkdown(content);
 }

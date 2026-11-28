@@ -1,0 +1,90 @@
+{
+    "date": "2025-12-19T14:18:47.849Z",
+    "promptbookVersion": "0.104.0-5",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Generate default avatar for noah-green",
+        "content": "Image of noah-green, Witty and humorous digital friend., portrait, use color #008000, detailed, high quality",
+        "parameters": {
+            "note": "<- Note: Only relevant parameters are stored in the cache"
+        },
+        "modelRequirements": {
+            "modelVariant": "IMAGE_GENERATION",
+            "modelName": "dall-e-3"
+        }
+    },
+    "promptResult": {
+        "content": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-3bMPRnQigUXh0iIWSaGY9ZeZ.png?st=2025-12-19T13%3A18%3A51Z&se=2025-12-19T15%3A18%3A51Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=77e5a8ec-6bd1-4477-8afc-16703a64f029&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-19T12%3A13%3A20Z&ske=2025-12-20T12%3A13%3A20Z&sks=b&skv=2024-08-04&sig=RixD9SCPqWFy6ytbvUw2iKXdAzrGA5jgnNJs3duUmeI%3D",
+        "modelName": "dall-e-3",
+        "timing": {
+            "start": "2025-12-19T14:18:35.521Z",
+            "complete": "2025-12-19T14:18:47.848Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.04
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 108
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 0
+                },
+                "wordsCount": {
+                    "value": 0
+                },
+                "sentencesCount": {
+                    "value": 0
+                },
+                "linesCount": {
+                    "value": 0
+                },
+                "paragraphsCount": {
+                    "value": 0
+                },
+                "pagesCount": {
+                    "value": 0
+                }
+            }
+        },
+        "rawPromptContent": "Image of noah-green, Witty and humorous digital friend., portrait, use color #008000, detailed, high quality",
+        "rawRequest": {
+            "model": "dall-e-3",
+            "prompt": "Image of noah-green, Witty and humorous digital friend., portrait, use color #008000, detailed, high quality",
+            "response_format": "url"
+        },
+        "rawResponse": {
+            "created": 1766153931,
+            "data": [
+                {
+                    "revised_prompt": "Create a detailed, high-quality portrait of a witty, humorous digital friend. The portrait's primary color scheme should consist of hues of the color green (hex #008000). Express personality and humor in the digital friend's features and expression.",
+                    "url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-3bMPRnQigUXh0iIWSaGY9ZeZ.png?st=2025-12-19T13%3A18%3A51Z&se=2025-12-19T15%3A18%3A51Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=77e5a8ec-6bd1-4477-8afc-16703a64f029&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-19T12%3A13%3A20Z&ske=2025-12-20T12%3A13%3A20Z&sks=b&skv=2024-08-04&sig=RixD9SCPqWFy6ytbvUw2iKXdAzrGA5jgnNJs3duUmeI%3D"
+                }
+            ]
+        }
+    }
+}

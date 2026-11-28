@@ -1,0 +1,32 @@
+# ✒ Writer
+
+Writer that completes a stories
+
+-   URL https://github.com/webgptorg/book/blob/main/books/templates/writer.book.md
+-   FORMFACTOR Completion
+-   INPUT PARAMETER `{inputText}` Text to complete
+-   INPUT PARAMETER `{instructions}` Instructions for the writer
+-   OUTPUT PARAMETER `{followingText}` Continuation of the story
+
+# Write
+
+-   PERSONA William, an accomplished poet and storyteller
+
+```markdown
+
+Continue given Text
+
+
+**Rules**
+
+-  Write just a text which is continuation of the given text, nothing else
+- {instructions}
+
+
+**The Text to continue**
+
+> {inputText}
+
+```
+
+-> `{followingText}`

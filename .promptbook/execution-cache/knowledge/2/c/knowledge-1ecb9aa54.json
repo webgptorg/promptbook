@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T12:03:47.245Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Existují slevy na dlouhodobější pronájem poliček, což může být výhodné pro prodejce plánující delší spolupráci."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "dlouhodobější pronájem, poličky, slevy, prodejci, výhodné, delší spolupráce",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T12:03:45.736Z",
+            "complete": "2025-05-06T12:03:47.245Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000729
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 83
+                },
+                "charactersCount": {
+                    "value": 305
+                },
+                "wordsCount": {
+                    "value": 41
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 32
+                },
+                "charactersCount": {
+                    "value": 75
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Existují slevy na dlouhodobější pronájem poliček, což může být výhodné pro prodejce plánující delší spolupráci.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Existují slevy na dlouhodobější pronájem poliček, což může být výhodné pro prodejce plánující delší spolupráci."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_016NGf3JVD1cZdAKB39RAgAh",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "dlouhodobější pronájem, poličky, slevy, prodejci, výhodné, delší spolupráce"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 83,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 32
+            }
+        }
+    }
+}

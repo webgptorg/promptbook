@@ -1,4 +1,4 @@
-import { string_markdown, string_markdown_text } from '../.././types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
 
 /**
  * Utility function to extract all list items from markdown
@@ -9,10 +9,12 @@ import { string_markdown, string_markdown_text } from '../.././types/typeAliases
  * Note: It can not work with html syntax and comments
  *
  * @param markdown any valid markdown
- * @returns
+ * @returns An array of strings, each representing an individual list item found in the markdown
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllListItemsFromMarkdown(markdown: string_markdown): string_markdown_text[] {
-    const lines = markdown.split('\n');
+    const lines = markdown.split(/\r?\n/);
     const listItems: string_markdown_text[] = [];
 
     let isInCodeBlock = false;

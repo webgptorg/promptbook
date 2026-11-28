@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T11:59:37.659Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nCoolstore is an e-commerce retailer specializing in hobby, home, and garden products, offering a diverse range of items from garden gnomes to kitchen gadgets."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "E-commerce, retailer, hobby, home, garden, products, garden gnomes, kitchen gadgets",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:59:36.580Z",
+            "complete": "2025-05-06T11:59:37.659Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000639
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 88
+                },
+                "charactersCount": {
+                    "value": 361
+                },
+                "wordsCount": {
+                    "value": 51
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 25
+                },
+                "charactersCount": {
+                    "value": 83
+                },
+                "wordsCount": {
+                    "value": 11
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Coolstore is an e-commerce retailer specializing in hobby, home, and garden products, offering a diverse range of items from garden gnomes to kitchen gadgets.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Coolstore is an e-commerce retailer specializing in hobby, home, and garden products, offering a diverse range of items from garden gnomes to kitchen gadgets."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01JhshFxegVyi5p1ZiC2uB5T",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "E-commerce, retailer, hobby, home, garden, products, garden gnomes, kitchen gadgets"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 88,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 25
+            }
+        }
+    }
+}

@@ -1,0 +1,148 @@
+{
+    "date": "2025-05-17T16:16:06.451Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands)."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "keywords: language, version-control friendly, .book files, UTF-8 encoding, accessible, non-programmers, variants, flat, unstructured prompts, full, structured tasks, commands",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:55.658Z",
+            "complete": "2025-05-17T16:16:06.451Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 89
+                },
+                "charactersCount": {
+                    "value": 409
+                },
+                "wordsCount": {
+                    "value": 56
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 36
+                },
+                "charactersCount": {
+                    "value": 174
+                },
+                "wordsCount": {
+                    "value": 21
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands).",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands)."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "keywords: language, version-control friendly, .book files, UTF-8 encoding, accessible, non-programmers, variants, flat, unstructured prompts, full, structured tasks, commands",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 89,
+                "completionTokens": 36
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 89
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands)."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146a9ace773516-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:56 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=oVkjf2.r4.WDZKNTgN7t5KjMkXiWWUu6MYQhGnOwKVk-1747498556-1.0.1.1-VXhrn0kVpsQMIAYf_WUcYo9udA_ay8y31UUG8P3xGgWNHxZe5bq7J5jiy9d7NJyFbtKwu0RsdFRDpVdL_2hIkpcn_E1BQ0DmMU_br5X37Rk; path=/; expires=Sat, 17-May-25 16:45:56 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "6e8de59010cea10360519b0abb61891b"
+                }
+            },
+            "response": {
+                "id": "c64af405-b7a9-4aab-9c05-e1d1de96183f",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:56.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The language is designed to be version-control friendly (`.book` files, UTF-8 encoding) and accessible to non-programmers, with two variants: **flat** (unstructured prompts) and **full** (structured tasks/commands).\"}]}"
+            }
+        }
+    }
+}

@@ -1,0 +1,77 @@
+import { mkdir, rename, rm, stat } from 'fs/promises';
+import { join } from 'path';
+import { buildAgentMessageRunReportPath } from '../../../src/book-3.0/AgentMessageRunReport';
+import { AGENT_FINISHED_MESSAGES_DIRECTORY_PATH } from '../../../src/cli/cli-commands/agent-folder/agentProjectPaths';
+import type { AgentMessageFile } from './AgentMessageFile';
+
+/**
+ * Result of moving one answered message into the finished queue.
+ */
+export type FinishedAgentMessageFile = {
+    readonly absolutePath: string;
+    readonly relativePath: string;
+    readonly fileName: string;
+};
+
+/**
+ * Moves one answered queued message to `messages/finished`.
+ */
+export async function moveAgentMessageToFinished(
+    projectPath: string,
+    messageFile: AgentMessageFile,
+): Promise<FinishedAgentMessageFile> {
+    const finishedDirectoryPath = join(projectPath, AGENT_FINISHED_MESSAGES_DIRECTORY_PATH);
+    const finishedMessagePath = join(finishedDirectoryPath, messageFile.fileName);
+    const finishedMessageRelativePath = normalizeRelativePath(
+        join(AGENT_FINISHED_MESSAGES_DIRECTORY_PATH, messageFile.fileName),
+    );
+
+    await mkdir(finishedDirectoryPath, { recursive: true });
+    if (await isExistingPath(finishedMessagePath)) {
+        await rm(finishedMessagePath, { force: true });
+    }
+    // Note: A run-report sidecar of a previously answered round must not describe the new answer
+    await rm(buildAgentMessageRunReportPath(finishedMessagePath), { force: true });
+    await rename(messageFile.absolutePath, finishedMessagePath);
+
+    return {
+        absolutePath: finishedMessagePath,
+        relativePath: finishedMessageRelativePath,
+        fileName: messageFile.fileName,
+    };
+}
+
+/**
+ * Checks whether a filesystem path already exists.
+ */
+async function isExistingPath(path: string): Promise<boolean> {
+    try {
+        await stat(path);
+        return true;
+    } catch (error) {
+        if (isFileNotFoundError(error)) {
+            return false;
+        }
+
+        throw error;
+    }
+}
+
+/**
+ * Normalizes a relative path for Git and display.
+ */
+function normalizeRelativePath(relativePath: string): string {
+    return relativePath.replace(/\\/gu, '/');
+}
+
+/**
+ * Returns true when an error is a missing-path filesystem error.
+ */
+function isFileNotFoundError(error: unknown): boolean {
+    return Boolean(
+        error &&
+            typeof error === 'object' &&
+            'code' in error &&
+            ((error as { code?: string }).code === 'ENOENT' || (error as { code?: string }).code === 'ENOTDIR'),
+    );
+}

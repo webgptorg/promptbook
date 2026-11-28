@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T12:02:23.483Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "He has worked on scientific projects for the Czech Ornithological Society and is actively involved in the tech community. Pavol gives lectures at conferences, serves as a jury member, and mentors in various competitions, both in the Czech Republic and internationally."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Scientific projects, Czech Ornithological Society, tech community, lectures, conferences, jury member, mentoring, competitions, Czech Republic, international",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T12:02:22.434Z",
+            "complete": "2025-05-06T12:02:23.483Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000774
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 98
+                },
+                "charactersCount": {
+                    "value": 462
+                },
+                "wordsCount": {
+                    "value": 67
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 32
+                },
+                "charactersCount": {
+                    "value": 157
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> He has worked on scientific projects for the Czech Ornithological Society and is actively involved in the tech community. Pavol gives lectures at conferences, serves as a jury member, and mentors in various competitions, both in the Czech Republic and internationally.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> He has worked on scientific projects for the Czech Ornithological Society and is actively involved in the tech community. Pavol gives lectures at conferences, serves as a jury member, and mentors in various competitions, both in the Czech Republic and internationally."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01K2V5a5PKtSub34ho3fvRmv",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Scientific projects, Czech Ornithological Society, tech community, lectures, conferences, jury member, mentoring, competitions, Czech Republic, international"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 98,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 32
+            }
+        }
+    }
+}

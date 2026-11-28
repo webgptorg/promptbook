@@ -1,0 +1,92 @@
+[x] ~$0.5078 an hour by OpenAI Codex `gpt-5.1-codex-mini`
+
+---
+
+[x] $0.4229 22 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨😲] Tool calls are broken, fix them
+
+-   There are several problems which occur during the tool calls:
+    1. Ongoing tool calls are not shown in the UI, so the user doesn't know that the agent is currently calling a tool, and it looks like the agent is doing nothing.
+    -   There is sometimes something shown, but definitely not all the tool calls which are being made in the background.
+    2. When there are multiple tool calls, they are not shown separately, so it looks like there is just one tool call, but in reality there are several.
+    3. Every tool call, for example asking a team member, ends up with two separate chips:
+        1. First is errored _<- Remove this one_
+        2. The second one is working _<- Show just this one_
+    4. Searches make by a teammembers has message "by xC8f...", just show the name of the agent with its profile picture, not the id, because it is not user friendly.
+    5. When the tool call ends with an error, show some ⚠️ in the tool call chip.
+-   Transfer the tool calls during the chat streaming. Change the format of toolcalls in the message streaming - add idempotency key to each tool call so they can be shown and updated in the UI properly.
+-   Special transfers should occur on the new line when the new line starts with some special indicator. This should indicate that this is not going to the message, but this is some metadata, like to call ending of a message, some keep a live update, etc.
+-   From the point of view of the agent and the question + answer, the tool calls are working perfectly; they just need to be shown and shown in the UI in a better way.
+-   Do a proper analysis of the current functionality of toolcalling, message streaming, commitments and `TEAM` commitment before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-3590-agents-server-fix-toolcalls.png)
+![alt text](prompts/screenshots/2026-02-3590-agents-server-fix-toolcalls-1.png)
+![alt text](prompts/screenshots/2026-02-3590-agents-server-fix-toolcalls-2.png)
+
+---
+
+[x] ~$0.1416 7 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
+
+---
+
+[x] ~$0.1987 14 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨😲] Toolcalls are duplicated
+
+-   When the agent calls a tool, it creates two tool call chips in the UI, but theese chips are duplicates, they have the same content, but one of them is errored and the other one is working. Remove the errored one and show only the working one by leverage the idempotency key of the tool call. **One tool call should create only one chip in the UI, not two.**
+-   Errored tool call chip should have some ⚠️ indicator in the chip to show that this tool call ended with an error or warning
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[x] ~$0.3309 7 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨😲] Toolcall chips contain extra spaces
+
+-   When showing chips of tool calls, it is compounded from two parts, the second part is capitalized and has extra space between the characters (or extra space at the end). Remove this extra space and capitalization and show the tool call chips in a more user friendly way.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[x] ~$0.7577 20 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨😲] Team toolcall chips shouldn’t have agent ids
+
+-   When showing chips of tool calls which are made by team members, it shows the agent id in the chip, for example "xC8f8am...". This is not user friendly, tool call chips should show the name of the agent with its profile picture, not the id.
+-   Same for the id of the conversation, it should be human readable, not some random string.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[x] ~$0.2176 11 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨😲] Show all ongoing toolcalls as chips as they are being streamed
+
+-   When a tool call is ongoing, it should be displayed as a chip in the UI, and the chip should be updated in real-time as the tool call progresses.
+-   This chip shouldn’t disappear, just change from "ongoing" to "done" or "error" with some ⚠️ indicator.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[-]
+
+[✨😲] bar
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+

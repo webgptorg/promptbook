@@ -1,11 +1,16 @@
-import { TupleToUnion } from 'type-fest';
-
-/**
- * Supported script languages
- */
-export const SUPPORTED_SCRIPT_LANGUAGES = ['javascript', 'typescript', 'python'] as const;
+import type { TupleToUnion } from 'type-fest';
 
 /**
  * Script language
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type ScriptLanguage = TupleToUnion<typeof SUPPORTED_SCRIPT_LANGUAGES>;
+
+/**
+ * Supported script languages
+ *
+ * @private internal base for `ScriptLanguage`
+ */
+export const SUPPORTED_SCRIPT_LANGUAGES = ['javascript', 'typescript', 'python'] as const;
+//          <- TODO: [🏥] DRY

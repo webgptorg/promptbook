@@ -1,4 +1,5 @@
-import type { ExpectationAmount, ExpectationUnit } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
+import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { countCharacters } from './countCharacters';
 import { countLines } from './countLines';
 import { countPages } from './countPages';
@@ -8,6 +9,8 @@ import { countWords } from './countWords';
 
 /**
  * Index of all counter functions
+ *
+ * @public exported from `@promptbook/utils`
  */
 export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAmount> = {
     CHARACTERS: countCharacters,
@@ -17,3 +20,6 @@ export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAm
     LINES: countLines,
     PAGES: countPages,
 };
+
+// TODO: [🧠][🤠] This should be probably as part of `TextFormatParser`
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T12:04:11.213Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Korálky Katlas připravili souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů. Tyto informace byly shrnuty z online setkání.\n\n---"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Korálky Katlas, bižuterie, bižuterní polotovary, nákup, informace, online setkání, souhrn",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T12:04:09.964Z",
+            "complete": "2025-05-06T12:04:11.212Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000957
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 114
+                },
+                "charactersCount": {
+                    "value": 371
+                },
+                "wordsCount": {
+                    "value": 52
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 41
+                },
+                "charactersCount": {
+                    "value": 89
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravili souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů. Tyto informace byly shrnuty z online setkání.\n> \n> ---",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravili souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů. Tyto informace byly shrnuty z online setkání.\n> \n> ---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Ku5KY7oXA6yMPZ4HKhze7o",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Korálky Katlas, bižuterie, bižuterní polotovary, nákup, informace, online setkání, souhrn"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 114,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 41
+            }
+        }
+    }
+}

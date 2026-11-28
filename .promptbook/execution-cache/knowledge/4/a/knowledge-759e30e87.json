@@ -1,0 +1,108 @@
+{
+    "date": "2025-06-02T14:45:19.116Z",
+    "promptbookVersion": "0.95.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook, a tool in this category, is praised for bridging the gap between technology and people by enabling programming in native languages and making the process accessible to everyone."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, tool, technology, people, programming, native languages, accessible",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-06-02T14:45:14.362Z",
+            "complete": "2025-06-02T14:45:19.116Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00044
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 81
+                },
+                "charactersCount": {
+                    "value": 383
+                },
+                "wordsCount": {
+                    "value": 55
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 19
+                },
+                "charactersCount": {
+                    "value": 79
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook, a tool in this category, is praised for bridging the gap between technology and people by enabling programming in native languages and making the process accessible to everyone.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook, a tool in this category, is praised for bridging the gap between technology and people by enabling programming in native languages and making the process accessible to everyone."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01N2MbmLuRRAUM6u5GB7FNA2",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook, tool, technology, people, programming, native languages, accessible"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 81,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 19,
+                "service_tier": "standard"
+            }
+        }
+    }
+}

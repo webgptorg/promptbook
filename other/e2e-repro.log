@@ -1,0 +1,34 @@
+[2m[WebServer] [22m[mock-supabase] listening on http://127.0.0.1:54321
+[2m[WebServer] [22m
+[2m[WebServer] [22m> prebuild
+[2m[WebServer] [22m> npm run generate-reserved-paths && npx kill-port 4440 ||  exit 0
+[2m[WebServer] [22m
+[2m[WebServer] [22m
+[2m[WebServer] [22m> generate-reserved-paths
+[2m[WebServer] [22m> ts-node ./scripts/generate-reserved-paths/generate-reserved-paths.ts
+[2m[WebServer] [22m
+[2m[WebServer] [22mGenerated C:\Users\me\work\ai\promptbook\apps\agents-server\src\generated\reservedPaths.ts with 28 reserved paths:
+[2m[WebServer] [22m_data, _next, admin, agents, api, dashboard, docs, embed, experiments, favicon.ico, fonts, humans.txt, logo-blue-white-256.png, manifest.webmanifest, openapi.json, pixel-agents-assets, recycle-bin, restricted, robots.txt, search, security.txt, sitemap.xml, sounds, story, sw.js, swagger, system, test
+[2m[WebServer] [22mProcess on port 4440 killed
+[2m[WebServer] [22m
+[2m[WebServer] [22m> build
+[2m[WebServer] [22m> next build && node ./scripts/prerender-homepage.js
+[2m[WebServer] [22m
+[2m[WebServer] [22m [33m[1m⚠[22m[39m Warning: Found multiple lockfiles. Selecting C:\Users\me\work\ai\promptbook\package-lock.json.
+[2m[WebServer] [22m   Consider removing the lockfiles at:
+[2m[WebServer] [22m   * C:\Users\me\work\ai\promptbook\apps\agents-server\package-lock.json
+[2m[WebServer] [22m
+[2m[WebServer] [22m   [1m[38;2;173;127;168m▲ Next.js 15.4.11[39m[22m
+[2m[WebServer] [22m   - Environments: .env
+[2m[WebServer] [22m   - Experiments (use with caution):
+[2m[WebServer] [22m     [1m✓[22m externalDir
+[2m[WebServer] [22m
+[2m[WebServer] [22m [37m[1m [22m[39m Creating an optimized production build ...
+[2m[WebServer] [22muncaughtException [Error: EPERM: operation not permitted, open 'C:\Users\me\work\ai\promptbook\apps\agents-server\.next\trace'] {
+[2m[WebServer] [22m  errno: [33m-4048[39m,
+[2m[WebServer] [22m  code: [32m'EPERM'[39m,
+[2m[WebServer] [22m  syscall: [32m'open'[39m,
+[2m[WebServer] [22m  path: [32m'C:\\Users\\me\\work\\ai\\promptbook\\apps\\agents-server\\.next\\trace'[39m
+[2m[WebServer] [22m}
+Error: Process from config.webServer was not able to start. Exit code: 1
+

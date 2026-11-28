@@ -1,90 +1,69 @@
-import { string_markdown, string_markdown_text } from '../../types/typeAliases';
-import { FromtoItems } from '../FromtoItems';
-import { formatNumber } from '../formatNumber';
-import { removeEmojis } from '../removeEmojis';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { FromtoItems } from '../misc/FromtoItems';
+import { removeEmojis } from '../normalization/removeEmojis';
+import { numberToString } from '../parameters/numberToString';
 import { createMarkdownTable } from './createMarkdownTable';
 
 /**
- * Options for creating a markdown chart
- */
-/**
- * Options for creating a markdown chart.
+ * Options for `CreateMarkdownChartOptions`
  */
 type CreateMarkdownChartOptions = {
     /**
      * The header for the first column - the name of the item
      */
-    nameHeader: string;
+    readonly nameHeader: string;
 
     /**
      * The header for the second column - the value of the item
      */
-    valueHeader: string;
+    readonly valueHeader: string;
 
     /**
      * The items to be charted
      */
-    items: FromtoItems;
+    readonly items: FromtoItems;
 
     /**
      * The width of the chart in squares
      */
-    width: number;
+    readonly width: number;
 
     /**
      * The name of the unit shown in the chart
      */
-    unitName: string;
+    readonly unitName: string;
 };
 
 /**
  * Function createMarkdownChart will draw a chart in markdown from ⬛+🟦 tiles
  *
- * @private within the library
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function createMarkdownChart(options: CreateMarkdownChartOptions): string_markdown {
     const { nameHeader, valueHeader, items, width, unitName } = options;
     const from = Math.min(...items.map((item) => item.from));
     const to = Math.max(...items.map((item) => item.to));
 
-    const scale = width / (to - from);
+    const scale = to === from ? 0 : width / (to - from);
 
     const table: Array<Array<string_markdown_text>> = [[nameHeader, valueHeader]];
 
     for (const item of items) {
-        const before = Math.floor((item.from - from) * scale);
-        let duringChar = '█';
-        let during = Math.round((item.to - item.from) * scale);
-
-        if (during === 0) {
-            duringChar = '▓';
-            during = 1;
-        }
-
+        const scaledDuration = Math.round((item.to - item.from) * scale);
+        const during = Math.min(width, Math.max(1, scaledDuration));
+        const before = Math.min(width - during, Math.floor((item.from - from) * scale));
         const after = width - before - during;
-
-        if (before < 0 || during < 0 || after < 0) {
-            console.error(
-                'Problem in createMarkdownChart',
-                { before, during, after },
-                { item, items, table, scale, options },
-                // <- TODO: Error with extra info
-            );
-            throw new Error(
-                //         <- TODO: [🥨] Make some NeverShouldHappenError
-                'Problem in createMarkdownChart, see more in console',
-            );
-        }
+        const durationGlyph = scaledDuration === 0 ? '▓' : '█';
 
         table.push([
             removeEmojis(item.title).trim(),
-            '░'.repeat(before) + duringChar.repeat(during) + '░'.repeat(after),
+            '░'.repeat(before) + durationGlyph.repeat(during) + '░'.repeat(after),
         ]);
     }
 
-    const legend = `_Note: Each █ represents ${formatNumber(
-        1 / scale,
-    )} ${unitName}, width of ${valueHeader.toLowerCase()} is ${formatNumber(
+    const legend = `_Note: Each █ represents ${numberToString(
+        width > 0 ? (to - from) / width : 0,
+    )} ${unitName}, width of ${valueHeader.toLowerCase()} is ${numberToString(
         to - from,
     )} ${unitName} = ${width} squares_`;
 

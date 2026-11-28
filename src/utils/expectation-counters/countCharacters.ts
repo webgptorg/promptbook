@@ -1,7 +1,9 @@
-import type { ExpectationAmount } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationAmount } from '../../pipeline/PipelineJson/Expectations';
 
 /**
  * Counts number of characters in the text
+ *
+ * @public exported from `@promptbook/utils`
  */
 export function countCharacters(text: string): ExpectationAmount {
     // Remove null characters
@@ -14,3 +16,6 @@ export function countCharacters(text: string): ExpectationAmount {
 
     return text.length;
 }
+
+// TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+// TODO: [🧠][✌️] Make some Promptbook-native token system

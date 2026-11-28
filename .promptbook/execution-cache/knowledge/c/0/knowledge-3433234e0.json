@@ -1,0 +1,148 @@
+{
+    "date": "2025-08-29T04:08:11.671Z",
+    "promptbookVersion": "0.100.0-42",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The prefix \"fra1\" in the identifier typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This is a common practice for content delivery networks (CDNs) and cloud platforms to indicate the origin or point-of-presence for a connection."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Frankfurt, Germany, geographic region, server, request, content delivery networks, CDNs, cloud platforms, origin, point-of-presence, connection",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-08-29T04:08:03.146Z",
+            "complete": "2025-08-29T04:08:11.671Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 99
+                },
+                "charactersCount": {
+                    "value": 484
+                },
+                "wordsCount": {
+                    "value": 72
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 30
+                },
+                "charactersCount": {
+                    "value": 143
+                },
+                "wordsCount": {
+                    "value": 17
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The prefix \"fra1\" in the identifier typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This is a common practice for content delivery networks (CDNs) and cloud platforms to indicate the origin or point-of-presence for a connection.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The prefix \"fra1\" in the identifier typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This is a common practice for content delivery networks (CDNs) and cloud platforms to indicate the origin or point-of-presence for a connection."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "Frankfurt, Germany, geographic region, server, request, content delivery networks, CDNs, cloud platforms, origin, point-of-presence, connection",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 99,
+                "completionTokens": 30
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 99
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The prefix \"fra1\" in the identifier typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This is a common practice for content delivery networks (CDNs) and cloud platforms to indicate the origin or point-of-presence for a connection."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "97692f4bf8e28a9b-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Fri, 29 Aug 2025 04:08:00 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=4dM7DRO3tMoR7CRYyil7.dIQDLmhCZvUbasQZfXrD38-1756440480-1.0.1.1-rFwoMHS1.TjTgVsYR.whifjVGIctBcChEx5lv.kzaMcQ4PPUc4Vu3c0xMkjxEwc__mXmfvFnO8XoHChsR3RNTz5gUzMFJFNYFj6NHAmIuLw; path=/; expires=Fri, 29-Aug-25 04:38:00 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "6cf636702dbf265539b119090fc77917"
+                }
+            },
+            "response": {
+                "id": "00ab67f8-6345-4e3f-a4ac-cd71025f06b3",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-08-29T04:08:00.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced data researcher, detect the important keywords in the document.\\n\\n# Rules\\n\\n-   Write just keywords separated by comma\\n\\n# The document\\n\\nTake information from this document:\\n\\n> The prefix \\\"fra1\\\" in the identifier typically denotes the geographic region of the server handling the request, in this case, Frankfurt, Germany. This is a common practice for content delivery networks (CDNs) and cloud platforms to indicate the origin or point-of-presence for a connection.\"}]}"
+            }
+        }
+    }
+}

@@ -1,0 +1,42 @@
+[x] ~$3.70 12 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+
+[✨📚] The agent uses some tool and show the tool calling chip. Play the sound and use the vibration.
+
+-   The sound should be played and the vibration should be triggered when the tool calling chip is shown.
+-   This will provide a more immersive and engaging experience for users, making it clear that the agent is actively using a tool.
+-   Also vibrate during the chat streaming - When the agent stops thinking and starts streaming the response, play the vibration response during the entire time of the streaming, each token or chunk one small vibration, so the user can feel the ongoing response generation.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, Use existing sound system for this.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1010-agents-server-sound-of-ongoing-toolcalls.png)
+
+---
+
+[-]
+
+[✨📚] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨📚] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨📚] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+

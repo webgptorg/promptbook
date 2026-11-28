@@ -1,0 +1,108 @@
+{
+    "date": "2025-07-09T16:05:01.086Z",
+    "promptbookVersion": "0.98.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The platform offers features like a chatbot, corrector, and spreadsheet processing, allowing users to create AI applications using natural language instead of traditional coding."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Chatbot, corrector, spreadsheet processing, AI applications, natural language, coding",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-07-09T16:04:38.326Z",
+            "complete": "2025-07-09T16:05:01.086Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00045500000000000006
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 77
+                },
+                "charactersCount": {
+                    "value": 372
+                },
+                "wordsCount": {
+                    "value": 50
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 9
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 21
+                },
+                "charactersCount": {
+                    "value": 85
+                },
+                "wordsCount": {
+                    "value": 9
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The platform offers features like a chatbot, corrector, and spreadsheet processing, allowing users to create AI applications using natural language instead of traditional coding.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The platform offers features like a chatbot, corrector, and spreadsheet processing, allowing users to create AI applications using natural language instead of traditional coding."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01PY95kEpHUiKTCmehMygW2Y",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Chatbot, corrector, spreadsheet processing, AI applications, natural language, coding"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 77,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 21,
+                "service_tier": "standard"
+            }
+        }
+    }
+}

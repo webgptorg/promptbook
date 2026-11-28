@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { extractOneBlockFromMarkdown } from './extractOneBlockFromMarkdown';
 
 describe('how extractOneBlockFromMarkdown works', () => {
-    it('should work with sample with one unknown code block of one line', () => {
+    it('should work with example with one unknown code block of one line', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -15,12 +15,114 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: null,
             content: "print('Hello World')",
         });
     });
 
-    it('should work with sample with one python code block of one line', () => {
+    it('should work with example with one code block made by gt char', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                  # Hello World
+
+                  > print('Hello World')
+
+              `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: "print('Hello World')",
+        });
+    });
+
+    it('should work with example with one multiline code block made by gt char', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                # Hello World
+
+                > print('Hello World 1')
+                > print('Hello World 2')
+                > print('Hello World 3')
+
+            `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: spaceTrim(`
+                print('Hello World 1')
+                print('Hello World 2')
+                print('Hello World 3')
+           `),
+        });
+    });
+
+    it('should work with example with block nested in block with mixed notations', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                    # A
+
+                    B
+
+                    > C
+                    > D
+                    > \`\`\`E
+                    > F
+                    > \`\`\`
+                    > G
+
+                    H
+
+                `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: spaceTrim(`
+                C
+                D
+                \`\`\`E
+                F
+                \`\`\`
+                G
+            `),
+        });
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                    # A
+
+                    B
+
+                    \`\`\`C
+                    D
+                    > E
+                    > F
+                    G
+                    \`\`\`
+
+                    H
+
+                `),
+            ),
+        ).toEqual({
+            blockNotation: '```',
+            language: 'C',
+            content: spaceTrim(`
+              D
+              > E
+              > F
+              G
+            `),
+        });
+    });
+
+    it('should work with example with one python code block of one line', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -30,6 +132,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'python',
             content: "print('Hello World')",
         });
@@ -45,17 +148,18 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'python',
             content: "print('Hello World')",
         });
     });
 
-    it('should work with codeblock with escaped embeded codeblock as content', () => {
+    it('should work with codeblock with escaped embedded codeblock as content', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
 
-                  This is a simple markdown with code block with escaped embeded code block as content:
+                  This is a simple markdown with code block with escaped embedded code block as content:
 
                   \`\`\`markdown
 
@@ -72,6 +176,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
               `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'markdown',
             content:
                 spaceTrim(`
@@ -89,14 +194,14 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
-    it('should fail with sample with no code blocks', () => {
+    it('should fail with example with no code blocks', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`
                     Hello World
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block in task section, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -105,7 +210,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Hello World
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block in task section, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -115,7 +220,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Content with **bold** and *italic* text
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block in task section, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -139,10 +244,10 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     \`Lennon Wall\` is a wall in Prague. It is located in the center of Prague. On this wall, you can see many graffiti like %#2/*\`\`\`7#^
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block in task section, found 0 code blocks/i);
     });
 
-    it('should fail with sample with multiple code blocks of one line', () => {
+    it('should fail with example with multiple code blocks of one line', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -167,6 +272,6 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     \`\`\`
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block in task section, found 2 code blocks/i);
     });
 });

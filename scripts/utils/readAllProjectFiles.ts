@@ -1,21 +1,21 @@
-import { readFile } from 'fs';
-import { promisify } from 'util';
-import { findAllProjectFiles } from './findAllProjectFiles';
+import { readFile } from 'fs/promises';
+import { FindAllProjectFilesOptions, findAllProjectFiles } from './findAllProjectFiles';
 
-export async function readAllProjectFiles(): Promise<
-    Array<{ path: string; content: string }>
-> {
+/**
+ * Reads all project files.
+ */
+export async function readAllProjectFiles(
+    options: FindAllProjectFilesOptions = {},
+): Promise<ReadonlyArray<{ path: string; content: string }>> {
     return await Promise.all(
         (
-            await findAllProjectFiles()
+            await findAllProjectFiles(options)
         ).map(async (path) => ({
             path,
-            content: await promisify(readFile)(path, 'utf8'),
+            content: await readFile(path, 'utf-8'),
         })),
     );
 }
 
-
-/**
- * TODO: !! Use fs/promises instead of fs
- */
+// Note: [⚫] Code for repository script [readAllProjectFiles](scripts/utils/readAllProjectFiles.ts) should never be published in any package
+// TODO: Use fs/promises instead of fs

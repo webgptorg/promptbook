@@ -1,0 +1,70 @@
+[
+    {
+        "user": "Plan CSV exports. Only administrators may export.",
+        "reply": { "message": "Should exports include archived records?", "reads": [], "proposals": [] }
+    },
+    {
+        "user": "Exclude archived records. Please draft the task.",
+        "reply": {
+            "message": "Here is the export task.",
+            "reads": [],
+            "proposals": [
+                {
+                    "kind": "create",
+                    "title": "CSV exports",
+                    "body": "## Behavior\nAdministrators export active records as CSV.\n\n## Acceptance criteria\n- Archived records are excluded.\n- Non-administrators cannot export.",
+                    "priority": 2,
+                    "isReady": true
+                }
+            ]
+        }
+    },
+    { "user": "/save" },
+    {
+        "user": "Also plan audit history. Split viewing and retention into related tasks. Retention duration is unresolved.",
+        "reply": {
+            "message": "Viewing depends on export auditing; retention remains a draft.",
+            "reads": [],
+            "proposals": [
+                {
+                    "kind": "create",
+                    "title": "Audit history",
+                    "body": "## Behavior\nAdministrators view export audit records.\n\n## Acceptance criteria\n- Each export appears in audit history.\n\n## Dependencies\nCSV exports.",
+                    "priority": 1,
+                    "isReady": true
+                },
+                {
+                    "kind": "create",
+                    "title": "Audit retention",
+                    "body": "## Open decisions\nDecide the retention duration with the user before implementation.",
+                    "priority": 0,
+                    "isReady": false
+                }
+            ]
+        }
+    },
+    { "user": "/save" },
+    {
+        "user": "Revise the first feature: owners can export too. Keep the archived-record rule.",
+        "reply": {
+            "message": "I will read the saved export requirements first.",
+            "reads": [{ "kind": "read", "path": "{{first}}", "startLine": 1, "lineCount": 200 }],
+            "proposals": []
+        },
+        "afterRead": {
+            "message": "The archived-record requirement is preserved.",
+            "reads": [],
+            "proposals": [
+                {
+                    "kind": "edit",
+                    "path": "{{first}}",
+                    "find": "Administrators export active records as CSV.",
+                    "replace": "Administrators and owners export active records as CSV.",
+                    "isReady": true
+                }
+            ]
+        }
+    },
+    { "user": "/save" },
+    { "user": "/exit" }
+]

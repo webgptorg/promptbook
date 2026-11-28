@@ -1,0 +1,44 @@
+
+> promptbook@0.114.0-48 test-unit
+> node -r ./scripts/ignore-kill-eperm.js ./node_modules/jest/bin/jest.js --forceExit --runInBand src/cli/cli-commands/coder/planning/planningPackagedCli.test.ts
+
+  console.info
+    Building @promptbook/cli v0.114.0-48 (pre-release)
+
+      at rollup.config.js:105:21
+          at Array.map (<anonymous>)
+
+FAIL src/cli/cli-commands/coder/planning/planningPackagedCli.test.ts (139.628 s)
+  planning through local and npm-packed CLI entrypoints
+    × runs the installed CLI in an external project with shared defaults and independent overrides (7280 ms)
+    × smoke-tests workspace preflight and both initializers through an installed packed CLI outside the monorepo (2 ms)
+    √ initializes roles, preserves customizations and authors multiple PRDs via the local CLI (94780 ms)
+    √ initializes roles, preserves customizations and authors multiple PRDs via the packaged CLI (19540 ms)
+
+  ● planning through local and npm-packed CLI entrypoints › runs the installed CLI in an external project with shared defaults and independent overrides
+
+    Command failed: C:\Users\me\.nvm\versions\node\v22.23.2\bin\node.exe C:\Users\me\AppData\Local\Temp\ptbk planning package vhk68i\package\bin\promptbook-cli.js coder run --harness openai-codex --no-ui --no-questions --no-commit --git-changes ignore --limit 1 --wait-after-error 0
+    Invalid duration: "0". Expected a format like "1h", "30m", "5s", or combinations like "1h30m5s".
+
+
+
+  ● planning through local and npm-packed CLI entrypoints › smoke-tests workspace preflight and both initializers through an installed packed CLI outside the monorepo
+
+    EPERM: operation not permitted, symlink 'C:\Users\me\AppData\Local\Temp\ptbk planning package vhk68i\package\bin\promptbook-cli.js' -> 'C:\Users\me\AppData\Local\Temp\ptbk planning package vhk68i\installed-bin\ptbk'
+
+      196 |         await mkdir(installationPath);
+      197 |         const entrypoint = join(installationPath, 'ptbk');
+    > 198 |         await symlink(join(packagePath, 'bin/promptbook-cli.js'), entrypoint);
+          |         ^
+      199 |         const environment = {
+      200 |             ...process.env,
+      201 |             PATH: `${harnessPath}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH}`,
+
+      at Object.<anonymous> (src/cli/cli-commands/coder/planning/planningPackagedCli.test.ts:198:9)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 2 passed, 4 total
+Snapshots:   0 total
+Time:        139.794 s, estimated 545 s
+Ran all test suites matching /src\\cli\\cli-commands\\coder\\planning\\planningPackagedCli.test.ts/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

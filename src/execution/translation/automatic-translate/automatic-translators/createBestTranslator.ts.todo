@@ -1,37 +1,42 @@
-import { GoogleAutomaticTranslator, IGoogleAutomaticTranslatorOptions } from './GoogleAutomaticTranslator.ts.todo';
-import { IAutomaticTranslator } from './IAutomaticTranslator';
-import { ITranslatorOptions } from './ITranslatorOptions';
+import { GoogleAutomaticTranslator, GoogleAutomaticTranslatorOptions } from './GoogleAutomaticTranslator.ts.todo';
+import { AutomaticTranslator } from './AutomaticTranslator';
+import { TranslatorOptions } from './TranslatorOptions';
 import { LindatAutomaticTranslator } from './LindatAutomaticTranslator';
 
 export function createBestTranslator({
     from,
     to,
     isHeadless,
-}: ITranslatorOptions & IGoogleAutomaticTranslatorOptions): IAutomaticTranslator {
+}: TranslatorOptions & GoogleAutomaticTranslatorOptions): AutomaticTranslator {
     // console.log(`createBestTranslator( ${from} => ${to} )`);
 
     /* [🌐] */
     if (to === 'en') {
-        return new LindatAutomaticTranslator({
+        return new LindatAutomaticTranslator(
+{
             from,
             to,
             apiUrl: new URL(`https://lindat.mff.cuni.cz/services/translation/api/v2/languages/`),
         });
     } else if (to === 'sk') {
-        return new GoogleAutomaticTranslator({ from, to, isHeadless });
+        return new GoogleAutomaticTranslator(
+{ from, to, isHeadless });
     } else if (to === 'pl') {
-        return new LindatAutomaticTranslator({
+        return new LindatAutomaticTranslator(
+{
             from,
             to,
             apiUrl: new URL(`https://lindat.mff.cuni.cz/services/translation/api/v2/languages/`),
         });
     } else if (to === 'uk') {
-        return new LindatAutomaticTranslator({
+        return new LindatAutomaticTranslator(
+{
             from,
             to,
             apiUrl: new URL(`https://lindat.cz/translation/api/v2/languages/`),
         });
     } else {
-        return new GoogleAutomaticTranslator({ from, to });
+        return new GoogleAutomaticTranslator(
+{ from, to });
     }
 }

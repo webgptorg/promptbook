@@ -1,0 +1,13 @@
+import { shorten } from './shorten';
+
+describe('how shorten works', () => {
+    it('will shorten', () => {
+        expect(shorten('Foo', 2)).toEqual('F…');
+        expect(shorten('Foooooooooooooooooooooooooooooooo', 5)).toEqual('Fooo…');
+    });
+
+    it('will keep short', () => {
+        expect(shorten('Foo', 3)).toEqual('Foo');
+        expect(shorten('Foo', 4)).toEqual('Foo');
+    });
+});

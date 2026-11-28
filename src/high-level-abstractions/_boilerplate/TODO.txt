@@ -1,0 +1,1 @@
+TODO: [😂] Make boilerplate for both sync and async

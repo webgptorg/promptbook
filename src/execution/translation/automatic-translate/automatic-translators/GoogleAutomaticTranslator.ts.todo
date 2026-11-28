@@ -1,20 +1,20 @@
 import type { Browser, ElementHandle, Page } from 'puppeteer';
 import { launch } from 'puppeteer';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { IAutomaticTranslator } from './IAutomaticTranslator';
-import { ITranslatorOptions } from './ITranslatorOptions';
+import { AutomaticTranslator } from './AutomaticTranslator';
+import type { TranslatorOptions } from './TranslatorOptions';
 import { extractMultiplicatedOccurrence } from './utils/extractMultiplicatedOccurrence';
 
-export interface IGoogleAutomaticTranslatorOptions extends ITranslatorOptions {
+export type GoogleAutomaticTranslatorOptions = TranslatorOptions & {
     isHeadless?: boolean;
 }
-export class GoogleAutomaticTranslator implements IAutomaticTranslator {
+export class GoogleAutomaticTranslator implements AutomaticTranslator {
     private readonly whenReady: Promise<void>;
     private browser: Browser;
     private page: Page;
 
-    public constructor(private readonly options: IGoogleAutomaticTranslatorOptions) {
+    public constructor(protected readonly options: GoogleAutomaticTranslatorOptions) {
         this.whenReady = this.init();
     }
 
@@ -63,13 +63,21 @@ export class GoogleAutomaticTranslator implements IAutomaticTranslator {
             let translatedElement: ElementHandle | undefined;
 
             let i = 0;
+
+            let loopLimit = LOOP_LIMIT;
             while (!translatedElement) {
+
+                if (loopLimit-- < 0) {
+                    throw new LimitReachedError('Loop limit reached during ... in `...`');
+                }
+
+
                 await forTime(500 /* for retry to find an translation result */);
                 translatedElement = (await this.page.$x(`//*[@data-result-index]`))[0]!;
                 //console.log(translatedElement);
 
                 if (i++ > 100) {
-                    throw new Error('Can not find data-result-index on the page.');
+                    throw new PipelineExecutionError('Can not find data-result-index on the page.');
                 }
             }
 
@@ -85,10 +93,12 @@ export class GoogleAutomaticTranslator implements IAutomaticTranslator {
             try {
                 return extractMultiplicatedOccurrence(translatedMessage);
             } catch (error) {
+                 // TODO: [🟥] Detect browser / node and make it colorful
                 // console.error(error);
                 return translatedMessage;
             }
         } catch (error) {
+            // TODO: [🟥] Detect browser / node and make it colorful
             console.error(error);
             return message;
         }

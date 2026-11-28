@@ -1,0 +1,8 @@
+import { ExecutionReportJson } from './execution-report/ExecutionReportJson';
+import { PipelineJson } from './PipelineJson/PipelineJson';
+
+export type PromptbookFileJson = PipelineJson | ExecutionReportJson;
+
+/**
+ * TODO: [💼]
+ */

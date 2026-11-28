@@ -1,17 +1,122 @@
+import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
+import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
+import type { Expectations } from '../pipeline/PipelineJson/Expectations';
+import type { LlmToolDefinition } from './LlmToolDefinition';
 import type {
-    string_name,
-    string_prompt,
-    string_promptbook_url_with_hashtemplate,
-    string_title,
-} from '.././types/typeAliases';
-import type { ModelRequirements } from './ModelRequirements';
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ImageGenerationModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
+import type { Parameters } from './Parameters';
+import type { string_postprocessing_function_name } from './string_person_fullname';
+import type { string_pipeline_url_with_task_hash } from './string_pipeline_url';
+import type { string_prompt, string_template } from './string_prompt';
+import type { string_title } from './string_title';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
  *
+ * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#prompt
  */
-export interface Prompt {
+export type Prompt = CompletionPrompt | ChatPrompt | ImagePrompt | EmbeddingPrompt /* <- [🤖] */;
+
+/**
+ * Completion prompt
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type CompletionPrompt = CommonPrompt & {
+    /**
+     * Requirements for completion model
+     */
+    modelRequirements: CompletionModelRequirements;
+};
+
+/**
+ * Chat prompt
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type ChatPrompt = CommonPrompt & {
+    /**
+     * Requirements for chat model
+     */
+    modelRequirements: ChatModelRequirements;
+
+    /**
+     * Optional chat thread (history of previous messages)
+     */
+    thread?: ChatMessage[];
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
+
+    /**
+     * Optional tools that can be called by the model
+     */
+    tools?: Array<LlmToolDefinition>;
+
+    /**
+     * Optional file attachments
+     */
+    files?: Array<File>;
+};
+
+/**
+ * Image prompt
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type ImagePrompt = CommonPrompt & {
+    /**
+     * Requirements for image generation model
+     */
+    modelRequirements: ImageGenerationModelRequirements;
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
+};
+
+/**
+ * Embedding prompt
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type EmbeddingPrompt = CommonPrompt & {
+    /**
+     * Requirements for chat model
+     */
+    modelRequirements: EmbeddingModelRequirements;
+
+    // <-TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+};
+
+// <- Note: [🤖] Add new model variant here
+
+/**
+ * Common properties for all prompt results
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ *
+ * @private just abstract the common properties of the prompts
+ */
+export type CommonPrompt = {
     /**
      * The title of the prompt
      *
@@ -20,12 +125,11 @@ export interface Prompt {
     readonly title: string_title;
 
     /**
-     * The text of the prompt
+     * The text of the prompt with placeholders for parameters
      *
-     * Note: This is not a template, this is exactly the text that will be sent to the model
-     * @example "What is the capital of France?"
+     * @example "What is the capital of {country}?"
      */
-    readonly content: string_prompt;
+    readonly content: string_prompt & string_template;
 
     /**
      * Requirements for the model
@@ -33,20 +137,42 @@ export interface Prompt {
     readonly modelRequirements: ModelRequirements;
 
     /**
-     * Unique identifier of the promptbook with specific template name as hash
-     *
-     * @example https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
+     * List of postprocessing steps that are executed after the prompt
      */
-    readonly promptbookUrl: string_promptbook_url_with_hashtemplate;
+    readonly postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>;
 
     /**
-     * Parameters used in the prompt
+     * Expectations for the answer
      *
-     * Note: This is redundant (same information is in promptbookUrl+content) but useful for logging and debugging
+     * For example 5 words, 3 sentences, 2 paragraphs, ...
+     * If not set, nothing is expected from the answer
      */
-    readonly parameters: Record<string_name, string>;
-}
+    readonly expectations?: Expectations;
 
-/**
- * TODO: [✔] Check ModelRequirements in runtime
- */
+    /**
+     * Expect this format of the answer
+     *
+     * Note: Expectations are performed after all postprocessing steps
+     * @deprecated [💝]
+     */
+    readonly format?: FormatCommand['format'];
+
+    /**
+     * Unique identifier of the pipeline with specific task name as hash
+     *
+     * @example https://promptbook.studio/webgpt/write-website-content-cs.book#keywords
+     */
+    readonly pipelineUrl?: string_pipeline_url_with_task_hash;
+
+    /**
+     * Parameters used in the `content`
+     */
+    readonly parameters: Parameters;
+
+    // <- Note: [🧆] Look here when adding new properties to `Prompt`
+};
+
+// TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
+// TODO: [✔] Check ModelRequirements in runtime
+// TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
+// TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt

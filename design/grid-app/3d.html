@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Hexagonal Grid Cube Editor</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <!-- Add materials library for GridMaterial -->
+        <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+    </head>
+    <body>
+        <canvas id="renderCanvas"></canvas>
+        <script>
+            window.addEventListener('DOMContentLoaded', function () {
+                const canvas = document.getElementById('renderCanvas');
+                const engine = new BABYLON.Engine(canvas, true);
+
+                const createScene = function () {
+                    const scene = new BABYLON.Scene(engine);
+                    scene.clearColor = new BABYLON.Color4(0.8, 0.8, 0.8, 1);
+
+                    // Create an orthographic camera
+                    const camera = new BABYLON.ArcRotateCamera(
+                        'camera',
+                        Math.PI / 3, // Alpha (horizontal rotation)
+                        Math.PI / 4, // Beta (vertical rotation)
+                        20, // Radius
+                        new BABYLON.Vector3(0, 0, 0),
+                        scene,
+                    );
+                    camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+
+                    // Set the orthographic scale
+                    camera.orthoTop = 10;
+                    camera.orthoBottom = -10;
+                    camera.orthoLeft = -15;
+                    camera.orthoRight = 15;
+
+                    // Disable camera movement to maintain fixed orthographic view
+                    camera.attachControl(canvas, true);
+                    camera.inputs.attached.pointers.detachControl();
+                    camera.inputs.attached.mousewheel.detachControl();
+                    camera.inputs.attached.keyboard.detachControl();
+
+                    // Lighting
+                    const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0.5, 1, 0), scene);
+                    light.intensity = 0.7;
+
+                    // Create grid for visual reference
+                    const gridMaterial = new BABYLON.GridMaterial('gridMaterial', scene);
+                    gridMaterial.majorUnitFrequency = 5;
+                    gridMaterial.minorUnitVisibility = 0.5;
+                    gridMaterial.gridRatio = 1;
+                    gridMaterial.mainColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+                    gridMaterial.lineColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
+                    const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 30, height: 30 }, scene);
+                    ground.material = gridMaterial;
+                    ground.position.y = -0.01; // Just below the cubes
+
+                    // Hexagonal Grid parameters
+                    const hexRadius = 0.5; // Size of a single hex
+                    const cubeHeight = 0.5; // Height of each cube
+
+                    // Store the grid of cubes
+                    const grid = {};
+
+                    // Function to convert hex coordinates to world position
+                    function hexToWorld(q, r) {
+                        const x = ((hexRadius * 3) / 2) * q;
+                        const z = hexRadius * Math.sqrt(3) * (r + q / 2);
+                        return { x, z };
+                    }
+
+                    // Function to convert world position to hex coordinates
+                    function worldToHex(x, z) {
+                        const q = ((2 / 3) * x) / hexRadius;
+                        const r = ((-1 / 3) * x) / hexRadius + ((Math.sqrt(3) / 3) * z) / hexRadius;
+
+                        // Round to the nearest hex
+                        let roundQ = Math.round(q);
+                        let roundR = Math.round(r);
+                        let roundS = Math.round(-q - r);
+
+                        const qDiff = Math.abs(roundQ - q);
+                        const rDiff = Math.abs(roundR - r);
+                        const sDiff = Math.abs(roundS - (-q - r));
+
+                        if (qDiff > rDiff && qDiff > sDiff) {
+                            roundQ = -roundR - roundS;
+                        } else if (rDiff > sDiff) {
+                            roundR = -roundQ - roundS;
+                        }
+
+                        return { q: roundQ, r: roundR };
+                    }
+
+                    // Create materials
+                    const cubeMaterial = new BABYLON.StandardMaterial('cubeMaterial', scene);
+                    cubeMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.6, 0.9);
+
+                    const highlightMaterial = new BABYLON.StandardMaterial('highlightMaterial', scene);
+                    highlightMaterial.diffuseColor = new BABYLON.Color3(1, 0.6, 0.2);
+                    highlightMaterial.alpha = 0.7;
+
+                    // Function to create a cube at hex coordinates
+                    function createCube(q, r) {
+                        const { x, z } = hexToWorld(q, r);
+                        const cube = BABYLON.MeshBuilder.CreateBox(
+                            `cube_${q}_${r}`,
+                            { width: hexRadius * Math.sqrt(3), depth: hexRadius * Math.sqrt(3), height: cubeHeight },
+                            scene,
+                        );
+                        cube.position = new BABYLON.Vector3(x, cubeHeight / 2, z);
+                        cube.material = cubeMaterial;
+                        cube.hexCoords = { q, r };
+
+                        // Save in grid
+                        const key = `${q},${r}`;
+                        grid[key] = cube;
+
+                        return cube;
+                    }
+
+                    // Function to remove a cube from the grid
+                    function removeCube(q, r) {
+                        const key = `${q},${r}`;
+                        if (grid[key]) {
+                            grid[key].dispose();
+                            delete grid[key];
+                        }
+                    }
+
+                    // Initialize with some cubes
+                    for (let q = -3; q <= 3; q++) {
+                        for (let r = -3; r <= 3; r++) {
+                            if (Math.abs(q + r) <= 3) {
+                                // This keeps a roughly circular shape
+                                createCube(q, r);
+                            }
+                        }
+                    }
+
+                    // Create a highlight cube to show where the next cube would be placed
+                    const highlightCube = BABYLON.MeshBuilder.CreateBox(
+                        'highlightCube',
+                        { width: hexRadius * Math.sqrt(3), depth: hexRadius * Math.sqrt(3), height: cubeHeight },
+                        scene,
+                    );
+                    highlightCube.material = highlightMaterial;
+                    highlightCube.visibility = 0;
+
+                    // Handle mouse movement for highlighting
+                    scene.onPointerMove = function (evt) {
+                        const pickResult = scene.pick(scene.pointerX, scene.pointerY);
+                        if (pickResult.hit && (pickResult.pickedMesh === ground || pickResult.pickedMesh.hexCoords)) {
+                            const pickedPoint = pickResult.pickedPoint;
+                            const hexCoords = worldToHex(pickedPoint.x, pickedPoint.z);
+                            const { x, z } = hexToWorld(hexCoords.q, hexCoords.r);
+
+                            highlightCube.position.x = x;
+                            highlightCube.position.z = z;
+                            highlightCube.position.y = cubeHeight / 2;
+                            highlightCube.visibility = 1;
+
+                            // Store current coords for adding/removing on click
+                            highlightCube.hexCoords = hexCoords;
+                        } else {
+                            highlightCube.visibility = 0;
+                        }
+                    };
+
+                    // Handle clicks to add or remove cubes
+                    scene.onPointerDown = function (evt, pickResult) {
+                        if (evt.button === 0) {
+                            // Left click to add
+                            if (highlightCube.visibility === 1) {
+                                const { q, r } = highlightCube.hexCoords;
+                                const key = `${q},${r}`;
+
+                                if (!grid[key]) {
+                                    createCube(q, r);
+                                }
+                            }
+                        } else if (evt.button === 2) {
+                            // Right click to remove
+                            if (pickResult.hit && pickResult.pickedMesh.hexCoords) {
+                                const { q, r } = pickResult.pickedMesh.hexCoords;
+                                removeCube(q, r);
+                            }
+                        }
+                    };
+
+                    // Prevent context menu on right click
+                    canvas.addEventListener('contextmenu', function (e) {
+                        e.preventDefault();
+                    });
+
+                    return scene;
+                };
+
+                // Create the scene
+                const scene = createScene();
+
+                // Run the render loop
+                engine.runRenderLoop(function () {
+                    scene.render();
+                });
+
+                // Handle browser resize
+                window.addEventListener('resize', function () {
+                    engine.resize();
+                });
+            });
+        </script>
+    </body>
+</html>
