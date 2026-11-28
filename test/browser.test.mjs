@@ -16,6 +16,30 @@ import { ToolBridge } from '../dist/engine/bridge.js';
 import { readableHarnessLine } from '../dist/engine/task-trace.js';
 import { temporaryDirectory, waitFor } from './helpers.mjs';
 
+test('a CAPTCHA handoff leaves the task with the agent, while a separate owner approval can still be requested', async () => {
+    const requests = [];
+    const waits = [];
+    let focus = 0;
+    const tab = { name: 'project-browser', hasPendingCaptcha: async () => true, bringToFront: async () => { focus++; } };
+    const chat = { chat: 'Approve access', awaited: 1 };
+    const chats = { askUser: async request => { requests.push(request); return chat; } };
+    const tools = browserTools({ acquire: async () => tab }, chats, 'Researcher', wait => waits.push(wait), () => []);
+    const handoff = tools.find(tool => tool.name === 'browser_request_user_action');
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const denied = await handoff.handler({ reason: 'Complete the challenge on this search page' });
+        assert.equal(denied.isError, true);
+        assert.match(denied.text, /original publisher/);
+    }
+    assert.equal(focus, 0);
+    assert.deepEqual(requests, []);
+    assert.deepEqual(waits, []);
+    const needed = await handoff.handler({ ownerAction: 'device-approval', reason: 'Approve the export on the registered phone', attempted: 'The authorized export requires the registered device.' });
+    assert.ok(!needed.isError);
+    assert.equal(requests[0].attempted, 'The authorized export requires the registered device.');
+    assert.equal(focus, 1);
+    assert.deepEqual(waits, [chat]);
+});
+
 test('browser navigation waits for the requested frame and loader, not the initial blank page', async () => {
     const listeners = new Set();
     let current = 'about:blank';

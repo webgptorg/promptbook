@@ -2,6 +2,8 @@
 
 # Unreleased
 
+- Unattended agents keep working toward the requested outcome when a website presents a CAPTCHA. Browser tools point public research to original sources, and a detected challenge alone no longer opens a tab handoff or a missing-password request.
+
 - Reopen a project passkey prompt in place during owner setup, joining, sign-in or confirmation. Switching to unlock a password manager no longer means starting the flow again.
 
 - Desktop update checks stay quiet when there is no newer installer. A compact **Update available** button opens a matching installer from the project chooser, console or open project.

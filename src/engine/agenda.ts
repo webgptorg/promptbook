@@ -5916,7 +5916,7 @@ function handoverPrompt(record: ActiveRecord, handover: NonNullable<ActiveRecord
         '- Diagnose the cause from that evidence, the task and the project; do not repeat external actions without verifying their current state.',
         `- Resolve what you can within the task's authority and complete the requested outcome; consult other agents (for example ${formatAgentReference(handover.from)}) when their expertise helps.`,
         '- When a genuine decision or human-only action is needed, consult your team as your own instructions direct.',
-        '- If the task cannot be completed safely, report `blocked` with the concrete reason; nothing is retried automatically and the decision is then asked in a chat.',
+        '- If no authorized method meets the task requirements, report `blocked` with the unmet requirement and what you tried. The engine checkpoints the task and schedules an automatic recheck while independent work continues. Ask only if there is a specific decision, access or action the owner can supply.',
     ].join('\n');
 }
 

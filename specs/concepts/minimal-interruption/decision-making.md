@@ -10,6 +10,20 @@ Ordinary technical configuration, dependency installation, runtime adjustment an
 
 Content decisions also use available instructions and context first. Ask for an actual missing consequential judgment, information or authority when necessary, rather than repeatedly reconfirming a delegated agenda. A suspicious invoice may need judgment even though the agent is technically able to send the payment. Task purpose is contextual and does not itself grant financial/publication authority or remove a genuine human dependency.
 
+## When a method fails
+
+First identify what the user actually needs and which constraints they specified. A search page may be optional, while the named publisher, account, date, recipient or approval can be essential. Choose a permitted alternative that still meets those constraints. Verify the result against the original assignment before recording completion.
+
+| Situation | What the agent does | When to involve the operator |
+| --- | --- | --- |
+| A search engine shows a CAPTCHA while the task is to verify a public event | Leave that page. Read the original bulletin or another independent, attributable publication. Check the date, place and claim, and cite what was actually read. | The search challenge alone creates no request. |
+| A specific account's export is required and its web form is gated | Use the service's documented API if the project already has the required access. Check the export belongs to the requested account and period. | If access is genuinely missing, ask once for that specific permission through the appropriate channel. |
+| A required source is unavailable and the task expressly requires that source | Keep the requirement and checkpoint the affected work. Recheck when there is evidence access can change. Continue other eligible work. | Ask only if the operator can supply missing access or must decide whether to change the requirement. |
+| A submission times out after the final click | Look up the acknowledgement or transaction on the service before taking further action. Keep the evidence with the task. | An uncertain result alone calls for investigation. A new payment or a change in authority requires the applicable decision. |
+| First use of a private account needs a credential, or the service asks for a phone approval | Use a suitable existing session or protected Wallet credential first. Identify which required factor remains. | Ask for the unavailable credential through Wallet or for the owner's physical approval. Resume the affected step after verification. |
+
+A known temporary outage uses the existing [retry and recovery policy](../../cli/retries.md). A stable access restriction with no authorized route remains visible on the affected task. Another identical attempt needs a reason to expect a different result.
+
 ## One attention contract
 
 Active attention/notifications mean **a concrete decision, input or action from the human is now needed**. Apply this to every domain, not only tasks. A significant completed result, unread history, an old failure, a recoverable warning or an ongoing automatic repair is available for inspection without creating attention on that basis alone.

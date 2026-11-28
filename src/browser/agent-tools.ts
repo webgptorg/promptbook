@@ -6,6 +6,7 @@ import type { TaskChats } from '../chats/task-chats.js';
 import type { BrowserScope } from './fleet.js';
 import type { PointerTarget } from './browser.js';
 import { parseModifiers } from './input.js';
+import { CAPTCHA_GUIDANCE } from './verification.js';
 
 /**
  * JSON Schema of the optional browser name every browser tool accepts.
@@ -70,8 +71,10 @@ function walletMessage(result: WalletLoginResult): string {
     switch (result.status) {
         case 'signed-in':
             return `Signed in to ${result.origin} with the saved login "${result.account}" (the Wallet entered it; the credentials are not available to you).${result.note ? ` ${result.note}.` : ''} Verify the page shows what the task needs.`;
+        case 'captcha':
+            return `The site requires human verification at ${result.origin}. The Wallet cannot verify this login. ${CAPTCHA_GUIDANCE}`;
         case 'challenge':
-            return `The Wallet entered the saved login "${result.account}" for ${result.origin}, and the site now asks for another step (${result.note ?? 'for example a CAPTCHA, a two-factor code or an approval'}). Complete technical steps such as a CAPTCHA yourself (the Wallet enters the login only into a form without an unsolved CAPTCHA: when the login form is shown after you solved it, call wallet_login again), and choose "stay signed in" or "trust this device" when offered. ${CODE_GUIDANCE} Use browser_request_user_action only for an approval only the account owner can give. You are not signed in until the site shows the access you need.`;
+            return `For "${result.account}" at ${result.origin}, the site asks for another step (${result.note ?? 'for example a two-factor code or an approval'}). ${CODE_GUIDANCE} Use browser_request_user_action only for an approval only the account owner can give. Choose "stay signed in" or "trust this device" when permitted and verify the required access.`;
         case 'no-login-form':
             return `The current page of ${result.origin} shows no login form. If the site is already signed in, just continue; otherwise open its login page and call wallet_login again.`;
         case 'related':
@@ -105,9 +108,9 @@ function createdLoginMessage(result: WalletCreateLoginResult): string {
         case 'no-form':
             return `The current page of ${result.origin} shows no form for a new password that the Wallet can fill${result.note ? ` (${result.note})` : ''}; nothing was saved. Open the sign-up or password page, fill its other fields yourself and call wallet_create_login again.`;
         case 'captcha':
-            return `The form of ${result.origin} shows an unsolved CAPTCHA, so nothing was entered. Solve it yourself, then call wallet_create_login again.`;
+            return `The form at ${result.origin} requires human verification. ${result.submitted ? 'The form was submitted and the outcome is unknown. The Wallet kept the generated password. Record the uncertain effect and verify it before another submission.' : 'Nothing was submitted.'} ${CAPTCHA_GUIDANCE}`;
         case 'rejected':
-            return `${result.origin} did not accept the form${result.note ? ` (${result.note})` : ''}; the Wallet kept its earlier state. Read the page: complete a missing field or solve a CAPTCHA, or call wallet_create_login again with maxLength or noSymbols when the site's password rules require it.`;
+            return `${result.origin} did not accept the form${result.note ? ` (${result.note})` : ''}. The Wallet kept its earlier state. Check the page for missing fields or password requirements before another attempt.`;
         case 'ambiguous':
             return `Several saved logins of ${result.origin} match: ${result.accounts.map((account) => `"${account}"`).join(', ')}. Call wallet_create_login again with account set to the one to change.`;
         case 'failed':
@@ -290,7 +293,7 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
                       {
                           name: 'wallet_create_login',
                           description:
-                              "When authorized work needs a new account on a website, or a password change or reset: fill the form's other fields yourself (username, email, consent, a CAPTCHA), then call this as the last step instead of typing a password. The Wallet generates a strong password, enters it (with the current one of a saved login when the form asks for it), submits the form and keeps it encrypted for the page's actual origin; you never see it. Nothing needs the owner's confirmation. The account creation is an external action: call begin_external_action before this and record_external_action after it.",
+                              "When authorized work needs a new account on a website, or a password change or reset, fill the form's ordinary fields such as username and email, then call this as the last step. The Wallet generates a strong password, enters it (with the current one of a saved login when the form asks for it), submits the form and keeps it encrypted for the page's actual origin. Account creation is an external action. Call begin_external_action before this and record_external_action after it.",
                           properties: {
                               username: { type: 'string', description: 'Username or email of the new login (required for a new one).' },
                               account: { type: 'string', description: 'Label or username of the saved login whose password changes; without it a new login is saved.' },
@@ -334,18 +337,25 @@ export function browserTools(fleet: Pick<BrowserScope, 'acquire'>, chats: TaskCh
         tool(
             {
                 name: 'browser_request_user_action',
-                description: `Only for a step that genuinely needs the human after you tried it with full access to the browser (a code or approval only the account owner receives, consent only they may give, a challenge you could not solve${wallet ? '; a missing username/password or a one-time code goes through wallet_login instead' : ', credentials you do not have'}): ask the human to act in the project browser. Attempt CAPTCHAs and other technical steps yourself first. Never use it to ask for browser control or permissions. Then end your turn with status waiting-for-user.`,
-                properties: { reason: { type: 'string' } },
+                description: `Ask for an action only the owner can take in the project browser, such as personal consent or a required approval on their device. First check whether the authorized task can be completed another way. A site's CAPTCHA alone never calls for an owner request.${wallet ? ' Missing credentials and private one-time codes go through wallet_login.' : ''} End your turn with status waiting-for-user only after a request was created.`,
+                properties: {
+                    reason: { type: 'string', description: 'The specific owner action the task requires and why.' },
+                    ownerAction: { type: 'string', enum: ['device-approval', 'personal-consent'], description: 'Use only for a separate device approval or personal consent that is actually needed, including when the same page also contains an unrelated CAPTCHA.' },
+                    attempted: { type: 'string', description: 'Which authorized alternatives you checked.' },
+                },
                 required: ['reason'],
             },
             async (input) => {
                 if (!chats) throw new PtbkError('The user is not available in this run; report blocked with the reason instead.', { kind: 'unsupported' });
                 const instance = await browser(input);
+                if (input.ownerAction !== 'device-approval' && input.ownerAction !== 'personal-consent' && await instance.hasPendingCaptcha()) {
+                    return { text: `No user request was created. ${CAPTCHA_GUIDANCE}`, isError: true };
+                }
                 const note = await instance.bringToFront();
                 const chat = await chats.askUser({
                     agent,
                     reason: String(input.reason ?? `A website needs your action in the browser "${instance.name}".`),
-                    attempted: `I used the existing session of the project browser "${instance.name}"; the website still requires this human-only step.`,
+                    attempted: typeof input.attempted === 'string' && input.attempted.trim() ? input.attempted.trim() : `I used the existing session of the project browser "${instance.name}".`,
                     question: `Please complete the action in the browser "${instance.name}"${note ? ` (${note})` : ''}, then confirm here.`,
                     choices: ['Done', 'I cannot do it'],
                 });

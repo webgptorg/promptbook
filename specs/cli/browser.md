@@ -41,7 +41,7 @@ If already signed in, use the existing session. If not, request [Wallet](wallet.
 
 The user can [take control of a single tab](browser-tab-control.md) for manual sign-in or ordinary browser interaction, using its current headless or headful mode. Enforce the tab reservation across the profile pool and return the tab to automation only on explicit handoff. Wallet owns any [offer to remember a password](wallet.md#remembering-a-password-from-manual-sign-in).
 
-Browser instructions explicitly authorize attempting supported CAPTCHA solving autonomously during registration, login and other authorized browsing. Use autonomously accessible codes or protected manual factor input through trusted Wallet operations and complete technical steps without routine user prompts. Request human CAPTCHA or 2FA input only when necessary, within the same workflow. Successful completion of a challenge alone cannot verify authenticated access.
+When a page presents a CAPTCHA, the agent keeps responsibility for the task. Browser reads identify recognized visible challenges. If the widget blocks the chosen step, leave it in place and try a permitted source or an already authorized official integration that meets the original requirements. For example, read a public bulletin from its publisher when a search page requests verification. Check the result before claiming completion. A generic tab handoff for a detected challenge returns guidance to the agent. A separate device approval or personal consent can still require the owner, even if the page also has a verification widget. See the [decision examples](../concepts/minimal-interruption/decision-making.md#when-a-method-fails).
 
 ## Diagnostics, restart, kill and test tab
 

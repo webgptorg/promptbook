@@ -157,8 +157,12 @@ test('knowledge: agents receive it through Adam with provenance; Expert and Teac
     await put('agents/.core/adam.book', `AGENT Adam\nFROM @Void\nRULE Shared rule.\nKNOWLEDGE ${url}\nRULE Apply it.\nCLOSED\n`);
     await put('agents/.core/teacher.book', 'AGENT Teacher\nFROM @Expert\nRULE Teach.\nCLOSED\n');
     await put('agents/dev.book', 'AGENT Developer\nRULE Build.\n');
+    await put('agents/independent.book', 'AGENT Independent\nFROM @Void\nRULE Only use the named publisher.\n');
     const project = projectAt(root);
     const catalog = await AgentCatalog.load(root);
+    const independent = renderAgentInstructions(await resolveEffectiveAgent(catalog, '@Independent'));
+    assert.match(independent, /Only use the named publisher/);
+    assert.match(independent, /try another permitted way to meet the same requirements/);
 
     for (const name of ['@Developer', '@Teacher', '@Expert']) {
         const agent = await resolveEffectiveAgent(catalog, name);

@@ -8,6 +8,7 @@ import { taskInstructionSource } from '../tasks/book-task.js';
 import { traceDirectoryOf } from '../tasks/identity.js';
 import { applicableChanges } from '../tasks/task-direction.js';
 import { RESULT_MARKER } from './result.js';
+import { CAPTCHA_GUIDANCE } from '../browser/verification.js';
 
 /**
  * Ownership and continuing relevance of human requests ([attention ownership](specs/cli/notifications.md)), part of
@@ -57,7 +58,7 @@ const KEYWORD_HEADINGS: Readonly<Record<string, string>> = {
 };
 
 /**
- * Renders effective agent instructions grouped by kind, each attributed to its source.
+ * Renders the shared operating principle and the effective Book instructions grouped by kind and source.
  *
  * @private prompt construction
  */
@@ -67,7 +68,9 @@ export function renderAgentInstructions(agent: EffectiveAgent): string {
         const heading = KEYWORD_HEADINGS[instruction.keyword] ?? instruction.keyword;
         groups.set(heading, [...(groups.get(heading) ?? []), instruction]);
     }
-    const sections: string[] = [];
+    const sections = [
+        '### Unattended work\n\nWithin your role, own the requested outcome. Use project instructions, available tools and existing authority to resolve routine steps yourself, including repeat runs of authorized work. If one method fails, try another permitted way to meet the same requirements and verify the result. For public research interrupted by a CAPTCHA, look for the original publication. Keep independent work moving. Ask the owner only for a specific decision, access or action that only they can supply, and explain what you already tried.',
+    ];
     for (const [heading, instructions] of groups) {
         const body = instructions
             .map((instruction) => {
@@ -182,7 +185,6 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
             : '',
         `To create follow-up work, ${taskBookInstructions(input.tasksDirectory, input.creationStamp ?? creationTimestamp())}`,
         'Do not edit `traces/` or `actions/` (Promptbook-owned audit evidence and external-action records) and never treat files there as task or agent definitions.',
-        'You run unattended. Resolve ordinary choices yourself from the task, the project instructions, established rules and the permissions already granted; do not stop to confirm routine or already authorized actions (for example each post of an authorized recurring publication).',
         USER_PING_INSTRUCTION,
         input.check && isCheckPlaceholder(input.check)
             ? `Real automated validation is not configured: \`ptbk.json\` \`execution.check\` holds an informational placeholder (\`${input.check}\`) that always succeeds and proves nothing. Verify your result by other appropriate means; when the task is about setting up the project, you may replace the placeholder with the project's real check.`
@@ -212,7 +214,8 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     }
     if (input.tools.browser) {
         rules.push(
-            'Use the `browser_*` tools of the `ptbk` MCP server for websites. You have full access to the project browser and its profile with its logged-in sessions: every tab, any URL, the complete page (`browser_read`, screenshots you can see), real mouse and keyboard input that also works in rich-text editors, file uploads, page JavaScript (`browser_evaluate`), any DevTools protocol command (`browser_cdp`) and the DevTools endpoint for your own scripts (`browser_devtools_endpoint`). Do in it whatever a person at that browser could, within the authority of this task. Never ask the user to enable, grant or widen browser control, and do not change the browser configuration to work around a tool. You are authorized to attempt CAPTCHAs and similar challenges yourself during registration, login and other authorized browsing, and to complete technical steps without asking; a solved CAPTCHA is not proof of being signed in, so verify the access you need. Ask with `browser_request_user_action` only for a step that genuinely needs the human after you tried (credentials you do not have, a code or approval only the account owner receives, consent only they may give, a challenge you could not solve).',
+            'Use the `browser_*` tools of the `ptbk` MCP server for websites. You have full access to the project browser and its profile with its logged-in sessions: every tab, any URL, the complete page (`browser_read`, screenshots you can see), real mouse and keyboard input that also works in rich-text editors, file uploads, page JavaScript (`browser_evaluate`), any DevTools protocol command (`browser_cdp`) and the DevTools endpoint for your own scripts (`browser_devtools_endpoint`). Do in it whatever a person at that browser could, within the authority of this task. Never ask the user to enable, grant or widen browser control, and do not change the browser configuration to work around a tool. Use `browser_request_user_action` only for a separate owner action, such as device approval or personal consent.',
+            CAPTCHA_GUIDANCE,
         );
         if (input.tools.wallet) {
             rules.push(

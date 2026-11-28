@@ -12,6 +12,8 @@ Begin Expert bootstrap and continue eligible work/follow-ups, Router assignment,
 
 ## Ordinary recovery before human decisions
 
+Before parking work, check whether the blocked method is a requirement of the assignment. In a month-long monitoring task, a search CAPTCHA can interrupt discovery while the publisher's bulletin remains available. Read the bulletin and verify the requested facts in the same run. If a private export from a specified account is essential, preserve that requirement and identify the missing authorized access. See the [worked decisions](../concepts/minimal-interruption/decision-making.md#when-a-method-fails).
+
 Use task intent, project rules, existing context and granted authority to resolve routine choices. Do not repeat every task question, tool approval or permission for an already authorized recurring action. Harnesses use supported noninteractive execution within project scope; detect real hidden prompts/stalls without treating normal silence as failure.
 
 Resolve deterministic problems safely, with bounded reconnect/retry/backoff, native refresh, tool fallback, profile ownership checks, check repair and correct-phase persistence retry. Known configuration spelling fixes commit their scoped changes. Difficult/ambiguous problems route to ordinary Fixer, which can consult other agents and by default User, learning verified preferences through normal Teacher work. The user may customize its all/some/no-consultation policy; no privileged worker or special question channel is introduced.

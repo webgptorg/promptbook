@@ -17,6 +17,7 @@ import { BrowserRecorder, type ScreencastPort } from './recording.js';
 import { BROWSER_STARTUP_TIMEOUT_MS, BrowserPools, profileOwnerPid, type PoolRecord } from './pool.js';
 import { TabReservations } from './tab-reservations.js';
 import { parseKeyPress, type KeyPress } from './input.js';
+import { CAPTCHA_GUIDANCE, PENDING_CAPTCHA_SCRIPT } from './verification.js';
 import { progressiveDelay, WAITING_POLICIES } from '../engine/progressive-waiting.js';
 import {
     MAX_PAGE_TEXT,
@@ -82,7 +83,7 @@ const APPROVAL_ASKED: SignInAttempt = { result: 'challenge', note: 'the site ask
 /**
  * A login page with an unsolved CAPTCHA: the website decides about the login only after it is solved.
  */
-const CAPTCHA_ASKED: SignInAttempt = { result: 'challenge', note: 'the site asks to solve a CAPTCHA' };
+const CAPTCHA_ASKED: SignInAttempt = { result: 'challenge', captcha: true, note: 'the site asks to solve a CAPTCHA' };
 
 /**
  * Upper bound of repeated key presses in one call.
@@ -1212,7 +1213,13 @@ export class TaskBrowser {
         const tabs = (await listPages(connection)).filter((candidate) => this.ownTabs.has(candidate.targetId)).length;
         const omitted = page.omitted ? `\n… ${page.omitted} more elements are not listed (scroll to them, or use browser_evaluate).` : '';
         const note = this.browser.modeNote;
-        return `${this.takeNotice()}${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} of your tabs are open; browser_tabs lists and switches them)` : ''}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${note ? `\n\nNote: ${note}` : ''}`;
+        const verification = page.captcha ? `\n\n${CAPTCHA_GUIDANCE}` : '';
+        return `${this.takeNotice()}${page.title}\n${page.url}${tabs > 1 ? `\n(${tabs} of your tabs are open; browser_tabs lists and switches them)` : ''}${verification}\n\n${page.text}\n\nInteractive elements (their numbers are the ref of other browser tools):\n${page.elements.join('\n') || '(none)'}${omitted}${note ? `\n\nNote: ${note}` : ''}`;
+    }
+
+    /** Rechecks the actual tab before a tool requests the owner's attention. */
+    public async hasPendingCaptcha(): Promise<boolean> {
+        return await this.evaluate<boolean>(PENDING_CAPTCHA_SCRIPT);
     }
 
     /**
@@ -1772,14 +1779,14 @@ export class TaskBrowser {
             const form = await this.evaluate<NewPasswordScan>(newPasswordFormScript());
             if (!originMatches(entry.origin, form.origin)) return { result: 'no-form', note: `the page moved to ${form.origin}` };
             if (!form.fresh.length) return { result: 'no-form', note: 'no form for a new password is shown' };
-            if (scan.captcha) return { result: 'rejected', note: 'the form asks to solve a CAPTCHA first' };
+            if (scan.captcha) return { result: 'captcha', submitted: false };
             if (form.current && entry.current === undefined) return { result: 'no-form', note: 'the form asks for the current password, and the Wallet has no saved login for it' };
             if (form.current) await this.enterLoginField('current', entry.current!);
             for (const marker of form.fresh) await this.enterLoginField(marker, entry.password);
             await this.submitLogin();
             const after = await this.evaluate<NewPasswordScan>(newPasswordFormScript());
             const next = await this.scanLogin();
-            if (next.captcha) return { result: 'rejected', note: 'the form asks to solve a CAPTCHA first' };
+            if (next.captcha) return { result: 'captcha', submitted: true };
             if (originMatches(entry.origin, after.origin) && after.path === form.path && after.fresh.length === form.fresh.length) return { result: 'rejected', note: 'the website showed the form again' };
             return { result: 'accepted', ...(next.otp ? { note: 'the site asks for a one-time code next' } : next.approval ? { note: 'the site asks to approve this in its app or on another device' } : {}) };
         } finally {

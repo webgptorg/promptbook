@@ -268,7 +268,7 @@ export function teamTools(context: TeamContext, options: { includeUser?: boolean
         tools.push({
             name: 'ask_user',
             description:
-                'Exceptional: ask the human only when the work is genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task and project do not settle). Never ask to confirm an already authorized or routine action, to choose ordinary implementation details, or to repeat the task. Your question goes into a durable chat with the user; then end your turn with status waiting-for-user.',
+                'Ask for a specific decision, access or action only the owner can supply. First check whether another authorized method can meet the task requirements. A CAPTCHA on a search page calls for using an independent source. Keep private credentials and codes in the protected Wallet flow. Your question goes into a durable chat with the user. End your turn with status waiting-for-user once the request exists.',
             inputSchema: {
                 type: 'object',
                 properties: {

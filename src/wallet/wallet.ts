@@ -223,12 +223,13 @@ export type SignInPage = {
 export type NewPasswordForm = { readonly asksCurrent: boolean; readonly minLength?: number; readonly maxLength?: number; readonly captcha?: boolean };
 
 /**
- * Verified result of submitting a generated password: `accepted` when the website went on, `rejected` when it showed the
- * form again or stopped at a CAPTCHA, `no-form` when nothing could be entered.
+ * Result of entering a generated password. A CAPTCHA after submission leaves the actual outcome unknown.
  *
  * @private Wallet
  */
-export type NewPasswordAttempt = { readonly result: 'accepted' | 'rejected' | 'no-form'; readonly note?: string };
+export type NewPasswordAttempt =
+    | { readonly result: 'accepted' | 'rejected' | 'no-form'; readonly note?: string }
+    | { readonly result: 'captcha'; readonly submitted: boolean };
 
 /**
  * What the agent learns from a request for a generated password (never the password): the saved login, or why nothing
@@ -239,7 +240,7 @@ export type NewPasswordAttempt = { readonly result: 'accepted' | 'rejected' | 'n
 export type WalletCreateLoginResult =
     | { readonly status: 'saved'; readonly origin: string; readonly account: string; readonly updated: boolean; readonly note?: string }
     | { readonly status: 'no-form'; readonly origin: string; readonly note?: string }
-    | { readonly status: 'captcha'; readonly origin: string }
+    | { readonly status: 'captcha'; readonly origin: string; readonly submitted?: true }
     | { readonly status: 'rejected'; readonly origin: string; readonly note?: string }
     | { readonly status: 'ambiguous'; readonly origin: string; readonly accounts: readonly string[] }
     | { readonly status: 'failed'; readonly reason: string };
@@ -254,11 +255,12 @@ export type SignInCredentials = { readonly origin: string; readonly username: st
 
 /**
  * Verified result of entering credentials on a page. A `challenge` with `missingFields` names required fields of the
- * login form that no saved field matches (nothing was submitted, so it is no rejection).
+ * login form that no saved field matches (nothing was submitted, so it is no rejection). A CAPTCHA can appear during
+ * navigation or after submitting credentials and leaves their validity unknown.
  *
  * @private Wallet
  */
-export type SignInAttempt = { readonly result: 'signed-in' | 'rejected' | 'challenge' | 'no-form'; readonly note?: string; readonly missingFields?: readonly string[] };
+export type SignInAttempt = { readonly result: 'signed-in' | 'rejected' | 'challenge' | 'no-form'; readonly note?: string; readonly missingFields?: readonly string[]; readonly captcha?: true };
 
 /**
  * What the agent learns from a login request: a redacted outcome plus nonsecret context.
@@ -268,6 +270,8 @@ export type SignInAttempt = { readonly result: 'signed-in' | 'rejected' | 'chall
 export type WalletLoginResult =
     | { readonly status: 'signed-in'; readonly origin: string; readonly account: string; readonly note?: string }
     | { readonly status: 'no-login-form'; readonly origin: string }
+    /** This route requires website verification. The obstacle gives no evidence about a saved or missing login. */
+    | { readonly status: 'captcha'; readonly origin: string }
     | { readonly status: 'challenge'; readonly origin: string; readonly account: string; readonly note?: string }
     | { readonly status: 'ambiguous'; readonly origin: string; readonly accounts: readonly string[] }
     /** No login of this origin, but of a related service domain: sign in on that login's own page instead. */
@@ -2171,6 +2175,7 @@ export class WalletSubEngine {
             return { status: 'failed', reason: 'The current tab shows no website; open the login page of the site first.' };
         }
         if (inspected.form === 'none') return { status: 'no-login-form', origin };
+        if (inspected.form === 'captcha') return { status: 'captcha', origin };
         if (inspected.form === 'approval') return { status: 'approval-needed', origin };
         const account = request.account?.trim() || undefined;
         const purpose = request.reason?.trim() ? ` (${request.reason.trim().slice(0, 200)})` : '';
@@ -2212,6 +2217,7 @@ export class WalletSubEngine {
             const { previousPassword, ...entered } = credentials;
             const signIn = async (password: string): Promise<SignInAttempt> => await page.signIn({ ...entered, password }).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
             let attempt = await signIn(credentials.password);
+            if (attempt.captcha) return { status: 'captcha', origin };
             const now = new Date().toISOString();
             const update = (changes: Partial<StoredRecord>): void => {
                 this.records = this.records.map((candidate) => (candidate.id === record.id ? { ...candidate, ...changes } : candidate));
@@ -2219,6 +2225,7 @@ export class WalletSubEngine {
             // After a generated password change, the first sign-in shows which password the website really holds.
             if (previousPassword) {
                 const earlier = attempt.result === 'rejected' ? await signIn(previousPassword) : undefined;
+                if (earlier?.captcha) return { status: 'captcha', origin };
                 const keptEarlier = earlier?.result === 'signed-in' || earlier?.result === 'challenge';
                 if (keptEarlier) attempt = earlier!;
                 if (keptEarlier || attempt.result === 'signed-in' || attempt.result === 'challenge') update({ secret: seal(this.key, WALLET_DOMAIN, Buffer.from(JSON.stringify({ ...entered, password: keptEarlier ? previousPassword : credentials.password } satisfies Credentials), 'utf8')) });
@@ -2260,6 +2267,7 @@ export class WalletSubEngine {
         } catch {
             return { status: 'failed', reason: 'The current tab shows no website; open the sign-up or password form of the site first.' };
         }
+        if (inspected.form === 'captcha') return { status: 'captcha', origin };
         const result = await this.mutex.run(async (): Promise<{ readonly result: WalletCreateLoginResult; readonly settled?: number }> => {
             if (this.state !== 'ready' && this.metadata) await this.unlockWithHost(this.metadata);
             if (this.state !== 'ready' || !this.key) return { result: { status: 'failed', reason: `The Wallet is ${this.readiness === 'empty' ? 'not set up yet' : 'not available on this computer'}, so it cannot keep a generated password; nothing was entered. Create the account once the owner has set it up on the Wallet page.` } };
@@ -2289,9 +2297,15 @@ export class WalletSubEngine {
             this.records = existing ? previous.map((candidate) => (candidate.id === existing.id ? record : candidate)) : [...previous, record];
             await this.writeRecords();
             const attempt = await page.submitNewPassword({ origin, password, ...(before ? { current: before.password } : {}) }).catch((error: unknown): NewPasswordAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            if (attempt.result === 'captcha' && attempt.submitted) {
+                // The service may have accepted the new password. Keep the candidate and its previous password for
+                // the next sign-in to reconcile, without marking success or settling an existing owner request.
+                return { result: { status: 'captcha', origin, submitted: true } };
+            }
             if (attempt.result !== 'accepted') {
                 this.records = previous;
                 await this.writeRecords();
+                if (attempt.result === 'captcha') return { result: { status: 'captcha', origin } };
                 return { result: attempt.result === 'rejected' ? { status: 'rejected', origin, ...(attempt.note ? { note: attempt.note } : {}) } : { status: 'no-form', origin, ...(attempt.note ? { note: attempt.note } : {}) } };
             }
             let settled = 0;
@@ -2353,6 +2367,7 @@ export class WalletSubEngine {
         if (key) this.codes.delete(key);
         if (held && held.expires > Date.now() && page.enterCode) {
             const attempt = await page.enterCode(origin, held.code).catch((error: unknown): SignInAttempt => ({ result: 'no-form', note: errorMessage(error) }));
+            if (attempt.captcha) return { status: 'captcha', origin };
             if (attempt.result === 'signed-in') return { status: 'code-entered', origin, ...(attempt.note ? { note: attempt.note } : {}) };
             if (attempt.result === 'rejected') return await waitFor('code', `${origin} did not accept the one-time code${purpose}; enter the current one in the Wallet.`);
             return { status: 'failed', reason: `The one-time code could not be entered on ${origin}${attempt.note ? `: ${attempt.note}` : ''}.` };

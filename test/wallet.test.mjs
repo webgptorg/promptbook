@@ -52,6 +52,60 @@ test('Wallet login: a blank or non-web tab has no website origin, never https://
     assert.deepEqual(await wallet.login({ inspect: async () => ({ origin: 'https://example.test', form: 'none' }) }, {}), { status: 'no-login-form', origin: 'https://example.test' });
 });
 
+test('unattended verification alone never requests credentials or records a successful sign-in', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk unattended verification');
+    const { wallet } = walletAt(root, join(root, 'home'));
+    await wallet.initialize();
+    const origin = 'https://service.example';
+    const gated = { browser: 'work', inspect: async () => ({ origin, form: 'captcha' }), signIn: assert.fail };
+    const obstacle = { status: 'captcha', origin };
+    assert.deepEqual(await wallet.login(gated, { requestCode: true }), obstacle);
+    assert.deepEqual(await wallet.createLogin(gated, {}), obstacle);
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    await wallet.save({ origin, username: 'fixture', password: 'test-password' });
+    const records = wallet.view().records;
+    assert.deepEqual(await wallet.login(gated, {}), obstacle);
+    const duringSignIn = { ...gated, inspect: async () => ({ origin, form: 'password' }), signIn: async () => ({ result: 'challenge', captcha: true }) };
+    assert.deepEqual(await wallet.login(duringSignIn, {}), obstacle);
+    assert.deepEqual(wallet.view().records, records);
+    assert.deepEqual(wallet.view().pending, []);
+});
+
+test('a CAPTCHA during a password change keeps only credentials that may have been submitted', async (t) => {
+    const root = await temporaryDirectory(t, 'ptbk password change verification');
+    const { wallet } = walletAt(root, join(root, 'home'));
+    await wallet.initialize();
+    await wallet.beginSetup();
+    await wallet.confirmSetup();
+    const origin = 'https://service.example';
+    const username = 'fixture';
+    const original = 'initial-password';
+    await wallet.save({ origin, username, password: original });
+    const before = wallet.view().records;
+    const page = {
+        ...fakePage(origin).page,
+        newPasswordForm: async () => ({ asksCurrent: true }),
+        submitNewPassword: async () => ({ result: 'captcha', submitted: false }),
+    };
+    assert.deepEqual(await wallet.createLogin(page, { username }), { status: 'captcha', origin });
+    assert.deepEqual(wallet.view().records, before);
+    let candidate;
+    page.submitNewPassword = async ({ password }) => {
+        candidate = password;
+        return { result: 'captcha', submitted: true };
+    };
+    assert.deepEqual(await wallet.createLogin(page, { username }), { status: 'captcha', origin, submitted: true });
+    const tried = [];
+    page.signIn = async ({ password }) => {
+        tried.push(password);
+        return { result: password === original ? 'signed-in' : 'rejected' };
+    };
+    assert.equal((await wallet.login(page, {})).status, 'signed-in');
+    assert.deepEqual(tried, [candidate, original]);
+    assert.deepEqual(wallet.view().pending, []);
+});
+
 /**
  * A login page double: the actual origin and a scripted verified result; it records what the Wallet entered.
  */
@@ -1022,35 +1076,46 @@ test('Wallet approval in the real browser: a page waiting for an approval on ano
     assert.match(declined.verification.reason, /declined or expired/);
 });
 
-test('Wallet CAPTCHA in the real browser: nothing is submitted into an unsolved CAPTCHA (no false rejection); solved, the login is entered; a headless test cannot be taken over', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
+test('a gated page leaves the browser free to read an independent bulletin and Wallet waits for an actual login form', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {
     const teardown = [];
     const root = await temporaryDirectory(t, 'ptbk wallet captcha browser', teardown);
     await mkdir(join(root, '.ptbk', 'tmp'), { recursive: true });
     const project = { root, runtime: { root: join(root, '.ptbk'), temporary: join(root, '.ptbk', 'tmp'), browserProfile: join(root, '.ptbk', 'browser', 'profile') } };
     const env = { ...process.env, PTBK_HOME: join(root, 'ptbk home'), PTBK_HOST_UNLOCK: 'insecure-test-file' };
-    // The login form carries a challenge widget; the site decides only with its response filled in.
-    const form = '<!doctype html><title>Sign in</title><h1>Sign in</h1><form method="post" action="/login"><input name="username" autocomplete="username"><input name="password" type="password" autocomplete="current-password"><div class="g-recaptcha" style="width:304px;height:78px;border:1px solid #ccc">I am not a robot</div><textarea name="g-recaptcha-response" style="display:none"></textarea><button>Sign in</button></form>';
-    const posts = [];
+    let gated = true;
+    let posts = 0;
+    const widget = '<div class="g-recaptcha" style="width:304px;height:78px">Verification required</div>';
+    const form = () => '<!doctype html><title>Sign in</title><h1>Sign in</h1><form method="post" action="/login"><input name="username" autocomplete="username"><input name="password" type="password" autocomplete="current-password">' +
+        (gated ? widget : '') + '<button>Sign in</button></form>';
     const server = createServer((request, response) => {
         let body = '';
         request.on('data', (chunk) => (body += chunk));
         request.on('end', () => {
             const fields = new URLSearchParams(body);
             response.setHeader('content-type', 'text/html');
-            if (request.method === 'POST' && request.url === '/login') {
-                posts.push(fields.get('g-recaptcha-response'));
-                response.end(fields.get('g-recaptcha-response') && fields.get('password') === 'right password 1' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : form);
-            } else response.end(form);
+            if (request.url === '/search') {
+                response.end('<title>Search</title><p>Verify before searching</p>' + widget);
+            } else if (request.method === 'POST' && request.url === '/login') {
+                posts++;
+                response.end(!gated && fields.get('password') === 'right password 1' ? '<title>Home</title><h1>Welcome, fixture-user</h1>' : form());
+            } else response.end(form());
         });
     });
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
+    const publisher = createServer((_request, response) => {
+        response.setHeader('content-type', 'text/html');
+        response.end('<title>Original bulletin</title><article>The meeting was held on 12 May.</article><div class="g-recaptcha" hidden></div>');
+    });
+    await new Promise((resolve) => publisher.listen(0, '127.0.0.1', resolve));
     const settings = { tools: [{ type: 'BROWSER', variant: 'CHROME', name: 'project-browser', isEnabled: true, profile: { source: 'PROJECT' }, isHeadless: true }], overriddenTools: new Set() };
     const fleet = new BrowserFleet(project, () => settings, env);
     teardown.push(async () => {
         await fleet.close();
         server.closeAllConnections();
         server.close();
+        publisher.closeAllConnections();
+        publisher.close();
     });
     let contexts = 0;
     const wallet = new WalletSubEngine({
@@ -1067,25 +1132,34 @@ test('Wallet CAPTCHA in the real browser: nothing is submitted into an unsolved 
     await wallet.initialize();
     await wallet.beginSetup();
     await wallet.confirmSetup();
-    const tools = Object.fromEntries(browserTools(fleet.scope('work'), undefined, 'Tester', () => undefined, () => [], { login: (page, request) => wallet.login(page, request), onWait: () => undefined }).map((tool) => [tool.name, tool]));
+    const tools = Object.fromEntries(browserTools(fleet.scope('work'), { askUser: assert.fail }, 'Tester', assert.fail, () => [], { login: (page, request) => wallet.login(page, request), onWait: assert.fail }).map((tool) => [tool.name, tool]));
     const call = (name, input = {}) => checkedBrowserTool(tools, fleet, name, input);
     const { id } = await wallet.save({ origin, username: 'fixture-user', password: 'right password 1' });
 
-    // The agent is told to solve it first; nothing was submitted, so the saved login is not taken as rejected.
+    assert.match((await call('browser_open', { url: origin + '/search' })).text, /original publisher/);
+    assert.match((await call('wallet_login', {})).text, /cannot verify this login/);
+    const handoff = await tools.browser_request_user_action.handler({ reason: 'Complete website verification.' });
+    assert.equal(handoff.isError, true);
+    assert.match(handoff.text, /No user request was created/);
+    const bulletin = await call('browser_open', { url: `http://127.0.0.1:${publisher.address().port}/bulletin`, newTab: true });
+    assert.match(bulletin.text, /meeting was held on 12 May/);
+    assert.doesNotMatch(bulletin.text, /If a CAPTCHA blocks/);
+    assert.equal(posts, 0);
+    assert.deepEqual(wallet.view().pending, []);
+
+    // The fixture site now serves a normal login form. A legitimate sign-in still succeeds.
+    gated = false;
     await call('browser_open', { url: origin });
-    assert.match((await call('wallet_login', {})).text, /asks for another step \(the site asks to solve a CAPTCHA\).*call wallet_login again/s);
-    assert.deepEqual(posts, []);
-    assert.equal(wallet.view().pending.length, 0, 'no request to update the login');
-    await call('browser_evaluate', { script: 'document.querySelector("[name=g-recaptcha-response]").value = "solved-token"' });
     const signedIn = await call('wallet_login', {});
     assert.match(signedIn.text, /^Signed in/, signedIn.text);
-    assert.deepEqual(posts, ['solved-token']);
+    assert.equal(posts, 1);
 
     // A headless test has no window to solve it in: incomplete with the reason, never a bad password.
+    gated = true;
     const tested = await wallet.test(id);
     assert.equal(tested.verification.state, 'incomplete', tested.verification.reason);
     assert.match(tested.verification.reason, /asks to solve a CAPTCHA, and the test browser shows no window to take over \(it runs headless\)/);
-    assert.deepEqual(posts, ['solved-token'], 'the test submitted nothing into the unsolved CAPTCHA');
+    assert.equal(posts, 1, 'the explicit test submitted nothing into the gated page');
 });
 
 test('Wallet additional login fields in the real browser: a required unknown field is requested before submitting, then the saved fields fill the form and a security question after the password', { skip: await realBrowserSkip(), timeout: 180_000 }, async (t) => {

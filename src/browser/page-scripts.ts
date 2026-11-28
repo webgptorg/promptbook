@@ -6,6 +6,8 @@
  * `ptbkRef(n)` from agent scripts) so later actions address exactly the listed element.
  */
 
+import { PENDING_CAPTCHA_SCRIPT } from './verification.js';
+
 /**
  * Maximal page text returned to an agent.
  *
@@ -134,7 +136,7 @@ function pageFunction(body: string): string {
  *
  * @private browser page scripts
  */
-export type PageReading = { url: string; title: string; text: string; elements: string[]; omitted: number };
+export type PageReading = { url: string; title: string; text: string; elements: string[]; omitted: number; captcha: boolean };
 
 /**
  * Reads the complete page: open dialogs first, the page text, then content of open shadow roots and same-origin
@@ -209,7 +211,7 @@ export function readPageScript(): string {
             if (element.ownerDocument !== document) line += ' (in frame)';
             return line;
         });
-        return { url: location.href, title: document.title, text: sections.join('\\n\\n'), elements, omitted: candidates.length - chosen.length };
+        return { url: location.href, title: document.title, text: sections.join('\\n\\n'), elements, omitted: candidates.length - chosen.length, captcha: ${PENDING_CAPTCHA_SCRIPT} };
     `);
 }
 
@@ -457,13 +459,7 @@ export function loginFormScript(): string {
         // that merely mentions approvals among its content).
         const text = !password && !username && !code && !fields.length && document.body ? (document.body.innerText || '').slice(0, 4000) : '';
         const approval = text.length > 0 && text.length < 3000 && /(approve|confirm|allow)[^.!?\\n]{0,60}(sign.?in|log.?in|request|it.?s (really )?you)|(check|open)[^.!?\\n]{0,30}(phone|mobile|device|authenticator|app)\\b|(sent|pushed)[^.!?\\n]{0,40}(notification|push|prompt)|waiting for (your )?(approval|confirmation)|(tap|select) the number/i.test(text);
-        // An unsolved CAPTCHA: a visible widget of challenge size whose response field is still empty.
-        const widgets = [...document.querySelectorAll('.g-recaptcha, .h-captcha, .cf-turnstile, iframe[src*="recaptcha"], iframe[src*="hcaptcha"], iframe[src*="challenges.cloudflare.com"]')].filter((element) => {
-            const box = element.getBoundingClientRect();
-            return box.width >= 150 && box.height >= 64 && !element.closest('.grecaptcha-badge') && element.getAttribute('data-size') !== 'invisible' && !/size=invisible/.test(element.getAttribute('src') || '');
-        });
-        const responses = [...document.querySelectorAll('[name="g-recaptcha-response"], [name="h-captcha-response"], [name="cf-turnstile-response"]')];
-        const captcha = widgets.length > 0 && (!responses.length || responses.some((element) => !element.value));
+        const captcha = ${PENDING_CAPTCHA_SCRIPT};
         const blank = document.readyState !== 'complete' || (!inputs.length && !text.length);
         return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval, captcha, blank };
     })()`;
