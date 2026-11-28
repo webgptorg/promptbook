@@ -7,6 +7,10 @@
     another identical `Fix` section and offered the same section again. "Not done" now keeps the prompt in the queue
     unchanged and skips its file for the rest of the run. Added a regression test. Addresses the loop in #325.
 
+-   Added a review-only PRD for a Discord-triggered recording-to-Notion client-intake pilot,
+    with an implementation audit, restricted integration permissions, durable recovery, and synthetic-data
+    acceptance criteria. The pilot is proposed, not implemented; its assignment remains not-ready.
+
 -   Moved the shared `ptbk coder run` / `server` / `fix` workspace lock into
     `.promptbook/ptbk-coder/ptbk-coder-workspace.lock` at the checkout root, preserving atomic ownership,
     nested-job protection and cleanup without reading or modifying workspace locks in Git metadata.
