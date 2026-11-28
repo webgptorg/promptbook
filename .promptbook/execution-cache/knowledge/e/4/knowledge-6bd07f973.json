@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-14T09:10:11.567Z",
+    "promptbookVersion": "0.92.0",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Promptbook.studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook.studio, web-based editor, runner, Book applications, experimental, MVP stage",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-14T09:10:03.025Z",
+            "complete": "2025-05-14T09:10:11.567Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0004625
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 70
+                },
+                "charactersCount": {
+                    "value": 308
+                },
+                "wordsCount": {
+                    "value": 44
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 23
+                },
+                "charactersCount": {
+                    "value": 87
+                },
+                "wordsCount": {
+                    "value": 11
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook.studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Promptbook.studio is a web-based editor and runner for Book applications, currently in the experimental MVP stage."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_012mXPQMrZt26ZuiqUm1rtqY",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook.studio, web-based editor, runner, Book applications, experimental, MVP stage"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 70,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 23
+            }
+        }
+    }
+}

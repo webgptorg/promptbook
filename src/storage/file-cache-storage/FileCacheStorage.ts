@@ -6,7 +6,8 @@ import { MAX_FILENAME_LENGTH } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { string_filename } from '../../types/typeAliases';
+import { jsonParse } from '../../formats/json/utils/jsonParse';
+import type { string_filename } from '../../types/string_filename';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -15,15 +16,17 @@ import { isSerializableAsJson } from '../../utils/serialization/isSerializableAs
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from './FileCacheStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
-import { jsonParse } from '../../formats/json/utils/jsonParse';
 
 /**
- * @@@
+ * A storage implementation that caches data in files organized in a directory structure.
+ * Provides methods for retrieving, storing, and managing cached data on the filesystem.
+ *
+ * This class implements the PromptbookStorage interface for filesystem-based caching.
  *
  * @public exported from `@promptbook/node`
  */
 export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
-    constructor(
+    public constructor(
         protected readonly tools: Required<Pick<ExecutionTools, 'fs'>>,
         private readonly options: FileCacheStorageOptions,
     ) {
@@ -33,7 +36,8 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * @@@
+     * Converts a storage key to a filesystem path where the data should be stored.
+     * Creates a consistent, deterministic file path based on the key string.
      */
     private getFilenameForKey(key: string): string_filename {
         // TODO: [👬] DRY
@@ -51,7 +55,8 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * @@@ Returns the current value associated with the given key, or null if the given key does not exist in the list associated with the object.
+     * Returns the current value associated with the given key, or null if the given key does not exist.
+     * Retrieves the cached data from the file system storage.
      */
     public async getItem(key: string): Promise<TItem | null> {
         const filename = this.getFilenameForKey(key);
@@ -69,7 +74,8 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * @@@ Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
+     * Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
+     * Persists data to the file system, creating necessary directory structure if it doesn't exist.
      */
     public async setItem(key: string, value: TItem): Promise<void> {
         const filename = this.getFilenameForKey(key);
@@ -80,12 +86,33 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
 
         const fileContent = stringifyPipelineJson(value);
 
-        await mkdir(dirname(filename), { recursive: true }); // <- [0]
-        await writeFile(filename, fileContent, 'utf-8');
+        // Note: Try to create cache directory and write file, but don't fail if filesystem is read-only or has permission issues
+        try {
+            await mkdir(dirname(filename), { recursive: true }); // <- [0]
+            await writeFile(filename, fileContent, 'utf-8');
+        } catch (error) {
+            // Note: If we can't write to cache, silently ignore the error
+            //       This handles read-only filesystems, permission issues, and missing parent directories
+            if (
+                error instanceof Error &&
+                (error.message.includes('EROFS') ||
+                    error.message.includes('read-only') ||
+                    error.message.includes('EACCES') ||
+                    error.message.includes('EPERM') ||
+                    error.message.includes('ENOENT'))
+            ) {
+                // Silently ignore filesystem errors - caching is optional
+                return;
+            } else {
+                // Re-throw other unexpected errors
+                throw error;
+            }
+        }
     }
 
     /**
-     * @@@ Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists.
+     * Removes the key/value pair with the given key from the storage, if a key/value pair with the given key exists.
+     * Deletes the corresponding file from the filesystem.
      */
     public async removeItem(key: string): Promise<void> {
         const filename = this.getFilenameForKey(key);
@@ -98,7 +125,5 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 }
 
-/**
- * TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node file-cache storage [FileCacheStorage](src/storage/file-cache-storage/FileCacheStorage.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values

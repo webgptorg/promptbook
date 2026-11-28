@@ -1,0 +1,127 @@
+{
+    "date": "2025-05-21T09:09:08.037Z",
+    "promptbookVersion": "0.94.0-15",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "## Book Language Details\n\n### What: Workflows, Tasks, and Parameters\nDefines the workflow needed to complete tasks. Workflows have fixed inputs and outputs, adaptable for various scenarios (e.g., generating articles on different topics).\n\n### Who: Personas\nDescribes the virtual employees (personas) carrying out tasks. Personas are defined in human language, specifying their traits and roles, and abstract away complex model parameters.\n\n### How: Knowledge, Instruments, and Actions\nOutlines the resources personas use. \n- **KNOWLEDGE**: Documents, websites, etc.\n- **INSTRUMENT**: Real-time data (e.g., time, weather).\n- **ACTION**: Tasks like sending emails or creating files."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "\"Workflow and Persona Guidelines\"",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2025-05-21T09:09:07.323Z",
+            "complete": "2025-05-21T09:09:08.037Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0011400000000000002
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 210
+                },
+                "charactersCount": {
+                    "value": 199
+                },
+                "wordsCount": {
+                    "value": 29
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 7
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 6
+                },
+                "charactersCount": {
+                    "value": 33
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> ## Book Language Details\n> \n> ### What: Workflows, Tasks, and Parameters\n> Defines the workflow needed to complete tasks. Workflows have fixed inputs and outputs, adaptable for various scenarios (e.g., generating articles on different topics).\n> \n> ### Who: Personas\n> Describes the virtual employees (personas) carrying out tasks. Personas are defined in human language, specifying their traits and roles, and abstract away complex model parameters.\n> \n> ### How: Knowledge, Instruments, and Actions\n> Outlines the resources personas use. \n> - **KNOWLEDGE**: Documents, websites, etc.\n> - **INSTRUMENT**: Real-time data (e.g., time, weather).\n> - **ACTION**: Tasks like sending emails or creating files.",
+        "rawRequest": {
+            "model": "gpt-4o-2024-05-13",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> ## Book Language Details\n> \n> ### What: Workflows, Tasks, and Parameters\n> Defines the workflow needed to complete tasks. Workflows have fixed inputs and outputs, adaptable for various scenarios (e.g., generating articles on different topics).\n> \n> ### Who: Personas\n> Describes the virtual employees (personas) carrying out tasks. Personas are defined in human language, specifying their traits and roles, and abstract away complex model parameters.\n> \n> ### How: Knowledge, Instruments, and Actions\n> Outlines the resources personas use. \n> - **KNOWLEDGE**: Documents, websites, etc.\n> - **INSTRUMENT**: Real-time data (e.g., time, weather).\n> - **ACTION**: Tasks like sending emails or creating files."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-BZZjfnqzAN8OeOQ26QGI297oetUFR",
+            "object": "chat.completion",
+            "created": 1747818547,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "\"Workflow and Persona Guidelines\"",
+                        "refusal": null,
+                        "annotations": []
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 210,
+                "completion_tokens": 6,
+                "total_tokens": 216,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "audio_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "audio_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                }
+            },
+            "service_tier": "default",
+            "system_fingerprint": "fp_9923407c12"
+        }
+    }
+}

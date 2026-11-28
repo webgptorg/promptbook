@@ -1,20 +1,28 @@
-import type { string_url } from '../../../types/typeAliases';
+import type { string_url } from '../../../types/string_url';
+import type { IsHostnameOnPrivateNetworkOptions } from './isHostnameOnPrivateNetwork';
 import { isHostnameOnPrivateNetwork } from './isHostnameOnPrivateNetwork';
+
+/**
+ * Options for `isUrlOnPrivateNetwork`
+ */
+export type IsUrlOnPrivateNetworkOptions = IsHostnameOnPrivateNetworkOptions;
 
 /**
  * Checks if an IP address or hostname is reserved for private networks or localhost.
  *
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `isUrlOnPrivateNetwork` *(this one)* which tests full URL
  * - `isHostnameOnPrivateNetwork` which tests just hostname
  *
- * @param {string} ipAddress - The IP address to check.
+ * @param {string} url - The URL to check.
+ * @param {IsUrlOnPrivateNetworkOptions} options - Options for the check.
  * @returns {boolean} Returns true if the IP address is reserved for private networks or localhost, otherwise false.
+ *
  * @public exported from `@promptbook/utils`
  */
-export function isUrlOnPrivateNetwork(url: URL | string_url): boolean {
+export function isUrlOnPrivateNetwork(url: URL | string_url, options: IsUrlOnPrivateNetworkOptions = {}): boolean {
     if (typeof url === 'string') {
         url = new URL(url);
     }
-    return isHostnameOnPrivateNetwork(url.hostname);
+    return isHostnameOnPrivateNetwork(url.hostname, options);
 }

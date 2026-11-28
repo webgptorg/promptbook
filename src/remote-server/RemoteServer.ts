@@ -5,6 +5,9 @@ import { DefaultEventsMap, Server } from 'socket.io';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 
+/**
+ * Type describing remote server.
+ */
 export type RemoteServer = IDestroyable & {
     /**
      * HTTP server instance

@@ -1,5 +1,4 @@
-import type { number_integer } from '../types/typeAliases';
-import type { number_positive } from '../types/typeAliases';
+import type { number_integer, number_positive } from '../types/number_positive';
 
 /**
  * Represents all the tools needed to interact with the user.
@@ -16,6 +15,9 @@ export type UserInterfaceTools = {
     promptDialog(options: UserInterfaceToolsPromptDialogOptions): Promise<string>;
 };
 
+/**
+ * Options for user interface tools prompt dialog.
+ */
 export type UserInterfaceToolsPromptDialogOptions = {
     /**
      * Prompt title

@@ -1,0 +1,58 @@
+[x] ~$0.00 by Gemini CLI - failed
+[x] ~$0.00 by Gemini CLI - failed
+
+---
+
+[ ] (@@@ Maybe working) !!!!!!!!!!!!!!!
+
+[✨🦔] Estimate the price of the Google Gemini coding runner.
+
+-   When the coding agent script is running with `--gemini` runner, the price is always shown as ~$0.00, which is not correct.
+-   Try to better estimate the price of the coding runner when using Gemini. It doesn't have to be 100% accurate, but it should be better than $0.00.
+-   For example from the logs and amount of text generated, you can estimate how many tokens were generated and then multiply it by the price per token for Gemini.
+-   Coding script shouldn't be changed in any other way. It should stay the same, only better reporting of the price in one coding runner.
+-   This was already attempted in the previous run but not working
+-   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[x]
+
+[✨🦔] Enhanced price estimation
+
+-   Better estimate price when using `--agent openai-codex --model gpt-5.1-codex-mini`
+-   For model `gpt-5.1-codex-mini` it reported ~$4.00 but was really $0.3 - multiple times 0.075x to get the real price.
+-   There was 711,043 tokens used
+-   The price for the OpenAI codecs should be per model.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨🦔] Enhanced price estimation
+
+-   Better estimate price when using `--agent openai-codex` all possible models
+-   The price for the OpenAI codecs should be per model.
+-   List theese models:
+
+    -   `gpt-5.3-codex` - pricing not officially published yet; assumed similar to GPT-5.2-Codex (≈ $1.75 / $14 per M tokens) unless changed by OpenAI. No separate token pricing announced.
+    -   `gpt-5.2-codex` - ≈ **$1.75 input / $0.175 cached / $14.00 output per 1M tokens**. :contentReference[oaicite:1]{index=1}
+    -   `gpt-5.1-codex-max` - not yet officially priced separately; assumed similar to GPT-5.1-Codex (≈ $1.25 / $10 per 1M tokens) once API access is available. Proxy estimate. :contentReference[oaicite:2]{index=2}
+    -   `gpt-5.1-codex` - ≈ **$1.25 input / $0.125 cached / $10.00 output per 1M tokens**. :contentReference[oaicite:3]{index=3}
+    -   `gpt-5-codex` - ≈ **$1.25 input / $0.125 cached / $10.00 output per 1M tokens** (same as GPT-5-Codex). :contentReference[oaicite:4]{index=4}
+    -   `gpt-5.1-codex-mini` - smaller version; pricing roughly **$0.25 input / $2.00 output per 1M tokens**. :contentReference[oaicite:5]{index=5}
+    -   `codex-mini-latest` - approximate to `gpt-5.1-codex-mini` pricing (≈ **$0.25 input / $2.00 output per 1M tokens**) if exposed via API, similar to mini models. (No official table yet.)
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🦔] qux
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { COMMANDS } from '../../src/commands/index';
 import { GENERATOR_WARNING } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';
@@ -21,15 +21,31 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { prettify } from '../utils/prettify';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: generate-documentation.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.option('--skip-bundler', `Skip the build process of bundler`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { commit: is commited }.
+ */
 const { commit: isCommited } = program.opts();
 
 generateDocumentation({ isCommited })
@@ -43,6 +59,9 @@ generateDocumentation({ isCommited })
         process.exit(0);
     });
 
+/**
+ * Generates documentation.
+ */
 async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
     console.info(`📚  Generating documentation`);
 
@@ -116,7 +135,7 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
         );
 
         await writeFile(`documents/commands/${name}.md`, await prettify(commandContent, 'markdown'), 'utf-8');
-        // <- TODO: !!! Add generator warnings
+        // <- TODO: [💆] Add generator warnings
     }
 
     // ==============================
@@ -127,7 +146,10 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
     }
 }
 
-interface GitHubDiscussion {
+/**
+ * Type describing git hub discussion.
+ */
+type GitHubDiscussion = {
     id: string;
     title: string;
     body: string;
@@ -136,11 +158,14 @@ interface GitHubDiscussion {
     } | null;
     url: string;
     updatedAt: string;
-}
+};
 
+/**
+ * Fetches git hub discussions.
+ */
 async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
-    // TODO: !!! Paginate through all discussions (Maybe @JorgeSquared)
-    const query = `
+    // TODO: [💆] Paginate through all discussions (Maybe @JorgeSquared)
+    const query = spaceTrim(`
         query {
             repository(owner: "webgptorg", name: "promptbook") {
                 discussions(first: 100) {
@@ -157,7 +182,7 @@ async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
                 }
             }
         }
-    `;
+    `);
 
     const response = await fetch('https://api.github.com/graphql', {
         method: 'POST',
@@ -187,6 +212,4 @@ async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
     return data.data.repository.discussions.nodes;
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [generate-documentation](scripts/generate-documentation/generate-documentation.ts) should never be published in any package

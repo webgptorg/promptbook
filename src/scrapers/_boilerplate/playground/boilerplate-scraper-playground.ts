@@ -25,13 +25,16 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
-    console.info(`🧸  Scrape knowledge from @@@ (playground)`);
+    console.info(`🧸  Scrape knowledge from @@ (playground)`);
 
     // Do here stuff you want to test
     //========================================>
 
-    const example = '10-simple.@@@';
+    const example = '10-simple.@@';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them
 
     const llmTools = await $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
@@ -73,6 +76,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [boilerplate-scraper-playground](src/scrapers/_boilerplate/playground/boilerplate-scraper-playground.ts) should never be published in any package

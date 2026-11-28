@@ -1,7 +1,8 @@
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $provideLlmToolsForCli } from '../common/$provideLlmToolsForCli';
 import { handleActionErrors } from './common/handleActionErrors';
 
@@ -12,7 +13,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeLoginCommand(program: Program) {
+export function $initializeLoginCommand(program: Program): $side_effect {
     const loginCommand = program.command('login');
     loginCommand.description(
         spaceTrim(`
@@ -37,8 +38,6 @@ export function $initializeLoginCommand(program: Program) {
     );
 }
 
-/**
- * TODO: Implement non-interactive login
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [login](src/cli/cli-commands/login.ts) should never be published outside of `@promptbook/cli`
+// TODO: Implement non-interactive login
+// Note: [💞] Ignore a discrepancy between file name and entity name

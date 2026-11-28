@@ -6,6 +6,7 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
  *
  * @see ./modelCommandParser.ts for more details
  * @deprecated Option to manually set the model requirements is not recommended to use, use `PERSONA` instead
+ *
  * @public exported from `@promptbook/editable`
  */
 export type ModelCommand = {

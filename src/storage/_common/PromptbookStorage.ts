@@ -4,7 +4,7 @@ import type { Promisable } from 'type-fest';
  * Storage of objects with asynchronous API
  *
  * Note: Naming `PromptbookStorage` not `Storage` to avoid name collision with global `Storage` interface.
- * Note: This is simmilar to Web Storage API interface but everything is asynchronous and can store JSON objects.
+ * Note: This is similar to Web Storage API interface but everything is asynchronous and can store JSON objects.
  */
 export type PromptbookStorage<TItem> = {
     /**
@@ -23,6 +23,5 @@ export type PromptbookStorage<TItem> = {
     removeItem(key: string): Promisable<void>;
 };
 
-/**
- * TODO: [💺] Constrain `TItem` to [🚉] JSON-serializable objects only in type level
- */
+// TODO: [💺] Constrain `TItem` to [🚉] JSON-serializable objects only in type level
+// TODO: [☹️] Unite the storages

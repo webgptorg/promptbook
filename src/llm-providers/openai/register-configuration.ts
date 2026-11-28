@@ -1,9 +1,14 @@
-import type { string_name } from '../../types/typeAliases';
-import type { Registration } from '../../utils/$Register';
+import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
+import { MODEL_ORDERS } from '../../constants';
+import type { string_name } from '../../types/string_name';
+import type { Registration } from '../../utils/misc/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import type { chococake } from '../../utils/organization/really_any';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
-import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
+import { createOpenAiCompatibleExecutionTools } from './createOpenAiCompatibleExecutionTools';
+import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Registration of LLM provider metadata
@@ -11,7 +16,7 @@ import { MODEL_ORDER } from '../_common/register/LlmToolsMetadata';
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/core`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
@@ -20,7 +25,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
     className: 'OpenAiExecutionTools',
     envVariables: ['OPENAI_API_KEY'],
     trustLevel: 'CLOSED',
-    order: MODEL_ORDER.TOP_TIER,
+    order: MODEL_ORDERS.TOP_TIER,
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
@@ -29,7 +34,8 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
             className: 'OpenAiExecutionTools',
             options: {
                 apiKey: 'sk-',
-            },
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
+            } satisfies OpenAiExecutionToolsOptions,
         };
     },
 
@@ -42,7 +48,7 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
                 className: 'OpenAiExecutionTools',
                 options: {
                     apiKey: env.OPENAI_API_KEY!,
-                },
+                } satisfies OpenAiExecutionToolsOptions,
             };
         }
 
@@ -51,12 +57,12 @@ export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegist
 });
 
 /**
- * @@@ registration1 of default configuration for Open AI
+ * Registration of the OpenAI Assistant metadata
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Note: [🏐] Configurations registrations are done in the metadata registration section, but the constructor registration is handled separately.
  *
  * @public exported from `@promptbook/core`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.register({
@@ -66,7 +72,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
     envVariables: null,
     //            <- TODO: ['OPENAI_API_KEY', 'OPENAI_ASSISTANT_ID']
     trustLevel: 'CLOSED',
-    order: MODEL_ORDER.NORMAL, // <- TODO: [🧠] What is the right tier for Open AI Assistant
+    order: MODEL_ORDERS.NORMAL, // <- TODO: [🧠] What is the right tier for Open AI Assistant
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
@@ -76,7 +82,9 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
             options: {
                 apiKey: 'sk-',
                 assistantId: 'asst_',
-            },
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
+                isCreatingNewAssistantsAllowed: false,
+            } satisfies OpenAiAssistantExecutionToolsOptions,
         };
     },
 
@@ -93,7 +101,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
                 options: {
                     apiKey: env.OPENAI_API_KEY!,
                     assistantId: env.OPENAI_XXX!
-                },
+                } satisfies OpenAiAssistantExecutionToolsOptions,
             };
         }
 
@@ -103,5 +111,44 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
 });
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Registration of the OpenAI Compatible metadata
+ *
+ * Note: OpenAiCompatibleExecutionTools is an abstract class and cannot be instantiated directly.
+ * It serves as a base class for OpenAiExecutionTools and other compatible implementations.
+ *
+ * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/wizard`
+ * @public exported from `@promptbook/cli`
  */
+export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.register({
+    title: 'Open AI Compatible',
+    packageName: '@promptbook/openai',
+    className: 'OpenAiCompatibleExecutionTools',
+    envVariables: ['OPENAI_API_KEY', 'OPENAI_BASE_URL'],
+    trustLevel: 'CLOSED',
+    order: MODEL_ORDERS.TOP_TIER,
+
+    getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
+        return {
+            title: 'Open AI Compatible',
+            packageName: '@promptbook/openai',
+            className: 'OpenAiCompatibleExecutionTools',
+            options: {
+                apiKey: 'sk-',
+                baseURL: 'https://api.openai.com/v1',
+                defaultModelName: 'gpt-4-turbo',
+                isProxied: false as chococake,
+                remoteServerUrl: DEFAULT_REMOTE_SERVER_URL as chococake,
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE as chococake,
+            } satisfies Parameters<typeof createOpenAiCompatibleExecutionTools>[0],
+        };
+    },
+
+    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        // Note: OpenAI compatible tools are always created manually
+        keepUnused(env);
+        return null;
+    },
+});
+
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,9 +1,7 @@
 import type { Writable } from 'type-fest';
 import PipelineCollection from '../../books/index.json';
-import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { DEFAULT_BOOK_TITLE } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { createPipelineCollectionFromJson } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
+import { DEFAULT_BOOK_TITLE, DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { ORDER_OF_PIPELINE_JSON } from '../constants';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -11,13 +9,12 @@ import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
 import { countUsage } from '../llm-providers/_common/utils/count-total-usage/countUsage';
-import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../llm-providers/_multiple/getSingleLlmExecutionTools';
 import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../pipeline/PipelineJson/PreparationJson';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
-import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { exportJson } from '../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
@@ -28,11 +25,12 @@ import { prepareTasks } from './prepareTasks';
 /**
  * Prepare pipeline locally
  *
- * @see https://github.com/webgptorg/promptbook/discussions/196
- *
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process
  * Note: When the pipeline is already prepared, it returns the same pipeline
+ *
+ * @see https://github.com/webgptorg/promptbook/discussions/196
+ *
  * @public exported from `@promptbook/core`
  */
 export async function preparePipeline(
@@ -62,9 +60,7 @@ export async function preparePipeline(
         throw new MissingToolsError('LLM tools are required for preparing the pipeline');
     }
 
-    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
-    const _llms = arrayableToArray(tools.llm);
-    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+    const llmTools = getSingleLlmExecutionTools(tools.llm);
 
     const llmToolsWithUsage = countUsage(llmTools);
     //    <- TODO: [🌯]
@@ -98,7 +94,9 @@ export async function preparePipeline(
     let title = pipeline.title;
     if (title === undefined || title === '' || title === DEFAULT_BOOK_TITLE) {
         // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
-        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+        const collection = createPipelineCollectionFromJson(
+            ...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>),
+        );
 
         const prepareTitleExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-title.book'),
@@ -107,7 +105,7 @@ export async function preparePipeline(
 
         const result = await prepareTitleExecutor({
             book: sources.map(({ content }) => content).join('\n\n'),
-        }).asPromise();
+        }).asPromise({ isCrashedOnError: true });
 
         const { outputParameters } = result;
         const { title: titleRaw } = outputParameters;
@@ -202,7 +200,7 @@ export async function preparePipeline(
         order: ORDER_OF_PIPELINE_JSON,
         value: {
             ...pipeline,
-            // <- TODO: Probbably deeply clone the pipeline because `$exportJson` freezes the subobjects
+            // <- TODO: Probably deeply clone the pipeline because `$exportJson` freezes the subobjects
             title,
             knowledgeSources: knowledgeSourcesPrepared,
             knowledgePieces: knowledgePiecesPrepared,

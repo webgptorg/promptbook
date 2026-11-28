@@ -2,11 +2,14 @@ import { CsvFormatError } from '../formats/csv/CsvFormatError';
 import { AbstractFormatError } from './AbstractFormatError';
 import { AuthenticationError } from './AuthenticationError';
 import { CollectionError } from './CollectionError';
+import { ConflictError } from './ConflictError';
+import { DatabaseError } from './DatabaseError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
 import { ExpectError } from './ExpectError';
 import { KnowledgeScrapeError } from './KnowledgeScrapeError';
 import { LimitReachedError } from './LimitReachedError';
 import { MissingToolsError } from './MissingToolsError';
+import { NotAllowed } from './NotAllowed';
 import { NotFoundError } from './NotFoundError';
 import { NotYetImplementedError } from './NotYetImplementedError';
 import { ParseError } from './ParseError';
@@ -41,6 +44,9 @@ export const PROMPTBOOK_ERRORS = {
     PromptbookFetchError,
     UnexpectedError,
     WrappedError,
+    NotAllowed,
+    DatabaseError,
+    ConflictError,
     // TODO: [🪑]> VersionMismatchError,
 } as const;
 
@@ -79,6 +85,4 @@ export const ALL_ERRORS = {
     ...COMMON_JAVASCRIPT_ERRORS,
 } as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

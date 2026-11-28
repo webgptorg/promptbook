@@ -4,6 +4,9 @@
 import TextItem from './TextItem'
 */
 
+/**
+ * Constant for { sort by x }.
+ */
 const { sortByX } = require('../util/page-item-functions');
 
 // Groups all text items which are on the same y line
@@ -26,7 +29,7 @@ module.exports = class TextItemLineGrouper {
         lines.push(currentLine);
 
         lines.forEach((textItems) => {
-            // we can't trust order of occurence, esp. footnoteLinks like to come last
+            // we can't trust order of occurrence, esp. footnoteLinks like to come last
             sortByX(textItems);
         });
         return lines;

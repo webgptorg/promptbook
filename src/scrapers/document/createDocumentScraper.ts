@@ -8,7 +8,7 @@ import { documentScraperMetadata } from './register-metadata';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Creates a scraper for document content.
  *
  * @public exported from `@promptbook/documents`
  */
@@ -19,6 +19,4 @@ export const createDocumentScraper = Object.assign(
     documentScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

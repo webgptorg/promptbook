@@ -3,7 +3,7 @@ import type { CrossBlob } from './CrossBlob'; // <- Note: [🍝]
 
 /**
  * Converts Blob to File
- * This is usefull for:
+ * This is useful for:
  *   - Preserving Files that actually has a filename
  *   - Autocomplete the filename for blobs according to its mimetype
  * Tip: For data conversions @see https://bun.sh/guides/binary

@@ -1,16 +1,18 @@
 import { ExpectError } from '../../errors/ExpectError';
-import type { Expectations, ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
+import type { Expectations } from '../../pipeline/PipelineJson/Expectations';
+import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { CountUtils } from '../../utils/expectation-counters/index';
 
 /**
  * Function checkExpectations will check if the expectations on given value are met
  *
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `checkExpectations` which throws an error if the expectations are not met
  * - `isPassingExpectations` which returns a boolean
  *
  * @throws {ExpectError} if the expectations are not met
  * @returns {void} Nothing
+ *
  * @private internal function of `createPipelineExecutor`
  */
 export function checkExpectations(expectations: Expectations, value: string): void {
@@ -30,11 +32,12 @@ export function checkExpectations(expectations: Expectations, value: string): vo
 /**
  * Function checkExpectations will check if the expectations on given value are met
  *
- * Note: There are two simmilar functions:
+ * Note: There are two similar functions:
  * - `checkExpectations` which throws an error if the expectations are not met
  * - `isPassingExpectations` which returns a boolean
  *
  * @returns {boolean} True if the expectations are met
+ *
  * @public exported from `@promptbook/core`
  */
 export function isPassingExpectations(expectations: Expectations, value: string): boolean {
@@ -49,8 +52,6 @@ export function isPassingExpectations(expectations: Expectations, value: string)
     }
 }
 
-/**
- * TODO: [💝] Unite object for expecting amount and format
- * TODO: [🧠][🤠] This should be part of `TextFormatParser`
- * Note: [💝] and [🤠] are interconnected together
- */
+// TODO: [💝] Unite object for expecting amount and format
+// TODO: [🧠][🤠] This should be part of `TextFormatParser`
+// Note: [💝] and [🤠] are interconnected together

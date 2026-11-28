@@ -1,7 +1,9 @@
 import type { ModelVariant } from '../types/ModelVariant';
-import type { string_model_description } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
+import type { number_usd } from '../types/number_usd';
+import type { string_model_name } from '../types/string_model_name';
+import type { string_model_description } from '../types/string_persona_description';
+import type { string_title } from '../types/string_title';
+import type { string_url } from '../types/string_url';
 
 /**
  * Represents a model that can be used for prompt execution
@@ -36,8 +38,25 @@ export type AvailableModel = {
      * @example "Model with 1 billion parameters and advanced reasoning capabilities"
      */
     readonly modelDescription?: string_model_description;
+
+    /**
+     * Pricing information for the model
+     */
+    readonly pricing?: {
+        readonly prompt: number_usd;
+        readonly output: number_usd;
+    };
+
+    /**
+     * URL to the model (or provider) documentation
+     */
+    readonly documentationUrl?: string_url;
+
+    /**
+     * If the model is deprecated, it should not be used for new tasks
+     */
+    readonly isDeprecated?: boolean;
 };
 
-/**
- * TODO: (not only [🕘]) Put pricing information here
- */
+// TODO: [🕛] Extend this from sth like `AgentBasicInformation` / `ModelBasicInformation`
+// TODO: [🧠] Maybe rename to something else - like `ModelInformation` or `ModelMetadata`

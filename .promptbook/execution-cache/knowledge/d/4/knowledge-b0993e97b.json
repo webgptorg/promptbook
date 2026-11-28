@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T11:57:15.619Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\nPromptbook is a tool that allows users to write programming specifications in plain English, which are then translated into working code. This approach shifts the focus from traditional coding elements like loops and variables to more human-centric concepts such as stories, personas, and knowledge."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Promptbook, programming specifications, plain English, working code, human-centric concepts, stories, personas, knowledge",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:57:13.719Z",
+            "complete": "2025-05-06T11:57:15.619Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000714
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 103
+                },
+                "charactersCount": {
+                    "value": 499
+                },
+                "wordsCount": {
+                    "value": 71
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 27
+                },
+                "charactersCount": {
+                    "value": 121
+                },
+                "wordsCount": {
+                    "value": 13
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Promptbook is a tool that allows users to write programming specifications in plain English, which are then translated into working code. This approach shifts the focus from traditional coding elements like loops and variables to more human-centric concepts such as stories, personas, and knowledge.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Promptbook is a tool that allows users to write programming specifications in plain English, which are then translated into working code. This approach shifts the focus from traditional coding elements like loops and variables to more human-centric concepts such as stories, personas, and knowledge."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01QxtVWC8Fk67nEWTEtdqSps",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Promptbook, programming specifications, plain English, working code, human-centric concepts, stories, personas, knowledge"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 103,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 27
+            }
+        }
+    }
+}

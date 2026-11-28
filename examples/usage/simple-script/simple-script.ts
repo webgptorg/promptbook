@@ -15,15 +15,30 @@ import {
     stringifyPipelineJson,
     usageToHuman,
 } from '../../../src/_packages/core.index';
-import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
+import {
+    $provideExecutionToolsForNode,
+    createPipelineCollectionFromDirectory,
+} from '../../../src/_packages/node.index';
 
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
 import { assertsError } from '../../../src/errors/assertsError';
 
+import { spaceTrim } from 'spacetrim';
+
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: simple-script.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: A directory named 'promptbook' (root of the project)
+            `),
+        ),
+    );
     process.exit(1);
 }
 
@@ -43,7 +58,7 @@ main()
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const collection = await createCollectionFromDirectory(
+    const collection = await createPipelineCollectionFromDirectory(
         './examples/pipelines/',
         {},
         {
@@ -144,5 +159,5 @@ async function main() {
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PipelineCollection.fromDirectory ([📂] directory vs folder)
  * TODO: [🧠] Maybe make .js version of simple-script
- * TODO: [🧙‍♂️] Make example with Wizzard supersimple-script.ts
+ * TODO: [🧙‍♂️] Make example with Wizard supersimple-script.ts
  */

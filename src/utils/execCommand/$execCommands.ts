@@ -1,3 +1,4 @@
+import type { $side_effect } from '../organization/$side_effect';
 import { $execCommand } from './$execCommand';
 
 /**
@@ -14,7 +15,7 @@ export async function $execCommands({
     commands,
     cwd,
     crashOnError,
-}: {
+}: $side_effect & {
     readonly commands: string[];
     readonly cwd: string;
     readonly crashOnError?: boolean;
@@ -24,6 +25,4 @@ export async function $execCommands({
     }
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node command-execution helper [$execCommands](src/utils/execCommand/$execCommands.ts) should never be published into packages that could be imported into browser environment

@@ -1,0 +1,108 @@
+{
+    "date": "2025-06-16T17:04:02.240Z",
+    "promptbookVersion": "0.98.0-4",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Store opening hours:\nMonday - Friday: 9:00 - 17:00\nSaturday: 8:00 - 12:00\nSunday: Closed"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Store hours, opening hours, business hours, weekday hours, weekend hours, Monday, Friday, Saturday, Sunday, closed",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-06-16T17:03:58.846Z",
+            "complete": "2025-06-16T17:04:02.240Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000565
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 86
+                },
+                "charactersCount": {
+                    "value": 288
+                },
+                "wordsCount": {
+                    "value": 42
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 28
+                },
+                "charactersCount": {
+                    "value": 114
+                },
+                "wordsCount": {
+                    "value": 15
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Store opening hours:\n> Monday - Friday: 9:00 - 17:00\n> Saturday: 8:00 - 12:00\n> Sunday: Closed",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Store opening hours:\n> Monday - Friday: 9:00 - 17:00\n> Saturday: 8:00 - 12:00\n> Sunday: Closed"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_015VgT4HpnXvYybbucScsFwj",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Store hours, opening hours, business hours, weekday hours, weekend hours, Monday, Friday, Saturday, Sunday, closed"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 86,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 28,
+                "service_tier": "standard"
+            }
+        }
+    }
+}

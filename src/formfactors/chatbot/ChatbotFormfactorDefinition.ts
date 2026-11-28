@@ -1,14 +1,14 @@
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
- * @@@
+ * Chatbot form factor definition for conversational interfaces that interact with users in a chat-like manner.
  *
  * @public exported from `@promptbook/core`
  */
 export const ChatbotFormfactorDefinition = {
     name: 'CHATBOT',
     aliasNames: ['CHAT'],
-    description: `@@@`,
+    description: `A chatbot form factor for conversational user interfaces.`,
     documentationUrl: `https://github.com/webgptorg/promptbook/discussions/174`,
     pipelineInterface: {
         inputParameters: [

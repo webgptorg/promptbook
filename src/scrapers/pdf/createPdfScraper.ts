@@ -8,7 +8,8 @@ import { pdfScraperMetadata } from './register-metadata';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Factory function to create an instance of PdfScraper.
+ * It bundles the scraper class with its metadata.
  *
  * @public exported from `@promptbook/pdf`
  */
@@ -19,6 +20,4 @@ export const createPdfScraper = Object.assign(
     pdfScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

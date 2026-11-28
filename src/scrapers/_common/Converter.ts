@@ -3,7 +3,9 @@ import type { ScraperSourceHandler } from './Scraper';
 import type { ScraperIntermediateSource } from './ScraperIntermediateSource';
 
 /**
- * @@@
+ * Interface defining the requirements for converter implementations.
+ * Converters transform scraped content from one format to another,
+ * optimizing it for knowledge extraction and processing.
  *
  * Note: [🌏] Converters are not usable in browser because they produce a files
  */

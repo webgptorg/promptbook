@@ -1,20 +1,28 @@
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
+
+/**
+ * Profile for Mocked Fake provider
+ */
+const MOCKED_FAKE_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'MOCKED_FAKE' as string_name,
+    fullname: 'Fake LLM (Test)',
+    color: '#ec4899',
+} as const;
 
 keepTypeImported<EmbeddingVector>();
 
@@ -32,6 +40,10 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
 
     public get description(): string_markdown {
         return 'Use faked lorem ipsum data - just for testing';
+    }
+
+    public get profile() {
+        return MOCKED_FAKE_PROVIDER_PROFILE;
     }
 
     /**
@@ -83,7 +95,9 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
 
         const content = await $fakeTextToExpectations(
             prompt.expectations || {
-                sentences: { min: 1, max: 1 },
+                words: { min: 5, max: 1000 },
+                sentences: { min: 5, max: 20 },
+                paragraphs: { min: 1, max: 1 },
             },
             prompt.postprocessingFunctionNames,
         );
@@ -179,6 +193,4 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
     // <- Note: [🤖] callXxxModel
 }
 
-/**
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- */
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options

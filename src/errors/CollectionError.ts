@@ -1,5 +1,5 @@
 /**
- * This error indicates that the pipeline collection cannot be propperly loaded
+ * This error indicates that the pipeline collection cannot be properly loaded
  *
  * @public exported from `@promptbook/core`
  */

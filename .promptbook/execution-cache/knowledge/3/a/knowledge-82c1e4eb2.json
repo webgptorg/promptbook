@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T12:01:15.236Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nPavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI globally. Pavol is also developing the WebGPT web page generation service."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Pavol, developer, user applications, AI models, Ainautes, consulting group, generative AI, WebGPT, web page generation",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T12:01:13.845Z",
+            "complete": "2025-05-06T12:01:15.236Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000852
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 109
+                },
+                "charactersCount": {
+                    "value": 464
+                },
+                "wordsCount": {
+                    "value": 68
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 35
+                },
+                "charactersCount": {
+                    "value": 118
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Pavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI globally. Pavol is also developing the WebGPT web page generation service.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Pavol is a developer specializing in creating user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI globally. Pavol is also developing the WebGPT web page generation service."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Jgdw7VjrkWQch2UNATijnq",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Pavol, developer, user applications, AI models, Ainautes, consulting group, generative AI, WebGPT, web page generation"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 109,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 35
+            }
+        }
+    }
+}

@@ -7,10 +7,13 @@ import type { Scraper } from '../Scraper';
 import { $scrapersRegister } from './$scrapersRegister';
 
 /**
- * @@@
+ * Provides a collection of scrapers optimized for browser environments.
+ * Only includes scrapers that can safely run in a browser context.
  *
- * 1) @@@
- * 2) @@@
+ * Note: Browser scrapers have limitations compared to Node.js scrapers.
+ *
+ * 1) `provideScrapersForNode` use as default
+ * 2) `provideScrapersForBrowser` use in limited browser environment
  *
  * @public exported from `@promptbook/browser`
  */

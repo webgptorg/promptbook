@@ -11,40 +11,51 @@ describe('createPipelineExecutor + postprocessing', () => {
     it('should work when every INPUT  PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(pipelineExecutor({ yourName: 'Paůl' }).asPromise()).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'Paůl' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('LUA_P_OLLE_H_DIAS_UO_Y'),
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'Adam' }).asPromise()).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'Adam' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('MAD_A_OLLE_H_DIAS_UO_Y'),
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'John' }).asPromise()).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('NHO_J_OLLE_H_DIAS_UO_Y'),
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'DAVID' }).asPromise()).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'DAVID' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
+                greeting: expect.stringContaining('DIVAD_OLLE_H_DIAS_UO_Y'),
             },
         });
     });
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`

@@ -1,11 +1,12 @@
 import type { Keywords } from './IKeywords';
 
 /**
- * @@@
+ * Searches set of keywords for a specific keyword
  *
  * @param haystack
  * @param needle
  * @returns
+ *
  * @public exported from `@promptbook/utils`
  */
 export function searchKeywords(haystack: Keywords, needle: Keywords): boolean {
@@ -16,3 +17,5 @@ export function searchKeywords(haystack: Keywords, needle: Keywords): boolean {
     }
     return true;
 }
+
+// TODO: Rename to `isKeywordInKeywords`

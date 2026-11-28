@@ -1,14 +1,18 @@
-import type { string_mime_type, string_name } from '../../types/typeAliases';
+import type { string_mime_type } from '../../types/string_mime_type';
+import type { string_name } from '../../types/string_name';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 import type { FormatSubvalueParser } from './FormatSubvalueParser';
 
 /**
- * A format definition is a set of functions that define how to validate, heal and convert response from LLM
+ * A format definition is a set of functions that define how to validate, heal and convert response from LLM.
  *
- * @@@ Describe setting vs schema
+ * - "settings" are runtime options that affect parsing (e.g., delimiter for CSV).
+ * - "schema" is a structural definition or contract for the data (e.g., expected fields in JSON).
  *
+ * @remarks
  * @see https://github.com/webgptorg/promptbook/discussions/36
+ *
  * @private still in development [🏢]
  */
 export type FormatParser<
@@ -67,16 +71,14 @@ export type FormatParser<
     heal(value: string, settings?: TSettings, scheme?: TSchema): TValue;
 
     /**
-     * @@@
+     * Parsers for extracting or mapping subvalues from the main value (e.g., rows from CSV, items from JSON array).
      */
     readonly subvalueParsers: ReadonlyArray<FormatSubvalueParser<TValue, TSettings>>;
 };
 
-/**
- * TODO: [♏] Add some prepare hook to modify prompt according to the format
- * TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
- * TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
- * TODO: [🍓][🧠] Should execution tools be available to heal, canBeValid and isValid?
- * TODO: [🍓][🧠] llm Provider Bindings
- * TODO: [🍓][🔼] Export via some package
- */
+// TODO: [♏] Add some prepare hook to modify prompt according to the format
+// TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
+// TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
+// TODO: [🍓][🧠] Should execution tools be available to heal, canBeValid and isValid?
+// TODO: [🍓][🧠] llm Provider Bindings
+// TODO: [🍓][🔼] Export via some package

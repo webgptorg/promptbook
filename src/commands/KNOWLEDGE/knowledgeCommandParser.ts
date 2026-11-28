@@ -1,14 +1,13 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 import { knowledgeSourceContentToName } from './utils/knowledgeSourceContentToName';
 
@@ -16,6 +15,7 @@ import { knowledgeSourceContentToName } from './utils/knowledgeSourceContentToNa
  * Parses the knowledge command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand> = {
@@ -93,7 +93,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): $side_effect {
         const { knowledgeSourceContent } = command;
 
         $pipelineJson.knowledgeSources.push({
@@ -123,6 +123,4 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
     },
 };
 
-/**
- * Note: [⛱] There are two types of KNOWLEDGE commands *...(read more in [⛱])*
- */
+// Note: [⛱] There are two types of KNOWLEDGE commands *...(read more in [⛱])*

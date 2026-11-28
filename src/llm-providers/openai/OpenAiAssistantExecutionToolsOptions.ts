@@ -1,17 +1,22 @@
-import type { ClientOptions } from 'openai';
-import type { string_token } from '../../types/typeAliases';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { string_token } from '../../types/string_token';
+import type { OpenAiVectorStoreHandlerOptions } from './OpenAiVectorStoreHandler';
 
 /**
- * Options for `OpenAiAssistantExecutionTools`
+ * Options for `createOpenAiAssistantExecutionTools` and `OpenAiAssistantExecutionTools`
  *
  * @public exported from `@promptbook/openai`
  */
-export type OpenAiAssistantExecutionToolsOptions = OpenAiExecutionToolsOptions &
-    ClientOptions & {
-        /**
-         * Which assistant to use
-         */
-        assistantId: string_token;
-        // <- TODO: [🧠] This should be maybe more like model for each prompt?
-    };
+export type OpenAiAssistantExecutionToolsOptions = OpenAiVectorStoreHandlerOptions & {
+    /**
+     * Whether creating new assistants is allowed
+     *
+     * @default false
+     */
+    readonly isCreatingNewAssistantsAllowed: boolean;
+
+    /**
+     * Which assistant to use
+     */
+    readonly assistantId: string_token;
+    // <- TODO: [🧠] This should be maybe more like model for each prompt?
+};

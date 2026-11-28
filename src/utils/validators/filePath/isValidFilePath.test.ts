@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { isValidFilePath } from './isValidFilePath';
 
 describe('how isValidFilePath works', () => {
@@ -34,6 +34,10 @@ describe('how isValidFilePath works', () => {
         expect(isValidFilePath(`H:/hello.book`)).toBe(true);
         expect(isValidFilePath(`X:/hello.book`)).toBe(true);
         expect(isValidFilePath(`H:/folder with spaces/hello.book`)).toBe(true);
+        expect(isValidFilePath(`C:/Users/me/Documents/p13/NT 299_2018 - PŘ pro archiv STAV.docx`)).toBe(true);
+        expect(
+            isValidFilePath(`C:/Users/me/Documents/p13/NT 302_2018 - PŘ pro místnost náhradního zdroje el..docx`),
+        ).toBe(true);
     });
 
     it('is NOT valid file path', () => {

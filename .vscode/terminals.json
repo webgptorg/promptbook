@@ -2,86 +2,659 @@
     "autokill": true,
     "terminals": [
         {
-            "name": "👨‍💻⚫ Run CLI example (💸)",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS",
+            "--note-0": "There are 3 types of terminals: 1) Runned automatically when coding (execute=true,onlySingle=false,focus=false) 2) Prepared automatically to be run by user but not executed by default (execute=false,onlySingle=false,focus=false), theese are marked by (💤) 3) Manually run by user (execute=true,onlySingle=true,focus=true)",
+            "--note-1": "The (💸) means that script has some cost associated with it, for example, using a paid API or service.",
+            "--note-2": "The (💤) means that script is not executed by default but need user to press [Enter] to run it",
+            "--note-3": "The (⏳) means that script is expected to run for a longer time than usual",
+            "--note-4": "The (❗) means that script should be run with caution, for example, it may cause breaking changes, data loss, etc.",
+            "--note-5": "The (❗❗) means that script should be run with extreme caution, messing up with LTS versions, etc."
+        },
+
+        {
+            "name": "🐙 Plan PRDs with Planner (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder plan --harness openai-codex",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🟣 Run ptbk run-server",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts start-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
+            "name": "🐙 Preview Developer tasks after coder init (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --dry-run --harness openai-codex",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻⚪ Run simple-script example (💸)",
-            "command": "npx ts-node ./examples/usage/simple-script/simple-script.ts",
+            "name": "🐙🏓 Ping Codex & Claude",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --no-questions --harness claude-code --model claude-sonnet-5 --thinking-level low",
+                "npx ts-node ./src/cli/test/ptbk.ts coder ping --no-questions --harness openai-codex --model gpt-5.6-luna --thinking-level low"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🧪 Test ptbk coder terminal UI (💤)",
+            "command": "npm run test-unit -- --runTestsByPath scripts/run-codex-prompts/ui/buildCoderRunUiFrame.test.ts scripts/run-codex-prompts/ui/buildCoderRunUiTerminalFrameUpdate.test.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔴 Run logging example (💸)",
-            "command": "npx ts-node ./examples/usage/logging/logging.ts",
+            "name": "🐙🧬 Test ptbk coder FROM, IMPORT and TEAM (💤)",
+            "command": "npm run test-unit -- --runInBand --runTestsByPath scripts/run-codex-prompts/common/resolveCoderAgent.references.test.ts apps/agents-server/src/utils/resolveInheritedAgentSource.test.ts src/cli/cli-commands/coder/boilerplateTemplates.test.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔵 Run remote example (💸)",
-            "command": "npx ts-node ./examples/usage/remote/server.ts",
+            "name": "🐙🚀 Run ptbk coder `gpt-6-astra` Coding Agent (repair tests) (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fix --auto-pull --auto-push"
+            ],
             "execute": false,
             "onlySingle": false,
             "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `gpt-5.6-sol` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-5.6-sol --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push --min-priority 2"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `gpt-5.6-terra` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-5.6-terra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fix  --auto-pull --auto-push --min-priority 1"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `gpt-5.6-luna` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-5.6-luna --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fix  --auto-pull --auto-push --max-priority 2"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `gpt-6-astra` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-6-astra --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push --min-priority 2"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `gpt-6-astra` Unslopper Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness openai-codex --model gpt-6-astra --thinking-level max --agent agents/coding/unslopper.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push --min-priority 2"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `claude-opus-5` Coding Agent (💤)(💸)(⏳)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness claude-code --model claude-opus-5 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fix  --auto-pull --auto-push",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `fable` Coding Agent (💤)(💸)(⏳)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness claude-code --model fable --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --min-priority 3 --check-before yes-and-fix  --auto-pull --auto-push",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `qwen3.8-max` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model qwen3.8-max --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `qwen3.8-flash` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model qwen3.8-flash --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `deepseek-v4-pro` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model deepseek-v4-pro --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `deepseek-v4.1-flash` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model deepseek-v4.1-flash --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🚀 Run ptbk coder `glm-5.3` Coding Agent (💤)(💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --no-questions --harness qwen-code --model glm-5.3 --thinking-level max --agent agents/coding/developer.book --context AGENTS.md --check \"npm run check\" --check-before yes-and-fail  --auto-pull --auto-push"
+            ],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🏭 Generate \"Generic\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/_templates/common.md --commit --auto-pull --auto-push",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate \"Agents server\" prompt boilerplates for Coding Agent (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/agents-server.md --commit --auto-pull --auto-push",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🏭 Generate \"Utils app\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/utils-app.md --commit --auto-pull --auto-push",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate \"ptbk coder\" prompt boilerplates for Coding Agent (💤)",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-coder.md --commit --auto-pull --auto-push",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙🏭 Generate \"ptbk agent-folder\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agent.md --commit --auto-pull --auto-push",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate \"ptbk agents-server\" prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5 --template prompts/_templates/ptbk-agents-server.md --commit --auto-pull --auto-push",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Generate test prompt boilerplates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 1 --template prompts/_templates/test.md --commit --auto-pull --auto-push",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🏭 Find refactor candidates for Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🐙🔎 Find unwritten prompts",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-unwritten",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙📋 List prompts ready to run",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder list",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐙✔ Verify prompts done by Coding Agent",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --order from-latest --ignore Refactor --commit --auto-pull --auto-push",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🔖🟢 Tag the current commit as good (💤)",
+            "command": "git fetch --tags && { base=good-$(date +%F); tag=$base; i=0; while git show-ref --verify --quiet refs/tags/$tag; do i=$((i+1)); tag=$base-$i; done; git tag -a $tag HEAD -m $tag && git push origin $tag && echo '🟢 Created tag marking good commit: ' $tag; }",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🔖🔴 Tag the current commit as bad (💤)",
+            "command": "git fetch --tags && { base=bad-$(date +%F); tag=$base; i=0; while git show-ref --verify --quiet refs/tags/$tag; do i=$((i+1)); tag=$base-$i; done; git tag -a $tag HEAD -m $tag && git push origin $tag && echo '🔴 Created tag marking bad commit: ' $tag; }",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "✨👨‍💻 Run ptbk agents-server dev",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --harness github-copilot --model gpt-6-astra --thinking-level max --port 4440"
+            ],
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "✨👨‍💻 Run ptbk agents-server start",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts agents-server dev --harness github-copilot --model gpt-6-astra --thinking-level max --port 4440"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
+            "name": "(old) ✨⏩ Migrate Agents server `live` (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./src/database/migrate.ts --only=live",
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
+            "name": "(old)(❗) ✨⏩ Migrate Agents server `preview` (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./src/database/migrate.ts --only=preview",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "✨🔼 Sync Agents server Vercel domains (dry-run)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./scripts/sync-vercel-domains.ts --dry-run",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old)(❗) ✨🔼 Sync Agents server Vercel domains (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./scripts/sync-vercel-domains.ts",
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
+            "name": "(old) ✨💾 Backup Supabase Postgres (💤)",
+            "command": "npx ts-node ./scripts/backup-supabase/backup-supabase.ts --output-dir other/backup --schemas public --filename-pattern %timestamp%.sql.zip",
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
+            "name": "(old)(❗) ✨🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
+            "command": "git branch --force preview main && git push origin preview --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=preview)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": false
+        },
+        {
+            "name": "(old)(❗❗) ✨🔼 Update the production Agents servers (`preview` -> `production`) (💤)",
+            "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old)(❗❗❗) ✨🔼 Update the LTS Agents servers (`production` -> `lts`) (💤)",
+            "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(❗) ✨🔼 Update Agent server (live / `main` -> `preview`) (💤)",
+            "command": "git branch --force preview main && git push origin preview --force-with-lease",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗) ✨🔼 Update Agent server (HEAD -> `preview`) (💤)",
+            "command": "git branch --force preview HEAD && git push origin preview --force-with-lease && git checkout preview",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗❗) ✨🔼 Update Agent server (`preview` -> `production`) (💤)",
+            "command": "git branch --force production preview && git push origin production --force-with-lease",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗❗❗) ✨🔼 Update Agent server (`production` -> `lts`) (💤)",
+            "command": "git branch --force lts production && git push origin lts --force-with-lease",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 👨‍💻⚫ Run CLI example (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) ✨👨‍💻🟣 Run deprecated ptbk start-agents-server",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/default --port 4440 --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 👨‍💻🟣 Run ptbk start-pipelines-server",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 👨‍💻⚪ Run simple-script example (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./examples/usage/simple-script/simple-script.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 👨‍💻🔴 Run logging example (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./examples/usage/logging/logging.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 👨‍💻🔵 Run remote example (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./examples/usage/remote/server.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🔵 Run CLI `ptbk about`",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts about",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npx ts-node ./src/cli/test/ptbk.ts about"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 👨‍💻🔠 Run Book Components web app",
+            "cwd": "./apps/book-components/",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🍎 Build Book Editor macOS app (💤)(⏳)",
+            "command": "npm run build:book-editor-macos",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🆚 Build VSCode extension (💤)",
+            "command": "npm run build:vscode-extension",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸🔠 Run Playground web app",
+            "cwd": "./apps/playground/",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸🔠 Run Utils web app",
+            "cwd": "./apps/utils/",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸🔠 Run ptbk coder landing page",
+            "cwd": "./apps/coder-landing/",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "--note": " <- Note: [🔠] Register new apps here "
+        },
+        {
+            "name": "🧪🏭🩹 Full checkup (LF => Prettify (+commit) => Test & Test full build) (⏳⏳)",
+            "command": "./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧪🧪 Test all (💤)(⏳)",
+            "commands": ["npm run test"],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Lint",
-            "command": "npm run lint",
+            "name": "🧪 Unit tests (💤)(⏳)",
+            "command": "npm run test-unit",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Lint (examples)",
-            "command": "npx eslint examples",
+            "name": "🧪 Test Agents Server (💤)(⏳)",
+            "command": "npm run test-app-agents-server",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Lint (scripts)",
-            "command": "npx eslint scripts",
+            "name": "🧪 Integration tests of Agents Server (💤)(⏳)",
+            "cwd": "./apps/agents-server/",
+            "command": "npm run test-e2e",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Unit Test",
-            "command": "npm run test",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "name": "🧪 Integration tests of Agents Server (not headless) (⏳)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx playwright test --headed",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
-            "name": "🧪 Test types",
+            "name": "🧪 Test Types (💤)",
             "command": "npm run test-types",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🤪 Find fresh emoji tag",
-            "command": "npx ts-node ./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
+            "name": "🧪 Test Spell check (💤)",
+            "command": "npm run test-spellcheck",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Lint (💤)",
+            "command": "npm run test-lint",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(old) 🧪 Test Books",
+            "command": "npm run test-books",
             "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧪 Test Package generation (skip build) (💤)",
+            "command": "npm run test-package-generation",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test Package generation (build) (💤)(⏳)",
+            "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test name discrepancies (💤)",
+            "command": "npm run test-name-discrepancies",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Test 🔠 Book Components build",
+            "command": "npm run test-book-components-build",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧪 (examples) Lint ",
+            "command": "npx eslint examples",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧪 (scripts) Lint",
+            "command": "npx eslint scripts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🤪 Find fresh emoji tag",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-fresh-emoji-tags",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🐱‍👤 Import GitHub",
+            "command": "npm run import-github",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old)(❗) 🗑️ Delete OpenAI assistants",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/delete-openai-assistants/delete-openai-assistants.ts"
+            ],
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old)(❗) 🗑️ Delete OpenAI resources (files + vector stores)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/delete-openai-resources/delete-openai-resources.ts"
+            ],
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "✨🏭 Generate reserved paths for Agents server",
+            "cwd": "./apps/agents-server/",
+            "command": "npm run generate-reserved-paths",
+            "execute": true,
+            "onlySingle": true,
             "focus": true
         },
         {
@@ -92,62 +665,68 @@
             "focus": true
         },
         {
-            "name": "🏭📦 Generate packages",
+            "name": "🏭📦 Generate packages (Skip bundler)",
             "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
-            "execute": false,
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
         },
         {
-            "name": "🏭📚 Generate documentation",
+            "name": "🏭📦 Generate packages (⏳)",
+            "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(?old) 🏭📦📚 Generate documentation",
             "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
-            "execute": false,
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
         },
         {
-            "name": "🏭📚 Generate server types from Open API",
+            "name": "(?old) 🏭📚 Generate server types from Open API",
             "commands": ["npm run generate-openapi-types"],
-            "execute": false,
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
         },
         {
-            "name": "🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
+            "name": "(old) 🏭📖 Generate examples .book -> .bookc (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
+                "npx ts-node ./scripts/generate-examples-bookc/generate-examples-bookc.ts --verbose"
             ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
-            "name": "🏭📖 Prettify examples and add mermaid graphs -> .book.md",
-            "commands": [
-                "npx ts-node src/cli/test/ptbk.ts prettify 'examples/pipelines/**/*.book' --ignore 'examples/pipelines/errors/**/*.book'"
-            ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🏭📖 Generate reports .report.json -> .report.md",
+            "name": "(old) 🏭📖 Generate reports .report.json -> .report.md",
             "commands": ["npx ts-node ./scripts/generate-example-reports/generate-example-reports.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭🩹 Fix imports",
+            "name": "🏭🩹 Fix Lint",
+            "command": "npx eslint src --fix",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🩹 Fix Imports",
             "commands": ["npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭🩹 Fix end of lines to LF",
+            "name": "🏭🩹 Fix end of lines to CRLF -> LF",
             "command": "./scripts/lines-to-lf.sh",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -160,178 +739,361 @@
         },
         {
             "name": "🧸 Playground (💸)",
-            "command": "npx ts-node ./src/playground/playground.ts",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npx ts-node ./src/playground/playground.ts"],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 OpenAI playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/openai/playground/playground.ts",
+            "name": "🧸🔴 Playground error handling",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/playground/permanent/error-handling-playground.ts"
+            ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Anthropic Claude playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
+            "name": "(old) 🧸 Agent with browser playground (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/playground/permanent/agent-with-browser-playground.ts"
+            ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Vercel playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
+            "--note": "<- Note: [🎠] Add here new playgrounds"
+        },
+        {
+            "name": "(old) 🧸 OpenAI playground (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/openai/playground/playground.ts"
+            ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Azure OpenAI playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
+            "name": "(old) 🧸 Ollama playground",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/ollama/playground/playground.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧸 Anthropic Claude playground (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧸 Vercel playground (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/vercel/playground/playground.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧸 Azure OpenAI playground (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧸 Agent LLM tools playground (with browser and search) (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/agent/playground/playground.ts"
+            ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Langtail playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/langtail/playground/playground.ts",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🧸 Multiple LLMs playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/multiple/playground/playground.ts",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🧸 Remote server playground",
-            "command": "npx ts-node ./src/llm-providers/remote/playground/playground.ts",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/langtail/playground/playground.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧸 Multiple LLMs playground (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/multiple/playground/playground.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧸 Remote server playground",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/remote/playground/playground.ts"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸📄💡 Scrape knowledge by Markitdown (playground) (💸) [🍠]",
+            "name": "(old) 🧸📄💡 Scrape knowledge by Markitdown (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/markitdown/playground/markitdown-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
 
         {
-            "name": "🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
+            "name": "(old) 🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document/playground/document-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
 
         {
-            "name": "🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
+            "name": "(old) 🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
 
         {
-            "name": "🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
+            "name": "(old) 🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/pdf/playground/pdf-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
 
         {
-            "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸) [🍠]",
+            "name": "(old) 🧸🌍💡 Scrape knowledge from website (playground) (💸)[🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
-
         {
-            "name": "📖 Make Promptbook collection (💸) [🍠]",
+            "name": "🧸 Transpile book -> OpenAiSdk (playground)",
+            "command": "npx ts-node ./src/transpilers/openai-sdk/playground/playground.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old) 📖 Make Promptbook collection (💸)(+commit)[🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "👨🏽‍💻 Force reinstall of node modules",
-            "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
+            "name": "(❗) 🔪👨🏽‍💻 Force reinstall of node modules (⏳)",
+            "commands": [
+                "rm -f ./package-lock.json",
+                "rm -rf ./node_modules ./.next ./apps/**/node_modules ./apps/**/.next",
+                "npm cache clean",
+                "npm install"
+            ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🍴🔍 Git list unmerged changes",
             "commands": ["git branch --no-merged main"],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🍴🗑️ Git delete merged branches",
+            "name": "(❗) 🍴🗑️ Git delete merged branches",
             "commands": [
                 "./scripts/is-main-checked.sh && git branch --merged | egrep -v '(^\\*|main)' | xargs git branch -d",
                 "git remote prune origin",
                 "git gc"
             ],
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🗑️ Kill all node.js instances",
-            "commands": ["killall node", "taskkill -f -im node.exe"],
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🍴⏫ Git push all branches",
-            "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🍴⏬ Git pull all branches",
-            "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🔼🆚 Use current version of Promptbook in all Projects",
-            "command": "npm run use-packages",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🔼🚀 Release minor version (💸)",
-            "command": "npm version minor",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🔼🧪 Release pre-minor version (💸)",
-            "commands": ["npm version preminor", "npm version prerelease"],
+            "name": "(❗) 🔪 Kill all Node.js processes (💤)",
+            "command": "echo 🔪 & taskkill /F /IM node.exe & taskkill /F /IM codex.exe & taskkill /F /IM claude.exe",
+            "shellPath": "C:\\Windows\\System32\\cmd.exe",
             "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗) 🔪 Kill and release Git lock (💤)",
+            "command": "echo 🔪 & taskkill /F /IM git.exe",
+            "shellPath": "C:\\Windows\\System32\\cmd.exe",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼🩹 Release patch version (💸)",
+            "name": "🍴🔼 Make empty commit",
+            "commands": ["git commit --allow-empty -m 'Empty commit'", "git push"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old)(❗) 🍴⏫ Git push all branches (⏳)",
+            "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(old)(❗) 🍴⏬ Git pull all branches (⏳)",
+            "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🌎 SSH to live",
+            "command": "ssh root@live.ptbk.io",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🌎 SSH to preview",
+            "command": "ssh root@preview.ptbk.io",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🌎 SSH to production",
+            "command": "ssh root@production.ptbk.io",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🌎 SSH to LTS",
+            "command": "ssh root@lts.ptbk.io",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🔼🆚 Use current version of Promptbook in all Projects / install ptbk (⏳)",
+            "command": "npm run use-packages",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🩹 Prettify all files (no commit)(⏳)",
+            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🩹 Prettify all files (+commit)(⏳)",
+            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🔼 Update and install patch dependencies (+commit)(⏳)",
+            "command": "npm run update-and-install-patch-dependencies-commit",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(❗) 🔼🚀 Release minor version (💸)(⏳)",
+            "command": "npm version minor",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🧪 Release pre-minor version (💸)(⏳)",
+            "command": "npm version preminor",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🧪 Release pre-release version (💤)(💸)(⏳)",
+            "command": "npm version prerelease",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🔼🧪 Release pre-release version (ignore pre-checks) (💸)(⏳)",
+            "command": "npm version prerelease --ignore-scripts && npm run postversion",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🩹 Release patch version (💤)(💸)(⏳)",
             "command": "npm version patch",
             "onlySingle": true,
             "focus": true

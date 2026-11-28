@@ -1,4 +1,4 @@
-import { EmbeddingVector } from '../EmbeddingVector';
+import type { EmbeddingVector } from '../EmbeddingVector';
 
 /**
  * Computes the cosine similarity between two embedding vectors

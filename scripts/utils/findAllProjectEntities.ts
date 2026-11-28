@@ -6,7 +6,7 @@ import { readAllProjectFiles } from './readAllProjectFiles';
 type EntityType = 'const' | 'let' | 'class' | 'function' | 'interface' | 'type' /* <- TODO: More */;
 
 /**
- *  Metadata of entity in javascript and typescript
+ * Metadata of entity in javascript and typescript
  */
 export type EntityMetadata = {
     /**
@@ -27,7 +27,7 @@ export type EntityMetadata = {
     /**
      * Documentation text
      */
-    readonly anotation?: string;
+    readonly annotation?: string;
 
     /**
      * JSDoc tags
@@ -42,27 +42,63 @@ export type EntityMetadata = {
 };
 
 /**
- * @@@
+ * Options for scanning repository exports.
  */
-export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMetadata>> {
-    const files = await readAllProjectFiles();
+export type FindAllProjectEntitiesOptions = {
+    /**
+     * Whether repository scripts should be included alongside `src`.
+     */
+    readonly includeScripts?: boolean;
+
+    /**
+     * Whether app source exports should be included alongside `src`.
+     */
+    readonly isApplicationSourceIncluded?: boolean;
+
+    /**
+     * Whether duplicate export names across different files should be tolerated.
+     */
+    readonly allowDuplicateNames?: boolean;
+};
+
+/**
+ * Scans the project source code to identify and extract metadata about all exported entities
+ * i.e. functions, classes, interfaces, and type definitions
+ */
+export async function findAllProjectEntities({
+    includeScripts = false,
+    isApplicationSourceIncluded = false,
+    allowDuplicateNames = false,
+}: FindAllProjectEntitiesOptions = {}): Promise<ReadonlyArray<EntityMetadata>> {
+    const files = await readAllProjectFiles({ includeScripts, isApplicationSourceIncluded });
 
     const entitities: Array<EntityMetadata> = [];
     for (const file of files) {
         for (const match of file.content.matchAll(
-            /(?<anotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
+            /(?<annotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
         )) {
-            const { type, name, anotation } = match.groups!;
+            const type = match.groups?.type;
+            const name = match.groups?.name;
+            const annotation = match.groups?.annotation;
 
-            const tags = Array.from(anotation?.match(/@([a-zA-Z0-9_-]+)*/g) || []);
+            if (!type || !name) {
+                continue;
+            }
+
+            const tags = Array.from(annotation?.match(/@([a-zA-Z0-9_-]+)*/g) || []);
 
             let isType = false;
 
-            if (['type', 'interface', 'enum'].includes(type)) {
+            if (['type', 'interface'].includes(type)) {
                 isType = true;
             }
 
             const filename = file.path;
+
+            if (name === '$') {
+                // Note: [🍡] This is not a real entity, but an entity enclosed in a string.
+                continue;
+            }
 
             if (filename.endsWith('/src/cli/cli-commands/make.ts') && name === 'getPipelineCollection') {
                 // Note: [🍡] This is not a real entity, but an entity enclosed in a string.
@@ -78,11 +114,63 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
                 filename,
                 type: type as EntityType,
                 name,
-                anotation,
+                annotation,
                 tags,
                 isType,
             });
         }
+    }
+
+    // Note: Detect entities with duplicate names
+    let isDuplicateNameFound = false;
+    const reportedEntityNames = new Set<string>();
+    for (const entity of entitities) {
+            const duplicates = entitities.filter((existingEntity) => {
+                if (existingEntity.name !== entity.name || existingEntity.filename === entity.filename) {
+                    return false;
+                }
+
+                // Note: Allow `.browser.ts` files to override their `.ts` counterpart with the same entity name.
+                //       This is a deliberate platform-override pattern used when the browser needs a
+                //       lighter stub instead of the full Node.js implementation.
+                const browserVariant = entity.filename.endsWith('.browser.ts')
+                    ? entity.filename
+                    : existingEntity.filename.endsWith('.browser.ts')
+                      ? existingEntity.filename
+                      : null;
+                if (browserVariant !== null) {
+                    const nodeVariant = browserVariant.replace(/\.browser\.ts$/, '.ts');
+                    const otherFilename = browserVariant === entity.filename ? existingEntity.filename : entity.filename;
+                    if (otherFilename === nodeVariant) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+        if (duplicates.length > 0) {
+            isDuplicateNameFound = true;
+
+            if (reportedEntityNames.has(entity.name)) {
+                // Note: Already reported this entity name, so we skip it
+                continue;
+            }
+
+            reportedEntityNames.add(entity.name);
+
+            console.error(
+                `Duplicate entity name "${entity.name}" found in files:\n${[
+                    entity.filename,
+                    ...duplicates.map((existingEntity) => existingEntity.filename),
+                ]
+                    .map((filename) => ` - ${filename}`)
+                    .join('\n')}`,
+            );
+        }
+    }
+    if (isDuplicateNameFound && !allowDuplicateNames) {
+        throw new Error('Duplicate entity names found. Please resolve them before proceeding with the script.');
     }
 
     //console.log(entitities.map(({ name }) => name));
@@ -91,7 +179,5 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
     return entitities;
 }
 
-/**
- * TODO: [🧠][🍡][💩] Some better (non-hardcoded) way how to filter non-entities looking like entities
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [findAllProjectEntities](scripts/utils/findAllProjectEntities.ts) should never be published in any package
+// TODO: [🧠][🍡][💩] Some better (non-hardcoded) way how to filter non-entities looking like entities

@@ -1,9 +1,24 @@
 // @flow
 
+/**
+ * Constant for to line item transformation.
+ */
 const ToLineItemTransformation = require('../ToLineItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for line item.
+ */
 const LineItem = require('../../LineItem');
+/**
+ * Constant for stashing stream.
+ */
 const StashingStream = require('../../StashingStream');
+/**
+ * Constant for { removed annotation, added annotation }.
+ */
 const { REMOVED_ANNOTATION, ADDED_ANNOTATION } = require('../../Annotation');
 
 // Converts vertical text to horizontal
@@ -28,6 +43,9 @@ module.exports = class VerticalToHorizontal extends ToLineItemTransformation {
     }
 };
 
+/**
+ * Class implementing verticals stream.
+ */
 class VerticalsStream extends StashingStream {
     constructor() {
         super();

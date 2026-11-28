@@ -1,15 +1,18 @@
 import { basename } from 'path';
-import { removeEmojis } from '../removeEmojis';
 import { isValidFilePath } from '../validators/filePath/isValidFilePath';
 import { isValidUrl } from '../validators/url/isValidUrl';
 import { normalizeToKebabCase } from './normalize-to-kebab-case';
+import { removeEmojis } from './removeEmojis';
 
 /**
- * @@@
+ * Converts a title string into a normalized name.
  *
- * @param value @@@
- * @returns @@@
- * @example @@@
+ * Note: [🔂] This function is idempotent.
+ *
+ * @param value The title string to be converted to a name.
+ * @returns A normalized name derived from the input title.
+ * @example 'Hello World!' -> 'hello-world'
+ *
  * @public exported from `@promptbook/utils`
  */
 export function titleToName(value: string): string {

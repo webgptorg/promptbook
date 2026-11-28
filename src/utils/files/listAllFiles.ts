@@ -1,7 +1,6 @@
 import { join } from 'path';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_dirname, string_filename } from '../../types/string_filename';
 import { isDirectoryExisting } from './isDirectoryExisting';
 
 /**
@@ -10,7 +9,8 @@ import { isDirectoryExisting } from './isDirectoryExisting';
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
- * @private internal function of `createCollectionFromDirectory`
+ *
+ * @private internal function of `AgentCollectionInDirectory` and `createPipelineCollectionFromDirectory`
  */
 export async function listAllFiles(
     path: string_dirname,
@@ -40,8 +40,6 @@ export async function listAllFiles(
     return fileNames;
 }
 
-/**
- * TODO: [😶] Unite floder listing
- * Note: Not [~🟢~] because it is not directly dependent on `fs
- * TODO: [🖇] What about symlinks?
- */
+// TODO: [😶] Unite folder listing
+// Note: Not [~🟢~] because it is not directly dependent on `fs
+// TODO: [🖇] What about symlinks?

@@ -8,7 +8,8 @@ import { legacyDocumentScraperMetadata } from './register-metadata';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Creates a scraper for legacy document formats (.doc, .rtf, etc).
+ * Uses LibreOffice for conversion to extract content from older document formats.
  *
  * @public exported from `@promptbook/legacy-documents`
  */
@@ -19,6 +20,4 @@ export const createLegacyDocumentScraper = Object.assign(
     legacyDocumentScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

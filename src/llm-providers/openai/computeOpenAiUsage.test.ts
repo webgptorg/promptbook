@@ -14,6 +14,9 @@ describe('how computeOpenAiUsage works', () => {
                 },
             }),
         ).toEqual({
+            duration: {
+                value: 0,
+            },
             input: {
                 charactersCount: {
                     value: 0,
@@ -67,6 +70,4 @@ describe('how computeOpenAiUsage works', () => {
     });
 });
 
-/**
- * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
- */
+// TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`

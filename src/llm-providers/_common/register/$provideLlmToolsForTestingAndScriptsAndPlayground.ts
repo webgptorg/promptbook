@@ -1,12 +1,11 @@
 import { join } from 'path';
-import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
-import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
-import { IS_COST_PREVENTED } from '../../../config';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME, IS_COST_PREVENTED } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
 import { countUsage } from '../utils/count-total-usage/countUsage';
 import { limitTotalUsage } from '../utils/count-total-usage/limitTotalUsage';
@@ -14,9 +13,13 @@ import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 
+/**
+ * Options for get Llm tools for testing and scripts and playground.
+ */
 type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromConfigurationOptions & {
     /**
-     * @@@
+     * Flag indicating whether the cache should be reloaded or reused
+     * When set to true, the existing cache will not be used but thinks will be still saved to the cache
      *
      * @default false
      */
@@ -41,7 +44,10 @@ export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
 
     const { isCacheReloaded = false, ...restOptions } = options ?? {};
 
-    const llmTools: LlmExecutionTools = await $provideLlmToolsFromEnv(restOptions);
+    const llmTools: LlmExecutionTools = await $provideLlmToolsFromEnv({
+        title: 'LLM Tools for testing, scripts and playground',
+        ...restOptions,
+    });
     const llmToolsWithUsage = !IS_COST_PREVENTED
         ? countUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]
@@ -64,9 +70,7 @@ export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
     });
 }
 
-/**
- * Note: [⚪] This should never be in any released package
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
- * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
- * TODO: [®] DRY Register logic
- */
+// Note: [⚪] This should never be in any released package
+// TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
+// TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
+// TODO: [®] DRY Register logi

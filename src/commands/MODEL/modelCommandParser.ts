@@ -1,15 +1,17 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -17,6 +19,7 @@ import type { ModelCommand } from './ModelCommand';
  *
  * @see `documentationUrl` for more details
  * @deprecated Option to manually set the model requirements is not recommended to use, use `PERSONA` instead
+ *
  * @public exported from `@promptbook/editable`
  */
 export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
@@ -128,7 +131,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ModelCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: ModelCommand, $pipelineJson: $PipelineJson): $side_effect {
         $pipelineJson.defaultModelRequirements = $pipelineJson.defaultModelRequirements || {};
 
         // TODO: [🚜] DRY
@@ -158,7 +161,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ModelCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: ModelCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): $side_effect {
         if ($taskJson.taskType !== 'PROMPT_TASK') {
             throw new ParseError(`MODEL command can only be used in PROMPT_TASK block`);
         }
@@ -169,15 +172,9 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if ($taskJson.modelRequirements[command.key] !== undefined) {
             if ($taskJson.modelRequirements[command.key] === command.value) {
                 console.warn(
-                    `Multiple commands \`MODEL ${
-                        (
-                            {
-                                modelName: 'NAME',
-                                modelVariant: 'VARIANT',
-                                maxTokens: '???',
-                            } as Record<keyof ModelRequirements, string>
-                        )[command.key]
-                    } ${command.value}\` in the task "${$taskJson.title || $taskJson.name}"`,
+                    `Multiple commands \`MODEL ${command.key} ${command.value}\` in the task "${
+                        $taskJson.title || $taskJson.name
+                    }"`,
                 );
                 // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
             } else {

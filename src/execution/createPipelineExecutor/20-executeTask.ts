@@ -1,10 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
+import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { extractParameterNamesFromTask } from '../../conversion/utils/extractParameterNamesFromTask';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { Parameters } from '../../types/typeAliases';
+import type { LlmCall } from '../../types/LlmCall';
+import type { Parameters } from '../../types/Parameters';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
@@ -14,44 +16,53 @@ import { executeFormatSubvalues } from './30-executeFormatSubvalues';
 import { getReservedParametersForTask } from './getReservedParametersForTask';
 
 /**
- * @@@
+ * Options for executing a single pipeline task, including task details, pipeline context, parameters, and callbacks.
  *
  * @private internal type of `executeTask`
  */
 type executeSingleTaskOptions = Required<CreatePipelineExecutorOptions> & {
     /**
-     * @@@
+     * The task to be executed.
      */
     readonly currentTask: ReadonlyDeep<TaskJson>;
+    //       <- TODO: [🕉] `task` vs `currentTask` - unite naming
 
     /**
-     * @@@
+     * The pipeline in which the task resides, fully prepared and validated.
      */
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
-     * @@@
+     * The parameters to pass to the task execution.
      */
     readonly parametersToPass: Readonly<Parameters>;
 
     /**
-     * @@@
+     * Callback invoked with partial results as the execution progresses.
      */
-    readonly onProgress: (newOngoingResult: PartialDeep<PipelineExecutorResult>) => Promisable<void>;
+    onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
 
     /**
-     * @@@
+     * Optional callback invoked with each LLM call.
+     */
+    logLlmCall?(llmCall: LlmCall): Promisable<void>;
+
+    /**
+     * Mutable execution report object for tracking execution details.
      */
     readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
-     * @@@
+     * String identifier for the pipeline, used in error messages and reporting.
      */
     readonly pipelineIdentification: string;
 };
 
 /**
- * @@@
+ * Executes a single task within a pipeline, handling parameter validation, error checking, and progress reporting.
+ *
+ * @param options - Options for execution, including the task, pipeline, parameters, and callbacks.
+ * @returns The output parameters produced by the task.
  *
  * @private internal utility of `createPipelineExecutor`
  */
@@ -62,6 +73,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         parametersToPass,
         tools,
         onProgress,
+        logLlmCall,
         $executionReport,
         pipelineIdentification,
         maxExecutionAttempts,
@@ -72,26 +84,23 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         cacheDirname,
         intermediateFilesStrategy,
         isAutoInstalled,
-        isNotPreparedWarningSupressed,
+        isNotPreparedWarningSuppressed,
     } = options;
 
     const priority = preparedPipeline.tasks.length - preparedPipeline.tasks.indexOf(currentTask);
-
-    await onProgress({
-        outputParameters: {
-            [currentTask.resultingParameterName]: '', // <- TODO: [🧠] What is the best value here?
-        },
-    });
 
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
     const usedParameterNames = extractParameterNamesFromTask(currentTask);
     const dependentParameterNames = new Set(currentTask.dependentParameterNames);
     // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
     if (
-        union(
-            difference(usedParameterNames, dependentParameterNames),
-            difference(dependentParameterNames, usedParameterNames),
-            // <- TODO: [💯]
+        difference(
+            union(
+                difference(usedParameterNames, dependentParameterNames),
+                difference(dependentParameterNames, usedParameterNames),
+                // <- TODO: [💯]
+            ),
+            new Set(RESERVED_PARAMETER_NAMES),
         ).size !== 0
     ) {
         throw new UnexpectedError(
@@ -116,13 +125,16 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         );
     }
 
+    const reservedParameters = await getReservedParametersForTask({
+        tools,
+        preparedPipeline,
+        task: currentTask,
+        pipelineIdentification,
+        parameters: parametersToPass,
+        isVerbose,
+    });
     const definedParameters: Parameters = Object.freeze({
-        ...(await getReservedParametersForTask({
-            tools,
-            preparedPipeline,
-            task: currentTask,
-            pipelineIdentification,
-        })),
+        ...reservedParameters,
         ...parametersToPass,
     });
 
@@ -179,6 +191,8 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         preparedPipeline,
         tools,
         $executionReport,
+        onProgress,
+        logLlmCall,
         pipelineIdentification,
         maxExecutionAttempts,
         maxParallelCount,
@@ -188,7 +202,7 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
         cacheDirname,
         intermediateFilesStrategy,
         isAutoInstalled,
-        isNotPreparedWarningSupressed,
+        isNotPreparedWarningSuppressed,
     });
 
     await onProgress({
@@ -204,6 +218,4 @@ export async function executeTask(options: executeSingleTaskOptions): Promise<Re
     });
 }
 
-/**
- * TODO: [🤹‍♂️]
- */
+// TODO: [🤹‍♂️]

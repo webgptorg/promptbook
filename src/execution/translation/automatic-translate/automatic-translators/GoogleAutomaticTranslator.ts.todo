@@ -93,12 +93,12 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
             try {
                 return extractMultiplicatedOccurrence(translatedMessage);
             } catch (error) {
-                 // TODO: [🟥] Detect browser / node and make it colorfull
+                 // TODO: [🟥] Detect browser / node and make it colorful
                 // console.error(error);
                 return translatedMessage;
             }
         } catch (error) {
-            // TODO: [🟥] Detect browser / node and make it colorfull
+            // TODO: [🟥] Detect browser / node and make it colorful
             console.error(error);
             return message;
         }

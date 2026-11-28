@@ -1,6 +1,5 @@
-import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { spaceTrim } from 'spacetrim';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
@@ -9,14 +8,15 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 
 import { assertsError } from '../../errors/assertsError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { arrayableToArray } from '../../utils/arrayableToArray';
+import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 
 /**
- * Prepares the knowle
+ * Prepares the knowledge pieces
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
+ *
  * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgePieces(
@@ -63,7 +63,7 @@ export async function prepareKnowledgePieces(
                             The source:
                             ${block(
                                 knowledgeSource.knowledgeSourceContent
-                                    .split('\n')
+                                    .split(/\r?\n/)
                                     .map((line) => `> ${line}`)
                                     .join('\n'),
                             )}
@@ -86,7 +86,7 @@ export async function prepareKnowledgePieces(
                             The source:
                             > ${block(
                                 knowledgeSource.knowledgeSourceContent
-                                    .split('\n')
+                                    .split(/\r?\n/)
                                     .map((line) => `> ${line}`)
                                     .join('\n'),
                             )}
@@ -145,8 +145,8 @@ TODO: [🧊] This is how it can look in future
 /**
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
- * TODO: [🪂] More than max things can run in parallel by acident [1,[2a,2b,_],[3a,3b,_]]
- * TODO: [🧠][❎] Do here propper M:N mapping
+ * TODO: [🪂] More than max things can run in parallel by accident [1,[2a,2b,_],[3a,3b,_]]
+ * TODO: [🧠][❎] Do here proper M:N mapping
  *       [x] One source can make multiple pieces
  *       [ ] One piece can have multiple sources
  */

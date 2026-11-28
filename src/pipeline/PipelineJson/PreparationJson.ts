@@ -1,7 +1,10 @@
 import type { Usage } from '../../execution/Usage';
-import type { number_id } from '../../types/typeAliases';
+import type { number_id } from '../../types/number_id';
 import type { string_promptbook_version } from '../../version';
 
+/**
+ * JSON shape for preparation.
+ */
 export type PreparationJson = {
     /**
      * Incremental ID of the preparation
@@ -27,8 +30,6 @@ export type PreparationJson = {
     readonly usage: Usage;
 };
 
-/**
- * TODO: [🍙] Make some standard order of json properties
- * TODO: Maybe put here used `modelName`
- * TODO: [🍥] When using `date` it changes all examples .bookc files each time so until some more elegant solution omit the time from prepared pipeline
- */
+// TODO: [🍙] Make some standard order of json properties
+// TODO: Maybe put here used `modelName`
+// TODO: [🍥] When using `date` it changes all examples .bookc files each time so until some more elegant solution omit the time from prepared pipeline

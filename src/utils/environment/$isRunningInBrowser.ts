@@ -5,14 +5,12 @@
  *
  * @public exported from `@promptbook/utils`
  */
-export const $isRunningInBrowser = new Function(`
+export function $isRunningInBrowser(): boolean {
     try {
-        return this === window;
+        return typeof window !== 'undefined' && typeof window.document !== 'undefined';
     } catch (e) {
         return false;
     }
-`);
+}
 
-/**
- * TODO: [🎺]
- */
+// TODO: [🎺]

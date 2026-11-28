@@ -1,7 +1,16 @@
 // @flow
 
+/**
+ * Constant for to text item transformation.
+ */
 const ToTextItemTransformation = require('../ToTextItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for word format.
+ */
 const WordFormat = require('../../markdown/WordFormat');
 
 module.exports = class CalculateGlobalStats extends ToTextItemTransformation {
@@ -104,12 +113,15 @@ module.exports = class CalculateGlobalStats extends ToTextItemTransformation {
     }
 };
 
+/**
+ * Gets most used key.
+ */
 function getMostUsedKey(keyToOccurrence) {
-    var maxOccurence = 0;
+    var maxOccurrence = 0;
     var maxKey;
     Object.keys(keyToOccurrence).map((element) => {
-        if (!maxKey || keyToOccurrence[element] > maxOccurence) {
-            maxOccurence = keyToOccurrence[element];
+        if (!maxKey || keyToOccurrence[element] > maxOccurrence) {
+            maxOccurrence = keyToOccurrence[element];
             maxKey = element;
         }
     });

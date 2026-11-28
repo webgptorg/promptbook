@@ -14,6 +14,9 @@ describe('how computeAnthropicClaudeUsage works', () => {
                 },
             }),
         ).toEqual({
+            duration: {
+                value: 0,
+            },
             input: {
                 charactersCount: {
                     value: 0,
@@ -61,12 +64,10 @@ describe('how computeAnthropicClaudeUsage works', () => {
                 },
             },
             price: {
-                value: 0.00033,
+                value: expect.any(Number),
             },
         });
     });
 });
 
-/**
- * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
- */
+// TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`

@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it } from '@jest/globals';
 import { titleToName } from './titleToName';
 
@@ -6,10 +7,13 @@ describe('how titleToName works', () => {
         expect(titleToName(`hello`)).toBe(`hello`);
         expect(titleToName(`hello 🤘`)).toBe(`hello`);
         expect(titleToName(`hello world`)).toBe(`hello-world`);
+        expect(titleToName(`hello_world`)).toBe(`hello-world`);
         expect(titleToName(`Hello, how are ýóů?`)).toBe(`hello-how-are-you`);
         expect(
-            titleToName(`  Hello, how
+            titleToName(
+                spaceTrim(`  Hello, how
                            are ýóů?   `),
+            ),
         ).toBe(`hello-how-are-you`);
     });
 

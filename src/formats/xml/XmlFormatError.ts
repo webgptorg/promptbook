@@ -9,6 +9,6 @@ export class XmlFormatError extends AbstractFormatError {
     public readonly name = 'XmlFormatError';
     public constructor(message: string) {
         super(message);
-        Object.setPrototypeOf(this, CsvFormatError.prototype);
+        Object.setPrototypeOf(this, XmlFormatError.prototype);
     }
 }

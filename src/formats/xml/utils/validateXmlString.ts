@@ -1,6 +1,6 @@
 import { assertsError } from '../../../errors/assertsError';
-import { CsvFormatError } from '../../csv/CsvFormatError';
-import { string_xml } from '../XmlFormatDefinition';
+import { XmlFormatError } from '../XmlFormatError';
+import type { string_xml } from '../../../types/string_markdown';
 
 /**
  * Function to validate if a string is a valid XML string.
@@ -14,7 +14,7 @@ import { string_xml } from '../XmlFormatDefinition';
 
 export function validateXmlString(value: unknown): string_xml {
     if (typeof value !== 'string' || value.trim() === '') {
-        throw new Error('Invalid XML: Input is not a valid string.');
+        throw new XmlFormatError('Invalid XML: Input is not a valid string.');
     }
     try {
         const parser = new DOMParser();
@@ -22,8 +22,9 @@ export function validateXmlString(value: unknown): string_xml {
         const parserError = parsedDocument.getElementsByTagName('parsererror');
 
         if (parserError.length > 0) {
-            throw new CsvFormatError('Invalid XML: Parsing error detected.');
+            throw new XmlFormatError('Invalid XML: Parsing error detected.');
         }
+        return value;
     } catch (error) {
         assertsError(error);
         throw error;

@@ -8,7 +8,10 @@ import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { basename } from 'path';
 import { forEver } from 'waitasecond';
-import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
+import {
+    $provideExecutionToolsForNode,
+    createPipelineCollectionFromDirectory,
+} from '../../../src/_packages/node.index';
 import { OpenAiExecutionTools } from '../../../src/_packages/openai.index';
 import { startRemoteServer } from '../../../src/_packages/remote-server.index';
 import { AuthenticationError } from '../../../src/errors/AuthenticationError';
@@ -17,9 +20,20 @@ import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
 import { assertsError } from '../../../src/errors/assertsError';
+import { spaceTrim } from 'spacetrim';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: server.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: A directory named 'promptbook' (root of the project)
+            `),
+        ),
+    );
     process.exit(1);
 }
 
@@ -42,7 +56,7 @@ async function main() {
     console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
     const tools = await $provideExecutionToolsForNode();
-    const collection = await createCollectionFromDirectory('./examples/pipelines/', tools);
+    const collection = await createPipelineCollectionFromDirectory('./examples/pipelines/', tools);
 
     // [⚖]
     startRemoteServer({

@@ -1,6 +1,6 @@
 /**
  * This error type indicates that some limit was reached
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export class LimitReachedError extends Error {

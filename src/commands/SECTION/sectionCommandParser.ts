@@ -1,23 +1,27 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { SectionTypes } from '../../types/SectionType';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineTaskCommandParser,
+} from '../_common/types/CommandParser';
 import type { SectionCommand } from './SectionCommand';
 
 /**
  * Parses the section command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
@@ -144,7 +148,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: SectionCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): void {
+    $applyToTaskJson(command: SectionCommand, $taskJson: $TaskJson, $pipelineJson: $PipelineJson): $side_effect {
         if ($taskJson.isSectionTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`
@@ -167,7 +171,7 @@ export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {
 
         if ($taskJson.content === undefined) {
             throw new UnexpectedError(
-                `Content is missing in the taskJson - probbably commands are applied in wrong order`,
+                `Content is missing in the taskJson - probably commands are applied in wrong order`,
             );
         }
 

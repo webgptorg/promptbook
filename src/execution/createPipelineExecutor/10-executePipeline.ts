@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -11,10 +10,9 @@ import { serializeError } from '../../errors/utils/serializeError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
-import type { InputParameters } from '../../types/typeAliases';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { LlmCall } from '../../types/LlmCall';
+import type { InputParameters, Parameters } from '../../types/Parameters';
+import type { string_name, string_reserved_parameter_name } from '../../types/string_name';
 import { valueToString } from '../../utils/parameters/valueToString';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
@@ -27,46 +25,54 @@ import { executeTask } from './20-executeTask';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
 /**
- * @@@
+ * Options for executing an entire pipeline, including input parameters, pipeline context, and progress callbacks.
  *
  * @private internal type of `executePipeline`
  */
 type ExecutePipelineOptions = Required<CreatePipelineExecutorOptions> & {
     /**
-     * @@@
+     * The input parameters provided by the user for pipeline execution.
      */
     readonly inputParameters: Readonly<InputParameters>;
 
     /**
-     * @@@
+     * Optional callback invoked with partial results as the pipeline execution progresses.
      */
     onProgress?(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
 
     /**
-     * @@@
+     * Optional callback invoked with each LLM call.
+     */
+    logLlmCall?(llmCall: LlmCall): Promisable<void>;
+
+    /**
+     * The pipeline definition to execute.
      */
     readonly pipeline: PipelineJson;
 
     /**
-     * @@@
+     * The prepared and validated pipeline, ready for execution.
      */
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
-     * @@@
+     * Callback to update the prepared pipeline reference after preparation.
      */
-    readonly setPreparedPipeline: (preparedPipeline: ReadonlyDeep<PipelineJson>) => void;
+    setPreparedPipeline(preparedPipeline: ReadonlyDeep<PipelineJson>): void;
 
     /**
-     * @@@
+     * String identifier for the pipeline, used in error messages and reporting.
      */
     readonly pipelineIdentification: string;
 };
 
 /**
- * @@@
+ * Executes an entire pipeline, resolving tasks in dependency order, handling errors, and reporting progress.
  *
- * Note: This is not a `PipelineExecutor` (which is binded with one exact pipeline), but a utility function of `createPipelineExecutor` which creates `PipelineExecutor`
+ * Note: This is not a `PipelineExecutor` (which is bound to a single pipeline), but a utility function used by `createPipelineExecutor` to create a `PipelineExecutor`.
+ *
+ * @param options - Options for execution, including input parameters, pipeline, and callbacks.
+ * @returns The result of the pipeline execution, including output parameters, errors, and usage statistics.
  *
  * @private internal utility of `createPipelineExecutor`
  */
@@ -75,6 +81,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         inputParameters,
         tools,
         onProgress,
+        logLlmCall,
         pipeline,
         setPreparedPipeline,
         pipelineIdentification,
@@ -94,7 +101,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     }
 
     const errors: Array<PipelineExecutionError> = [];
-    const warnings: Array<PipelineExecutionError /* <- [🧠][⚠] What is propper object type to handle warnings */> = [];
+    const warnings: Array<PipelineExecutionError /* <- [🧠][⚠] What is proper object type to handle warnings */> = [];
 
     const executionReport: WritableDeep<ExecutionReportJson> = {
         pipelineUrl: preparedPipeline.pipelineUrl,
@@ -110,6 +117,18 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
      */
     let isReturned = false;
 
+    // Note: Report all output parameters upfront as empty strings
+    if (onProgress) {
+        const emptyOutputParameters = Object.fromEntries(
+            preparedPipeline.parameters.filter((param) => !param.isInput).map((param) => [param.name, '']),
+            // <- TODO: [🧠] Should be reported intermediate parameters or just output parameters?
+        );
+
+        onProgress({
+            outputParameters: emptyOutputParameters,
+        });
+    }
+
     // Note: Check that all input input parameters are defined
     for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
         if (inputParameters[parameter.name] === undefined) {
@@ -122,7 +141,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
             return exportJson({
                 name: `executionReport`,
-                message: `Unuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
+                message: `Unsuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
                 order: [],
                 value: {
                     isSuccessful: false,
@@ -171,7 +190,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 name: 'pipelineExecutorResult',
                 message: spaceTrim(
                     (block) => `
-                        Unuccessful PipelineExecutorResult (with extra parameter {${
+                        Unsuccessful PipelineExecutorResult (with extra parameter {${
                             parameter.name
                         }}) PipelineExecutorResult
 
@@ -303,7 +322,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
                                         ${block(
                                             JSON.stringify(newOngoingResult, null, 4)
-                                                .split('\n')
+                                                .split(/\r?\n/)
                                                 .map((line) => `> ${line}`)
                                                 .join('\n'),
                                         )}
@@ -316,6 +335,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                             onProgress(newOngoingResult);
                         }
                     },
+                    logLlmCall,
                     $executionReport: executionReport,
                     pipelineIdentification: spaceTrim(
                         (block) => `
@@ -330,7 +350,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         resovedParameterNames = [...resovedParameterNames, currentTask.resultingParameterName];
                     })
                     .then(() => {
-                        resolving = resolving.filter((w) => w !== work);
+                        resolving = resolving.filter((workItem) => workItem !== work);
                     });
                 // <- Note: Errors are catched here [3]
                 //    TODO: BUT if in multiple tasks are errors, only the first one is catched so maybe we should catch errors here and save them to errors array here
@@ -366,7 +386,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
         return exportJson({
             name: 'pipelineExecutorResult',
-            message: `Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult`,
+            message: `Unsuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult`,
             order: [],
             value: {
                 isSuccessful: false,

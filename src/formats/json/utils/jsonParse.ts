@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Converts a JavaScript Object Notation (JSON) string into an object.
@@ -35,15 +35,11 @@ export function jsonParse<T>(value: string) {
             spaceTrim(
                 (block) => `
                     ${block((error as Error).message)}
-            
-                    The JSON text:
+
+                    The expected JSON text:
                     ${block(value)}
                 `,
             ),
         );
     }
 }
-
-/**
- * TODO: !!!! Use in Promptbook.studio
- */

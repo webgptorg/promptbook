@@ -1,13 +1,17 @@
-import spaceTrim from 'spacetrim';
-import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME } from '../../../config';
-import { DEFAULT_BOOK_TITLE } from '../../../config';
+import { spaceTrim } from 'spacetrim';
+import { padBook } from '../../../book-2.0/agent-source/padBook';
+import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME, DEFAULT_BOOK_TITLE } from '../../../config';
 import type { PipelineString } from '../../../pipeline/PipelineString';
 import { validatePipelineString } from '../../../pipeline/validatePipelineString';
-import type { string_prompt } from '../../../types/typeAliases';
+import type { string_prompt } from '../../../types/string_prompt';
+import type { chococake } from '../../organization/really_any';
 import { isFlatPipeline } from '../utils/isFlatPipeline';
 
 /**
- * @@@
+ * Converts a pipeline structure to its string representation.
+ *
+ * Transforms a flat, simple pipeline into a properly formatted pipeline string
+ * with sections for title, prompt, and return statement.
  *
  * @public exported from `@promptbook/editable`
  */
@@ -16,7 +20,9 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
         return pipelineString;
     }
 
-    const pipelineStringLines = pipelineString.split('\n');
+    pipelineString = spaceTrim(pipelineString) as PipelineString;
+
+    const pipelineStringLines = pipelineString.split(/\r?\n/);
     const potentialReturnStatement = pipelineStringLines.pop()!;
     let returnStatement: string;
 
@@ -33,7 +39,7 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
 
     let quotedPrompt: string_prompt;
 
-    if (prompt.split('\n').length <= 1) {
+    if (prompt.split(/\r?\n/).length <= 1) {
         quotedPrompt = `> ${prompt}`;
     } else {
         quotedPrompt = spaceTrim(
@@ -60,9 +66,7 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
     );
     // <- TODO: Maybe use book` notation
 
-    return pipelineString;
+    return padBook(pipelineString as chococake) as chococake as PipelineString;
 }
 
-/**
- * TODO: Unit test
- */
+// TODO: Unit test

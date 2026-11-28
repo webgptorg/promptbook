@@ -1,6 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/string_person_fullname';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * Options for `JavascriptExecutionTools`
@@ -16,7 +17,7 @@ export type JavascriptExecutionToolsOptions = CommonToolsOptions & {
      * Note: There are also some built-in functions available:
      *      @see ./JavascriptEvalExecutionTools.ts
      */
-    functions?: Record<string_postprocessing_function_name, PostprocessingFunction>;
+    functions?: Record<string_postprocessing_function_name, PostprocessingFunction | ToolFunction>;
 };
 
 /**
@@ -29,5 +30,8 @@ export type PostprocessingFunction =
     | Function;
 
 /**
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
+ * Function that can be used as tool for AI model
  */
+export type ToolFunction = (args: TODO_any) => Promise<TODO_any>;
+
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

@@ -5,22 +5,28 @@ import { removeDiacritics } from './removeDiacritics';
  *
  * @example 'hello-world'
  * @example 'i-love-promptbook'
+ *
  * @public exported from `@promptbook/utils`
  */
 export type string_kebab_case = string;
 
 /**
+ * Type describing char type.
+ *
  * @private type of `normalizeToKebabCase`
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 
 /**
- * @@@
+ * Converts a given text to kebab-case format.
  *
- * @param text @@@
- * @returns @@@
+ * Note: [🔂] This function is idempotent.
+ *
+ * @param text The text to be converted.
+ * @returns The kebab-case formatted string.
  * @example 'hello-world'
  * @example 'i-love-promptbook'
+ *
  * @public exported from `@promptbook/utils`
  */
 export function normalizeToKebabCase(text: string): string_kebab_case {
@@ -70,6 +76,4 @@ export function normalizeToKebabCase(text: string): string_kebab_case {
     return normalizedName;
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

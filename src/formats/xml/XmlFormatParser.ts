@@ -1,14 +1,8 @@
+import type { string_xml } from '../../types/string_markdown';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatParser } from '../_common/FormatParser';
 import { isValidXmlString } from './utils/isValidXmlString';
-
-/**
- * Semantic helper
- *
- * For example `"<foo>bar</foo>"`
- */
-export type string_xml = string;
 
 /**
  * Definition for XML format
@@ -49,14 +43,12 @@ export const XmlFormatParser: FormatParser<
     subvalueParsers: [],
 };
 
-/**
- * TODO: [🧠] Maybe propper instance of object
- * TODO: [0] Make string_serialized_xml
- * TODO: [1] Make type for XML Settings and Schema
- * TODO: [🧠] What to use for validating XMLs - XSD,...
- * TODO: [🍓] In `XmlFormatParser` implement simple `isValid`
- * TODO: [🍓] In `XmlFormatParser` implement partial `canBeValid`
- * TODO: [🍓] In `XmlFormatParser` implement `heal
- * TODO: [🍓] In `XmlFormatParser` implement `subvalueParsers`
- * TODO: [🏢] Allow to expect something inside XML and other formats
- */
+// TODO: [🧠] Maybe proper instance of object
+// TODO: [0] Make string_serialized_xml
+// TODO: [1] Make type for XML Settings and Schema
+// TODO: [🧠] What to use for validating XMLs - XSD,...
+// TODO: [🍓] In `XmlFormatParser` implement simple `isValid`
+// TODO: [🍓] In `XmlFormatParser` implement partial `canBeValid`
+// TODO: [🍓] In `XmlFormatParser` implement `heal
+// TODO: [🍓] In `XmlFormatParser` implement `subvalueParsers`
+// TODO: [🏢] Allow to expect something inside XML and other formats

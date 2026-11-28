@@ -1,30 +1,58 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import type { PartialDeep, Promisable } from 'type-fest';
+import { BIG_DATASET_TRESHOLD, FAILED_VALUE_PLACEHOLDER } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
+import type { LlmCall } from '../../types/LlmCall';
+import type { string_parameter_name, string_parameter_value } from '../../types/string_name';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
+import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
 import { executeAttempts } from './40-executeAttempts';
 
 /**
- * @@@
+ * Options for executing a pipeline task that involves formatting subvalues (e.g., iterating over CSV rows).
+ * Extends ExecuteAttemptsOptions with a progress callback.
  *
  * @private internal type of `executeFormatSubvalues`
  */
-type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
+type ExecuteFormatCellsOptions = ExecuteAttemptsOptions & {
+    /**
+     * Callback invoked with partial results as the execution progresses.
+     */
+    onProgress(newOngoingResult: PartialDeep<PipelineExecutorResult>): Promisable<void>;
+
+    /**
+     * Optional callback invoked with each LLM call.
+     */
+    logLlmCall?(llmCall: LlmCall): Promisable<void>;
+};
 
 /**
- * @@@
+ * Executes a pipeline task that requires mapping or iterating over subvalues of a parameter (such as rows in a CSV).
+ * Handles format and subformat resolution, error handling, and progress reporting.
+ *
+ * @param options - Options for execution, including task details and progress callback.
+ * @returns The result of the subvalue mapping or execution attempts.
  *
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { task, jokerParameterNames, parameters, priority, csvSettings, pipelineIdentification } = options;
+    const {
+        task,
+        jokerParameterNames,
+        parameters,
+        priority,
+        csvSettings,
+        onProgress,
+        logLlmCall,
+        pipelineIdentification,
+    } = options;
 
     if (task.foreach === undefined) {
-        return /* not await */ executeAttempts(options);
+        return /* not await */ executeAttempts({ ...options, logLlmCall });
     }
 
     if (jokerParameterNames.length !== 0) {
@@ -104,18 +132,22 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
 
     if (formatDefinition.formatName === 'CSV') {
         formatSettings = csvSettings;
-        // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
+        // <- TODO: [🤹‍♂️] More universal, make similar pattern for other formats for example \n vs \r\n in text
     }
 
-    const resultString = await subvalueParser.mapValues(
-        parameterValue,
-        task.foreach.outputSubparameterName,
-        formatSettings,
-        async (subparameters, index) => {
+    const resultString = await subvalueParser.mapValues({
+        value: parameterValue,
+        outputParameterName: task.foreach.outputSubparameterName,
+        settings: formatSettings,
+        onProgress(partialResultString) {
+            return onProgress(
+                Object.freeze({
+                    [task.resultingParameterName]: partialResultString,
+                }),
+            );
+        },
+        async mapCallback(subparameters, index, length) {
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;
-
-            // TODO: [🤹‍♂️][🪂] Limit to N concurrent executions
-            // TODO: When done [🐚] Report progress also for each subvalue here
 
             try {
                 mappedParameters = mapAvailableToExpectedParameters({
@@ -129,19 +161,27 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                     throw error;
                 }
 
-                throw new PipelineExecutionError(
+                const highLevelError = new PipelineExecutionError(
                     spaceTrim(
                         (block) => `
-                        ${(error as PipelineExecutionError).message}
+                            ${(error as PipelineExecutionError).message}
 
-                        This is error in FOREACH command
-                        You have probbably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command
+                            This is error in FOREACH command when mapping ${formatDefinition.formatName} ${
+                            subvalueParser.subvalueName
+                        } data (${index + 1}/${length})
+                            You have probably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command
 
-                        ${block(pipelineIdentification)}
-                        Subparameter index: ${index}
-                    `,
+                            ${block(pipelineIdentification)}
+                        `,
                     ),
                 );
+
+                if (length > BIG_DATASET_TRESHOLD) {
+                    console.error(highLevelError);
+                    return FAILED_VALUE_PLACEHOLDER;
+                }
+
+                throw highLevelError;
             }
 
             const allSubparameters = {
@@ -149,24 +189,42 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
                 ...mappedParameters,
             };
 
-            // Note: [👨‍👨‍👧] Now we can freeze `subparameters` because we are sure that all and only used parameters are defined and are not going to be changed
             Object.freeze(allSubparameters);
 
-            const subresultString = await executeAttempts({
-                ...options,
-                priority: priority + index,
-                parameters: allSubparameters,
-                pipelineIdentification: spaceTrim(
-                    (block) => `
-                        ${block(pipelineIdentification)}
-                        Subparameter index: ${index}
-                    `,
-                ),
-            });
+            try {
+                const subresultString = await executeAttempts({
+                    ...options,
+                    priority: priority + index,
+                    parameters: allSubparameters,
+                    pipelineIdentification: spaceTrim(
+                        (block) => `
+                            ${block(pipelineIdentification)}
+                            Subparameter index: ${index}
+                        `,
+                    ),
+                });
+                return subresultString;
+            } catch (error) {
+                if (length > BIG_DATASET_TRESHOLD) {
+                    console.error(
+                        spaceTrim(
+                            (block) => `
+                              ${(error as PipelineExecutionError).message}
 
-            return subresultString;
+                              This is error in FOREACH command when processing ${formatDefinition.formatName} ${
+                                subvalueParser.subvalueName
+                            } data (${index + 1}/${length})
+
+                              ${block(pipelineIdentification)}
+                          `,
+                        ),
+                    );
+                    return FAILED_VALUE_PLACEHOLDER;
+                }
+                throw error;
+            }
         },
-    );
+    });
 
     return resultString;
 }

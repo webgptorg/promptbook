@@ -1,4 +1,4 @@
-import type { FromtoItems } from '../../utils/FromtoItems';
+import type { FromtoItems } from '../../utils/misc/FromtoItems';
 
 /**
  * Count the duration of working time

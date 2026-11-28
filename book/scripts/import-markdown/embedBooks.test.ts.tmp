@@ -1,0 +1,244 @@
+import { describe, expect, it } from '@jest/globals';
+import { spaceTrim } from 'spacetrim';
+import { embedBooks } from './embedBooks';
+
+describe('embedBooks function', () => {
+    it('should leave content without book blocks unchanged', () => {
+        const content = spaceTrim(`
+            # Regular Markdown
+            
+            This is just regular markdown content.
+            
+            \`\`\`javascript
+            console.log('This is a code block, not a book');
+            \`\`\`
+        `);
+
+        expect(embedBooks(content)).toBe(content);
+    });
+
+    it('should transform a simple book block to img tag', () => {
+        const content = spaceTrim(`
+            # Documentation
+            
+            \`\`\`book
+            Creative writing assistant
+            
+            PERSONA You are a creative writing assistant.
+            You help users to write stories, poems, and other creative texts.
+            You are imaginative, inspiring, and supportive.
+            Always encourage creativity and originality.
+            \`\`\`
+        `);
+
+        const result = embedBooks(content);
+
+        // Check that the book block is replaced with an img tag
+        expect(result).toContain('<img');
+        expect(result).toContain('alt="Creative writing assistant Book"');
+        expect(result).toContain('src="https://promptbook.studio/embed/book-preview.png?book=');
+        expect(result).toContain('&width=800&height=450&nonce=');
+        expect(result).not.toContain('```book');
+
+        // Check that the book content is properly encoded in the URL
+        expect(result).toContain('Creative%20writing%20assistant');
+        expect(result).toContain('PERSONA%20You%20are%20a%20creative%20writing%20assistant');
+    });
+
+    it('should handle book with single line title only', () => {
+        const content = spaceTrim(`
+            \`\`\`book
+            Simple title
+            \`\`\`
+        `);
+
+        const result = embedBooks(content);
+
+        expect(result).toContain('<img');
+        expect(result).toContain('alt="Simple title Book"');
+        expect(result).toContain('Simple%20title');
+    });
+
+    it('should handle book with empty title', () => {
+        const content = spaceTrim(`
+            \`\`\`book
+            
+            PERSONA You are helpful.
+            \`\`\`
+        `);
+
+        const result = embedBooks(content);
+
+        expect(result).toContain('<img');
+        expect(result).toContain('alt="Untitled Book"');
+        expect(result).toContain('PERSONA%20You%20are%20helpful');
+    });
+
+    it('should handle multiple book blocks in the same content', () => {
+        const content = spaceTrim(`
+            # First Book
+            
+            \`\`\`book
+            Writer Assistant
+            
+            PERSONA You help with writing.
+            \`\`\`
+            
+            # Second Book
+            
+            \`\`\`book
+            Code Helper
+            
+            PERSONA You help with coding.
+            \`\`\`
+        `);
+
+        const result = embedBooks(content);
+
+        // Should contain two img tags
+        const imgMatches = result.match(/<img/g);
+        expect(imgMatches).toHaveLength(2);
+
+        expect(result).toContain('alt="Writer Assistant Book"');
+        expect(result).toContain('alt="Code Helper Book"');
+        expect(result).not.toContain('```book');
+    });
+
+    it('should preserve surrounding markdown content', () => {
+        const content = spaceTrim(`
+            # Before Book
+            
+            Some content before.
+            
+            \`\`\`book
+            Test Book
+            
+            PERSONA Test persona.
+            \`\`\`
+            
+            # After Book
+            
+            Some content after.
+        `);
+
+        const result = embedBooks(content);
+
+        expect(result).toContain('# Before Book');
+        expect(result).toContain('Some content before.');
+        expect(result).toContain('# After Book');
+        expect(result).toContain('Some content after.');
+        expect(result).toContain('<img');
+        expect(result).not.toContain('```book');
+    });
+
+    it('should handle book blocks with extra whitespace', () => {
+        const content = spaceTrim(`
+            \`\`\`book   
+            
+            
+            Spaced Title   
+            
+            
+            PERSONA With extra spaces.   
+            
+            
+            \`\`\`
+        `);
+
+        const result = embedBooks(content);
+
+        expect(result).toContain('<img');
+        expect(result).toContain('alt="Spaced Title Book"');
+        expect(result).toContain('Spaced%20Title');
+        expect(result).toContain('PERSONA%20With%20extra%20spaces');
+    });
+
+    it('should generate different nonces for multiple books', () => {
+        const content = spaceTrim(`
+            \`\`\`book
+            Book One
+            PERSONA First book.
+            \`\`\`
+            
+            \`\`\`book
+            Book Two
+            PERSONA Second book.
+            \`\`\`
+        `);
+
+        // Run the function multiple times to check nonce variation
+        const result1 = embedBooks(content);
+        const result2 = embedBooks(content);
+
+        // Extract nonce values from both results
+        const nonceRegex = /&nonce=(\d+)/g;
+        const nonces1 = [...result1.matchAll(nonceRegex)].map((match) => match[1]);
+        const nonces2 = [...result2.matchAll(nonceRegex)].map((match) => match[1]);
+
+        // Should have 2 nonces in each result
+        expect(nonces1).toHaveLength(2);
+        expect(nonces2).toHaveLength(2);
+
+        // Nonces should be different between runs (with high probability)
+        // Note: This test might occasionally fail due to random nature, but very unlikely
+        expect(nonces1[0] !== nonces2[0] || nonces1[1] !== nonces2[1]).toBe(true);
+    });
+
+    it('should handle complex book content with special characters', () => {
+        const content = spaceTrim(`
+            \`\`\`book
+            Complex & Special "Characters"
+            
+            PERSONA You handle special chars: & < > " ' % + = ?
+            INSTRUCTION Use {variables} and [brackets].
+            MODEL gpt-4
+            \`\`\`
+        `);
+
+        const result = embedBooks(content);
+
+        expect(result).toContain('<img');
+        expect(result).toContain('alt="Complex & Special "Characters" Book"');
+
+        // Check that special characters are properly URL encoded
+        expect(result).toContain('%26'); // &
+        expect(result).toContain('%22'); // "
+        expect(result).toContain('%3C'); // <
+        expect(result).toContain('%3E'); // >
+    });
+
+    it('should match the expected output format from the task description', () => {
+        const content = spaceTrim(`
+            \`\`\`book
+            Creative writing assistant
+            
+            PERSONA You are a creative writing assistant.
+            You help users to write stories, poems, and other creative texts.
+            You are imaginative, inspiring, and supportive.
+            Always encourage creativity and originality.
+            \`\`\`
+        `);
+
+        const result = embedBooks(content);
+
+        // Should match the general structure from the task description
+        expect(result).toMatch(
+            /<img\s+alt="Creative writing assistant Book"\s+src="https:\/\/promptbook\.studio\/embed\/book-preview\.png\?book=[^"]+&width=800&height=450&nonce=\d+"\s*\/>/,
+        );
+
+        // The URL should contain the properly formatted book content
+        const urlMatch = result.match(/src="([^"]+)"/);
+        expect(urlMatch).toBeTruthy();
+
+        if (urlMatch && urlMatch[1]) {
+            const url = decodeURIComponent(urlMatch[1]);
+            expect(url).toContain('Creative writing assistant');
+            expect(url).toContain('PERSONA You are a creative writing assistant');
+            expect(url).toContain('You help users to write stories');
+        }
+    });
+});
+
+/**
+ * TODO: Make this test work
+ */

@@ -2,9 +2,24 @@
 
 FROM node:22-slim
 
-# Install the Promptbook CLI
 WORKDIR /usr/app
-RUN npm i ptbk@0.92.0-11
 
-# Add `ptbk` to the path
-ENV PATH="/usr/app/node_modules/.bin:${PATH}"
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+# DockerHub should publish the production Agents Server by default.
+ENV NEXT_PUBLIC_SITE_URL=http://localhost:4440
+RUN npm run build --prefix apps/agents-server
+
+WORKDIR /usr/app/apps/agents-server
+
+ENV NODE_ENV=production
+
+EXPOSE 4440
+
+CMD ["npm", "run", "start"]
+
+# TODO: [🚑] This file should be meybe in `/packages/docker/...`
+# TODO:

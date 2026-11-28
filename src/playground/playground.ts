@@ -6,7 +6,6 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { join } from 'path';
-import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -29,20 +28,9 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    // const url= 'https://google.com';
-    // const url = 'https://pavolhejny.com';
-    // const url = 'https://www.pavolhejny.com';
-    // const url = 'https://foo.pavolhejny.com';
-
-    const url = 'https://www.stanislavvavrik.cz';
-
-    const response = await promptbookFetch(url);
-    const text = await response.text();
-    console.log(text);
-
     //========================================/
+
+    console.info(`[ Done 🧸  Playground ]`);
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for archived playground [_playground-boilerplate.ts](src/playground/backup/_playground-boilerplate.ts.txt) should never be published in any package */

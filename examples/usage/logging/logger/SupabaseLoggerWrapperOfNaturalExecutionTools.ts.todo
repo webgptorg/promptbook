@@ -6,8 +6,8 @@ import type {
     PromptResult,
 } from '../../../src/_packages/types.index';
 import { spaceTrim } from 'spacetrim';
-import { isRunningInNode } from '../../../utils/isRunningInWhatever';
-import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServer';
+import { $isRunningInNode } from '../../../utils/isRunningInWhatever';
+import { $provideSupabaseForServer } from '../../../utils/supabase/$provideSupabaseForServer';
 import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLoggerWrapperOfLlmExecutionToolsOptions';
 
 /**
@@ -16,7 +16,7 @@ import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLogge
 export class SupabaseLoggerWrapperOfLlmExecutionTools
 
     public constructor(protected readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
-        if (!isRunningInNode()) {
+        if (!$isRunningInNode()) {
             throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
     }
@@ -81,8 +81,8 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools
         }
 
         // Note: We do not want to wait for the insert to the database
-        /* not await */ getSupabaseForServer()
-            .from('PromptExecution')
+        /* not await */ $provideSupabaseForServer()
+            .from(await $getTableName(`PromptExecution`))
             .insert(
                 {
                     userId: this.options.userId,// <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
@@ -112,10 +112,10 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools
     }
 }
 
+/** Note: [🟢] Code for Node logger wrapper [SupabaseLoggerWrapperOfNaturalExecutionTools](examples/usage/logging/logger/SupabaseLoggerWrapperOfNaturalExecutionTools.ts.todo) should never be published into packages that could be imported into browser environment */
 /**
  * TODO: [⚾️][🧠] Best name for this class "SupabaseLoggerWrapperOfLlmExecutionTools" vs "LlmExecutionToolsWithSupabaseLogger" or just helper "withSupabaseLogger"
  * TODO: [⚾️] Log also failed results
  * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
  * TODO: [⚾️] Create abstract LoggerWrapperOfLlmExecutionTools which can be extended to implement more loggers
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

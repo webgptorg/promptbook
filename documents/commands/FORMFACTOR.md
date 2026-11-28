@@ -2,7 +2,7 @@
 
 # `FORMFACTOR` Command
 
-@@
+Specifies the application type and interface requirements that this promptbook should conform to
 
 ## Example usage
 

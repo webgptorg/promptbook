@@ -1,5 +1,5 @@
 
-// TODO: [👜] This probbably does not make sence because in TaskJson already are listed dependencies
+// TODO: [👜] This probably does not make sence because in TaskJson already are listed dependencies
 
 import { describe, expect, it } from '@jest/globals';
 import { importPipeline } from '../validation/_importPipeline';

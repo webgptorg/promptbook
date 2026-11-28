@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T11:58:07.175Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.book#knowledge",
+        "parameters": {
+            "knowledgeContent": "🤍 The Book Abstract\n\nIt's time for a paradigm shift! The future of software is in plain English, French or Latin.\n\nDuring the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!\n\nIt's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!\n\nThe incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.\n\nThis shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.\n\nJoin us in this journey!"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nThe book proposes a paradigm shift in software development, suggesting that the future of programming will involve writing code in plain human languages like English, French, or Latin. This represents the next evolution in computer languages, following previous generations from physical hardware manipulation to high-level programming languages.\n\n---\n\nThe advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction.\n\n---\n\nThe book argues that this transition to natural language programming is inevitable and imminent. It emphasizes the importance of embracing and excelling in this change, rather than merely adapting to it.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:58:03.852Z",
+            "complete": "2025-05-06T11:58:07.175Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.003549
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 358
+                },
+                "charactersCount": {
+                    "value": 1535
+                },
+                "wordsCount": {
+                    "value": 242
+                },
+                "sentencesCount": {
+                    "value": 11
+                },
+                "linesCount": {
+                    "value": 39
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 165
+                },
+                "charactersCount": {
+                    "value": 903
+                },
+                "wordsCount": {
+                    "value": 126
+                },
+                "sentencesCount": {
+                    "value": 6
+                },
+                "linesCount": {
+                    "value": 19
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> 🤍 The Book Abstract\n> \n> It's time for a paradigm shift! The future of software is in plain English, French or Latin.\n> \n> During the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!\n> \n> It's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!\n> \n> The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.\n> \n> This shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.\n> \n> Join us in this journey!",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> 🤍 The Book Abstract\n> \n> It's time for a paradigm shift! The future of software is in plain English, French or Latin.\n> \n> During the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!\n> \n> It's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!\n> \n> The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.\n> \n> This shift is going to happen, whether we are ready for it or not. Our mission is to make it excellently, not just good.\n> \n> Join us in this journey!"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_011pnzMx4G9dJNLby35GSoeN",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nThe book proposes a paradigm shift in software development, suggesting that the future of programming will involve writing code in plain human languages like English, French, or Latin. This represents the next evolution in computer languages, following previous generations from physical hardware manipulation to high-level programming languages.\n\n---\n\nThe advancement is driven by the increasing power of microprocessors and Moore's Law, which have enabled the development of more sophisticated programming languages. Large language models like GPT and Claude are identified as the next significant breakthrough in language technology, poised to revolutionize human-computer interaction.\n\n---\n\nThe book argues that this transition to natural language programming is inevitable and imminent. It emphasizes the importance of embracing and excelling in this change, rather than merely adapting to it."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 358,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 165
+            }
+        }
+    }
+}

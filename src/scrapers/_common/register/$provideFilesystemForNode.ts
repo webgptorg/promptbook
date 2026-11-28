@@ -1,4 +1,4 @@
-import { access, constants, mkdir, readdir, readFile, stat, writeFile } from 'fs/promises';
+import { access, constants, mkdir, readdir, readFile, stat, watch, writeFile } from 'fs/promises';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { FilesystemTools } from '../../../execution/FilesystemTools';
@@ -7,7 +7,8 @@ import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
- * @@@
+ * Provides filesystem access (for example for Node.js-based scrapers)
+ * Creates a standardized filesystem interface that scrapers can use for file operations.
  *
  * @public exported from `@promptbook/node`
  */
@@ -28,9 +29,9 @@ export function $provideFilesystemForNode(options?: Pick<PrepareAndScrapeOptions
         writeFile,
         readdir,
         mkdir,
+        watch,
     };
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node scraper registration helper [$provideFilesystemForNode](src/scrapers/_common/register/$provideFilesystemForNode.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

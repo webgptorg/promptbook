@@ -1,12 +1,21 @@
-name: Publish new version
+# ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
+name: 🔼 Publish new version
 on:
+    create: null
     push:
         tags:
             - v*
+concurrency:
+    group: legacy-npm-publish
+    cancel-in-progress: false
 jobs:
     publish-npm:
         name: Publish on NPM package registry
+        if: github.repository == 'webgptorg/promptbook' && (github.event_name == 'push'
+            || (github.event.ref_type == 'branch' &&
+            startsWith(github.event.ref, 'legacy-release/')))
         runs-on: ubuntu-latest
+        timeout-minutes: 120
         permissions:
             contents: read
             id-token: write
@@ -18,182 +27,222 @@ jobs:
               with:
                   node-version: 22
                   registry-url: https://registry.npmjs.org/
+            - name: 🔍 Debug Node & npm version
+              run: |-
+                  node -v
+                  npm -v
+            - name: Validate the legacy release ref
+              env:
+                  RELEASE_REF: ${{ github.ref_name }}
+              run: >-
+                  version="$(node -p 'require("./package.json").version')"
+
+                  case "$RELEASE_REF" in
+                      "v$version"|"legacy-release/$version") ;;
+                      *) echo "Release ref does not match package.json" >&2; exit 1 ;;
+                  esac
             - name: 🔽 Install dependencies
               run: npm ci
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
-            - name: 🆚 Update version in Dockerfile
-              run: npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts
-            - name: 🏭 Build packages bundles
-              run: npx ts-node ./scripts/generate-packages/generate-packages.ts
+            - name: 🧪 Test | Name discrepancies
+              run: npm run test-name-discrepancies
+            - name: 🧪 Test | Spellcheck
+              run: npm run test-spellcheck
+            - name: 🧪 Test | Lint
+              run: npm run test-lint
+            - name: 🧪 Test | Types
+              run: npm run test-types
+            - name: 🧪 Test | Books
+              run: npm run test-books
+              env:
+                  OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
+            - name: 🏭 Make | Promptbook Collection
+              run: npm run make-promptbook-collection
+              env:
+                  OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
+            - name: 🏭 Make | 🆚 Update Version in Config
+              run: npm run update-version-in-config
+            - name: 🏭 Make | Generate Packages
+              run: npm run generate-packages
+            - name: 🏭 Make | Generate .bookc from Examples
+              run: npm run generate-examples-bookc
+              env:
+                  OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
+            - name: 🏭 Make | Generate Documentation
+              run: npm run generate-documentation
+              env:
+                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+            - name: 🏭 Make | Import Markdowns
+              run: npm run import-markdowns
+            - name: 🏭 Make | Generate OpenAPI Types
+              run: npm run generate-openapi-types
             - name: 🔼 Publish @promptbook/anthropic-claude
               working-directory: ./packages/anthropic-claude
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/azure-openai
               working-directory: ./packages/azure-openai
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/browser
               working-directory: ./packages/browser
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/cli
               working-directory: ./packages/cli
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/color
+              working-directory: ./packages/color
+              run: npm publish --provenance --access public --tag legacy
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/components
+              working-directory: ./packages/components
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/core
               working-directory: ./packages/core
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/deepseek
               working-directory: ./packages/deepseek
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/documents
               working-directory: ./packages/documents
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/editable
               working-directory: ./packages/editable
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/fake-llm
               working-directory: ./packages/fake-llm
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/google
               working-directory: ./packages/google
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/javascript
               working-directory: ./packages/javascript
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/legacy-documents
               working-directory: ./packages/legacy-documents
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/markdown-utils
               working-directory: ./packages/markdown-utils
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/markitdown
               working-directory: ./packages/markitdown
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/node
               working-directory: ./packages/node
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/ollama
+              working-directory: ./packages/ollama
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/openai
               working-directory: ./packages/openai
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/pdf
               working-directory: ./packages/pdf
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/remote-client
               working-directory: ./packages/remote-client
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/remote-server
               working-directory: ./packages/remote-server
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/templates
               working-directory: ./packages/templates
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/types
               working-directory: ./packages/types
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/utils
               working-directory: ./packages/utils
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/vercel
               working-directory: ./packages/vercel
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish @promptbook/website-crawler
               working-directory: ./packages/website-crawler
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: 🔼 Publish @promptbook/wizzard
-              working-directory: ./packages/wizzard
-              run: npm publish --provenance --access public
+            - name: 🔼 Publish @promptbook/wizard
+              working-directory: ./packages/wizard
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish promptbook
               working-directory: ./packages/promptbook
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: 🔼 Publish ptbk
               working-directory: ./packages/ptbk
-              run: npm publish --provenance --access public
+              run: npm publish --provenance --access public --tag legacy
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-    publish-docker:
-        name: Publish Docker image to DockerHub
+    legacy-github-release:
+        name: Publish the legacy GitHub release
         needs: publish-npm
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
         steps:
-            - name: 🔽 Checkout
-              uses: actions/checkout@v4
-            - name: 🔑 Login to DockerHub
-              uses: docker/login-action@v2
+            - uses: actions/checkout@v4
               with:
-                  username: ${{ secrets.DOCKERHUB_USER }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-            - name: 🔽 Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 22
-                  registry-url: https://registry.npmjs.org/
-            - name: 🔽 Install dependencies
-              run: npm ci
-            - name: 🔽 Clone book submodule
-              run: git submodule update --init --recursive
-            - name: 🆚 Update version in Dockerfile
-              run: npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts
-            - name: 🆚 Load current version into the environment
-              run: echo "VERSION=$(node -p 'require(`./package.json`).version')" >>
-                  $GITHUB_ENV
-            - name: 👁‍🗨 Log version from previous step
-              run: echo $VERSION
-            - name: 👁‍🗨 Log contents of the Dockerfile
-              run: cat Dockerfile
-            - name: 🏭🔼 Build and Push Docker Image
-              uses: docker/build-push-action@v2
-              with:
-                  context: .
-                  push: true
-                  tags: hejny/promptbook:${{ env.VERSION }}
+                  persist-credentials: false
+            - name: Create the versioned legacy archive without replacing the latest release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}
+              run: >-
+                  version="$(node -p 'require("./package.json").version')"
+
+                  gh release create "v$version" --target "$GITHUB_SHA" --prerelease --latest=false \
+                      --title "Legacy Promptbook $version" --notes-file "changelog/$version.md"

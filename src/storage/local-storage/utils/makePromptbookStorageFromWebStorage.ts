@@ -5,7 +5,8 @@ import { isSerializableAsJson } from '../../../utils/serialization/isSerializabl
 import type { PromptbookStorage } from '../../_common/PromptbookStorage';
 
 /**
- * @@@
+ * Creates a Promptbook storage interface from a web storage object.
+ * Facilitates using Web Storage (localStorage/sessionStorage) as a storage backend.
  *
  * @private for `getLocalStorage` and `getSessionStorage`
  */
@@ -40,7 +41,5 @@ export function makePromptbookStorageFromWebStorage<TValue>(webStorage: Storage)
     };
 }
 
-/**
- * TODO: [🧠] Should this be named `makePromptbookStorageFromWebStorage` vs `createPromptbookStorageFromWebStorage`
- * TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values
- */
+// TODO: [🧠] Should this be named `makePromptbookStorageFromWebStorage` vs `createPromptbookStorageFromWebStorage`
+// TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values

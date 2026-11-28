@@ -9,9 +9,11 @@ import type { PipelineString } from '../../pipeline/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPipelineExecutor + custom async function ', () => {
-    it('should use custom postprocessing function', () => {
-        expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Matthew' }).asPromise()),
+    it('should use custom postprocessing function', async () => {
+        await expect(
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'Matthew' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -20,8 +22,10 @@ describe('createPipelineExecutor + custom async function ', () => {
             },
         });
 
-        expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Mark' }).asPromise()),
+        await expect(
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'Mark' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -30,8 +34,10 @@ describe('createPipelineExecutor + custom async function ', () => {
             },
         });
 
-        expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'Luke' }).asPromise()),
+        await expect(
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'Luke' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -40,8 +46,10 @@ describe('createPipelineExecutor + custom async function ', () => {
             },
         });
 
-        expect(
-            getPipelineExecutor().then((pipelineExecutor) => pipelineExecutor({ yourName: 'John' }).asPromise()),
+        await expect(
+            getPipelineExecutor().then((pipelineExecutor) =>
+                pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true }),
+            ),
         ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -52,6 +60,9 @@ describe('createPipelineExecutor + custom async function ', () => {
     });
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`
@@ -87,8 +98,8 @@ async function getPipelineExecutor() {
 
                     // Note: [🕎]
                     functions: {
-                        async addHello(value) {
-                            await forTime(1000);
+                        async addHello(value: string): Promise<string> {
+                            await forTime(1_000);
                             return `Hello ${value}`;
                         },
                     },

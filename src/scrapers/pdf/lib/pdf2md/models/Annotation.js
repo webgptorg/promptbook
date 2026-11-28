@@ -1,4 +1,7 @@
 // Annotation for a text item
+/**
+ * Class implementing annotation.
+ */
 class Annotation {
     constructor(options) {
         this.category = options.category;

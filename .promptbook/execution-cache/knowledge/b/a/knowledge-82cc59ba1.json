@@ -1,0 +1,153 @@
+{
+    "date": "2025-05-17T16:15:51.962Z",
+    "promptbookVersion": "0.94.0-1",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "\"Book Language: Knowledge, Instruments, Actions\"",
+        "modelName": "deepseek-chat",
+        "timing": {
+            "start": "2025-05-17T16:15:42.300Z",
+            "complete": "2025-05-17T16:15:51.961Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 86
+                },
+                "charactersCount": {
+                    "value": 372
+                },
+                "wordsCount": {
+                    "value": 49
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 10
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 10
+                },
+                "charactersCount": {
+                    "value": 48
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas.",
+        "rawRequest": {
+            "inputFormat": "messages",
+            "mode": {
+                "type": "regular",
+                "tools": []
+            },
+            "prompt": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas."
+                        }
+                    ]
+                }
+            ]
+        },
+        "rawResponse": {
+            "text": "\"Book Language: Knowledge, Instruments, Actions\"",
+            "finishReason": "stop",
+            "usage": {
+                "promptTokens": 86,
+                "completionTokens": 10
+            },
+            "providerMetadata": {
+                "deepseek": {
+                    "promptCacheHitTokens": 0,
+                    "promptCacheMissTokens": 86
+                }
+            },
+            "rawCall": {
+                "rawPrompt": [
+                    {
+                        "role": "user",
+                        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Write maximum 5 words for the title\n\n# The document\n\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas."
+                    }
+                ],
+                "rawSettings": {
+                    "model": "deepseek-chat"
+                }
+            },
+            "rawResponse": {
+                "headers": {
+                    "access-control-allow-credentials": "true",
+                    "cf-cache-status": "DYNAMIC",
+                    "cf-ray": "94146a476c83f9ca-PRG",
+                    "connection": "keep-alive",
+                    "content-encoding": "gzip",
+                    "content-type": "application/json",
+                    "date": "Sat, 17 May 2025 16:15:44 GMT",
+                    "server": "cloudflare",
+                    "set-cookie": "__cf_bm=7Yfm014gXNPr4HoEUsV4azUvi5BAK667Kobu.1WJWSE-1747498544-1.0.1.1-ovJ_XkzJofkdMif6FCS_NHmmEvRm2n9btru7_yHIX4YKh7oZNaxOX0qVh2oxknLQg3V2vUdXsYPnyFntHUIYbPT2x.GEV1oih5.KDC2u33c; path=/; expires=Sat, 17-May-25 16:45:44 GMT; domain=.deepseek.com; HttpOnly; Secure; SameSite=None",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "vary": "origin, access-control-request-method, access-control-request-headers",
+                    "x-content-type-options": "nosniff",
+                    "x-ds-trace-id": "632a61620c8657b0ba0a113866119639"
+                }
+            },
+            "response": {
+                "id": "b0ca483b-17f3-4c46-8fae-f20ca1d6f00f",
+                "modelId": "deepseek-chat",
+                "timestamp": "2025-05-17T16:15:44.000Z"
+            },
+            "warnings": [],
+            "request": {
+                "body": "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"You are experienced content creator, write best title for the document.\\n\\n# Rules\\n\\n-   Write just title, nothing else\\n-   Write maximum 5 words for the title\\n\\n# The document\\n\\n> Book Language supports **knowledge** (documents, websites), **instruments** (real-time data like weather, calculations), and **actions** (sending emails, creating files) as resources for personas.\"}]}"
+            }
+        }
+    }
+}

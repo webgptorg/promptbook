@@ -1,4 +1,4 @@
-import type { string_executable_path } from '../types/typeAliases';
+import type { string_executable_path } from '../types/string_filename';
 
 /**
  * Paths to the external programs executables
@@ -18,3 +18,7 @@ export type Executables = {
      */
     libreOfficePath?: string_executable_path;
 };
+
+/**
+ * <- TODO: Add !!! `browserPath` to `Executables`
+ */

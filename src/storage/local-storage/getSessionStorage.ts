@@ -1,7 +1,15 @@
-import { isRunningInBrowser } from 'openai/core';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
+import type { chococake } from '../../utils/organization/really_any';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStorageFromWebStorage';
+
+/**
+ * Cache storage
+ *
+ * @private internal cache for `getSessionStorage`
+ */
+let promptbookSessionStorage: null | PromptbookStorage<chococake> = null;
 
 /**
  * Gets wrapper around `sessionStorage` object which can be used as `PromptbookStorage`
@@ -9,13 +17,17 @@ import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStora
  * @public exported from `@promptbook/browser`
  */
 export function getSessionStorage<TItem>(): PromptbookStorage<TItem> {
-    if (!isRunningInBrowser()) {
+    if (!$isRunningInBrowser()) {
         throw new EnvironmentMismatchError(`You can get sessionStorage works only in browser environment`);
     }
 
-    return makePromptbookStorageFromWebStorage<TItem>(sessionStorage);
+    if (promptbookSessionStorage) {
+        return promptbookSessionStorage as PromptbookStorage<TItem>;
+    }
+
+    promptbookSessionStorage = makePromptbookStorageFromWebStorage<TItem>(sessionStorage);
+
+    return promptbookSessionStorage as PromptbookStorage<TItem>;
 }
 
-/**
- * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
- */
+// Note: [🔵] Code for browser storage helper [getSessionStorage](src/storage/local-storage/getSessionStorage.ts) should never be published outside of `@promptbook/browser`

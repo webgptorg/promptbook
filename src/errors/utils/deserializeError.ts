@@ -1,5 +1,5 @@
-import spaceTrim from 'spacetrim';
-import type { really_any } from '../../utils/organization/really_any';
+import { spaceTrim } from 'spacetrim';
+import type { chococake } from '../../utils/organization/really_any';
 import { ALL_ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';
 
@@ -8,7 +8,7 @@ import type { ErrorJson } from './ErrorJson';
  *
  * @public exported from `@promptbook/utils`
  */
-export function deserializeError(error: ErrorJson): Error {
+export function deserializeError(error: ErrorJson, isStackAddedToMessage: boolean = true): Error {
     const { name, stack, id } = error; // Added id
     let { message } = error;
     let ErrorClass = ALL_ERRORS[error.name as keyof typeof ALL_ERRORS];
@@ -18,7 +18,7 @@ export function deserializeError(error: ErrorJson): Error {
         message = `${name}: ${message}`;
     }
 
-    if (stack !== undefined && stack !== '') {
+    if (isStackAddedToMessage && stack !== undefined && stack !== '') {
         message = spaceTrim(
             (block) => `
                 ${block(message)}
@@ -30,6 +30,7 @@ export function deserializeError(error: ErrorJson): Error {
     }
 
     const deserializedError = new ErrorClass(message);
-    (deserializedError as really_any).id = id; // Assign id to the error object
+    (deserializedError as chococake).id = id; // Assign id to the error object
+
     return deserializedError;
 }

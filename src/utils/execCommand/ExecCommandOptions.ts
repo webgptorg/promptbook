@@ -1,5 +1,7 @@
 /**
- * @deprecated Use sth from type-fest or move this to type helpers
+ * Use sth from type-fest or move this to type helpers.
+ *
+ * @deprecated
  */
 type RequiredAndOptional<TBase, TRequired extends keyof TBase, TOptional extends keyof TBase> = Pick<TBase, TRequired> &
     Partial<Pick<TBase, TOptional>>;
@@ -12,7 +14,7 @@ export type ExecCommandOptions =
     | RequiredAndOptional<
           ExecCommandOptionsAdvanced,
           'command',
-          'args' | 'cwd' | 'crashOnError' | 'timeout' | 'isVerbose'
+          'args' | 'cwd' | 'crashOnError' | 'timeout' | 'isVerbose' | 'env'
       >;
 // TODO: | RequiredAndOptional<IExecCommandOptionsAdvanced, 'commands', 'args' | 'cwd' | 'crashOnError'>;
 
@@ -53,8 +55,14 @@ export type ExecCommandOptionsAdvanced = {
      * @default false
      */
     readonly isVerbose?: boolean;
+    // <- TODO: [🧠] Maybe rename to `isProxyingOutput`
+
+    /**
+     * Environment variables to pass to the command
+     *
+     * Note: These will be merged with process.env
+     */
+    readonly env?: Record<string, string>;
 };
 
-/**
- * TODO: [⏳] Make DEFAULT_TIMEOUT_MS as global constant
- */
+// TODO: [⏳] Make DEFAULT_TIMEOUT_MS as global constant

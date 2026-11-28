@@ -2,14 +2,14 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { CLAIM } from '../../config';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
-import { BOOK_LANGUAGE_VERSION } from '../../version';
-import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
+import type { $side_effect } from '../../utils/organization/$side_effect';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
@@ -19,7 +19,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeAboutCommand(program: Program) {
+export function $initializeAboutCommand(program: Program): $side_effect {
     const makeCommand = program.command('about');
     makeCommand.description(
         spaceTrim(`
@@ -59,8 +59,7 @@ export function $initializeAboutCommand(program: Program) {
     );
 }
 
-/**
- * TODO: [🗽] Unite branding and make single place for it
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [about](src/cli/cli-commands/about.ts) should never be published outside of `@promptbook/cli`
+// TODO: [🕋] Use here `aboutPromptbookInformation`
+// TODO: [🗽] Unite branding and make single place for it
+// Note: [💞] Ignore a discrepancy between file name and entity name

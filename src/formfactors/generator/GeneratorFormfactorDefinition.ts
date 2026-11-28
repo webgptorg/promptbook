@@ -1,7 +1,8 @@
 import type { AbstractFormfactorDefinition } from '../_common/AbstractFormfactorDefinition';
 
 /**
- * Generator is form of app that @@@
+ * Generator form factor represents an application that generates content or data based on user input or predefined rules.
+ * This form factor is used for apps that produce outputs, such as text, images, or other media, based on provided input.
  *
  * @public exported from `@promptbook/core`
  */

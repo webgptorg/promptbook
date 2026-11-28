@@ -8,7 +8,7 @@ import { markdownScraperMetadata } from './register-metadata';
 keepTypeImported<ScraperConstructor>();
 
 /**
- * @@@
+ * Creates a scraper for markdown content.
  *
  * @public exported from `@promptbook/markdown-utils`
  */
@@ -19,6 +19,4 @@ export const createMarkdownScraper = Object.assign(
     markdownScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

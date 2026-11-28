@@ -18,7 +18,7 @@ You are an experienced AI engineer, you need to find the best models for virtual
 [
   {
   "modelName": "gpt-4o",
-  "systemMessage": "You are experienced AI engineer and helpfull assistant.",
+  "systemMessage": "You are experienced AI engineer and helpful assistant.",
   "temperature": 0.7
   },
   {

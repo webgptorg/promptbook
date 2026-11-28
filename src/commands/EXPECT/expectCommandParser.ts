@@ -1,23 +1,23 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import { assertsError } from '../../errors/assertsError';
 import type { ExpectationUnit } from '../../pipeline/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../pipeline/PipelineJson/Expectations';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import { parseNumber } from '../../utils/misc/parseNumber';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import { parseNumber } from '../../utils/parseNumber';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTaskCommandParser } from '../_common/types/CommandParser';
+import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
-import { WrappedError } from '../../errors/WrappedError';
-import { assertsError } from '../../errors/assertsError';
+ * import { WrappedError } from '../../errors/WrappedError';
+ * import { assertsError } from '../../errors/assertsError';
  * Parses the expect command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
@@ -134,7 +134,7 @@ export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `taskJson`
      */
-    $applyToTaskJson(command: ExpectCommand, $taskJson: $TaskJson): void {
+    $applyToTaskJson(command: ExpectCommand, $taskJson: $TaskJson): $side_effect {
         // eslint-disable-next-line no-case-declarations
         const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
@@ -144,7 +144,7 @@ export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {
         if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
             if ($taskJson.expectations[unit]!.min !== undefined) {
                 throw new ParseError(
-                    `Already defined minumum ${
+                    `Already defined minimum ${
                         $taskJson.expectations![unit]!.min
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );

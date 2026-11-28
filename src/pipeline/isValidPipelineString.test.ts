@@ -3,7 +3,7 @@ import { book } from './book-notation';
 import { isValidPipelineString } from './isValidPipelineString';
 
 describe('how `isValidPipelineString` works', () => {
-    it('should work with foo', () =>
+    it('should work with books', () =>
         expect(
             isValidPipelineString(
                 book`
@@ -17,6 +17,4 @@ describe('how `isValidPipelineString` works', () => {
         ).toBe(true));
 });
 
-/**
- * TODO: [🧠][🈴] Where is the best location for this file
- */
+// TODO: [🧠][🈴] Where is the best location for this file

@@ -1,12 +1,12 @@
-import { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep } from 'type-fest';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
-import type { Parameters } from '../types/typeAliases';
+import type { Parameters } from '../types/Parameters';
 import type { AbstractTaskResult } from './AbstractTaskResult';
 import type { ExecutionReportJson } from './execution-report/ExecutionReportJson';
 import type { Usage } from './Usage';
 
 /**
- * @@@
+ * The result of executing a pipeline
  *
  * Note: [🚉] This is fully serializable as JSON
  */
@@ -25,8 +25,10 @@ export type PipelineExecutorResult = AbstractTaskResult & {
 
     /**
      * The report of the execution with all details
+     *
+     * Note: If the execution fails unexpectedly, this will be `null`
      */
-    readonly executionReport: ReadonlyDeep<ExecutionReportJson>;
+    readonly executionReport: ReadonlyDeep<ExecutionReportJson> | null;
 
     /**
      * The prepared pipeline that was used for the execution
@@ -37,6 +39,4 @@ export type PipelineExecutorResult = AbstractTaskResult & {
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 };
 
-/**
- * TODO: [🧠] Should this file be in /execution or /types folder?
- */
+// TODO: [🧠] Should this file be in /execution or /types folder?

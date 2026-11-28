@@ -1,6 +1,5 @@
 import type { TupleToUnion } from 'type-fest';
-import type { number_integer } from '../../types/typeAliases';
-import type { number_positive } from '../../types/typeAliases';
+import type { number_integer, number_positive } from '../../types/number_positive';
 
 /**
  * Expect this amount of each unit in the answer
@@ -9,6 +8,7 @@ import type { number_positive } from '../../types/typeAliases';
  *
  * Note: Expectations are performed after all postprocessing steps
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type Expectations = Partial<
@@ -19,6 +19,7 @@ export type Expectations = Partial<
  * Unit of text measurement
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type ExpectationUnit = TupleToUnion<typeof EXPECTATION_UNITS>;
@@ -27,6 +28,7 @@ export type ExpectationUnit = TupleToUnion<typeof EXPECTATION_UNITS>;
  * Units of text measurement
  *
  * @see https://github.com/webgptorg/promptbook/discussions/30
+ *
  * @public exported from `@promptbook/core`
  */
 export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', 'PARAGRAPHS', 'PAGES'] as const;
@@ -35,10 +37,9 @@ export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', '
  * Amount of text measurement
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type ExpectationAmount = number_integer & (number_positive | 0);
 
-/**
- * TODO: [💝] Unite object for expecting amount and format - remove format
- */
+// TODO: [💝] Unite object for expecting amount and format - remove format

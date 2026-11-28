@@ -1,16 +1,56 @@
-import glob from 'glob-promise';
 import { join } from 'path';
+import { findFilesByGlob } from '../../src/utils/files/findFilesByGlob';
 
 /**
- * @@@
+ * App source roots that can be imported by the main repository sources.
  */
-export async function findAllProjectFiles(): Promise<ReadonlyArray<string>> {
-    const srcFiles = await glob(join(__dirname, '../../src/**/*.{ts,tsx}').split('\\').join('/'));
+const APP_SOURCE_ROOTS = ['apps/agents-server/src'] as const;
+
+/**
+ * Options for scanning repository source files.
+ */
+export type FindAllProjectFilesOptions = {
+    /**
+     * Whether repository scripts should be included alongside the engine sources.
+     */
+    readonly includeScripts?: boolean;
+
+    /**
+     * Whether app source files should be included alongside the engine sources.
+     */
+    readonly isApplicationSourceIncluded?: boolean;
+};
+
+/**
+ * Finds and returns all TypeScript source files in the project
+ * to be processed during build, documentation generation, or analysis
+ */
+export async function findAllProjectFiles({
+    includeScripts = false,
+    isApplicationSourceIncluded = false,
+}: FindAllProjectFilesOptions = {}): Promise<ReadonlyArray<string>> {
+    const srcFiles = await findFilesByGlob(createProjectSourceGlob('src'));
+    const scriptFiles = includeScripts ? await findFilesByGlob(createProjectSourceGlob('scripts')) : [];
+    const appFiles = isApplicationSourceIncluded
+        ? (await Promise.all(APP_SOURCE_ROOTS.map(findProjectSourceFiles))).flat()
+        : [];
     const serversConfigurationFile = join(__dirname, '../../servers.ts');
 
-    return [...srcFiles, serversConfigurationFile];
+    return [...srcFiles, ...scriptFiles, ...appFiles, serversConfigurationFile];
 }
 
 /**
- * Note: [⚫] Code in this file should never be published in any package
+ * Finds TypeScript files under one repository-root relative source directory.
  */
+async function findProjectSourceFiles(relativeSourceRoot: string): Promise<ReadonlyArray<string>> {
+    return await findFilesByGlob(createProjectSourceGlob(relativeSourceRoot));
+}
+
+/**
+ * Creates a normalized TypeScript source glob for a repository-root relative directory.
+ */
+function createProjectSourceGlob(relativeSourceRoot: string): string {
+    return join(__dirname, '../../', relativeSourceRoot, '**/*.{ts,tsx}').split('\\').join('/');
+}
+
+// Note: [⚫] Code for repository script [findAllProjectFiles](scripts/utils/findAllProjectFiles.ts) should never be published in any package

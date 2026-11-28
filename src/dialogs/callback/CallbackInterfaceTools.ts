@@ -4,7 +4,7 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/User
 import type { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOptions';
 
 /**
- * Delagates the user interaction to a async callback function
+ * Delegates the user interaction to a async callback function
  * You need to provide your own implementation of this callback function and its bind to UI.
  *
  * @public exported from `@promptbook/core`

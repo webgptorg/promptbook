@@ -1,0 +1,108 @@
+{
+    "date": "2025-06-16T17:04:00.694Z",
+    "promptbookVersion": "0.98.0-4",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Customer service phone: +420 722 941 618 (Mon-Fri 9:00-15:00)\nCustomer service email: info@katlasbeads.com"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Customer service, phone, email, katlasbeads.com, business hours",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-06-16T17:03:57.630Z",
+            "complete": "2025-06-16T17:04:00.694Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00047000000000000004
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 88
+                },
+                "charactersCount": {
+                    "value": 302
+                },
+                "wordsCount": {
+                    "value": 45
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 20
+                },
+                "charactersCount": {
+                    "value": 63
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Customer service phone: +420 722 941 618 (Mon-Fri 9:00-15:00)\n> Customer service email: info@katlasbeads.com",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Customer service phone: +420 722 941 618 (Mon-Fri 9:00-15:00)\n> Customer service email: info@katlasbeads.com"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01PpTrsnych886jYRWRyLmFD",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Customer service, phone, email, katlasbeads.com, business hours"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 88,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 20,
+                "service_tier": "standard"
+            }
+        }
+    }
+}

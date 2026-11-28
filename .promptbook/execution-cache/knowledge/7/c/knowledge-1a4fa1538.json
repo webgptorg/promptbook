@@ -1,0 +1,107 @@
+{
+    "date": "2025-05-06T11:57:13.405Z",
+    "promptbookVersion": "0.92.0-26",
+    "bookVersion": "1.0.0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.book#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nGenerative AI technologies like ChatGPT, GPT-4, Claude, Gemini, DALL-E, Midjourney, and Stable Diffusion are driving a technological revolution comparable to the rise of personal computers and the early internet."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Generative AI, ChatGPT, GPT-4, Claude, Gemini, DALL-E, Midjourney, Stable Diffusion, technological revolution, personal computers, internet",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2025-05-06T11:57:11.832Z",
+            "complete": "2025-05-06T11:57:13.405Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001026
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 107
+                },
+                "charactersCount": {
+                    "value": 415
+                },
+                "wordsCount": {
+                    "value": 58
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 12
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 47
+                },
+                "charactersCount": {
+                    "value": 139
+                },
+                "wordsCount": {
+                    "value": 18
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Generative AI technologies like ChatGPT, GPT-4, Claude, Gemini, DALL-E, Midjourney, and Stable Diffusion are driving a technological revolution comparable to the rise of personal computers and the early internet.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Generative AI technologies like ChatGPT, GPT-4, Claude, Gemini, DALL-E, Midjourney, and Stable Diffusion are driving a technological revolution comparable to the rise of personal computers and the early internet."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01A1xEWMndQ5q91afuCXCJz7",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Generative AI, ChatGPT, GPT-4, Claude, Gemini, DALL-E, Midjourney, Stable Diffusion, technological revolution, personal computers, internet"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 107,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "output_tokens": 47
+            }
+        }
+    }
+}

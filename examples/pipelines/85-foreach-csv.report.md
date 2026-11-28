@@ -122,7 +122,7 @@ Uranium Glass Garden Gnomes are a new product available in an online shop. These
 ```
 Hey John Snow,
 
-Hope ye're doin' well! We've got some braw news fae Coolstore! We've just gotten our hands on somethin' quite unique and thought you'd like to ken about it — our brand new Fluorescent Uranium Glass Garden Gnome with a built-in UV LED light.
+Hope ye're doin' well! We've got some braw news fae Coolstore! We've just gotten our hands on somethin' quite unique and thought you'd like to ken about it - our brand new Fluorescent Uranium Glass Garden Gnome with a built-in UV LED light.
 
 Aye, ye heard that right! These are nae ordinary gnomes. Made wi' glass that's got some fluorescent uranium oxide in it, these wee fellas can light up yer garden in the most mesmerisin' way once the UV light's switched on. They'll glow in the dark like a wee mystical beacon!
 

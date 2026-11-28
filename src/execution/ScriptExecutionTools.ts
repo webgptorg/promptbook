@@ -1,6 +1,6 @@
+import type { Parameters } from '../types/Parameters';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
-import type { Parameters } from '../types/typeAliases';
-import type { string_script } from '../types/typeAliases';
+import type { string_script } from '../types/string_markdown';
 
 /**
  * Represents all the tools needed to execute `SCRIPT` tasks
@@ -22,7 +22,7 @@ export type ScriptExecutionToolsExecuteOptions = {
 
     /**
      * Parameters for the script
-     * Theese parameters are passed to the script as variables
+     * These parameters are passed to the script as variables
      * For example: { "name": "John" } => const name = "John";
      */
     readonly parameters: Parameters;
@@ -38,7 +38,5 @@ export type ScriptExecutionToolsExecuteOptions = {
     readonly script: string_script;
 };
 
-/**
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
- * TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
- */
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
+// TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?

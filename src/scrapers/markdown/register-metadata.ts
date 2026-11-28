@@ -1,4 +1,4 @@
-import type { Registration } from '../../utils/$Register';
+import type { Registration } from '../../utils/misc/$Register';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { $scrapersMetadataRegister } from '../_common/register/$scrapersMetadataRegister';
@@ -18,7 +18,7 @@ export const markdownScraperMetadata = $deepFreeze({
     mimeTypes: ['text/markdown', 'text/plain'],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
-    isAvilableInBrowser: true,
+    isAvailableInBrowser: true,
     // <- Note: [🌏] This is the only scraper which makes sense to be available in the browser, for scraping non-markdown sources in the browser use a remote server
     requiredExecutables: [],
 }) satisfies ScraperAndConverterMetadata; /* <- Note: [🤛] */
@@ -29,12 +29,10 @@ export const markdownScraperMetadata = $deepFreeze({
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
  * @public exported from `@promptbook/core`
- * @public exported from `@promptbook/wizzard`
+ * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
 export const _MarkdownScraperMetadataRegistration: Registration =
     $scrapersMetadataRegister.register(markdownScraperMetadata);
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

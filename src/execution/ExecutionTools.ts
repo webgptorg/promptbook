@@ -74,3 +74,9 @@ export type ExecutionTools = {
      */
     readonly userInterface?: UserInterfaceTools;
 };
+
+/**
+ * <- TODO: Add !!! `promptbookAgent` to `ExecutionTools`
+ * <- TODO: Add !!! `mcps` to `ExecutionTools`
+ * <- TODO: Add !!! `prepareCache` to `ExecutionTools`
+ */

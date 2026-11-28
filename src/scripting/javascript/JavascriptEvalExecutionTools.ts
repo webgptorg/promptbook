@@ -6,6 +6,8 @@ import { assertsError } from '../../errors/assertsError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
+import { trimCodeBlock as _trimCodeBlock } from '../../utils/markdown/trimCodeBlock';
+import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../utils/markdown/trimEndOfCodeBlock';
 import { capitalize as _capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../utils/normalization/decapitalize';
 import { nameToUriPart as _nameToUriPart } from '../../utils/normalization/nameToUriPart';
@@ -18,20 +20,18 @@ import { normalizeTo_snake_case as _normalizeTo_snake_case } from '../../utils/n
 import { normalizeWhitespaces as _normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../utils/normalization/removeDiacritics';
-import { TODO_any } from '../../utils/organization/TODO_any';
-import { removeEmojis as _removeEmojis } from '../../utils/removeEmojis';
-import { removeQuotes as _removeQuotes } from '../../utils/removeQuotes';
-import { trimCodeBlock as _trimCodeBlock } from '../../utils/trimCodeBlock';
-import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../utils/trimEndOfCodeBlock';
-import { unwrapResult as _unwrapResult } from '../../utils/unwrapResult';
+import { removeEmojis as _removeEmojis } from '../../utils/normalization/removeEmojis';
+import { removeQuotes as _removeQuotes } from '../../utils/normalization/removeQuotes';
+import { unwrapResult as _unwrapResult } from '../../utils/normalization/unwrapResult';
+import type { TODO_any } from '../../utils/organization/TODO_any';
+import { $preserve } from '../../utils/organization/preserve';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
-import { preserve } from './utils/preserve';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
  *
  * Warning: It is used for testing and mocking
- *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
+ * **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  *
  * @public exported from `@promptbook/javascript`
  */
@@ -59,33 +59,33 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
 
         const spaceTrim = (_: TODO_any) => _spaceTrim(_);
-        preserve(spaceTrim);
+        $preserve(spaceTrim);
 
         const removeQuotes = _removeQuotes;
-        preserve(removeQuotes);
+        $preserve(removeQuotes);
 
         const unwrapResult = _unwrapResult;
-        preserve(unwrapResult);
+        $preserve(unwrapResult);
 
         const trimEndOfCodeBlock = _trimEndOfCodeBlock;
-        preserve(trimEndOfCodeBlock);
+        $preserve(trimEndOfCodeBlock);
 
         const trimCodeBlock = _trimCodeBlock;
-        preserve(trimCodeBlock);
+        $preserve(trimCodeBlock);
 
         // TODO: DRY [🍯]
         const trim = (str: string) => str.trim();
-        preserve(trim);
+        $preserve(trim);
 
         // TODO: DRY [🍯]
         const reverse = (str: string) => str.split('').reverse().join('');
-        preserve(reverse);
+        $preserve(reverse);
 
         const removeEmojis = _removeEmojis;
-        preserve(removeEmojis);
+        $preserve(removeEmojis);
 
         const prettifyMarkdown = _prettifyMarkdown;
-        preserve(prettifyMarkdown);
+        $preserve(prettifyMarkdown);
 
         //-------[n12:]---
         const capitalize = _capitalize;
@@ -104,18 +104,18 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 ', ',
             ); /* <- TODO: [🧠] What is the best format comma list, bullet list,...? */
         const normalizeTo_SCREAMING_CASE = _normalizeTo_SCREAMING_CASE;
-        preserve(capitalize);
-        preserve(decapitalize);
-        preserve(nameToUriPart);
-        preserve(nameToUriParts);
-        preserve(removeDiacritics);
-        preserve(normalizeWhitespaces);
-        preserve(normalizeToKebabCase);
-        preserve(normalizeTo_camelCase);
-        preserve(normalizeTo_snake_case);
-        preserve(normalizeTo_PascalCase);
-        preserve(parseKeywords);
-        preserve(normalizeTo_SCREAMING_CASE);
+        $preserve(capitalize);
+        $preserve(decapitalize);
+        $preserve(nameToUriPart);
+        $preserve(nameToUriParts);
+        $preserve(removeDiacritics);
+        $preserve(normalizeWhitespaces);
+        $preserve(normalizeToKebabCase);
+        $preserve(normalizeTo_camelCase);
+        $preserve(normalizeTo_snake_case);
+        $preserve(normalizeTo_PascalCase);
+        $preserve(parseKeywords);
+        $preserve(normalizeTo_SCREAMING_CASE);
         //-------[/n12]---
 
         if (!script.includes('return')) {
@@ -185,7 +185,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                         .join('\n'),
                     // <- Note: [🥳] This is for now the only variant how to use parameters in script
                 )}
-                (()=>{ ${script} })()
+                (async ()=>{ ${script} })()
             `,
         );
 
@@ -203,6 +203,17 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         let result: TODO_any;
         try {
             result = await eval(statementToEvaluate);
+
+            if (this.options.isVerbose) {
+                console.info(
+                    _spaceTrim(
+                        (block) => `
+                            🚀 Script evaluated successfully, result:   
+                            ${block(valueToString(result))}
+                        `,
+                    ),
+                );
+            }
 
             if (typeof result !== 'string') {
                 throw new PipelineExecutionError(`Script must return a string, but returned ${valueToString(result)}`);
@@ -274,7 +285,5 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
     }
 }
 
-/**
- * TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
- */
+// TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

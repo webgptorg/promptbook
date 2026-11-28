@@ -1,23 +1,25 @@
-import { SetRequired } from 'type-fest';
+import type { SetRequired } from 'type-fest';
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { NonEmptyReadonlyArray } from '../../types/NonEmptyArray';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_pipeline_url } from '../../types/string_pipeline_url';
 import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection';
 
 /**
- * @@@
+ * Internal cache for the `getBookTemplates` function, storing retrieved pipelines.
  *
  * @singleton
+ *
  * @private internal cache of `getBookTemplate`
  */
 export let pipelines: Array<SetRequired<PipelineJson, 'pipelineUrl'>> | null = null;
 
 /**
- * Get template for new book
+ * Retrieves a collection of Promptbook templates.
  *
  * @param formfactorName - optional filter for FORMFACTOR - get only pipelines for this formfactor
  * @returns list of pipelines
+ *
  * @public exported from `@promptbook/templates`
  */
 export function getBookTemplates(
@@ -41,8 +43,6 @@ export function getBookTemplates(
     }
 }
 
-/**
- * TODO: Unit test + test that what we guarantee - always return non-empty array is true for e
- * TODO: [🧠] Which is the best place for this function
- * TODO: !!6 For GENERIC template ensure at least one pipeline is present for typescript in `getBookTemplates`
- */
+// TODO: Unit test + test that what we guarantee - always return non-empty array is true for e
+// TODO: [🧠] Which is the best place for this function
+// TODO: !!6 For GENERIC template ensure at least one pipeline is present for typescript in `getBookTemplates`

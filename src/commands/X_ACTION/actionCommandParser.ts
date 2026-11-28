@@ -1,17 +1,17 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { ActionCommand } from './ActionCommand';
 
 /**
  * Parses the action command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
@@ -59,7 +59,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ActionCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: ActionCommand, $pipelineJson: $PipelineJson): $side_effect {
         keepUnused(command, $pipelineJson);
         console.error(new NotYetImplementedError('[🛠] Actions are not implemented yet'));
     },
@@ -85,6 +85,4 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
     },
 };
 
-/**
- * Note: [⛱] There are two types of ACTION commands *...(read more in [⛱])*
- */
+// Note: [⛱] There are two types of ACTION commands *...(read more in [⛱])*

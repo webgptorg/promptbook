@@ -1,10 +1,10 @@
-import JSZip from 'jszip';
-import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
-import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_filename } from '../../types/typeAliases';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FilesystemTools } from '../../execution/FilesystemTools';
+import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
+import type { string_filename } from '../../types/string_filename';
+import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { validatePipeline } from '../validation/validatePipeline';
+import { loadJsZipModule } from './loadJsZipModule';
 
 /**
  * Saves the given books into an archive file with `.bookc` extension
@@ -13,7 +13,7 @@ import { validatePipeline } from '../validation/validatePipeline';
  * @param books Pipelines to be saved in the archive
  * @param fs Filesystem tools
  *
- * @private utility of Prompbook
+ * @private utility of Promptbook
  */
 export async function saveArchive(
     filePath: string_filename,
@@ -29,6 +29,7 @@ export async function saveArchive(
         validatePipeline(pipelineJson);
     }
 
+    const { default: JSZip } = await loadJsZipModule();
     const archive = new JSZip();
 
     const collectionJsonString = stringifyPipelineJson(collectionJson);
@@ -38,8 +39,6 @@ export async function saveArchive(
     await fs.writeFile(filePath, data);
 }
 
-/**
- * TODO: Add metadata to zip
- * TODO: Compression level and other zip options from config
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node archive helper [saveArchive](src/conversion/archive/saveArchive.ts) should never be published into packages that could be imported into browser environment
+// TODO: Add metadata to zip
+// TODO: Compression level and other zip options from config

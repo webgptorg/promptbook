@@ -16,7 +16,7 @@ describe(`validation of emails`, () => {
         expect(isValidEmail(`1.A`)).toBe(false);
         expect(isValidEmail(`---`)).toBe(false);
         expect(isValidEmail(`@`)).toBe(false);
-        expect(isValidEmail(`@@@`)).toBe(false);
+        expect(isValidEmail(`@@`)).toBe(false);
         expect(isValidEmail(`@hejny`)).toBe(false);
     });
 });

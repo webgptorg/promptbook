@@ -1,8 +1,8 @@
-import { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep } from 'type-fest';
 import type { ErrorJson } from '../errors/utils/ErrorJson';
 
 /**
- * @@@
+ * Represents the result of execution of a task in a pipeline
  *
  * Note: [🚉] This is fully serializable as JSON
  */
@@ -13,17 +13,15 @@ export type AbstractTaskResult = {
     readonly isSuccessful: boolean;
 
     /**
-     * Errors that occured during the execution, details are available in `executionReport`
+     * Errors that occurred during the execution, details are available in `executionReport`
      */
     readonly errors: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 
     /**
-     * Warnings that occured during the execution, details are available in `executionReport`
+     * Warnings that occurred during the execution, details are available in `executionReport`
      */
     readonly warnings: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 };
 
-/**
- * TODO: [🧠] Should this file be in /execution or /types folder?
- * TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`
- */
+// TODO: [🧠] Should this file be in /execution or /types folder?
+// TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`

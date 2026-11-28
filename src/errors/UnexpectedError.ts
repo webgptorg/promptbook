@@ -16,7 +16,7 @@ export class UnexpectedError extends Error {
                     ${block(message)}
 
                     Note: This error should not happen.
-                    It's probbably a bug in the pipeline collection
+                    It's probably a bug in the pipeline collection
 
                     Please report issue:
                     ${block(getErrorReportUrl(new Error(message)).href)}

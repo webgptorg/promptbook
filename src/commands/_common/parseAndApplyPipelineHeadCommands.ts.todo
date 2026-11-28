@@ -15,7 +15,7 @@ import type { CommandUsagePlace } from './types/CommandUsagePlaces';
  *
  * @private within the compilePipeline
  */
-export function $parseAndApplyPipelineHeadCommands(raw: string_markdown_text, $pipelineJson: $PipelineJson ): void {}
+export function $parseAndApplyPipelineHeadCommands(raw: string_markdown_text, $pipelineJson: $PipelineJson ): $side_effect {}
 
 /**
  * TODO: [🥥] Maybe implement this function

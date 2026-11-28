@@ -1,11 +1,11 @@
 import colors from 'colors';
-import prompts from 'prompts';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { assertsError } from '../../errors/assertsError';
 import type { PipelineExecutor } from '../../execution/PipelineExecutor';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import { just } from '../../utils/organization/just';
+import { loadPromptsModule } from '../common/loadPromptsModule';
 
 /**
  * Options for running the interactive chatbot
@@ -31,6 +31,7 @@ type RunInteractiveChatbotOptions = {
  * Run the interactive chatbot in CLI
  *
  * @returns Never-ending promise or process exit
+ *
  * @private internal function of `promptbookCli` and `initializeRunCommand`
  */
 export async function runInteractiveChatbot(options: RunInteractiveChatbotOptions): Promise<void | never> {
@@ -89,6 +90,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
                 console.info(colors.gray(`---`));
             }
 
+            const { default: prompts } = await loadPromptsModule();
             const response = await prompts({
                 type: 'text',
                 name: 'userMessage',
@@ -132,7 +134,7 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
                 userMessage,
             };
 
-            const result = await pipelineExecutor(inputParameters).asPromise();
+            const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
             console.info(`\n`);
             console.info(
@@ -150,15 +152,13 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
         } catch (error) {
             assertsError(error);
 
-            // TODO: Allow to ressurect the chatbot after an error - prompt the user to continue
+            // TODO: Allow to resurrect the chatbot after an error - prompt the user to continue
             console.error(colors.red(error.stack || error.message));
             return process.exit(1);
         }
     }
 }
 
-/**
- * TODO: Saving reports from the chatbot conversation
- * TODO: [⛲️] This is the right place to start implementing INK
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [runInteractiveChatbot](src/cli/cli-commands/runInteractiveChatbot.ts) should never be published outside of `@promptbook/cli`
+// TODO: Saving reports from the chatbot conversation
+// TODO: [⛲️] This is the right place to start implementing INK

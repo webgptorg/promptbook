@@ -1,0 +1,3 @@
+Lawyer
+FROM {./legal-foundation.book}
+RULE The license notice must name the original author.

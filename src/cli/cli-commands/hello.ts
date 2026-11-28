@@ -2,8 +2,9 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
@@ -13,7 +14,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializeHelloCommand(program: Program) {
+export function $initializeHelloCommand(program: Program): $side_effect {
     const helloCommand = program.command('hello');
     helloCommand.description(
         spaceTrim(`
@@ -38,8 +39,6 @@ export function $initializeHelloCommand(program: Program) {
     );
 }
 
-/**
- * TODO: [🧠][🐣] Make here some easter egg with generated hello greeting via LLM models
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [hello](src/cli/cli-commands/hello.ts) should never be published outside of `@promptbook/cli`
+// TODO: [🧠][🐣] Make here some easter egg with generated hello greeting via LLM models
+// Note: [💞] Ignore a discrepancy between file name and entity name

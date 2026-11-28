@@ -1,6 +1,6 @@
 import { VALUE_STRINGS } from '../../config';
 import { assertsError } from '../../errors/assertsError';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/string_name';
 import type { really_unknown } from '../organization/really_unknown';
 import { numberToString } from './numberToString';
 
@@ -9,8 +9,8 @@ import { numberToString } from './numberToString';
  * This is useful and used in the `templateParameters` function
  *
  * Note: This function is not just calling `toString` method
- *       It's more complex and can handle this conversion specifically for LLM models
- *       See `VALUE_STRINGS`
+ * It's more complex and can handle this conversion specifically for LLM models
+ * See `VALUE_STRINGS`
  *
  * Note: There are 2 similar functions
  * - `valueToString` converts value to string for LLM models as human-readable string

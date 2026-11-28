@@ -25,6 +25,7 @@ import { markitdownScraperMetadata } from './register-metadata';
  *
  * @see https://github.com/microsoft/markitdown
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/markitdown`
  * @public exported from `@promptbook/pdf`
  */
@@ -90,12 +91,10 @@ export class MarkitdownScraper implements Converter, Scraper {
             isVerbose,
         });
 
-        // TODO: @@@ Preserve, delete or modify
-        // Note: Running Pandoc ONLY if the file in the cache does not exist
+        // TODO: Determine if Markitdown conversion should run only if the cache file doesn't exist, or always.
+        // Note: Running Markitdown conversion ONLY if the file in the cache does not exist
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
             const src = source.filename || source.url || null;
-
-            // console.log('!!', { src, source, cacheFilehandler });
 
             if (src === null) {
                 throw new UnexpectedError('Source has no filename or url');
@@ -112,23 +111,40 @@ export class MarkitdownScraper implements Converter, Scraper {
                 // <- TODO: [🍀] Make MarkitdownError
             }
 
-            // console.log('!!', { result, cacheFilehandler });
-
-            await this.tools.fs.writeFile(cacheFilehandler.filename, result.text_content);
+            // Note: Try to cache the converted content, but don't fail if the filesystem is read-only
+            try {
+                await this.tools.fs.writeFile(cacheFilehandler.filename, result.text_content);
+            } catch (error) {
+                // Note: If we can't write to cache, we'll continue without caching
+                //       This handles read-only filesystems like Vercel
+                if (
+                    error instanceof Error &&
+                    (error.message.includes('EROFS') ||
+                        error.message.includes('read-only') ||
+                        error.message.includes('EACCES') ||
+                        error.message.includes('EPERM') ||
+                        error.message.includes('ENOENT'))
+                ) {
+                    // Silently ignore read-only filesystem errors
+                } else {
+                    // Re-throw other unexpected errors
+                    throw error;
+                }
+            }
         }
 
         return cacheFilehandler;
     }
 
     /**
-     * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
+     * Scrapes the source document (PDF, DOCX, etc.) and returns the knowledge pieces or `null` if it can't scrape it.
      */
     public async scrape(
         source: ScraperSourceHandler,
     ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const cacheFilehandler = await this.$convert(source);
 
-        // TODO: @@@ Preserve, delete or modify
+        // TODO: Ensure this correctly creates the source object for the internal MarkdownScraper using the converted file.
         const markdownSource = {
             source: source.source,
             filename: cacheFilehandler.filename,
@@ -161,10 +177,8 @@ export class MarkitdownScraper implements Converter, Scraper {
     }
 }
 
-/**
- * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
- * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
- * TODO: [🪂] Do it in parallel
- * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node scraper implementation [MarkitdownScraper](src/scrapers/markitdown/MarkitdownScraper.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
+// TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
+// TODO: [🪂] Do it in parallel
+// Note: No need to aggregate usage here, it is done by intercepting the llmTools

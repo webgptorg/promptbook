@@ -9,10 +9,9 @@ import type { Scraper } from '../Scraper';
 import { $scrapersRegister } from './$scrapersRegister';
 
 /**
- * @@@
- *
- * 1) @@@
- * 2) @@@
+ * Provides a collection of scrapers optimized for Node.js environment.
+ * 1) `provideScrapersForNode` use as default
+ * 2) `provideScrapersForBrowser` use in limited browser environment *
  *
  * @public exported from `@promptbook/node`
  */
@@ -49,6 +48,5 @@ export async function $provideScrapersForNode(
     return scrapers;
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node scraper registration helper [$provideScrapersForNode](src/scrapers/_common/register/$provideScrapersForNode.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

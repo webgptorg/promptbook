@@ -1,4 +1,4 @@
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBlockFromMarkdown';
 
 /**
@@ -6,14 +6,15 @@ import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBloc
  *
  * - When there are multiple or no code blocks the function throws a `ParseError`
  *
- * Note: There are multiple simmilar function:
+ * Note: There are multiple similar function:
  * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
  * - `extractJsonBlock` extracts exactly one valid JSON code block
  * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
  * - `extractAllBlocksFromMarkdown` extracts all code blocks with language of the code block
  *
- * @public exported from `@promptbook/markdown-utils`
  * @throws {ParseError} if there is not exactly one code block in the markdown
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractBlock(markdown: string_markdown): string {
     const { content } = extractOneBlockFromMarkdown(markdown);

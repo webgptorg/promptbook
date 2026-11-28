@@ -1,4 +1,4 @@
-import { AbstractFormatError } from "../../errors/AbstractFormatError";
+import { AbstractFormatError } from '../../errors/AbstractFormatError';
 
 /**
  * This error indicates problem with parsing of CSV

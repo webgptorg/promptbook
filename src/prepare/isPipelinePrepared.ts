@@ -11,14 +11,16 @@ import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
  * @public exported from `@promptbook/core`
  */
 export function isPipelinePrepared(pipeline: PipelineJson): boolean {
-    // Note: Ignoring `pipeline.preparations` @@@
-    // Note: Ignoring `pipeline.knowledgePieces` @@@
+    // Note: Ignoring `pipeline.preparations`
+    // Note: Ignoring `pipeline.knowledgePieces`
 
     if (pipeline.title === undefined || pipeline.title === '' || pipeline.title === DEFAULT_BOOK_TITLE) {
+        // console.log('Pipeline is not prepared because title is undefined or empty', pipeline);
         return false;
     }
 
     if (!pipeline.personas.every((persona) => (persona as PersonaPreparedJson).modelsRequirements !== undefined)) {
+        // console.log('Pipeline is not prepared because personas are not prepared', pipeline.personas);
         return false;
     }
 
@@ -27,6 +29,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
             (knowledgeSource) => (knowledgeSource as KnowledgeSourcePreparedJson).preparationIds !== undefined,
         )
     ) {
+        //console.log('Pipeline is not prepared because knowledge sources are not prepared', pipeline.knowledgeSources);
         return false;
     }
 

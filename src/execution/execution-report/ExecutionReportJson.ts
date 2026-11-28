@@ -1,17 +1,18 @@
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { string_pipeline_url } from '../../types/string_pipeline_url';
+import type { string_semantic_version } from '../../types/string_sha256';
 import type { ExecutionPromptReportJson } from './ExecutionPromptReportJson';
 
 /**
  * ExecutionReport is result of executing one promptbook
- * It is kind of a variant of the promptbook usefull for debugging, logging and transparency for users.
+ * It is kind of a variant of the promptbook useful for debugging, logging and transparency for users.
  *
  * It can have 2 formats:
  * -   **.md file** created from the **JSON** format
  * -   _(this)_ **JSON** format
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportJson = {

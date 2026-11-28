@@ -13,7 +13,7 @@ export class MissingToolsError extends Error {
                 (block) => `
                     ${block(message)}
 
-                    Note: You have probbably forgot to provide some tools for pipeline execution or preparation
+                    Note: You have probably forgot to provide some tools for pipeline execution or preparation
 
                 `,
             ),

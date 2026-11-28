@@ -1,22 +1,22 @@
 import PipelineCollection from '../../books/index.json';
-import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
+import { createPipelineCollectionFromJson } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
 import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { jsonParse } from '../formats/json/utils/jsonParse';
-import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PersonaPreparedJson } from '../pipeline/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
-import type { string_persona_description } from '../types/typeAliases';
-import { arrayableToArray } from '../utils/arrayableToArray';
+import type { string_persona_description } from '../types/string_persona_description';
 import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
  * Prepares the persona for the pipeline
  *
  * @see https://github.com/webgptorg/promptbook/discussions/22
+ *
  * @public exported from `@promptbook/core`
  */
 export async function preparePersona(
@@ -31,15 +31,16 @@ export async function preparePersona(
     }
 
     // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
-    const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+    const collection = createPipelineCollectionFromJson(
+        ...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>),
+    );
 
     const preparePersonaExecutor = createPipelineExecutor({
         pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.book'),
         tools,
     });
 
-    const _llms = arrayableToArray(tools.llm);
-    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+    const llmTools = getSingleLlmExecutionTools(tools.llm);
 
     const availableModels = (await llmTools.listModels())
         .filter(({ modelVariant }) => modelVariant === 'CHAT')
@@ -52,7 +53,7 @@ export async function preparePersona(
     const result = await preparePersonaExecutor({
         availableModels /* <- Note: Passing as JSON */,
         personaDescription,
-    }).asPromise();
+    }).asPromise({ isCrashedOnError: true });
 
     const { outputParameters } = result;
     const { modelsRequirements: modelsRequirementsJson } = outputParameters;
@@ -94,9 +95,8 @@ export async function preparePersona(
     };
 }
 
-/**
- * TODO: [🔃][main] If the persona was prepared with different version or different set of models, prepare it once again
- * TODO: [🏢] Check validity of `modelName` in pipeline
- * TODO: [🏢] Check validity of `systemMessage` in pipeline
- * TODO: [🏢] Check validity of `temperature` in pipeline
- */
+// TODO: [😩] DRY `preparePersona` and `selectBestModelFromAvailable`
+// TODO: [🔃][main] If the persona was prepared with different version or different set of models, prepare it once again
+// TODO: [🏢] Check validity of `modelName` in pipeline
+// TODO: [🏢] Check validity of `systemMessage` in pipeline
+// TODO: [🏢] Check validity of `temperature` in pipeline

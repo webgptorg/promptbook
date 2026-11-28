@@ -62,6 +62,4 @@ describe('how creating knowledge from markdown works', () => {
         ]));
 });
 
-/**
- * TODO: [📓] Maybe test all file in examples (not just 10-simple.md)
- */
+// TODO: [📓] Maybe test all file in examples (not just 10-simple.md)

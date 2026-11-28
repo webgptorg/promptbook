@@ -6,9 +6,8 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { forEver, forTime } from 'waitasecond';
-import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
-import { CLI_APP_ID } from '../../../config';
-import { PLAYGROUND_APP_ID } from '../../../config';
+import { createPipelineCollectionFromDirectory } from '../../../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
+import { CLI_APP_ID, PLAYGROUND_APP_ID } from '../../../config';
 import { AuthenticationError } from '../../../errors/AuthenticationError';
 import { startRemoteServer } from '../../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
@@ -27,6 +26,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Remote server playground`);
 
@@ -39,7 +41,7 @@ async function playground() {
         isVerbose: true,
         isAnonymousModeAllowed: true,
         isApplicationModeAllowed: true,
-        collection: await createCollectionFromDirectory(
+        collection: await createPipelineCollectionFromDirectory(
             './examples/pipelines/',
             {
                 fs: $provideFilesystemForNode(),
@@ -139,6 +141,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [remote playground](src/llm-providers/remote/playground/playground.ts) should never be published in any package

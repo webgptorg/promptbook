@@ -1,5 +1,7 @@
 /**
- * Makes first letter of a string uppercase
+ * Makes first letter of a string lowercase
+ *
+ * Note: [🔂] This function is idempotent.
  *
  * @public exported from `@promptbook/utils`
  */

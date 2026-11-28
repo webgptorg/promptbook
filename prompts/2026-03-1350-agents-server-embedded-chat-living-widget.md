@@ -1,0 +1,45 @@
+[ ]
+
+[🫧🧩] Embedded chat should feel like living widget (keep iframe alive, notifications, multi-widget layout)
+
+-   *(@@@@ Written by agent)*
+-   When PromptBook chat is integrated into an external website (technically via iframe), the experience should feel native to the host page (like a “living widget”), not like an alien iframe dropped on top.
+-   Problem: when user opens the chat bubble, closes it, then re-opens it, the conversation is persisted but the iframe/chat UI “loads again” and feels cold-started. Expected: the iframe should remain alive in memory (hidden/offscreen) so reopening is near-instant.
+-   Implement “keep-alive iframe” behavior for the embedded chat popup:
+    -   On first open, create/mount iframe as today.
+    -   On close/minimize, do **not** unmount/destroy the iframe; keep it running (hidden) and only toggle visibility.
+    -   Add lifecycle + resource constraints:
+        -   Provide a prop to opt-out (default should be keep-alive for best UX) @@@.
+        -   Provide an optional idle timeout to unload after N minutes in background @@@.
+        -   Ensure no memory leak when page lives long; define what is kept (DOM + JS context) vs what can be suspended.
+-   Background agent activity notification:
+    -   If popup is closed/minified and the agent produces a new message, show a notification badge (unread count dot/number) on the minimized chat bubble, similar to Messenger.
+    -   If user re-opens, unread indicator clears (or decrements) according to “seen” semantics @@@.
+    -   Define whether typing indicator / streaming should also affect bubble state (e.g., pulse) @@@.
+-   Sounds + vibration policy driven solely by integration props:
+    -   There are existing sounds in the system; when embedded, sounds should be **off by default**.
+    -   Add integration prop(s) that explicitly enable sound and/or vibration.
+    -   These props must **override** any user/server/control-panel settings; embedded behavior is determined only by props passed to the React integration component.
+    -   Ensure compliance with browser autoplay policies (sound only after user interaction) and provide graceful fallback @@@.
+-   Multiple chat integrations on one host page:
+    -   Support rendering multiple chat widgets at once; they must be independent (separate conversation states, iframes, storage keys) but the layout should account for coexistence.
+    -   Provide stacking/alignment logic so bubbles don’t overlap by default (e.g., vertical stack with spacing; or allow specifying anchor corner + offset per widget).
+    -   Widgets should be “aware” of each other for layout only (no shared state unless explicitly configured).
+    -   Define collision resolution rules and responsive behavior on mobile @@@.
+-   Technical notes / expected implementation direction:
+    -   Use postMessage (or existing messaging layer) from iframe to parent integration to notify about: new message, unread count changes, chat opened/closed state.
+    -   When keep-alive is enabled, closing should only change CSS visibility (e.g., display:none vs offscreen). Verify whether display:none pauses rendering/streaming in iframe; pick approach that keeps JS running.
+    -   Ensure focus management + accessibility: opening returns focus to input; closing returns focus to bubble button.
+    -   Ensure that keeping iframe alive doesn’t break auth/session refresh flows @@@.
+-   You are working with:
+    -   [Agents Server](apps/agents-server)
+    -   Embedded chat integration layer / component @@@ (locate exact package/path)
+    -   iframe embed code / script used by external websites @@@
+    -   Sound assets + sound settings logic @@@
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   Acceptance criteria:
+    -   Reopen performance: after first open, close→reopen shows the chat instantly (no visible reload spinners) @@@.
+    -   iframe persists: network panel shows no re-fetch of initial app bundle on reopen (unless idle-timeout unload happened) @@@.
+    -   Notification badge appears on minimized bubble when agent message arrives while closed.
+    -   Sound/vibration stays off by default; enabling via props works; control-panel settings do not affect embedded behavior.
+    -   Two widgets on the same page render without overlap by default and can be configured to align/stack predictably.

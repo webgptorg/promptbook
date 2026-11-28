@@ -1,0 +1,215 @@
+{
+    "date": "2026-01-05T12:51:51.182Z",
+    "promptbookVersion": "0.105.0-1",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Test Chat",
+        "content": "Kolik je hodin?(0)",
+        "parameters": {},
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        }
+    },
+    "promptResult": {
+        "content": "Je jedna hodina a  padesát jedna minut odpoledne.",
+        "modelName": "testing-time-from-agent-playground-f36159962b",
+        "timing": {
+            "start": "2026-01-05T12:51:44.856Z",
+            "complete": "2026-01-05T12:51:51.181Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            }
+        },
+        "rawPromptContent": "Kolik je hodin?(0)",
+        "rawRequest": {
+            "assistant_id": "asst_FMN0hU8y2caMBYQfCH59LVqf",
+            "thread": {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Kolik je hodin?(0)"
+                    }
+                ]
+            },
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_current_time",
+                        "description": "Get the current date and time in ISO 8601 format.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {},
+                            "required": []
+                        }
+                    }
+                }
+            ]
+        },
+        "rawResponse": {
+            "run": {
+                "id": "run_QK43hgBUd11O9tcnZZwOAdui",
+                "object": "thread.run",
+                "created_at": 1767617505,
+                "assistant_id": "asst_FMN0hU8y2caMBYQfCH59LVqf",
+                "thread_id": "thread_ykB8uTfvRItavf3JHJeXAiEP",
+                "status": "completed",
+                "started_at": 1767617508,
+                "expires_at": null,
+                "cancelled_at": null,
+                "failed_at": null,
+                "completed_at": 1767617510,
+                "required_action": null,
+                "last_error": null,
+                "model": "gpt-4o",
+                "instructions": "You are Testing time from agent playground\nYou are an assistant that can determine the current date and time. (0)\n\nRule: Reply in language and date and time format as per the user's locale and language.\n\nRule: Prefer words instead of digits when expressing time, for example, say \"half past three\" instead of \"3:30\".",
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "get_current_time",
+                            "description": "Get the current date and time in ISO 8601 format.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {},
+                                "required": []
+                            },
+                            "strict": false
+                        }
+                    }
+                ],
+                "tool_resources": {},
+                "metadata": {},
+                "temperature": 1,
+                "top_p": 1,
+                "reasoning_effort": null,
+                "max_completion_tokens": null,
+                "max_prompt_tokens": null,
+                "truncation_strategy": {
+                    "type": "auto",
+                    "last_messages": null
+                },
+                "incomplete_details": null,
+                "usage": {
+                    "prompt_tokens": 706,
+                    "completion_tokens": 29,
+                    "total_tokens": 735,
+                    "prompt_token_details": {
+                        "cached_tokens": 0
+                    },
+                    "completion_tokens_details": {
+                        "reasoning_tokens": 0
+                    }
+                },
+                "response_format": "auto",
+                "tool_choice": "auto",
+                "parallel_tool_calls": true
+            },
+            "messages": [
+                {
+                    "id": "msg_H0nxraXh1bI08wp9ESXq5HP5",
+                    "object": "thread.message",
+                    "created_at": 1767617509,
+                    "assistant_id": "asst_FMN0hU8y2caMBYQfCH59LVqf",
+                    "thread_id": "thread_ykB8uTfvRItavf3JHJeXAiEP",
+                    "run_id": "run_QK43hgBUd11O9tcnZZwOAdui",
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "value": "Je jedna hodina a padesát jedna minut odpoledne.",
+                                "annotations": []
+                            }
+                        }
+                    ],
+                    "attachments": [],
+                    "metadata": {}
+                },
+                {
+                    "id": "msg_wQn9xkUXWPrT0q3PRILHzrw9",
+                    "object": "thread.message",
+                    "created_at": 1767617505,
+                    "assistant_id": null,
+                    "thread_id": "thread_ykB8uTfvRItavf3JHJeXAiEP",
+                    "run_id": null,
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "value": "Kolik je hodin?(0)",
+                                "annotations": []
+                            }
+                        }
+                    ],
+                    "attachments": [],
+                    "metadata": {}
+                }
+            ]
+        }
+    }
+}

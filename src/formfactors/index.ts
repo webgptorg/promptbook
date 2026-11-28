@@ -1,4 +1,5 @@
 import { ChatbotFormfactorDefinition } from './chatbot/ChatbotFormfactorDefinition';
+import { CompletionFormfactorDefinition } from './completion/CompletionFormfactorDefinition';
 import { GeneratorFormfactorDefinition } from './generator/GeneratorFormfactorDefinition';
 import { GenericFormfactorDefinition } from './generic/GenericFormfactorDefinition';
 import { ImageGeneratorFormfactorDefinition } from './image-generator/ImageGeneratorFormfactorDefinition';
@@ -19,8 +20,8 @@ export const FORMFACTOR_DEFINITIONS = [
     MatcherFormfactorDefinition,
     GeneratorFormfactorDefinition,
     ImageGeneratorFormfactorDefinition,
+    CompletionFormfactorDefinition,
+    // <- [🛬] When making new formfactor, copy the _boilerplate and link it here
 ] as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

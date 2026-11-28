@@ -154,12 +154,12 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
-    it('should work with codeblock with escaped embeded codeblock as content', () => {
+    it('should work with codeblock with escaped embedded codeblock as content', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
 
-                  This is a simple markdown with code block with escaped embeded code block as content:
+                  This is a simple markdown with code block with escaped embedded code block as content:
 
                   \`\`\`markdown
 

@@ -1,11 +1,11 @@
-import { string_xml } from '../XmlFormatDefinition';
+import type { string_xml } from '../../../types/string_markdown';
 import { validateXmlString } from './validateXmlString';
 
 /**
  * Function to check if a string is valid XML.
  *
- * @param value - The string to check.
- * @returns True if the string is a valid XML string, false otherwise.
+ * @param value - The value to check.
+ * @returns True when the value is a valid XML string.
  *
  * @public exported from `@promptbook/utils`
  */

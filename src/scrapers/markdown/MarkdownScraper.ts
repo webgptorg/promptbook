@@ -1,23 +1,20 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../books/index.json';
 // import PipelineCollection from '../../../books/books';
 import type { WritableDeep } from 'type-fest';
-import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { createPipelineCollectionFromJson } from '../../collection/pipeline-collection/constructors/createPipelineCollectionFromJson';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { arrayableToArray } from '../../utils/arrayableToArray';
 import { titleToName } from '../../utils/normalization/titleToName';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
@@ -27,6 +24,7 @@ import { markdownScraperMetadata } from './register-metadata';
  * Scraper for markdown files
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export class MarkdownScraper implements Scraper {
@@ -56,14 +54,14 @@ export class MarkdownScraper implements Scraper {
             // <- Note: This scraper is used in all other scrapers, so saying "external files" not "markdown files"
         }
 
-        // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
-        const _llms = arrayableToArray(llm);
-        const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
+        const llmTools = getSingleLlmExecutionTools(llm);
 
         TODO_USE(maxParallelCount); // <- [🪂]
 
         // TODO: [🌼] In future use `ptbk make` and made getPipelineCollection
-        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
+        const collection = createPipelineCollectionFromJson(
+            ...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>),
+        );
 
         const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
@@ -94,7 +92,9 @@ export class MarkdownScraper implements Scraper {
 
         const knowledgeContent = await source.asText();
 
-        const result = await prepareKnowledgeFromMarkdownExecutor({ knowledgeContent }).asPromise();
+        const result = await prepareKnowledgeFromMarkdownExecutor({ knowledgeContent }).asPromise({
+            isCrashedOnError: true,
+        });
 
         const { outputParameters } = result;
         const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
@@ -111,7 +111,7 @@ export class MarkdownScraper implements Scraper {
         const knowledge = await Promise.all(
             // TODO: [🪂] Do not send all at once but in chunks
             knowledgeTextPieces.map(async (knowledgeTextPiece, i) => {
-                // Note: Theese are just default values, they will be overwritten by the actual values:
+                // Note: These are just default values, they will be overwritten by the actual values:
                 let name: KnowledgePiecePreparedJson['name'] = `piece-${i}`;
                 let title: KnowledgePiecePreparedJson['title'] = spaceTrim(knowledgeTextPiece.substring(0, 100));
                 const knowledgePieceContent: KnowledgePiecePreparedJson['content'] = spaceTrim(knowledgeTextPiece);
@@ -125,13 +125,17 @@ export class MarkdownScraper implements Scraper {
               */
 
                 try {
-                    const titleResult = await prepareTitleExecutor({ knowledgePieceContent }).asPromise();
+                    const titleResult = await prepareTitleExecutor({ knowledgePieceContent }).asPromise({
+                        isCrashedOnError: true,
+                    });
                     const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
                     title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
                     name = titleToName(title);
 
                     // --- Keywords
-                    const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent }).asPromise();
+                    const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent }).asPromise({
+                        isCrashedOnError: true,
+                    });
                     const { keywords: keywordsRaw = '' } = keywordsResult.outputParameters;
                     keywords = (keywordsRaw || '')
                         .split(',')
@@ -143,7 +147,7 @@ export class MarkdownScraper implements Scraper {
                     // ---
 
                     if (!llmTools.callEmbeddingModel) {
-                        // TODO: [🟥] Detect browser / node and make it colorfull
+                        // TODO: [🟥] Detect browser / node and make it colorful
                         console.error('No callEmbeddingModel function provided');
                     } else {
                         // TODO: [🧠][🎛] Embedding via multiple models
@@ -170,7 +174,7 @@ export class MarkdownScraper implements Scraper {
                         throw error;
                     }
 
-                    // TODO: [🟥] Detect browser / node and make it colorfull
+                    // TODO: [🟥] Detect browser / node and make it colorful
                     console.error(
                         error,
                         "<- Note: This error is not critical to prepare the pipeline, just knowledge pieces won't have embeddings",
@@ -192,7 +196,5 @@ export class MarkdownScraper implements Scraper {
     }
 }
 
-/**
- * TODO: [🪂] Do it in parallel 11:11
- * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- */
+// TODO: [🪂] Do it in parallel 11:11
+// Note: No need to aggregate usage here, it is done by intercepting the llmTools

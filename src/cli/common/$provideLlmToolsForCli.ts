@@ -1,20 +1,23 @@
 import colors from 'colors';
-import prompts from 'prompts';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { CLI_APP_ID } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
-import { $provideLlmToolsForWizzardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizzardOrCli';
+import { $provideLlmToolsForWizardOrCli } from '../../llm-providers/_common/register/$provideLlmToolsForWizardOrCli';
 import type { CacheLlmToolsOptions } from '../../llm-providers/_common/utils/cache/CacheLlmToolsOptions';
 import type { LlmExecutionToolsWithTotalUsage } from '../../llm-providers/_common/utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import type { LoginResponse } from '../../remote-server/types/RemoteServerOptions';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
-import type { string_promptbook_server_url } from '../../types/typeAliases';
+import type { string_promptbook_server_url } from '../../types/string_promptbook_server_url';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidEmail } from '../../utils/validators/email/isValidEmail';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { loadPromptsModule } from './loadPromptsModule';
 
+/**
+ * Options for provide Llm tools for Cli.
+ */
 type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'> & {
     /**
      * If true, user will be always prompted for login
@@ -35,6 +38,8 @@ type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'
 };
 
 /**
+ * Handles provide Llm tools for Cli.
+ *
  * @private utility of CLI
  */
 export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions): Promise<{
@@ -59,7 +64,11 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
     } else if (/^r/i.test(provider)) {
         strategy = 'REMOTE_SERVER';
     } else {
-        console.log(colors.red(`Unknown provider: "${provider}", please use "BRING_YOUR_OWN_KEYS" or "REMOTE_SERVER"`));
+        console.log(
+            colors.red(
+                `Unknown provider: "${provider}", please use "--provider BRING_YOUR_OWN_KEYS" or "--provider REMOTE_SERVER"`,
+            ),
+        );
         process.exit(1);
     }
 
@@ -70,7 +79,7 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
             );
         }
 
-        const llm = await $provideLlmToolsForWizzardOrCli({ strategy, ...options });
+        const llm = await $provideLlmToolsForWizardOrCli({ strategy, ...options });
         return { strategy, llm };
     } else if (strategy === 'REMOTE_SERVER') {
         if (!isValidUrl(remoteServerUrlRaw)) {
@@ -80,7 +89,7 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
 
         const remoteServerUrl = remoteServerUrlRaw.endsWith('/') ? remoteServerUrlRaw.slice(0, -1) : remoteServerUrlRaw;
 
-        const llm = await $provideLlmToolsForWizzardOrCli({
+        const llm = await $provideLlmToolsForWizardOrCli({
             isLoginloaded,
             strategy,
             appId: CLI_APP_ID,
@@ -101,21 +110,25 @@ export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptio
                     ),
                 );
 
+                const { default: prompts } = await loadPromptsModule();
                 const { username, password } = await prompts([
                     {
                         type: 'text',
                         name: 'username',
                         message: 'Enter your email:', // <- TODO: [🧠] What is the message here, asking for email but outputting username
-                        validate: (value) => (isValidEmail(value) ? true : 'Valid email is required'),
+                        validate(value) {
+                            return isValidEmail(value) ? true : 'Valid email is required';
+                        },
                     },
                     {
                         type: 'password',
                         name: 'password',
                         message: 'Enter your password:', // <- TODO: [🧠] What is the message here
-                        validate: (value) =>
-                            value.length /* <- TODO: [🧠] Better password validation */ > 0
+                        validate(value) {
+                            return value.length /* <- TODO: [🧠] Better password validation */ > 0
                                 ? true
-                                : 'Password is required',
+                                : 'Password is required';
+                        },
                     },
                 ]);
 

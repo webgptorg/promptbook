@@ -1,34 +1,49 @@
-import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
+import type { OpenAIClient } from '@azure/openai';
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import { CONNECTION_TIMEOUT_MS } from '../../config';
+import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import { CONNECTION_TIMEOUT_MS, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import { $getCurrentDate } from '../../utils/$getCurrentDate';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_completion_prompt } from '../../types/string_prompt';
+import type { string_title } from '../../types/string_title';
+import type { string_date_iso8601 } from '../../types/string_token';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
+import { createLazyModuleLoader } from '../../utils/misc/createLazyModuleLoader';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
+/**
+ * Profile for Azure OpenAI provider
+ */
+const AZURE_OPENAI_PROVIDER_PROFILE: ChatParticipant = {
+    name: 'AZURE_OPENAI' as string_name,
+    fullname: 'Azure OpenAI',
+    color: '#0078d4',
+} as const;
+
 keepTypeImported<Usage>();
 
-// Default rate limits (requests per minute) - adjust as needed based on Azure OpenAI tier
-const DEFAULT_RPM = 60;
-// <- TODO: !!! Put in some better place
+/**
+ * Loads the Azure OpenAI SDK (`@azure/openai`) on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private internal utility of `AzureOpenAiExecutionTools`
+ */
+const loadAzureOpenAiModule = createLazyModuleLoader(() => import('@azure/openai'));
 
 /**
  * Execution Tools for calling Azure OpenAI API.
@@ -54,7 +69,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
     public constructor(protected readonly options: AzureOpenAiExecutionToolsOptions) {
         // TODO: Allow configuring rate limits via options
         this.limiter = new Bottleneck({
-            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_RPM),
+            minTime: 60000 / (this.options.maxRequestsPerMinute || DEFAULT_MAX_REQUESTS_PER_MINUTE),
         });
     }
 
@@ -66,8 +81,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         return 'Use all models trained by OpenAI provided by Azure';
     }
 
+    public get profile() {
+        return AZURE_OPENAI_PROVIDER_PROFILE;
+    }
+
     public async getClient(): Promise<OpenAIClient> {
         if (this.client === null) {
+            const { AzureKeyCredential, OpenAIClient } = await loadAzureOpenAiModule();
+
             this.client = new OpenAIClient(
                 `https://${this.options.resourceName}.openai.azure.com/`,
                 new AzureKeyCredential(this.options.apiKey),
@@ -128,7 +149,6 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
                 maxTokens: modelRequirements.maxTokens,
-                //                                      <- TODO: [🌾] Make some global max cap for maxTokens
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
@@ -188,8 +208,12 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
             const resultContent = rawResponse.choices[0].message.content;
             // eslint-disable-next-line prefer-const
             complete = $getCurrentDate();
+
+            const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
+
             const usage = {
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
+                duration,
                 input: {
                     tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
                     ...computeUsageCounts(
@@ -221,7 +245,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                     rawResponse: {
                         ...rawResponse,
                         created: rawResponse.created.toISOString(),
-                        //  <- TODO: Put `created` at begining
+                        //  <- TODO: Put `created` at beginning
                     },
                     // <- [🗯]
                 },
@@ -253,8 +277,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
         try {
             const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
             const modelSettings = {
-                maxTokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
-                //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
+                maxTokens: modelRequirements.maxTokens,
                 temperature: modelRequirements.temperature,
                 user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
@@ -302,8 +325,11 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
             // eslint-disable-next-line prefer-const
             complete = $getCurrentDate();
 
+            const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
+
             const usage = {
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
+                duration,
                 input: {
                     tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
                     ...computeUsageCounts(
@@ -334,7 +360,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
                     rawResponse: {
                         ...rawResponse,
                         created: rawResponse.created.toISOString(),
-                        //  <- TODO: Put `created` at begining
+                        //  <- TODO: Put `created` at beginning
                     },
                     // <- [🗯]
                 },
@@ -365,7 +391,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
     }
 
     /**
-     * Changes Azure error (which is not propper Error but object) to propper Error
+     * Changes Azure error (which is not proper Error but object) to proper Error
      */
     private transformAzureError(azureError: { code: string; message: string }): Error {
         if (azureError instanceof UnexpectedError) {
@@ -381,9 +407,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
     }
 }
 
-/**
- * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom AzureOpenAiError
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- */
+// TODO: Maybe Create some common util for callChatModel and callCompletionModel
+// TODO: Maybe make custom AzureOpenAiError
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes

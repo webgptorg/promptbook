@@ -1,19 +1,23 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TaskJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
  * Parses the persona command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
@@ -80,7 +84,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): $side_effect {
         $applyToTaskJson(command, null, $pipelineJson);
     },
 
@@ -122,7 +126,11 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
  *
  * Note: `$` is used to indicate that this function mutates given `taskJson`
  */
-function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, $pipelineJson: $PipelineJson): void {
+function $applyToTaskJson(
+    command: PersonaCommand,
+    $taskJson: $TaskJson | null,
+    $pipelineJson: $PipelineJson,
+): $side_effect {
     const { personaName, personaDescription } = command;
 
     if ($taskJson !== null) {
@@ -172,7 +180,7 @@ function $applyToTaskJson(command: PersonaCommand, $taskJson: $TaskJson | null, 
         `),
         // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
         // <- TODO: [🚞]
-        // <- TODO: [🧠] What is the propper way of theese `compilePipeline` warnings
+        // <- TODO: [🧠] What is the proper way of these `compilePipeline` warnings
     );
 
     persona.description += spaceTrim('\n\n' + personaDescription);

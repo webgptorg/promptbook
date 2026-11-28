@@ -22,6 +22,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Anthropic Claude Playground`);
 
@@ -60,6 +63,10 @@ async function playground() {
         content: `Write me something about Prague`,
         modelRequirements: {
             modelVariant: 'CHAT',
+            // modelName: 'claude-3-5-sonnet-latest',
+            // modelName: 'claude-3-7-sonnet-latest',
+            modelName: 'claude-4-sonnet-20250514',
+            // modelName: 'claude-4-opus-20250514',
             systemMessage: 'You are an assistant who only speaks in rhymes.',
             temperature: 1,
         },
@@ -70,22 +77,6 @@ async function playground() {
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
     console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
-    /**/
-
-    /*/
-    // TODO: [👏] Make Claude completion models work
-    const completionPrompt = {
-        title: 'Hello',
-        parameters: {},
-        content: `Hello, my name is Alice.`,
-        modelRequirements: {
-            modelVariant: 'COMPLETION',
-        },
-    } as const satisfies Prompt;
-    const completionPromptResult = await anthropicClaudeExecutionTools.callCompletionModel(completionPrompt);
-    console.info({ completionPromptResult });
-    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -103,8 +94,6 @@ async function playground() {
     //========================================/
 }
 
-/**
- * TODO: [main] !!3 Playground with WebGPT / Promptbook.studio anonymous server
- * TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for playground [anthropic-claude playground](src/llm-providers/anthropic-claude/playground/playground.ts) should never be published in any package
+// TODO: [main] !!3 Playground with WebGPT / Promptbook.studio anonymous server
+// TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly

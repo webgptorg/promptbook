@@ -8,9 +8,10 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { $execCommand, $provideScrapersForNode } from '../../src/_packages/node.index';
-import { collectionToJson } from '../../src/collection/collectionToJson';
-import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
+import { createPipelineCollectionFromDirectory } from '../../src/collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
+import { pipelineCollectionToJson } from '../../src/collection/pipeline-collection/pipelineCollectionToJson';
 import { $provideExecutablesForNode } from '../../src/executables/$provideExecutablesForNode';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
@@ -19,10 +20,23 @@ import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: make-promptbook-collection.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 
 program.option('--commit', `Auto commit`, false);
@@ -31,6 +45,9 @@ program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);
 
+/**
+ * Constant for { commit: is commited, reload cache: is cache reloaded, verbose: is verbose }.
+ */
 const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } = program.opts();
 
 makePipelineCollection({ isCommited, isCacheReloaded, isVerbose })
@@ -43,6 +60,9 @@ makePipelineCollection({ isCommited, isCacheReloaded, isVerbose })
         process.exit(0);
     });
 
+/**
+ * Creates pipeline collection.
+ */
 async function makePipelineCollection({
     isCommited,
     isCacheReloaded,
@@ -52,7 +72,7 @@ async function makePipelineCollection({
     isCacheReloaded: boolean;
     isVerbose: boolean;
 }) {
-    console.info(`📖 Make Promptbook library`);
+    console.info(`📖 Make Promptbook collection`);
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
@@ -65,7 +85,7 @@ async function makePipelineCollection({
     const executables = await $provideExecutablesForNode();
     const scrapers = await $provideScrapersForNode({ fs, llm, executables });
 
-    const collection = await createCollectionFromDirectory(
+    const collection = await createPipelineCollectionFromDirectory(
         promptbookSourceDir,
         {
             fs,
@@ -80,28 +100,28 @@ async function makePipelineCollection({
         },
     );
 
-    const collectionJson = await collectionToJson(collection);
+    const collectionJson = await pipelineCollectionToJson(collection);
     const collectionJsonString = JSON.stringify(collectionJson);
 
     const collectionJsonFilePath = join(promptbookSourceDir, 'index.json');
     const collectionJsonFileContent = collectionJsonString + '\n';
 
-    const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
-    const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
+    const collectionTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
+    const collectionTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
 
     console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
     await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');
     console.info(colors.green(`Made ${collectionJsonFilePath}`));
-    await writeFile(libraryTypescriptFilePath, libraryTypescriptFileContent, 'utf-8');
-    console.info(colors.green(`Made ${libraryTypescriptFilePath}`));
+    await writeFile(collectionTypescriptFilePath, collectionTypescriptFileContent, 'utf-8');
+    console.info(colors.green(`Made ${collectionTypescriptFilePath}`));
 
     if (isCommited) {
-        await commit([promptbookSourceDir, '.promptbook'], `📖 Make Promptbook library`);
+        await commit([promptbookSourceDir, '.promptbook'], `📖 Make Promptbook collection`);
     }
 
-    // Note: Making library for templates
+    // Note: Making collection for templates
     // Note: [🌼] Look here how it should look like
 
     const filePath = `./src/other/templates/getTemplatesPipelineCollection.ts`;
@@ -113,20 +133,21 @@ async function makePipelineCollection({
     });
 
     let content = await readFile(filePath, 'utf-8');
-    content = content.split(`@promptbook/core`).join(`../../collection/constructors/createCollectionFromJson`);
-    content = content.split(`@promptbook/types`).join(`../../collection/PipelineCollection`);
+    content = content
+        .split(`@promptbook/core`)
+        .join(`../../collection/pipeline-collection/constructors/createPipelineCollectionFromJson`);
+    content = content.split(`@promptbook/types`).join(`../../collection/pipeline-collection/PipelineCollection`);
     await writeFile(filePath, content, 'utf-8');
 
     if (isCommited) {
-        await commit([filePath, '.promptbook'], `📖 Make Promptbook templates library`);
+        await commit([filePath, '.promptbook'], `📖 Make Promptbook templates collection`);
     }
 
-    console.info(`[ Done 📖 Make Promptbook library ]`);
+    console.info(`[ Done 📖 Make Promptbook collection ]`);
 }
 
-/**
- * Note: [🍠] @@@ Example pipelines vs Pipelines used internally in Promptbook
- * TODO: [🌼] Maybe use `ptbk make --no-interactive` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
- * TODO: [main] !!3 Use `ptbk make --no-interactive` cli command this in WebGPT and Promptbook
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [make-promptbook-collection](scripts/make-promptbook-collection/make-promptbook-collection.ts) should never be published in any package
+// TODO: [🐱‍🚀] Also make Agent collection here during build step
+// Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
+// TODO: [🌼] Maybe use `ptbk make --no-interactive` cli command instead of this script (but figure out what to do with nessesity to have collection commited here)
+// TODO: [main] !!3 Use `ptbk make --no-interactive` cli command this in WebGPT and Promptbook

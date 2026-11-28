@@ -1,0 +1,1 @@
+Note: test-book-components-build is not here but on as Vercel CI/CD pipeline: https://vercel.com/pavol-hejns-projects/book-components/EPnBjrm7GpCpB3xrNM3en7ya5tdU

@@ -9,7 +9,7 @@ import { isRunningInNode } from '../../../../utils/isRunningInWhatever';
  */
 export async function blobToDataurl(source: Blob | File): Promise<string_data_url> {
     if (isRunningInNode() && 'arrayBuffer' in source) {
-        // Note: [☔️] Same 2 lines of code in theese two functions to prevent circular dependency
+        // Note: [☔️] Same 2 lines of code in these two functions to prevent circular dependency
         const buffer = Buffer.from(await source.arrayBuffer());
         const base64 = buffer.toString('base64');
         return `data:${source.type};base64,${base64}` as string_data_url;

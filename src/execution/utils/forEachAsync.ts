@@ -1,5 +1,8 @@
 import type { Promisable } from 'type-fest';
 
+/**
+ * Options for for each async.
+ */
 type ForEachAsyncOptions = {
     /**
      * Maximum number of tasks running in parallel
@@ -15,14 +18,15 @@ type ForEachAsyncOptions = {
  * @param array - Array to iterate over
  * @param options - Options for the function
  * @param callbackfunction - Function to call for each item
- * @public exported from `@promptbook/utils`
  * @deprecated [🪂] Use queues instead
+ *
+ * @public exported from `@promptbook/utils`
  */
 export async function forEachAsync<TItem>(
     array: ReadonlyArray<TItem>,
     options: ForEachAsyncOptions,
     callbackfunction: (value: TItem, index: number, array: ReadonlyArray<TItem>) => Promisable<void>,
-) {
+): Promise<void> {
     const { maxParallelCount = Infinity } = options;
     let index = 0;
 
@@ -36,7 +40,7 @@ export async function forEachAsync<TItem>(
         runningTasks.push(task);
 
         /* not await */ Promise.resolve(task).then(() => {
-            runningTasks = runningTasks.filter((t) => t !== task);
+            runningTasks = runningTasks.filter((runningTask) => runningTask !== task);
         });
 
         if (maxParallelCount < runningTasks.length) {

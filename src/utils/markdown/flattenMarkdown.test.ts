@@ -249,7 +249,7 @@ describe('flattenMarkdown', () => {
         );
     });
 
-    it('should work when there is h2 at begining', () => {
+    it('should work when there is h2 at beginning', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`
@@ -279,7 +279,7 @@ describe('flattenMarkdown', () => {
         );
     });
 
-    it('should work when there is no h1 is not at begining', () => {
+    it('should work when there is no h1 is not at beginning', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`

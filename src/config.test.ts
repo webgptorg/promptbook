@@ -13,6 +13,4 @@ describe('configuration', () => {
     });
 });
 
-/**
- * TODO: [🧠] Maybe more elegant how to prevent accidental costs
- */
+// TODO: [🧠] Maybe more elegant how to prevent accidental costs

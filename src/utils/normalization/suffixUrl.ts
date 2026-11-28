@@ -1,4 +1,4 @@
-import type { string_url } from '../../types/typeAliases';
+import type { string_url } from '../../types/string_url';
 
 /**
  * Adds suffix to the URL

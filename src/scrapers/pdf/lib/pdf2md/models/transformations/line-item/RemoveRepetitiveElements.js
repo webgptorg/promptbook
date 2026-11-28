@@ -1,11 +1,26 @@
 // @flow
 
+/**
+ * Constant for to line item transformation.
+ */
 const ToLineItemTransformation = require('../ToLineItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for { removed annotation }.
+ */
 const { REMOVED_ANNOTATION } = require('../../Annotation');
 
+/**
+ * Constant for { is digit }.
+ */
 const { isDigit } = require('../../../util/string-functions');
 
+/**
+ * Checks h code ignoring spaces and numbers.
+ */
 function hashCodeIgnoringSpacesAndNumbers(string) {
     var hash = 0;
     if (string.trim().length === 0) return hash;
@@ -28,7 +43,7 @@ module.exports = class RemoveRepetitiveElements extends ToLineItemTransformation
     // The idea is the following:
     // - For each page, collect all items of the first, and all items of the last line
     // - Calculate how often these items occur accros all pages (hash ignoring numbers, whitespace, upper/lowercase)
-    // - Delete items occuring on more then 2/3 of all pages
+    // - Delete items occurring on more then 2/3 of all pages
     transform(parseResult /*: ParseResult */) /*: ParseResult */ {
         // find first and last lines per page
         const pageStore = [];

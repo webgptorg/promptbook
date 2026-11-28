@@ -1,7 +1,8 @@
-import type { string_name } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/string_name';
 
 /**
- * @@@
+ * Converts a name to a properly formatted subfolder path for cache storage.
+ * Handles normalization and path formatting to create consistent cache directory structures.
  *
  * @private for `FileCacheStorage`
  */

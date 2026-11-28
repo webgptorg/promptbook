@@ -1,4 +1,4 @@
-import type { task_id } from '../types/typeAliases';
+import type { task_id } from '../types/string_token';
 import { $randomToken } from '../utils/random/$randomToken';
 
 /**
@@ -15,13 +15,11 @@ export class PipelineExecutionError extends Error {
 
         // TODO: [🐙] DRY - Maybe $randomId
         this.id = `error-${$randomToken(
-            8 /* <- TODO: To global config + Use Base58 to avoid simmilar char conflicts   */,
+            8 /* <- TODO: To global config + Use Base58 to avoid similar char conflicts   */,
         )}`;
 
         Object.setPrototypeOf(this, PipelineExecutionError.prototype);
     }
 }
 
-/**
- * TODO: [🧠][🌂] Add id to all errors
- */
+// TODO: [🧠][🌂] Add id to all errors

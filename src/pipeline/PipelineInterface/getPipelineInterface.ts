@@ -6,7 +6,7 @@ import type { PipelineJson } from '../PipelineJson/PipelineJson';
 import type { PipelineInterface } from './PipelineInterface';
 
 /**
- * @@@
+ * Extracts the interface (input and output parameters) from a pipeline.
  *
  * @deprecated https://github.com/webgptorg/promptbook/pull/186
  * @see https://github.com/webgptorg/promptbook/discussions/171

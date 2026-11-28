@@ -1,0 +1,60 @@
+[    1104ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://webgpt.cz/api/register?wallpaperId=tvorim-z-niceho-nic-3jklh2c55izg&url=https%3A%2F%2Fwww.pavolhejny.com%2F:0
+[    1338ms] Error: Minified React error #425; visit https://reactjs.org/docs/error-decoder.html?invariant=425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at rg (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:40170)
+    at https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:103475
+    at oI (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:106225)
+    at oD (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:99173)
+    at https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98980
+    at oO (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98987)
+    at ox (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:94026)
+    at x (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1373)
+    at MessagePort.T (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1903)
+[    1339ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at lg (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:46423)
+    at i (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:121160)
+    at oD (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:99113)
+    at https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98980
+    at oO (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98987)
+    at ox (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:94026)
+    at x (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1373)
+    at MessagePort.T (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1903)
+[    1345ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at lg (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:46423)
+    at i (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:121160)
+    at oD (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:99113)
+    at https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98980
+    at oO (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98987)
+    at ox (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:94026)
+    at x (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1373)
+    at MessagePort.T (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1903)
+[    1349ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at lg (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:46423)
+    at i (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:121160)
+    at oD (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:99113)
+    at https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98980
+    at oO (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98987)
+    at ox (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:94026)
+    at x (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1373)
+    at MessagePort.T (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1903)
+[    1350ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at lg (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:46423)
+    at i (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:121160)
+    at oD (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:99113)
+    at https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98980
+    at oO (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98987)
+    at ox (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:94026)
+    at x (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1373)
+    at MessagePort.T (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1903)
+[    1351ms] Error: Minified React error #423; visit https://reactjs.org/docs/error-decoder.html?invariant=423 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at i (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:120829)
+    at oD (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:99113)
+    at https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98980
+    at oO (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:98987)
+    at oE (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:95739)
+    at ox (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:9:94294)
+    at x (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1373)
+    at MessagePort.T (https://www.pavolhejny.com/_next/static/chunks/framework-114634acb84f8baa.js:33:1903)
+[    2405ms] [WARNING] Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported. https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js#L19 @ https://app.cal.com/_next/static/chunks/8d45cfa440694dce.js:8
+[    2607ms] [WARNING] `markdownToSafeHTML` should not be imported on the client side. @ https://app.cal.com/_next/static/chunks/8d45cfa440694dce.js:8
+[    2701ms] [WARNING] [DEPRECATED] Use `createWithEqualityFn` instead of `create` or use `useStoreWithEqualityFn` instead of `useStore`. They can be imported from 'zustand/traditional'. https://github.com/pmndrs/zustand/discussions/1937 @ https://app.cal.com/_next/static/chunks/8d45cfa440694dce.js:8
+[    2704ms] [WARNING] react-i18next:: You will need to pass in an i18next instance by using initReactI18next @ https://app.cal.com/_next/static/chunks/8d45cfa440694dce.js:8

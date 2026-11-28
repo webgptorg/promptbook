@@ -3,12 +3,13 @@ import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import glob from 'glob-promise';
 import { basename } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
 import { assertsError } from '../../errors/assertsError';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';
+import { findFilesByGlob } from '../../utils/files/findFilesByGlob';
+import type { $side_effect } from '../../utils/organization/$side_effect';
 import { handleActionErrors } from './common/handleActionErrors';
 
 /**
@@ -18,7 +19,7 @@ import { handleActionErrors } from './common/handleActionErrors';
  *
  * @private internal function of `promptbookCli`
  */
-export function $initializePrettifyCommand(program: Program) {
+export function $initializePrettifyCommand(program: Program): $side_effect {
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`
@@ -39,7 +40,7 @@ export function $initializePrettifyCommand(program: Program) {
     prettifyCommand.action(
         handleActionErrors(async (filesGlob, cliOptions) => {
             const { ignore, verbose: isVerbose } = cliOptions;
-            const filenames = await glob(filesGlob!, { ignore });
+            const filenames = await findFilesByGlob(filesGlob!, { ignore });
             //                       <- TODO: [😶]
 
             for (const filename of filenames) {
@@ -79,9 +80,7 @@ export function $initializePrettifyCommand(program: Program) {
     );
 }
 
-/**
- * TODO: [😶] Unite floder listing
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
- */
+// Note: [🟡] Code for CLI command [prettify](src/cli/cli-commands/prettify.ts) should never be published outside of `@promptbook/cli`
+// TODO: [😶] Unite folder listing
+// Note: [💞] Ignore a discrepancy between file name and entity name
+// TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
