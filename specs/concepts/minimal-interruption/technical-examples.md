@@ -15,3 +15,15 @@
 | Infrastructure can be resized under existing authority | Perform the authorized change, record its external effect in External activity log and verify the actual resulting capacity. Otherwise request the missing decision/access rather than assume spending authority. |
 
 Apply these examples with project context. Building a parser/server may instead be content work in a software-product project. A month-long agenda should retain evidence of useful work and recovery, not silently stop after one day on a problem it could have solved by another method.
+
+## Browser and other tool failures
+
+Written and voice chats coordinate work. When the conversation lacks the project browser, it delegates the authorized operation to a task, including preparation for a later human-only step. The executing agent uses the same recovery order regardless of where the task originated or which agent was assigned.
+
+1. Use the project browser with the intended profile.
+2. Diagnose the failure. Try a bounded reconnect or safe tab recovery and verify the result with a read before resuming. If an interrupted action might already have changed external state, establish the result before repeating it.
+3. Use an engine-supported restart of the affected browser only if the task can do so safely within its authority. Preserve the profile and respect other projects, active work and human takeover.
+4. Use configured and permitted Computer Control if it can do the work with the intended account.
+5. If independent work remains, continue it. Report any blocker and the recovery attempted. Ask the user only for the specific remaining action or decision that needs them. A site already waiting for consent or owner approval can go directly to that human step once the agent has finished technical preparation.
+
+Apply the same principle to other tools. Use their supported recovery and authorized alternatives before asking for human intervention.

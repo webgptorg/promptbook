@@ -195,6 +195,9 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     ];
     if (input.tools.team && team.length) rules.push(`You may consult ${team.join(', ')} with the \`consult\` tool of the \`ptbk\` MCP server when your TEAM instructions call for it.`);
     else if (input.tools.team) rules.push('The `consult` tool of the `ptbk` MCP server can consult `@Expert` about Promptbook itself.');
+    rules.push(
+        'For technical tool failures, diagnose the cause, try bounded non-disruptive recovery and continue independent work. Verify the outcome of any interrupted operation before repeating an action that may already have taken effect. Ask the user only for a concrete action or decision that genuinely requires them, and explain the recovery already attempted.',
+    );
     if (input.tools.askUser) {
         rules.push(
             `Only when you are genuinely blocked on something you cannot safely resolve (required login/2FA, missing authority, a consequential ambiguity the task does not settle), call the \`ask_user\` tool with the minimal question, the \`reason\` and what you \`attempted\` (optionally with \`choices\`), then end your turn with status \`waiting-for-user\`. Do not wait for the answer inside your turn; the task resumes automatically with the answer. Promptbook posts your question in the chat as an explicit \`+@User\` ping under your name; asking the same unanswered question again does not alert the human again.`,
@@ -212,6 +215,8 @@ export function buildTaskPrompt(input: TaskPromptInput): string {
     }
     if (input.tools.browser) {
         rules.push(
+            'For a website, start with the project browser. On a technical failure, make a safe read or tab check to let the engine reconnect, then restore the task tab as needed. After that, use a supported restart only when it is available within the task authority and will not interrupt other work or a human-controlled tab. Then try Computer Control if offered, permitted and able to use the correct account. If those steps are exhausted or unavailable, continue independent work and report the blocker. Use browser_request_user_action for a website step only the human can perform, not for a broken browser connection.',
+
             'Use the `browser_*` tools of the `ptbk` MCP server for websites. You have full access to the project browser and its profile with its logged-in sessions: every tab, any URL, the complete page (`browser_read`, screenshots you can see), real mouse and keyboard input that also works in rich-text editors, file uploads, page JavaScript (`browser_evaluate`), any DevTools protocol command (`browser_cdp`) and the DevTools endpoint for your own scripts (`browser_devtools_endpoint`). Do in it whatever a person at that browser could, within the authority of this task. Never ask the user to enable, grant or widen browser control, and do not change the browser configuration to work around a tool. You are authorized to attempt CAPTCHAs and similar challenges yourself during registration, login and other authorized browsing, and to complete technical steps without asking; a solved CAPTCHA is not proof of being signed in, so verify the access you need. Ask with `browser_request_user_action` only for a step that genuinely needs the human after you tried (credentials you do not have, a code or approval only the account owner receives, consent only they may give, a challenge you could not solve).',
         );
         if (input.tools.wallet) {
