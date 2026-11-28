@@ -6,6 +6,7 @@ import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';
 import { ColorValue } from './ColorValue';
 import { CSS_COLORS } from './css-colors';
+import { rgbToHsl } from './internal-utils/rgbToHsl';
 import { isHexColorString } from './isHexColorString';
 import { parseColorString } from './parseColorString';
 import type { ColorChannelSet } from './parsers/ColorChannelSet';
@@ -234,6 +235,24 @@ export class Color extends ColorValue {
 
     protected createColor(red: number, green: number, blue: number, alpha: number): Color {
         return new Color(red, green, blue, alpha);
+    }
+
+    public override toString(): string_color {
+        return this.toHsl();
+    }
+
+    public override toHsl(): string_color {
+        const [h, s, l] = rgbToHsl(this.red, this.green, this.blue);
+        // Convert hue from [0-1] to degrees [0-360]
+        // Convert saturation and lightness from [0-1] to percentage [0-100]
+        const hDegrees = Math.round(h * 360);
+        const sPercent = Math.round(s * 100);
+        const lPercent = Math.round(l * 100);
+        if (this.alpha === 255) {
+            return `hsl(${hDegrees}, ${sPercent}%, ${lPercent}%)`;
+        } else {
+            return `hsla(${hDegrees}, ${sPercent}%, ${lPercent}%, ${Math.round((this.alpha / 255) * 100)}%)`;
+        }
     }
 
     private static fromColorChannels({ red, green, blue, alpha }: ColorChannelSet): WithTake<Color> {
