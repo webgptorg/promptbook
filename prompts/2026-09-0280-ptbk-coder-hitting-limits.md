@@ -20,7 +20,7 @@
 └──────────────────────────────────────────────────────────────────────────────────────┘
 
 Tip: `ptbk coder run` used your default Git config because the coding-agent identity environment variables are incomplete.
-For cleaner commit history, set `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and either `CODING_AGENT_GIT_SIGNING_KEY` or `CODING_AGENT_GPG_KEY_ID`.
+For cleaner commit history, set `CODING_AGENT_GIT_NAME` and either `CODING_AGENT_GIT_SIGNING_KEY` or `CODING_AGENT_GPG_KEY_ID`.
 hejny@Mac vibehack-26-09-10 %
 ```
 

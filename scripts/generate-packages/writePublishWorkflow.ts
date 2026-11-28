@@ -37,13 +37,19 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
             {
                 name: '🔼 Publish new version',
                 on: {
+                    create: null,
                     push: {
                         tags: ['v*'],
                     },
                 },
+                concurrency: {
+                    group: 'legacy-npm-publish',
+                    'cancel-in-progress': false,
+                },
                 jobs: {
                     'publish-npm': {
                         name: 'Publish on NPM package registry',
+                        if: "github.repository == 'webgptorg/promptbook' && (github.event_name == 'push' || (github.event.ref_type == 'branch' && startsWith(github.event.ref, 'legacy-release/')))",
                         'runs-on': 'ubuntu-latest',
                         'timeout-minutes': 120,
                         // <- Note: The bundler can take a long time, so we need to set a higher timeout
@@ -73,6 +79,17 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                                 `),
                             },
                             {
+                                name: 'Validate the legacy release ref',
+                                env: { RELEASE_REF: '${{ github.ref_name }}' },
+                                run: spaceTrim(`
+                                    version="$(node -p 'require("./package.json").version')"
+                                    case "$RELEASE_REF" in
+                                        "v$version"|"legacy-release/$version") ;;
+                                        *) echo "Release ref does not match package.json" >&2; exit 1 ;;
+                                    esac
+                                `),
+                            },
+                            {
                                 name: '🔽 Install dependencies',
                                 run: 'npm ci',
                             },
@@ -85,7 +102,7 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                             ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                 name: `🔼 Publish ${packageFullname}`,
                                 'working-directory': `./packages/${packageBasename}`,
-                                run: 'npm publish --provenance --access public',
+                                run: 'npm publish --provenance --access public --tag legacy',
                                 env: {
                                     /*
                                     npm notice Tarball Details
@@ -118,6 +135,27 @@ function createPublishWorkflowFileContent(packagesMetadata: ReadonlyArray<Packag
                                     //          2) Pass it here https://github.com/webgptorg/promptbook/settings/secrets/actions/NPM_TOKEN
                                 },
                             })),
+                        ],
+                    },
+                    'legacy-github-release': {
+                        name: 'Publish the legacy GitHub release',
+                        needs: 'publish-npm',
+                        'runs-on': 'ubuntu-latest',
+                        permissions: { contents: 'write' },
+                        steps: [
+                            {
+                                uses: 'actions/checkout@v4',
+                                with: { 'persist-credentials': false },
+                            },
+                            {
+                                name: 'Create the versioned legacy archive without replacing the latest release',
+                                env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}' },
+                                run: spaceTrim(`
+                                    version="$(node -p 'require("./package.json").version')"
+                                    gh release create "v$version" --target "$GITHUB_SHA" --prerelease --latest=false \\
+                                        --title "Legacy Promptbook $version" --notes-file "changelog/$version.md"
+                                `),
+                            },
                         ],
                     },
                     /*

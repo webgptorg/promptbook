@@ -1,3 +1,12 @@
+-   Coding-agent commits now use the email resolved by Git. `ptbk coder init` only provisions the agent name and signing key.
+
+-   Published the pre-Reborn maintenance release `0.114.0-51` under npm tag `legacy`, preserving Reborn as `latest`.
+    Release publication can be started by creating `legacy-release/<version>` and produces a pinned GitHub archive.
+
+-   Fixed `ptbk coder verify` looping forever on a `[ ]` prompt that never ran: answering "Not done" appended
+    another identical `Fix` section and offered the same section again. "Not done" now keeps the prompt in the queue
+    unchanged and skips its file for the rest of the run. Added a regression test. Addresses the loop in #325.
+
 -   Added a review-only PRD for a Discord-triggered recording-to-Notion client-intake pilot,
     with an implementation audit, restricted integration permissions, durable recovery, and synthetic-data
     acceptance criteria. The pilot is proposed, not implemented; its assignment remains not-ready.
