@@ -1,3 +1,4 @@
+import type { string_xml } from '../../types/string_markdown';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatParser } from '../_common/FormatParser';
@@ -9,7 +10,7 @@ import { isValidXmlString } from './utils/isValidXmlString';
  * @private still in development [🏢]
  */
 export const XmlFormatParser: FormatParser<
-    string /* <- [0] */,
+    string_xml /* <- [0] */,
     string /* <- [👨‍⚖️] */,
     TODO_any /* <- [1] */,
     TODO_any /* <- [1] */
@@ -18,7 +19,7 @@ export const XmlFormatParser: FormatParser<
 
     mimeType: 'application/xml',
 
-    isValid(value, settings, schema): value is string /* <- [0] */ {
+    isValid(value, settings, schema): value is string_xml /* <- [0] */ {
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);

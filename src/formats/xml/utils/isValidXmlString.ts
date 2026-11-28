@@ -1,25 +1,19 @@
-import { assertsError } from '../../../errors/assertsError';
+import type { string_xml } from '../../../types/string_markdown';
+import { validateXmlString } from './validateXmlString';
 
 /**
- * Function to check if a string is valid XML
+ * Function to check if a string is valid XML.
  *
- * @param value
- * @returns `true` if the string is a valid XML string, false otherwise
+ * @param value - The value to check.
+ * @returns True when the value is a valid XML string.
  *
  * @public exported from `@promptbook/utils`
  */
-export function isValidXmlString(value: string): boolean {
+export function isValidXmlString(value: unknown): value is string_xml {
     try {
-        const parser = new DOMParser();
-        const parsedDocument = parser.parseFromString(value, 'application/xml');
-        const parserError = parsedDocument.getElementsByTagName('parsererror');
-
-        if (parserError.length > 0) {
-            return false;
-        }
+        validateXmlString(value);
         return true;
-    } catch (error) {
-        assertsError(error);
+    } catch {
         return false;
     }
 }
