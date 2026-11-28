@@ -33,6 +33,21 @@ describe('how createMarkdownChart works', () => {
         );
     });
 
+    it('keeps a short task at the end within the chart width', () => {
+        const chart = createMarkdownChart({
+            nameHeader: 'Task',
+            valueHeader: 'Timeline',
+            items: [
+                { title: 'Full', from: 0, to: 10 },
+                { title: 'End', from: 10, to: 10 },
+            ],
+            width: 4,
+            unitName: 'seconds',
+        });
+
+        expect(chart).toContain('░░░▓');
+    });
+
     it('should round boxes to nearest whole number', () => {
         expect(
             createMarkdownChart({
@@ -51,8 +66,8 @@ describe('how createMarkdownChart works', () => {
               | Task   | Timeline |
               |--------|----------|
               | Task 1 | ████     |
-              | Task 2 | ░░░░     |
-              | Task 3 | ░░██     |
+              | Task 2 | ░░▓░     |
+              | Task 3 | ░██░     |
 
               _Note: Each █ represents 2.55 seconds, width of timeline is 10.2 seconds = 4 squares_
 

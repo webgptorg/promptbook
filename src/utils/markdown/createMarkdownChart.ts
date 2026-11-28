@@ -44,20 +44,25 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
     const from = Math.min(...items.map((item) => item.from));
     const to = Math.max(...items.map((item) => item.to));
 
-    const scale = width / (to - from);
+    const scale = to === from ? 0 : width / (to - from);
 
     const table: Array<Array<string_markdown_text>> = [[nameHeader, valueHeader]];
 
     for (const item of items) {
-        const before = Math.round((item.from - from) * scale);
-        const during = Math.round((item.to - item.from) * scale);
+        const scaledDuration = Math.round((item.to - item.from) * scale);
+        const during = Math.min(width, Math.max(1, scaledDuration));
+        const before = Math.min(width - during, Math.floor((item.from - from) * scale));
         const after = width - before - during;
+        const durationGlyph = scaledDuration === 0 ? '▓' : '█';
 
-        table.push([removeEmojis(item.title).trim(), '░'.repeat(before) + '█'.repeat(during) + '░'.repeat(after)]);
+        table.push([
+            removeEmojis(item.title).trim(),
+            '░'.repeat(before) + durationGlyph.repeat(during) + '░'.repeat(after),
+        ]);
     }
 
     const legend = `_Note: Each █ represents ${numberToString(
-        1 / scale,
+        width > 0 ? (to - from) / width : 0,
     )} ${unitName}, width of ${valueHeader.toLowerCase()} is ${numberToString(
         to - from,
     )} ${unitName} = ${width} squares_`;
