@@ -79,6 +79,8 @@ export const ALL_PERMISSIONS = [
     'integrations.read',
     'integrations.manage',
     'browser.control',
+    'ai-tools.read',
+    'ai-tools.manage',
 ] as const;
 
 /**
@@ -99,7 +101,7 @@ export function permissionsOfRole(role: Role): readonly Permission[] {
         case 'owner':
             return ALL_PERMISSIONS;
         case 'admin':
-            return ALL_PERMISSIONS.filter((permission) => permission !== 'browser.control');
+            return ALL_PERMISSIONS.filter((permission) => permission !== 'browser.control' && permission !== 'ai-tools.manage');
         case 'member':
             return ['agents.read', 'agents.write', 'agents.run', 'chats.read', 'chats.write', 'files.read', 'files.write', 'wallet.read', 'members.read', 'runs.read', 'tasks.read', 'triggers.read', 'integrations.read'];
         case 'viewer':
@@ -187,7 +189,7 @@ export type StoredInvite = { readonly id: string; readonly role: Role; readonly 
 type Joining = { request: AccessRequest; ticketId: string | null; dashboardUserId: string | null; codeDigest: string; pollDigest: string | null; attempts: number; state: 'pending' | 'approved' | 'declined'; credential?: NewPasskey; memberId?: string; passkeyId?: string };
 
 /** Content-free access audit entries, in a durable hash chain. @private App gateway */
-export type AccessAudit = { readonly id: string; readonly seq: number; readonly at: string; readonly actor: { readonly kind: 'member'; readonly memberId: string } | { readonly kind: 'system' }; readonly action: string; readonly target: { readonly kind: string; readonly id: string; readonly name: null } | null; readonly outcome: 'success' | 'denied' | 'failed'; readonly client: StoredSession['client']; readonly prevHash: string | null; readonly details: { readonly code: string } | null; readonly hash: string };
+export type AccessAudit = { readonly id: string; readonly seq: number; readonly at: string; readonly actor: { readonly kind: 'member'; readonly memberId: string } | { readonly kind: 'system' }; readonly action: string; readonly target: { readonly kind: string; readonly id: string; readonly name: null } | null; readonly outcome: 'success' | 'denied' | 'failed'; readonly client: StoredSession['client']; readonly prevHash: string | null; readonly details: { readonly code: string } | { readonly method: 'account' | 'api-key' } | null; readonly hash: string };
 
 /** The additive v2 migration preserves every existing member, passkey, session and pending setup secret. */
 type AccessState = { v: 2; orgId: string; members: StoredMember[]; passkeys: StoredPasskey[]; sessions: StoredSession[]; setup?: { secretDigest: string; expiresAt: string }; joining: Joining[]; spent: { id: string; until: number }[]; acks: HeartbeatAck[]; revocations: HeartbeatAck[]; invites: StoredInvite[]; dashboardRemovals: boolean; audit: AccessAudit[] };
@@ -278,11 +280,11 @@ export class AccessStore {
     }
 
     /** Serializes read/modify/write; only a durably written draft becomes visible to authorization. */
-    private mutate<T>(operation: (draft: AccessState) => T): Promise<T> {
+    private mutate<T>(operation: (draft: AccessState) => T | Promise<T>): Promise<T> {
         const task = this.writes.then(async () => {
             const draft = structuredClone(this.state);
             this.prune(draft);
-            const result = operation(draft);
+            const result = await operation(draft);
             try {
                 if (this.writeFailed || JSON.stringify(draft) !== JSON.stringify(this.state)) await writePrivateFile(this.directory, ACCESS_FILE, `${JSON.stringify(draft, null, 2)}\n`);
             } catch (error) {
@@ -300,8 +302,8 @@ export class AccessStore {
     }
 
     /** Rechecks current authority inside the write queue; even a racing revocation cannot grant stale authority. */
-    private async authorized<T>(actor: Actor | undefined, permission: Permission, action: string, kind: string | undefined, id: string | undefined, operation: (state: AccessState) => T, stepUp = true): Promise<T> {
-        const result = await this.mutate(state => {
+    private async authorized<T>(actor: Actor | undefined, permission: Permission, action: string, kind: string | undefined, id: string | undefined, operation: (state: AccessState) => T | Promise<T>, stepUp = true): Promise<T> {
+        const result = await this.mutate(async state => {
             if (actor && actor !== DESKTOP_OWNER) {
                 const session = state.sessions.find(item => item.id === actor.sessionId && item.memberId === actor.memberId);
                 const member = state.members.find(item => item.id === actor.memberId && item.status === 'active');
@@ -310,7 +312,7 @@ export class AccessStore {
                     : stepUp && (!session.stepUpAt || Date.now() - Date.parse(session.stepUpAt) >= STEP_UP_WINDOW_MS) ? 'step-up-required' : undefined;
                 if (code) { this.auditIn(state, action, actor, kind, id, 'denied', code); return { denied: code } as const; }
             }
-            return { value: operation(state) };
+            return { value: await operation(state) };
         });
         if ('denied' in result && result.denied) throw new AccessDenied(result.denied);
         return (result as { value: T }).value;
@@ -318,6 +320,11 @@ export class AccessStore {
 
     /** Waits for the last write and propagates its failure. */
     public async flush(): Promise<void> { await this.lastWrite; }
+
+    /** Serializes a verified tool credential promotion with member/session revocation. */
+    public async commitAiToolCredentials<T>(actor: Actor, id: string, operation: () => Promise<T>): Promise<T> {
+        return await this.authorized(actor, 'ai-tools.manage', 'ai-tool.sign-in.complete', 'ai-tool', id, operation, false);
+    }
 
     /** Expires requests durably before reporting their count or acknowledgments. */
     public async settle(): Promise<void> { await this.mutate(() => undefined); }
@@ -492,14 +499,14 @@ export class AccessStore {
     private closeRequest(state: AccessState, entry: Joining, acknowledge = true): void { entry.state = 'declined'; delete entry.credential; if (acknowledge && entry.ticketId) this.ack(state, entry.ticketId, 'declined'); }
 
     /** Approves once, with per-request brute-force protection and an atomic member/passkey transition. */
-    public async approveAccess(id: string, code: string, role: Role, actor?: Actor): Promise<{ kind: 'approved'; member: StoredMember } | { kind: 'not-found' | 'access-code-mismatch' }> {
+    public async approveAccess(id: string, code: string, role: Role, actor?: Actor): Promise<{ kind: 'approved'; member: StoredMember } | { kind: 'not-found' } | { kind: 'access-code-mismatch'; attemptsRemaining: number }> {
         return await this.authorized(actor, 'members.manage', 'access-request.approve', 'access-request', id, state => {
             const entry = state.joining.find(item => item.request.id === id && item.state === 'pending');
             if (!entry || !entry.credential) return { kind: 'not-found' };
             if (!digestsEqual(digest(code), entry.codeDigest)) {
                 entry.attempts++; if (entry.attempts >= api.MAX_ACCESS_CODE_ATTEMPTS) this.closeRequest(state, entry);
                 this.auditIn(state, 'access-request.approve', actor, 'access-request', id, 'failed', 'access-code-mismatch');
-                return { kind: 'access-code-mismatch' };
+                return { kind: 'access-code-mismatch', attemptsRemaining: Math.max(0, api.MAX_ACCESS_CODE_ATTEMPTS - entry.attempts) };
             }
             const member = this.addMemberTo(state, { displayName: entry.request.displayName, role, dashboardUserId: entry.dashboardUserId!, joinedAt: entry.request.createdAt, ticketId: entry.ticketId! });
             const passkey = this.storePasskey(state, member.id, entry.credential);
@@ -595,12 +602,12 @@ export class AccessStore {
     }
 
     /** Adds a content-free hash-chained audit record to the same transaction as the access change. */
-    private auditIn(state: AccessState, action: string, actor?: Actor, kind?: string, id?: string, outcome: AccessAudit['outcome'] = 'success', code?: string): void {
+    private auditIn(state: AccessState, action: string, actor?: Actor, kind?: string, id?: string, outcome: AccessAudit['outcome'] = 'success', code?: string, details?: AccessAudit['details']): void {
         const previous = state.audit.at(-1);
-        const entry: Omit<AccessAudit, 'hash'> = { id: newOpaqueId(), seq: (previous?.seq ?? 0) + 1, at: new Date().toISOString(), actor: actor ? { kind: 'member', memberId: actor.memberId } : { kind: 'system' }, action, target: kind && id ? { kind, id, name: null } : null, outcome, client: actor?.client ?? null, prevHash: previous?.hash ?? null, details: code ? { code } : null };
+        const entry: Omit<AccessAudit, 'hash'> = { id: newOpaqueId(), seq: (previous?.seq ?? 0) + 1, at: new Date().toISOString(), actor: actor ? { kind: 'member', memberId: actor.memberId } : { kind: 'system' }, action, target: kind && id ? { kind, id, name: null } : null, outcome, client: actor?.client ?? null, prevHash: previous?.hash ?? null, details: code ? { code } : details ?? null };
         const hash = digest(JSON.stringify([entry.id, entry.seq, entry.at, entry.actor, entry.action, entry.target, entry.outcome, entry.client, entry.prevHash, entry.details]));
         state.audit.push({ ...entry, hash });
     }
     /** Records a denied API operation or a chat retry without storing its body or credentials. */
-    public async recordAudit(action: string, actor: Actor, kind?: string, id?: string, outcome: AccessAudit['outcome'] = 'success', code?: string): Promise<void> { await this.mutate(state => this.auditIn(state, action, actor, kind, id, outcome, code)); }
+    public async recordAudit(action: string, actor: Actor, kind?: string, id?: string, outcome: AccessAudit['outcome'] = 'success', code?: string, details?: AccessAudit['details']): Promise<void> { await this.mutate(state => this.auditIn(state, action, actor, kind, id, outcome, code, details)); }
 }

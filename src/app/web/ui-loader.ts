@@ -8,6 +8,7 @@ import { api, protocol, releaseTools } from '../../vendor/app-platform.js';
 import { APP_BUILD_PROFILE, BUILTIN_STAGING_POLICY, CONFORMANCE_BUILD, uiTrustDescription } from '../build.js';
 import { createPrivateFile, ensurePrivateDirectory, readPrivateFile, writePrivateFile } from '../files.js';
 import { httpsRequest, type TestTlsOptions } from '../net.js';
+import type { ContractResponse } from '../../vendor/app-platform.js';
 
 /**
  * The contract's protocol and release tooling as this module uses them (the vendored bundle is untyped JavaScript).
@@ -248,6 +249,11 @@ export class UiLoader {
     private timer?: NodeJS.Timeout;
     private delayTimer?: NodeJS.Timeout;
     private running?: Promise<void>;
+    private periodicDue?: number;
+    private delayedDue?: number;
+    private lastRequested?: number;
+    private changeRevision = 0;
+    private readonly listeners = new Set<() => void>();
     private readonly abort = new AbortController();
 
     private constructor(
@@ -348,7 +354,11 @@ export class UiLoader {
         }
         // Under `manual` nothing installs by itself: a check runs only when the owner asks for one (`check()`).
         if (!this.enabled || this.options.policy.kind === 'manual') return;
-        this.timer = setInterval(() => void this.check(), CHECK_INTERVAL_MS);
+        this.periodicDue = Date.now() + CHECK_INTERVAL_MS;
+        this.timer = setInterval(() => {
+            this.periodicDue = Date.now() + CHECK_INTERVAL_MS;
+            void this.check();
+        }, CHECK_INTERVAL_MS);
         this.timer.unref();
         void this.check();
     }
@@ -357,6 +367,8 @@ export class UiLoader {
     public async stop(): Promise<void> {
         clearInterval(this.timer);
         clearTimeout(this.delayTimer);
+        this.periodicDue = undefined;
+        this.delayedDue = undefined;
         this.abort.abort();
         await this.running;
     }
@@ -365,6 +377,9 @@ export class UiLoader {
     private get enabled(): boolean {
         return Boolean(this.options.trust && this.options.releaseUrl);
     }
+
+    /** An unconfigured loader cannot offer update management for a verified UI bundle. */
+    public get available(): boolean { return this.enabled; }
 
     /** Persists the state (temporary file, fsync, rename). */
     private async save(): Promise<void> {
@@ -423,6 +438,39 @@ export class UiLoader {
         await this.runCheck(false);
     }
 
+    /** A browser check uses exactly the scheduled policy; requesting it cannot approve a delayed release. */
+    public async checkNow(): Promise<ContractResponse<UiUpdateCheckView>> {
+        if (this.options.policy.kind === 'manual') return { kind: 'problem', problem: api.createProblem('update-policy-manual') };
+        const now = Date.now();
+        if (this.lastRequested !== undefined && now - this.lastRequested < Number(api.UPDATE_CHECK_MIN_INTERVAL_MS)) {
+            return { kind: 'problem', problem: api.createProblem('update-check-too-soon') };
+        }
+        this.lastRequested = now;
+        await this.check();
+        if (!this.enabled) {
+            this.record('unavailable', null);
+            this.changeRevision++;
+            for (const listener of this.listeners) listener();
+        }
+        return { kind: 'ok', data: this.lastCheck! };
+    }
+
+    /** Monotonic revision of completed checks, including refused and failed checks. */
+    public get revision(): number { return this.changeRevision; }
+
+    /** The verified bundle actually served, never the built-in fallback's engine version. */
+    public get servedVersion(): string | null { return this.options.trust ? this.state.active?.version ?? null : null; }
+
+    /** Wait without polling or retaining a listener after the event-stream connection closes. */
+    public async waitForChange(since: number, signal: AbortSignal): Promise<void> {
+        if (since !== this.changeRevision || signal.aborted) return;
+        await new Promise<void>(resolve => {
+            const done = (): void => { this.listeners.delete(done); signal.removeEventListener('abort', done); resolve(); };
+            this.listeners.add(done);
+            signal.addEventListener('abort', done, { once: true });
+        });
+    }
+
     /** The explicit pairing command approves one first install, with every check except the delay. */
     public async approveInitialBundle(): Promise<void> {
         await this.running;
@@ -435,8 +483,14 @@ export class UiLoader {
         if (!this.enabled) return;
         if (this.running) return await this.running;
         clearTimeout(this.delayTimer);
-        this.running = this.checkOnce(approveInitial).finally(() => {
+        this.delayedDue = undefined;
+        this.running = this.checkOnce(approveInitial).catch(() => {
+            this.record('unavailable', null);
+            this.options.log?.('The UI update check failed; the next scheduled check remains armed.', 'warning');
+        }).finally(() => {
             this.running = undefined;
+            this.changeRevision++;
+            for (const listener of this.listeners) listener();
         });
         await this.running;
     }
@@ -555,7 +609,9 @@ export class UiLoader {
                 this.record('refused', version, { reason: 'delay-not-elapsed', ...(verdict.eligibleAt ? { eligibleAt: new Date(verdict.eligibleAt) } : {}) });
                 if (verdict.eligibleAt && this.options.policy.kind !== 'manual') {
                     const delay = Math.max(1, new Date(verdict.eligibleAt).getTime() - Date.now()) + randomBytes(2).readUInt16BE() % 5001;
-                    this.delayTimer = setTimeout(() => void this.check(), Math.min(delay, 2_147_483_647)).unref();
+                    const bounded = Math.min(delay, 2_147_483_647);
+                    this.delayedDue = Date.now() + bounded;
+                    this.delayTimer = setTimeout(() => { this.delayedDue = undefined; void this.check(); }, bounded).unref();
                 }
                 return false;
             default:
@@ -698,6 +754,7 @@ export class UiLoader {
             releaseLogIndex: active?.logIndex ?? null,
             releaseLogEntryUuid: null,
             lastUpdateCheck: this.lastCheck ?? null,
+            nextCheckAt: this.periodicDue === undefined && this.delayedDue === undefined ? null : wholeSeconds(Math.min(this.periodicDue ?? Infinity, this.delayedDue ?? Infinity), 'ceil'),
         };
     }
 }

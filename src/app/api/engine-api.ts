@@ -23,6 +23,8 @@ import { EngineApiState, textDigest, type AgentVisibility } from './state.js';
 import { memberHandlers, memberView, MEMBER_ACTIONS } from './members.js';
 import { walletHandlers } from './wallet.js';
 import { taskHandlers, taskKeyOf } from './tasks.js';
+import type { UiLoader } from '../web/ui-loader.js';
+import type { ProjectAiTools } from '../ai-tools.js';
 
 /**
  * Capabilities this engine advertises in `GET /engine` (every route of each works). The core API needs none.
@@ -72,6 +74,8 @@ export type EngineApiDeps = {
     readonly security: () => AppSecurityFacts | undefined;
     /** `GET /security` → `ui`: the served engine UI (a verified bundle, or the engine's own page) and its last check. */
     readonly ui: () => Record<string, unknown>;
+    readonly updates?: Pick<UiLoader, 'checkNow' | 'revision' | 'servedVersion' | 'waitForChange' | 'available'>;
+    readonly aiTools?: ProjectAiTools;
     readonly log?: (text: string, level: 'info' | 'warning' | 'error') => void;
 };
 
@@ -279,8 +283,9 @@ export class EngineApi {
 
     /** The capabilities available at this stage of the engine's lifecycle. */
     private get capabilities(): readonly { readonly id: string; readonly version: number }[] {
-        if (this.deps.agenda) return [...ADVERTISED_CAPABILITIES, { id: 'wallet', version: 1 }, { id: 'tasks', version: 1 }];
-        return this.deps.onboarding ? [...ADVERTISED_CAPABILITIES, { id: 'files', version: 1 }] : ADVERTISED_CAPABILITIES;
+        const base = [...ADVERTISED_CAPABILITIES, ...(this.deps.updates?.available ? [{ id: 'updates', version: 1 }] : []), ...(this.deps.aiTools ? [{ id: 'ai-tools', version: 1 }] : [])];
+        if (this.deps.agenda) return [...base, { id: 'wallet', version: 1 }, { id: 'tasks', version: 1 }];
+        return this.deps.onboarding ? [...base, { id: 'files', version: 1 }] : base;
     }
 
     /** Serves one `/api/v1/...` request of a signed-in member. */
@@ -289,6 +294,10 @@ export class EngineApi {
         const routePath = new URL(request.url).pathname;
         const uploads = request.method === 'POST' && routePath === api.ENGINE_API_PREFIX + '/files';
         const answer = request.method === 'POST' && routePath === api.ENGINE_API_PREFIX + '/onboarding/answer';
+        if (request.method === 'POST' && routePath.startsWith(api.ENGINE_API_PREFIX + '/ai-tools/')) {
+            const bounded = await boundBody(request, 64 * 1024);
+            return bounded ? await handler(bounded) : problemResponse('payload-too-large');
+        }
         if (uploads || answer) {
             if (!actor.permissions.includes('settings.manage')) return problemResponse('forbidden', { requiredPermission: 'settings.manage' });
             if (uploads && !this.deps.onboarding) return problemResponse('capability-not-supported');
@@ -477,7 +486,7 @@ export class EngineApi {
                 agentId: card.agent ? this.authorRef(card.agent).key : null, commit: card.state === 'completed' && card.commit && /^[0-9a-f]{7,64}$/.test(card.commit) ? card.commit : null,
                 reopened: card.reopened ?? false, startedAt: iso(card.startedAt, '') || null,
                 endedAt: ['completed', 'failed', 'cancelled', 'retired'].includes(card.state) && card.endedAt ? iso(card.endedAt, '') || null : null })),
-            recheck: detail?.recheck ? { cause: detail.recheck.cause.trim().slice(0, 500) || 'The reply failed.', nextAt: iso(detail.recheck.nextAt, times.updatedAt), rounds: Math.max(1, Math.floor(detail.recheck.rounds)) } : null,
+            recheck: detail?.recheck ? { cause: detail.recheck.cause.trim().slice(0, 500) || 'The reply failed.', nextAt: iso(detail.recheck.nextAt, times.updatedAt), rounds: Math.max(1, Math.floor(detail.recheck.rounds)), aiToolId: detail.recheck.aiToolId ?? null } : null,
         };
     }
 
@@ -625,11 +634,25 @@ export class EngineApi {
     }
 
     /** Live changes as `agent.status`, `agent.changed` and `chat.changed` events until the client leaves. */
-    private async *eventStream(signal: AbortSignal): AsyncGenerator<StreamItem> {
+    private async *eventStream(signal: AbortSignal, actor?: Actor, access?: AccessStore): AsyncGenerator<StreamItem> {
         const agenda = this.deps.agenda;
+        const canReadTools = (): boolean => {
+            if (!actor?.permissions.includes('ai-tools.read')) return false;
+            if (!access) return true;
+            const member = access.member(actor.memberId);
+            return Boolean(member?.status === 'active' && access.permissionsOf(member).includes('ai-tools.read') && access.sessions(actor.memberId).some(session => session.id === actor.sessionId));
+        };
+        let updateRevision = this.deps.updates?.revision;
+        let toolRevision = this.deps.aiTools?.revision ?? 0;
         if (!agenda) {
             // The setup shell may subscribe before a project exists. There are no project events yet.
-            while (!signal.aborted) await pause(EVENTS_WAIT_MS, signal);
+            while (!signal.aborted) {
+                if (!this.deps.updates) { await pause(EVENTS_WAIT_MS, signal); continue; }
+                await this.deps.updates.waitForChange(updateRevision ?? 0, signal);
+                if (signal.aborted) return;
+                updateRevision = this.deps.updates.revision;
+                yield { id: null, event: { type: 'updates.changed', uiVersion: this.deps.updates.servedVersion } };
+            }
             return;
         }
         let since = agenda.currentRevision;
@@ -640,9 +663,17 @@ export class EngineApi {
             const waitMs = Math.min(EVENTS_WAIT_MS, Math.max(0, stepWake - Date.now()));
             const wake = new AbortController();
             const stop = (): void => wake.abort(); signal.addEventListener('abort', stop, { once: true });
-            try { await Promise.race([agenda.waitForChange(since, waitMs), pause(waitMs, wake.signal)]); }
+            try { await Promise.race([agenda.waitForChange(since, waitMs), pause(waitMs, wake.signal), ...(this.deps.updates ? [this.deps.updates.waitForChange(updateRevision ?? 0, wake.signal)] : []), ...(this.deps.aiTools && canReadTools() ? [this.deps.aiTools.waitForChange(toolRevision, wake.signal)] : [])]); }
             finally { wake.abort(); signal.removeEventListener('abort', stop); }
             if (signal.aborted) return;
+            if (this.deps.updates && this.deps.updates.revision !== updateRevision) {
+                updateRevision = this.deps.updates.revision;
+                yield { id: null, event: { type: 'updates.changed', uiVersion: this.deps.updates.servedVersion } };
+            }
+            if (this.deps.aiTools && canReadTools()) {
+                for (const aiToolId of this.deps.aiTools.changedSince(toolRevision)) yield { id: null, event: { type: 'ai-tool.changed', aiToolId } };
+                toolRevision = this.deps.aiTools.revision;
+            }
             since = agenda.currentRevision;
             await pause(Math.min(STREAM_POLL_MS, Math.max(0, stepWake - Date.now())), signal);
             const next = await this.eventDigest();
@@ -713,12 +744,13 @@ export class EngineApi {
         if (facts?.dashboardUrl) destinations.add(new URL(facts.dashboardUrl).host);
         for (const relay of facts?.relays ?? []) destinations.add(relay.relay);
         if (facts?.acmeDirectoryUrl) destinations.add(new URL(facts.acmeDirectoryUrl).host);
+        if (facts?.ctEnabled) destinations.add('crt.sh');
         const heartbeat = facts?.heartbeat;
         return {
             engine: { version: ENGINE_VERSION, releaseLogIndex: null, releaseLogEntryUuid: null },
-            update: { status: updateStatus, policy: autoUpdate ? 'auto' : 'manual', pinnedVersion: null, availableVersion: updateStatus === 'available' && update?.latest ? update.latest : null, eligibleAt: null },
+            update: { status: updateStatus, policy: autoUpdate ? 'auto' : 'manual', pinnedVersion: null, availableVersion: updateStatus === 'available' && update?.latest ? update.latest : null, eligibleAt: null, checkedAt: update?.checkedAt ?? null, command: null },
             ui: this.deps.ui(),
-            tls: { certificateSha256: facts?.certificate?.sha256 ?? '0'.repeat(64), notAfter: facts?.certificate?.notAfter ?? new Date(0).toISOString(), lastCtCheck: null },
+            tls: { certificateSha256: facts?.certificate?.sha256 ?? '0'.repeat(64), notAfter: facts?.certificate?.notAfter ?? new Date(0).toISOString(), lastCtCheck: facts?.lastCtCheck ?? null },
             relays: (facts?.relays ?? []).map((relay) => ({ hostname: relay.relay, status: relayStatus(relay.state), since: iso(relay.since, this.startedAt), lastPingRttMs: null })),
             hostnames: facts?.hostname ? [{ hostname: facts.hostname, kind: 'default', certificateStatus: certificateStatus(), claimRegistered: null }] : [],
             lastHeartbeat: heartbeat?.body ? { sentAt: iso(heartbeat.at, this.startedAt), body: heartbeat.body, signature: null } : null,
@@ -732,7 +764,20 @@ export class EngineApi {
         ...taskHandlers(includeHistory => this.agenda.taskReadSnapshot(includeHistory), opaqueIdOf, page),
         ...walletHandlers(() => this.agenda.wallet),
         ...memberHandlers(() => this.deps.hostname(), page),
-        getOnboarding: async ({ actor }) => ok(this.deps.onboarding?.state() ?? (actor.role === 'owner' ? this.deps.recovery?.state() : undefined) ?? completedOnboarding),
+        listAiTools: async () => await this.deps.aiTools!.list(),
+        getAiTool: async ({ params }) => await this.deps.aiTools!.get(String(params.aiToolId)),
+        checkAiTool: async ({ params, actor }) => await this.deps.aiTools!.check(String(params.aiToolId), actor),
+        startAiToolSignIn: async ({ params, body, actor, access }) => await this.deps.aiTools!.start(String(params.aiToolId), (body as { method: 'account' | 'api-key' }).method, actor, access),
+        getAiToolSignIn: async ({ params, actor }) => await this.deps.aiTools!.read(String(params.aiToolId), String(params.signInId), actor),
+        answerAiToolSignIn: async ({ params, actor, body }) => await this.deps.aiTools!.answer(String(params.aiToolId), String(params.signInId), actor, body as Readonly<Record<string, unknown>>),
+        cancelAiToolSignIn: async ({ params, actor }) => await this.deps.aiTools!.cancel(String(params.aiToolId), String(params.signInId), actor),
+        signOutAiTool: async ({ params, actor, access }) => await this.deps.aiTools!.signOut(String(params.aiToolId), actor, access),
+        checkForUiUpdate: async ({ actor, access }) => {
+            const result = await this.deps.updates!.checkNow();
+            await access.recordAudit('updates.ui-check', actor, undefined, undefined, result.kind === 'ok' ? 'success' : 'failed', result.kind === 'problem' ? result.problem.code : undefined);
+            return result;
+        },
+        getOnboarding: async ({ actor }) => ok(this.deps.onboarding?.state() ?? (!this.deps.aiTools && actor.role === 'owner' ? this.deps.recovery?.state() : undefined) ?? completedOnboarding),
         answerOnboarding: async ({ body, actor }) => {
             if (this.deps.recovery && actor.role !== 'owner') return fail('forbidden');
             const session = this.deps.onboarding ?? this.deps.recovery;
@@ -878,7 +923,7 @@ export class EngineApi {
             const status = this.agentStatus(String(params.agentId));
             return status ? ok(status) : fail('not-found');
         },
-        streamEvents: async ({ signal }) => ok(this.eventStream(signal)),
+        streamEvents: async ({ signal, actor, access }) => ok(this.eventStream(signal, actor, access)),
         listFolders: async ({ query, state }) => page(state.folders(), query),
         createFolder: async ({ body, state }) => {
             const folder = await state.createFolder((body as { name: string }).name);

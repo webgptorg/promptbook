@@ -59,7 +59,7 @@ if (process.argv[2] === 'session') {
         await saveOnboarding(project,draft);
         onboarding = new OnboardingSession(project,draft,new OnboardingUploads(join(directory,'uploads')),process.env,async()=>{throw new Error('This target does not publish a project.');});
     }
-    const api = new EngineApi({onboarding,projectRoot:directory,stateDirectory:join(directory,'api'),engineId:()=>connection.view().engineId,hostname:()=>connection.view().hostname,dashboardUrl:()=>connection.view().dashboardUrl,security:()=>connection.securityFacts(),ui:()=>loader.status('0'.repeat(64))});
+    const api = new EngineApi({onboarding,updates:loader,projectRoot:directory,stateDirectory:join(directory,'api'),engineId:()=>connection.view().engineId,hostname:()=>connection.view().hostname,dashboardUrl:()=>connection.view().dashboardUrl,security:()=>connection.securityFacts(),ui:()=>loader.status('0'.repeat(64))});
     const connection = new AppConnection({directory,env:process.env,onChange:()=>{},figures:()=>({agents:0,members:0,update:'none'}),
         log:(message)=>process.stderr.write(`${message}\n`),web:{certificateSource:'dev-ca',api:(request,actor,access)=>api.handle(request,actor,access),documents:async(request,actor)=>onboarding ? onboardingDocuments(request,actor,onboarding,loader,connection.view().engineId) : (await loader.serve(request)) ?? new Response('Access conformance engine')}});
     await connection.start();

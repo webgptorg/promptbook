@@ -38,6 +38,8 @@ export type ChatAgentChoice = {
  * @private chats
  */
 export type ChatRecheckView = {
+    /** The AI tool whose credentials must be repaired before another automatic attempt. */
+    readonly aiToolId?: string;
     /** The chat's name. */
     readonly chat: string;
     /** The last failure. */

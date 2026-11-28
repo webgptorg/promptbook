@@ -62,7 +62,7 @@ assert.equal(snapshot.service.state, "pause");
 assert.equal(snapshot.localApi.state, "ready");
 assert.ok(snapshot.tools.items.some(tool => tool.name === "gemini"));
 ' "$version"
-request api/history | grep -F 'ptbk: Initialize project' >/dev/null
+request api/history | grep -F '`ptbk` `project.setup` - Initialize project' >/dev/null
 
 dashboard_ready=0
 for attempt in $(seq 1 10); do

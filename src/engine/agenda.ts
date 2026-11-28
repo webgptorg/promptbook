@@ -79,7 +79,9 @@ import {
     workKindOf,
 } from './generated.js';
 import type { RecoveryTarget } from '../onboarding/recovery.js';
-import { HarnessPool, instanceEnvironment } from './harnesses.js';
+import { HarnessPool, instanceEnvironment, accountHome, nativeSetupTool } from './harnesses.js';
+import { aiToolId, type AiToolsBackend, type AiToolTarget } from '../app/ai-tools.js';
+import { parseEnvironmentReference } from '../tools/environment.js';
 import { domainAttention } from './attention.js';
 import { HealthSubEngine, type CachePreview, type SwapPlan } from './health.js';
 import type { TabControlView } from '../browser/tab-control.js';
@@ -953,7 +955,7 @@ export class Agenda {
                 // Restored without resetting its backoff: an overdue round is one due check now, never a catch-up burst.
                 const saved = rechecks[stored.chat.name];
                 const recheck = saved ? { ...saved, ...restoreProgressiveWait(saved, WAITING_POLICIES.chatReply) } : undefined;
-                if (recheck && Date.parse(recheck.nextAt) > Date.now() && recheck.conditions === conditions) {
+                if (recheck && (recheck.aiToolId || Date.parse(recheck.nextAt) > Date.now() && recheck.conditions === conditions)) {
                     this.armChatRecheck(stored.chat.name, recheck);
                     continue;
                 }
@@ -1843,7 +1845,7 @@ export class Agenda {
 
     /** Failed chat replies waiting for their automatic recheck (shared by every client). */
     private chatRecheckViews(): ChatRecheckView[] {
-        return [...this.chatRechecks.values()].filter((entry) => entry.timer).map((entry) => ({ chat: entry.name, cause: entry.schedule.cause, nextAt: entry.schedule.nextAt, rounds: entry.schedule.rounds }));
+        return [...this.chatRechecks.values()].filter((entry) => entry.timer || entry.schedule.aiToolId).map((entry) => ({ chat: entry.name, cause: entry.schedule.cause, nextAt: entry.schedule.nextAt, rounds: entry.schedule.rounds, ...(entry.schedule.aiToolId ? { aiToolId: entry.schedule.aiToolId } : {}) }));
     }
 
     /** Reads definitions, inventory and retained results once for every requested chat, including list views. */
@@ -2247,16 +2249,19 @@ export class Agenda {
             return;
         }
         const now = Date.now();
+        const blockedAiTool = this.aiToolNeedingSignIn(cause);
         const schedule: ChatReplyRecheck = {
             ...nextRecheck(this.chatRechecks.get(nameKey(name))?.schedule, { cause, conditions: this.toolConditions() }, withInitialDelay(WAITING_POLICIES.chatReply, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || undefined), now),
             ...(agent ? { agent } : {}),
             ...(owed ? { followUp: true } : {}),
+            ...(blockedAiTool ? { aiToolId: blockedAiTool } : {}),
         };
         const { rounds, equivalent } = schedule;
         this.armChatRecheck(stored.chat.name, schedule);
         await this.saveChatRechecks();
         this.log(
-            `No reply in {${stored.chat.name}} (${cause}). Nobody needs to retry it: automatic recheck ${rounds} is due ${formatShortTime(Date.parse(schedule.nextAt), now, this.timeZone)}${equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when tools change or you write again.`,
+            schedule.aiToolId ? `No reply in {${stored.chat.name}} (${cause}). Sign in again in Settings > AI tools; the waiting reply resumes after verification, without periodic retries.`
+                : `No reply in {${stored.chat.name}} (${cause}). Nobody needs to retry it: automatic recheck ${rounds} is due ${formatShortTime(Date.parse(schedule.nextAt), now, this.timeZone)}${equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when tools change or you write again.`,
             'warning',
         );
     }
@@ -2266,8 +2271,8 @@ export class Agenda {
         const key = nameKey(name);
         clearTimeout(this.chatRechecks.get(key)?.timer);
         const reason = `scheduled after ${schedule.rounds === 1 ? 'the failure' : `${schedule.rounds} failed replies`}`;
-        const timer = setTimeout(() => this.startChatRecheck(key, reason), Math.max(0, Date.parse(schedule.nextAt) - Date.now()));
-        timer.unref?.();
+        const timer = schedule.aiToolId ? undefined : setTimeout(() => this.startChatRecheck(key, reason), Math.max(0, Date.parse(schedule.nextAt) - Date.now()));
+        timer?.unref?.();
         this.chatRechecks.set(key, { name, schedule, timer });
         this.touch();
     }
@@ -2275,7 +2280,7 @@ export class Agenda {
     /** Starts a due (or brought-forward) chat reply recheck: the agent replies to the still unanswered message again. */
     private startChatRecheck(key: string, reason: string): void {
         const entry = this.chatRechecks.get(key);
-        if (!entry?.timer) return;
+        if (!entry?.timer || entry.schedule.aiToolId) return;
         clearTimeout(entry.timer);
         entry.timer = undefined;
         this.touch();
@@ -2290,7 +2295,7 @@ export class Agenda {
         const conditions = this.toolConditions();
         const spacing = Math.min(RECOVERY_MIN_SPACING_MS, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || CHAT_REPLY_RECHECK_MS);
         for (const [key, entry] of this.chatRechecks) {
-            if (entry.timer && entry.schedule.conditions !== conditions && Date.now() - Date.parse(entry.schedule.scheduledAt) >= spacing) this.startChatRecheck(key, 'its tools changed');
+            if (!entry.schedule.aiToolId && entry.timer && entry.schedule.conditions !== conditions && Date.now() - Date.parse(entry.schedule.scheduledAt) >= spacing) this.startChatRecheck(key, 'its tools changed');
         }
     }
 
@@ -5453,6 +5458,65 @@ export class Agenda {
         return { plugin, tool, context };
     }
 
+    /** Adapts the real project tool inventory to browser credential maintenance without a second configuration store. */
+    public aiToolsBackend(): AiToolsBackend {
+        const profilePrefix = 'project-' + shortHash(this.options.project.root, 24) + '-';
+        const prepare: AiToolsBackend['prepare'] = (target, method, key) => {
+            const profile = profilePrefix + randomUUID();
+            const variable = 'PTBK_TOOL_' + shortHash(target.tool.name, 16).toUpperCase() + '_API_KEY';
+            const tool: HarnessToolRecord = method === 'account'
+                ? { ...target.tool, authentication: 'NATIVE', apiKey: undefined, accountProfile: profile }
+                : { ...target.tool, authentication: 'API_KEY', apiKey: '${{ env.' + variable + ' }}', accountProfile: undefined };
+            const env = instanceEnvironment(target.plugin, tool, key ? { name: variable, value: key, source: '.env' } : undefined, this.options.env);
+            return { projectRoot: this.options.project.root, tool, env };
+        };
+        const discard: AiToolsBackend['discard'] = async context => {
+            const profile = context.tool?.accountProfile;
+            const plugin = context.tool && HARNESS_PLUGINS.find(item => item.variant === context.tool!.variant);
+            if (plugin && profile?.startsWith(profilePrefix)) await rm(accountHome(plugin, profile, this.options.env), { recursive: true, force: true });
+        };
+        const saveCredentials = async (target: AiToolTarget, context: import('../harness/types.js').HarnessContext, key?: string, verified = true): Promise<void> => {
+            const tool = context.tool!;
+            const changes = { authentication: tool.authentication, accountProfile: tool.accountProfile ?? null,
+                apiKeyEnv: tool.authentication === 'API_KEY' ? parseEnvironmentReference(tool.apiKey)! : null };
+            const operation: ToolOperationRequest['operation'] = target.configured
+                ? { kind: 'modify', name: target.tool.name, changes }
+                : { kind: 'add', tool: { type: 'HARNESS', variant: tool.variant, name: tool.name, authentication: tool.authentication,
+                    ...(tool.accountProfile ? { accountProfile: tool.accountProfile } : {}), ...(tool.authentication === 'API_KEY' ? { apiKeyEnv: parseEnvironmentReference(tool.apiKey)! } : {}) } };
+            const result = await this.toolOperation({ operation, via: 'api', acknowledgements: { force: true },
+                ...(key ? { secret: { variable: parseEnvironmentReference(tool.apiKey)!, value: key } } : {}) }, target.configured ? target.tool : undefined);
+            if (result.status === 'needs-acknowledgement') throw new PtbkError(result.summary, { kind: 'conflict' });
+            if (verified) this.pool.authenticated(context);
+            await this.recheckTools();
+            if (verified) this.resumeAiToolChats(aiToolId(target.plugin.id));
+        };
+        return {
+            targets: async () => {
+                const records = this.pool.allInstances();
+                const plugins = [...HARNESS_PLUGINS].sort((a, b) => {
+                    const at = records.findIndex(tool => tool.variant === a.variant); const bt = records.findIndex(tool => tool.variant === b.variant);
+                    return (at < 0 ? Infinity : at) - (bt < 0 ? Infinity : bt);
+                });
+                const targets: AiToolTarget[] = [];
+                for (const plugin of plugins) {
+                    const record = records.find(tool => tool.variant === plugin.variant);
+                    const tool = record ?? nativeSetupTool(plugin, shortHash(this.options.project.root, 24));
+                    const context = record ? this.pool.context(record.name) : { projectRoot: this.options.project.root, tool, env: this.pool.environment(tool) };
+                    const inspection = (record && this.pool.inspectionOf(record.name)) || await plugin.inspect(context);
+                    targets.push({ plugin, tool, context, inspection, configured: Boolean(record) });
+                }
+                return targets;
+            }, prepare, commit: (target, context, key) => saveCredentials(target, context, key), discard,
+            onFailure: listener => this.pool.onAuthenticationFailure(listener),
+            verified: async target => { this.pool.authenticated(target.context); await this.recheckTools(); this.resumeAiToolChats(aiToolId(target.plugin.id)); },
+            signOut: async target => {
+                const context = prepare(target, 'account');
+                await saveCredentials(target, context, undefined, false);
+                // A committed profile can be explicitly referenced by another project; sign-out only detaches this one.
+            },
+        };
+    }
+
     /** Wake waiting work after the owner's real check of this exact account. */
     public async harnessSignedIn(target: RecoveryTarget): Promise<void> {
         const profile = target.context.tool?.accountProfile;
@@ -5462,6 +5526,31 @@ export class Agenda {
         }
         this.pool.authenticated(target.context);
         await this.recheckTools();
+        this.resumeAiToolChats(aiToolId(target.plugin.id));
+    }
+
+    /** Only an authentication blocker gets a sign-in action, never a quota or transient network failure. */
+    private aiToolNeedingSignIn(cause: string): string | undefined {
+        const text = cause.toLowerCase();
+        const inventory = this.pool?.all() ?? [];
+        const noUsableHarness = /^No usable (?:read-only )?harness(?: supports read-only turns)?\.$/.test(cause) && !inventory.some(item => item.tool.isEnabled && item.inspection?.usable);
+        const tool = inventory.find(item => {
+            if (!item.tool.isEnabled || item.inspection?.problem !== 'signed-out') return false;
+            const plugin = HARNESS_PLUGINS.find(candidate => candidate.variant === item.tool.variant);
+            // An unrelated signed-out adapter must not suspend a network, routing or quota retry. Actual invocation
+            // authentication failures carry their instance's repair command; preflight routing names the adapter.
+            return noUsableHarness || [item.tool.name, plugin?.id, plugin?.displayName].some(label => label && text.includes(label.toLowerCase()));
+        });
+        const plugin = tool && HARNESS_PLUGINS.find(item => item.variant === tool.tool.variant);
+        return plugin ? aiToolId(plugin.id) : undefined;
+    }
+
+    /** A real verified response wakes each waiting reply once; elapsed time alone never retries expired credentials. */
+    private resumeAiToolChats(id: string): void {
+        for (const entry of this.chatRechecks.values()) if (entry.schedule.aiToolId === id) {
+            this.armChatRecheck(entry.name, { ...entry.schedule, aiToolId: undefined, nextAt: new Date().toISOString() });
+        }
+        void this.saveChatRechecks();
     }
 
     /**

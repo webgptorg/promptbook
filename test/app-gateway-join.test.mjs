@@ -6,19 +6,19 @@ import { AccessStore } from '../dist/app/web/access.js';
 import { Gateway } from '../dist/app/web/gateway.js';
 import { EngineApi } from '../dist/app/api/engine-api.js';
 import { deriveEngineFingerprint } from '../dist/app/identity.js';
-import { protocol } from '../dist/vendor/app-platform.js';
+import { api, protocol } from '../dist/vendor/app-platform.js';
 import { createPasskey } from './fixtures/webauthn.mjs';
 import { temporaryDirectory } from './helpers.mjs';
 
 /** Real gateway, API, cryptographic verification and persistence without a network listener. */
-async function fixture(t) {
+async function fixture(t, gatewayOptions = {}) {
     const root = await temporaryDirectory(t, 'gateway join');
     const access = await AccessStore.open(root);
     const signer = await protocol.createWebCryptoSigner(await protocol.generateEd25519KeyPair({ extractable: false }));
     const engineId = 'aaaaaaaaaaaaaaaaaaaaaaaaaa';
     const host = `${engineId}.engine.test`;
     const api = new EngineApi({ projectRoot: root, stateDirectory: join(root, 'api'), engineId: () => engineId, hostname: () => host, dashboardUrl: () => undefined, security: () => undefined, ui: () => ({}) });
-    const gateway = new Gateway({ access, engineId, fingerprint: deriveEngineFingerprint(engineId), memberKey: signer.publicKey(), api: (req, actor) => api.handle(req, actor, access), documents: async () => new Response('signed in') });
+    const gateway = new Gateway({ access, engineId, fingerprint: deriveEngineFingerprint(engineId), memberKey: signer.publicKey(), api: (req, actor) => api.handle(req, actor, access), documents: async () => new Response('signed in'), ...gatewayOptions });
     const call = async (path, body, cookie, method = 'POST', extra = {}) => {
         const response = await gateway.handle(new Request(`https://${host}${path}`, { method, headers: { host, origin: `https://${host}`, 'sec-fetch-site': 'same-origin', 'content-type': 'application/json', ...(cookie ? {cookie} : {}), ...extra }, ...(body === undefined ? {} : {body:JSON.stringify(body)}) }), {hostname:host,clientIp:'127.0.0.1'});
         const text = await response.text();
@@ -31,8 +31,34 @@ async function fixture(t) {
     const response = await createPasskey(options.body.options,`https://${host}`);
     const owner = await call('/setup/verify',{secret:setup.secret,response});
     assert.equal(owner.status,200,JSON.stringify(owner));
-    return {root,access,call,token,register,ownerCookie:owner.cookie};
+    return {root,access,call,token,register,ownerCookie:owner.cookie,gateway,host};
 }
+
+test('join: wrong-code answers carry the surviving attempts, including zero when the request closes', async t => {
+    const {call,token,register,ownerCookie} = await fixture(t);
+    const joined = await register(await token());
+    const pending = await call('/api/v1/access-requests',undefined,ownerCookie,'GET');
+    const id = pending.body.items[0].id;
+    const wrong = joined.body.code === '000000' ? '000001' : '000000';
+    for (let left = api.MAX_ACCESS_CODE_ATTEMPTS - 1; left >= 0; left--) {
+        const result = await call(`/api/v1/access-requests/${id}/approve`,{code:wrong,role:'member'},ownerCookie);
+        assert.equal(result.status,422);
+        assert.equal(result.body.code,'access-code-mismatch');
+        assert.equal(result.body.attemptsRemaining,left);
+    }
+    assert.equal((await call(`/api/v1/access-requests/${id}/approve`,{code:joined.body.code,role:'member'},ownerCookie)).status,404);
+});
+
+test('gateway: unfinished setup prints recovery commands for that onboarding engine', async t => {
+    const {gateway,host} = await fixture(t,{onboarding:true});
+    const response = await gateway.handle(new Request(`https://${host}/auth/sign-in`, {headers:{host}}),{hostname:host,clientIp:'127.0.0.1'});
+    const html = await response.text();
+    assert.equal(response.status,200);
+    assert.ok(html.includes('ptbk connect --onboarding aaaaaaaaaaaaaaaaaaaaaaaaaa --setup-link'));
+    assert.ok(html.includes('ptbk connect --onboarding aaaaaaaaaaaaaaaaaaaaaaaaaa --reset-owner'));
+    assert.ok(html.includes('ptbk onboarding --id aaaaaaaaaaaaaaaaaaaaaaaaaa --json'));
+    assert.doesNotMatch(html,/\{\{(?:setupLinkCommand|resetOwnerCommand|statusCommand)\}\}/);
+});
 
 test('join: actual WebAuthn, signed ticket, approval, session and removal run through the public gateway', async t => {
     const {root,access,call,token,register,ownerCookie} = await fixture(t);

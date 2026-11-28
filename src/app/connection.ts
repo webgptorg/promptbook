@@ -86,6 +86,8 @@ export type AppConnectionOptions = {
  * @private App connection
  */
 export type AppWebHandlers = {
+    /** The gateway belongs to a pre-project initialization service. */
+    readonly onboarding?: boolean;
     /** The engine API (`/api/v1/...`) for a signed-in member. */
     readonly api: (request: Request, actor: Actor, access: AccessStore) => Promise<Response>;
     /** Every other document or file for a signed-in member (the UI bundle or the plain engine page). */
@@ -123,6 +125,8 @@ export type SetupLinkOutcome =
  * @private App connection
  */
 export type AppSecurityFacts = {
+    readonly lastCtCheck?: import('./web/ct-watch.js').CtCheck | null;
+    readonly ctEnabled?: boolean;
     readonly hostname?: string;
     readonly dashboardUrl: string;
     readonly certificate?: { readonly sha256: string; readonly notAfter: string };
@@ -420,6 +424,7 @@ export class AppConnection {
             tls: this.options.tls,
             access,
             engineId: identity.engineId,
+            onboarding: web.onboarding,
             fingerprint: identity.fingerprint,
             memberKey: registration.memberKey ? decodeBase64Url(registration.memberKey) : undefined,
             api: (request, actor) => web.api(request, actor, access),
@@ -525,6 +530,7 @@ export class AppConnection {
             ...(this.registration ? { hostname: this.registration.hostname } : {}),
             dashboardUrl: this.registration?.dashboardUrl ?? this.dashboardUrl,
             ...(served ? { certificate: served } : {}),
+            ...(this.origin ? { lastCtCheck: this.origin.certificateTransparency(), ctEnabled: this.options.web?.certificateSource !== 'dev-ca' && this.options.env.PTBK_CT_WATCH !== 'off' } : {}),
             ...(this.origin ? { certificateState: this.origin.certificateView().state } : {}),
             relays: this.links.map((link) => link.view()),
             ...(this.heartbeat ? { heartbeat: this.heartbeat } : {}),

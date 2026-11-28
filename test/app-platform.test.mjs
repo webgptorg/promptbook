@@ -131,7 +131,7 @@ test('UI loader without a bundle: the engine page in the security panel, nothing
     t.after(() => loader.stop());
     assert.equal(await loader.serve(request('/', { accept: 'text/html' })), undefined);
     const page = 'c'.repeat(64);
-    assert.deepEqual(loader.status(page), { version: ENGINE_VERSION, bundleSha256: page, releaseLogIndex: null, releaseLogEntryUuid: null, lastUpdateCheck: null });
+    assert.deepEqual(loader.status(page), { version: ENGINE_VERSION, bundleSha256: page, releaseLogIndex: null, releaseLogEntryUuid: null, lastUpdateCheck: null, nextCheckAt: null });
     if (POSIX) {
         assert.equal((await stat(join(directory, 'ui'))).mode & 0o777, 0o700);
         assert.equal((await stat(join(directory, 'ui', 'state.json'))).mode & 0o777, 0o600);
