@@ -2,6 +2,10 @@
 
 # Unreleased
 
+- Repair AI tool sign-in from the paired app after initialization. Owners can verify and replace project credentials without SSH; sign-ins belong to their gateway session, keep the previous credentials until verified, and resume chat replies once authentication works again.
+- Report actual UI update deadlines and offer Check now under the existing signed-release policy. Delayed, revoked and pinned releases keep their verification rules; a failed check leaves the periodic timer armed.
+- Check public certificate logs hourly against this engine's retained public keys and show unexpected certificates or lookup failures in Security. Legitimate renewed keys stay recognized across restart.
+- Show complete recovery commands for pending initialization, report remaining approval-code attempts, print compact JSON, and launch workers from the running build instead of another dist directory.
 - Unattended agents keep working toward the requested outcome when a website presents a CAPTCHA. Browser tools point public research to original sources, and a detected challenge alone no longer opens a tab handoff or a missing-password request.
 
 - Reopen a project passkey prompt in place during owner setup, joining, sign-in or confirmation. Switching to unlock a password manager no longer means starting the flow again.

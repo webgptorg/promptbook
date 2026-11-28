@@ -89,6 +89,12 @@ Extensibility is required now; the complete future feature set is not.
 
 ## Technical handoff and joint acceptance
 
+The paired engine implements `ai-tools@1` independently from initialization. The project's real harness inventory supplies each adapter's status and ordering. A check calls the real provider. A new account or API key is verified before the shared tool operations change `ptbk.json` or its ignored credential store. Account repair uses a fresh project profile; sign-out never deletes the OS user's shared login. The initiating gateway session owns each transient sign-in. Permission or session revocation prevents a late credential promotion. Authentication-blocked chat replies expose `recheck.aiToolId` and wait for verified credentials without periodic paid retries.
+
+`updates@1` exposes the actual armed UI check deadline, the engine update lookup time, and Check now. Check now uses the scheduled verification policy, coalesces concurrent checks, enforces a per-engine one-minute request interval, and refuses under manual policy. It cannot approve a delayed release. Completed checks emit `updates.changed`; tool transitions emit `ai-tool.changed` only to members who still hold the read permission.
+
+The TLS origin checks public certificate logs hourly. It compares DER SubjectPublicKeyInfo hashes, not issuer names, serials or certificate fingerprints, against keys the engine retained before issuance. Its own key history survives renewal and restart. Bounded or failed log lookups are reported as failed checks, never a clean result. Findings appear in the existing Security panel and local engine log. Email and push delivery depend on the App notification transport. `PTBK_CT_WATCH=off` explicitly disables the lookup; the conformance development CA does not query public logs.
+
 The engine owner defines Reborn behavior. The App/integration team proposes a
 
 ## Engine-owned desktop extension

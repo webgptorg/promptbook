@@ -8,6 +8,7 @@ import { CertificateManager, type CertificateSourceKind, type CertificateView } 
 import { Gateway, withSecurityHeaders, contractProblem, type GatewayOptions } from './gateway.js';
 import { TlsTerminator, type SecureConnectionInfo } from './tls.js';
 import type { TestTlsOptions } from '../net.js';
+import { CertificateTransparencyWatch, publicCtSource, type CtCheck } from './ct-watch.js';
 
 /**
  * Bounds of the HTTP layer inside the tunnel.
@@ -105,6 +106,7 @@ export class EngineOrigin {
     private readonly http: Server;
     private readonly gateway: Gateway;
     private readonly connections = new WeakMap<object, SecureConnectionInfo>();
+    private readonly ctWatch?: CertificateTransparencyWatch;
 
     public constructor(private readonly options: EngineOriginOptions) {
         this.certificates = new CertificateManager({
@@ -113,10 +115,11 @@ export class EngineOrigin {
             source: options.certificateSource,
             env: options.env,
             tunnelReady: options.tunnelReady,
-            onChange: options.onChange,
+            onChange: () => { this.ctWatch?.observe(); options.onChange(); },
             log: options.log,
             tls: options.tls,
         });
+        if (options.certificateSource === 'acme' && options.env.PTBK_CT_WATCH !== 'off') this.ctWatch = new CertificateTransparencyWatch({ hostname: options.hostname, knownKeys: () => this.certificates.knownPublicKeyHashes(), source: publicCtSource(options.env), changed: options.onChange, log: options.log });
         this.gateway = new Gateway(options);
         this.http = createServer({ headersTimeout: HEADERS_TIMEOUT_MS, requestTimeout: REQUEST_TIMEOUT_MS, keepAliveTimeout: KEEP_ALIVE_TIMEOUT_MS, maxHeaderSize: MAX_HEADER_BYTES }, (request, response) => void this.serve(request, response));
         this.http.on('clientError', (_error, socket) => socket.destroy());
@@ -131,11 +134,13 @@ export class EngineOrigin {
     /** Loads or issues the certificate. */
     public async start(): Promise<void> {
         await this.certificates.start();
+        this.ctWatch?.start();
     }
 
     /** Closes every browser connection and stops renewals. */
     public stop(): void {
         this.certificates.stop();
+        this.ctWatch?.stop();
         this.terminator.close();
         this.http.close();
         this.http.closeAllConnections();
@@ -155,6 +160,9 @@ export class EngineOrigin {
     public certificateView(): CertificateView {
         return this.certificates.view();
     }
+
+    /** The security panel's last certificate-transparency check. */
+    public certificateTransparency(): CtCheck | null { return this.ctWatch?.view() ?? null; }
 
     /** Takes one browser stream from a relay. */
     public handleStream(stream: TunnelStream): void {

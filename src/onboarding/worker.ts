@@ -75,10 +75,12 @@ export async function runOnboardingWorker(staging: Project, launch: LaunchMetada
             engineId: () => engineId, hostname: () => connection?.view().hostname,
             dashboardUrl: () => connection?.view().dashboardUrl, security: () => connection?.securityFacts(),
             ui: () => ui.status(pageHash), log,
+            updates: ui,
         });
         const app = new AppConnection({
             directory, env, onChange: () => undefined, figures: () => ({ agents: 0, members: 0, update: 'none', setup: 'pending' }), log,
             web: {
+                onboarding: true,
                 api: (request, actor, access) => api.handle(request, actor, access),
                 documents: (request, actor) => onboardingDocuments(request, actor, session, ui, engineId),
                 ...(CONFORMANCE_BUILD ? { certificateSource: 'dev-ca' as const } : {}),

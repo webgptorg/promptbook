@@ -160,6 +160,8 @@ export type GatewayAuditEvent = {
 export type GatewayOptions = {
     readonly access: AccessStore;
     readonly engineId: string;
+    /** Recovery commands must select the pre-project service while initialization is pending. */
+    readonly onboarding?: boolean;
     readonly fingerprint: EngineFingerprint;
     /** Dashboard verification key pinned at registration, never fetched from a ticket. */
     readonly memberKey?: Uint8Array;
@@ -317,6 +319,11 @@ export class Gateway {
             fingerprint: this.options.fingerprint.formatted,
             fingerprintCells: this.options.fingerprint.cells.flat().map((filled) => (filled ? '1' : '0')).join(''),
             command: 'ptbk',
+            ...(this.options.onboarding ? {
+                setupLinkCommand: `ptbk connect --onboarding ${this.options.engineId} --setup-link`,
+                resetOwnerCommand: `ptbk connect --onboarding ${this.options.engineId} --reset-owner`,
+                statusCommand: `ptbk onboarding --id ${this.options.engineId} --json`,
+            } : {}),
             owner: this.options.access.hasOwner ? 'set' : 'none',
         });
         return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });

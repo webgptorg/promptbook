@@ -6,6 +6,9 @@ export type MemberContext = { readonly access: AccessStore; readonly actor: Acto
 
 /** Actions audited on permission and step-up refusals. @private App API */
 export const MEMBER_ACTIONS: Readonly<Record<string, { readonly action: string; readonly kind?: string; readonly param?: string }>> = {
+    checkForUiUpdate: { action: 'updates.ui-check' },
+    startAiToolSignIn: { action: 'ai-tool.sign-in.start', kind: 'ai-tool', param: 'aiToolId' },
+    signOutAiTool: { action: 'ai-tool.sign-out', kind: 'ai-tool', param: 'aiToolId' },
     approveAccessRequest: { action: 'access-request.approve', kind: 'access-request', param: 'accessRequestId' },
     declineAccessRequest: { action: 'access-request.decline', kind: 'access-request', param: 'accessRequestId' },
     setDashboardRemovals: { action: 'settings.dashboard-removals' },
@@ -24,7 +27,7 @@ export function memberView(member: StoredMember, access: AccessStore): Record<st
 /** Successful contract response. */
 function ok(data: unknown): ContractResponse { return { kind: 'ok', data }; }
 /** Fixed protocol problem, without internal state. */
-function fail(code: string): ContractResponse { return { kind: 'problem', problem: api.createProblem(code) }; }
+function fail(code: string, extensions?: Readonly<Record<string, unknown>>): ContractResponse { return { kind: 'problem', problem: api.createProblem(code, extensions) }; }
 
 /** Member management and access-request API over durable gateway transitions. @private App API */
 export function memberHandlers(hostname: () => string | undefined, page: (items: readonly unknown[], query: Readonly<Record<string, unknown>>) => ContractResponse): Readonly<Record<string, (context: MemberContext) => Promise<ContractResponse>>> {
@@ -33,7 +36,7 @@ export function memberHandlers(hostname: () => string | undefined, page: (items:
         approveAccessRequest: async ({ access, actor, params, body }) => {
             const input = body as { code: string; role: Role };
             const result = await access.approveAccess(String(params.accessRequestId), input.code, input.role, actor);
-            return result.kind === 'approved' ? ok(memberView(result.member, access)) : fail(result.kind);
+            return result.kind === 'approved' ? ok(memberView(result.member, access)) : fail(result.kind, result.kind === 'access-code-mismatch' ? { attemptsRemaining: result.attemptsRemaining } : undefined);
         },
         declineAccessRequest: async ({ access, actor, params }) => await access.declineAccess(String(params.accessRequestId), actor) ? ok(null) : fail('not-found'),
         setDashboardRemovals: async ({ access, actor, body }) => { const { enabled } = body as { enabled: boolean }; await access.setDashboardRemovals(enabled, actor); return ok({ enabled }); },

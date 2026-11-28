@@ -90,7 +90,7 @@ export function instanceEnvironment(plugin: HarnessPlugin, tool: HarnessToolReco
     } else if (tool.authentication === 'API_KEY') {
         if (plugin.apiKeyVariable && credential?.value) env[plugin.apiKeyVariable] = credential.value;
         const setup = plugin.setupApiKey;
-        const profile = plugin.apiKeyProfile ?? (setup?.profile && credential?.value && credential.name === setup.reference ? setup.profile : undefined);
+        const profile = plugin.apiKeyProfile ?? setup?.profile;
         if (profile) {
             env[profile.home] = accountHome(plugin, 'api-key', base);
             remove(profile.omit ?? []);
@@ -133,6 +133,7 @@ export const TECHNICAL_RECHECK_MS = 5 * 60_000;
  * @private harness availability
  */
 export class HarnessPool {
+    private readonly failureListeners = new Set<(pluginId: string, context: HarnessContext, diagnostic: string) => void>();
     private readonly inspections = new Map<string, HarnessInspection>();
     /** Per-pool secret key keeps cache identities private to this runtime, never diagnostic or persisted. */
     readonly #identityKey = randomBytes(32);
@@ -575,6 +576,12 @@ export class HarnessPool {
         const current = this.instance(name);
         if (!current || identity !== this.fingerprint(current)) return;
         this.unavailable.set(name, { kind, reason, until: Date.now() + forMs, identity });
+        if (kind === 'authentication') for (const listener of this.failureListeners) listener(harnessPluginId(tool.variant), context ?? this.context(name), reason);
+    }
+
+    /** Observes actual invocation failures for browser status without probing or borrowing another instance. */
+    public onAuthenticationFailure(listener: (pluginId: string, context: HarnessContext, diagnostic: string) => void): () => void {
+        this.failureListeners.add(listener); return () => this.failureListeners.delete(listener);
     }
 
     /**

@@ -13,6 +13,7 @@ import type { LocalApiView, ServiceSnapshot } from '../engine/snapshot.js';
 import { startDesktopApi } from '../app/web/desktop-api.js';
 import { DESKTOP_OWNER } from '../app/web/access.js';
 import { ProjectHarnessRecovery } from '../onboarding/recovery.js';
+import { ProjectAiTools } from '../app/ai-tools.js';
 import { onboardingPage } from '../app/web/onboarding-page.js';
 import { harnessTerminalPage } from '../app/web/harness-terminal.js';
 import { EngineApi } from '../app/api/engine-api.js';
@@ -94,6 +95,7 @@ export class ServiceHost {
     /** The project's Promptbook App connection (not in maintenance runs). */
     private appConnection?: AppConnection;
     private recovery?: ProjectHarnessRecovery;
+    private aiTools?: ProjectAiTools;
     private shuttingDown?: Promise<void>;
     private appApi?: AppWebHandlers['api'];
     private desktopApi?: ReturnType<typeof startDesktopApi>;
@@ -339,7 +341,7 @@ export class ServiceHost {
         const snapshot: ServiceSnapshot = this.agenda.snapshot();
         const update = snapshot.update;
         const state = !update ? 'none' : update.phase === 'installing' || update.phase === 'restarting' ? 'installing' : update.target ? 'pending' : update.latest && update.latest !== update.current ? 'available' : 'none';
-        return { agents: snapshot.agents.length, members: 0, update: state, setup: this.agenda.harnessNeedingSignIn() ? 'pending' : 'done', licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
+        return { agents: snapshot.agents.length, members: 0, update: state, setup: 'done', licenseUsage: summarizeLicenseUsage({ agents: snapshot.agents, tools: snapshot.tools?.items, browsers: snapshot.browsers, controllingUsers: null }) };
     }
 
     /**
@@ -355,8 +357,10 @@ export class ServiceHost {
         const enginePageSha256 = createHash('sha256').update(engineHomePage.toString()).digest('hex');
         const recovery = new ProjectHarnessRecovery(() => this.agenda.harnessNeedingSignIn(), target => this.agenda.harnessSignedIn(target));
         this.recovery = recovery;
+        const aiTools = new ProjectAiTools(this.agenda.aiToolsBackend());
+        this.aiTools = aiTools;
         const api = new EngineApi({
-            recovery, agenda: this.agenda,
+            recovery, aiTools, agenda: this.agenda,
             projectRoot: this.options.project.root,
             stateDirectory: directory,
             engineId: () => view()?.engineId,
@@ -364,6 +368,7 @@ export class ServiceHost {
             dashboardUrl: () => view()?.dashboardUrl,
             security: () => this.appConnection?.securityFacts(),
             ui: () => loader.status(enginePageSha256),
+            updates: loader,
             log: (text, level) => this.agenda.log(text, level),
         });
         const appApi: AppWebHandlers['api'] = async (request, actor, access) =>
@@ -574,6 +579,7 @@ export class ServiceHost {
             }
         };
         this.recovery?.stop();
+        await bounded(() => this.aiTools?.stop());
         const forced = this.agenda.forceStopped;
         // Keep awake ends first: a restart carries held protection to its replacement, every other end releases it.
         const keepAwake = this.keepAwake;

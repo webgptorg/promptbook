@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable */
-// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 390740e688ca0ae96c49f507cf28312affd83598. Do not edit; regenerate.
+// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app 37f38f6cfb0d8a5fcfe3e1ea6eaf65e290b88afd. Do not edit; regenerate.
 // Licenses: see THIRD_PARTY_LICENSES.md next to this file.
 import { createRequire } from "node:module";
 var __create = Object.create;
@@ -20865,6 +20865,11 @@ __export(exports_src, {
   AGENT_RUN_STATES: () => AGENT_RUN_STATES,
   AGENT_SORTS: () => AGENT_SORTS,
   AGENT_VISIBILITIES: () => AGENT_VISIBILITIES,
+  AI_TOOL_AUTH_METHODS: () => AI_TOOL_AUTH_METHODS,
+  AI_TOOL_PROBLEM_CODES: () => AI_TOOL_PROBLEM_CODES,
+  AI_TOOL_ROUTES: () => AI_TOOL_ROUTES,
+  AI_TOOL_SIGN_IN_STATUSES: () => AI_TOOL_SIGN_IN_STATUSES,
+  AI_TOOL_STATUSES: () => AI_TOOL_STATUSES,
   API_TOKEN_ROUTES: () => API_TOKEN_ROUTES,
   API_TOKEN_STATUSES: () => API_TOKEN_STATUSES,
   AUDIT_ACTIONS: () => AUDIT_ACTIONS,
@@ -20903,6 +20908,22 @@ __export(exports_src, {
   AgentRunStatus: () => AgentRunStatus,
   AgentSource: () => AgentSource,
   AgentVisibility: () => AgentVisibility,
+  AiTool: () => AiTool,
+  AiToolAuth: () => AiToolAuth,
+  AiToolAuthMethod: () => AiToolAuthMethod,
+  AiToolChangedEvent: () => AiToolChangedEvent,
+  AiToolId: () => AiToolId,
+  AiToolList: () => AiToolList,
+  AiToolListReader: () => AiToolListReader,
+  AiToolParams: () => AiToolParams,
+  AiToolProblem: () => AiToolProblem,
+  AiToolReader: () => AiToolReader,
+  AiToolSignIn: () => AiToolSignIn,
+  AiToolSignInId: () => AiToolSignInId,
+  AiToolSignInParams: () => AiToolSignInParams,
+  AiToolSignInPrompt: () => AiToolSignInPrompt,
+  AiToolSignInReader: () => AiToolSignInReader,
+  AnswerAiToolSignInBody: () => AnswerAiToolSignInBody,
   AnswerOnboardingBody: () => AnswerOnboardingBody,
   ApiToken: () => ApiToken,
   ApiTokenId: () => ApiTokenId,
@@ -21095,6 +21116,7 @@ __export(exports_src, {
   LiveKey: () => LiveKey,
   LiveSessionId: () => LiveSessionId,
   MAX_ACCESS_CODE_ATTEMPTS: () => MAX_ACCESS_CODE_ATTEMPTS,
+  MAX_AI_TOOLS: () => MAX_AI_TOOLS,
   MAX_AUDIT_DETAILS_BYTES: () => MAX_AUDIT_DETAILS_BYTES,
   MAX_AUDIT_DETAILS_DEPTH: () => MAX_AUDIT_DETAILS_DEPTH,
   MAX_AUDIT_TARGET_NAME_LENGTH: () => MAX_AUDIT_TARGET_NAME_LENGTH,
@@ -21136,8 +21158,10 @@ __export(exports_src, {
   MAX_TEST_CHAT_MESSAGES: () => MAX_TEST_CHAT_MESSAGES,
   MAX_TEST_CHAT_TRANSCRIPT_LENGTH: () => MAX_TEST_CHAT_TRANSCRIPT_LENGTH,
   MAX_TRANSCRIPT_LENGTH: () => MAX_TRANSCRIPT_LENGTH,
+  MAX_UI_CHECK_INTERVAL_MS: () => MAX_UI_CHECK_INTERVAL_MS,
   MAX_UNACKED_FRAMES: () => MAX_UNACKED_FRAMES,
   MAX_UNEXPECTED_CERTIFICATES: () => MAX_UNEXPECTED_CERTIFICATES,
+  MAX_UPDATE_COMMAND_LENGTH: () => MAX_UPDATE_COMMAND_LENGTH,
   MAX_USER_AGENT_LENGTH: () => MAX_USER_AGENT_LENGTH,
   MAX_VOICE_CLIP_BYTES: () => MAX_VOICE_CLIP_BYTES,
   MAX_VOICE_CLIP_MS: () => MAX_VOICE_CLIP_MS,
@@ -21182,9 +21206,11 @@ __export(exports_src, {
   OnboardingChoicePrompt: () => OnboardingChoicePrompt,
   OnboardingConfirmPrompt: () => OnboardingConfirmPrompt,
   OnboardingDetail: () => OnboardingDetail,
+  OnboardingHarnessLoginAnswer: () => OnboardingHarnessLoginAnswer,
   OnboardingHarnessLoginPrompt: () => OnboardingHarnessLoginPrompt,
   OnboardingPrompt: () => OnboardingPrompt,
   OnboardingPromptId: () => OnboardingPromptId,
+  OnboardingSecretAnswer: () => OnboardingSecretAnswer,
   OnboardingSecretPrompt: () => OnboardingSecretPrompt,
   OnboardingState: () => OnboardingState,
   OnboardingStateReader: () => OnboardingStateReader,
@@ -21292,6 +21318,7 @@ __export(exports_src, {
   Slug: () => Slug,
   SpeakMessageBody: () => SpeakMessageBody,
   SpeechFormat: () => SpeechFormat,
+  StartAiToolSignInBody: () => StartAiToolSignInBody,
   StatusEntry: () => StatusEntry,
   TASK_ACTIONS: () => TASK_ACTIONS,
   TASK_CONDITION_KINDS: () => TASK_CONDITION_KINDS,
@@ -21370,12 +21397,16 @@ __export(exports_src, {
   UI_REFUSAL_REASONS: () => UI_REFUSAL_REASONS,
   UI_REVOCATION_REASONS: () => UI_REVOCATION_REASONS,
   UI_UPDATE_OUTCOMES: () => UI_UPDATE_OUTCOMES,
+  UPDATES_ROUTES: () => UPDATES_ROUTES,
+  UPDATE_CHECK_MIN_INTERVAL_MS: () => UPDATE_CHECK_MIN_INTERVAL_MS,
   UPDATE_POLICIES: () => UPDATE_POLICIES,
   USER_PARTICIPANT_KEY: () => USER_PARTICIPANT_KEY,
   UiUpdateCheck: () => UiUpdateCheck,
+  UiUpdateCheckReader: () => UiUpdateCheckReader,
   UnexpectedCertificate: () => UnexpectedCertificate,
   UnknownKindIntegration: () => UnknownKindIntegration,
   UnknownRecurrence: () => UnknownRecurrence,
+  UnsupportedOnboardingPromptReader: () => UnsupportedOnboardingPromptReader,
   UpdateAgentBody: () => UpdateAgentBody,
   UpdateAgentSourceBody: () => UpdateAgentSourceBody,
   UpdateIntegrationBody: () => UpdateIntegrationBody,
@@ -21385,6 +21416,7 @@ __export(exports_src, {
   UpdateSettingsBody: () => UpdateSettingsBody,
   UpdateTriggerBody: () => UpdateTriggerBody,
   UpdateWalletRecordBody: () => UpdateWalletRecordBody,
+  UpdatesChangedEvent: () => UpdatesChangedEvent,
   UploadFileBody: () => UploadFileBody,
   VOICE_CLIP_FORMATS: () => VOICE_CLIP_FORMATS,
   VOICE_ROUTES: () => VOICE_ROUTES,
@@ -21543,6 +21575,12 @@ __export(exports_src2, {
   MEMBER_REVOCATION_MAX_SKEW_MS: () => MEMBER_REVOCATION_MAX_SKEW_MS,
   MemberRevocation: () => MemberRevocation,
   NONCE_BYTES: () => NONCE_BYTES,
+  OWNER_HANDOFF_LIFETIME_MS: () => OWNER_HANDOFF_LIFETIME_MS,
+  OWNER_SETUP_COMMITMENT_BYTES: () => OWNER_SETUP_COMMITMENT_BYTES,
+  OWNER_SETUP_SECRET_BYTES: () => OWNER_SETUP_SECRET_BYTES,
+  OwnerHandoff: () => OwnerHandoff,
+  OwnerSetupCommitment: () => OwnerSetupCommitment,
+  OwnerSetupSecret: () => OwnerSetupSecret,
   PING_INTERVAL_MS: () => PING_INTERVAL_MS,
   PROBLEM_DETAILS_MAX_BYTES: () => PROBLEM_DETAILS_MAX_BYTES,
   PROPOSED_MEMBER_ROLES: () => PROPOSED_MEMBER_ROLES,
@@ -21644,6 +21682,9 @@ __export(exports_src2, {
   importEd25519PrivateKey: () => importEd25519PrivateKey,
   isStagingPolicy: () => isStagingPolicy,
   negotiateTunnel: () => negotiateTunnel,
+  newOwnerSetupSecret: () => newOwnerSetupSecret,
+  ownerSetupCommitment: () => ownerSetupCommitment,
+  ownerSetupCommitmentDigest: () => ownerSetupCommitmentDigest,
   pae: () => pae,
   parseClientHello: () => parseClientHello,
   parseEngineMessage: () => parseEngineMessage,
@@ -28383,7 +28424,9 @@ var PERMISSIONS = [
   "integrations.read",
   "integrations.manage",
   "browser.watch",
-  "browser.control"
+  "browser.control",
+  "ai-tools.read",
+  "ai-tools.manage"
 ];
 var Permission = _enum(PERMISSIONS);
 var OWNER_PERMISSIONS = PERMISSIONS;
@@ -28426,6 +28469,9 @@ var PROBLEM_STATUS = {
   "live-channel-attached": 409,
   "browser-help-resolved": 409,
   "message-not-speakable": 409,
+  "ai-tool-not-installed": 409,
+  "ai-tool-sign-in-stale": 409,
+  "update-policy-manual": 409,
   "payload-too-large": 413,
   "unsupported-media-type": 415,
   "invalid-book": 422,
@@ -28434,13 +28480,16 @@ var PROBLEM_STATUS = {
   "browser-origin-refused": 422,
   "voice-clip-too-long": 422,
   "speech-too-long": 422,
+  "ai-tool-method-unsupported": 422,
   "rate-limited": 429,
+  "update-check-too-soon": 429,
   "internal-error": 500,
   "reply-failed": 502,
   "transcription-failed": 502,
   "speech-failed": 502,
   unavailable: 503,
-  "voice-unavailable": 503
+  "voice-unavailable": 503,
+  "ai-tool-sign-in-required": 503
 };
 var PROBLEM_CODES = Object.keys(PROBLEM_STATUS);
 var ProblemCode = _enum(PROBLEM_CODES);
@@ -28460,7 +28509,8 @@ function createProblem(code, extras = {}) {
     ...extras.errors === undefined ? {} : { errors: [...extras.errors] },
     ...extras.requiredPermission === undefined ? {} : { requiredPermission: extras.requiredPermission },
     ...extras.diagnostics === undefined ? {} : { diagnostics: [...extras.diagnostics] },
-    ...extras.attemptsRemaining === undefined ? {} : { attemptsRemaining: extras.attemptsRemaining }
+    ...extras.attemptsRemaining === undefined ? {} : { attemptsRemaining: extras.attemptsRemaining },
+    ...extras.aiToolId === undefined ? {} : { aiToolId: extras.aiToolId }
   };
 }
 // ../../../packages/engine-api/src/common.ts
@@ -28493,6 +28543,8 @@ var IntegrationId = string2().regex(OPAQUE_ID_PATTERN).brand();
 var ActivityId = string2().regex(OPAQUE_ID_PATTERN).brand();
 var FileVersionId = string2().regex(OPAQUE_ID_PATTERN).brand();
 var LiveSessionId = string2().regex(OPAQUE_ID_PATTERN).brand();
+var AiToolId = string2().regex(OPAQUE_ID_PATTERN).brand();
+var AiToolSignInId = string2().regex(OPAQUE_ID_PATTERN).brand();
 var OpaqueId = string2().regex(ENGINE_REF_PATTERN);
 var Timestamp = exports_iso.datetime().brand();
 var LABEL = "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?";
@@ -28535,7 +28587,8 @@ var ProblemDetails = strictObject({
   errors: array(strictObject({ path: string2().max(1024), message: string2().max(1024) })).optional(),
   requiredPermission: Permission.optional(),
   diagnostics: array(Diagnostic).optional(),
-  attemptsRemaining: int().min(0).max(1000).optional()
+  attemptsRemaining: int().min(0).max(1000).optional(),
+  aiToolId: AiToolId.optional()
 });
 var ClientInfo = strictObject({
   ip: union([ipv42(), ipv62()]),
@@ -28588,7 +28641,9 @@ var KNOWN_CAPABILITIES = {
   wallet: { id: "wallet", version: 1 },
   browserTab: { id: "browser-tab", version: 1 },
   voiceInput: { id: "voice-input", version: 1 },
-  voiceOutput: { id: "voice-output", version: 1 }
+  voiceOutput: { id: "voice-output", version: 1 },
+  aiTools: { id: "ai-tools", version: 1 },
+  updates: { id: "updates", version: 1 }
 };
 var RESERVED_CAPABILITIES = {
   liveAudio: { id: "live-audio", version: 1 },
@@ -28981,6 +29036,7 @@ var AUDIT_ACTIONS = [
   "settings.update",
   "settings.update-policy",
   "settings.dashboard-removals",
+  "updates.ui-check",
   "wallet.record.save",
   "wallet.record.update",
   "wallet.record.delete",
@@ -29007,6 +29063,9 @@ var AUDIT_ACTIONS = [
   "browser.session.end",
   "browser.channel.attach",
   "browser.help.dismiss",
+  "ai-tool.sign-in.start",
+  "ai-tool.sign-in.complete",
+  "ai-tool.sign-out",
   "engine.update.install",
   "ui.update.install"
 ];
@@ -29036,7 +29095,8 @@ var AUDIT_TARGET_KINDS = [
   "trigger",
   "integration",
   "browser-session",
-  "browser-help-request"
+  "browser-help-request",
+  "ai-tool"
 ];
 var AuditTargetKind = _enum(AUDIT_TARGET_KINDS);
 var AUDIT_OUTCOMES = ["success", "denied", "failed"];
@@ -29628,6 +29688,383 @@ var ACTIVITY_ROUTES = {
   })
 };
 
+// ../../../packages/engine-api/src/capabilities/onboarding.ts
+var MAX_ONBOARDING_FILES = 20;
+var MAX_ONBOARDING_CHOICES = 32;
+var MAX_ONBOARDING_DETAILS = 16;
+var MAX_ONBOARDING_ALTERNATIVES = 4;
+var MAX_ONBOARDING_ACTIVITY = 16;
+var MAX_ONBOARDING_SECRET_LENGTH = 4096;
+var ShortText = string2().min(1).max(256);
+var LongText = string2().max(2048);
+var HttpsUrl = url({ protocol: /^https$/ }).max(2048);
+var OnboardingPromptId = OpaqueId;
+var OnboardingDetail = strictObject({ label: ShortText, text: LongText.min(1) });
+var EnginePath = string2().max(512).regex(/^\/(?![/\\])[^\s\\]*$/);
+var OnboardingAlternative = strictObject({
+  id: OpaqueId,
+  label: ShortText,
+  description: LongText.nullable(),
+  href: EnginePath.nullable()
+});
+var promptBase = {
+  id: OnboardingPromptId,
+  title: ShortText,
+  question: LongText.min(1),
+  hint: LongText.nullable(),
+  error: LongText.nullable(),
+  canGoBack: boolean2(),
+  details: array(OnboardingDetail).max(MAX_ONBOARDING_DETAILS).default([]),
+  alternatives: array(OnboardingAlternative).max(MAX_ONBOARDING_ALTERNATIVES).default([])
+};
+var OnboardingChoice = strictObject({
+  id: OpaqueId,
+  label: ShortText,
+  description: LongText.nullable(),
+  disabled: boolean2(),
+  featured: boolean2().optional()
+});
+var OnboardingTextPrompt = strictObject({
+  ...promptBase,
+  kind: literal("text"),
+  multiline: boolean2(),
+  required: boolean2(),
+  placeholder: string2().max(256).nullable(),
+  initial: string2().max(MAX_MESSAGE_LENGTH),
+  attachments: boolean2()
+});
+var OnboardingChoicePrompt = strictObject({
+  ...promptBase,
+  kind: literal("choice"),
+  multiple: boolean2(),
+  choices: array(OnboardingChoice).min(1).max(MAX_ONBOARDING_CHOICES),
+  initial: array(OpaqueId).max(MAX_ONBOARDING_CHOICES)
+});
+var OnboardingConfirmPrompt = strictObject({
+  ...promptBase,
+  kind: literal("confirm"),
+  confirmLabel: ShortText,
+  declineLabel: ShortText
+});
+var OnboardingUploadPrompt = strictObject({
+  ...promptBase,
+  kind: literal("upload"),
+  required: boolean2(),
+  maxFiles: int().min(1).max(MAX_ONBOARDING_FILES)
+});
+var OnboardingSecretPrompt = strictObject({
+  ...promptBase,
+  kind: literal("secret"),
+  label: ShortText,
+  placeholder: string2().max(256).nullable(),
+  helpUrl: HttpsUrl.nullable()
+});
+var HARNESS_LOGIN_METHODS = ["device-code", "return-code"];
+var HARNESS_LOGIN_STATUSES = [
+  "waiting",
+  "verifying",
+  "succeeded",
+  "failed",
+  "expired",
+  "denied",
+  "unsupported"
+];
+var OnboardingHarnessLoginPrompt = strictObject({
+  ...promptBase,
+  kind: literal("harness-login"),
+  harness: ShortText,
+  method: _enum(HARNESS_LOGIN_METHODS),
+  url: HttpsUrl,
+  userCode: string2().min(4).max(64).nullable(),
+  status: _enum(HARNESS_LOGIN_STATUSES),
+  diagnostic: LongText.nullable(),
+  expiresAt: Timestamp.nullable()
+});
+var OnboardingPrompt = discriminatedUnion("kind", [
+  OnboardingTextPrompt,
+  OnboardingChoicePrompt,
+  OnboardingConfirmPrompt,
+  OnboardingUploadPrompt,
+  OnboardingSecretPrompt,
+  OnboardingHarnessLoginPrompt
+]);
+var ONBOARDING_PROMPT_KINDS = [
+  "text",
+  "choice",
+  "confirm",
+  "upload",
+  "secret",
+  "harness-login"
+];
+var UnsupportedOnboardingPromptReader = object({
+  id: OnboardingPromptId,
+  kind: string2().min(1).max(64).refine((kind) => !ONBOARDING_PROMPT_KINDS.includes(kind)),
+  title: ShortText,
+  question: LongText.min(1)
+}).transform(({ id, kind, title, question }) => ({
+  kind: "unsupported",
+  engineKind: kind,
+  id,
+  title,
+  question
+}));
+var ONBOARDING_ACTIVITY_STATUSES = ["running", "done", "failed", "skipped"];
+var OnboardingActivity = strictObject({
+  id: OpaqueId,
+  label: ShortText,
+  status: _enum(ONBOARDING_ACTIVITY_STATUSES),
+  detail: LongText.nullable()
+});
+var ONBOARDING_STATUSES = ["pending", "working", "completed"];
+var stateShape = {
+  status: _enum(ONBOARDING_STATUSES),
+  deferred: boolean2(),
+  canDefer: boolean2().default(true),
+  progress: strictObject({ step: int().min(1), of: int().min(1) }).nullable(),
+  activity: array(OnboardingActivity).max(MAX_ONBOARDING_ACTIVITY).default([])
+};
+var OnboardingState = strictObject({
+  ...stateShape,
+  prompt: OnboardingPrompt.nullable()
+});
+var OnboardingStateReader = toTolerant(strictObject({
+  ...stateShape,
+  prompt: union([OnboardingPrompt, UnsupportedOnboardingPromptReader]).nullable()
+}));
+var OnboardingSecretAnswer = strictObject({
+  kind: literal("secret"),
+  value: string2().min(1).max(MAX_ONBOARDING_SECRET_LENGTH)
+});
+var OnboardingHarnessLoginAnswer = strictObject({
+  kind: literal("harness-login"),
+  returnCode: string2().min(1).max(512).nullable()
+});
+var OnboardingAnswer = discriminatedUnion("kind", [
+  strictObject({
+    kind: literal("text"),
+    text: string2().max(MAX_MESSAGE_LENGTH),
+    fileIds: array(FileId).max(MAX_ONBOARDING_FILES).default([])
+  }),
+  strictObject({ kind: literal("choice"), choiceIds: array(OpaqueId).max(MAX_ONBOARDING_CHOICES) }),
+  strictObject({ kind: literal("confirm"), confirmed: boolean2() }),
+  strictObject({ kind: literal("upload"), fileIds: array(FileId).max(MAX_ONBOARDING_FILES) }),
+  OnboardingSecretAnswer,
+  OnboardingHarnessLoginAnswer
+]);
+var AnswerOnboardingBody = discriminatedUnion("action", [
+  strictObject({ promptId: OnboardingPromptId, action: literal("answer"), answer: OnboardingAnswer }),
+  strictObject({ promptId: OnboardingPromptId, action: literal("back") }),
+  strictObject({ promptId: OnboardingPromptId, action: literal("alternative"), alternativeId: OpaqueId })
+]);
+var capability3 = KNOWN_CAPABILITIES.onboarding;
+var ONBOARDING_ROUTES = {
+  getOnboarding: defineRoute({
+    id: "getOnboarding",
+    method: "GET",
+    path: "/onboarding",
+    summary: "Get the onboarding state and the prompt waiting for an answer",
+    description: "Poll while `status` is `working` or a harness login is `waiting` or `verifying`.",
+    permission: "settings.manage",
+    capability: capability3,
+    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } }
+  }),
+  answerOnboarding: defineRoute({
+    id: "answerOnboarding",
+    method: "POST",
+    path: "/onboarding/answer",
+    summary: "Answer the current prompt, or go back one; the engine decides what comes next",
+    description: "A `promptId` that is not the current prompt is 409 `onboarding-prompt-stale` and changes nothing. An " + "answer of another kind than the prompt, or an `alternativeId` the prompt does not offer without " + "`href`, is 400 `validation-failed`. A returned login code or a secret is never logged or audited.",
+    permission: "settings.manage",
+    capability: capability3,
+    body: { kind: "json", schema: AnswerOnboardingBody },
+    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
+    problems: ["onboarding-prompt-stale"]
+  }),
+  deferOnboarding: defineRoute({
+    id: "deferOnboarding",
+    method: "POST",
+    path: "/onboarding/defer",
+    summary: '"Skip for now": keep the setup pending, and let the engine set itself up through its built-in agents',
+    description: "Idempotent. Onboarding stays reachable; answering a prompt later continues where it stopped. 409 " + "`onboarding-not-deferrable` while `canDefer` is false.",
+    permission: "settings.manage",
+    capability: capability3,
+    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
+    problems: ["onboarding-not-deferrable"]
+  })
+};
+
+// ../../../packages/engine-api/src/capabilities/ai-tools.ts
+var MAX_AI_TOOLS = 16;
+var ShortText2 = string2().min(1).max(256);
+var LongText2 = string2().min(1).max(2048);
+var AI_TOOL_STATUSES = ["signed-in", "needs-sign-in", "error", "not-installed"];
+var AI_TOOL_AUTH_METHODS = ["account", "api-key"];
+var AiToolAuthMethod = _enum(AI_TOOL_AUTH_METHODS);
+var AI_TOOL_PROBLEM_CODES = [
+  "sign-in-expired",
+  "not-signed-in",
+  "key-rejected",
+  "quota-exceeded",
+  "provider-unavailable",
+  "check-failed",
+  "not-installed"
+];
+var AiToolProblem = strictObject({ code: _enum(AI_TOOL_PROBLEM_CODES), message: LongText2 });
+var AiToolAuth = strictObject({ method: AiToolAuthMethod, account: ShortText2.nullable() });
+var toolFields = {
+  id: AiToolId,
+  name: ShortText2,
+  version: string2().min(1).max(64).nullable(),
+  auth: AiToolAuth.nullable(),
+  signInMethods: array(AiToolAuthMethod).max(AI_TOOL_AUTH_METHODS.length).refine((methods) => new Set(methods).size === methods.length, { message: "Each method may appear once" }),
+  checkedAt: Timestamp.nullable(),
+  checking: boolean2()
+};
+var AiTool = strictObject({ ...toolFields, status: _enum(AI_TOOL_STATUSES), problem: AiToolProblem.nullable() }).refine((tool) => tool.problem === null === (tool.status === "signed-in"), {
+  message: "A tool has a problem exactly when it is not signed in",
+  path: ["problem"]
+});
+var AiToolReader = toTolerant(object({
+  ...toolFields,
+  auth: object({ method: openEnum(AI_TOOL_AUTH_METHODS), account: ShortText2.nullable() }).nullable(),
+  signInMethods: array(openEnum(AI_TOOL_AUTH_METHODS)).max(8),
+  status: openEnum(AI_TOOL_STATUSES),
+  problem: object({ code: openEnum(AI_TOOL_PROBLEM_CODES), message: LongText2 }).nullable()
+}));
+var AiToolList = strictObject({ items: array(AiTool).max(MAX_AI_TOOLS) });
+var AiToolListReader = object({ items: array(AiToolReader).max(MAX_AI_TOOLS) });
+var AiToolParams = strictObject({ aiToolId: AiToolId });
+var AiToolSignInParams = strictObject({ aiToolId: AiToolId, signInId: AiToolSignInId });
+var StartAiToolSignInBody = strictObject({ method: AiToolAuthMethod });
+var AiToolSignInPrompt = discriminatedUnion("kind", [OnboardingHarnessLoginPrompt, OnboardingSecretPrompt]);
+var AI_TOOL_SIGN_IN_STATUSES = ["pending", "working", "completed"];
+var signInFields = {
+  id: AiToolSignInId,
+  aiToolId: AiToolId,
+  method: AiToolAuthMethod,
+  activity: array(OnboardingActivity).max(MAX_ONBOARDING_ACTIVITY).default([]),
+  expiresAt: Timestamp
+};
+var AiToolSignIn = strictObject({
+  ...signInFields,
+  status: _enum(AI_TOOL_SIGN_IN_STATUSES),
+  prompt: AiToolSignInPrompt.nullable(),
+  tool: AiTool
+});
+var AiToolSignInReader = toTolerant(object({
+  ...signInFields,
+  status: openEnum(AI_TOOL_SIGN_IN_STATUSES),
+  prompt: union([AiToolSignInPrompt, UnsupportedOnboardingPromptReader]).nullable(),
+  tool: AiToolReader
+}));
+var AnswerAiToolSignInBody = discriminatedUnion("action", [
+  strictObject({
+    promptId: OnboardingPromptId,
+    action: literal("answer"),
+    answer: discriminatedUnion("kind", [OnboardingSecretAnswer, OnboardingHarnessLoginAnswer])
+  }),
+  strictObject({ promptId: OnboardingPromptId, action: literal("alternative"), alternativeId: OpaqueId })
+]);
+var AiToolChangedEvent = strictObject({ type: literal("ai-tool.changed"), aiToolId: AiToolId });
+var capability4 = KNOWN_CAPABILITIES.aiTools;
+var oneTool = { kind: "json", schema: AiTool, read: AiToolReader };
+var oneSignIn = { kind: "json", schema: AiToolSignIn, read: AiToolSignInReader };
+var AI_TOOL_ROUTES = {
+  listAiTools: defineRoute({
+    id: "listAiTools",
+    method: "GET",
+    path: "/ai-tools",
+    summary: "List the project's AI tools with their status, in the engine's order",
+    permission: "ai-tools.read",
+    capability: capability4,
+    responses: { 200: { kind: "json", schema: AiToolList, read: AiToolListReader } }
+  }),
+  getAiTool: defineRoute({
+    id: "getAiTool",
+    method: "GET",
+    path: "/ai-tools/{aiToolId}",
+    summary: "Get an AI tool",
+    description: "Poll while `checking` is true, or listen for `ai-tool.changed`.",
+    permission: "ai-tools.read",
+    capability: capability4,
+    params: AiToolParams,
+    responses: { 200: oneTool }
+  }),
+  checkAiTool: defineRoute({
+    id: "checkAiTool",
+    method: "POST",
+    path: "/ai-tools/{aiToolId}/check",
+    summary: "Check now: make a real call through the tool and update its status",
+    description: "Answers 202 with the tool, `checking` while the call runs (or already settled when it was quick); " + "`ai-tool.changed` follows when it ends. Idempotent while a check runs. It changes no credential, so " + "`ai-tools.read` is enough; the engine rate-limits it, since each check is a model call.",
+    permission: "ai-tools.read",
+    capability: capability4,
+    params: AiToolParams,
+    responses: { 202: oneTool },
+    problems: ["ai-tool-not-installed"]
+  }),
+  startAiToolSignIn: defineRoute({
+    id: "startAiToolSignIn",
+    method: "POST",
+    path: "/ai-tools/{aiToolId}/sign-ins",
+    summary: "Sign the tool in again, with the provider account or an API key; answers the first prompt",
+    description: "The current credentials keep working until the new ones are verified. A method not in the tool's " + "`signInMethods` is 422 `ai-tool-method-unsupported`. Starting ends any earlier sign-in of the tool.",
+    permission: "ai-tools.manage",
+    capability: capability4,
+    params: AiToolParams,
+    body: { kind: "json", schema: StartAiToolSignInBody },
+    responses: { 201: oneSignIn },
+    problems: ["ai-tool-not-installed", "ai-tool-method-unsupported"],
+    stepUp: true
+  }),
+  getAiToolSignIn: defineRoute({
+    id: "getAiToolSignIn",
+    method: "GET",
+    path: "/ai-tools/{aiToolId}/sign-ins/{signInId}",
+    summary: "Get a sign-in this session started",
+    description: "Poll while `working`, or while a `harness-login` prompt is `waiting` or `verifying`.",
+    permission: "ai-tools.manage",
+    capability: capability4,
+    params: AiToolSignInParams,
+    responses: { 200: oneSignIn }
+  }),
+  answerAiToolSignIn: defineRoute({
+    id: "answerAiToolSignIn",
+    method: "POST",
+    path: "/ai-tools/{aiToolId}/sign-ins/{signInId}/answer",
+    summary: "Answer the sign-in's prompt, or take one of its alternatives",
+    description: "A `promptId` that is not the current prompt is 409 `ai-tool-sign-in-stale` and changes nothing. An " + "answer of another kind than the prompt, or an alternative it does not offer without `href`, is 400 " + "`validation-failed`. A key is verified with a real call before it replaces anything; it and any login " + "code are never logged, audited, stored outside the engine’s credential store or sent back.",
+    permission: "ai-tools.manage",
+    capability: capability4,
+    params: AiToolSignInParams,
+    body: { kind: "json", schema: AnswerAiToolSignInBody },
+    responses: { 200: oneSignIn },
+    problems: ["ai-tool-sign-in-stale"]
+  }),
+  cancelAiToolSignIn: defineRoute({
+    id: "cancelAiToolSignIn",
+    method: "DELETE",
+    path: "/ai-tools/{aiToolId}/sign-ins/{signInId}",
+    summary: "Abandon a sign-in; the tool keeps the credentials it had",
+    permission: "ai-tools.manage",
+    capability: capability4,
+    params: AiToolSignInParams,
+    responses: { 204: { kind: "empty" } }
+  }),
+  signOutAiTool: defineRoute({
+    id: "signOutAiTool",
+    method: "DELETE",
+    path: "/ai-tools/{aiToolId}/credentials",
+    summary: "Sign the tool out on this project: its account sign-in or API key is removed from the engine",
+    description: "Idempotent. The tool answers as `needs-sign-in` with `not-signed-in` afterwards, and work that runs on " + "it fails with `ai-tool-sign-in-required` until it is signed in again.",
+    permission: "ai-tools.manage",
+    capability: capability4,
+    params: AiToolParams,
+    responses: { 200: oneTool },
+    problems: ["ai-tool-not-installed"],
+    stepUp: true
+  })
+};
+
 // ../../../packages/engine-api/src/capabilities/integrations.ts
 var INTEGRATION_KINDS = ["mcp-server", "calendar", "repository"];
 var IntegrationKindName = string2().regex(/^[a-z][a-z0-9-]{0,63}$/);
@@ -29767,7 +30204,7 @@ var IntegrationChangedEvent = strictObject({
   integrationId: IntegrationId,
   agentId: AgentId.nullable()
 });
-var capability3 = KNOWN_CAPABILITIES.integrations;
+var capability5 = KNOWN_CAPABILITIES.integrations;
 var one = { kind: "json", schema: Integration, read: IntegrationReader };
 var INTEGRATION_ROUTES = {
   listIntegrations: defineRoute({
@@ -29776,7 +30213,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations",
     summary: "List integrations, newest first",
     permission: "integrations.read",
-    capability: capability3,
+    capability: capability5,
     query: IntegrationListQuery,
     responses: { 200: { kind: "json", schema: IntegrationPage, read: IntegrationPageReader } }
   }),
@@ -29786,7 +30223,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/stats",
     summary: "Count integrations by status",
     permission: "integrations.read",
-    capability: capability3,
+    capability: capability5,
     query: IntegrationStatsQuery,
     responses: { 200: { kind: "json", schema: IntegrationStats } }
   }),
@@ -29796,7 +30233,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations",
     summary: "Connect an MCP server or a repository",
     permission: "integrations.manage",
-    capability: capability3,
+    capability: capability5,
     body: { kind: "json", schema: CreateIntegrationBody },
     responses: { 201: one },
     problems: ["name-taken", "agent-deleted"]
@@ -29807,7 +30244,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/calendar/connect",
     summary: "Start the engine's OAuth flow that connects a calendar",
     permission: "integrations.manage",
-    capability: capability3,
+    capability: capability5,
     body: { kind: "json", schema: ConnectCalendarBody },
     responses: { 202: { kind: "json", schema: ConnectCalendarResult } },
     draft: true
@@ -29818,7 +30255,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/{integrationId}",
     summary: "Get an integration",
     permission: "integrations.read",
-    capability: capability3,
+    capability: capability5,
     params: IntegrationParams,
     responses: { 200: one }
   }),
@@ -29828,7 +30265,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/{integrationId}",
     summary: "Rename an integration or change its URL or secret references",
     permission: "integrations.manage",
-    capability: capability3,
+    capability: capability5,
     params: IntegrationParams,
     body: { kind: "json", schema: UpdateIntegrationBody },
     responses: { 200: one },
@@ -29840,7 +30277,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/{integrationId}",
     summary: "Remove an integration; the secrets it referenced stay in the wallet",
     permission: "integrations.manage",
-    capability: capability3,
+    capability: capability5,
     params: IntegrationParams,
     responses: { 204: { kind: "empty" } }
   }),
@@ -29850,7 +30287,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/{integrationId}/enable",
     summary: "Reconnect a disconnected integration (idempotent)",
     permission: "integrations.manage",
-    capability: capability3,
+    capability: capability5,
     params: IntegrationParams,
     responses: { 200: one }
   }),
@@ -29860,7 +30297,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/{integrationId}/disable",
     summary: "Disconnect an integration so agents stop using it (idempotent)",
     permission: "integrations.manage",
-    capability: capability3,
+    capability: capability5,
     params: IntegrationParams,
     responses: { 200: one }
   }),
@@ -29870,7 +30307,7 @@ var INTEGRATION_ROUTES = {
     path: "/integrations/{integrationId}/check",
     summary: "Re-test the connection and refresh status and tools",
     permission: "integrations.manage",
-    capability: capability3,
+    capability: capability5,
     params: IntegrationParams,
     responses: { 200: one }
   })
@@ -30042,7 +30479,7 @@ var TaskOccurrencePageReader = object({
 });
 var TaskChangedEvent = strictObject({ type: literal("task.changed"), taskId: TaskId, state: TaskState });
 var TaskChangedEventReader = TaskChangedEvent.extend({ state: openEnum(TASK_STATES) });
-var capability4 = KNOWN_CAPABILITIES.tasks;
+var capability6 = KNOWN_CAPABILITIES.tasks;
 var TASK_ROUTES = {
   listTasks: defineRoute({
     id: "listTasks",
@@ -30050,7 +30487,7 @@ var TASK_ROUTES = {
     path: "/tasks",
     summary: "List every task definition, ordinary and engine-owned, in the engine's default order",
     permission: "tasks.read",
-    capability: capability4,
+    capability: capability6,
     query: TaskListQuery,
     responses: { 200: { kind: "json", schema: TaskPage, read: TaskPageReader } }
   }),
@@ -30060,7 +30497,7 @@ var TASK_ROUTES = {
     path: "/tasks/{taskId}",
     summary: "Get a task with its children, dependants, links and notes",
     permission: "tasks.read",
-    capability: capability4,
+    capability: capability6,
     params: TaskParams,
     responses: { 200: { kind: "json", schema: TaskDetail, read: TaskDetailReader } }
   }),
@@ -30070,7 +30507,7 @@ var TASK_ROUTES = {
     path: "/tasks/{taskId}/occurrences",
     summary: "List a task's occurrences, newest first",
     permission: "tasks.read",
-    capability: capability4,
+    capability: capability6,
     params: TaskParams,
     query: TaskOccurrenceListQuery,
     responses: { 200: { kind: "json", schema: TaskOccurrencePage, read: TaskOccurrencePageReader } }
@@ -30198,7 +30635,7 @@ var AccessRequestPage = pageOf(AccessRequest);
 var AccessRequestParams = strictObject({ accessRequestId: AccessRequestId });
 var ApproveAccessRequestBody = strictObject({ code: string2().regex(ACCESS_CODE_PATTERN), role: Role });
 var DashboardRemovals = strictObject({ enabled: boolean2() });
-var capability5 = KNOWN_CAPABILITIES.accessRequests;
+var capability7 = KNOWN_CAPABILITIES.accessRequests;
 var ACCESS_REQUEST_ROUTES = {
   listAccessRequests: defineRoute({
     id: "listAccessRequests",
@@ -30206,7 +30643,7 @@ var ACCESS_REQUEST_ROUTES = {
     path: "/access-requests",
     summary: "List pending access requests, oldest first",
     permission: "members.read",
-    capability: capability5,
+    capability: capability7,
     query: PageQuery,
     responses: { 200: { kind: "json", schema: AccessRequestPage } }
   }),
@@ -30217,7 +30654,7 @@ var ACCESS_REQUEST_ROUTES = {
     summary: "Approve an access request with the code the person reads out; they become a member",
     description: "The member gets the role in the body, the passkey registered with the request and the ticket’s " + "`dashboardUserId`. A wrong code is 422 `access-code-mismatch` and leaves the request pending, except " + "the fifth wrong code for a request, which also deletes it. The problem carries `attemptsRemaining`, " + "the wrong codes the request still survives (0: this one deleted it).",
     permission: "members.manage",
-    capability: capability5,
+    capability: capability7,
     params: AccessRequestParams,
     body: { kind: "json", schema: ApproveAccessRequestBody },
     responses: { 201: { kind: "json", schema: Member } },
@@ -30230,7 +30667,7 @@ var ACCESS_REQUEST_ROUTES = {
     path: "/access-requests/{accessRequestId}",
     summary: "Decline an access request; its passkey is discarded",
     permission: "members.manage",
-    capability: capability5,
+    capability: capability7,
     params: AccessRequestParams,
     responses: { 204: { kind: "empty" } }
   }),
@@ -30240,7 +30677,7 @@ var ACCESS_REQUEST_ROUTES = {
     path: "/settings/dashboard-removals",
     summary: "Allow or refuse member removals signed by the dashboard",
     permission: "settings.manage",
-    capability: capability5,
+    capability: capability7,
     body: { kind: "json", schema: DashboardRemovals },
     responses: { 200: { kind: "json", schema: DashboardRemovals } },
     stepUp: true
@@ -30592,7 +31029,7 @@ var BrowserHelpChangedEvent = strictObject({
   type: literal("browser-help.changed"),
   requestId: BrowserHelpRequestId
 });
-var capability6 = KNOWN_CAPABILITIES.browserTab;
+var capability8 = KNOWN_CAPABILITIES.browserTab;
 var session = { 200: { kind: "json", schema: BrowserSession, read: ReadBrowserSession } };
 var created = { 201: { kind: "json", schema: BrowserSession, read: ReadBrowserSession } };
 var help = { 200: { kind: "json", schema: BrowserHelpRequest, read: ReadBrowserHelpRequest } };
@@ -30618,7 +31055,7 @@ var LIVE_ROUTES = {
     summary: "Open a new engine browser tab at a site for the owner to sign in by hand",
     description: "The session starts in control of a new tab at `origin`, which no agent uses and no other session " + "reaches; ending it closes the tab, and the login stays in the browser profile. 422 " + "`browser-origin-refused` for the engine’s own origins and origins outside its sign-in allowlist; 409 " + "`browser-busy` while another sign-in session is open on the engine.",
     permission: "browser.control",
-    capability: capability6,
+    capability: capability8,
     body: { kind: "json", schema: OpenBrowserSignInBody },
     responses: created,
     problems: ["browser-origin-refused", "browser-busy"],
@@ -30632,7 +31069,7 @@ var LIVE_ROUTES = {
     summary: "The tabs agents work in now that the member may watch",
     description: "Only tabs of work the member can see (its chat, task or run). Sign-in tabs are never listed. Newest " + "first, at most `MAX_BROWSER_TABS`.",
     permission: "browser.watch",
-    capability: capability6,
+    capability: capability8,
     query: ListBrowserTabsQuery,
     responses: { 200: { kind: "json", schema: BrowserTabList, read: ReadBrowserTabList } },
     draft: true
@@ -30644,7 +31081,7 @@ var LIVE_ROUTES = {
     summary: "Open a session that watches an agent’s tab without controlling it",
     description: "409 `browser-tab-full` when `MAX_BROWSER_PARTICIPANTS` − 1 watchers are open on the tab: the last place " + "is kept for a controller.",
     permission: "browser.watch",
-    capability: capability6,
+    capability: capability8,
     params: BrowserTabParams,
     responses: created,
     problems: ["browser-tab-full"],
@@ -30657,7 +31094,7 @@ var LIVE_ROUTES = {
     summary: "Open a session that takes over an agent’s tab; the agent pauses until it gets the tab back",
     description: "Answers the tab’s open help request, if any. 409 `browser-tab-controlled` while someone else controls " + "the tab; never full, since watchers leave a place for the controller.",
     permission: "browser.control",
-    capability: capability6,
+    capability: capability8,
     params: BrowserTabParams,
     responses: created,
     problems: ["browser-tab-controlled"],
@@ -30670,7 +31107,7 @@ var LIVE_ROUTES = {
     path: "/browser-sessions/{sessionId}",
     summary: "One of the caller’s own browser sessions; 404 for any other gateway session’s",
     permission: "browser.watch",
-    capability: capability6,
+    capability: capability8,
     params: BrowserSessionParams,
     responses: session,
     draft: true
@@ -30682,7 +31119,7 @@ var LIVE_ROUTES = {
     summary: "Take control from a watching session; the agent pauses",
     description: "Idempotent while the session controls. 409 `browser-tab-controlled` while someone else controls the " + "tab, `browser-session-ended` once the session ended.",
     permission: "browser.control",
-    capability: capability6,
+    capability: capability8,
     params: BrowserSessionParams,
     responses: session,
     problems: ["browser-tab-controlled", "browser-session-ended"],
@@ -30696,7 +31133,7 @@ var LIVE_ROUTES = {
     summary: "Hand the tab back to the agent; the session keeps watching",
     description: "The agent resumes with the outcome `handed-back`. Idempotent while the session only watches. A sign-in " + "session has no agent to hand back to, so it ends. 409 `browser-session-ended` once the session ended.",
     permission: "browser.control",
-    capability: capability6,
+    capability: capability8,
     params: BrowserSessionParams,
     responses: session,
     problems: ["browser-session-ended"],
@@ -30709,7 +31146,7 @@ var LIVE_ROUTES = {
     summary: "End the session and close its channel; a controller’s agent resumes with the outcome `ended`",
     description: "Idempotent: an ended session answers as it is.",
     permission: "browser.watch",
-    capability: capability6,
+    capability: capability8,
     params: BrowserSessionParams,
     responses: session,
     draft: true
@@ -30720,7 +31157,7 @@ var LIVE_ROUTES = {
     path: "/browser-help-requests",
     summary: "Agents’ requests for a human to get past a page, for the work the member can see",
     permission: "browser.watch",
-    capability: capability6,
+    capability: capability8,
     query: ListBrowserHelpRequestsQuery,
     responses: { 200: { kind: "json", schema: BrowserHelpRequestList, read: ReadBrowserHelpRequestList } },
     draft: true
@@ -30731,7 +31168,7 @@ var LIVE_ROUTES = {
     path: "/browser-help-requests/{requestId}",
     summary: "One help request with its resolution",
     permission: "browser.watch",
-    capability: capability6,
+    capability: capability8,
     params: BrowserHelpRequestParams,
     responses: help,
     draft: true
@@ -30743,205 +31180,11 @@ var LIVE_ROUTES = {
     summary: "Decline without taking control; the agent resumes with the outcome `dismissed`",
     description: "409 `browser-tab-controlled` while someone controls the tab (they hand back instead), " + "`browser-help-resolved` once it is resolved.",
     permission: "browser.control",
-    capability: capability6,
+    capability: capability8,
     params: BrowserHelpRequestParams,
     responses: help,
     problems: ["browser-tab-controlled", "browser-help-resolved"],
     draft: true
-  })
-};
-
-// ../../../packages/engine-api/src/capabilities/onboarding.ts
-var MAX_ONBOARDING_FILES = 20;
-var MAX_ONBOARDING_CHOICES = 32;
-var MAX_ONBOARDING_DETAILS = 16;
-var MAX_ONBOARDING_ALTERNATIVES = 4;
-var MAX_ONBOARDING_ACTIVITY = 16;
-var MAX_ONBOARDING_SECRET_LENGTH = 4096;
-var ShortText = string2().min(1).max(256);
-var LongText = string2().max(2048);
-var HttpsUrl = url({ protocol: /^https$/ }).max(2048);
-var OnboardingPromptId = OpaqueId;
-var OnboardingDetail = strictObject({ label: ShortText, text: LongText.min(1) });
-var EnginePath = string2().max(512).regex(/^\/(?![/\\])[^\s\\]*$/);
-var OnboardingAlternative = strictObject({
-  id: OpaqueId,
-  label: ShortText,
-  description: LongText.nullable(),
-  href: EnginePath.nullable()
-});
-var promptBase = {
-  id: OnboardingPromptId,
-  title: ShortText,
-  question: LongText.min(1),
-  hint: LongText.nullable(),
-  error: LongText.nullable(),
-  canGoBack: boolean2(),
-  details: array(OnboardingDetail).max(MAX_ONBOARDING_DETAILS).default([]),
-  alternatives: array(OnboardingAlternative).max(MAX_ONBOARDING_ALTERNATIVES).default([])
-};
-var OnboardingChoice = strictObject({
-  id: OpaqueId,
-  label: ShortText,
-  description: LongText.nullable(),
-  disabled: boolean2(),
-  featured: boolean2().optional()
-});
-var OnboardingTextPrompt = strictObject({
-  ...promptBase,
-  kind: literal("text"),
-  multiline: boolean2(),
-  required: boolean2(),
-  placeholder: string2().max(256).nullable(),
-  initial: string2().max(MAX_MESSAGE_LENGTH),
-  attachments: boolean2()
-});
-var OnboardingChoicePrompt = strictObject({
-  ...promptBase,
-  kind: literal("choice"),
-  multiple: boolean2(),
-  choices: array(OnboardingChoice).min(1).max(MAX_ONBOARDING_CHOICES),
-  initial: array(OpaqueId).max(MAX_ONBOARDING_CHOICES)
-});
-var OnboardingConfirmPrompt = strictObject({
-  ...promptBase,
-  kind: literal("confirm"),
-  confirmLabel: ShortText,
-  declineLabel: ShortText
-});
-var OnboardingUploadPrompt = strictObject({
-  ...promptBase,
-  kind: literal("upload"),
-  required: boolean2(),
-  maxFiles: int().min(1).max(MAX_ONBOARDING_FILES)
-});
-var OnboardingSecretPrompt = strictObject({
-  ...promptBase,
-  kind: literal("secret"),
-  label: ShortText,
-  placeholder: string2().max(256).nullable(),
-  helpUrl: HttpsUrl.nullable()
-});
-var HARNESS_LOGIN_METHODS = ["device-code", "return-code"];
-var HARNESS_LOGIN_STATUSES = [
-  "waiting",
-  "verifying",
-  "succeeded",
-  "failed",
-  "expired",
-  "denied",
-  "unsupported"
-];
-var OnboardingHarnessLoginPrompt = strictObject({
-  ...promptBase,
-  kind: literal("harness-login"),
-  harness: ShortText,
-  method: _enum(HARNESS_LOGIN_METHODS),
-  url: HttpsUrl,
-  userCode: string2().min(4).max(64).nullable(),
-  status: _enum(HARNESS_LOGIN_STATUSES),
-  diagnostic: LongText.nullable(),
-  expiresAt: Timestamp.nullable()
-});
-var OnboardingPrompt = discriminatedUnion("kind", [
-  OnboardingTextPrompt,
-  OnboardingChoicePrompt,
-  OnboardingConfirmPrompt,
-  OnboardingUploadPrompt,
-  OnboardingSecretPrompt,
-  OnboardingHarnessLoginPrompt
-]);
-var ONBOARDING_PROMPT_KINDS = [
-  "text",
-  "choice",
-  "confirm",
-  "upload",
-  "secret",
-  "harness-login"
-];
-var UnsupportedPromptReader = object({
-  id: OnboardingPromptId,
-  kind: string2().min(1).max(64).refine((kind) => !ONBOARDING_PROMPT_KINDS.includes(kind)),
-  title: ShortText,
-  question: LongText.min(1)
-}).transform(({ id, kind, title, question }) => ({
-  kind: "unsupported",
-  engineKind: kind,
-  id,
-  title,
-  question
-}));
-var ONBOARDING_ACTIVITY_STATUSES = ["running", "done", "failed", "skipped"];
-var OnboardingActivity = strictObject({
-  id: OpaqueId,
-  label: ShortText,
-  status: _enum(ONBOARDING_ACTIVITY_STATUSES),
-  detail: LongText.nullable()
-});
-var ONBOARDING_STATUSES = ["pending", "working", "completed"];
-var stateShape = {
-  status: _enum(ONBOARDING_STATUSES),
-  deferred: boolean2(),
-  canDefer: boolean2().default(true),
-  progress: strictObject({ step: int().min(1), of: int().min(1) }).nullable(),
-  activity: array(OnboardingActivity).max(MAX_ONBOARDING_ACTIVITY).default([])
-};
-var OnboardingState = strictObject({
-  ...stateShape,
-  prompt: OnboardingPrompt.nullable()
-});
-var OnboardingStateReader = toTolerant(strictObject({ ...stateShape, prompt: union([OnboardingPrompt, UnsupportedPromptReader]).nullable() }));
-var OnboardingAnswer = discriminatedUnion("kind", [
-  strictObject({
-    kind: literal("text"),
-    text: string2().max(MAX_MESSAGE_LENGTH),
-    fileIds: array(FileId).max(MAX_ONBOARDING_FILES).default([])
-  }),
-  strictObject({ kind: literal("choice"), choiceIds: array(OpaqueId).max(MAX_ONBOARDING_CHOICES) }),
-  strictObject({ kind: literal("confirm"), confirmed: boolean2() }),
-  strictObject({ kind: literal("upload"), fileIds: array(FileId).max(MAX_ONBOARDING_FILES) }),
-  strictObject({ kind: literal("secret"), value: string2().min(1).max(MAX_ONBOARDING_SECRET_LENGTH) }),
-  strictObject({ kind: literal("harness-login"), returnCode: string2().min(1).max(512).nullable() })
-]);
-var AnswerOnboardingBody = discriminatedUnion("action", [
-  strictObject({ promptId: OnboardingPromptId, action: literal("answer"), answer: OnboardingAnswer }),
-  strictObject({ promptId: OnboardingPromptId, action: literal("back") }),
-  strictObject({ promptId: OnboardingPromptId, action: literal("alternative"), alternativeId: OpaqueId })
-]);
-var capability7 = KNOWN_CAPABILITIES.onboarding;
-var ONBOARDING_ROUTES = {
-  getOnboarding: defineRoute({
-    id: "getOnboarding",
-    method: "GET",
-    path: "/onboarding",
-    summary: "Get the onboarding state and the prompt waiting for an answer",
-    description: "Poll while `status` is `working` or a harness login is `waiting` or `verifying`.",
-    permission: "settings.manage",
-    capability: capability7,
-    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } }
-  }),
-  answerOnboarding: defineRoute({
-    id: "answerOnboarding",
-    method: "POST",
-    path: "/onboarding/answer",
-    summary: "Answer the current prompt, or go back one; the engine decides what comes next",
-    description: "A `promptId` that is not the current prompt is 409 `onboarding-prompt-stale` and changes nothing. An " + "answer of another kind than the prompt, or an `alternativeId` the prompt does not offer without " + "`href`, is 400 `validation-failed`. A returned login code or a secret is never logged or audited.",
-    permission: "settings.manage",
-    capability: capability7,
-    body: { kind: "json", schema: AnswerOnboardingBody },
-    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
-    problems: ["onboarding-prompt-stale"]
-  }),
-  deferOnboarding: defineRoute({
-    id: "deferOnboarding",
-    method: "POST",
-    path: "/onboarding/defer",
-    summary: '"Skip for now": keep the setup pending, and let the engine set itself up through its built-in agents',
-    description: "Idempotent. Onboarding stays reachable; answering a prompt later continues where it stopped. 409 " + "`onboarding-not-deferrable` while `canDefer` is false.",
-    permission: "settings.manage",
-    capability: capability7,
-    responses: { 200: { kind: "json", schema: OnboardingState, read: OnboardingStateReader } },
-    problems: ["onboarding-not-deferrable"]
   })
 };
 
@@ -31142,7 +31385,7 @@ var TriggerChangedEvent = strictObject({
   triggerId: TriggerId,
   agentId: AgentId
 });
-var capability8 = KNOWN_CAPABILITIES.triggers;
+var capability9 = KNOWN_CAPABILITIES.triggers;
 var one2 = { kind: "json", schema: Trigger, read: TriggerReader };
 var TRIGGER_ROUTES = {
   listTriggers: defineRoute({
@@ -31151,7 +31394,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers",
     summary: "List triggers, newest first",
     permission: "triggers.read",
-    capability: capability8,
+    capability: capability9,
     query: TriggerListQuery,
     responses: { 200: { kind: "json", schema: TriggerPage, read: TriggerPageReader } }
   }),
@@ -31161,7 +31404,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/stats",
     summary: "Count triggers by lifecycle, with the soonest next fire",
     permission: "triggers.read",
-    capability: capability8,
+    capability: capability9,
     query: TriggerStatsQuery,
     responses: { 200: { kind: "json", schema: TriggerStats } }
   }),
@@ -31171,7 +31414,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers",
     summary: "Create a schedule or an inbound email address for an agent",
     permission: "triggers.manage",
-    capability: capability8,
+    capability: capability9,
     body: { kind: "json", schema: CreateTriggerBody },
     responses: { 201: one2 },
     problems: ["invalid-schedule", "agent-deleted"]
@@ -31182,7 +31425,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}",
     summary: "Get a trigger",
     permission: "triggers.read",
-    capability: capability8,
+    capability: capability9,
     params: TriggerParams,
     responses: { 200: one2 }
   }),
@@ -31192,7 +31435,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}",
     summary: "Rename a trigger or change a schedule's timing and message",
     permission: "triggers.manage",
-    capability: capability8,
+    capability: capability9,
     params: TriggerParams,
     body: { kind: "json", schema: UpdateTriggerBody },
     responses: { 200: one2 },
@@ -31204,7 +31447,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}",
     summary: "Delete a trigger; runs it started are kept",
     permission: "triggers.manage",
-    capability: capability8,
+    capability: capability9,
     params: TriggerParams,
     responses: { 204: { kind: "empty" } }
   }),
@@ -31214,7 +31457,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}/pause",
     summary: "Pause a trigger (idempotent)",
     permission: "triggers.manage",
-    capability: capability8,
+    capability: capability9,
     params: TriggerParams,
     responses: { 200: one2 },
     problems: ["trigger-ended"]
@@ -31225,7 +31468,7 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}/resume",
     summary: "Resume a paused or failed trigger (idempotent); an ended one answers 409 `trigger-ended`",
     permission: "triggers.manage",
-    capability: capability8,
+    capability: capability9,
     params: TriggerParams,
     responses: { 200: one2 },
     problems: ["trigger-ended"]
@@ -31236,10 +31479,199 @@ var TRIGGER_ROUTES = {
     path: "/triggers/{triggerId}/fires",
     summary: "List a trigger's fires, newest first, each linked to the run it started",
     permission: "triggers.read",
-    capability: capability8,
+    capability: capability9,
     params: TriggerParams,
     query: PageQuery,
     responses: { 200: { kind: "json", schema: TriggerFirePage, read: TriggerFirePageReader } }
+  })
+};
+
+// ../../../packages/engine-api/src/settings.ts
+var UPDATE_POLICIES = ["auto", "manual", "pinned"];
+var UpdatePolicyName = _enum(UPDATE_POLICIES);
+var UpdatePolicy = strictObject({ policy: UpdatePolicyName, pinnedVersion: SemVer.nullable() });
+var SetUpdatePolicyBody = discriminatedUnion("policy", [
+  strictObject({ policy: _enum(["auto", "manual"]) }),
+  strictObject({ policy: literal("pinned"), pinnedVersion: SemVer })
+]);
+var Settings = strictObject({
+  name: string2().trim().min(1).max(128),
+  defaultAgentVisibility: AgentVisibility,
+  updatePolicy: UpdatePolicy,
+  dashboardRemovals: boolean2().nullable().default(null)
+});
+var UpdateSettingsBody = strictObject({
+  name: string2().trim().min(1).max(128).optional(),
+  defaultAgentVisibility: AgentVisibility.optional()
+});
+var SETTINGS_ROUTES = {
+  getSettings: defineRoute({
+    id: "getSettings",
+    method: "GET",
+    path: "/settings",
+    summary: "Get engine settings",
+    permission: "settings.manage",
+    responses: { 200: { kind: "json", schema: Settings } }
+  }),
+  updateSettings: defineRoute({
+    id: "updateSettings",
+    method: "PATCH",
+    path: "/settings",
+    summary: "Change engine settings",
+    permission: "settings.manage",
+    body: { kind: "json", schema: UpdateSettingsBody },
+    responses: { 200: { kind: "json", schema: Settings } }
+  }),
+  setUpdatePolicy: defineRoute({
+    id: "setUpdatePolicy",
+    method: "PUT",
+    path: "/settings/update-policy",
+    summary: "Set the engine update policy",
+    permission: "settings.manage",
+    body: { kind: "json", schema: SetUpdatePolicyBody },
+    responses: { 200: { kind: "json", schema: UpdatePolicy } },
+    stepUp: true
+  })
+};
+
+// ../../../packages/engine-api/src/security.ts
+var RekorLogIndex = int().min(0);
+var MAX_UPDATE_COMMAND_LENGTH = 512;
+var RekorEntryUuid = string2().regex(/^(?:[0-9a-f]{16})?[0-9a-f]{64}$/);
+var UI_REFUSAL_REASONS = [
+  "invalid-entry",
+  "signature-threshold-not-met",
+  "not-in-log",
+  "revoked",
+  "not-newer",
+  "delay-not-elapsed",
+  "hash-mismatch",
+  "manifest",
+  "engine-api",
+  "unpack",
+  "revocations-unverifiable"
+];
+var UI_REVOCATION_REASONS = ["missing", "invalid", "expired", "rolled-back"];
+var UI_UPDATE_OUTCOMES = ["up-to-date", "installed", "refused", "unavailable"];
+var uiUpdateCheckShape = {
+  at: Timestamp,
+  outcome: _enum(UI_UPDATE_OUTCOMES),
+  version: SemVer.nullable(),
+  reason: _enum(UI_REFUSAL_REASONS).nullable(),
+  revocationReason: _enum(UI_REVOCATION_REASONS).nullable(),
+  eligibleAt: Timestamp.nullable().default(null)
+};
+var UiUpdateCheck = strictObject(uiUpdateCheckShape);
+var uiUpdateCheckReaderShape = {
+  ...uiUpdateCheckShape,
+  outcome: openEnum(UI_UPDATE_OUTCOMES),
+  reason: openEnum(UI_REFUSAL_REASONS).nullable(),
+  revocationReason: openEnum(UI_REVOCATION_REASONS).nullable()
+};
+var UiUpdateCheckReader = toTolerant(strictObject(uiUpdateCheckReaderShape));
+var UnexpectedCertificate = strictObject({
+  sha256: Sha256Hex,
+  issuer: string2().min(1).max(512),
+  notBefore: Timestamp,
+  notAfter: Timestamp
+});
+var MAX_UNEXPECTED_CERTIFICATES = 16;
+var CERTIFICATE_STATUSES = ["valid", "pending", "expiring", "expired", "error"];
+var uiStatusShape = {
+  version: SemVer,
+  bundleSha256: Sha256Hex,
+  releaseLogIndex: RekorLogIndex.nullable(),
+  releaseLogEntryUuid: RekorEntryUuid.nullable().default(null),
+  lastUpdateCheck: UiUpdateCheck.nullable().default(null),
+  nextCheckAt: Timestamp.nullable().default(null)
+};
+var hostnameShape = {
+  hostname: Hostname,
+  kind: _enum(["default", "custom"]),
+  certificateStatus: _enum(CERTIFICATE_STATUSES).nullable().default(null),
+  claimRegistered: boolean2().nullable().default(null)
+};
+var securityOverviewShape = {
+  engine: strictObject({
+    version: SemVer,
+    releaseLogIndex: RekorLogIndex.nullable(),
+    releaseLogEntryUuid: RekorEntryUuid.nullable().default(null)
+  }),
+  update: strictObject({
+    status: _enum(["none", "available", "pending", "installing"]),
+    policy: UpdatePolicyName,
+    pinnedVersion: SemVer.nullable(),
+    availableVersion: SemVer.nullable(),
+    eligibleAt: Timestamp.nullable(),
+    checkedAt: Timestamp.nullable().default(null),
+    command: string2().min(1).max(MAX_UPDATE_COMMAND_LENGTH).regex(/^[^\p{Cc}]+$/u).nullable().default(null)
+  }),
+  ui: strictObject(uiStatusShape),
+  tls: strictObject({
+    certificateSha256: Sha256Hex,
+    notAfter: Timestamp,
+    lastCtCheck: strictObject({
+      at: Timestamp,
+      result: _enum(["ok", "unexpected-certificate", "failed"]),
+      unexpectedCertificates: array(UnexpectedCertificate).max(MAX_UNEXPECTED_CERTIFICATES).default([])
+    }).nullable()
+  }),
+  relays: array(strictObject({
+    hostname: Hostname,
+    status: _enum(["connected", "connecting", "disconnected"]),
+    since: Timestamp,
+    lastPingRttMs: int().min(0).max(600000).nullable().default(null)
+  })),
+  hostnames: array(strictObject(hostnameShape)),
+  lastHeartbeat: strictObject({
+    sentAt: Timestamp,
+    body: string2(),
+    signature: string2().min(1).max(256).nullable().default(null)
+  }).nullable(),
+  clockSkew: strictObject({ seconds: int(), measuredAt: Timestamp }).nullable().default(null),
+  outboundDestinations: array(string2().min(1).max(2048))
+};
+var SecurityOverview = strictObject(securityOverviewShape);
+var SecurityOverviewReader = toTolerant(strictObject({
+  ...securityOverviewShape,
+  ui: strictObject({
+    ...uiStatusShape,
+    lastUpdateCheck: strictObject(uiUpdateCheckReaderShape).nullable().default(null)
+  }),
+  hostnames: array(strictObject({
+    ...hostnameShape,
+    certificateStatus: openEnum(CERTIFICATE_STATUSES).nullable().default(null)
+  }))
+}));
+var SECURITY_ROUTES = {
+  getSecurityOverview: defineRoute({
+    id: "getSecurityOverview",
+    method: "GET",
+    path: "/security",
+    summary: "Security panel: versions, release log entries, certificate, relays, last heartbeat",
+    permission: "security.read",
+    responses: { 200: { kind: "json", schema: SecurityOverview, read: SecurityOverviewReader } }
+  })
+};
+
+// ../../../packages/engine-api/src/capabilities/updates.ts
+var MAX_UI_CHECK_INTERVAL_MS = 3600000;
+var UPDATE_CHECK_MIN_INTERVAL_MS = 60000;
+var UpdatesChangedEvent = strictObject({
+  type: literal("updates.changed"),
+  uiVersion: SemVer.nullable()
+});
+var UPDATES_ROUTES = {
+  checkForUiUpdate: defineRoute({
+    id: "checkForUiUpdate",
+    method: "POST",
+    path: "/updates/ui/check",
+    summary: "Run the UI loader’s normal update check now, and answer its result",
+    description: "Exactly the check the engine’s timer runs, only earlier: the same policy, verification, delay, " + "revocation and downgrade rules, and never `mode: manual`, so a release still inside its delay is " + "`refused` with `delay-not-elapsed` and its `eligibleAt`. A check already running is joined, not " + "repeated. The engine answers once the check has ended and `GET /security` reports it as " + "`ui.lastUpdateCheck`, then sends `updates.changed`. Under `manual` there is no scheduled check to run " + "early: 409 `update-policy-manual`. More than one request per engine within " + "`UPDATE_CHECK_MIN_INTERVAL_MS` is 429 `update-check-too-soon`. Audited as `updates.ui-check`.",
+    permission: "settings.manage",
+    capability: KNOWN_CAPABILITIES.updates,
+    responses: { 200: { kind: "json", schema: UiUpdateCheck, read: UiUpdateCheckReader } },
+    problems: ["update-check-too-soon", "update-policy-manual"]
   })
 };
 
@@ -31324,7 +31756,8 @@ var ChatTask = strictObject({ ...chatTaskFields, state: _enum(CHAT_TASK_STATES) 
 var ChatRecheck = strictObject({
   cause: string2().min(1).max(MAX_CHAT_STATE_TEXT_LENGTH),
   nextAt: Timestamp,
-  rounds: int().min(1)
+  rounds: int().min(1),
+  aiToolId: AiToolId.nullable().default(null)
 });
 var chatFields = {
   id: ChatId,
@@ -31727,7 +32160,7 @@ var ReadWalletSaved = toTolerant(WalletSaved.extend({ record: ReadWalletRecord }
 var WalletRecordParams = strictObject({ recordId: WalletRecordId });
 var WalletRequestParams = strictObject({ requestId: WalletRequestId });
 var WalletRequestStepBody = strictObject({ step: int().min(0) });
-var capability9 = KNOWN_CAPABILITIES.wallet;
+var capability10 = KNOWN_CAPABILITIES.wallet;
 var WALLET_ROUTES = {
   getWallet: defineRoute({
     id: "getWallet",
@@ -31735,7 +32168,7 @@ var WALLET_ROUTES = {
     path: "/wallet",
     summary: "The Wallet's state, saved logins without secrets and pending agent requests",
     permission: "wallet.read",
-    capability: capability9,
+    capability: capability10,
     responses: { 200: { kind: "json", schema: WalletOverview, read: ReadWalletOverview } }
   }),
   addWalletRecord: defineRoute({
@@ -31745,7 +32178,7 @@ var WALLET_ROUTES = {
     summary: "Save a login; its password and field values can never be read back",
     description: "A login for the same origin and username is updated rather than duplicated. The save resolves the " + "pending requests for that origin (and `requestId`), except one-time code requests. A new or changed " + "login stays unverified until the engine tests it. 409 `wallet-not-ready` unless the Wallet is `ready`.",
     permission: "wallet.manage",
-    capability: capability9,
+    capability: capability10,
     body: { kind: "json", schema: AddWalletRecordBody },
     responses: { 200: { kind: "json", schema: WalletSaved, read: ReadWalletSaved } },
     problems: ["wallet-not-ready"],
@@ -31757,7 +32190,7 @@ var WALLET_ROUTES = {
     path: "/wallet/records/{recordId}",
     summary: "Replace one login’s username and password, and change its label or fields",
     permission: "wallet.manage",
-    capability: capability9,
+    capability: capability10,
     params: WalletRecordParams,
     body: { kind: "json", schema: UpdateWalletRecordBody },
     responses: { 200: { kind: "json", schema: WalletSaved, read: ReadWalletSaved } },
@@ -31770,7 +32203,7 @@ var WALLET_ROUTES = {
     path: "/wallet/records/{recordId}",
     summary: "Remove one saved login; other logins are untouched",
     permission: "wallet.manage",
-    capability: capability9,
+    capability: capability10,
     params: WalletRecordParams,
     responses: { 204: { kind: "empty" } },
     problems: ["wallet-not-ready"],
@@ -31783,7 +32216,7 @@ var WALLET_ROUTES = {
     summary: "Mark as seen: the request keeps waiting, but stops asking for attention in every client",
     description: "Neither an answer nor a refusal. Idempotent for the same step; 409 `wallet-request-moved` when the " + "request moved to another step since it was shown, 404 once it is no longer pending.",
     permission: "wallet.manage",
-    capability: capability9,
+    capability: capability10,
     params: WalletRequestParams,
     body: { kind: "json", schema: WalletRequestStepBody },
     responses: { 200: { kind: "json", schema: WalletRequest, read: ReadWalletRequestSchema } },
@@ -31796,7 +32229,7 @@ var WALLET_ROUTES = {
     summary: "Reject request: end it; the waiting work learns that nothing was provided",
     description: "The work is never told it signed in, and the same request is not raised again for it. 409 " + "`wallet-request-moved` for a stale step, 404 once it is no longer pending.",
     permission: "wallet.manage",
-    capability: capability9,
+    capability: capability10,
     params: WalletRequestParams,
     body: { kind: "json", schema: WalletRequestStepBody },
     responses: { 204: { kind: "empty" } },
@@ -31834,7 +32267,9 @@ var coreEvents = [
   FileChangedEvent,
   IntegrationChangedEvent,
   BrowserTabChangedEvent,
-  BrowserHelpChangedEvent
+  BrowserHelpChangedEvent,
+  AiToolChangedEvent,
+  UpdatesChangedEvent
 ];
 var CoreEngineEvent = discriminatedUnion("type", [...coreEvents, RunChangedEvent, TaskChangedEvent]);
 var EngineEvent = discriminatedUnion("type", [...CoreEngineEvent.options, ActivityEvent]);
@@ -32075,168 +32510,6 @@ var ME_ROUTES = {
   })
 };
 
-// ../../../packages/engine-api/src/settings.ts
-var UPDATE_POLICIES = ["auto", "manual", "pinned"];
-var UpdatePolicyName = _enum(UPDATE_POLICIES);
-var UpdatePolicy = strictObject({ policy: UpdatePolicyName, pinnedVersion: SemVer.nullable() });
-var SetUpdatePolicyBody = discriminatedUnion("policy", [
-  strictObject({ policy: _enum(["auto", "manual"]) }),
-  strictObject({ policy: literal("pinned"), pinnedVersion: SemVer })
-]);
-var Settings = strictObject({
-  name: string2().trim().min(1).max(128),
-  defaultAgentVisibility: AgentVisibility,
-  updatePolicy: UpdatePolicy,
-  dashboardRemovals: boolean2().nullable().default(null)
-});
-var UpdateSettingsBody = strictObject({
-  name: string2().trim().min(1).max(128).optional(),
-  defaultAgentVisibility: AgentVisibility.optional()
-});
-var SETTINGS_ROUTES = {
-  getSettings: defineRoute({
-    id: "getSettings",
-    method: "GET",
-    path: "/settings",
-    summary: "Get engine settings",
-    permission: "settings.manage",
-    responses: { 200: { kind: "json", schema: Settings } }
-  }),
-  updateSettings: defineRoute({
-    id: "updateSettings",
-    method: "PATCH",
-    path: "/settings",
-    summary: "Change engine settings",
-    permission: "settings.manage",
-    body: { kind: "json", schema: UpdateSettingsBody },
-    responses: { 200: { kind: "json", schema: Settings } }
-  }),
-  setUpdatePolicy: defineRoute({
-    id: "setUpdatePolicy",
-    method: "PUT",
-    path: "/settings/update-policy",
-    summary: "Set the engine update policy",
-    permission: "settings.manage",
-    body: { kind: "json", schema: SetUpdatePolicyBody },
-    responses: { 200: { kind: "json", schema: UpdatePolicy } },
-    stepUp: true
-  })
-};
-
-// ../../../packages/engine-api/src/security.ts
-var RekorLogIndex = int().min(0);
-var RekorEntryUuid = string2().regex(/^(?:[0-9a-f]{16})?[0-9a-f]{64}$/);
-var UI_REFUSAL_REASONS = [
-  "invalid-entry",
-  "signature-threshold-not-met",
-  "not-in-log",
-  "revoked",
-  "not-newer",
-  "delay-not-elapsed",
-  "hash-mismatch",
-  "manifest",
-  "engine-api",
-  "unpack",
-  "revocations-unverifiable"
-];
-var UI_REVOCATION_REASONS = ["missing", "invalid", "expired", "rolled-back"];
-var UI_UPDATE_OUTCOMES = ["up-to-date", "installed", "refused", "unavailable"];
-var uiUpdateCheckShape = {
-  at: Timestamp,
-  outcome: _enum(UI_UPDATE_OUTCOMES),
-  version: SemVer.nullable(),
-  reason: _enum(UI_REFUSAL_REASONS).nullable(),
-  revocationReason: _enum(UI_REVOCATION_REASONS).nullable(),
-  eligibleAt: Timestamp.nullable().default(null)
-};
-var UiUpdateCheck = strictObject(uiUpdateCheckShape);
-var UnexpectedCertificate = strictObject({
-  sha256: Sha256Hex,
-  issuer: string2().min(1).max(512),
-  notBefore: Timestamp,
-  notAfter: Timestamp
-});
-var MAX_UNEXPECTED_CERTIFICATES = 16;
-var CERTIFICATE_STATUSES = ["valid", "pending", "expiring", "expired", "error"];
-var uiStatusShape = {
-  version: SemVer,
-  bundleSha256: Sha256Hex,
-  releaseLogIndex: RekorLogIndex.nullable(),
-  releaseLogEntryUuid: RekorEntryUuid.nullable().default(null),
-  lastUpdateCheck: UiUpdateCheck.nullable().default(null)
-};
-var hostnameShape = {
-  hostname: Hostname,
-  kind: _enum(["default", "custom"]),
-  certificateStatus: _enum(CERTIFICATE_STATUSES).nullable().default(null),
-  claimRegistered: boolean2().nullable().default(null)
-};
-var securityOverviewShape = {
-  engine: strictObject({
-    version: SemVer,
-    releaseLogIndex: RekorLogIndex.nullable(),
-    releaseLogEntryUuid: RekorEntryUuid.nullable().default(null)
-  }),
-  update: strictObject({
-    status: _enum(["none", "available", "pending", "installing"]),
-    policy: UpdatePolicyName,
-    pinnedVersion: SemVer.nullable(),
-    availableVersion: SemVer.nullable(),
-    eligibleAt: Timestamp.nullable()
-  }),
-  ui: strictObject(uiStatusShape),
-  tls: strictObject({
-    certificateSha256: Sha256Hex,
-    notAfter: Timestamp,
-    lastCtCheck: strictObject({
-      at: Timestamp,
-      result: _enum(["ok", "unexpected-certificate", "failed"]),
-      unexpectedCertificates: array(UnexpectedCertificate).max(MAX_UNEXPECTED_CERTIFICATES).default([])
-    }).nullable()
-  }),
-  relays: array(strictObject({
-    hostname: Hostname,
-    status: _enum(["connected", "connecting", "disconnected"]),
-    since: Timestamp,
-    lastPingRttMs: int().min(0).max(600000).nullable().default(null)
-  })),
-  hostnames: array(strictObject(hostnameShape)),
-  lastHeartbeat: strictObject({
-    sentAt: Timestamp,
-    body: string2(),
-    signature: string2().min(1).max(256).nullable().default(null)
-  }).nullable(),
-  clockSkew: strictObject({ seconds: int(), measuredAt: Timestamp }).nullable().default(null),
-  outboundDestinations: array(string2().min(1).max(2048))
-};
-var SecurityOverview = strictObject(securityOverviewShape);
-var SecurityOverviewReader = toTolerant(strictObject({
-  ...securityOverviewShape,
-  ui: strictObject({
-    ...uiStatusShape,
-    lastUpdateCheck: strictObject({
-      ...uiUpdateCheckShape,
-      outcome: openEnum(UI_UPDATE_OUTCOMES),
-      reason: openEnum(UI_REFUSAL_REASONS).nullable(),
-      revocationReason: openEnum(UI_REVOCATION_REASONS).nullable()
-    }).nullable().default(null)
-  }),
-  hostnames: array(strictObject({
-    ...hostnameShape,
-    certificateStatus: openEnum(CERTIFICATE_STATUSES).nullable().default(null)
-  }))
-}));
-var SECURITY_ROUTES = {
-  getSecurityOverview: defineRoute({
-    id: "getSecurityOverview",
-    method: "GET",
-    path: "/security",
-    summary: "Security panel: versions, release log entries, certificate, relays, last heartbeat",
-    permission: "security.read",
-    responses: { 200: { kind: "json", schema: SecurityOverview, read: SecurityOverviewReader } }
-  })
-};
-
 // ../../../packages/engine-api/src/routes.ts
 var ENGINE_API_ROUTES = {
   ...ME_ROUTES,
@@ -32263,7 +32536,9 @@ var ENGINE_API_ROUTES = {
   ...LIVE_ROUTES,
   ...ONBOARDING_ROUTES,
   ...WALLET_ROUTES,
-  ...VOICE_ROUTES
+  ...VOICE_ROUTES,
+  ...AI_TOOL_ROUTES,
+  ...UPDATES_ROUTES
 };
 var ENGINE_API_ROUTE_LIST = Object.values(ENGINE_API_ROUTES);
 function commonProblems(route) {
@@ -32450,10 +32725,21 @@ function createEngineApiClient(transport) {
       transcribe: (chatId, clip, query, signal) => call(ENGINE_API_ROUTES.transcribeVoiceClip, { params: { chatId }, query, body: clip }, signal),
       speak: (chatId, messageId, body, signal) => call(ENGINE_API_ROUTES.speakChatMessage, { params: { chatId, messageId }, body }, signal)
     },
+    aiTools: {
+      list: (signal) => call(ENGINE_API_ROUTES.listAiTools, {}, signal),
+      get: (aiToolId, signal) => call(ENGINE_API_ROUTES.getAiTool, { params: { aiToolId } }, signal),
+      check: (aiToolId, signal) => call(ENGINE_API_ROUTES.checkAiTool, { params: { aiToolId } }, signal),
+      startSignIn: (aiToolId, body, signal) => call(ENGINE_API_ROUTES.startAiToolSignIn, { params: { aiToolId }, body }, signal),
+      getSignIn: (aiToolId, signInId, signal) => call(ENGINE_API_ROUTES.getAiToolSignIn, { params: { aiToolId, signInId } }, signal),
+      answerSignIn: (aiToolId, signInId, body, signal) => call(ENGINE_API_ROUTES.answerAiToolSignIn, { params: { aiToolId, signInId }, body }, signal),
+      cancelSignIn: (aiToolId, signInId, signal) => call(ENGINE_API_ROUTES.cancelAiToolSignIn, { params: { aiToolId, signInId } }, signal),
+      signOut: (aiToolId, signal) => call(ENGINE_API_ROUTES.signOutAiTool, { params: { aiToolId } }, signal)
+    },
     activity: {
       list: (query, signal) => call(ENGINE_API_ROUTES.listActivity, { query }, signal)
     },
     security: { get: (signal) => call(ENGINE_API_ROUTES.getSecurityOverview, {}, signal) },
+    updates: { checkUi: (signal) => call(ENGINE_API_ROUTES.checkForUiUpdate, {}, signal) },
     audit: {
       list: (query, signal) => call(ENGINE_API_ROUTES.listAuditEntries, { query }, signal),
       verify: (signal) => call(ENGINE_API_ROUTES.verifyAuditLog, {}, signal)
@@ -33083,7 +33369,12 @@ var COMPONENT_SCHEMAS = {
   WalletRecord,
   WalletRequest,
   WalletOverview,
-  WalletSaved
+  WalletSaved,
+  AiToolId,
+  AiToolSignInId,
+  AiTool,
+  AiToolList,
+  AiToolSignIn
 };
 var JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema";
 var SESSION_COOKIE = "__Host-ptbk-session";
@@ -36295,6 +36586,27 @@ async function verifyMemberRevocation(input) {
   return { kind: "accepted", revocation: revocation.data };
 }
 
+// ../../../packages/protocol/src/owner-handoff.ts
+var OWNER_SETUP_SECRET_BYTES = 16;
+var OWNER_SETUP_COMMITMENT_BYTES = 32;
+var OWNER_HANDOFF_LIFETIME_MS = 30 * 60000;
+var OwnerSetupSecret = base64UrlOfLength(OWNER_SETUP_SECRET_BYTES).brand();
+var OwnerSetupCommitment = base64UrlOfLength(OWNER_SETUP_COMMITMENT_BYTES).brand();
+var OwnerHandoff = _enum(["ready"]);
+function newOwnerSetupSecret(random) {
+  return OwnerSetupSecret.parse(encodeBase64Url(random.bytes(OWNER_SETUP_SECRET_BYTES)));
+}
+async function ownerSetupCommitment(secret) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", utf8Encode(secret)));
+  return OwnerSetupCommitment.parse(encodeBase64Url(digest));
+}
+function ownerSetupCommitmentDigest(commitment) {
+  const decoded = decodeBase64Url(commitment);
+  if (decoded.kind !== "ok")
+    throw new TypeError("commitment is not canonical base64url");
+  return decoded.bytes;
+}
+
 // ../../../packages/protocol/src/heartbeat.ts
 var HEARTBEAT_SIGNATURE_HEADER = "Ptbk-Signature";
 var HEARTBEAT_MAX_BODY_BYTES = 4096;
@@ -36318,7 +36630,8 @@ var heartbeatShape = {
   update: UpdateState,
   agents: Count,
   members: Count,
-  setup: SetupState.optional()
+  setup: SetupState.optional(),
+  ownerHandoff: OwnerHandoff.optional()
 };
 var Heartbeat = strictObject({ v: literal(1), ...heartbeatShape });
 var MAX_HEARTBEAT_ACKS = 32;
@@ -36381,7 +36694,8 @@ function heartbeatFields(input) {
     update: input.update,
     agents: input.agents,
     members: input.members,
-    ...input.setup === undefined ? {} : { setup: input.setup }
+    ...input.setup === undefined ? {} : { setup: input.setup },
+    ...input.ownerHandoff === undefined ? {} : { ownerHandoff: input.ownerHandoff }
   };
 }
 async function heartbeatInput(body) {
@@ -36544,7 +36858,8 @@ var responseShape = {
   engineId: EngineId2,
   hostname: Hostname2,
   relays: array(Hostname2).min(1).max(MAX_RELAYS).refine((relays) => new Set(relays).size === relays.length, "relays must be unique"),
-  memberKey: Ed25519PublicKey.nullable().default(null)
+  memberKey: Ed25519PublicKey.nullable().default(null),
+  ownerSetupCommitment: OwnerSetupCommitment.nullable().default(null)
 };
 var RegisterEngineResponse = strictObject(responseShape);
 var TolerantRegisterEngineResponse = object(responseShape);

@@ -118,5 +118,5 @@ export function detectInstallation(root: string = ENGINE_ROOT, version: string =
  * @private internal engine identity
  */
 export function engineModule(relativeToDist: string): string {
-    return join(ENGINE_ROOT, 'dist', relativeToDist);
+    return resolve(dirname(fileURLToPath(import.meta.url)), '..', relativeToDist);
 }

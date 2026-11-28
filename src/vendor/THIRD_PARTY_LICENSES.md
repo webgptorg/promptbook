@@ -1,34 +1,8 @@
 # Third-party licenses of the vendored App platform bundle
 
-`app-platform.js` is generated from webgptorg/app 390740e688ca0ae96c49f507cf28312affd83598. The static files in `gateway-pages/` come from webgptorg/app fddfd05a05bc8a6888760013f86aedea81758be2. They contain the following packages.
+`app-platform.js` and `gateway-pages/` are generated from webgptorg/app 37f38f6cfb0d8a5fcfe3e1ea6eaf65e290b88afd. They contain the following packages.
 
-## @ptbk/gateway-pages (webgptorg/app fddfd05a05bc, MIT)
-
-```text
-MIT License
-
-Copyright (c) 2026 The Promptbook Authors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## @ptbk/release-tools (webgptorg/app 390740e688ca, MIT)
+## @ptbk/gateway-pages (webgptorg/app 37f38f6cfb0d, MIT)
 
 ```text
 MIT License
@@ -54,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @ptbk/protocol (webgptorg/app 390740e688ca, MIT)
+## @ptbk/release-tools (webgptorg/app 37f38f6cfb0d, MIT)
 
 ```text
 MIT License
@@ -80,7 +54,33 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @ptbk/engine-api (webgptorg/app 390740e688ca, MIT)
+## @ptbk/protocol (webgptorg/app 37f38f6cfb0d, MIT)
+
+```text
+MIT License
+
+Copyright (c) 2026 The Promptbook Authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## @ptbk/engine-api (webgptorg/app 37f38f6cfb0d, MIT)
 
 ```text
 MIT License

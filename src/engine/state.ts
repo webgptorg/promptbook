@@ -112,6 +112,8 @@ export type RecoverySchedule = RecheckSchedule & {
  * @private runtime state
  */
 export type ChatReplyRecheck = RecheckSchedule & {
+    /** Automatic retries wait for a verified sign-in, including across restarts. */
+    readonly aiToolId?: string;
     /** The participant the user addressed in the failed turn (otherwise the chat's main agent replies). */
     readonly agent?: string;
     /** The addressed agent still owes a reply although another agent has already answered the message. */
