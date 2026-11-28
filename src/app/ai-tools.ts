@@ -286,11 +286,11 @@ export class ProjectAiTools {
         if (!signIn.prompt || signIn.prompt.id !== input.promptId) return fail('ai-tool-sign-in-stale');
         if (input.action === 'alternative') {
             const method = input.alternativeId === 'api-key' ? 'api-key' : input.alternativeId === 'account' ? 'account' : undefined;
-            if (!method || !this.methods(signIn.target).includes(method)) return fail('ai-tool-method-unsupported');
+            if (!method || !signIn.prompt.alternatives?.some(item => item.id === input.alternativeId && !item.href)) return fail('validation-failed');
             return await this.restart(signIn, method);
         }
         const answer = input.answer as { kind: string; value?: string; returnCode?: string | null };
-        if (answer.kind !== signIn.prompt.kind) return fail('ai-tool-sign-in-stale');
+        if (answer.kind !== signIn.prompt.kind) return fail('validation-failed');
         if (answer.kind === 'secret') {
             const key = answer.value!;
             signIn.privateValues.add(key);

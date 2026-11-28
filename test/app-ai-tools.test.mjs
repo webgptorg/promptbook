@@ -86,6 +86,9 @@ test('AT-09/10/11: a refused key is never echoed or committed, prompts cannot be
     const started=await f.call('/ai-tools/claude-code/sign-ins','POST',{method:'api-key'});assert.equal(started.status,201);
     const path='/ai-tools/claude-code/sign-ins/'+started.body.id;
     assert.equal(started.body.prompt.canGoBack,false);
+    assert.equal((await f.call(path+'/answer','POST',{promptId:started.body.prompt.id,action:'answer',answer:{kind:'harness-login',returnCode:'wrong-kind'}})).status,400);
+    assert.equal((await f.call(path+'/answer','POST',{promptId:started.body.prompt.id,action:'alternative',alternativeId:'api-key'})).status,400);
+    assert.equal((await f.call(path)).body.prompt.id,started.body.prompt.id);
     const other=await f.makeSession();assert.equal((await f.call(path,'GET',undefined,other)).status,404);
     const secret='private-rejected-key';
     const answer={promptId:started.body.prompt.id,action:'answer',answer:{kind:'secret',value:secret}};
