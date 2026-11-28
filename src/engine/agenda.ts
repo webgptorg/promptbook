@@ -2249,17 +2249,19 @@ export class Agenda {
             return;
         }
         const now = Date.now();
+        const blockedAiTool = this.aiToolNeedingSignIn(cause);
         const schedule: ChatReplyRecheck = {
             ...nextRecheck(this.chatRechecks.get(nameKey(name))?.schedule, { cause, conditions: this.toolConditions() }, withInitialDelay(WAITING_POLICIES.chatReply, Number(this.options.env.PTBK_CHAT_REPLY_RECHECK_MS) || undefined), now),
             ...(agent ? { agent } : {}),
             ...(owed ? { followUp: true } : {}),
-            ...(this.aiToolNeedingSignIn() ? { aiToolId: this.aiToolNeedingSignIn() } : {}),
+            ...(blockedAiTool ? { aiToolId: blockedAiTool } : {}),
         };
         const { rounds, equivalent } = schedule;
         this.armChatRecheck(stored.chat.name, schedule);
         await this.saveChatRechecks();
         this.log(
-            `No reply in {${stored.chat.name}} (${cause}). Nobody needs to retry it: automatic recheck ${rounds} is due ${formatShortTime(Date.parse(schedule.nextAt), now, this.timeZone)}${equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when tools change or you write again.`,
+            schedule.aiToolId ? `No reply in {${stored.chat.name}} (${cause}). Sign in again in Settings > AI tools; the waiting reply resumes after verification, without periodic retries.`
+                : `No reply in {${stored.chat.name}} (${cause}). Nobody needs to retry it: automatic recheck ${rounds} is due ${formatShortTime(Date.parse(schedule.nextAt), now, this.timeZone)}${equivalent ? ' (the same failure repeated, so it waits longer)' : ''}, sooner when tools change or you write again.`,
             'warning',
         );
     }
@@ -5528,8 +5530,17 @@ export class Agenda {
     }
 
     /** Only an authentication blocker gets a sign-in action, never a quota or transient network failure. */
-    private aiToolNeedingSignIn(): string | undefined {
-        const tool = this.pool?.all().find(item => item.tool.isEnabled && item.inspection?.problem === 'signed-out');
+    private aiToolNeedingSignIn(cause: string): string | undefined {
+        const text = cause.toLowerCase();
+        const inventory = this.pool?.all() ?? [];
+        const noUsableHarness = /^No usable (?:read-only )?harness(?: supports read-only turns)?\.$/.test(cause) && !inventory.some(item => item.tool.isEnabled && item.inspection?.usable);
+        const tool = inventory.find(item => {
+            if (!item.tool.isEnabled || item.inspection?.problem !== 'signed-out') return false;
+            const plugin = HARNESS_PLUGINS.find(candidate => candidate.variant === item.tool.variant);
+            // An unrelated signed-out adapter must not suspend a network, routing or quota retry. Actual invocation
+            // authentication failures carry their instance's repair command; preflight routing names the adapter.
+            return noUsableHarness || [item.tool.name, plugin?.id, plugin?.displayName].some(label => label && text.includes(label.toLowerCase()));
+        });
         const plugin = tool && HARNESS_PLUGINS.find(item => item.variant === tool.tool.variant);
         return plugin ? aiToolId(plugin.id) : undefined;
     }

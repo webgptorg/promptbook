@@ -38,3 +38,14 @@ test('a failed chat waits without a timer for credentials; one verified sign-in 
     Agenda.prototype.resumeAiToolChats.call(fake,'claude-code');
     await new Promise(resolve=>setTimeout(resolve,15));assert.equal(replies,1);
 });
+
+
+test('an unrelated signed-out tool never turns a network or model-routing failure into a credential wait',()=>{
+    const fake={pool:{all:()=>[{tool:{name:'work-claude',variant:'CLAUDE_CODE',isEnabled:true},inspection:{problem:'signed-out'}}]}};
+    const identify=cause=>Agenda.prototype.aiToolNeedingSignIn.call(fake,cause);
+    assert.equal(identify('Codex provider timed out'),undefined);
+    assert.equal(identify('Router has no concrete MODEL'),undefined);
+    assert.equal(identify('OAuth session expired · ptbk tool enable work-claude'),'claude-code');
+    assert.equal(identify('Claude Code has no usable sign-in'),'claude-code');
+    assert.equal(identify('No usable harness supports read-only turns.'),'claude-code');
+});
