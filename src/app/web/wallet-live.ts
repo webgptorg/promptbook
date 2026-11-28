@@ -136,14 +136,15 @@ export class WalletLive {
             entry.busy = true;
             try {
                 if (!entry.binding.tab.authorized(entry.grant)) return problem('browser-session-ended');
-                if (entry.popup && !entry.popup.over) return problem('browser-busy');
+                if (entry.popup && !entry.popup.over) return problem('wallet-sign-in-incomplete');
                 const view = await entry.binding.tab.handBack(true, !entry.binding.tab.view().task);
-                if (view.state !== 'returned') return problem('browser-busy');
+                if (view.state !== 'returned') return problem('wallet-sign-in-incomplete');
                 await this.finish(entry, 'ended');
             } finally {
                 entry.busy = false;
             }
-        } else if (id === 'endBrowserSession') await this.finish(entry, 'ended');
+        } else if (id === 'handBackBrowserTab') return problem('browser-session-ended');
+        else if (id === 'endBrowserSession') await this.finish(entry, 'ended');
         return ok(this.resource(entry));
     }
 

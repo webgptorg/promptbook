@@ -1,6 +1,6 @@
 - Use Git's configured commit email for Promptbook commits.
 
-- Wallet can use an existing identity-provider session before asking for a replacement password, and offers manual sign-in from the selected Wallet item.
+- Wallet can use an existing identity-provider session before asking for a replacement password, and offers manual sign-in from the selected Wallet item. Returning the tab now tells the owner when the provider or account still needs attention.
 
 # Unreleased
 

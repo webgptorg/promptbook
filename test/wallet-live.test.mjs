@@ -61,6 +61,7 @@ test('Wallet live sessions bind the gateway owner, request and lifetime of the t
         'not-found',
     );
     assert.equal((await live.route('endBrowserSession', actor, { sessionId: session.id })).data.status, 'ended');
+    assert.equal((await live.route('handBackBrowserTab', actor, { sessionId: session.id })).problem.code, 'browser-session-ended');
     await live.route('endBrowserSession', actor, { sessionId: session.id });
     assert.equal(released, 1);
 });
@@ -206,7 +207,8 @@ test(
         };
         await waitFor(() => shown === relying, { timeoutMs: 12_000, message: 'first remote frame' });
         const premature = await live.route('handBackBrowserTab', actor, { sessionId: id });
-        assert.equal(premature.kind, 'problem');
+        assert.equal(premature.problem?.code, 'wallet-sign-in-incomplete');
+        assert.equal(premature.problem?.status, 409);
         assert.equal(settled, 0);
         click();
         // The private fixture CA is trusted only in the disposable target. Chrome opens its chooser in a different target.
@@ -225,7 +227,7 @@ test(
         click();
         await waitFor(() => shown === relying && origins.length >= 3, { timeoutMs: 12_000, message: 'return from popup' });
         const unrelated = await live.route('handBackBrowserTab', actor, { sessionId: id });
-        assert.equal(unrelated.kind, 'problem', 'an email ending with the expected account cannot satisfy the request');
+        assert.equal(unrelated.problem?.code, 'wallet-sign-in-incomplete', 'an email ending with the expected account cannot satisfy the request');
         assert.equal(settled, 0);
         const previousFrame = frame;
         click();

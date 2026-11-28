@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable */
-// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app d9cb38e2d59208578a475d7f82f7aef54e039de6. Do not edit; regenerate.
+// Vendored by scripts/vendor-app-platform.mjs from webgptorg/app cb42362a676ad8e1b4d53e460c65340e4b4d3b57. Do not edit; regenerate.
 // Licenses: see THIRD_PARTY_LICENSES.md next to this file.
 import { createRequire } from "node:module";
 var __create = Object.create;
@@ -21471,6 +21471,7 @@ __export(exports_src, {
   readLiveEngineMessage: () => readLiveEngineMessage,
   stripUnknownFields: () => stripUnknownFields,
   supports: () => supports,
+  supportsRoute: () => supportsRoute,
   toBrowserHelpMessage: () => toBrowserHelpMessage,
   toTolerant: () => toTolerant,
   valueSet: () => valueSet
@@ -21576,6 +21577,12 @@ __export(exports_src2, {
   MEMBER_REVOCATION_MAX_SKEW_MS: () => MEMBER_REVOCATION_MAX_SKEW_MS,
   MemberRevocation: () => MemberRevocation,
   NONCE_BYTES: () => NONCE_BYTES,
+  OWNER_HANDOFF_LIFETIME_MS: () => OWNER_HANDOFF_LIFETIME_MS,
+  OWNER_SETUP_COMMITMENT_BYTES: () => OWNER_SETUP_COMMITMENT_BYTES,
+  OWNER_SETUP_SECRET_BYTES: () => OWNER_SETUP_SECRET_BYTES,
+  OwnerHandoff: () => OwnerHandoff,
+  OwnerSetupCommitment: () => OwnerSetupCommitment,
+  OwnerSetupSecret: () => OwnerSetupSecret,
   PING_INTERVAL_MS: () => PING_INTERVAL_MS,
   PROBLEM_DETAILS_MAX_BYTES: () => PROBLEM_DETAILS_MAX_BYTES,
   PROPOSED_MEMBER_ROLES: () => PROPOSED_MEMBER_ROLES,
@@ -21677,6 +21684,9 @@ __export(exports_src2, {
   importEd25519PrivateKey: () => importEd25519PrivateKey,
   isStagingPolicy: () => isStagingPolicy,
   negotiateTunnel: () => negotiateTunnel,
+  newOwnerSetupSecret: () => newOwnerSetupSecret,
+  ownerSetupCommitment: () => ownerSetupCommitment,
+  ownerSetupCommitmentDigest: () => ownerSetupCommitmentDigest,
   pae: () => pae,
   parseClientHello: () => parseClientHello,
   parseEngineMessage: () => parseEngineMessage,
@@ -28457,6 +28467,7 @@ var PROBLEM_STATUS = {
   "browser-tab-controlled": 409,
   "browser-tab-full": 409,
   "browser-busy": 409,
+  "wallet-sign-in-incomplete": 409,
   "browser-session-ended": 409,
   "live-channel-attached": 409,
   "browser-help-resolved": 409,
@@ -28586,32 +28597,6 @@ var ClientInfo = strictObject({
   ip: union([ipv42(), ipv62()]),
   userAgent: string2().max(MAX_USER_AGENT_LENGTH)
 });
-// ../../../packages/engine-api/src/route.ts
-function defineRoute(route) {
-  return route;
-}
-// ../../../packages/engine-api/src/media-type.ts
-function normalizeMediaType(value) {
-  const parts = value.split(";").map((part) => part.trim());
-  const [essence, ...parameters] = parts;
-  if (essence === undefined || !/^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/i.test(essence))
-    return null;
-  const normalized = [essence.toLowerCase()];
-  for (const parameter of parameters) {
-    const match = /^([a-z0-9!#$&^_.+-]+)\s*=\s*(?:"([^"\\]*)"|([^\s"\\]+))$/i.exec(parameter);
-    if (match === null)
-      return null;
-    const [, name = "", quoted, bare] = match;
-    normalized.push(`${name.toLowerCase()}=${(quoted ?? bare ?? "").toLowerCase()}`);
-  }
-  return normalized.join(";");
-}
-function matchMediaType(value, allowed) {
-  if (value === null || value === undefined)
-    return null;
-  const normalized = normalizeMediaType(value);
-  return allowed.find((candidate) => candidate === normalized) ?? null;
-}
 // ../../../packages/engine-api/src/capabilities/capability.ts
 var CapabilityId = string2().regex(/^[a-z][a-z0-9-]{0,31}$/);
 var CapabilityRef = strictObject({ id: CapabilityId, version: int().min(1) });
@@ -28653,6 +28638,35 @@ function supports(engineInfo, ref) {
   return engineInfo.capabilities.some(({ id, version }) => id === ref.id && version === ref.version);
 }
 
+// ../../../packages/engine-api/src/route.ts
+function defineRoute(route) {
+  return route;
+}
+function supportsRoute(engine, route) {
+  return !route.capability || supports(engine, route.capability) || route.alternateCapability !== undefined && supports(engine, route.alternateCapability);
+}
+// ../../../packages/engine-api/src/media-type.ts
+function normalizeMediaType(value) {
+  const parts = value.split(";").map((part) => part.trim());
+  const [essence, ...parameters] = parts;
+  if (essence === undefined || !/^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/i.test(essence))
+    return null;
+  const normalized = [essence.toLowerCase()];
+  for (const parameter of parameters) {
+    const match = /^([a-z0-9!#$&^_.+-]+)\s*=\s*(?:"([^"\\]*)"|([^\s"\\]+))$/i.exec(parameter);
+    if (match === null)
+      return null;
+    const [, name = "", quoted, bare] = match;
+    normalized.push(`${name.toLowerCase()}=${(quoted ?? bare ?? "").toLowerCase()}`);
+  }
+  return normalized.join(";");
+}
+function matchMediaType(value, allowed) {
+  if (value === null || value === undefined)
+    return null;
+  const normalized = normalizeMediaType(value);
+  return allowed.find((candidate) => candidate === normalized) ?? null;
+}
 // ../../../packages/engine-api/src/tolerant.ts
 function defOf(schema) {
   return schema._zod.def;
@@ -31223,12 +31237,13 @@ var LIVE_ROUTES = {
     method: "POST",
     path: "/browser-sessions",
     summary: "Open a new engine browser tab at a site for the owner to sign in by hand",
-    description: "The session starts in control of a new tab at `origin`, which no agent uses and no other session " + "reaches; ending it closes the tab, and the login stays in the browser profile. 422 " + "`browser-origin-refused` for the engine’s own origins and origins outside its sign-in allowlist; 409 " + "`browser-busy` while another sign-in session is open on the engine.",
+    description: "The session starts in control of a new tab at `origin`, which no agent uses and no other session " + "reaches; ending it closes the tab, and the login stays in the browser profile. 422 " + "`browser-origin-refused` for the engine’s own origins and origins outside its sign-in allowlist; 409 " + "`browser-busy` while another sign-in session is open on the engine. With wallet-sign-in@1 an owner " + "with Wallet management may open a matching record or current request step. A missing item is 404, a moved request is 409.",
     permission: "browser.control",
     capability: capability9,
+    alternateCapability: KNOWN_CAPABILITIES.walletSignIn,
     body: { kind: "json", schema: OpenBrowserSignInBody },
     responses: created,
-    problems: ["browser-origin-refused", "browser-busy"],
+    problems: ["browser-origin-refused", "browser-busy", "wallet-request-moved"],
     stepUp: true,
     draft: true
   }),
@@ -31278,6 +31293,7 @@ var LIVE_ROUTES = {
     summary: "One of the caller’s own browser sessions; 404 for any other gateway session’s",
     permission: "browser.watch",
     capability: capability9,
+    alternateCapability: KNOWN_CAPABILITIES.walletSignIn,
     params: BrowserSessionParams,
     responses: session,
     draft: true
@@ -31301,12 +31317,13 @@ var LIVE_ROUTES = {
     method: "POST",
     path: "/browser-sessions/{sessionId}/hand-back",
     summary: "Hand the tab back to the agent; the session keeps watching",
-    description: "The agent resumes with the outcome `handed-back`. Idempotent while the session only watches. A sign-in " + "session has no agent to hand back to, so it ends. 409 `browser-session-ended` once the session ended.",
+    description: "The agent resumes with the outcome `handed-back`. Idempotent while the session only watches. A sign-in " + "session ends on successful hand-back. While Wallet cannot verify the requested service and account, " + "`wallet-sign-in-incomplete` leaves the session open. 409 `browser-session-ended` once the session ended.",
     permission: "browser.control",
     capability: capability9,
+    alternateCapability: KNOWN_CAPABILITIES.walletSignIn,
     params: BrowserSessionParams,
     responses: session,
-    problems: ["browser-session-ended"],
+    problems: ["browser-session-ended", "browser-busy", "wallet-sign-in-incomplete"],
     draft: true
   }),
   endBrowserSession: defineRoute({
@@ -31317,6 +31334,7 @@ var LIVE_ROUTES = {
     description: "Idempotent: an ended session answers as it is.",
     permission: "browser.watch",
     capability: capability9,
+    alternateCapability: KNOWN_CAPABILITIES.walletSignIn,
     params: BrowserSessionParams,
     responses: session,
     draft: true
@@ -33559,6 +33577,12 @@ function operationOf(route, components) {
         id: route.capability.id,
         version: route.capability.version,
         label: capabilityLabel(route.capability)
+      }
+    } : {},
+    ...route.alternateCapability ? {
+      "x-alternate-capability": {
+        ...route.alternateCapability,
+        label: capabilityLabel(route.alternateCapability)
       }
     } : {},
     ...route.stepUp ? { "x-step-up": true } : {},
@@ -36585,6 +36609,27 @@ async function verifyMemberRevocation(input) {
   return { kind: "accepted", revocation: revocation.data };
 }
 
+// ../../../packages/protocol/src/owner-handoff.ts
+var OWNER_SETUP_SECRET_BYTES = 16;
+var OWNER_SETUP_COMMITMENT_BYTES = 32;
+var OWNER_HANDOFF_LIFETIME_MS = 30 * 60000;
+var OwnerSetupSecret = base64UrlOfLength(OWNER_SETUP_SECRET_BYTES).brand();
+var OwnerSetupCommitment = base64UrlOfLength(OWNER_SETUP_COMMITMENT_BYTES).brand();
+var OwnerHandoff = _enum(["ready"]);
+function newOwnerSetupSecret(random) {
+  return OwnerSetupSecret.parse(encodeBase64Url(random.bytes(OWNER_SETUP_SECRET_BYTES)));
+}
+async function ownerSetupCommitment(secret) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", utf8Encode(secret)));
+  return OwnerSetupCommitment.parse(encodeBase64Url(digest));
+}
+function ownerSetupCommitmentDigest(commitment) {
+  const decoded = decodeBase64Url(commitment);
+  if (decoded.kind !== "ok")
+    throw new TypeError("commitment is not canonical base64url");
+  return decoded.bytes;
+}
+
 // ../../../packages/protocol/src/heartbeat.ts
 var HEARTBEAT_SIGNATURE_HEADER = "Ptbk-Signature";
 var HEARTBEAT_MAX_BODY_BYTES = 4096;
@@ -36608,7 +36653,8 @@ var heartbeatShape = {
   update: UpdateState,
   agents: Count,
   members: Count,
-  setup: SetupState.optional()
+  setup: SetupState.optional(),
+  ownerHandoff: OwnerHandoff.optional()
 };
 var Heartbeat = strictObject({ v: literal(1), ...heartbeatShape });
 var MAX_HEARTBEAT_ACKS = 32;
@@ -36671,7 +36717,8 @@ function heartbeatFields(input) {
     update: input.update,
     agents: input.agents,
     members: input.members,
-    ...input.setup === undefined ? {} : { setup: input.setup }
+    ...input.setup === undefined ? {} : { setup: input.setup },
+    ...input.ownerHandoff === undefined ? {} : { ownerHandoff: input.ownerHandoff }
   };
 }
 async function heartbeatInput(body) {
@@ -36834,7 +36881,8 @@ var responseShape = {
   engineId: EngineId2,
   hostname: Hostname2,
   relays: array(Hostname2).min(1).max(MAX_RELAYS).refine((relays) => new Set(relays).size === relays.length, "relays must be unique"),
-  memberKey: Ed25519PublicKey.nullable().default(null)
+  memberKey: Ed25519PublicKey.nullable().default(null),
+  ownerSetupCommitment: OwnerSetupCommitment.nullable().default(null)
 };
 var RegisterEngineResponse = strictObject(responseShape);
 var TolerantRegisterEngineResponse = object(responseShape);
