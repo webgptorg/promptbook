@@ -374,6 +374,8 @@ export function viewportScript(): string {
  * @private browser page scripts
  */
 export type LoginScan = {
+    /** Recognized sign-in choices on visible buttons, never arbitrary page text or credentials. */
+    readonly providers: readonly string[];
     readonly origin: string;
     readonly username: boolean;
     readonly password: boolean;
@@ -465,7 +467,14 @@ export function loginFormScript(): string {
         const responses = [...document.querySelectorAll('[name="g-recaptcha-response"], [name="h-captcha-response"], [name="cf-turnstile-response"]')];
         const captcha = widgets.length > 0 && (!responses.length || responses.some((element) => !element.value));
         const blank = document.readyState !== 'complete' || (!inputs.length && !text.length);
-        return { origin: location.origin, username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval, captcha, blank };
+        const providers = new Set();
+        for (const element of document.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"]')) {
+            if (!visible(element)) continue;
+            const name = (element.getAttribute('aria-label') || element.innerText || element.value || '').replace(/\\s+/g, ' ').trim();
+            const match = /^(?:sign[ -]?in|log[ -]?in|continue|connect|přihlásit se|pokračovat) (?:with|using|via|through|přes|pomocí)(?: účtu)? (Google|Apple|Microsoft|Facebook|GitHub|Okta|SSO|single sign[ -]on)(?: account)?$/i.exec(name);
+            if (match) providers.add(match[1]);
+        }
+        return { origin: location.origin, providers: [...providers], username: Boolean(username), password: Boolean(password), otp: Boolean(code), fields, approval, captcha, blank };
     })()`;
 }
 

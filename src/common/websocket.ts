@@ -169,14 +169,14 @@ export class ServerWebSocket {
  *
  * @private local WebSocket server
  */
-export function acceptWebSocket(request: IncomingMessage, socket: Duplex, handlers: ServerWebSocketHandlers, maxMessageBytes?: number): ServerWebSocket | undefined {
+export function acceptWebSocket(request: IncomingMessage, socket: Duplex, handlers: ServerWebSocketHandlers, maxMessageBytes?: number, protocol?: 'ptbk-live'): ServerWebSocket | undefined {
     const key = request.headers['sec-websocket-key'];
     if (typeof key !== 'string' || request.headers['sec-websocket-version'] !== '13') {
         refuseUpgrade(socket, 400, 'Bad Request');
         return undefined;
     }
     const accept = createHash('sha1').update(`${key}${WEBSOCKET_GUID}`).digest('base64');
-    socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n\r\n`);
+    socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n${protocol ? `Sec-WebSocket-Protocol: ${protocol}\r\n` : ''}\r\n`);
     return new ServerWebSocket(socket, handlers, maxMessageBytes);
 }
 

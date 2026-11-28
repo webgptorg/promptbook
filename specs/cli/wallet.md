@@ -23,6 +23,10 @@ Credential discovery recognizes verified related service domains, subdomains and
 
 Add/update verification and explicit per-item **Test** use the same [credential testing/login logic](wallet-testing.md). Apply the [authentication examples](../concepts/minimal-interruption/authentication-examples.md) and common DRY operations across init, Wallet and ordinary login.
 
+## Sign-in through an identity provider
+
+Discover visible sign-in choices on the original service, including Google, Apple, Microsoft, Facebook, GitHub and enterprise SSO. Reuse a suitable signed-in service session first. When the direct site password is missing, unverified or rejected, offer the provider route before creating a password correction request. Follow the authorized identity in the same project browser and verify access and account on the original service after the provider returns. An unmatched account, new permission outside the assignment, hardware challenge or uncertain identity can require owner input. The agent can explicitly request manual sign-in on the original service, or use a known direct password. Provider buttons are navigation hints, never authority to fill a password on another origin.
+
 ## One continuing login workflow
 
 The unit of completion is **verified access to the requested service/account**, not saving credentials or submitting a form. Input, trusted browser interaction and verification form one continuing workflow. Progress may request further fields, a TOTP factor, mobile approval, consent or [manual control of the relevant browser tab](browser-tab-control.md). New steps extend the current request rather than create repeated disconnected prompts.
@@ -111,3 +115,15 @@ Sign in manually, choose No and hand back the tab. Continue with the authenticat
 Verify origin/account matching and exclusion of all secret material from Git, ordinary API/status, model tools, browser observations and recordings. Perform authorized technical updates without automatic approval prompts; genuinely necessary human steps use protected Wallet input. Keep Wallet mutations in protected storage without creating Git commits or rerunning successful external effects.
 
 Exercise Mark as seen versus Reject request from concurrent clients and after restart. Only the former keeps the request waiting; only the latter returns denial. Neither proves access or clears another request/Health incident. Enabled desktop notifications contain only the nonsecret action description and safely open the correct protected request when activation is supported.
+
+### Attended sign-in
+
+| Website asks for | What to do in the project browser |
+| --- | --- |
+| User name, password and extra fields such as date of birth | Wallet fills the stored fields. The owner can also enter the site's own form in the remote tab. |
+| Google, Apple or another provider, including enterprise SSO | Follow the site's button and use the matching signed-in account in the configured profile. Keep the callback in the original service tab. |
+| A one-time code or approval on a second device | Keep the pending challenge in its original tab. The owner can enter the code there or approve on the other device. |
+| A sign-in link sent by email | Complete the link in the project browser when the service binds it to the initiating session. Verify the original site's signed-in state. |
+| A passkey, security key or native dialog | Use the full-computer viewer when available. The authenticator must be usable by the device that receives the challenge. |
+
+The paired console shows a link to the selected Wallet item for use from another device. Headless browsers support browser-tab handoff. The independently configured Computer Control tool determines whether a whole-desktop fallback is available.

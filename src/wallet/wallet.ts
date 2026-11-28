@@ -190,9 +190,11 @@ export type SignInForm = 'password' | 'username' | 'code' | 'approval' | 'captch
  * @private Wallet
  */
 export type SignInPage = {
+    /** Current project browser target, retained locally for an attended sign-in. */
+    readonly target?: string;
     readonly browser: string;
     /** Origin of the page now open, and what of a login it shows. */
-    readonly inspect: () => Promise<{ readonly origin: string; readonly form: SignInForm }>;
+    readonly inspect: () => Promise<{ readonly origin: string; readonly form: SignInForm; readonly providers?: readonly string[] }>;
     /**
      * Enters the credentials of their origin (only while the page is on it; not recorded, never returned), submits and
      * verifies the resulting session.
@@ -268,6 +270,7 @@ export type SignInAttempt = { readonly result: 'signed-in' | 'rejected' | 'chall
 export type WalletLoginResult =
     | { readonly status: 'signed-in'; readonly origin: string; readonly account: string; readonly note?: string }
     | { readonly status: 'no-login-form'; readonly origin: string }
+    | { readonly status: 'provider-available'; readonly origin: string; readonly providers: readonly string[]; readonly account?: string }
     | { readonly status: 'challenge'; readonly origin: string; readonly account: string; readonly note?: string }
     | { readonly status: 'ambiguous'; readonly origin: string; readonly accounts: readonly string[] }
     /** No login of this origin, but of a related service domain: sign in on that login's own page instead. */
@@ -2071,15 +2074,16 @@ export class WalletSubEngine {
      * After a manual sign-in was handed back: revalidated access to the request's service (and account) satisfies it
      * and every other pending request it covers; anything else leaves them waiting.
      */
-    public async satisfyByManualSignIn(id: string, access: { readonly origin: string; readonly account?: string }): Promise<{ readonly resolved: boolean; readonly reason: string }> {
+    public async satisfyByManualSignIn(id: string, access: { readonly origin: string; readonly account?: string }, expectedStep?:number): Promise<{ readonly resolved: boolean; readonly reason: string }> {
         const result = await this.mutex.run(async (): Promise<{ resolved: boolean; reason: string; settled: number }> => {
             const action = this.actions.find((candidate) => candidate.id === id);
             if (!action) return { resolved: false, reason: 'the Wallet request no longer exists.', settled: 0 };
             if (action.state !== 'pending') return { resolved: true, reason: `The request for ${action.origin} was already ${action.state === 'resolved' ? 'completed' : 'rejected'}.`, settled: 0 };
+            if (expectedStep !== undefined && (action.step ?? 0) !== expectedStep) return {resolved:false, reason:'The sign-in request has moved to another step.', settled:0};
             if (!serviceMatches(access.origin, action.origin)) return { resolved: false, reason: `the tab is signed in to ${access.origin}, not to ${action.origin}.`, settled: 0 };
             const covered = (candidate: StoredAction): boolean => candidate.state === 'pending' && serviceMatches(access.origin, candidate.origin) && (!candidate.account || (access.account ?? '').toLowerCase() === candidate.account.toLowerCase());
             if (!covered(action)) return { resolved: false, reason: `Wallet could not confirm the account ${action.account} in the tab.`, settled: 0 };
-            const satisfied = this.actions.filter(covered);
+            const satisfied = expectedStep === undefined ? this.actions.filter(covered) : [action];
             const now = new Date().toISOString();
             this.actions = this.actions.map((candidate) => (satisfied.includes(candidate) ? { ...candidate, state: 'resolved', settledAt: now, resolvedBy: 'manual' } : candidate));
             await this.writeActions();
@@ -2098,7 +2102,7 @@ export class WalletSubEngine {
      * same login share it, and every waiting task is listed.
      */
     private async request(input: { readonly origin: string; readonly account?: string; readonly problem: WalletActionView['problem']; readonly reason: string; readonly task?: string; readonly agent?: string; readonly browser: string; readonly fields?: readonly string[]; readonly login?: string }): Promise<StoredAction> {
-        const sameAccount = (action: StoredAction): boolean => originMatches(action.origin, input.origin) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase();
+        const sameAccount = (action: StoredAction): boolean => originMatches(action.origin, input.origin) && (!action.browser || action.browser === input.browser) && (action.account ?? '').toLowerCase() === (input.account ?? '').toLowerCase();
         // A recent rejection of the same step for the same work (or, without a task, of a request without one). It is
         // bounded in time, so recurring work with the same title may ask again on a later run.
         const rejected = (asked: typeof input): StoredAction | undefined =>
@@ -2158,6 +2162,8 @@ export class WalletSubEngine {
             readonly agent?: string;
             /** The related service domains' logins turned out not to apply to this site. */
             readonly ignoreRelated?: boolean;
+            /** Request the direct site login or a human handoff after inspecting other offered methods. */
+            readonly method?: 'password' | 'manual';
             /** The site asks for a one-time code the agent cannot obtain itself: the owner enters it in protected input. */
             readonly requestCode?: boolean;
         },
@@ -2170,9 +2176,15 @@ export class WalletSubEngine {
         } catch {
             return { status: 'failed', reason: 'The current tab shows no website; open the login page of the site first.' };
         }
-        if (inspected.form === 'none') return { status: 'no-login-form', origin };
-        if (inspected.form === 'approval') return { status: 'approval-needed', origin };
         const account = request.account?.trim() || undefined;
+        const providers = inspected.providers ?? [];
+        const alternative: WalletLoginResult | undefined = !request.method && providers.length
+            ? { status: 'provider-available', origin, providers, ...(account ? { account } : {}) }
+            : undefined;
+        if (request.method !== 'manual') {
+            if (inspected.form === 'none') return alternative ?? { status: 'no-login-form', origin };
+            if (inspected.form === 'approval') return { status: 'approval-needed', origin };
+        }
         const purpose = request.reason?.trim() ? ` (${request.reason.trim().slice(0, 200)})` : '';
         return await this.mutex.run(async (): Promise<WalletLoginResult> => {
             const waitFor = async (problem: WalletActionView['problem'], reason: string, asked?: { readonly fields: readonly string[]; readonly login: string }): Promise<WalletLoginResult> => {
@@ -2181,16 +2193,20 @@ export class WalletSubEngine {
                 if (action.state === 'dismissed') return { status: 'rejected', origin, action: action.id, problem };
                 return { status: 'waiting', origin, action: action.id, problem, reason };
             };
+            if (request.method === 'manual') return await waitFor('missing', `Manual sign-in to ${origin}${account ? ` (${account})` : ''} is needed${purpose}. Use the project browser and return control after signing in.`);
             if (inspected.form === 'code') return await this.codeStep(page, origin, request.requestCode === true, purpose, waitFor);
             // A host facility that was not available at startup (for example a credential store still locked) is
             // tried again before anyone is asked.
             if (this.state !== 'ready' && this.metadata) await this.unlockWithHost(this.metadata);
             if (this.state !== 'ready' || !this.key) {
+                if (alternative) return alternative;
                 if (this.state === 'locked' || this.state === 'unavailable') return await waitFor('locked', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}, but the Wallet is locked on this computer.`);
                 return await waitFor('missing', `A login for ${origin}${account ? ` (${account})` : ''} is needed${purpose}; the Wallet has none.`);
             }
             const accountMatches = (record: StoredRecord): boolean => !account || record.account.toLowerCase() === account.toLowerCase() || this.usernameOf(record)?.toLowerCase() === account.toLowerCase();
             const matching = this.records.filter((record) => originMatches(record.origin, origin) && accountMatches(record));
+            // An active provider session can work without any site password, including after a rejected import.
+            if (alternative && !matching.some(record => record.lastOutcome !== 'rejected' && (record.lastOutcome === 'signed-in' || record.verification?.state === 'verified'))) return alternative;
             if (!matching.length) {
                 // Discovery across related service domains: an already stored login is never requested again; the agent
                 // signs in on that login's own page (secrets are only entered on their own origin).
@@ -2238,6 +2254,7 @@ export class WalletSubEngine {
                 case 'rejected':
                     update({ lastUsedAt: now, lastOutcome: 'rejected' });
                     await this.writeRecords();
+                    if (alternative) return alternative;
                     return await waitFor('rejected', `${origin} rejected the saved login "${record.account}"${purpose}; update it in the Wallet.`);
                 case 'no-form':
                     return { status: 'failed', reason: `The login form of ${origin} could not be filled${attempt.note ? `: ${attempt.note}` : ''}.` };

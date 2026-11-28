@@ -1,6 +1,6 @@
 # Third-party licenses of the vendored App platform bundle
 
-`app-platform.js` is generated from webgptorg/app 390740e688ca0ae96c49f507cf28312affd83598. The static files in `gateway-pages/` come from webgptorg/app fddfd05a05bc8a6888760013f86aedea81758be2. They contain the following packages.
+`app-platform.js` is generated from webgptorg/app cb42362a676ad8e1b4d53e460c65340e4b4d3b57. The static files in `gateway-pages/` come from webgptorg/app fddfd05a05bc8a6888760013f86aedea81758be2. They contain the following packages.
 
 ## @ptbk/gateway-pages (webgptorg/app fddfd05a05bc, MIT)
 
@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @ptbk/release-tools (webgptorg/app 390740e688ca, MIT)
+## @ptbk/release-tools (webgptorg/app cb42362a676a, MIT)
 
 ```text
 MIT License
@@ -54,7 +54,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @ptbk/protocol (webgptorg/app 390740e688ca, MIT)
+## @ptbk/protocol (webgptorg/app cb42362a676a, MIT)
 
 ```text
 MIT License
@@ -80,7 +80,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @ptbk/engine-api (webgptorg/app 390740e688ca, MIT)
+## @ptbk/engine-api (webgptorg/app cb42362a676a, MIT)
 
 ```text
 MIT License

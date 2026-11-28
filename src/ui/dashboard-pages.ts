@@ -669,12 +669,14 @@ export function pageBody(page: DashboardPage, context: PageContext): PageBody {
             if (wallet.lastAction) body.push('', style.muted(`Last: ${wallet.lastAction.outcome}`));
             body.push('', style.muted('Agents never receive passwords: the Wallet signs in for them. Passwords, the 12 words for recovery and keys are never shown here.'));
             const focused = items[page.focus];
+            if (focused && snapshot.app?.hostname) body.push(style.muted(`Sign in from another device: https://${snapshot.app.hostname}/wallet#wallet-${focused.id}`));
             // Mark as seen and Reject request apply to a focused request in every Wallet state; opening the page does neither.
-            const manual = focused?.kind === 'request' ? (snapshot.tabControls ?? []).find((control) => control.request === focused.id && !controlOver(control)) : undefined;
-            const manualKeys = focused?.kind !== 'request' || !context.tabControl ? [] : manual ? [...(manual.offer ? ['Y save · N don’t save'] : []), 'H return control to agent', 'V reopen viewer', 'E end use'] : ['B sign in manually'];
-            const requestKeys = focused?.kind === 'request' ? [...manualKeys, ...(focused.seen ? [] : ['M mark as seen']), 'X reject request'] : [];
+            const manual = focused ? (snapshot.tabControls ?? []).find((control) => (control.request === focused.id || control.record === focused.id) && !controlOver(control)) : undefined;
+            const manualKeys = !focused || !context.tabControl ? [] : manual ? [...(manual.offer ? ['Y save · N don’t save'] : []), 'H return control to agent', 'V reopen viewer', 'E end use'] : ['B sign in manually'];
+            if (focused && snapshot.app?.hostname && manual && !manualKeys.includes('B sign in manually')) manualKeys.unshift('B sign in manually');
+            const requestKeys = focused?.kind === 'request' ? [...(focused.seen ? [] : ['M mark as seen']), 'X reject request'] : [];
             const keys = [
-                ...requestKeys,
+                ...manualKeys, ...requestKeys,
                 ...(wallet.state === 'empty' || wallet.state === 'setup'
                     ? ['S set up (shows 12 words for recovery once)']
                     : wallet.state === 'locked' || wallet.state === 'unavailable'

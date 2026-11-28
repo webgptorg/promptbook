@@ -78,6 +78,7 @@ export const ALL_PERMISSIONS = [
     'triggers.manage',
     'integrations.read',
     'integrations.manage',
+    'browser.watch',
     'browser.control',
 ] as const;
 

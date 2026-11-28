@@ -1,5 +1,7 @@
 - Use Git's configured commit email for Promptbook commits.
 
+- Wallet can use an existing identity-provider session before asking for a replacement password, and offers manual sign-in from the selected Wallet item. Returning the tab now tells the owner when the provider or account still needs attention.
+
 # Unreleased
 
 - Reopen a project passkey prompt in place during owner setup, joining, sign-in or confirmation. Switching to unlock a password manager no longer means starting the flow again.
