@@ -1,14 +1,13 @@
-import spaceTrim from 'spacetrim';
-import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
-import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
-import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
+import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { string_script } from '../../types/typeAliases';
+import type { string_script } from '../../types/string_markdown';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { BookTranspiler } from '../_common/BookTranspiler';
+import { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
+import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
+import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 
 /**
  * Transpiler to Javascript code using OpenAI SDK.
@@ -25,53 +24,19 @@ export const OpenAiSdkTranspiler = {
         tools: ExecutionTools,
         options?: BookTranspilerOptions,
     ): Promise<string_script> {
-        const { agentName } = await parseAgentSource(book);
-        const modelRequirements = await createAgentModelRequirements(book);
-        const { commitments } = parseAgentSourceWithCommitments(book);
-
-        const knowledgeCommitments = commitments.filter((commitment) => commitment.type === 'KNOWLEDGE');
-        const directKnowledge = knowledgeCommitments
-            .map((commitment) => commitment.content.trim())
-            .filter((content) => {
-                try {
-                    new URL(content);
-                    return false;
-                } catch {
-                    return true;
-                }
-            });
-
-        const knowledgeSources = knowledgeCommitments
-            .map((commitment) => commitment.content.trim())
-            .filter((content) => {
-                try {
-                    new URL(content);
-                    return true;
-                } catch {
-                    return false;
-                }
-            });
-
-        const usedToolFunctions: Record<string, string> = {};
-
-        if (modelRequirements.tools && modelRequirements.tools.length > 0) {
-            const allCommitmentDefinitions = getAllCommitmentDefinitions();
-            for (const tool of modelRequirements.tools) {
-                for (const definition of allCommitmentDefinitions) {
-                    const functions = definition.getToolFunctions();
-                    if (functions[tool.name]) {
-                        usedToolFunctions[tool.name] = functions[tool.name]!.toString();
-                    }
-                }
-            }
-        }
+        const {
+            agentName,
+            modelRequirements,
+            directKnowledge,
+            knowledgeSources,
+            usedToolFunctions,
+            isKnowledgeHandledWithRetrieval,
+            transpiledTeam,
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
 
-        const KNOWLEDGE_THRESHOLD = 1000;
-
-        if (directKnowledge.join('\n').length > KNOWLEDGE_THRESHOLD || knowledgeSources.length > 0) {
+        if (isKnowledgeHandledWithRetrieval) {
             return spaceTrim(
                 (block) => `
                     #!/usr/bin/env node
@@ -118,13 +83,11 @@ export const OpenAiSdkTranspiler = {
                         }
                     }
 
+                    ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
+
                     // ---- TOOLS ----
                     const tools = {
-                        ${block(
-                            Object.entries(usedToolFunctions)
-                                .map(([name, impl]) => `${name}: ${impl},`)
-                                .join('\n'),
-                        )}
+                        ${block(formatUsedToolFunctions(usedToolFunctions))}
                     };
 
                     const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
@@ -264,13 +227,11 @@ export const OpenAiSdkTranspiler = {
                     apiKey: process.env.OPENAI_API_KEY,
                 });
 
+                ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
+
                 // ---- TOOLS ----
                 const tools = {
-                    ${block(
-                        Object.entries(usedToolFunctions)
-                            .map(([name, impl]) => `${name}: ${impl},`)
-                            .join('\n'),
-                    )}
+                    ${block(formatUsedToolFunctions(usedToolFunctions))}
                 };
 
                 const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
@@ -366,4 +327,4 @@ export const OpenAiSdkTranspiler = {
 
         return source;
     },
-} as const satisfies BookTranspiler;
+} as const satisfies BookTranspiler; /* <- Note: [🤛] */

@@ -1,7 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import {
+    createReadableCitationSourceLabel,
+    getCitationLabel,
+    isPlainTextCitation,
+    resolveCitationPreviewUrl,
+} from './citationHelpers';
 import type { ParsedCitation } from './parseCitationsFromContent';
-import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from './citationHelpers';
 
 describe('citation helper heuristics', () => {
     it('classifies multiline sentences as plain text and truncates the label to 30 chars', () => {
@@ -41,6 +46,71 @@ describe('citation helper heuristics', () => {
         expect(getCitationLabel({ id: '0:3', source: 'LongTokenWithoutSpacesButLongerThanThirtyCharacters' })).toBe(
             'LongTokenWithoutSpacesButLonge…',
         );
+    });
+
+    it('prefers structured citation titles over source-derived labels', () => {
+        expect(
+            getCitationLabel({
+                id: '0:4',
+                source: 'https://example.com/documents/annual-report-2020.pdf',
+                title: 'Annual Report 2020',
+            }),
+        ).toBe('Annual Report 2020');
+    });
+
+    it('creates readable fallback labels from URLs and filenames', () => {
+        expect(createReadableCitationSourceLabel('https://example.com/documents/annual_report_2020.pdf')).toBe(
+            'annual report 2020',
+        );
+        expect(createReadableCitationSourceLabel('https://www.example.com/')).toBe('example.com');
+    });
+
+    it('shows URL snippets for URL-backed file citations', () => {
+        expect(
+            getCitationLabel({
+                id: '0:5',
+                source: 'https://github.com/webgptorg/promptbook/blob/main/package.json',
+            }),
+        ).toBe('github.com/.../package.json');
+    });
+
+    it('shows a JSON fallback instead of raw JSON source text', () => {
+        expect(
+            getCitationLabel({
+                id: '0:6',
+                source: '[{"id":1239608413,"name":"source-file"}]',
+            }),
+        ).toBe('JSON file');
+    });
+
+    it('unwraps CDATA-wrapped source text into a readable label', () => {
+        expect(
+            getCitationLabel({
+                id: '0:9',
+                source: '<![CDATA[AI ta Krajta]]>',
+            }),
+        ).toBe('AI ta Krajta');
+    });
+
+    it('uses embedded JSON URLs as compact source snippets', () => {
+        expect(
+            getCitationLabel({
+                id: '0:7',
+                source: JSON.stringify({
+                    name: 'package.json',
+                    html_url: 'https://github.com/webgptorg/promptbook/blob/main/package.json',
+                }),
+            }),
+        ).toBe('github.com/.../package.json');
+    });
+
+    it('shows image labels for binary-like image source text', () => {
+        expect(
+            getCitationLabel({
+                id: '0:8',
+                source: '\u00ff\u00d8\u00ff\u00e0 \u004a\u0046\u0049\u0046 binary image content',
+            }),
+        ).toBe('JPEG image');
     });
 
     it('prefers the explicit url, then literal url, then knowledge sources for modal previews', () => {

@@ -2,6 +2,7 @@
 
 import { book, createAgentLlmExecutionTools } from '@promptbook-local/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 import { LlmChat } from '../../../../../src/book-components/Chat/LlmChat/LlmChat';
 import { useSendMessageToLlmChat } from '../../../../../src/book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
@@ -10,8 +11,14 @@ import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mo
 import { MockedFackedLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiExecutionTools';
 
+/**
+ * Constant for openai API key storage key.
+ */
 const OPENAI_API_KEY_STORAGE_KEY = 'llm-chat-preview-openai-api-key';
 
+/**
+ * Handles Llm chat preview.
+ */
 export default function LlmChatPreview() {
     type ScenarioKey = 'mock-basic' | 'mock-persistent' | 'fake-llm' | 'openai' | 'pavol-hejny-agent';
     const [scenario, setScenario] = useState<ScenarioKey>('mock-basic');
@@ -125,7 +132,12 @@ export default function LlmChatPreview() {
                             'pavol-hejny-agent':
                                 '🧙‍♂️ Summoning the spirit of Pavol Hejný... If you are truly him, reveal a quirky productivity insight!',
                         } as Record<string, string>
-                    )[kind] || `Hello from scenario "${kind}"` + '\n\n' + `[Say Hello](?message=Hello!)`,
+                    )[kind] ||
+                    spaceTrim(`
+                        Hello from scenario "${kind}"
+
+                        [Say Hello](?message=Hello!)
+                    `),
                 isComplete: true,
             },
         ];
@@ -394,6 +406,4 @@ export default function LlmChatPreview() {
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

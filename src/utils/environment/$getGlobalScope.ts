@@ -6,7 +6,7 @@ import type { chococake } from '../organization/really_any';
  *
  * Note: `$` is used to indicate that this function is not a pure function - it access global scope
  *
- *  @private internal function of `$Register`
+ * @private internal function of `$Register`
  */
 export function $getGlobalScope(): chococake {
     return Function('return this')();

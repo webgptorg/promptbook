@@ -5,6 +5,7 @@ import type { ChatModelRequirements, ModelRequirements } from '../../../types/Mo
  *
  * @param errorMessage The error message from OpenAI API
  * @returns The parameter name that is unsupported, or null if not an unsupported parameter error
+ *
  * @private utility of LLM Tools
  */
 export function parseUnsupportedParameterError(errorMessage: string): string | null {
@@ -31,6 +32,7 @@ export function parseUnsupportedParameterError(errorMessage: string): string | n
  * @param modelRequirements Original model requirements
  * @param unsupportedParameter The parameter to remove
  * @returns New model requirements without the unsupported parameter
+ *
  * @private utility of LLM Tools
  */
 export function removeUnsupportedModelRequirement(
@@ -58,8 +60,10 @@ export function removeUnsupportedModelRequirement(
 
 /**
  * Checks if an error is an "Unsupported value" error from OpenAI
+ *
  * @param error The error to check
  * @returns true if this is an unsupported parameter error
+ *
  * @private utility of LLM Tools
  */
 export function isUnsupportedParameterError(error: Error): boolean {

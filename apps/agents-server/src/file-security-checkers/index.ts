@@ -1,6 +1,9 @@
 import { VirusTotalFileSecurityChecker } from '../../../../src/file-security-checkers/virustotal/VirusTotalFileSecurityChecker';
 import type { FileSecurityChecker } from '../../../../src/file-security-checkers/FileSecurityChecker';
 
+/**
+ * Map of file security checkers.
+ */
 export const FILE_SECURITY_CHECKERS: Record<string, FileSecurityChecker> = {};
 
 if (process.env.VIRUSTOTAL_API_KEY) {

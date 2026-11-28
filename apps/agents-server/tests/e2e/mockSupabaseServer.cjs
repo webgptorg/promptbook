@@ -22,16 +22,77 @@ const REST_PREFIX = '/rest/v1/';
 const OBJECT_ACCEPT_HEADER = 'application/vnd.pgrst.object+json';
 
 /**
+ * Matches PostgREST LIKE patterns, including escaped literals and the `*` alias for `%`.
+ *
+ * @param {unknown} value
+ * @param {string} pattern
+ * @param {boolean} ignoreCase
+ * @returns {boolean}
+ */
+function matchesLikePattern(value, pattern, ignoreCase) {
+    if (value === null || value === undefined) {
+        return false;
+    }
+
+    let expression = '';
+    for (let index = 0; index < pattern.length; index++) {
+        const character = pattern[index];
+        if (character === '\\' && index + 1 < pattern.length) {
+            expression += pattern[++index].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        } else if (character === '%' || character === '*') {
+            expression += '.*';
+        } else if (character === '_') {
+            expression += '.';
+        } else {
+            expression += character.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+    }
+
+    return new RegExp(`^${expression}$`, ignoreCase ? 'is' : 's').test(String(value));
+}
+
+/**
  * In-memory table store used by the mocked Supabase API.
  */
 const tables = new Map([
+    [
+        '_Server',
+        [
+            {
+                id: 1,
+                name: process.env.E2E_SERVER_NAME || 'local-e2e',
+                environment: process.env.E2E_SERVER_ENVIRONMENT || 'PREVIEW',
+                domain: process.env.E2E_SERVER_DOMAIN || '127.0.0.1',
+                tablePrefix: process.env.E2E_SERVER_TABLE_PREFIX || '',
+                createdAt: '2026-03-11T00:00:00.000Z',
+                updatedAt: '2026-03-11T00:00:00.000Z',
+            },
+        ],
+    ],
     ['Metadata', []],
+    ['ServerLimit', []],
     ['Agent', []],
     ['AgentFolder', []],
     ['User', []],
     ['ApiTokens', []],
     ['UserMemory', []],
 ]);
+
+/**
+ * Returns the next numeric primary key for one in-memory table.
+ *
+ * @param {string} tableName
+ * @returns {number}
+ */
+function getNextNumericId(tableName) {
+    const tableRows = getTableRows(tableName);
+    const currentMax = tableRows.reduce((max, row) => {
+        const rowId = typeof row.id === 'number' ? row.id : 0;
+        return Math.max(max, rowId);
+    }, 0);
+
+    return currentMax + 1;
+}
 
 /**
  * Sends a JSON response with a stable content type.
@@ -62,13 +123,27 @@ function getTableRows(tableName) {
 }
 
 /**
+ * Decodes explicitly escaped filter values while preserving literal percent wildcards from URLSearchParams.
+ *
+ * @param {string} rawValue
+ * @returns {string}
+ */
+function decodeFilterValue(rawValue) {
+    try {
+        return decodeURIComponent(rawValue);
+    } catch {
+        return rawValue;
+    }
+}
+
+/**
  * Parses a PostgREST token into a primitive JavaScript value.
  *
  * @param {string} rawValue
  * @returns {string | number | boolean | null}
  */
 function parseTokenValue(rawValue) {
-    const decoded = decodeURIComponent(rawValue);
+    const decoded = decodeFilterValue(rawValue);
 
     if (decoded === 'null') {
         return null;
@@ -118,11 +193,12 @@ function applyProjectionAndOrdering(rows, searchParams) {
 
     const orderClause = searchParams.get('order');
     if (orderClause) {
-        const [columnName] = orderClause.split('.');
+        const [columnName, direction] = orderClause.split('.');
         projectedRows = [...projectedRows].sort((leftRow, rightRow) => {
             const leftValue = leftRow[columnName];
             const rightValue = rightRow[columnName];
-            return String(leftValue ?? '').localeCompare(String(rightValue ?? ''));
+            const comparison = String(leftValue ?? '').localeCompare(String(rightValue ?? ''));
+            return direction === 'desc' ? -comparison : comparison;
         });
     }
 
@@ -171,9 +247,43 @@ function matchesRowFilters(row, searchParams) {
             continue;
         }
 
+        if (columnName === 'or') {
+            const normalizedOrClause =
+                rawClause.startsWith('(') && rawClause.endsWith(')') ? rawClause.slice(1, -1) : rawClause;
+            const orClauses = normalizedOrClause
+                .split(',')
+                .map((clause) => clause.trim())
+                .filter((clause) => clause.length > 0);
+            const isAnyClauseMatching = orClauses.some((clause) => {
+                const match = /^([^.]*)\.(.*)$/.exec(clause);
+                if (!match) {
+                    return false;
+                }
+
+                const [, orColumnName, orRawClause] = match;
+                const clauseParams = new URLSearchParams([[orColumnName, orRawClause]]);
+                return matchesRowFilters(row, clauseParams);
+            });
+
+            if (!isAnyClauseMatching) {
+                return false;
+            }
+
+            continue;
+        }
+
         if (rawClause.startsWith('eq.')) {
             const expectedValue = parseTokenValue(rawClause.slice('eq.'.length));
             if (row[columnName] !== expectedValue) {
+                return false;
+            }
+            continue;
+        }
+
+        if (rawClause.startsWith('like.') || rawClause.startsWith('ilike.')) {
+            const ignoreCase = rawClause.startsWith('ilike.');
+            const pattern = decodeFilterValue(rawClause.slice(ignoreCase ? 'ilike.'.length : 'like.'.length));
+            if (!matchesLikePattern(row[columnName], pattern, ignoreCase)) {
                 return false;
             }
             continue;
@@ -321,7 +431,43 @@ async function handleRestRequest(request, response, requestUrl) {
     if (method === 'POST') {
         const body = await parseJsonBody(request);
         const payloadRows = Array.isArray(body) ? body : body ? [body] : [];
-        const insertedRows = payloadRows.map((payloadRow) => ({ ...payloadRow }));
+        if (tableName === 'User' || tableName.endsWith('_User')) {
+            // Match the database constraint so concurrent identity creation can retry the existing user.
+            // Validate the whole batch before inserting any rows, as PostgreSQL does for one statement.
+            const usernames = new Set(tableRows.map((row) => row.username));
+            for (const payloadRow of payloadRows) {
+                if (payloadRow.username === undefined || payloadRow.username === null) {
+                    continue;
+                }
+                if (usernames.has(payloadRow.username)) {
+                    sendJson(response, 409, {
+                        code: '23505',
+                        details: `Key (username)=(${payloadRow.username}) already exists.`,
+                        hint: null,
+                        message: `duplicate key value violates unique constraint "${tableName}_username_idx"`,
+                    });
+                    return;
+                }
+                usernames.add(payloadRow.username);
+            }
+        }
+        const insertedRows = payloadRows.map((payloadRow) => {
+            const nextRow = { ...payloadRow };
+
+            if (nextRow.id === undefined) {
+                nextRow.id = getNextNumericId(tableName);
+            }
+
+            if (nextRow.createdAt === undefined) {
+                nextRow.createdAt = new Date().toISOString();
+            }
+
+            if (nextRow.updatedAt === undefined && tableName !== 'Agent') {
+                nextRow.updatedAt = new Date().toISOString();
+            }
+
+            return nextRow;
+        });
         tableRows.push(...insertedRows);
 
         const responseRows = applyProjectionAndOrdering(insertedRows, requestUrl.searchParams);
@@ -433,4 +579,8 @@ function main() {
     process.on('SIGTERM', shutdown);
 }
 
-main();
+module.exports = { createMockSupabaseServer };
+
+if (require.main === module) {
+    main();
+}

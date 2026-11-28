@@ -1,16 +1,15 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type {
-    string_app_id,
-    string_email,
-    string_legal_entity,
-    string_name,
-    string_promptbook_server_url,
-} from './types/typeAliases';
+import type { string_email } from './types/string_email';
+import type { string_name } from './types/string_name';
+import type { string_legal_entity } from './types/string_person_fullname';
+import type { string_promptbook_server_url } from './types/string_promptbook_server_url';
+import type { string_app_id } from './types/string_token';
 import { Color } from './utils/color/Color';
 import { grayscale } from './utils/color/operators/grayscale';
 import { lighten } from './utils/color/operators/lighten';
 import { saturate } from './utils/color/operators/saturate';
+import { getPromptbookTemporaryPath } from './utils/filesystem/promptbookTemporaryPath';
 import { just } from './utils/organization/just';
 
 /**
@@ -57,7 +56,7 @@ export const ADMIN_GITHUB_NAME: string_name = 'hejny';
  *
  * @public exported from `@promptbook/core`
  */
-export const CLAIM = `Turn your company's scattered knowledge into AI ready books`;
+export const CLAIM = `Create persistent AI agents that turn your company's scattered knowledge into action`;
 //            <- TODO: [🐊] Pick the best claim
 
 /**
@@ -83,6 +82,8 @@ export const PROMPTBOOK_SYNTAX_COLORS = {
     SEPARATOR: Color.fromHex('#cccccc'),
     COMMITMENT: Color.fromHex('#DA0F78'),
     NOTE_COMMITMENT: Color.fromHex('#8080807e'),
+    TODO_COMMITMENT_TEXT: Color.fromHex('#000000'),
+    TODO_COMMITMENT_BACKGROUND: Color.fromHex('#FFEB3B'),
     PARAMETER: Color.fromHex('#8e44ad'),
     CODE_BLOCK: Color.fromHex('#7700ffff'),
 } as const satisfies Record<string_name, Color>;
@@ -113,7 +114,7 @@ export const USER_CHAT_COLOR = Color.fromHex('#1D4ED8');
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOK_TITLE = `✨ Untitled Book`;
+export const DEFAULT_BOOK_TITLE = `🐙 Untitled agent`;
 
 /**
  * When the title of task is not provided, the default title is used
@@ -325,8 +326,6 @@ export const DEFAULT_BOOKS_DIRNAME = './books';
 export const DEFAULT_AGENTS_DIRNAME = './agents';
 // <- TODO: [🕝] Make also `AGENTS_DIRNAME_ALTERNATIVES`
 
-// TODO: Just `.promptbook` in config, hardcode subfolders like `download-cache` or `execution-cache`
-
 /**
  * Where to store the temporary downloads
  *
@@ -334,7 +333,7 @@ export const DEFAULT_AGENTS_DIRNAME = './agents';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = './.promptbook/download-cache';
+export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = `./${getPromptbookTemporaryPath('download-cache')}`;
 
 /**
  * Where to store the cache of executions for promptbook CLI
@@ -343,7 +342,7 @@ export const DEFAULT_DOWNLOAD_CACHE_DIRNAME = './.promptbook/download-cache';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_EXECUTION_CACHE_DIRNAME = './.promptbook/execution-cache';
+export const DEFAULT_EXECUTION_CACHE_DIRNAME = `./${getPromptbookTemporaryPath('execution-cache')}`;
 
 /**
  * Where to store the scrape cache
@@ -352,7 +351,7 @@ export const DEFAULT_EXECUTION_CACHE_DIRNAME = './.promptbook/execution-cache';
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_SCRAPE_CACHE_DIRNAME = './.promptbook/scrape-cache';
+export const DEFAULT_SCRAPE_CACHE_DIRNAME = `./${getPromptbookTemporaryPath('scrape-cache')}`;
 
 /**
  * Id of application for the CLI when using remote server

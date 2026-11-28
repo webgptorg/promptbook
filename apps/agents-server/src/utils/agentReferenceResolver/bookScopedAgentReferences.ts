@@ -2,6 +2,7 @@ import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-s
 import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
 import { parseAgentSourceWithCommitments } from '../../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
+import { resolvePseudoAgentKindFromReference } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
 import type { BookCommitment } from '../../../../../src/commitments/_base/BookCommitment';
@@ -33,6 +34,9 @@ const AGENT_REFERENCE_COMMITMENT_TYPES: ReadonlySet<BookCommitment> = new Set<Bo
  */
 type AgentSourceCollection = Pick<AgentCollection, 'getAgentPermanentId' | 'getAgentSource'>;
 
+/**
+ * Type describing issue tracking resolver.
+ */
 type IssueTrackingResolver = AgentReferenceResolver & {
     consumeResolutionIssues(): unknown[];
 };
@@ -42,8 +46,11 @@ type IssueTrackingResolver = AgentReferenceResolver & {
  */
 export type ResolvedBookScopedAgentContext = {
     readonly requestedAgentIdentifier: string;
+    readonly canonicalAgentIdentifier: string;
+    readonly canonicalAgentUrl: string_agent_url;
+    readonly currentAgentAliases: ReadonlyArray<string_agent_url>;
     readonly resolvedAgentName: string;
-    readonly resolvedAgentSource: string_book;
+    readonly unresolvedAgentSource: string_book;
     readonly parentAgentPermanentId: string_agent_permanent_id;
     readonly parentAgentSource: string_book;
     readonly isBookScopedAgent: boolean;
@@ -214,6 +221,12 @@ export function createBookScopedAgentReferenceResolver(options: {
                     chunks.push(content.slice(previousIndex, tokenMatch.index));
                     previousIndex = tokenMatch.index + tokenMatch.length;
 
+                    // Note: `Null`/`Void` (and other pseudo agents) are reserved language values, never embedded agents.
+                    if (resolvePseudoAgentKindFromReference(tokenReference)) {
+                        chunks.push(tokenMatch.token);
+                        continue;
+                    }
+
                     if (!tokenReference || !embeddedSources.has(normalizedTokenReference)) {
                         chunks.push(tokenMatch.token);
                         continue;
@@ -238,6 +251,10 @@ export function createBookScopedAgentReferenceResolver(options: {
 
     if (isIssueTrackingResolver(fallbackResolver)) {
         scopedResolver.consumeResolutionIssues = () => fallbackResolver.consumeResolutionIssues();
+    }
+
+    if (fallbackResolver?.resolveTeammateProfile) {
+        scopedResolver.resolveTeammateProfile = (url: string) => fallbackResolver.resolveTeammateProfile!(url);
     }
 
     return scopedResolver;
@@ -271,11 +288,22 @@ export async function resolveBookScopedAgentContext(options: {
         const parentAgentSource = await collection.getAgentSource(parentAgentPermanentId);
         const parsedParentProfile = parseAgentSource(parentAgentSource);
         const resolvedAgentName = parsedParentProfile.agentName || normalizeAgentName(agentIdentifier);
+        const canonicalAgentIdentifier = parentAgentPermanentId;
+        const normalizedServerUrl = localServerUrl.replace(/\/+$/g, '');
+        const canonicalAgentUrl = `${normalizedServerUrl}/agents/${encodeURIComponent(canonicalAgentIdentifier)}` as string_agent_url;
+        const currentAgentAliases = [
+            canonicalAgentUrl,
+            `${normalizedServerUrl}/agents/${encodeURIComponent(agentIdentifier)}`,
+            `${normalizedServerUrl}/agents/${encodeURIComponent(resolvedAgentName)}`,
+        ].filter((value, index, values): value is string_agent_url => values.indexOf(value) === index);
 
         return {
             requestedAgentIdentifier: agentIdentifier,
+            canonicalAgentIdentifier,
+            canonicalAgentUrl,
+            currentAgentAliases,
             resolvedAgentName,
-            resolvedAgentSource: parentAgentSource,
+            unresolvedAgentSource: parentAgentSource,
             parentAgentPermanentId,
             parentAgentSource,
             isBookScopedAgent: false,
@@ -301,11 +329,23 @@ export async function resolveBookScopedAgentContext(options: {
 
     const parsedEmbeddedProfile = parseAgentSource(embeddedSource);
     const resolvedAgentName = parsedEmbeddedProfile.agentName || parsedIdentifier.embeddedAgentName;
+    const canonicalAgentIdentifier = createBookScopedAgentIdentifier(
+        parentAgentPermanentId,
+        parsedIdentifier.embeddedAgentName,
+    );
+    const canonicalAgentUrl = createBookScopedAgentUrl(
+        localServerUrl,
+        parentAgentPermanentId,
+        parsedIdentifier.embeddedAgentName,
+    );
 
     return {
         requestedAgentIdentifier: agentIdentifier,
+        canonicalAgentIdentifier,
+        canonicalAgentUrl,
+        currentAgentAliases: [canonicalAgentUrl],
         resolvedAgentName,
-        resolvedAgentSource: embeddedSource,
+        unresolvedAgentSource: embeddedSource,
         parentAgentPermanentId,
         parentAgentSource,
         isBookScopedAgent: true,

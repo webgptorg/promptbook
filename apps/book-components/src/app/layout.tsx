@@ -2,8 +2,14 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
+/**
+ * Constant for inter.
+ */
 const inter = Inter({ subsets: ['latin'] });
 
+/**
+ * Map of metadata.
+ */
 export const metadata: Metadata = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://components.ptbk.io'),
     title: 'Promptbook Components Gallery',
@@ -34,6 +40,9 @@ export const metadata: Metadata = {
     },
 };
 
+/**
+ * Handles root layout.
+ */
 export default function RootLayout({
     children,
 }: Readonly<{

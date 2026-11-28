@@ -1,45 +1,85 @@
 import { removeMarkdownFormatting, removeMarkdownLinks } from '@promptbook-local/markdown-utils';
 
-/** Matches fenced code blocks (```...```). */
+/**
+ * Matches fenced code blocks (```...```).
+ */
 const CODE_FENCE_PATTERN = /```[\s\S]*?```/g;
-/** Matches inline code wrapped in 1-3 backticks. */
+/**
+ * Matches inline code wrapped in 1-3 backticks.
+ */
 const INLINE_CODE_PATTERN = /`{1,3}([^`]+?)`{1,3}/g;
-/** Matches Markdown images with alt text. */
+/**
+ * Matches Markdown images with alt text.
+ */
 const IMAGE_MARKDOWN_PATTERN = /!\[([^\]]*?)\]\((?:[^)]+)\)/g;
-/** Finds URLs and bare domains that should be removed. */
+/**
+ * Finds URLs and bare domains that should be removed.
+ */
 const URL_PATTERN = /\b(?:https?:\/\/|www\.)\S+\b/gi;
-/** Strips escaped Markdown characters. */
+/**
+ * Strips escaped Markdown characters.
+ */
 const ESCAPED_CHAR_PATTERN = /\\([\\`*_{}[\]()#+\-.!])/g;
-/** Removes checkbox list markers. */
+/**
+ * Removes checkbox list markers.
+ */
 const LIST_CHECKBOX_PATTERN = /^\s*[-+*]\s*\[[ xX]\]\s*/gm;
-/** Removes unordered list bullets. */
+/**
+ * Removes unordered list bullets.
+ */
 const LIST_BULLET_PATTERN = /^\s*([-+*])\s+/gm;
-/** Removes numbered list prefixes. */
+/**
+ * Removes numbered list prefixes.
+ */
 const LIST_NUMBER_PATTERN = /^\s*\d+\.\s+/gm;
-/** Strips blockquote prefixes. */
+/**
+ * Strips blockquote prefixes.
+ */
 const BLOCKQUOTE_PATTERN = /^\s*>+\s+/gm;
-/** Matches Markdown headings (#). */
+/**
+ * Matches Markdown headings (#).
+ */
 const HEADING_PATTERN = /^\s*#{1,6}\s*/gm;
-/** Matches horizontal rules (---, ***, ___). */
+/**
+ * Matches horizontal rules (---, ***, ___).
+ */
 const HORIZONTAL_RULE_PATTERN = /^\s*([-*_]){3,}\s*$/gm;
-/** Replaces table pipe separators to avoid visual clutter. */
+/**
+ * Replaces table pipe separators to avoid visual clutter.
+ */
 const TABLE_PIPE_PATTERN = /\s*\|\s*/g;
-/** Converts empty reference links (like [label][1]). */
+/**
+ * Converts empty reference links (like [label][1]).
+ */
 const EMPTY_LINK_REFERENCE_PATTERN = /\[([^\]]+)\]\s*\[\s*\d+\s*\]/g;
-/** Removes footnote references such as [^1]. */
+/**
+ * Removes footnote references such as [^1].
+ */
 const FOOTNOTE_REFERENCE_PATTERN = /\[\^\d+\]/g;
-/** Clears reference definition lines that appear at the bottom of Markdown files. */
+/**
+ * Clears reference definition lines that appear at the bottom of Markdown files.
+ */
 const REFERENCE_DEFINITION_PATTERN = /^\s*\[[^\]]+\]:\s*\S+(?:\s+.*)?$/gm;
-/** Strips HTML tags that might appear inside Markdown. */
+/**
+ * Strips HTML tags that might appear inside Markdown.
+ */
 const HTML_TAG_PATTERN = /<\/?[^>]+>/g;
-/** Removes citation brackets used by some knowledge sources. */
+/**
+ * Removes citation brackets used by some knowledge sources.
+ */
 const CITATION_BRACKET_PATTERN = /[【】]/g;
-/** Removes the dagger symbol sometimes used in citations. */
+/**
+ * Removes the dagger symbol sometimes used in citations.
+ */
 const DAGGER_PATTERN = /†/g;
-/** Collapses multiple consecutive newlines. */
+/**
+ * Collapses multiple consecutive newlines.
+ */
 const DOUBLE_NEWLINE_PATTERN = /\n{2,}/g;
 
-/** HTML entity replacements to keep the text readable. */
+/**
+ * HTML entity replacements to keep the text readable.
+ */
 const HTML_ENTITY_REPLACEMENTS: Array<[RegExp, string]> = [
     [/&nbsp;/gi, ' '],
     [/&amp;/gi, '&'],

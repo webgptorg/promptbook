@@ -22,9 +22,16 @@ describe('createAgentModelRequirementsWithCommitments with code blocks in commit
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
 
-        expect(requirements.systemMessage).toContain('Rule: Write poems.');
+        expect(requirements.systemMessage).toContain('-   Write poems.');
         expect(requirements.systemMessage).toContain(
-            '```\nRoses are red,\nViolets are blue,\nSugar is sweet,\nAnd so are you.\n```',
+            spaceTrim(`
+            \`\`\`
+            Roses are red,
+            Violets are blue,
+            Sugar is sweet,
+            And so are you.
+            \`\`\`
+        `),
         );
     });
 });

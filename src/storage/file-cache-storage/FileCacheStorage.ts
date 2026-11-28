@@ -7,7 +7,7 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { jsonParse } from '../../formats/json/utils/jsonParse';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_filename } from '../../types/string_filename';
 import { stringifyPipelineJson } from '../../utils/editable/utils/stringifyPipelineJson';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';
@@ -125,7 +125,5 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     }
 }
 
-/**
- * TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node file-cache storage [FileCacheStorage](src/storage/file-cache-storage/FileCacheStorage.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values

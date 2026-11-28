@@ -1,32 +1,44 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { AgentsByServer } from '../../utils/AgentsByServer';
-import { AgentCard } from './AgentCard';
-import { Section } from './Section';
-import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { string_url } from '@promptbook-local/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { AgentCardsSection } from './AgentCardsSection';
+import { getServerHeadingLabel } from './getServerHeadingLabel';
+import { loadFederatedServerAgents } from './loadFederatedServerAgents';
+import type { AgentWithVisibility } from './useFederatedAgents';
 
+/**
+ * Response for federated servers.
+ */
 type FederatedServersResponse = {
     federatedServers: string[];
 };
 
+/**
+ * State for server.
+ */
 type ServerState = {
     status: 'loading' | 'success' | 'error';
-    agents: AgentsByServer['agents'];
+    agents: AgentWithVisibility[];
     error?: string;
 };
 
+/**
+ * Props for external agents section client.
+ */
 type ExternalAgentsSectionClientProps = {
     /**
      * Base URL of the agents server
-     * 
-     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client. 
+     *
+     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client.
      */
-    readonly publicUrl: string_url
+    readonly publicUrl: string_url;
 };
 
+/**
+ * Handles external agents section client.
+ */
 export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientProps) {
     const { publicUrl } = props;
     const [servers, setServers] = useState<Record<string, ServerState>>({});
@@ -64,17 +76,8 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
         };
 
         const fetchAgentsForServer = async (serverUrl: string) => {
-            const normalizedUrl = serverUrl.replace(/\/$/, '');
-
             try {
-                // 1. Try direct connection
-                const response = await fetch(`${normalizedUrl}/api/agents`);
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch agents from ${serverUrl} (Status: ${response.status})`);
-                }
-
-                const data = await response.json();
+                const agents = await loadFederatedServerAgents(serverUrl);
 
                 if (isCancelled) return;
 
@@ -82,46 +85,21 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
                     ...prev,
                     [serverUrl]: {
                         status: 'success',
-                        agents: data.agents || [],
+                        agents,
                     },
                 }));
-            } catch (directError) {
-                // 2. Try proxy through our server
-                try {
-                    // Note: We are using encodeURIComponent to ensure the URL is passed correctly as a parameter
-                    const proxyUrl = `/agents/${encodeURIComponent(normalizedUrl)}/api/agents`;
-                    const response = await fetch(proxyUrl);
+            } catch (error) {
+                if (isCancelled) return;
+                console.warn(`Failed to load agents from ${serverUrl}`, error);
 
-                    if (!response.ok) {
-                        throw new Error(
-                            `Failed to fetch agents from ${serverUrl} via proxy (Status: ${response.status})`,
-                        );
-                    }
-
-                    const data = await response.json();
-
-                    if (isCancelled) return;
-
-                    setServers((prev) => ({
-                        ...prev,
-                        [serverUrl]: {
-                            status: 'success',
-                            agents: data.agents || [],
-                        },
-                    }));
-                } catch (proxyError) {
-                    if (isCancelled) return;
-                    console.warn(`Failed to load agents from ${serverUrl} (Direct & Proxy)`, directError, proxyError);
-
-                    setServers((prev) => ({
-                        ...prev,
-                        [serverUrl]: {
-                            status: 'error',
-                            agents: [],
-                            error: proxyError instanceof Error ? proxyError.message : 'Unknown error',
-                        },
-                    }));
-                }
+                setServers((prev) => ({
+                    ...prev,
+                    [serverUrl]: {
+                        status: 'error',
+                        agents: [],
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                    },
+                }));
             }
         };
 
@@ -133,12 +111,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
     }, []);
 
     if (initialLoading) {
-        return (
-            <div className="mt-8 flex items-center justify-center py-8 text-sm text-gray-500">
-                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                {formatText('Loading federated agents…')}
-            </div>
-        );
+        return null;
     }
 
     const serverUrls = Object.keys(servers);
@@ -151,65 +124,46 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
         <>
             {serverUrls.map((serverUrl) => {
                 const state = servers[serverUrl];
-                const hostname = (() => {
-                    try {
-                        return new URL(serverUrl).hostname;
-                    } catch {
-                        return serverUrl;
-                    }
-                })();
+                const hostname = getServerHeadingLabel(serverUrl);
+
+                if (!state) {
+                    return null;
+                }
 
                 if (state.status === 'loading') {
                     return (
-                        <Section
+                        <AgentCardsSection
                             key={serverUrl}
                             title={`${formatText('Agents from')} ${hostname} (...)`}
-                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                        >
-                            <div className="flex items-center justify-center py-8 text-sm text-gray-500">
-                                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                Loading...
-                            </div>
-                        </Section>
+                            publicUrl={publicUrl}
+                            agents={[]}
+                            isLoading={true}
+                            loadingCardCount={4}
+                        />
                     );
                 }
 
                 if (state.status === 'error') {
                     return (
-                        <Section
+                        <AgentCardsSection
                             key={serverUrl}
                             title={`${formatText('Agents from')} ${hostname} (Error)`}
-                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                        >
-                            <div className="py-4 text-sm text-red-500 text-center">
-                                {formatText('Failed to load agents from this server.')}
-                            </div>
-                        </Section>
+                            publicUrl={publicUrl}
+                            agents={[]}
+                            errorMessage={formatText('Failed to load agents from this server.')}
+                        />
                     );
                 }
 
-                if (state.status === 'success' && state.agents.length > 0) {
-                    return (
-                        <Section
-                            key={serverUrl}
-                            title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}
-                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                        >
-                            {state.agents.map((agent) => (
-                                <AgentCard
-                                    key={agent.url}
-                                    agent={agent}
-                                    href={agent.url}
-                                    publicUrl={publicUrl}
-                                    serverUrl={serverUrl}
-                                />
-                            ))}
-                        </Section>
-                    );
-                }
-
-                // Hide sections with no agents if successfully loaded
-                return null;
+                return (
+                    <AgentCardsSection
+                        key={serverUrl}
+                        title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}
+                        publicUrl={publicUrl}
+                        agents={state.agents}
+                        hideWhenEmpty={true}
+                    />
+                );
             })}
         </>
     );

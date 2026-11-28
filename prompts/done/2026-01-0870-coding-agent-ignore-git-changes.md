@@ -53,7 +53,7 @@ Press Enter to start the first task...
 [✨🦁] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -62,7 +62,7 @@ Press Enter to start the first task...
 [✨🦁] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -71,5 +71,4 @@ Press Enter to start the first task...
 [✨🦁] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

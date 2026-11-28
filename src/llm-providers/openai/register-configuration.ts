@@ -1,6 +1,6 @@
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE, DEFAULT_REMOTE_SERVER_URL } from '../../config';
 import { MODEL_ORDERS } from '../../constants';
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 import type { Registration } from '../../utils/misc/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { chococake } from '../../utils/organization/really_any';
@@ -151,6 +151,4 @@ export const _OpenAiCompatibleMetadataRegistration = $llmToolsMetadataRegister.r
     },
 });
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

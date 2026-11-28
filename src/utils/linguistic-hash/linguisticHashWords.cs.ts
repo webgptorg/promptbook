@@ -166,6 +166,9 @@ const ADJECTIVES = [
     'hbitý',
 ];
 
+/**
+ * Collection of nouns.
+ */
 const NOUNS = [
     'jablko',
     'nebe',
@@ -380,6 +383,9 @@ const NOUNS = [
     'chodba',
 ];
 
+/**
+ * Collection of verbs.
+ */
 const VERBS = [
     'skáče',
     'tančí',
@@ -554,6 +560,4 @@ export const LINGUISTIC_HASH_WORD_LISTS_CS: LinguisticHashWordLists = {
     verb: VERBS,
 };
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

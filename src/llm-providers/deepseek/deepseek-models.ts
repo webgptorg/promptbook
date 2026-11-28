@@ -1,14 +1,15 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { number_usd } from '../../types/typeAliases';
+import type { number_usd } from '../../types/number_usd';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { pricing } from '../_common/utils/pricing';
 
 /**
  * List of available Deepseek models with descriptions
  *
- * Note: Synced with official API docs at 2025-08-20
+ * Note: Synced with official API docs at 2026-03-22
  *
  * @see https://www.deepseek.com/models
+ *
  * @public exported from `@promptbook/deepseek`
  */
 export const DEEPSEEK_MODELS: ReadonlyArray<
@@ -29,8 +30,8 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest flagship general-purpose model with 128K context window. Features exceptional reasoning capabilities, advanced code generation, and strong performance across diverse domains. Offers competitive performance with leading models while maintaining cost efficiency. Ideal for complex reasoning, coding, and knowledge-intensive tasks.',
             pricing: {
-                prompt: pricing(`$0.14 / 1M tokens`),
-                output: pricing(`$0.28 / 1M tokens`),
+                prompt: pricing(`$0.28 / 1M tokens`),
+                output: pricing(`$0.42 / 1M tokens`),
             },
         },
         {
@@ -191,9 +192,7 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
     ],
 });
 
-/**
- * TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
- * TODO: [🎰] Some mechanism to auto-update available models
- * TODO: [🧠] Verify pricing information is current with Deepseek's official documentation
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
+// TODO: [🎰] Some mechanism to auto-update available models
+// TODO: [🧠] Verify pricing information is current with Deepseek's official documentation
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -3,12 +3,27 @@ import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 
+/**
+ * Size of default page.
+ */
 const DEFAULT_PAGE_SIZE = 20;
+/**
+ * Size of max page.
+ */
 const MAX_PAGE_SIZE = 100;
 
+/**
+ * Type describing sort field.
+ */
 type SortField = 'createdAt' | 'agentName' | 'id';
+/**
+ * Type describing sort order.
+ */
 type SortOrder = 'asc' | 'desc';
 
+/**
+ * Parses positive int.
+ */
 function parsePositiveInt(value: string | null, fallback: number): number {
     if (!value) return fallback;
     const parsed = parseInt(value, 10);
@@ -16,11 +31,17 @@ function parsePositiveInt(value: string | null, fallback: number): number {
     return parsed;
 }
 
+/**
+ * Parses sort field.
+ */
 function parseSortField(value: string | null): SortField {
     if (value === 'agentName' || value === 'id') return value;
     return 'createdAt';
 }
 
+/**
+ * Parses sort order.
+ */
 function parseSortOrder(value: string | null): SortOrder {
     return value === 'asc' ? 'asc' : 'desc';
 }

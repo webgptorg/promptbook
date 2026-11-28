@@ -1,6 +1,4 @@
-import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
-import type { BookCommitment } from '../../commitments/_base/BookCommitment';
+import { createBookCommitmentLineTypeRegex } from '../../book-2.0/agent-source/getBookCommitmentLineType';
 
 /**
  * Regex source for absolute URL references inside TEAM/FROM/IMPORT commitments.
@@ -11,10 +9,12 @@ const AGENT_REFERENCE_URL_PATTERN = 'https?:\\/\\/[^\\s{}]+';
 
 /**
  * Regex source for compact `@id` references.
+ * The negative lookbehind `(?<!\S)` ensures the `@` is preceded only by whitespace or is at the
+ * start of the string, so email addresses like `team@foo.bar` are not treated as agent references.
  *
  * @private function of BookEditorMonaco
  */
-const AGENT_REFERENCE_AT_PATTERN = '@[A-Za-z0-9_-]+';
+const AGENT_REFERENCE_AT_PATTERN = '(?<!\\S)@[A-Za-z0-9_-]+';
 
 /**
  * Regex source for braced references (`{Agent}`, `{Agent Name}`, `{https://...}`).
@@ -24,16 +24,42 @@ const AGENT_REFERENCE_AT_PATTERN = '@[A-Za-z0-9_-]+';
 const AGENT_REFERENCE_BRACED_PATTERN = '\\{[^{}\\r\\n]+\\}';
 
 /**
+ * Pattern matching plain inline `@` tokens, for example email addresses.
+ *
+ * Monaco tokenizes from the current offset, so `team@foo.bar` can otherwise reach
+ * the `@foo` suffix and look like a standalone compact reference.
+ *
+ * @private function of BookEditorMonaco
+ */
+const NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX = /[^\s{}]*[^\s@{}]@[^\s{}]+/;
+
+/**
  * Commitment types where compact agent references are supported.
  *
  * @private function of BookEditorMonaco
  */
-const AGENT_REFERENCE_COMMITMENT_TYPES: ReadonlySet<BookCommitment> = new Set<BookCommitment>([
-    'FROM',
-    'IMPORT',
-    'IMPORTS',
-    'TEAM',
-]);
+const AGENT_REFERENCE_COMMITMENT_TYPES = ['FROM', 'IMPORT', 'IMPORTS', 'TEAM'] as const;
+
+/**
+ * Regex matching any line that starts with one or more all-uppercase words (minimum 2 characters each).
+ * Used to detect commitment line boundaries without a hardcoded list of commitment types.
+ *
+ * Single-letter uppercase words (e.g. "V", "A") are excluded to avoid false positives with
+ * natural-language sentences that start with a short uppercase word.
+ *
+ * @private function of BookEditorMonaco
+ */
+const DYNAMIC_COMMITMENT_REGEX = createBookCommitmentLineTypeRegex();
+
+/**
+ * Regex pattern to match horizontal lines.
+ *
+ * @private function of BookEditorMonaco
+ */
+const HORIZONTAL_LINE_PATTERN = /^[\s]*[-_*][\s]*[-_*][\s]*[-_*][\s]*[-_*]*[\s]*$/;
+
+const BOOK_EDITOR_COMMITMENT_LINE_REGEX = DYNAMIC_COMMITMENT_REGEX;
+const AGENT_REFERENCE_COMMITMENT_LINE_REGEX = createCommitmentLineRegex(AGENT_REFERENCE_COMMITMENT_TYPES);
 
 /**
  * Range descriptor for one commitment block in source coordinates.
@@ -63,11 +89,20 @@ type AgentReferenceMatch = {
  * @private function of BookEditorMonaco
  */
 const AGENT_URL_REFERENCE_REGEX = new RegExp(`^${AGENT_REFERENCE_URL_PATTERN}$`, 'i');
+/**
+ * Pattern matching agent reference token.
+ */
 const AGENT_REFERENCE_TOKEN_REGEX = new RegExp(
     `${AGENT_REFERENCE_BRACED_PATTERN}|${AGENT_REFERENCE_AT_PATTERN}|${AGENT_REFERENCE_URL_PATTERN}`,
     'g',
 );
+/**
+ * Pattern matching agent reference braced.
+ */
 const AGENT_REFERENCE_BRACED_REGEX = /^\{([\s\S]+)\}$/;
+/**
+ * Constant for agent reference highlight regexes.
+ */
 const AGENT_REFERENCE_HIGHLIGHT_REGEXES = [
     new RegExp(AGENT_REFERENCE_BRACED_PATTERN),
     new RegExp(AGENT_REFERENCE_URL_PATTERN),
@@ -79,6 +114,7 @@ const AGENT_REFERENCE_HIGHLIGHT_REGEXES = [
  *
  * @param token - Matched reference token.
  * @returns Normalized reference payload.
+ *
  * @private function of BookEditorMonaco
  */
 const extractAgentReferenceValue = (token: string): string => {
@@ -99,6 +135,7 @@ const extractAgentReferenceValue = (token: string): string => {
  *
  * @param referenceValue - Token payload extracted from compact syntax.
  * @returns Absolute/local agent URL or null for invalid values.
+ *
  * @private function of BookEditorMonaco
  */
 const resolveAgentReferenceToUrl = (referenceValue: string): string | null => {
@@ -126,6 +163,7 @@ const resolveAgentReferenceToUrl = (referenceValue: string): string | null => {
  *
  * @param content - Full source currently open in BookEditor.
  * @returns Matched references with source offsets.
+ *
  * @private function of BookEditorMonaco
  */
 const extractAgentReferenceMatches = (content: string): Array<AgentReferenceMatch> => {
@@ -167,13 +205,6 @@ const extractAgentReferenceMatches = (content: string): Array<AgentReferenceMatc
 
                 const absoluteIndex = lineStartOffset + indexInLine;
 
-                if (token.startsWith('@') && absoluteIndex > 0) {
-                    const previousChar = content[absoluteIndex - 1] || '';
-                    if (/[A-Za-z0-9_.-]/.test(previousChar)) {
-                        continue;
-                    }
-                }
-
                 const value = extractAgentReferenceValue(token);
                 const url = resolveAgentReferenceToUrl(value);
 
@@ -200,6 +231,7 @@ const extractAgentReferenceMatches = (content: string): Array<AgentReferenceMatc
  * @param content - Full source text.
  * @param sourceLines - Source split by newlines.
  * @returns Offsets aligned with `sourceLines`.
+ *
  * @private function of BookEditorMonaco
  */
 function collectLineStartOffsets(content: string, sourceLines: ReadonlyArray<string>): Array<number> {
@@ -229,35 +261,79 @@ function collectLineStartOffsets(content: string, sourceLines: ReadonlyArray<str
  * @param content - Full source text.
  * @param sourceLines - Source split by newlines.
  * @returns Line ranges that should be scanned for references.
+ *
  * @private function of BookEditorMonaco
  */
 function collectAgentReferenceCommitmentLineRanges(
     content: string,
     sourceLines: ReadonlyArray<string>,
 ): Array<CommitmentLineRange> {
-    const parsed = parseAgentSourceWithCommitments(content as string_book);
     const ranges: Array<CommitmentLineRange> = [];
+    let activeRangeStartLineNumber: number | null = null;
+    let isInsideCodeBlock = false;
+    const startLineIndex = findBookBodyStartLineIndex(sourceLines);
 
-    for (let index = 0; index < parsed.commitments.length; index++) {
-        const commitment = parsed.commitments[index];
-        if (!commitment || !AGENT_REFERENCE_COMMITMENT_TYPES.has(commitment.type)) {
+    for (let lineIndex = startLineIndex; lineIndex < sourceLines.length; lineIndex++) {
+        const line = sourceLines[lineIndex] || '';
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.startsWith('```')) {
+            isInsideCodeBlock = !isInsideCodeBlock;
             continue;
         }
 
-        const nextCommitmentStartLine = parsed.commitments[index + 1]?.lineNumber ?? sourceLines.length + 1;
-        const endLineNumber = Math.min(nextCommitmentStartLine - 1, sourceLines.length);
-
-        if (commitment.lineNumber > endLineNumber) {
+        if (isInsideCodeBlock) {
             continue;
         }
 
+        if (HORIZONTAL_LINE_PATTERN.test(line)) {
+            if (activeRangeStartLineNumber !== null) {
+                ranges.push({
+                    startLineNumber: activeRangeStartLineNumber,
+                    endLineNumber: lineIndex,
+                });
+                activeRangeStartLineNumber = null;
+            }
+            continue;
+        }
+
+        if (!BOOK_EDITOR_COMMITMENT_LINE_REGEX.test(trimmedLine)) {
+            continue;
+        }
+
+        if (activeRangeStartLineNumber !== null) {
+            ranges.push({
+                startLineNumber: activeRangeStartLineNumber,
+                endLineNumber: lineIndex,
+            });
+        }
+
+        activeRangeStartLineNumber = AGENT_REFERENCE_COMMITMENT_LINE_REGEX.test(trimmedLine) ? lineIndex + 1 : null;
+    }
+
+    if (activeRangeStartLineNumber !== null) {
         ranges.push({
-            startLineNumber: commitment.lineNumber,
-            endLineNumber,
+            startLineNumber: activeRangeStartLineNumber,
+            endLineNumber: sourceLines.length,
         });
     }
 
     return ranges;
+}
+
+function createCommitmentLineRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
+    const commitmentPattern = [...commitmentTypes]
+        .sort((a, b) => b.length - a.length)
+        .map((type) => type.replace(/\s+/, '\\s+'))
+        .join('|');
+
+    return new RegExp(`^\\s*(${commitmentPattern})(?=\\s|$)`, 'i');
+}
+
+function findBookBodyStartLineIndex(sourceLines: ReadonlyArray<string>): number {
+    const titleLineIndex = sourceLines.findIndex((line) => line.trim().length > 0);
+
+    return titleLineIndex === -1 ? 0 : titleLineIndex + 1;
 }
 
 /**
@@ -266,9 +342,11 @@ function collectAgentReferenceCommitmentLineRanges(
  * @private function of BookEditorMonaco
  */
 export const BookEditorMonacoTokenization = {
+    DYNAMIC_COMMITMENT_REGEX,
     AGENT_URL_REFERENCE_REGEX,
     AGENT_REFERENCE_TOKEN_REGEX,
     AGENT_REFERENCE_BRACED_REGEX,
+    NON_AGENT_REFERENCE_INLINE_AT_TOKEN_REGEX,
     AGENT_REFERENCE_HIGHLIGHT_REGEXES,
     extractAgentReferenceValue,
     resolveAgentReferenceToUrl,

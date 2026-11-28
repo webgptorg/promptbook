@@ -1,9 +1,24 @@
 import type { AgentsServerDatabase } from '../database/schema';
+import type { ChatHistoryThread } from './chatHistoryMessage';
 
+export type { ChatHistoryThread } from './chatHistoryMessage';
+
+/**
+ * Type describing chat history row.
+ */
 export type ChatHistoryRow = AgentsServerDatabase['public']['Tables']['ChatHistory']['Row'];
+/**
+ * Type describing chat history sort field.
+ */
 export type ChatHistorySortField = 'createdAt' | 'agentName' | 'id';
+/**
+ * Type describing chat history sort order.
+ */
 export type ChatHistorySortOrder = 'asc' | 'desc';
 
+/**
+ * Response for chat history list.
+ */
 export type ChatHistoryListResponse = {
     items: ChatHistoryRow[];
     total: number;
@@ -13,10 +28,15 @@ export type ChatHistoryListResponse = {
     sortOrder: ChatHistorySortOrder;
 };
 
+/**
+ * Type describing chat history list params.
+ */
 export type ChatHistoryListParams = {
     page?: number;
     pageSize?: number;
     agentName?: string;
+    chatId?: string;
+    userId?: number;
     search?: string;
     sortBy?: ChatHistorySortField;
     sortOrder?: ChatHistorySortOrder;
@@ -31,6 +51,8 @@ function buildQuery(params: ChatHistoryListParams): string {
     if (params.page && params.page > 0) searchParams.set('page', String(params.page));
     if (params.pageSize && params.pageSize > 0) searchParams.set('pageSize', String(params.pageSize));
     if (params.agentName) searchParams.set('agentName', params.agentName);
+    if (params.chatId) searchParams.set('chatId', params.chatId);
+    if (params.userId && params.userId > 0) searchParams.set('userId', String(params.userId));
     if (params.search) searchParams.set('search', params.search);
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
@@ -57,6 +79,43 @@ export async function $fetchChatHistory(params: ChatHistoryListParams = {}): Pro
     }
 
     return (await response.json()) as ChatHistoryListResponse;
+}
+
+/**
+ * Response for the chat history threads listing.
+ */
+export type ChatHistoryThreadsResponse = {
+    threads: ChatHistoryThread[];
+};
+
+/**
+ * Fetch the recorded chat threads (grouped by canonical chat id) from the admin API.
+ *
+ * Shared by the admin chat history filters and the chat transcript view so both
+ * browse conversations thread by thread instead of one mixed pile.
+ */
+export async function $fetchChatHistoryThreads(agentName?: string, userId?: number): Promise<ChatHistoryThread[]> {
+    const searchParams = new URLSearchParams();
+
+    if (agentName) {
+        searchParams.set('agentName', agentName);
+    }
+    if (userId && userId > 0) {
+        searchParams.set('userId', String(userId));
+    }
+
+    const qs = searchParams.toString();
+    const response = await fetch(`/api/chat-history/threads${qs ? `?${qs}` : ''}`, {
+        method: 'GET',
+    });
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to load chat threads');
+    }
+
+    const data = (await response.json()) as ChatHistoryThreadsResponse;
+    return data.threads ?? [];
 }
 
 /**

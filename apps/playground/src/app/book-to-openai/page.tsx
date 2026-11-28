@@ -8,6 +8,9 @@ import type { string_book, string_script } from '@promptbook-local/types';
 import { spaceTrim } from '@promptbook-local/utils';
 import { useEffect, useState } from 'react';
 
+/**
+ * Handles transpiler page.
+ */
 export default function TranspilerPage() {
     const [agentSource, setAgentSource] = useState<string_book>(book`
         Marigold

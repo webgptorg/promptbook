@@ -1,4 +1,4 @@
-import { parse } from 'yaml';
+import { load } from 'js-yaml';
 
 import {
     SERVER_TRANSLATION_KEY_SET,
@@ -7,6 +7,9 @@ import {
     type ServerTranslationKey,
 } from './ServerTranslationKeys';
 
+/**
+ * Type describing raw translation map.
+ */
 type RawTranslationMap = Record<string, unknown>;
 
 /**
@@ -22,7 +25,7 @@ export function createServerTranslationDictionary(
     languageName: string,
     rawYaml: string,
 ): ServerTranslationDictionary {
-    const parsed = parse(rawYaml);
+    const parsed = load(rawYaml);
 
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
         throw new Error(`${languageName} translations must be defined as a mapping of strings.`);

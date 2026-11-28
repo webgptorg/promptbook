@@ -2,12 +2,18 @@ import Link from 'next/link';
 import React from 'react';
 import { Card } from './Card';
 
+/**
+ * Props for tech info card.
+ */
 type TechInfoCardProps = {
     title: string;
     children: React.ReactNode;
     href?: string;
 };
 
+/**
+ * Handles tech info card.
+ */
 export function TechInfoCard({ title, children, href = '#' }: TechInfoCardProps) {
     return (
         <Link href={href}>

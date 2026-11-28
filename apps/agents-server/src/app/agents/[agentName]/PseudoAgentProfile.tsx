@@ -2,6 +2,9 @@ import type { AgentBasicInformation, string_agent_permanent_id, string_url } fro
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { PseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 
+/**
+ * Props for pseudo agent profile.
+ */
 type PseudoAgentProfileProps = {
     readonly descriptor: PseudoAgentDescriptor;
     readonly canonicalAgentId: string;
@@ -14,6 +17,7 @@ type PseudoAgentProfileProps = {
  * @param descriptor - Source data describing the pseudo agent.
  * @param canonicalAgentId - Permanent identifier presented in the route.
  * @returns An object that can be rendered by `<AgentProfile />`.
+ *
  * @private internal helper for pseudo-agent rendering
  */
 function createPseudoAgentProfile(descriptor: PseudoAgentDescriptor, canonicalAgentId: string): AgentBasicInformation {
@@ -112,7 +116,7 @@ export function PseudoAgentProfilePage({ descriptor, canonicalAgentId, canonical
                     </p>
                     <p className="mt-2 text-sm text-gray-700">
                         Every reply is generated inside the parent agent&apos;s session and is discarded the moment the
-                        agent continues—pseudo agents do not offer standalone chat history.
+                        agent continues-pseudo agents do not offer standalone chat history.
                     </p>
                 </section>
             </div>
@@ -120,6 +124,9 @@ export function PseudoAgentProfilePage({ descriptor, canonicalAgentId, canonical
     );
 }
 
+/**
+ * Props for info card.
+ */
 type InfoCardProps = {
     readonly title: string;
     readonly value: string;

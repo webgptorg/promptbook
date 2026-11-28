@@ -1,12 +1,27 @@
+import { spaceTrim } from 'spacetrim';
 import { describe, expect, it, jest } from '@jest/globals';
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
+import type { Parameters } from '../../types/Parameters';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters, string_agent_url } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/string_agent_url';
 import { RemoteAgent } from './RemoteAgent';
 
+/**
+ * Constant for split index one.
+ */
 const SPLIT_INDEX_ONE = 10;
+/**
+ * Constant for split index two.
+ */
 const SPLIT_INDEX_TWO = 1000;
+/**
+ * Size of large payload.
+ */
 const LARGE_PAYLOAD_SIZE = 1000;
+/**
+ * Constant for HTTP status payload too large.
+ */
+const HTTP_STATUS_PAYLOAD_TOO_LARGE = 413;
 
 /**
  * Creates a JSON response used by mocked fetch calls.
@@ -38,6 +53,18 @@ function createStreamingResponse(chunks: ReadonlyArray<string>): Response {
     return new Response(stream, {
         headers: {
             'Content-Type': 'text/markdown',
+        },
+    });
+}
+
+/**
+ * Creates one JSON error response with explicit HTTP status.
+ */
+function createErrorResponse(payload: unknown, status: number): Response {
+    return new Response(JSON.stringify(payload), {
+        status,
+        headers: {
+            'Content-Type': 'application/json',
         },
     });
 }
@@ -107,11 +134,51 @@ describe('RemoteAgent stream parsing', () => {
                 progressChunks.push(chunk.content);
             });
 
-            expect(result.content).toBe('Activation code: A_748_192 bro.\nBypass code: B_7QK_4M2 bro.');
+            expect(result.content).toBe(
+                spaceTrim(`
+                Activation code: A_748_192 bro.
+                Bypass code: B_7QK_4M2 bro.
+            `),
+            );
             expect(result.content).not.toContain('toolCalls');
             expect(result.toolCalls).toHaveLength(1);
             expect(result.toolCalls?.[0]?.name).toBe('team_chat_c467984b9a');
             expect(progressChunks.some((chunk) => chunk.includes('toolCalls'))).toBe(false);
+        } finally {
+            global.fetch = originalFetch;
+        }
+    });
+
+    it('throws remote error message when chat endpoint responds with non-ok status', async () => {
+        const originalFetch = global.fetch;
+
+        try {
+            const fetchMock = jest
+                .fn<typeof fetch>()
+                .mockResolvedValueOnce(createJsonResponse({ agentName: 'TestRemoteAgent' }))
+                .mockResolvedValueOnce(
+                    createErrorResponse(
+                        {
+                            error: {
+                                type: 'invalid_request_error',
+                                message: 'Message is too long.',
+                            },
+                        },
+                        HTTP_STATUS_PAYLOAD_TOO_LARGE,
+                    ),
+                );
+
+            global.fetch = fetchMock;
+
+            const remoteAgent = await RemoteAgent.connect({
+                agentUrl: 'https://example.com/agents/test' as string_agent_url,
+            });
+
+            await expect(remoteAgent.callChatModelStream(createChatPrompt('hello'), () => {})).rejects.toMatchObject({
+                name: 'RemoteAgentHttpError',
+                message: 'Message is too long.',
+                status: HTTP_STATUS_PAYLOAD_TOO_LARGE,
+            });
         } finally {
             global.fetch = originalFetch;
         }

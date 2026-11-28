@@ -6,14 +6,14 @@ import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools'
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
 import type { Expectations } from '../../pipeline/PipelineJson/Expectations';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/string_person_fullname';
 
 /**
  * Gets the expectations and creates a fake text that meets the expectations
  *
  * Note: `$` is used to indicate that this function is not a pure function - it is not deterministic
  * Note: You can provide postprocessing functions to modify the text before checking the expectations
- *       The result will be the text BEFORE the postprocessing
+ * The result will be the text BEFORE the postprocessing
  *
  * @private internal utility for MockedFackedLlmExecutionTools
  */
@@ -90,7 +90,5 @@ export async function $fakeTextToExpectations(
     );
 }
 
-/**
- * TODO: Do not use LoremIpsum, but use some faked text that looks more human-promptbook-like
- * TODO: [💝] Unite object for expecting amount and format - use here also a format
- */
+// TODO: Do not use LoremIpsum, but use some faked text that looks more human-promptbook-like
+// TODO: [💝] Unite object for expecting amount and format - use here also a format

@@ -5,13 +5,8 @@ import { AuthenticationError } from '../../errors/AuthenticationError';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type {
-    string_app_id,
-    string_email,
-    string_password,
-    string_token,
-    string_user_id,
-} from '../../types/typeAliases';
+import type { string_email } from '../../types/string_email';
+import type { string_app_id, string_password, string_token, string_user_id } from '../../types/string_token';
 import type { ApplicationModeIdentification, Identification } from '../socket-types/_subtypes/Identification';
 
 /**
@@ -21,7 +16,7 @@ import type { ApplicationModeIdentification, Identification } from '../socket-ty
  *
  * 1) **Application mode** Server will receive `collection` and execute prompts only from this collection
  * 2) **Anonymous mode** Server will receive full `LlmToolsConfiguration` (with api keys) and just acts as a proxy
- *    In anonymous mode, `collection` will be ignored and any prompt will be executed
+ * In anonymous mode, `collection` will be ignored and any prompt will be executed
  *
  * You can enable both modes at the same time.
  *
@@ -62,6 +57,9 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
         | (AnonymousRemoteServerOptions & ApplicationRemoteServerOptions<TCustomOptions>)
     );
 
+/**
+ * Options for anonymous remote server.
+ */
 export type AnonymousRemoteServerOptions = {
     /**
      * Enable anonymous mode
@@ -69,6 +67,9 @@ export type AnonymousRemoteServerOptions = {
     readonly isAnonymousModeAllowed: true;
 };
 
+/**
+ * Options for application remote server.
+ */
 export type ApplicationRemoteServerOptions<TCustomOptions> = {
     /**
      * Enable application mode
@@ -103,6 +104,9 @@ export type ApplicationRemoteServerOptions<TCustomOptions> = {
     ): Promisable<LlmExecutionTools> /* <- TODO: [🍚] &({}|IDestroyable) */;
 };
 
+/**
+ * Options for application remote server client.
+ */
 export type ApplicationRemoteServerClientOptions<TCustomOptions> = {
     /**
      * Identifier of the application
@@ -192,6 +196,4 @@ export type LoginResponse<TCustomOptions> = {
     readonly identification?: Identification<TCustomOptions>;
 };
 
-/**
- * TODO: Constrain anonymous mode for specific models / providers
- */
+// TODO: Constrain anonymous mode for specific models / providers

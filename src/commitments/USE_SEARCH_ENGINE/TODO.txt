@@ -1,1 +1,0 @@
-TODO: [🔰] USE SEARCH is working only in demo mode only. Need to implement full functionality via MCP server and Search engines

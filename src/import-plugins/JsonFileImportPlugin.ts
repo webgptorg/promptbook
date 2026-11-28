@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import type { FileImportPlugin } from './FileImportPlugin';
 
 /**
@@ -14,10 +15,22 @@ export const JsonFileImportPlugin: FileImportPlugin = {
         try {
             const json = JSON.parse(content);
             const formattedJson = JSON.stringify(json, null, 4);
-            return `\`\`\`json\n${formattedJson}\n\`\`\``;
+            return spaceTrim(
+                (block) => `
+                    \`\`\`json
+                    ${block(formattedJson)}
+                    \`\`\`
+                `,
+            );
         } catch (error) {
             // If JSON is invalid, still import it but maybe not as pretty JSON
-            return `\`\`\`json\n${content}\n\`\`\``;
+            return spaceTrim(
+                (block) => `
+                    \`\`\`json
+                    ${block(content)}
+                    \`\`\`
+                `,
+            );
         }
     },
 };

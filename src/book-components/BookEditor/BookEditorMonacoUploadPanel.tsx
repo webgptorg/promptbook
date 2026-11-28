@@ -1,7 +1,10 @@
-import { BookEditorMonacoFormatting } from './BookEditorMonacoFormatting';
-import type { UploadItem, UploadStats } from './useBookEditorMonacoUploads';
 import styles from './BookEditor.module.css';
+import { BookEditorMonacoFormatting } from './BookEditorMonacoFormatting';
+import type { UploadItem, UploadStats } from './useBookEditorMonacoUploads/bookEditorMonacoUploadTypes';
 
+/**
+ * Map of upload status labels.
+ */
 const UPLOAD_STATUS_LABELS: Record<UploadItem['status'], string> = {
     queued: 'Queued',
     uploading: 'Uploading',
@@ -10,6 +13,9 @@ const UPLOAD_STATUS_LABELS: Record<UploadItem['status'], string> = {
     failed: 'Failed',
 };
 
+/**
+ * Props for book editor monaco upload panel.
+ */
 type BookEditorMonacoUploadPanelProps = {
     readonly activeUploadItems: UploadItem[];
     readonly uploadStats: UploadStats;

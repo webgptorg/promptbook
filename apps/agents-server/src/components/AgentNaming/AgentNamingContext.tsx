@@ -1,7 +1,9 @@
 'use client';
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { DEFAULT_AGENT_NAMING, formatAgentNamingText, type AgentNaming } from '../../utils/agentNaming';
+import { translateLegacyAgentText } from './translateLegacyAgentText';
 
 /**
  * Context value for agent naming utilities.
@@ -17,11 +19,17 @@ type AgentNamingContextValue = {
     readonly formatText: (text: string) => string;
 };
 
+/**
+ * Map of default context value.
+ */
 const DEFAULT_CONTEXT_VALUE: AgentNamingContextValue = {
     naming: DEFAULT_AGENT_NAMING,
     formatText: (text: string) => formatAgentNamingText(text, DEFAULT_AGENT_NAMING),
 };
 
+/**
+ * Constant for agent naming context.
+ */
 const AgentNamingContext = createContext<AgentNamingContextValue>(DEFAULT_CONTEXT_VALUE);
 
 /**
@@ -45,12 +53,14 @@ type AgentNamingProviderProps = {
  * @returns Provider wrapper with naming context.
  */
 export function AgentNamingProvider({ naming, children }: AgentNamingProviderProps) {
+    const { language } = useServerLanguage();
+
     const value = useMemo<AgentNamingContextValue>(
         () => ({
             naming,
-            formatText: (text: string) => formatAgentNamingText(text, naming),
+            formatText: (text: string) => formatAgentNamingText(translateLegacyAgentText(text, language), naming),
         }),
-        [naming],
+        [language, naming],
     );
 
     return <AgentNamingContext.Provider value={value}>{children}</AgentNamingContext.Provider>;

@@ -3,8 +3,11 @@ import type { Takeable } from '../interfaces/Takeable';
 import { take } from '../take';
 
 /**
- * @private util of `@promptbook/color`
+ * Class implementing take chain.
+ *
  * @de
+ *
+ * @private util of `@promptbook/color`
  */
 export class TakeChain<TValue extends Takeable> implements ITakeChain<TValue> {
     public constructor(public value: TValue) {}

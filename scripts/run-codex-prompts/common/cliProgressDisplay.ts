@@ -1,51 +1,31 @@
 import colors from 'colors';
 import moment from 'moment';
 import { clearLine, cursorTo } from 'readline';
+import { formatExcludedPriorityFilter, formatPriorityFilter, type PriorityFilter } from '../prompts/priorityFilter';
 import type { PromptStats } from '../prompts/types/PromptStats';
-
-/** Refresh interval for the progress header in milliseconds. */
-const PROGRESS_REFRESH_INTERVAL_MS = 1000;
-
-/** Number of terminal lines reserved for the sticky progress header. */
-const PROGRESS_HEADER_RESERVED_LINES = 1;
-
-/** Calendar formats used when displaying the estimated completion time. */
-const ESTIMATED_DONE_CALENDAR_FORMATS = {
-    sameDay: '[Today] h:mm',
-    nextDay: '[Tomorrow] h:mm',
-    nextWeek: 'dddd h:mm',
-    lastDay: '[Yesterday] h:mm',
-    lastWeek: 'dddd h:mm',
-    sameElse: 'MMM D h:mm',
-};
+import { buildCoderRunProgressSnapshot } from './buildCoderRunProgressSnapshot';
+import { CoderRunTimer } from './CoderRunTimer';
 
 /**
- * Computed values used when rendering the progress header.
+ * Refresh interval for the progress header in milliseconds.
  */
-type ProgressSnapshot = {
-    /** Total number of prompts in the project. */
-    totalPrompts: number;
-    /** Total number of completed prompts in the project. */
-    completedPrompts: number;
-    /** Number of prompts completed in the current session. */
-    sessionDone: number;
-    /** Total number of prompts to be processed in the current session. */
-    sessionTotal: number;
-    /** Percentage of total prompts completed. */
-    percentage: number;
-    /** Formatted elapsed time. */
-    elapsedText: string;
-    /** Formatted estimated total time. */
-    estimatedTotalText: string;
-    /** Formatted estimated completion time. */
-    estimatedLabel: string;
-};
+const PROGRESS_REFRESH_INTERVAL_MS = 1000;
+
+/**
+ * Number of terminal lines reserved for the sticky progress header.
+ */
+const PROGRESS_HEADER_RESERVED_LINES = 3;
+
+/**
+ * Fallback terminal width when stdout does not report a column count.
+ */
+const DEFAULT_PROGRESS_TERMINAL_COLUMNS = 80;
 
 /**
  * Compact CLI progress display that stays pinned at the top of the terminal.
  */
 export class CliProgressDisplay {
-    private stats: PromptStats = { done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 };
+    private stats: PromptStats = { done: 0, forAgent: 0, outsidePriorityRange: 0, toBeWritten: 0 };
 
     /**
      * Initial number of completed prompts when the session started.
@@ -54,14 +34,21 @@ export class CliProgressDisplay {
     private initialDone: number | undefined;
 
     private readonly isInteractive: boolean;
+    private readonly timer: CoderRunTimer;
     private isHeaderReserved = false;
     private interval: NodeJS.Timeout | undefined;
+    private cachedAveragePromptDurationMs: number | undefined;
 
     /**
      * Creates a new display that uses the provided start time when computing estimates.
      */
-    public constructor(private readonly startTime: moment.Moment) {
+    public constructor(
+        startTime: moment.Moment,
+        private readonly priorityFilter: PriorityFilter = {},
+        private readonly runLimit?: number,
+    ) {
         this.isInteractive = Boolean(process.stdout.isTTY);
+        this.timer = new CoderRunTimer(startTime);
         if (!this.isInteractive) {
             return;
         }
@@ -69,6 +56,16 @@ export class CliProgressDisplay {
         this.reserveHeaderLine();
         this.render();
         this.interval = setInterval(() => this.render(), PROGRESS_REFRESH_INTERVAL_MS);
+    }
+
+    /**
+     * Sets the cached average prompt duration (in milliseconds) loaded from the temp-folder estimate cache.
+     *
+     * Used to project completion estimates before the first prompt of the current session finishes.
+     */
+    public setCachedAveragePromptDurationMs(cachedAveragePromptDurationMs: number | undefined): void {
+        this.cachedAveragePromptDurationMs = cachedAveragePromptDurationMs;
+        this.render();
     }
 
     /**
@@ -83,6 +80,22 @@ export class CliProgressDisplay {
         }
 
         this.stats = stats;
+        this.render();
+    }
+
+    /**
+     * Pauses the active timer while the runner is waiting for user input.
+     */
+    public pauseTimer(): void {
+        this.timer.pause();
+        this.render();
+    }
+
+    /**
+     * Resumes the active timer after a pause.
+     */
+    public resumeTimer(): void {
+        this.timer.resume();
         this.render();
     }
 
@@ -110,11 +123,13 @@ export class CliProgressDisplay {
             return;
         }
 
-        const line = this.buildProgressLine();
+        const lines = this.buildProgressLines();
         process.stdout.write('\x1b[s');
-        cursorTo(process.stdout, 0, 0);
-        clearLine(process.stdout, 0);
-        process.stdout.write(line);
+        for (let lineIndex = 0; lineIndex < PROGRESS_HEADER_RESERVED_LINES; lineIndex++) {
+            cursorTo(process.stdout, 0, lineIndex);
+            clearLine(process.stdout, 0);
+            process.stdout.write(lines[lineIndex] ?? '');
+        }
         process.stdout.write('\x1b[u');
     }
 
@@ -131,81 +146,86 @@ export class CliProgressDisplay {
     }
 
     /**
-     * Builds the coloured progress text padded to the terminal width.
+     * Builds the colored progress text padded to the terminal width.
      */
-    private buildProgressLine(): string {
-        const snapshot = buildProgressSnapshot(this.stats, this.startTime, this.initialDone ?? this.stats.done);
-        const sessionLabel = `${snapshot.sessionDone}/${snapshot.sessionTotal} Prompts`;
-        const totalLabel = `(${snapshot.totalPrompts} total)`;
-        const baseLine = `${sessionLabel} ${totalLabel} | ${snapshot.percentage}% | ${snapshot.elapsedText}/${snapshot.estimatedTotalText} | Estimated done ${snapshot.estimatedLabel}`;
-        const columns = process.stdout.columns ?? baseLine.length;
-        const padded = baseLine.padEnd(columns > baseLine.length ? columns : baseLine.length);
-        return colors.bgWhite(colors.black(padded));
+    private buildProgressLines(): readonly string[] {
+        const snapshot = buildCoderRunProgressSnapshot(
+            this.stats,
+            this.timer.getElapsedDuration(),
+            this.initialDone ?? this.stats.done,
+            this.cachedAveragePromptDurationMs,
+            this.runLimit,
+        );
+        const columns = Math.max(40, process.stdout.columns ?? DEFAULT_PROGRESS_TERMINAL_COLUMNS);
+        const priorityScopeLabel = formatPriorityFilter(this.priorityFilter);
+        const workingLine =
+            snapshot.sessionTotal > 0
+                ? [
+                      `Working on ${snapshot.currentPromptIndex}/${snapshot.sessionTotal} prompts`,
+                      priorityScopeLabel,
+                      `Repo total ${snapshot.totalPrompts}`,
+                  ].join(' | ')
+                : [`No runnable prompts`, priorityScopeLabel, `Repo total ${snapshot.totalPrompts}`].join(
+                      ' | ',
+                  );
+        const detailParts = [
+            `Done ${snapshot.sessionDone}/${snapshot.sessionTotal} this run`,
+            `Elapsed ${snapshot.elapsedText} / ${snapshot.estimatedTotalText}`,
+            `Est. done ${snapshot.estimatedLabel}`,
+        ];
+
+        if (snapshot.skippedPrompts > 0) {
+            const skippedPriorityLabel = formatExcludedPriorityFilter(this.priorityFilter) ?? 'outside priority scope';
+            detailParts.splice(1, 0, `Skipping ${snapshot.skippedPrompts} prompts with ${skippedPriorityLabel}`);
+        }
+        if (snapshot.toBeWrittenPrompts > 0) {
+            detailParts.splice(
+                detailParts.length - 2,
+                0,
+                `Write first ${formatPromptCount(snapshot.toBeWrittenPrompts)}`,
+            );
+        }
+
+        const progressLabel = `${snapshot.percentage}% complete (${snapshot.sessionDone}/${snapshot.sessionTotal} done)`;
+        const progressBar = buildProgressBar(snapshot.percentage, progressLabel, columns);
+
+        return [
+            colors.bgCyan.black(padPlainText(workingLine, columns)),
+            colors.bgBlack.white(padPlainText(detailParts.join(' | '), columns)),
+            colors.bgBlack(progressBar),
+        ];
     }
 }
 
 /**
- * Calculates progress metrics shown in the sticky header.
+ * Builds a colored progress bar with an explicit completion label.
  */
-function buildProgressSnapshot(
-    stats: PromptStats,
-    startTime: moment.Moment,
-    initialDone: number,
-): ProgressSnapshot {
-    const totalPrompts = stats.done + stats.forAgent + stats.toBeWritten;
-    const completedPrompts = stats.done;
-    const sessionDone = Math.max(0, completedPrompts - initialDone);
-    const sessionTotal = sessionDone + stats.forAgent;
-    const percentage = totalPrompts > 0 ? Math.round((completedPrompts / totalPrompts) * 100) : 0;
-    const elapsedDuration = moment.duration(moment().diff(startTime));
-    const elapsedText = formatDurationBrief(elapsedDuration);
-
-    let estimatedTotalText = '—';
-    let estimatedLabel = 'unknown';
-
-    if (totalPrompts > 0 && completedPrompts > 0) {
-        const estimatedTotalMs = (elapsedDuration.asMilliseconds() * totalPrompts) / completedPrompts;
-        const estimatedTotalDuration = moment.duration(estimatedTotalMs);
-        const estimatedCompletion = startTime.clone().add(estimatedTotalDuration);
-
-        estimatedTotalText = formatDurationBrief(estimatedTotalDuration);
-        estimatedLabel = estimatedCompletion.calendar(null, ESTIMATED_DONE_CALENDAR_FORMATS);
-    }
-
-    return {
-        totalPrompts,
-        completedPrompts,
-        sessionDone,
-        sessionTotal,
-        percentage,
-        elapsedText,
-        estimatedTotalText,
-        estimatedLabel,
-    };
+function buildProgressBar(percentage: number, label: string, width: number): string {
+    const safeLabel = ` ${label}`;
+    const barWidth = Math.max(10, width - safeLabel.length);
+    const filledWidth = Math.round((percentage / 100) * barWidth);
+    const emptyWidth = Math.max(0, barWidth - filledWidth);
+    return `${colors.green('█'.repeat(filledWidth))}${colors.gray('░'.repeat(emptyWidth))}${safeLabel}`;
 }
 
 /**
- * Formats a duration into a compact string such as "3h 12m" or "45s".
+ * Pads or truncates one plain-text header line to the terminal width.
  */
-function formatDurationBrief(duration: moment.Duration): string {
-    const totalSeconds = Math.max(0, Math.round(duration.asSeconds()));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const parts: string[] = [];
+function padPlainText(text: string, width: number): string {
+    if (text.length > width) {
+        if (width <= 3) {
+            return '.'.repeat(width);
+        }
 
-    if (hours > 0) {
-        parts.push(`${hours}h`);
-    }
-    if (minutes > 0) {
-        parts.push(`${minutes}m`);
-    }
-    if (!parts.length && seconds > 0) {
-        parts.push(`${seconds}s`);
-    }
-    if (!parts.length) {
-        parts.push('0s');
+        return `${text.slice(0, width - 3)}...`;
     }
 
-    return parts.join(' ');
+    return text.padEnd(width);
+}
+
+/**
+ * Formats a prompt count with the correct singular/plural noun.
+ */
+function formatPromptCount(count: number): string {
+    return `${count} prompt${count === 1 ? '' : 's'}`;
 }

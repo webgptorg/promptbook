@@ -1,5 +1,7 @@
 import { PROMPTBOOK_LEGAL_ENTITY } from './src/config';
-import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
+import type { string_legal_entity } from './src/types/string_person_fullname';
+import type { string_promptbook_server_url } from './src/types/string_promptbook_server_url';
+import type { string_title } from './src/types/string_title';
 
 /**
  * Open Promptbook server usable for public
@@ -30,21 +32,7 @@ type ServerConfiguration = {
 };
 
 /**
- * Core Promptbook server configuration
- *
- * Used for "Adam" agent which is built in as default ancestor for new agents and other well known agents
- *
- * @public exported from `@promptbook/core`
- */
-export const CORE_AGENTS_SERVER: ServerConfiguration = {
-    title: 'Promptbook Core',
-    description: `Core Promptbook server used for Adam agent which is built in as default ancestor for new agents and other well known agents.`,
-    owner: PROMPTBOOK_LEGAL_ENTITY,
-    url: 'https://core.ptbk.io/',
-};
-
-/**
- * Names of well known agents hosted on Core Promptbook server
+ * Names of well known agents bundled in the local `.core` folder of every Agents Server
  *
  * - `Adam`: The default ancestor agent for new agents
  * - `Teacher`: Agent that knows book syntax and can help with self-learning
@@ -72,7 +60,6 @@ export const CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES = {
  * @public exported from `@promptbook/core`
  */
 export const PUBLIC_AGENTS_SERVERS: Array<ServerConfiguration> = [
-    CORE_AGENTS_SERVER,
     {
         title: 'Promptbook Gallery',
         description: `Gallery of ideas, AI professions,... like AI Agenta photobank.`,
@@ -99,6 +86,4 @@ export const PUBLIC_AGENTS_SERVERS: Array<ServerConfiguration> = [
     },
 ];
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

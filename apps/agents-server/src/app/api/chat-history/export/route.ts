@@ -3,12 +3,15 @@ import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabase } from '../../../../database/$provideSupabase';
 import { convertToCsv } from '../../../../utils/convertToCsv';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
+import { parsePositiveUserId } from '../../../../utils/parsePositiveUserId';
 
 /**
  * Export chat history as CSV.
  *
  * Query params:
  * - agentName: filter by agent name (optional)
+ * - chatId: filter by canonical chat id / thread (optional)
+ * - userId: filter by user id (optional)
  */
 export async function GET(request: NextRequest) {
     if (!(await isUserAdmin())) {
@@ -18,6 +21,8 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const agentName = searchParams.get('agentName');
+        const chatId = searchParams.get('chatId');
+        const userId = parsePositiveUserId(searchParams.get('userId'));
 
         const supabase = $provideSupabase();
         const table = await $getTableName('ChatHistory');
@@ -26,6 +31,14 @@ export async function GET(request: NextRequest) {
 
         if (agentName) {
             query = query.eq('agentName', agentName);
+        }
+
+        if (chatId) {
+            query = query.eq('chatId', chatId);
+        }
+
+        if (userId !== null) {
+            query = query.eq('userId', userId);
         }
 
         query = query.order('createdAt', { ascending: false });

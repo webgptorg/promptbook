@@ -1,10 +1,10 @@
-import { TODO_any } from '../_packages/types.index';
 import type {
     SpeechRecognition,
     SpeechRecognitionEvent,
     SpeechRecognitionStartOptions,
     SpeechRecognitionState,
 } from '../types/SpeechRecognition';
+import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
  * Speech recognition using Web Speech API `SpeechRecognition` available in modern browsers
@@ -59,7 +59,11 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
 
                 this.recognition.onerror = (event: TODO_any) => {
                     this._state = 'ERROR';
-                    this.emit({ type: 'ERROR', message: event.error || 'Unknown error' });
+                    this.emit({
+                        type: 'ERROR',
+                        message: event.error || 'Unknown error',
+                        code: typeof event.error === 'string' ? event.error : 'unknown',
+                    });
                 };
 
                 this.recognition.onend = () => {
@@ -114,7 +118,5 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
     }
 }
 
-/**
- * TODO: !!!! Search ACRY for `window` and put -> [🔵]
- * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
- */
+// Note: [🔵] Code for browser speech-recognition adapter [BrowserSpeechRecognition](src/speech-recognition/BrowserSpeechRecognition.ts) should never be published outside of `@promptbook/browser`
+// TODO: !!!! Search ACRY for `window` and put -> [🔵]

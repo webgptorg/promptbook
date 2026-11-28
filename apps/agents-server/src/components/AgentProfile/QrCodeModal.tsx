@@ -5,6 +5,9 @@ import { XIcon } from 'lucide-react';
 import { Dialog } from '../Portal/Dialog';
 import { AgentQrCode } from './AgentQrCode';
 
+/**
+ * Props for qr code modal.
+ */
 type QrCodeModalProps = {
     onClose: () => void;
     agentName: string;
@@ -15,6 +18,9 @@ type QrCodeModalProps = {
     brandColorHex: string;
 };
 
+/**
+ * Handles qr code modal.
+ */
 export function QrCodeModal({
     onClose,
     agentName,

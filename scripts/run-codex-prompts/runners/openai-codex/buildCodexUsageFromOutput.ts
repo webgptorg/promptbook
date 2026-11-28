@@ -3,7 +3,13 @@ import { uncertainNumber } from '../../../../src/execution/utils/uncertainNumber
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
 import { OPENAI_MODELS } from '../../../../src/llm-providers/openai/openai-models';
 
+/**
+ * Pattern matching codex tokens value matcher.
+ */
 const CODEX_TOKENS_VALUE_MATCHER = /(?<count>\d[\d,]*)/;
+/**
+ * Constant for codex fallback pricing model.
+ */
 const CODEX_FALLBACK_PRICING_MODEL = 'gpt-5.1';
 
 /**
@@ -12,6 +18,9 @@ const CODEX_FALLBACK_PRICING_MODEL = 'gpt-5.1';
  */
 export const DEFAULT_CODEX_COMPLETION_SHARE = 0.1;
 
+/**
+ * Type describing codex token breakdown.
+ */
 type CodexTokenBreakdown = {
     total?: number;
     prompt?: number;
@@ -19,6 +28,9 @@ type CodexTokenBreakdown = {
     cached?: number;
 };
 
+/**
+ * Type describing codex token counts.
+ */
 type CodexTokenCounts = {
     readonly totalTokens: number;
     readonly promptTokens: number;
@@ -28,8 +40,11 @@ type CodexTokenCounts = {
 
 /**
  * Builds usage stats from Codex CLI output.
+ *
+ * The `modelName` is omitted when Codex ran without a model override, in which case only Codex knows which
+ * model it picked and the price can be estimated from the fallback pricing alone.
  */
-export function buildCodexUsageFromOutput(output: string, modelName: string): Usage {
+export function buildCodexUsageFromOutput(output: string, modelName: string | undefined): Usage {
     const breakdown = parseCodexTokenBreakdown(output);
     const counts = resolveCodexTokenCounts(breakdown);
     if (!counts) {
@@ -195,8 +210,17 @@ function parseCodexTokenCount(value: string): number | undefined {
 
 /**
  * Resolves a pricing model to estimate Codex cost from total tokens.
+ *
+ * An unknown model — and a run without any model override, where Codex picked the model itself — is priced
+ * with `CODEX_FALLBACK_PRICING_MODEL`, so the estimate stays in the right order of magnitude.
  */
-function resolveCodexPricing(modelName: string): { prompt: number; output: number } | undefined {
+function resolveCodexPricing(modelName: string | undefined): { prompt: number; output: number } | undefined {
+    const fallbackPricing = OPENAI_MODELS.find((model) => model.modelName === CODEX_FALLBACK_PRICING_MODEL)?.pricing;
+
+    if (modelName === undefined) {
+        return fallbackPricing;
+    }
+
     const exactMatch = OPENAI_MODELS.find((model) => model.modelName === modelName)?.pricing;
     if (exactMatch) {
         return exactMatch;
@@ -207,5 +231,5 @@ function resolveCodexPricing(modelName: string): { prompt: number; output: numbe
         return prefixMatch;
     }
 
-    return OPENAI_MODELS.find((model) => model.modelName === CODEX_FALLBACK_PRICING_MODEL)?.pricing;
+    return fallbackPricing;
 }

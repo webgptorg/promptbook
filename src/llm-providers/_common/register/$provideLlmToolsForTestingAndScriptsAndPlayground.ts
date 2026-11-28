@@ -13,6 +13,9 @@ import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 
+/**
+ * Options for get Llm tools for testing and scripts and playground.
+ */
 type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromConfigurationOptions & {
     /**
      * Flag indicating whether the cache should be reloaded or reused
@@ -67,9 +70,7 @@ export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
     });
 }
 
-/**
- * Note: [⚪] This should never be in any released package
- * TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
- * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
- * TODO: [®] DRY Register logi
- */
+// Note: [⚪] This should never be in any released package
+// TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
+// TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
+// TODO: [®] DRY Register logi

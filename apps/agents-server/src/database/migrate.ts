@@ -1,12 +1,21 @@
+import { mkdir, writeFile } from 'fs/promises';
+import { dirname } from 'path';
 import colors from 'colors';
-import * as dotenv from 'dotenv';
 import {
     DATABASE_MIGRATION_APPLIED_BY,
     resolveDatabaseMigrationRuntimeConfiguration,
     runDatabaseMigrations,
+    type RunDatabaseMigrationsResult,
 } from './runDatabaseMigrations';
+import { isAgentsServerSqliteMode } from './agentsServerDatabaseMode';
+import { loadAgentsServerEnvFile } from './loadAgentsServerEnvFile';
 
-dotenv.config();
+loadAgentsServerEnvFile();
+
+/**
+ * Optional output path for a machine-readable migration summary used by standalone VPS self-update.
+ */
+const DATABASE_MIGRATION_SUMMARY_FILE_ENV_NAME = 'PTBK_DATABASE_MIGRATION_SUMMARY_FILE';
 
 /**
  * Runs manual migration command from CLI arguments.
@@ -14,57 +23,91 @@ dotenv.config();
 async function migrate(): Promise<void> {
     console.info(colors.bgBlue('🚀 Starting database migration'));
 
-    const runtimeConfiguration = resolveDatabaseMigrationRuntimeConfiguration(console);
+    if (isAgentsServerSqliteMode()) {
+        console.info(colors.yellow('⏭️ Skipping PostgreSQL migrations because Agents Server uses local SQLite.'));
+        return;
+    }
+
+    const runtimeConfiguration = await resolveDatabaseMigrationRuntimeConfiguration(console);
     if (!runtimeConfiguration) {
         return;
     }
 
-    const onlyPrefixes = parseOnlyPrefixesFromCliArguments(process.argv.slice(2));
-    if (onlyPrefixes !== null) {
-        console.info(colors.cyan(`🎯 Running migrations only for: ${onlyPrefixes.join(', ')}`));
+    const onlyTargets = parseOnlyMigrationTargetsFromCliArguments(process.argv.slice(2));
+    if (onlyTargets !== null) {
+        console.info(colors.cyan(`🎯 Running migrations only for: ${onlyTargets.join(', ')}`));
     }
 
     try {
-        await runDatabaseMigrations({
+        const migrationResult = await runDatabaseMigrations({
             prefixes: runtimeConfiguration.prefixes,
+            registeredServers: runtimeConfiguration.registeredServers,
             connectionString: runtimeConfiguration.connectionString,
-            onlyPrefixes,
+            onlyTargets,
             appliedBy: DATABASE_MIGRATION_APPLIED_BY.MANUAL,
             logger: console,
             logSqlStatements: true,
         });
+        await writeDatabaseMigrationSummaryFile(migrationResult);
         console.info(colors.bgGreen('\n🎉 All migrations completed successfully'));
     } catch (error) {
         console.error(colors.bgRed('\n❌ Migration failed:'));
-        console.error(error);
+        if (error instanceof Error) {
+            console.error(error.message);
+        } else {
+            console.error(error);
+        }
         process.exit(1);
     }
 }
 
 /**
+ * Writes machine-readable migration summary when the caller provides an output path.
+ *
+ * @param migrationResult - Result returned by the shared migration runner.
+ */
+async function writeDatabaseMigrationSummaryFile(migrationResult: RunDatabaseMigrationsResult): Promise<void> {
+    const summaryFilePath = process.env[DATABASE_MIGRATION_SUMMARY_FILE_ENV_NAME]?.trim();
+    if (!summaryFilePath) {
+        return;
+    }
+
+    await mkdir(dirname(summaryFilePath), { recursive: true });
+    await writeFile(summaryFilePath, `${JSON.stringify(migrationResult, null, 2)}\n`, 'utf-8');
+}
+
+/**
  * Parses optional `--only` flag from CLI arguments.
  *
- * @param args CLI arguments.
- * @returns Selected prefix list or `null` when not provided.
+ * Targets may reference `production`, `preview`, registered server names, or raw table prefixes.
+ *
+ * @param args - CLI arguments.
+ * @returns Selected migration targets or `null` when not provided.
  */
-function parseOnlyPrefixesFromCliArguments(args: ReadonlyArray<string>): Array<string> | null {
+function parseOnlyMigrationTargetsFromCliArguments(args: ReadonlyArray<string>): Array<string> | null {
     for (let index = 0; index < args.length; index++) {
         const arg = args[index];
         if (arg === '--only' && args[index + 1]) {
-            return args[index + 1]
-                .split(',')
-                .map((prefix) => prefix.trim())
-                .filter((prefix) => prefix !== '');
+            return parseMigrationTargets(args[index + 1]);
         }
         if (arg?.startsWith('--only=')) {
-            return arg
-                .substring('--only='.length)
-                .split(',')
-                .map((prefix) => prefix.trim())
-                .filter((prefix) => prefix !== '');
+            return parseMigrationTargets(arg.substring('--only='.length));
         }
     }
     return null;
+}
+
+/**
+ * Splits one comma-separated `--only` value into ordered tokens.
+ *
+ * @param rawTargets - Raw CLI value.
+ * @returns Parsed non-empty tokens.
+ */
+function parseMigrationTargets(rawTargets: string): Array<string> {
+    return rawTargets
+        .split(',')
+        .map((target) => target.trim())
+        .filter((target) => target !== '');
 }
 
 migrate();

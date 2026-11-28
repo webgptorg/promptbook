@@ -2,57 +2,58 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { Pause, Play } from 'lucide-react';
-import type { ReactElement } from 'react';
+import { Pause, Play, Reply } from 'lucide-react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { colorToDataUrl } from '../../../_packages/color.index';
+import { AvatarOrImage } from '../../../avatars/AvatarOrImage';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
-import type { ToolCall } from '../../../types/ToolCall';
-import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
-import type { id } from '../../../types/typeAliases';
-import { attachClientVersionHeader } from '../../../utils/clientVersion';
+import type { id } from '../../../types/string_token';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
-import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
-import { classNames } from '../../_common/react-utils/classNames';
+import { colorToDataUrl } from '../../../utils/color/utils/colorToDataUrl';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
-import { AgentChip, type AgentChipData } from '../AgentChip';
-import { CodeBlock } from '../CodeBlock/CodeBlock';
+import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
-import { SourceChip } from '../SourceChip';
+import { SourceChip } from '../SourceChip/SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
-import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
+import { resolveCitationPreviewUrl } from '../utils/citationHelpers';
+import { createCitationFootnoteRenderModel } from '../utils/createCitationFootnoteRenderModel';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
-import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
-import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
-import { createWalletCredentialToolCall } from '../utils/walletCredentialToolCall';
-import {
-    dedupeCitationsBySource,
-    extractCitationsFromMessage,
-    type ParsedCitation,
-} from '../utils/parseCitationsFromContent';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
+import type { MessageButton } from '../utils/parseMessageButtons';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
+import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
+import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
 import {
     getLatestStreamingFeatureBoundary,
     sanitizeStreamingMessageContent,
-    type StreamingFeatureBoundary,
 } from '../utils/sanitizeStreamingMessageContent';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';
-import { ChatMessageMap } from './ChatMessageMap';
+import { ChatMessageAttachments } from './ChatMessageAttachments';
+import { ChatMessageRichContent } from './ChatMessageRichContent';
+import { ChatMessageToolCallChips } from './ChatMessageToolCallChips';
+import { CHAT_FEEDBACK_STAR_RATINGS, ChatFeedbackStar, resolveChatFeedbackStarInactiveColor } from './ChatFeedbackStar';
 import type { ChatProps } from './ChatProps';
-import { LOADING_INTERACTIVE_IMAGE } from './constants';
-import { ImagePromptRenderer } from './ImagePromptRenderer';
+import { ChatReplyPreview } from './ChatReplyPreview';
+import { createChatMessageToolCallRenderModel } from './createChatMessageToolCallRenderModel';
+import { createProgressCardChecklistMarkdown, isProgressCardVisible } from './createProgressCardChecklistMarkdown';
+import { resolveChatRatingMessageKey } from './resolveChatRatingMessageKey';
+import { resolveStreamingFeaturePlaceholderKind } from './StreamingFeaturePlaceholder';
+import { useChatMessageAvatarTooltip } from './useChatMessageAvatarTooltip';
+import { useChatMessageSpeechPlayback } from './useChatMessageSpeechPlayback';
 
 /**
  * Props for the `ChatMessageItem` component
  *
  * @private props for internal subcomponent
  */
-type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
+type ChatMessageItemProps = Pick<
+    ChatProps,
+    'onMessage' | 'onActionButton' | 'onQuickMessageButton' | 'onQuickMessageDraftButton' | 'participants'
+> & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
     isLastMessage: boolean;
@@ -70,6 +71,26 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      */
     isFeedbackEnabled?: boolean;
     /**
+     * Chooses which feedback controls should be rendered.
+     */
+    feedbackMode?: ChatProps['feedbackMode'];
+    /**
+     * Optional localized labels used by feedback controls.
+     */
+    feedbackTranslations?: ChatProps['feedbackTranslations'];
+    /**
+     * Optional localized labels used by timestamp metadata.
+     */
+    timingTranslations?: ChatProps['timingTranslations'];
+    /**
+     * Optional resolver for turning technical citation sources into page/document titles.
+     */
+    resolveCitationLabel?: ChatProps['resolveCitationLabel'];
+    /**
+     * Optional moment locale used to format message timestamps.
+     */
+    chatLocale?: ChatProps['chatLocale'];
+    /**
      * Called when the copy button is pressed.
      */
     onCopy?: () => void;
@@ -86,11 +107,27 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Optional metadata about teammates for team tool calls
      * Maps tool name to agent information
      */
-    teammates?: TeammatesMap;
+    teammates?: ChatProps['teammates'];
+    /**
+     * Called when the user chooses to reply to this message.
+     */
+    onReplyToMessage?: ChatProps['onReplyToMessage'];
+    /**
+     * Determines whether this message can be replied to.
+     */
+    canReplyToMessage?: ChatProps['canReplyToMessage'];
     /**
      * Optional cached metadata keyed by TEAM tool names to enrich tool call chips.
      */
     teamAgentProfiles?: ChatProps['teamAgentProfiles'];
+    /**
+     * Optional inline references rendered from `[[reference]]` tokens in message markdown.
+     */
+    markdownInlineReferences?: ChatProps['markdownInlineReferences'];
+    /**
+     * Controls whether assistant replies render as bubbles or article blocks.
+     */
+    visualMode?: ChatProps['visualMode'];
     /**
      * Called when a tool call chiplet is clicked.
      */
@@ -109,430 +146,91 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      */
     isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
     readonly elevenLabsVoiceId?: ChatProps['elevenLabsVoiceId'];
-};
-
-/**
- * Metadata for a teammate agent tool.
- */
-type TeammateMetadata = {
-    url: string;
-    label?: string;
-    instructions?: string;
-    toolName: string;
-};
-
-/**
- * Lookup map of teammate metadata by tool name.
- */
-type TeammatesMap = Record<string, TeammateMetadata>;
-
-/**
- * Maximum characters allowed in a single ElevenLabs speech request.
- *
- * @private
- */
-const MAX_MESSAGE_SPEECH_LENGTH = 4500;
-
-/**
- * Placeholder types that describe which rich feature is still streaming.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-type StreamingFeaturePlaceholderKind = 'map' | 'image' | 'math' | 'feature';
-
-/**
- * Human-friendly labels associated with each streaming rich feature kind.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-const STREAMING_FEATURE_PLACEHOLDER_LABELS: Record<StreamingFeaturePlaceholderKind, string> = {
-    map: 'Map preview',
-    image: 'Image generation',
-    math: 'Math formula',
-    feature: 'Rich content',
-};
-
-/**
- * Resolves which rich feature is still streaming so the UI can render the matching placeholder.
- *
- * @param boundary - Streaming metadata returned by the sanitizer.
- * @param source - Original message content that contains the pending markup.
- * @returns Friendly placeholder kind to render inside the chat bubble.
- * @private internal helper of <ChatMessageItem/>
- */
-function resolveStreamingFeaturePlaceholderKind(
-    boundary: StreamingFeatureBoundary,
-    source: string,
-): StreamingFeaturePlaceholderKind {
-    if (boundary.kind === 'imagePrompt') {
-        return 'image';
-    }
-
-    if (boundary.kind === 'math') {
-        return 'math';
-    }
-
-    if (boundary.kind === 'codeFence') {
-        const snippet = source.slice(boundary.index, boundary.index + 20).toLowerCase();
-        if (snippet.includes('geojson')) {
-            return 'map';
-        }
-    }
-
-    return 'feature';
-}
-
-/**
- * Props for `<StreamingFeaturePlaceholder/>`.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-type StreamingFeaturePlaceholderProps = {
     /**
-     * Kind of the placeholder to render.
+     * Optional localized labels for Chat UI elements such as lifecycle badges.
      */
-    readonly kind: StreamingFeaturePlaceholderKind;
+    chatUiTranslations?: ChatProps['chatUiTranslations'];
 };
 
 /**
- * Renders the placeholder UI for streaming rich features.
+ * One quick button entry paired with its stable index inside the current message.
  *
- * @private internal helper of <ChatMessageItem/>
+ * @private internal helper of `<ChatMessageItem/>`
  */
-function StreamingFeaturePlaceholder({ kind }: StreamingFeaturePlaceholderProps) {
-    return (
-        <div className={styles.richFeaturePlaceholder} aria-live="polite">
-            <span className={styles.richFeaturePlaceholderSpinner} aria-hidden="true" />
-            <div className={styles.richFeaturePlaceholderCopy}>
-                <span className={styles.richFeaturePlaceholderTitle}>{STREAMING_FEATURE_PLACEHOLDER_LABELS[kind]}</span>
-                <span className={styles.richFeaturePlaceholderStatus}>Waiting for the agent…</span>
-            </div>
-        </div>
-    );
-}
+type RenderableMessageButton = {
+    readonly button: MessageButton;
+    readonly buttonIndex: number;
+};
 
 /**
- * Finds teammate metadata by tool name, falling back to the toolName field when needed.
+ * Layout variants used for message-level utility actions (copy/read/feedback).
+ *
+ * @private internal helper of `<ChatMessageItem/>`
  */
-function findTeammateByToolName(teammates: TeammatesMap | undefined, toolName: string): TeammateMetadata | undefined {
-    if (!teammates) {
-        return undefined;
+type MessageActionsLayout = 'bubble-overlay' | 'article-footer';
+
+/**
+ * Gesture thresholds used for touch swipe-to-reply.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+const REPLY_SWIPE_DIRECTION_LOCK_PX = 16;
+const REPLY_SWIPE_TRIGGER_PX = 60;
+const REPLY_SWIPE_MAX_TRANSLATE_PX = 84;
+
+/**
+ * Resolves the compact lifecycle badge label rendered below durable chat messages.
+ *
+ * Completed messages intentionally return `null` so the UI stays focused on active or exceptional states.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function resolveMessageLifecycleLabel(
+    message: ChatMessage,
+    chatUiTranslations?: import('./ChatProps').ChatUiTranslations,
+): string | null {
+    if (message.sender === 'USER' && message.lifecycleState === 'queued') {
+        return chatUiTranslations?.lifecycleSending || 'Sending';
     }
 
-    return teammates[toolName] || Object.values(teammates).find((teammate) => teammate.toolName === toolName);
-}
-
-/**
- * Resolves agent chip data for TEAM tool calls using tool results or teammate metadata.
- */
-function resolveTeamAgentChipData(
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
-    teammates: TeammatesMap | undefined,
-    chipletInfo?: ToolCallChipletInfo,
-    teamAgentProfiles?: ChatProps['teamAgentProfiles'],
-): AgentChipData | null {
-    const resolvedChipletInfo = chipletInfo || getToolCallChipletInfo(toolCall);
-    const baseAgentData = resolvedChipletInfo.agentData;
-    const profileOverride = teamAgentProfiles?.[toolCall.name];
-
-    if (profileOverride) {
-        const fallbackUrl = profileOverride.url || baseAgentData?.url;
-        if (!fallbackUrl) {
+    switch (message.lifecycleState) {
+        case 'queued':
+            return chatUiTranslations?.lifecycleQueued || 'Queued';
+        case 'running':
+            return chatUiTranslations?.lifecycleRunning || 'Running';
+        case 'failed':
+            return chatUiTranslations?.lifecycleFailed || 'Failed';
+        case 'cancelled':
+            return chatUiTranslations?.lifecycleCancelled || 'Cancelled';
+        case 'completed':
             return null;
-        }
-
-        return {
-            url: fallbackUrl,
-            label: profileOverride.label || baseAgentData?.label,
-            imageUrl: profileOverride.imageUrl ?? baseAgentData?.imageUrl,
-            publicUrl: profileOverride.publicUrl ?? baseAgentData?.publicUrl,
-        };
+        default:
+            return null;
     }
-
-    if (baseAgentData) {
-        return baseAgentData;
-    }
-
-    if (!isTeamToolName(toolCall.name)) {
-        return null;
-    }
-
-    const teammate = findTeammateByToolName(teammates, toolCall.name);
-    if (!teammate?.url) {
-        return null;
-    }
-
-    return {
-        url: teammate.url,
-        label: teammate.label,
-    };
 }
 
 /**
- * Ongoing tool call entry used for grouping.
- */
-type OngoingToolCall = NonNullable<ChatMessage['ongoingToolCalls']>[number];
-
-/**
- * Status variants for tool call chips.
- */
-type ToolCallChipStatus = 'ongoing' | 'done' | 'error';
-
-/**
- * Metadata rendered inside a single tool call chip.
+ * Default template used for assistant response-duration metadata.
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-type ToolCallChipEntry = {
-    /**
-     * Stable key for React rendering.
-     */
-    key: string;
-    /**
-     * Tool call represented by this chip.
-     */
-    toolCall: ToolCall;
-    /**
-     * Chip label text.
-     */
-    label: string;
-    /**
-     * Current status of the tool call.
-     */
-    status: ToolCallChipStatus;
-    /**
-     * Optional agent metadata for TEAM or transitive tool calls.
-     */
-    teamAgentData: AgentChipData | null;
-    /**
-     * Marks entries built for transitive tool calls.
-     */
-    isTransitive: boolean;
-};
+const DEFAULT_ANSWER_DURATION_LABEL = '{duration} to answer';
 
 /**
- * Builds a stable key used for rendering a tool call chip.
+ * Resolves one localized assistant response-duration label.
+ *
+ * @param durationLabel - Compact duration text such as `3.3s`.
+ * @param timingTranslations - Optional translation overrides from the host application.
+ * @returns Final label rendered next to the timestamp.
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-function buildToolCallChipKey(toolCall: ToolCall, options?: { originLabel?: string }): string {
-    const baseKey = getToolCallSnapshotKey(toolCall);
-    if (options?.originLabel) {
-        return `${baseKey}::${options.originLabel}`;
-    }
-
-    return baseKey;
-}
-
-/**
- * Converts ongoing tool calls into chip entries consumed by the UI.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function buildOngoingToolCallChips(
-    toolCalls: ReadonlyArray<OngoingToolCall> | undefined,
-    teammates: TeammatesMap | undefined,
-    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
-): Array<ToolCallChipEntry> {
-    if (!toolCalls || toolCalls.length === 0) {
-        return [];
-    }
-
-    const entries = new Map<string, ToolCallChipEntry>();
-    for (const toolCall of toolCalls) {
-        const key = buildToolCallChipKey(toolCall);
-        const chipletInfo = getToolCallChipletInfo(toolCall);
-        const label = buildToolCallChipText(chipletInfo);
-        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
-
-        entries.set(key, {
-            key,
-            toolCall,
-            label,
-            status: 'ongoing',
-            teamAgentData,
-            isTransitive: false,
-        });
-    }
-
-    return Array.from(entries.values());
-}
-
-/**
- * Builds the final tool call chips that are shown when a message completes.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function buildFinalToolCallChips(
-    completedToolCalls: Array<ToolCall> | undefined,
-    transitiveToolCalls: ReadonlyArray<TransitiveToolCall>,
-    teammates: TeammatesMap | undefined,
-    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
-): Array<ToolCallChipEntry> {
-    const entries: Array<ToolCallChipEntry> = [];
-
-    if (completedToolCalls && completedToolCalls.length > 0) {
-        for (const toolCall of completedToolCalls) {
-            const key = buildToolCallChipKey(toolCall);
-            const chipletInfo = getToolCallChipletInfo(toolCall);
-            const label = buildToolCallChipText(chipletInfo);
-            const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
-
-            entries.push({
-                key,
-                toolCall,
-                label,
-                status: hasToolCallErrors(toolCall) ? 'error' : 'done',
-                teamAgentData,
-                isTransitive: false,
-            });
-
-            const walletCredentialToolCall = createWalletCredentialToolCall(toolCall);
-            if (!walletCredentialToolCall) {
-                continue;
-            }
-
-            const walletKey = buildToolCallChipKey(walletCredentialToolCall);
-            const walletChipletInfo = getToolCallChipletInfo(walletCredentialToolCall);
-            const walletLabel = buildToolCallChipText(walletChipletInfo);
-
-            entries.push({
-                key: walletKey,
-                toolCall: walletCredentialToolCall,
-                label: walletLabel,
-                status: 'done',
-                teamAgentData: null,
-                isTransitive: false,
-            });
-        }
-    }
-
-    if (transitiveToolCalls && transitiveToolCalls.length > 0) {
-        for (const transitive of transitiveToolCalls) {
-            const key = buildToolCallChipKey(transitive.toolCall, { originLabel: transitive.origin.label });
-            const chipletInfo = getToolCallChipletInfo(transitive.toolCall);
-            const label = buildToolCallChipText(chipletInfo);
-            const agentData: AgentChipData = {
-                url: transitive.origin.url || 'about:blank',
-                label: transitive.origin.label,
-            };
-
-            entries.push({
-                key,
-                toolCall: transitive.toolCall,
-                label,
-                status: hasToolCallErrors(transitive.toolCall) ? 'error' : 'done',
-                teamAgentData: agentData,
-                isTransitive: true,
-            });
-        }
-    }
-
-    return entries;
-}
-
-/**
- * Renders a single tool call chip.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function renderToolCallChip(
-    chip: ToolCallChipEntry,
-    onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void,
-): ReactElement {
-    const isOngoing = chip.status === 'ongoing';
-    const hasErrors = chip.status === 'error';
-
-    return (
-        <button
-            key={chip.key}
-            type="button"
-            className={classNames(
-                styles.toolCallChip,
-                chip.teamAgentData && styles.teamToolCall,
-                chip.isTransitive && styles.transitiveToolCall,
-                hasErrors && styles.toolCallWithError,
-                isOngoing && styles.toolCallChipOngoing,
-            )}
-            onClick={(event) => {
-                event.stopPropagation();
-                if (!isOngoing && onToolCallClick) {
-                    onToolCallClick(chip.toolCall);
-                }
-            }}
-            disabled={isOngoing}
-        >
-            {chip.teamAgentData && (
-                <AgentChip
-                    agent={chip.teamAgentData}
-                    className={chip.isTransitive ? styles.transitiveAgentChip : styles.teamAgentChip}
-                    isClickable={false}
-                />
-            )}
-            <span className={styles.toolCallLabel}>{chip.label}</span>
-            <span className={styles.toolCallChipStatus}>
-                {isOngoing ? (
-                    <span className={styles.toolCallChipSpinner} aria-hidden="true" />
-                ) : hasErrors ? (
-                    '⚠️'
-                ) : null}
-            </span>
-        </button>
-    );
-}
-
-/**
- * Builds the stable key used to detect duplicate snapshots for a tool call.
- *
- * @private internal utility of `<ChatMessageItem/>`
- */
-function getToolCallSnapshotKey(toolCall: ToolCall): string {
-    const providedIdempotencyKey = typeof toolCall.idempotencyKey === 'string' ? toolCall.idempotencyKey.trim() : '';
-    const normalizedKey = providedIdempotencyKey || resolveToolCallIdempotencyKey(toolCall);
-    return `tool-snapshot:${normalizedKey}`;
-}
-
-/**
- * Deduplicates a list of tool calls by their idempotency key, keeping only the most recent
- * non-error snapshot for each invocation and dropping errored snapshots once a counterpart
- * with the same key succeeds.
- *
- * @private internal utility of `<ChatMessageItem/>`
- */
-function dedupeToolCalls(toolCalls: ReadonlyArray<ToolCall> | undefined): Array<ToolCall> {
-    if (!toolCalls || toolCalls.length === 0) {
-        return [];
-    }
-
-    const seen = new Map<string, ToolCall>();
-    for (const toolCall of toolCalls) {
-        const key = getToolCallSnapshotKey(toolCall);
-        const existing = seen.get(key);
-        if (existing) {
-            const existingHasErrors = hasToolCallErrors(existing);
-            const incomingHasErrors = hasToolCallErrors(toolCall);
-            if (!existingHasErrors && incomingHasErrors) {
-                continue;
-            }
-            seen.delete(key);
-        }
-
-        seen.set(key, toolCall);
-    }
-
-    return Array.from(seen.values());
-}
-
-/**
- * Determines whether a tool call reported execution errors.
- *
- * @param toolCall - Tool call to inspect.
- * @returns `true` when the tool call contains at least one error entry.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function hasToolCallErrors(toolCall: ToolCall): boolean {
-    return Array.isArray(toolCall.errors) && toolCall.errors.length > 0;
+function formatAnswerDurationLabel(
+    durationLabel: string,
+    timingTranslations?: ChatProps['timingTranslations'],
+): string {
+    const template = timingTranslations?.answerDurationLabel || DEFAULT_ANSWER_DURATION_LABEL;
+    return template.replace(/\{duration\}/g, durationLabel);
 }
 
 /**
@@ -550,6 +248,9 @@ export const ChatMessageItem = memo(
             participants,
             isLastMessage,
             onMessage,
+            onActionButton,
+            onQuickMessageButton,
+            onQuickMessageDraftButton,
             setExpandedMessageId,
             isExpanded,
             currentRating,
@@ -557,110 +258,77 @@ export const ChatMessageItem = memo(
             mode,
             isCopyButtonEnabled,
             isFeedbackEnabled,
+            feedbackMode = 'stars',
+            feedbackTranslations,
+            timingTranslations,
+            resolveCitationLabel,
+            chatLocale,
             onCopy,
             onCreateAgent,
+            toolTitles,
             teammates,
+            onReplyToMessage,
+            canReplyToMessage,
             teamAgentProfiles,
+            markdownInlineReferences,
+            visualMode = 'ARTICLE_MODE',
             onToolCallClick,
             onCitationClick,
             soundSystem,
             isSpeechPlaybackEnabled,
             elevenLabsVoiceId,
+            chatUiTranslations,
         } = props;
         const {
             isComplete = true,
             // <- TODO: Destruct all `messages` properties like `isComplete`
         } = message;
         const avatarSrc = participant?.avatarSrc || null;
-        const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
-        const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
-        const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-        const avatarRef = useRef<HTMLDivElement>(null);
-        const tooltipRef = useRef<HTMLDivElement>(null);
+        const avatarDefinition = participant?.avatarDefinition || null;
+        const avatarVisualId = participant?.avatarVisualId || null;
+        const {
+            avatarRef,
+            tooltipRef,
+            isAvatarTooltipVisible,
+            avatarTooltipPosition,
+            showTooltip,
+            handleMouseEnter,
+            handleMouseLeave,
+        } = useChatMessageAvatarTooltip();
         const toolCallChipCountRef = useRef(0);
 
-        useEffect(() => {
-            const closeTooltip = () => {
-                setIsAvatarTooltipVisible(false);
-                setAvatarTooltipPosition(null);
-            };
-
-            const handleClickOutside = (event: MouseEvent) => {
-                if (
-                    avatarRef.current &&
-                    !avatarRef.current.contains(event.target as Node) &&
-                    tooltipRef.current &&
-                    !tooltipRef.current.contains(event.target as Node)
-                ) {
-                    closeTooltip();
-                }
-            };
-
-            const handleKeyDown = (event: KeyboardEvent) => {
-                if (event.key === 'Escape') {
-                    closeTooltip();
-                }
-            };
-
-            const handleScroll = () => {
-                closeTooltip();
-            };
-
-            if (isAvatarTooltipVisible) {
-                document.addEventListener('mousedown', handleClickOutside);
-                document.addEventListener('keydown', handleKeyDown);
-                window.addEventListener('scroll', handleScroll, true);
-            } else {
-                document.removeEventListener('mousedown', handleClickOutside);
-                document.removeEventListener('keydown', handleKeyDown);
-                window.removeEventListener('scroll', handleScroll, true);
-            }
-
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside);
-                document.removeEventListener('keydown', handleKeyDown);
-                window.removeEventListener('scroll', handleScroll, true);
-            };
-        }, [isAvatarTooltipVisible]);
-
-        const showTooltip = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            if (avatarRef.current) {
-                const rect = avatarRef.current.getBoundingClientRect();
-                setAvatarTooltipPosition({
-                    top: rect.bottom + 5 /* <- 5px offset */,
-                    left: rect.left,
-                });
-                setIsAvatarTooltipVisible(true);
-            }
-        };
-
-        const handleMouseEnter = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            hoverTimeoutRef.current = setTimeout(showTooltip, 800);
-        };
-
-        const handleMouseLeave = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            // Note: Do not hide tooltip on mouse leave, it will be hidden by clicking outside
-        };
-
         const isMe = participant?.isMe;
-        const timingDisplay = getChatMessageTimingDisplay(message);
+        const isAgentArticleMode = visualMode === 'ARTICLE_MODE' && !isMe;
+        const timingDisplay = getChatMessageTimingDisplay(message, chatLocale);
+        const replyPreviewLabel = chatUiTranslations?.replyingToLabel || 'Replying to';
+        const replyActionLabel = chatUiTranslations?.replyActionLabel || 'Reply';
+        const replyActionTitle = chatUiTranslations?.replyActionTitle || 'Reply to this message';
+        const isReplyActionEnabled = Boolean(
+            onReplyToMessage && (canReplyToMessage ? canReplyToMessage(message) : Boolean(message.id && isComplete)),
+        );
         const shouldShowTiming = Boolean(isComplete && timingDisplay);
+        const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message, chatUiTranslations);
+        const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel || isReplyActionEnabled);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;
+        const trimmedMessageContent = message.content.trim();
+        const visibleProgressCard = isProgressCardVisible(message.progressCard) ? message.progressCard : null;
+        const shouldRenderProgressChecklist = Boolean(
+            visibleProgressCard && !isComplete && trimmedMessageContent.length === 0,
+        );
+        const progressChecklistMarkdown = useMemo(
+            () =>
+                shouldRenderProgressChecklist && visibleProgressCard
+                    ? createProgressCardChecklistMarkdown(visibleProgressCard)
+                    : '',
+            [shouldRenderProgressChecklist, visibleProgressCard],
+        );
+        const renderedMessageContent = shouldRenderProgressChecklist ? progressChecklistMarkdown : message.content;
         const color = Color.fromSafe(
             (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
         );
         const colorOfText = color.then(textColor);
-        const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+        const { contentWithoutButtons, buttons } = parseMessageButtons(renderedMessageContent);
         const sanitizedContentWithoutButtons = useMemo(
             () => sanitizeStreamingMessageContent(contentWithoutButtons, { isComplete }),
             [contentWithoutButtons, isComplete],
@@ -679,184 +347,445 @@ export const ChatMessageItem = memo(
 
             return resolveStreamingFeaturePlaceholderKind(streamingFeatureBoundary, contentWithoutButtons);
         }, [contentWithoutButtons, streamingFeatureBoundary]);
+        const citationFootnoteRenderModel = useMemo(
+            () =>
+                createCitationFootnoteRenderModel({
+                    content: sanitizedContentWithoutButtons,
+                    citations: message.citations,
+                }),
+            [message.citations, sanitizedContentWithoutButtons],
+        );
+        const enrichCitationForRendering = useCallback(
+            (citation: ParsedCitation): ParsedCitation => {
+                const previewUrl = resolveCitationPreviewUrl(citation, participants ?? []);
+
+                return previewUrl && !citation.url ? { ...citation, url: previewUrl } : citation;
+            },
+            [participants],
+        );
         const contentSegments = useMemo(
-            () => splitMessageContentIntoSegments(sanitizedContentWithoutButtons),
-            [sanitizedContentWithoutButtons],
+            () => splitMessageContentIntoSegments(citationFootnoteRenderModel.content),
+            [citationFootnoteRenderModel.content],
         );
         const hasMapSegment = useMemo(
             () => contentSegments.some((segment) => segment.type === 'map'),
             [contentSegments],
         );
-        const completedToolCalls = dedupeToolCalls(
-            (message.toolCalls || message.completedToolCalls)?.filter(
-                (toolCall) => !isAssistantPreparationToolCall(toolCall),
-            ),
-        );
-        const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
-        const transitiveToolCalls = teamToolCallSummary.toolCalls;
-        const transitiveCitations = teamToolCallSummary.citations;
-        // Extract citations from message content
-        const messageWithCitations = extractCitationsFromMessage(message);
-        const citations = messageWithCitations.citations || [];
-        const displayCitations = dedupeCitationsBySource(citations);
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
         const copyTooltipRef = useRef<HTMLSpanElement>(null);
         const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
-        const audioRef = useRef<HTMLAudioElement | null>(null);
-        const [audioUrl, setAudioUrl] = useState<string | null>(null);
-        const [isAudioLoading, setIsAudioLoading] = useState(false);
-        const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-        const [audioError, setAudioError] = useState<string | null>(null);
+        const [pendingActionButtonIndex, setPendingActionButtonIndex] = useState<number | null>(null);
+        const [consumedActionButtonIndexes, setConsumedActionButtonIndexes] = useState<ReadonlySet<number>>(
+            () => new Set(),
+        );
+        const [replySwipeDistance, setReplySwipeDistance] = useState(0);
+        const isReportIssueFeedbackMode = feedbackMode === 'report_issue';
+        const replySwipeGestureRef = useRef<{
+            pointerId: number;
+            startX: number;
+            startY: number;
+            isHorizontalSwipeLocked: boolean;
+        } | null>(null);
 
-        const ongoingToolCallChips = useMemo(
-            () => buildOngoingToolCallChips(message.ongoingToolCalls, teammates, teamAgentProfiles),
-            [message.ongoingToolCalls, teammates, teamAgentProfiles],
+        const { toolCallChips, transitiveCitations } = useMemo(
+            () =>
+                createChatMessageToolCallRenderModel({
+                    message,
+                    teammates,
+                    teamAgentProfiles,
+                    locale: chatLocale,
+                    toolTitles,
+                    chatUiTranslations,
+                }),
+            [message, teammates, teamAgentProfiles, chatLocale, toolTitles, chatUiTranslations],
         );
-        const finalToolCallChips = useMemo(
-            () => buildFinalToolCallChips(completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles),
-            [completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles],
-        );
-        const toolCallChips = isComplete ? finalToolCallChips : ongoingToolCallChips;
         const toolCallChipCount = toolCallChips.length;
-        const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
-        const trimmedMessageContent = message.content.trim();
-        const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
-        const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
-        const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
+        const renderableButtons = useMemo<ReadonlyArray<RenderableMessageButton>>(
+            () =>
+                buttons.reduce<Array<RenderableMessageButton>>((nextButtons, button, buttonIndex) => {
+                    if (button.type === 'message') {
+                        if (onQuickMessageButton || onMessage) {
+                            nextButtons.push({ button, buttonIndex });
+                        }
 
-        /**
-         * Attaches playback listeners to keep the UI in sync with the audio element.
-         *
-         * @private
-         */
-        const attachMessageAudioListeners = useCallback((element: HTMLAudioElement) => {
-            element.onplay = () => {
-                setIsAudioPlaying(true);
-            };
-            element.onpause = () => {
-                setIsAudioPlaying(false);
-            };
-            element.onended = () => {
-                setIsAudioPlaying(false);
-                element.currentTime = 0;
-            };
-        }, []);
-
-        /**
-         * Derives the plain text that should be spoken, preferring the rendered node over raw markdown.
-         *
-         * @private
-         */
-        const getMessageTextForSpeech = useCallback(() => {
-            const renderedText = contentWithoutButtonsRef.current?.innerText?.trim();
-            if (renderedText) {
-                return renderedText;
-            }
-
-            return trimmedMessageContent;
-        }, [trimmedMessageContent]);
-
-        /**
-         * Fetches ElevenLabs speech audio (or replays cached audio) when the play button is pressed.
-         *
-         * @private
-         */
-        const handlePlayMessage = useCallback(async () => {
-            if (isAudioLoading) {
-                return;
-            }
-
-            if (!shouldShowPlayButton) {
-                setAudioError('Nothing to read aloud.');
-                return;
-            }
-
-            const speechText = getMessageTextForSpeech();
-            if (!speechText) {
-                setAudioError('Nothing to read aloud.');
-                return;
-            }
-
-            const payloadText =
-                speechText.length > MAX_MESSAGE_SPEECH_LENGTH
-                    ? speechText.slice(0, MAX_MESSAGE_SPEECH_LENGTH).trim()
-                    : speechText;
-
-            if (!payloadText) {
-                setAudioError('Nothing to read aloud.');
-                return;
-            }
-
-            setAudioError(null);
-
-            const playAudio = async (element: HTMLAudioElement) => {
-                try {
-                    await element.play();
-                } catch (playError) {
-                    setAudioError(playError instanceof Error ? playError.message : 'Browser blocked audio playback.');
-                }
-            };
-
-            if (audioUrl) {
-                const audio = audioRef.current ?? new Audio(audioUrl);
-                audioRef.current = audio;
-                attachMessageAudioListeners(audio);
-
-                if (audio.paused) {
-                    await playAudio(audio);
-                } else {
-                    audio.pause();
-                }
-
-                return;
-            }
-
-            setIsAudioLoading(true);
-            try {
-                const response = await fetch('/api/elevenlabs/tts', {
-                    method: 'POST',
-                    headers: attachClientVersionHeader({
-                        'Content-Type': 'application/json',
-                    }),
-                    body: JSON.stringify({ text: payloadText, voiceId: elevenLabsVoiceId }),
-                });
-
-                if (!response.ok) {
-                    const body = await response.text();
-                    throw new Error(body || 'Unable to request speech audio.');
-                }
-
-                const buffer = await response.arrayBuffer();
-                const blob = new Blob([buffer], { type: 'audio/mpeg' });
-                const url = URL.createObjectURL(blob);
-                const audio = new Audio(url);
-                audioRef.current = audio;
-                attachMessageAudioListeners(audio);
-
-                setAudioUrl((previousUrl) => {
-                    if (previousUrl) {
-                        URL.revokeObjectURL(previousUrl);
+                        return nextButtons;
                     }
 
-                    return url;
-                });
+                    if (button.type === 'messageDraft') {
+                        if (onQuickMessageDraftButton) {
+                            nextButtons.push({ button, buttonIndex });
+                        }
 
-                await playAudio(audio);
-            } catch (error) {
-                setAudioError(error instanceof Error ? error.message : 'Failed to generate speech.');
-            } finally {
-                setIsAudioLoading(false);
-            }
-        }, [
-            attachMessageAudioListeners,
-            audioUrl,
-            elevenLabsVoiceId,
-            getMessageTextForSpeech,
-            isAudioLoading,
+                        return nextButtons;
+                    }
+
+                    if (!onActionButton || consumedActionButtonIndexes.has(buttonIndex)) {
+                        return nextButtons;
+                    }
+
+                    nextButtons.push({ button, buttonIndex });
+                    return nextButtons;
+                }, []),
+            [
+                buttons,
+                consumedActionButtonIndexes,
+                onActionButton,
+                onMessage,
+                onQuickMessageButton,
+                onQuickMessageDraftButton,
+            ],
+        );
+        const shouldShowButtons = isLastMessage && renderableButtons.length > 0;
+        const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
+        const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
+        const { audioError, isAudioLoading, isAudioPlaying, handlePlayMessage } = useChatMessageSpeechPlayback({
+            trimmedMessageContent,
+            contentRef: contentWithoutButtonsRef,
             shouldShowPlayButton,
-        ]);
+            elevenLabsVoiceId,
+        });
+        const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
+        const messageActionsLayout: MessageActionsLayout = isAgentArticleMode ? 'article-footer' : 'bubble-overlay';
+        const shouldRenderCopyAndPlayControls = Boolean(isCopyButtonEnabled && isComplete);
+        const shouldRenderFeedbackControls = Boolean(isFeedbackEnabled && feedbackMode !== 'off' && isComplete);
+        const shouldRenderArticleActionsBar =
+            messageActionsLayout === 'article-footer' &&
+            (shouldRenderCopyAndPlayControls || shouldRenderFeedbackControls);
+        const replyingToMessage = message.replyingTo;
+        const replyPreviewText = useMemo(
+            () =>
+                replyingToMessage
+                    ? resolveChatMessageReplyPreviewText(
+                          {
+                              content: replyingToMessage.content,
+                              attachmentNames: replyingToMessage.attachmentNames,
+                          },
+                          { maxLength: 180, emptyLabel: 'Original message' },
+                      )
+                    : null,
+            [replyingToMessage],
+        );
+        const replySenderLabel = useMemo(
+            () =>
+                replyingToMessage
+                    ? resolveChatMessageReplySenderLabel({
+                          sender: replyingToMessage.sender,
+                          participants,
+                      })
+                    : null,
+            [participants, replyingToMessage],
+        );
+        const swipeDirectionMultiplier = isMe ? -1 : 1;
+        const swipeTranslation = `${isMe ? -replySwipeDistance : replySwipeDistance}px`;
+        const isReplySwipeArmed = replySwipeDistance >= REPLY_SWIPE_TRIGGER_PX * 0.5;
+        const articleModeBackgroundColor = mode === 'DARK' ? 'rgba(15, 23, 42, 0.78)' : '#ffffff';
+        const articleModeTextColor = mode === 'DARK' ? '#e2e8f0' : '#0f172a';
+
+        /**
+         * Renders the optional message utility buttons used for copy/read actions.
+         *
+         * @returns Message utility controls or `null` when disabled.
+         * @private
+         */
+        const renderMessageReadAndCopyControls = (): ReactElement | null => {
+            if (!shouldRenderCopyAndPlayControls) {
+                return null;
+            }
+
+            return (
+                <div
+                    className={classNames(
+                        styles.copyButtonContainer,
+                        messageActionsLayout === 'article-footer' && styles.articleModeMessageControls,
+                    )}
+                >
+                    <div className={styles.messageControlGroup}>
+                        {shouldShowPlayButton && (
+                            <button
+                                type="button"
+                                className={styles.playButton}
+                                title={playButtonTitle}
+                                aria-label={playButtonTitle}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    void handlePlayMessage();
+                                }}
+                                disabled={isAudioLoading}
+                            >
+                                {isAudioLoading ? (
+                                    <span className={styles.playButtonSpinner} aria-hidden="true" />
+                                ) : isAudioPlaying ? (
+                                    <Pause className={styles.playButtonIcon} aria-hidden="true" />
+                                ) : (
+                                    <Play className={styles.playButtonIcon} aria-hidden="true" />
+                                )}
+                            </button>
+                        )}
+                        <button
+                            className={styles.copyButton}
+                            title="Copy message"
+                            onClick={async (e) => {
+                                e.stopPropagation();
+
+                                if (navigator.clipboard && window.ClipboardItem) {
+                                    const clipboardItems: Record<string, Blob> = {};
+
+                                    if (contentWithoutButtonsRef.current) {
+                                        const html = contentWithoutButtonsRef.current.innerHTML;
+                                        clipboardItems['text/html'] = new Blob([html], {
+                                            type: 'text/html',
+                                        });
+                                    }
+
+                                    if (contentWithoutButtonsRef.current) {
+                                        const plain = contentWithoutButtonsRef.current.innerText;
+                                        clipboardItems['text/plain'] = new Blob([plain], {
+                                            type: 'text/plain',
+                                        });
+                                    }
+
+                                    await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+
+                                    // Tooltip positioning logic
+                                    setTimeout(() => {
+                                        const tooltip = copyTooltipRef.current;
+                                        if (tooltip) {
+                                            const rect = tooltip.getBoundingClientRect();
+                                            if (rect.left < 8) {
+                                                setTooltipAlign('left');
+                                            } else if (rect.right > window.innerWidth - 8) {
+                                                setTooltipAlign('right');
+                                            } else {
+                                                setTooltipAlign('center');
+                                            }
+                                        }
+                                    }, 10);
+                                    if (typeof onCopy === 'function') {
+                                        onCopy();
+                                    }
+                                } else {
+                                    throw new Error(
+                                        `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
+                                    );
+                                }
+                            }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <rect
+                                    x="7"
+                                    y="7"
+                                    width="10"
+                                    height="14"
+                                    rx="2"
+                                    fill="#fff"
+                                    stroke="#bbb"
+                                    strokeWidth="1.5"
+                                />
+                                <rect
+                                    x="3"
+                                    y="3"
+                                    width="10"
+                                    height="14"
+                                    rx="2"
+                                    fill="#fff"
+                                    stroke="#bbb"
+                                    strokeWidth="1.5"
+                                />
+                            </svg>
+                            {copied && (
+                                <span
+                                    ref={copyTooltipRef}
+                                    className={
+                                        styles.copiedTooltip +
+                                        (tooltipAlign === 'left'
+                                            ? ' ' + styles.copiedTooltipLeft
+                                            : tooltipAlign === 'right'
+                                            ? ' ' + styles.copiedTooltipRight
+                                            : '')
+                                    }
+                                >
+                                    Copied!
+                                </span>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        /**
+         * Renders feedback controls for one completed message.
+         *
+         * @returns Feedback controls or `null` when disabled.
+         * @private
+         */
+        const renderMessageFeedbackControls = (): ReactElement | null => {
+            if (!shouldRenderFeedbackControls) {
+                return null;
+            }
+
+            return (
+                <div
+                    className={classNames(
+                        styles.rating,
+                        messageActionsLayout === 'article-footer' && styles.articleModeRating,
+                    )}
+                    onMouseEnter={
+                        isReportIssueFeedbackMode
+                            ? undefined
+                            : () => {
+                                  setExpandedMessageId(resolveChatRatingMessageKey(message));
+                              }
+                    }
+                    onMouseLeave={
+                        isReportIssueFeedbackMode
+                            ? undefined
+                            : () => {
+                                  setExpandedMessageId(null);
+                                  setLocalHoveredRating(0);
+                              }
+                    }
+                >
+                    {isReportIssueFeedbackMode ? (
+                        <button
+                            type="button"
+                            onClick={() => handleRating(message, 1)}
+                            className={styles.feedbackIssueButton}
+                            aria-label={
+                                feedbackTranslations?.reportIssueButtonAriaLabel || 'Report issue with this response'
+                            }
+                            title={feedbackTranslations?.reportIssueButtonTitle || 'Report issue'}
+                        >
+                            ⚠
+                        </button>
+                    ) : isExpanded ? (
+                        CHAT_FEEDBACK_STAR_RATINGS.map((star) => (
+                            <ChatFeedbackStar
+                                key={star}
+                                onClick={() => handleRating(message, star)}
+                                onMouseEnter={() => setLocalHoveredRating(star)}
+                                className={styles.ratingStar}
+                                isActive={star <= (localHoveredRating || currentRating || 0)}
+                                inactiveColor={resolveChatFeedbackStarInactiveColor(mode)}
+                            />
+                        ))
+                    ) : (
+                        <ChatFeedbackStar
+                            onClick={() => handleRating(message, currentRating || 1)}
+                            className={styles.ratingStar}
+                            isActive={Boolean(currentRating)}
+                            inactiveColor={resolveChatFeedbackStarInactiveColor(mode, 'muted')}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        /**
+         * Executes one quick action button and marks it consumed after a successful run.
+         *
+         * @param buttonIndex Stable button index inside the parsed message.
+         * @param code JavaScript source generated for the quick action.
+         * @returns Promise resolved when the action finishes.
+         * @private
+         */
+        const handleActionButtonClick = useCallback(
+            async (buttonIndex: number, code: string): Promise<void> => {
+                if (!onActionButton || pendingActionButtonIndex === buttonIndex) {
+                    return;
+                }
+
+                setPendingActionButtonIndex(buttonIndex);
+
+                try {
+                    await onActionButton(code);
+                    setConsumedActionButtonIndexes((previousIndexes) => {
+                        const nextIndexes = new Set(previousIndexes);
+                        nextIndexes.add(buttonIndex);
+                        return nextIndexes;
+                    });
+                } finally {
+                    setPendingActionButtonIndex((currentButtonIndex) =>
+                        currentButtonIndex === buttonIndex ? null : currentButtonIndex,
+                    );
+                }
+            },
+            [onActionButton, pendingActionButtonIndex],
+        );
+
+        const resetReplySwipe = useCallback(() => {
+            replySwipeGestureRef.current = null;
+            setReplySwipeDistance(0);
+        }, []);
+
+        const handleReplyPointerDown = useCallback(
+            (event: ReactPointerEvent<HTMLDivElement>) => {
+                if (!isReplyActionEnabled || event.pointerType !== 'touch') {
+                    return;
+                }
+
+                replySwipeGestureRef.current = {
+                    pointerId: event.pointerId,
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    isHorizontalSwipeLocked: false,
+                };
+            },
+            [isReplyActionEnabled],
+        );
+
+        const handleReplyPointerMove = useCallback(
+            (event: ReactPointerEvent<HTMLDivElement>) => {
+                const gesture = replySwipeGestureRef.current;
+                if (!gesture || gesture.pointerId !== event.pointerId) {
+                    return;
+                }
+
+                const directionalDeltaX = (event.clientX - gesture.startX) * swipeDirectionMultiplier;
+                const absoluteDeltaY = Math.abs(event.clientY - gesture.startY);
+
+                if (!gesture.isHorizontalSwipeLocked) {
+                    if (
+                        absoluteDeltaY > REPLY_SWIPE_DIRECTION_LOCK_PX &&
+                        absoluteDeltaY > Math.abs(directionalDeltaX)
+                    ) {
+                        resetReplySwipe();
+                        return;
+                    }
+
+                    if (directionalDeltaX <= REPLY_SWIPE_DIRECTION_LOCK_PX || directionalDeltaX <= absoluteDeltaY) {
+                        return;
+                    }
+
+                    gesture.isHorizontalSwipeLocked = true;
+                }
+
+                event.preventDefault();
+                setReplySwipeDistance(Math.max(0, Math.min(REPLY_SWIPE_MAX_TRANSLATE_PX, directionalDeltaX)));
+            },
+            [resetReplySwipe, swipeDirectionMultiplier],
+        );
+
+        const handleReplyPointerEnd = useCallback(
+            (event: ReactPointerEvent<HTMLDivElement>) => {
+                const gesture = replySwipeGestureRef.current;
+                if (!gesture || gesture.pointerId !== event.pointerId) {
+                    return;
+                }
+
+                const shouldStartReply = replySwipeDistance >= REPLY_SWIPE_TRIGGER_PX;
+                resetReplySwipe();
+
+                if (shouldStartReply) {
+                    onReplyToMessage?.(message);
+                }
+            },
+            [message, onReplyToMessage, replySwipeDistance, resetReplySwipe],
+        );
 
         useEffect(() => {
             if (!isExpanded) {
@@ -865,19 +794,9 @@ export const ChatMessageItem = memo(
         }, [isExpanded]);
 
         useEffect(() => {
-            return () => {
-                audioRef.current?.pause();
-                audioRef.current = null;
-            };
-        }, []);
-
-        useEffect(() => {
-            return () => {
-                if (audioUrl) {
-                    URL.revokeObjectURL(audioUrl);
-                }
-            };
-        }, [audioUrl]);
+            setReplySwipeDistance(0);
+            replySwipeGestureRef.current = null;
+        }, [message.id]);
 
         useEffect(() => {
             if (toolCallChipCount > toolCallChipCountRef.current) {
@@ -896,6 +815,7 @@ export const ChatMessageItem = memo(
                     isMe && styles.isMe,
                     !isComplete && styles.isNotCompleteMessage,
                     hasMapSegment && styles.messageWithMap,
+                    isAgentArticleMode && styles.articleModeAgentMessage,
                     chatCssClassNames.chatMessage,
                     isMe ? chatCssClassNames.userMessage : chatCssClassNames.agentResponse,
                 )}
@@ -909,11 +829,12 @@ export const ChatMessageItem = memo(
                     console.groupEnd();
                 }}
             >
-                {avatarSrc && (
+                {(avatarSrc || (avatarDefinition && avatarVisualId)) && (
                     <div
                         ref={avatarRef}
                         className={classNames(
                             styles.avatar,
+                            isAgentArticleMode && styles.articleModeAgentAvatar,
                             chatCssClassNames.messageAvatar,
                             isMe ? chatCssClassNames.userAvatar : chatCssClassNames.agentAvatar,
                         )}
@@ -921,24 +842,38 @@ export const ChatMessageItem = memo(
                         onMouseLeave={handleMouseLeave}
                         onClick={showTooltip}
                     >
-                        {/* Note: [㊗️] Using <div/> not <img/> for avatar to 1:1 aspect ratio in every circumstance */}
-                        <div
-                            style={
-                                {
+                        {avatarSrc ? (
+                            <div
+                                style={
+                                    {
+                                        width: '100%',
+                                        height: '100%',
+                                        aspectRatio: '1 / 1',
+
+                                        backgroundImage: `url(${participant?.avatarSrc || colorToDataUrl(color)})`,
+                                        backgroundColor: color.toHex(),
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundSize: 'cover',
+                                        borderRadius: '50%',
+                                        backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
+                                        '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove these deprecated CSS variables
+                                    } as CSSProperties
+                                }
+                            />
+                        ) : (
+                            <AvatarOrImage
+                                avatarDefinition={avatarDefinition}
+                                visualId={avatarVisualId}
+                                size={42}
+                                alt={String(participantLabel || 'Agent avatar')}
+                                style={{
                                     width: '100%',
                                     height: '100%',
                                     aspectRatio: '1 / 1',
-
-                                    backgroundImage: `url(${participant?.avatarSrc || colorToDataUrl(color)})`,
-                                    backgroundColor: color.toHex(),
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundSize: 'cover',
                                     borderRadius: '50%',
-                                    backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
-                                    '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove these deprecated CSS variables
-                                } as React.CSSProperties
-                            }
-                        />
+                                }}
+                            />
+                        )}
                         {isAvatarTooltipVisible && participant?.agentSource && avatarTooltipPosition && (
                             <AvatarProfileTooltip
                                 ref={tooltipRef}
@@ -954,132 +889,38 @@ export const ChatMessageItem = memo(
                         <div className={styles.participantLabel}>{participantLabel}</div>
                     )}
                     <div
-                        className={classNames(styles.messageText, chatCssClassNames.messageContent)}
+                        className={classNames(
+                            styles.messageText,
+                            isReplyActionEnabled && styles.replyEnabledMessageText,
+                            isReplySwipeArmed && styles.replySwipeActive,
+                            isAgentArticleMode && styles.articleModeAgentMessageText,
+                            chatCssClassNames.messageContent,
+                        )}
                         style={
                             {
-                                '--message-bg-color': color.toHex(),
-                                '--message-text-color': colorOfText.toHex(),
-                            } as React.CSSProperties
+                                '--message-bg-color': isAgentArticleMode ? articleModeBackgroundColor : color.toHex(),
+                                '--message-text-color': isAgentArticleMode ? articleModeTextColor : colorOfText.toHex(),
+                                '--chat-message-swipe-offset': swipeTranslation,
+                            } as CSSProperties
                         }
+                        onPointerDown={handleReplyPointerDown}
+                        onPointerMove={handleReplyPointerMove}
+                        onPointerUp={handleReplyPointerEnd}
+                        onPointerCancel={resetReplySwipe}
                     >
-                        {isCopyButtonEnabled && isComplete && (
-                            <div className={styles.copyButtonContainer}>
-                                <div className={styles.messageControlGroup}>
-                                    {shouldShowPlayButton && (
-                                        <button
-                                            type="button"
-                                            className={styles.playButton}
-                                            title={playButtonTitle}
-                                            aria-label={playButtonTitle}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                void handlePlayMessage();
-                                            }}
-                                            disabled={isAudioLoading}
-                                        >
-                                            {isAudioLoading ? (
-                                                <span className={styles.playButtonSpinner} aria-hidden="true" />
-                                            ) : isAudioPlaying ? (
-                                                <Pause className={styles.playButtonIcon} aria-hidden="true" />
-                                            ) : (
-                                                <Play className={styles.playButtonIcon} aria-hidden="true" />
-                                            )}
-                                        </button>
-                                    )}
-                                    <button
-                                        className={styles.copyButton}
-                                        title="Copy message"
-                                        onClick={async (e) => {
-                                            e.stopPropagation();
-
-                                            if (navigator.clipboard && window.ClipboardItem) {
-                                                const clipboardItems: Record<string, Blob> = {};
-
-                                                if (contentWithoutButtonsRef.current) {
-                                                    const html = contentWithoutButtonsRef.current.innerHTML;
-                                                    clipboardItems['text/html'] = new Blob([html], {
-                                                        type: 'text/html',
-                                                    });
-                                                }
-
-                                                if (contentWithoutButtonsRef.current) {
-                                                    const plain = contentWithoutButtonsRef.current.innerText;
-                                                    clipboardItems['text/plain'] = new Blob([plain], {
-                                                        type: 'text/plain',
-                                                    });
-                                                }
-
-                                                await navigator.clipboard.write([
-                                                    new window.ClipboardItem(clipboardItems),
-                                                ]);
-                                                setCopied(true);
-                                                setTimeout(() => setCopied(false), 2000);
-
-                                                // Tooltip positioning logic
-                                                setTimeout(() => {
-                                                    const tooltip = copyTooltipRef.current;
-                                                    if (tooltip) {
-                                                        const rect = tooltip.getBoundingClientRect();
-                                                        if (rect.left < 8) {
-                                                            setTooltipAlign('left');
-                                                        } else if (rect.right > window.innerWidth - 8) {
-                                                            setTooltipAlign('right');
-                                                        } else {
-                                                            setTooltipAlign('center');
-                                                        }
-                                                    }
-                                                }, 10);
-                                                if (typeof onCopy === 'function') {
-                                                    onCopy();
-                                                }
-                                            } else {
-                                                throw new Error(
-                                                    `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
-                                                );
-                                            }
-                                        }}
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                            <rect
-                                                x="7"
-                                                y="7"
-                                                width="10"
-                                                height="14"
-                                                rx="2"
-                                                fill="#fff"
-                                                stroke="#bbb"
-                                                strokeWidth="1.5"
-                                            />
-                                            <rect
-                                                x="3"
-                                                y="3"
-                                                width="10"
-                                                height="14"
-                                                rx="2"
-                                                fill="#fff"
-                                                stroke="#bbb"
-                                                strokeWidth="1.5"
-                                            />
-                                        </svg>
-                                        {copied && (
-                                            <span
-                                                ref={copyTooltipRef}
-                                                className={
-                                                    styles.copiedTooltip +
-                                                    (tooltipAlign === 'left'
-                                                        ? ' ' + styles.copiedTooltipLeft
-                                                        : tooltipAlign === 'right'
-                                                        ? ' ' + styles.copiedTooltipRight
-                                                        : '')
-                                                }
-                                            >
-                                                Copied!
-                                            </span>
-                                        )}
-                                    </button>
-                                </div>
+                        {isReplyActionEnabled && (
+                            <div
+                                className={classNames(
+                                    styles.replySwipeIndicator,
+                                    isMe && styles.replySwipeIndicatorRight,
+                                    isReplySwipeArmed && styles.replySwipeIndicatorActive,
+                                )}
+                                aria-hidden="true"
+                            >
+                                <Reply className={styles.replySwipeIndicatorIcon} />
                             </div>
                         )}
+                        {!shouldRenderArticleActionsBar && renderMessageReadAndCopyControls()}
                         {message.isVoiceCall && (
                             <div className={styles.voiceCallIndicator}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -1088,97 +929,58 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {message.content === LOADING_INTERACTIVE_IMAGE ? (
-                            <>
-                                {/* Loading Case: B */}
-                                {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
-                            </>
-                        ) : (
-                            <>
-                                <div ref={contentWithoutButtonsRef}>
-                                    {contentSegments.map((segment, segmentIndex) => {
-                                        if (segment.type === 'text') {
-                                            return (
-                                                <MarkdownContent
-                                                    key={`text-${segmentIndex}`}
-                                                    content={segment.content}
-                                                    onCreateAgent={onCreateAgent}
-                                                />
-                                            );
-                                        }
-
-                                        if (segment.type === 'code') {
-                                            return (
-                                                <CodeBlock
-                                                    key={`code-${segmentIndex}`}
-                                                    code={segment.code}
-                                                    language={segment.language}
-                                                    onCreateAgent={onCreateAgent}
-                                                />
-                                            );
-                                        }
-
-                                        if (segment.type === 'image') {
-                                            return (
-                                                <ImagePromptRenderer
-                                                    key={`image-${segmentIndex}`}
-                                                    alt={segment.alt}
-                                                    prompt={segment.prompt}
-                                                />
-                                            );
-                                        }
-
-                                        if (segment.type === 'map') {
-                                            return <ChatMessageMap key={`map-${segmentIndex}`} data={segment.data} />;
-                                        }
-
-                                        return null;
-                                    })}
-                                </div>
-                                {streamingFeaturePlaceholderKind && (
-                                    <StreamingFeaturePlaceholder kind={streamingFeaturePlaceholderKind} />
-                                )}
-                            </>
+                        {replyingToMessage && replyPreviewText && replySenderLabel && (
+                            <ChatReplyPreview
+                                label={replyPreviewLabel}
+                                senderLabel={replySenderLabel}
+                                previewText={replyPreviewText}
+                                className={styles.replyBubblePreview}
+                            />
                         )}
+
+                        <div ref={contentWithoutButtonsRef}>
+                            <ChatMessageRichContent
+                                content={message.content}
+                                contentSegments={contentSegments}
+                                streamingFeaturePlaceholderKind={streamingFeaturePlaceholderKind}
+                                onCreateAgent={onCreateAgent}
+                                markdownInlineReferences={markdownInlineReferences}
+                                mode={mode}
+                            />
+                        </div>
 
                         {message.attachments && message.attachments.length > 0 && (
-                            <div className={styles.attachments}>
-                                {message.attachments.map((attachment, index) => (
-                                    <a
-                                        key={index}
-                                        href={attachment.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={styles.attachment}
-                                        title={attachment.name}
-                                    >
-                                        <span className={styles.attachmentIcon}>📎</span>
-                                        <span className={styles.attachmentName}>{attachment.name}</span>
-                                    </a>
-                                ))}
-                            </div>
+                            <ChatMessageAttachments attachments={message.attachments} mode={mode} />
                         )}
 
-                        {toolCallChips.length > 0 && (
-                            <div className={styles.toolCallChips}>
-                                {toolCallChips.map((chip) => renderToolCallChip(chip, onToolCallClick))}
+                        <ChatMessageToolCallChips chips={toolCallChips} onToolCallClick={onToolCallClick} />
+                        {citationFootnoteRenderModel.footnotes.length > 0 && (
+                            <div className={styles.citationFootnotes}>
+                                {citationFootnoteRenderModel.footnotes.map((footnote) => (
+                                    <div
+                                        key={`citation-footnote-${footnote.number}-${footnote.citation.source}`}
+                                        className={styles.citationFootnoteItem}
+                                    >
+                                        <span className={styles.citationFootnoteNumber}>{footnote.number}</span>
+                                        <SourceChip
+                                            citation={enrichCitationForRendering(footnote.citation)}
+                                            onClick={onCitationClick}
+                                            resolveCitationLabel={resolveCitationLabel}
+                                            isCitationIdVisible={false}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         )}
-                        {(displayCitations.length > 0 || transitiveCitations.length > 0) && (
+                        {transitiveCitations.length > 0 && (
                             <div className={styles.sourceCitations}>
-                                {displayCitations.map((citation) => (
-                                    <SourceChip
-                                        key={`${citation.source}-${citation.url || 'no-url'}`}
-                                        citation={citation}
-                                        onClick={onCitationClick}
-                                    />
-                                ))}
                                 {transitiveCitations.map((citation, index) => (
                                     <SourceChip
                                         key={`team-source-${citation.source}-${index}`}
-                                        citation={citation}
+                                        citation={enrichCitationForRendering(citation)}
                                         suffix={`by ${citation.origin.label}`}
                                         onClick={onCitationClick}
+                                        resolveCitationLabel={resolveCitationLabel}
                                     />
                                 ))}
                             </div>
@@ -1186,16 +988,36 @@ export const ChatMessageItem = memo(
 
                         {shouldShowButtons && (
                             <div className={styles.messageButtons}>
-                                {buttons.map((button, buttonIndex) => (
+                                {renderableButtons.map(({ button, buttonIndex }) => (
                                     <button
                                         key={buttonIndex}
-                                        className={styles.messageButton}
+                                        type="button"
+                                        className={classNames(
+                                            styles.messageButton,
+                                            button.type === 'action' && styles.actionMessageButton,
+                                        )}
                                         onClick={(event) => {
                                             event.stopPropagation();
-                                            if (onMessage) {
-                                                onMessage(button.message);
+
+                                            if (button.type === 'message') {
+                                                const quickMessageHandler = onQuickMessageButton || onMessage;
+                                                if (quickMessageHandler) {
+                                                    void quickMessageHandler(button.message);
+                                                }
+                                                return;
                                             }
+
+                                            if (button.type === 'messageDraft') {
+                                                if (onQuickMessageDraftButton) {
+                                                    void onQuickMessageDraftButton(button.messageDraft);
+                                                }
+                                                return;
+                                            }
+
+                                            void handleActionButtonClick(buttonIndex, button.code);
                                         }}
+                                        disabled={button.type === 'action' && pendingActionButtonIndex === buttonIndex}
+                                        title={button.type === 'action' ? 'Runs an action in your browser' : undefined}
                                         // <- TODO: [🐱‍🚀] `Color` should work with forma `#ff00ff55` *(with alpha)*
                                     >
                                         <MarkdownContent content={button.text} />
@@ -1204,61 +1026,53 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {isFeedbackEnabled && isComplete && (
-                            <div
-                                className={styles.rating}
-                                onMouseEnter={() => {
-                                    setExpandedMessageId(message.id || message.content /* <-[💃] */);
-                                }}
-                                onMouseLeave={() => {
-                                    setExpandedMessageId(null);
-                                    setLocalHoveredRating(0);
-                                }}
-                            >
-                                {isExpanded ? (
-                                    [1, 2, 3, 4, 5].map((star) => (
-                                        <span
-                                            key={star}
-                                            onClick={() => handleRating(message, star)}
-                                            onMouseEnter={() => setLocalHoveredRating(star)}
-                                            className={classNames(
-                                                styles.ratingStar,
-                                                star <= (localHoveredRating || currentRating || 0) && styles.active,
-                                            )}
-                                            style={
-                                                {
-                                                    '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
-                                                } as React.CSSProperties
-                                            }
-                                        >
-                                            ⭐
-                                        </span>
-                                    ))
-                                ) : (
-                                    <span
-                                        onClick={() => handleRating(message, currentRating || 1)}
-                                        className={classNames(styles.ratingStar, currentRating && styles.active)}
-                                        style={
-                                            {
-                                                '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
-                                            } as React.CSSProperties
-                                        }
-                                    >
-                                        ⭐
-                                    </span>
-                                )}
+                        {!shouldRenderArticleActionsBar && renderMessageFeedbackControls()}
+                        {shouldRenderArticleActionsBar && (
+                            <div className={styles.articleModeMessageActions}>
+                                {renderMessageReadAndCopyControls()}
+                                {renderMessageFeedbackControls()}
                             </div>
                         )}
                     </div>
-                    {shouldShowTiming && timingDisplay && (
-                        <div className={styles.messageMeta} title={timingDisplay.fullLabel}>
-                            <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
-                            {!isMe && timingDisplay.durationLabel && (
-                                <span className={styles.messageDuration}>
-                                    ({timingDisplay.durationLabel} to answer)
-                                </span>
+                    {shouldShowMessageMeta && (
+                        <div
+                            className={styles.messageMeta}
+                            title={shouldShowTiming && timingDisplay ? timingDisplay.fullLabel : undefined}
+                        >
+                            {lifecycleBadgeLabel && (
+                                <span className={styles.messageLifecycleBadge}>{lifecycleBadgeLabel}</span>
+                            )}
+                            {shouldShowTiming && timingDisplay && (
+                                <>
+                                    <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
+                                    {!isMe && timingDisplay.durationLabel && (
+                                        <span className={styles.messageDuration}>
+                                            (
+                                            {formatAnswerDurationLabel(timingDisplay.durationLabel, timingTranslations)}
+                                            )
+                                        </span>
+                                    )}
+                                </>
+                            )}
+                            {isReplyActionEnabled && (
+                                <button
+                                    type="button"
+                                    className={styles.messageReplyButton}
+                                    aria-label={replyActionTitle}
+                                    title={replyActionTitle}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        onReplyToMessage?.(message);
+                                    }}
+                                >
+                                    <Reply className={styles.messageReplyButtonIcon} />
+                                    <span>{replyActionLabel}</span>
+                                </button>
                             )}
                         </div>
+                    )}
+                    {message.lifecycleError && (
+                        <div className={styles.messageLifecycleError}>{message.lifecycleError}</div>
                     )}
                 </div>
             </div>
@@ -1278,6 +1092,22 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.generationDurationMs !== next.message.generationDurationMs) {
+            return false;
+        }
+
+        if (prev.message.lifecycleState !== next.message.lifecycleState) {
+            return false;
+        }
+
+        if (prev.message.lifecycleError !== next.message.lifecycleError) {
+            return false;
+        }
+
+        if (prev.message.clientMessageId !== next.message.clientMessageId) {
+            return false;
+        }
+
+        if (prev.message.jobId !== next.message.jobId) {
             return false;
         }
 
@@ -1301,11 +1131,19 @@ export const ChatMessageItem = memo(
             return false;
         }
 
+        if (JSON.stringify(prev.message.replyingTo) !== JSON.stringify(next.message.replyingTo)) {
+            return false;
+        }
+
         if ((prev.message.isComplete ?? true) !== (next.message.isComplete ?? true)) {
             return false;
         }
 
         if ((prev.message.isVoiceCall ?? false) !== (next.message.isVoiceCall ?? false)) {
+            return false;
+        }
+
+        if (prev.message.progressCard !== next.message.progressCard) {
             return false;
         }
 
@@ -1325,6 +1163,22 @@ export const ChatMessageItem = memo(
             return false;
         }
 
+        if (prev.onQuickMessageButton !== next.onQuickMessageButton) {
+            return false;
+        }
+
+        if (prev.onQuickMessageDraftButton !== next.onQuickMessageDraftButton) {
+            return false;
+        }
+
+        if (prev.onReplyToMessage !== next.onReplyToMessage) {
+            return false;
+        }
+
+        if (prev.canReplyToMessage !== next.canReplyToMessage) {
+            return false;
+        }
+
         if (prev.setExpandedMessageId !== next.setExpandedMessageId) {
             return false;
         }
@@ -1334,6 +1188,22 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.currentRating !== next.currentRating) {
+            return false;
+        }
+
+        if (prev.isFeedbackEnabled !== next.isFeedbackEnabled) {
+            return false;
+        }
+
+        if (prev.feedbackMode !== next.feedbackMode) {
+            return false;
+        }
+
+        if (prev.feedbackTranslations !== next.feedbackTranslations) {
+            return false;
+        }
+
+        if (prev.resolveCitationLabel !== next.resolveCitationLabel) {
             return false;
         }
 
@@ -1349,11 +1219,19 @@ export const ChatMessageItem = memo(
             return false;
         }
 
+        if (prev.markdownInlineReferences !== next.markdownInlineReferences) {
+            return false;
+        }
+
         if (prev.onToolCallClick !== next.onToolCallClick) {
             return false;
         }
 
         if (prev.onCitationClick !== next.onCitationClick) {
+            return false;
+        }
+
+        if (prev.visualMode !== next.visualMode) {
             return false;
         }
 

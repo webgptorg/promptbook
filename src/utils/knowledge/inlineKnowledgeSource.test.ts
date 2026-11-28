@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import {
     createInlineKnowledgeSourceFile,
     inlineKnowledgeSourceToDataUrl,
@@ -6,7 +7,10 @@ import {
 
 describe('inline knowledge source helpers', () => {
     it('creates metadata with normalized filename and text mime type', () => {
-        const content = 'First line\nSecond line of the inline knowledge.';
+        const content = spaceTrim(`
+            First line
+            Second line of the inline knowledge.
+        `);
         const sourceFile = createInlineKnowledgeSourceFile(content);
 
         expect(sourceFile.filename).toBe('first-line.txt');
@@ -15,7 +19,10 @@ describe('inline knowledge source helpers', () => {
     });
 
     it('can convert inline files to data URLs for compatibility', () => {
-        const content = 'Inline content with multiple lines.\nSecond line.';
+        const content = spaceTrim(`
+            Inline content with multiple lines.
+            Second line.
+        `);
         const sourceFile = createInlineKnowledgeSourceFile(content);
         const url = inlineKnowledgeSourceToDataUrl(sourceFile);
 
@@ -25,7 +32,10 @@ describe('inline knowledge source helpers', () => {
     });
 
     it('parses a data URL knowledge source into a buffer and metadata', () => {
-        const content = 'Inline content with multiple lines.\nSecond line.';
+        const content = spaceTrim(`
+            Inline content with multiple lines.
+            Second line.
+        `);
         const sourceFile = createInlineKnowledgeSourceFile(content);
         const url = inlineKnowledgeSourceToDataUrl(sourceFile);
         const parsed = parseDataUrlKnowledgeSource(url);

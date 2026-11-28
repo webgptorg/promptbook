@@ -1,52 +1,59 @@
 'use client';
 
-import {
-    WalletRecordDialog,
-    type PendingWalletRecordRequest,
-    type WalletRecordDialogSubmitPayload,
-} from '@/src/components/WalletRecordDialog/WalletRecordDialog';
+import { WalletRecordDialog } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import type { AgentCapability, AgentChipData, ToolCall } from '@promptbook-local/types';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import {
-    PSEUDO_AGENT_USER_URL,
-    resolvePseudoAgentKindFromUrl,
-} from '../../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
-import { createTeamToolNameFromUrl } from '../../../../../../src/book-components/Chat/utils/createTeamToolNameFromUrl';
-import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { AGENT_PROJECT_TOOL_CALL_NAME } from '../../../../../../src/book-components/Chat/utils/agentProjectToolCall';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
+import type { AgentProjectItemInfo } from '../../../components/AgentProjects/AgentProjectReferencesList';
+import { useAgentProjectMarkdownReferences } from '../../../components/AgentProjects/useAgentProjectMarkdownReferences';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
+import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
-import { confirmPrivateModeEnable } from '../../../components/PrivateModePreferences/confirmPrivateModeEnable';
+import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisualModeProvider';
+import { FileUploadUnavailableNotice } from '../../../components/FileUploadAvailability/FileUploadUnavailableNotice';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
+import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
+import { createAttachmentAwareCitationLabelResolver } from '../../../utils/chat/createAttachmentAwareCitationLabelResolver';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
+import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
+import {
+    DEFAULT_CHAT_FEEDBACK_MODE,
+    isChatFeedbackEnabled,
+    toChatComponentFeedbackMode,
+    type ChatFeedbackMode,
+} from '../../../utils/chatFeedbackMode';
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
-import {
-    acceptMetaDisclaimer,
-    fetchMetaDisclaimerStatus,
-    type MetaDisclaimerStatus,
-} from '../../../utils/metaDisclaimerClient';
+import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import {
     serializeUserLocationPromptParameter,
     USER_LOCATION_PROMPT_PARAMETER,
-    type UserLocationPromptParameter,
 } from '../../../utils/userLocationPromptParameter';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from './PseudoUserChatDialog';
+import { useAgentChatMetaDisclaimer } from './useAgentChatMetaDisclaimer';
+import { useAgentChatToolInteractions } from './useAgentChatToolInteractions';
+import { useTeamAgentProfiles } from './useTeamAgentProfiles';
 
+/**
+ * Props accepted by `<AgentChatWrapper/>`.
+ */
 type AgentChatWrapperProps = {
     agentName: string;
     agentUrl: string_agent_url;
+    inputPlaceholder?: string;
     defaultMessage?: string;
     autoExecuteMessage?: string;
     autoExecuteMessageAttachments?: ChatMessage['attachments'];
@@ -64,10 +71,14 @@ type AgentChatWrapperProps = {
      */
     areFileAttachmentsEnabled?: boolean;
     /**
-     * When `false`, hides the feedback UI (star button) inside the chat.
+     * Controls which feedback UI should be shown after assistant responses.
      */
-    isFeedbackEnabled?: boolean;
+    feedbackMode?: ChatFeedbackMode;
     chatFailMessage?: string;
+    /**
+     * Project references resolved from `[[project-name]]` markdown tokens.
+     */
+    projectReferences?: ReadonlyArray<AgentProjectItemInfo>;
     /**
      * Optional handler for "New chat" action emitted from chat action bar.
      *
@@ -81,531 +92,16 @@ type AgentChatWrapperProps = {
     onAutoExecuteMessageConsumed?: () => void;
 };
 
-/**
- * Tool function name used by USE USER LOCATION.
- */
-const USER_LOCATION_TOOL_NAME = 'get_user_location';
-
-/**
- * Location-tool status that means browser should request geolocation.
- */
-const USER_LOCATION_UNAVAILABLE_STATUS = 'unavailable';
-
-/**
- * Tool function name used by USE PRIVACY.
- */
-const TURN_PRIVACY_ON_TOOL_NAME = 'turn_privacy_on';
-
-/**
- * Privacy-tool status that means UI confirmation is required.
- */
-const PRIVACY_CONFIRMATION_REQUIRED_STATUS = 'confirmation-required';
-
-/**
- * TEAM pseudo-user interaction marker emitted by TEAM commitment tools.
- */
-const PSEUDO_USER_SINGLE_MESSAGE_INTERACTION_KIND = 'PSEUDO_USER_SINGLE_MESSAGE';
-
-/**
- * Geolocation error code for denied permissions.
- */
-const GEOLOCATION_PERMISSION_DENIED_CODE = 1;
-
-/**
- * Timeout used for browser geolocation lookup.
- */
-const GEOLOCATION_REQUEST_TIMEOUT_MS = 15_000;
-
-/**
- * Wallet request status emitted by `request_wallet_record` tool.
- */
-const WALLET_REQUESTED_STATUS = 'requested';
-
-/**
- * Tool status emitted when wallet credentials are missing.
- */
-const WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
-
-const TEAM_AGENT_PROFILE_CACHE = new Map<string, AgentChipData>();
-const TEAM_AGENT_PROFILE_REQUESTS = new Map<string, Promise<AgentChipData | null>>();
-
-type TeamCapabilityDescriptor = {
-    agentUrl: string;
-    label?: string;
-    toolName: string;
-};
-
-type TeamAgentProfileDto = {
-    url: string;
-    label?: string;
-    imageUrl?: string;
-};
-
-/**
- * Normalizes teammate URLs so caching keys are stable.
- */
-function normalizeTeamAgentUrl(agentUrl: string): string {
-    return agentUrl.replace(/\/$/, '');
-}
-
-/**
- * Builds a stable public base URL used for placeholder images.
- */
-function resolveTeamAgentPublicUrl(agentUrl: string): string | undefined {
-    try {
-        const parsed = new URL(agentUrl);
-        return `${parsed.origin}/`;
-    } catch {
-        return undefined;
-    }
-}
-
-/**
- * Fetches teammate profile metadata through the server-side proxy to avoid CORS issues.
- */
-async function requestTeamAgentProfile(agentUrl: string): Promise<AgentChipData | null> {
-    const normalizedUrl = normalizeTeamAgentUrl(agentUrl);
-    const cached = TEAM_AGENT_PROFILE_CACHE.get(normalizedUrl);
-    if (cached) {
-        return cached;
-    }
-
-    let pending = TEAM_AGENT_PROFILE_REQUESTS.get(normalizedUrl);
-    if (!pending) {
-        const apiUrl = `/api/team-agent-profile?url=${encodeURIComponent(normalizedUrl)}`;
-        pending = (async (): Promise<AgentChipData | null> => {
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    return null;
-                }
-
-                const payload = (await response.json()) as TeamAgentProfileDto;
-                const publicUrl = resolveTeamAgentPublicUrl(normalizedUrl);
-
-                return {
-                    url: payload.url || normalizedUrl,
-                    label: payload.label,
-                    imageUrl: payload.imageUrl,
-                    publicUrl,
-                };
-            } catch (error) {
-                console.warn('[AgentChatWrapper] Failed to load team agent profile', normalizedUrl, error);
-                return null;
-            }
-        })();
-
-        TEAM_AGENT_PROFILE_REQUESTS.set(normalizedUrl, pending);
-    }
-
-    const result = await pending;
-    TEAM_AGENT_PROFILE_REQUESTS.delete(normalizedUrl);
-    if (result) {
-        TEAM_AGENT_PROFILE_CACHE.set(normalizedUrl, result);
-    }
-
-    return result;
-}
-
-/**
- * Hook that resolves team capability metadata into agent chip data used by tool call chips.
- */
-function useTeamAgentProfiles(capabilities?: ReadonlyArray<AgentCapability>): Record<string, AgentChipData> {
-    const descriptors = useMemo<TeamCapabilityDescriptor[]>(() => {
-        if (!capabilities?.length) {
-            return [];
-        }
-
-        return capabilities
-            .filter((capability): capability is AgentCapability & { agentUrl: string } => {
-                return capability.type === 'team' && Boolean(capability.agentUrl);
-            })
-            .map((capability) => ({
-                agentUrl: capability.agentUrl,
-                label: capability.label,
-                toolName: createTeamToolNameFromUrl(capability.agentUrl, capability.label),
-            }));
-    }, [capabilities]);
-
-    const [profiles, setProfiles] = useState<Record<string, AgentChipData>>({});
-
-    useEffect(() => {
-        if (descriptors.length === 0) {
-            setProfiles({});
-            return;
-        }
-
-        const baseline: Record<string, AgentChipData> = {};
-        for (const descriptor of descriptors) {
-            baseline[descriptor.toolName] = {
-                url: normalizeTeamAgentUrl(descriptor.agentUrl),
-                label: descriptor.label,
-                publicUrl: resolveTeamAgentPublicUrl(descriptor.agentUrl),
-            };
-        }
-
-        let isActive = true;
-        setProfiles(baseline);
-
-        const loadProfiles = async () => {
-            const updated = { ...baseline };
-
-            await Promise.all(
-                descriptors.map(async (descriptor) => {
-                    const profile = await requestTeamAgentProfile(descriptor.agentUrl);
-                    if (!profile) {
-                        return;
-                    }
-
-                    updated[descriptor.toolName] = {
-                        ...profile,
-                        label: profile.label || descriptor.label,
-                        url: profile.url || normalizeTeamAgentUrl(descriptor.agentUrl),
-                        publicUrl: profile.publicUrl || resolveTeamAgentPublicUrl(descriptor.agentUrl),
-                    };
-                }),
-            );
-
-            if (isActive) {
-                setProfiles(updated);
-            }
-        };
-
-        void loadProfiles();
-
-        return () => {
-            isActive = false;
-        };
-    }, [descriptors]);
-
-    return profiles;
-}
-
-/**
- * Serializes the auto-execute payload for change detection.
- */
-function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage['attachments']): string {
-    const normalizedMessage = message ?? '';
-    if (!attachments || attachments.length === 0) {
-        return normalizedMessage;
-    }
-
-    try {
-        return `${normalizedMessage}|${JSON.stringify(attachments)}`;
-    } catch {
-        return normalizedMessage;
-    }
-}
-
-/**
- * Location tool result payload shape.
- */
-type UserLocationToolResult = {
-    status?: string;
-};
-
-/**
- * Privacy tool result payload shape.
- */
-type PrivacyToolResult = {
-    status?: string;
-};
-
-/**
- * TEAM tool payload shape used to detect pseudo-user prompts.
- */
-type TeamToolResult = {
-    teammate?: {
-        url?: string;
-        label?: string;
-    };
-    request?: string;
-    interaction?: {
-        kind?: string;
-        prompt?: string;
-    };
-};
-
-/**
- * Wallet tool payload shape used to trigger credential popup.
- */
-type WalletToolResult = {
-    status?: string;
-    request?: {
-        recordType?: string;
-        service?: string;
-        key?: string;
-        jsonSchema?: unknown;
-        message?: string;
-        isUserScoped?: boolean;
-        isGlobal?: boolean;
-    };
-    recordType?: string;
-    service?: string;
-    key?: string;
-    jsonSchema?: unknown;
-    message?: string;
-    isUserScoped?: boolean;
-    isGlobal?: boolean;
-    repository?: string;
-};
-
-/**
- * Parses a tool result payload into an object when possible.
- */
-function parseToolResultObject(result: unknown): Record<string, unknown> | null {
-    if (!result) {
-        return null;
-    }
-
-    if (typeof result === 'object') {
-        return result as Record<string, unknown>;
-    }
-
-    if (typeof result !== 'string') {
-        return null;
-    }
-
-    try {
-        const parsed = JSON.parse(result);
-        if (!parsed || typeof parsed !== 'object') {
-            return null;
-        }
-
-        return parsed as Record<string, unknown>;
-    } catch {
-        return null;
-    }
-}
-
-/**
- * Parses location tool result into structured object.
- */
-function parseUserLocationToolResult(result: unknown): UserLocationToolResult | null {
-    return parseToolResultObject(result) as UserLocationToolResult | null;
-}
-
-/**
- * Parses privacy tool result into structured object.
- */
-function parsePrivacyToolResult(result: unknown): PrivacyToolResult | null {
-    return parseToolResultObject(result) as PrivacyToolResult | null;
-}
-
-/**
- * Parses TEAM tool result into structured object.
- */
-function parseTeamToolResult(result: unknown): TeamToolResult | null {
-    return parseToolResultObject(result) as TeamToolResult | null;
-}
-
-/**
- * Parses wallet tool result into structured object.
- */
-function parseWalletToolResult(result: unknown): WalletToolResult | null {
-    return parseToolResultObject(result) as WalletToolResult | null;
-}
-
-/**
- * Builds a stable marker for one tool call so it is handled at most once.
- */
-function createToolCallMarker(toolCall: ToolCall): string {
-    const resultMarker =
-        typeof toolCall.result === 'string' ? toolCall.result : JSON.stringify(toolCall.result ?? null);
-    return `${toolCall.name}|${toolCall.createdAt || ''}|${resultMarker}`;
-}
-
-/**
- * Returns true when this tool call should trigger browser geolocation request.
- */
-function shouldRequestBrowserUserLocation(toolCall: ToolCall): boolean {
-    if (toolCall.name !== USER_LOCATION_TOOL_NAME) {
-        return false;
-    }
-
-    const parsedResult = parseUserLocationToolResult(toolCall.result);
-    return parsedResult?.status === USER_LOCATION_UNAVAILABLE_STATUS;
-}
-
-/**
- * Returns true when this tool call should trigger private mode confirmation in UI.
- */
-function shouldRequestPrivateModeEnable(toolCall: ToolCall): boolean {
-    if (toolCall.name !== TURN_PRIVACY_ON_TOOL_NAME) {
-        return false;
-    }
-
-    const parsedResult = parsePrivacyToolResult(toolCall.result);
-    return parsedResult?.status === PRIVACY_CONFIRMATION_REQUIRED_STATUS;
-}
-
-/**
- * Returns true when this tool call asks the real user for one pseudo-team reply.
- */
-function shouldRequestPseudoUserReply(toolCall: ToolCall): boolean {
-    if (!toolCall.name.startsWith('team_chat_')) {
-        return false;
-    }
-
-    const parsedResult = parseTeamToolResult(toolCall.result);
-    if (!parsedResult?.teammate?.url) {
-        return false;
-    }
-
-    const pseudoAgentKind = resolvePseudoAgentKindFromUrl(parsedResult.teammate.url);
-    if (pseudoAgentKind !== 'USER' && parsedResult.teammate.url !== PSEUDO_AGENT_USER_URL) {
-        return false;
-    }
-
-    return parsedResult.interaction?.kind === PSEUDO_USER_SINGLE_MESSAGE_INTERACTION_KIND;
-}
-
-/**
- * Returns true when wallet-request tool asks the UI to collect credentials.
- */
-function shouldRequestWalletRecord(toolCall: ToolCall): boolean {
-    if (toolCall.name !== 'request_wallet_record') {
-        return false;
-    }
-
-    const parsedResult = parseWalletToolResult(toolCall.result);
-    return parsedResult?.status === WALLET_REQUESTED_STATUS;
-}
-
-/**
- * Returns true when tool result indicates missing wallet credentials.
- */
-function shouldRequestWalletCredential(toolCall: ToolCall): boolean {
-    const parsedResult = parseWalletToolResult(toolCall.result);
-    return parsedResult?.status === WALLET_CREDENTIAL_REQUIRED_STATUS;
-}
-
-/**
- * Extracts pseudo-user prompt text from TEAM tool result.
- */
-function getPseudoUserPromptText(toolCall: ToolCall): string {
-    const parsedResult = parseTeamToolResult(toolCall.result);
-    const interactionPrompt = parsedResult?.interaction?.prompt?.trim();
-    if (interactionPrompt) {
-        return interactionPrompt;
-    }
-
-    const requestPrompt = parsedResult?.request?.trim();
-    if (requestPrompt) {
-        return requestPrompt;
-    }
-
-    return 'The agent is asking for additional details.';
-}
-
-/**
- * Extracts pseudo-user teammate label from TEAM tool result.
- */
-function getPseudoUserLabel(toolCall: ToolCall): string {
-    const parsedResult = parseTeamToolResult(toolCall.result);
-    return parsedResult?.teammate?.label?.trim() || 'User';
-}
-
-/**
- * Normalizes wallet record type to one of supported UI values.
- */
-function normalizeWalletRecordType(value: unknown): PendingWalletRecordRequest['recordType'] {
-    const normalized = typeof value === 'string' ? value.trim().toUpperCase() : '';
-    if (normalized === 'USERNAME_PASSWORD') {
-        return 'USERNAME_PASSWORD';
-    }
-    if (normalized === 'SESSION_COOKIE') {
-        return 'SESSION_COOKIE';
-    }
-    return 'ACCESS_TOKEN';
-}
-
-/**
- * Builds pending wallet request payload from tool call result.
- */
-function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordRequest {
-    const parsedResult = parseWalletToolResult(toolCall.result);
-    const requestPayload = parsedResult?.request;
-    const sourceService = requestPayload?.service || parsedResult?.service || 'generic';
-    const sourceKey = requestPayload?.key || parsedResult?.key || 'default';
-    const sourceRecordType = requestPayload?.recordType || parsedResult?.recordType || 'ACCESS_TOKEN';
-    const sourceJsonSchema = requestPayload?.jsonSchema || parsedResult?.jsonSchema;
-    const sourceMessage = requestPayload?.message || parsedResult?.message;
-    const repositoryHint = parsedResult?.repository?.trim();
-
-    const message = repositoryHint
-        ? `${sourceMessage || 'Credential required.'}\nRepository: ${repositoryHint}`
-        : sourceMessage;
-
-    return {
-        marker: createToolCallMarker(toolCall),
-        sourceToolName: toolCall.name,
-        recordType: normalizeWalletRecordType(sourceRecordType),
-        service: sourceService,
-        key: sourceKey,
-        jsonSchema: sourceJsonSchema,
-        message,
-        isUserScoped: requestPayload?.isUserScoped === true || parsedResult?.isUserScoped === true,
-        isGlobal: requestPayload?.isGlobal === true || parsedResult?.isGlobal === true,
-    };
-}
-
-/**
- * Finds the newest tool call matching the supplied predicate.
- */
-function findNewestMatchingToolCall(
-    messages: ReadonlyArray<ChatMessage>,
-    predicate: (toolCall: ToolCall) => boolean,
-): ToolCall | null {
-    for (let index = messages.length - 1; index >= 0; index--) {
-        const message = messages[index];
-        if (!message) {
-            continue;
-        }
-
-        const toolCalls = message.toolCalls || message.completedToolCalls;
-        if (!toolCalls || toolCalls.length === 0) {
-            continue;
-        }
-
-        for (const toolCall of toolCalls) {
-            if (predicate(toolCall)) {
-                return toolCall;
-            }
-        }
-    }
-
-    return null;
-}
-
-/**
- * Pending pseudo-user interaction extracted from TEAM tool result.
- */
-type PendingPseudoUserInteraction = {
-    /**
-     * Stable tool-call marker used for deduplication.
-     */
-    marker: string;
-    /**
-     * Prompt text shown inside the modal.
-     */
-    prompt: string;
-    /**
-     * Display name of the speaking agent.
-     */
-    agentName: string;
-    /**
-     * Display label of the pseudo teammate (`User`).
-     */
-    teammateLabel: string;
-};
-
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
+/**
+ * Renders the full-page agent chat and coordinates chat-specific side effects.
+ */
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const {
         agentName,
         agentUrl,
+        inputPlaceholder,
         defaultMessage,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
@@ -616,14 +112,17 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         onMessagesChange,
         onInputTextChange,
         areFileAttachmentsEnabled,
-        isFeedbackEnabled,
+        feedbackMode = DEFAULT_CHAT_FEEDBACK_MODE,
         chatFailMessage,
+        projectReferences = [],
         onStartNewChat,
         onAutoExecuteMessageConsumed,
     } = props;
+    const effectiveInputPlaceholder = inputPlaceholder?.trim() || undefined;
 
-    const shouldEnableFeedback = isFeedbackEnabled ?? true;
+    const shouldEnableFeedback = isChatFeedbackEnabled(feedbackMode);
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
+    const fileUploadAvailability = useFileUploadAvailability();
     const allowFileAttachments = areFileAttachmentsEnabled ?? true;
 
     const chatBackgroundStyle: CSSProperties & Record<string, string> = {
@@ -651,132 +150,62 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
     const [retryCallback, setRetryCallback] = useState<(() => void) | null>(null);
     const [chatKey, setChatKey] = useState<number>(0);
-    const [userLocationPromptParameter, setUserLocationPromptParameter] = useState<UserLocationPromptParameter | null>(
-        null,
-    );
-    const [metaDisclaimerStatus, setMetaDisclaimerStatus] = useState<MetaDisclaimerStatus | null>(null);
-    const [isMetaDisclaimerLoading, setIsMetaDisclaimerLoading] = useState(true);
-    const [isMetaDisclaimerAccepting, setIsMetaDisclaimerAccepting] = useState(false);
-    const [metaDisclaimerError, setMetaDisclaimerError] = useState<string | null>(null);
     const sendMessage = useSendMessageToLlmChat();
-    const isLocationRequestInFlightRef = useRef(false);
-    const isPrivacyConfirmationInFlightRef = useRef(false);
-    const handledLocationToolCallMarkersRef = useRef<Set<string>>(new Set());
-    const handledPrivacyToolCallMarkersRef = useRef<Set<string>>(new Set());
-    const handledPseudoUserToolCallMarkersRef = useRef<Set<string>>(new Set());
-    const handledWalletToolCallMarkersRef = useRef<Set<string>>(new Set());
-    const [pendingPseudoUserInteraction, setPendingPseudoUserInteraction] =
-        useState<PendingPseudoUserInteraction | null>(null);
-    const [pendingWalletRequest, setPendingWalletRequest] = useState<PendingWalletRecordRequest | null>(null);
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
-    const hasReportedAutoExecuteMessageRef = useRef(false);
-    const lastAutoExecutePayloadRef = useRef<string | undefined>(
-        serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
-    );
+    const [calendarOAuthStatus, setCalendarOAuthStatus] = useState<CalendarOAuthStatusResponse | null>(null);
+    const [renderedMessages, setRenderedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
+    const markdownInlineReferences = useAgentProjectMarkdownReferences({
+        agentPermanentId: agentName,
+        projects: projectReferences,
+        messages: renderedMessages,
+    });
     const currentAgentPermanentId = useMemo(() => {
         return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
             ? ((agent as { permanentId?: string }).permanentId as string)
             : undefined;
     }, [agent]);
 
-    /**
-     * Loads disclaimer status for the current user and agent.
-     */
-    const loadMetaDisclaimerStatus = useCallback(async () => {
-        setIsMetaDisclaimerLoading(true);
-        setMetaDisclaimerError(null);
-
-        try {
-            const status = await fetchMetaDisclaimerStatus(agentName);
-            setMetaDisclaimerStatus(status);
-        } catch (error) {
-            setMetaDisclaimerError(error instanceof Error ? error.message : 'Failed to load disclaimer.');
-        } finally {
-            setIsMetaDisclaimerLoading(false);
-        }
-    }, [agentName]);
-
-    useEffect(() => {
-        void loadMetaDisclaimerStatus();
-    }, [loadMetaDisclaimerStatus]);
+    const {
+        isMetaDisclaimerAccepting,
+        metaDisclaimerError,
+        metaDisclaimerMarkdown,
+        shouldRenderMetaDisclaimerDialog,
+        effectiveAutoExecuteMessage,
+        effectiveAutoExecuteMessageAttachments,
+        loadMetaDisclaimerStatus,
+        handleAcceptMetaDisclaimer,
+    } = useAgentChatMetaDisclaimer({
+        agentName,
+        autoExecuteMessage,
+        autoExecuteMessageAttachments,
+        onAutoExecuteMessageConsumed,
+    });
 
     /**
-     * Loads GitHub App availability so wallet popup can offer one-click connect.
+     * Loads external integration status so wallet popup can offer one-click connect flows.
      */
     useEffect(() => {
         let isMounted = true;
 
-        const loadGithubAppStatus = async () => {
-            const status = await fetchGithubAppStatus();
+        const loadIntegrationStatus = async () => {
+            const [githubStatus, calendarStatus] = await Promise.all([
+                fetchGithubAppStatus(),
+                fetchCalendarOAuthStatus(currentAgentPermanentId),
+            ]);
             if (!isMounted) {
                 return;
             }
 
-            setGithubAppStatus(status);
+            setGithubAppStatus(githubStatus);
+            setCalendarOAuthStatus(calendarStatus);
         };
 
-        void loadGithubAppStatus();
+        void loadIntegrationStatus();
 
         return () => {
             isMounted = false;
         };
-    }, []);
-
-    /**
-     * Persists disclaimer agreement for the current user and agent.
-     */
-    const handleAcceptMetaDisclaimer = useCallback(async () => {
-        setIsMetaDisclaimerAccepting(true);
-        setMetaDisclaimerError(null);
-
-        try {
-            const acceptedStatus = await acceptMetaDisclaimer(agentName);
-            setMetaDisclaimerStatus(acceptedStatus);
-        } catch (error) {
-            setMetaDisclaimerError(error instanceof Error ? error.message : 'Failed to accept disclaimer.');
-        } finally {
-            setIsMetaDisclaimerAccepting(false);
-        }
-    }, [agentName]);
-
-    const isMetaDisclaimerEnabled = metaDisclaimerStatus?.enabled === true;
-    const hasAcceptedMetaDisclaimer = isMetaDisclaimerEnabled ? metaDisclaimerStatus?.accepted === true : true;
-    const isMetaDisclaimerBlockingChat =
-        isMetaDisclaimerLoading ||
-        metaDisclaimerError !== null ||
-        (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
-    const shouldRenderMetaDisclaimerDialog =
-        metaDisclaimerError !== null || (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
-    const metaDisclaimerMarkdown = metaDisclaimerStatus?.markdown || null;
-    const effectiveAutoExecuteMessage = isMetaDisclaimerBlockingChat ? undefined : autoExecuteMessage;
-    const effectiveAutoExecuteMessageAttachments = isMetaDisclaimerBlockingChat
-        ? undefined
-        : autoExecuteMessageAttachments;
-    const hasEffectiveAutoExecuteContent =
-        Boolean(effectiveAutoExecuteMessage) || Boolean(effectiveAutoExecuteMessageAttachments?.length);
-
-    useEffect(() => {
-        const payload = serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments);
-        if (lastAutoExecutePayloadRef.current === payload) {
-            return;
-        }
-
-        lastAutoExecutePayloadRef.current = payload;
-        hasReportedAutoExecuteMessageRef.current = false;
-    }, [autoExecuteMessage, autoExecuteMessageAttachments]);
-
-    useEffect(() => {
-        if (!hasEffectiveAutoExecuteContent) {
-            return;
-        }
-
-        if (hasReportedAutoExecuteMessageRef.current) {
-            return;
-        }
-
-        hasReportedAutoExecuteMessageRef.current = true;
-        onAutoExecuteMessageConsumed?.();
-    }, [hasEffectiveAutoExecuteContent, onAutoExecuteMessageConsumed]);
+    }, [currentAgentPermanentId]);
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -838,17 +267,49 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             return undefined;
         }
 
-        // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
-        //       For now, we always provide OpenAiSpeechRecognition which uses proxy
-        return new OpenAiSpeechRecognition();
+        return createDefaultSpeechRecognition();
     }, [isSpeechFeaturesEnabled]);
 
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
     const { soundSystem } = useSoundSystem();
+    const { chatVisualMode } = useChatVisualMode();
+    const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
-    const { t } = useServerLanguage();
+    const { t, language } = useServerLanguage();
     const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
+
+    const {
+        userLocationPromptParameter,
+        pendingPseudoUserInteraction,
+        pendingWalletRequest,
+        handleMessagesChange,
+        handlePseudoUserReplySubmit,
+        handlePseudoUserReplyClose,
+        handleWalletRequestSubmit,
+        handleWalletRequestClose,
+    } = useAgentChatToolInteractions({
+        agent,
+        onMessagesChange,
+        sendMessage,
+        currentAgentPermanentId,
+        isPrivateModeEnabled,
+        setIsPrivateModeEnabled,
+        t,
+    });
+
+    // Track rendered messages so cited chat attachments resolve to their original filenames.
+    const handleChatMessagesChange = useCallback(
+        (messages: ReadonlyArray<ChatMessage>) => {
+            setRenderedMessages(messages);
+            handleMessagesChange(messages);
+        },
+        [handleMessagesChange],
+    );
+    const resolveCitationLabel = useMemo(
+        () => createAttachmentAwareCitationLabelResolver(renderedMessages),
+        [renderedMessages],
+    );
 
     // Handle errors from chat
     const handleError = useCallback((error: unknown, retry: () => void) => {
@@ -884,237 +345,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         setChatKey((prevKey) => prevKey + 1); // Increment key to force re-mount
     }, []);
 
-    /**
-     * Requests geolocation from browser and stores it for next prompt calls.
-     */
-    const requestBrowserUserLocation = useCallback(async () => {
-        if (isLocationRequestInFlightRef.current) {
-            return;
-        }
-
-        if (typeof window === 'undefined' || !navigator.geolocation) {
-            setUserLocationPromptParameter({
-                permission: 'unavailable',
-            });
-            return;
-        }
-
-        isLocationRequestInFlightRef.current = true;
-
-        try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: GEOLOCATION_REQUEST_TIMEOUT_MS,
-                    maximumAge: 0,
-                });
-            });
-
-            setUserLocationPromptParameter({
-                permission: 'granted',
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracyMeters: position.coords.accuracy,
-                altitudeMeters: position.coords.altitude,
-                headingDegrees: position.coords.heading,
-                speedMetersPerSecond: position.coords.speed,
-                timestamp: new Date(position.timestamp).toISOString(),
-            });
-        } catch (error) {
-            const geolocationError = error as GeolocationPositionError;
-            const permission = geolocationError?.code === GEOLOCATION_PERMISSION_DENIED_CODE ? 'denied' : 'unavailable';
-            setUserLocationPromptParameter({ permission });
-        } finally {
-            isLocationRequestInFlightRef.current = false;
-        }
-    }, []);
-
-    /**
-     * Asks the user to confirm enabling private mode and enables it on confirmation.
-     */
-    const requestPrivateModeEnableConfirmation = useCallback(async () => {
-        if (isPrivateModeEnabled || isPrivacyConfirmationInFlightRef.current) {
-            return;
-        }
-
-        isPrivacyConfirmationInFlightRef.current = true;
-
-        try {
-            const isConfirmed = await confirmPrivateModeEnable(t);
-            if (!isConfirmed) {
-                return;
-            }
-
-            setIsPrivateModeEnabled(true);
-        } finally {
-            isPrivacyConfirmationInFlightRef.current = false;
-        }
-    }, [isPrivateModeEnabled, setIsPrivateModeEnabled, t]);
-
-    /**
-     * Finds the newest location-tool call that asks for browser location.
-     */
-    const findPendingLocationToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
-        return findNewestMatchingToolCall(messages, shouldRequestBrowserUserLocation);
-    }, []);
-
-    /**
-     * Finds the newest privacy-tool call that asks for private mode confirmation.
-     */
-    const findPendingPrivacyToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
-        return findNewestMatchingToolCall(messages, shouldRequestPrivateModeEnable);
-    }, []);
-
-    /**
-     * Finds the newest pseudo-user TEAM tool call that requests one user reply.
-     */
-    const findPendingPseudoUserToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
-        return findNewestMatchingToolCall(messages, shouldRequestPseudoUserReply);
-    }, []);
-
-    /**
-     * Finds the newest wallet-related tool call asking for credentials.
-     */
-    const findPendingWalletToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
-        return findNewestMatchingToolCall(
-            messages,
-            (toolCall) => shouldRequestWalletRecord(toolCall) || shouldRequestWalletCredential(toolCall),
-        );
-    }, []);
-
-    const handleMessagesChange = useCallback(
-        (messages: ReadonlyArray<ChatMessage>) => {
-            onMessagesChange?.(messages);
-
-            const locationToolCall = findPendingLocationToolCall(messages);
-            if (locationToolCall) {
-                const locationMarker = createToolCallMarker(locationToolCall);
-                if (!handledLocationToolCallMarkersRef.current.has(locationMarker)) {
-                    handledLocationToolCallMarkersRef.current.add(locationMarker);
-
-                    if (!userLocationPromptParameter?.permission) {
-                        void requestBrowserUserLocation();
-                    }
-                }
-            }
-
-            const privacyToolCall = findPendingPrivacyToolCall(messages);
-            if (privacyToolCall) {
-                const privacyMarker = createToolCallMarker(privacyToolCall);
-                if (!handledPrivacyToolCallMarkersRef.current.has(privacyMarker)) {
-                    handledPrivacyToolCallMarkersRef.current.add(privacyMarker);
-                    void requestPrivateModeEnableConfirmation();
-                }
-            }
-
-            const pseudoUserToolCall = findPendingPseudoUserToolCall(messages);
-            if (!pseudoUserToolCall) {
-                const walletToolCall = findPendingWalletToolCall(messages);
-                if (!walletToolCall) {
-                    return;
-                }
-
-                const walletMarker = createToolCallMarker(walletToolCall);
-                if (handledWalletToolCallMarkersRef.current.has(walletMarker)) {
-                    return;
-                }
-
-                handledWalletToolCallMarkersRef.current.add(walletMarker);
-                setPendingWalletRequest(buildPendingWalletRequest(walletToolCall));
-                return;
-            }
-
-            const pseudoUserMarker = createToolCallMarker(pseudoUserToolCall);
-            if (handledPseudoUserToolCallMarkersRef.current.has(pseudoUserMarker)) {
-                return;
-            }
-            handledPseudoUserToolCallMarkersRef.current.add(pseudoUserMarker);
-
-            setPendingPseudoUserInteraction({
-                marker: pseudoUserMarker,
-                prompt: getPseudoUserPromptText(pseudoUserToolCall),
-                agentName: agent?.meta.fullname || agent?.agentName || 'Agent',
-                teammateLabel: getPseudoUserLabel(pseudoUserToolCall),
-            });
-        },
-        [
-            agent?.agentName,
-            agent?.meta.fullname,
-            findPendingLocationToolCall,
-            findPendingPrivacyToolCall,
-            findPendingPseudoUserToolCall,
-            onMessagesChange,
-            requestBrowserUserLocation,
-            requestPrivateModeEnableConfirmation,
-            userLocationPromptParameter,
-            findPendingWalletToolCall,
-        ],
-    );
-
-    /**
-     * Sends one pseudo-user reply back to the main chat and closes the modal.
-     */
-    const handlePseudoUserReplySubmit = useCallback(
-        async (reply: string) => {
-            setPendingPseudoUserInteraction(null);
-            sendMessage(reply);
-        },
-        [sendMessage],
-    );
-
-    /**
-     * Dismisses the pseudo-user reply modal without sending a message.
-     */
-    const handlePseudoUserReplyClose = useCallback(() => {
-        setPendingPseudoUserInteraction(null);
-    }, []);
-
-    /**
-     * Stores one wallet credential submitted from the popup and asks agent to continue.
-     */
-    const handleWalletRequestSubmit = useCallback(
-        async (payload: WalletRecordDialogSubmitPayload) => {
-            const shouldScopeToAgent = !payload.isGlobal && Boolean(currentAgentPermanentId);
-            const isGlobal = !shouldScopeToAgent;
-
-            const response = await fetch('/api/user-wallet', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    recordType: payload.recordType,
-                    service: payload.service,
-                    key: payload.key,
-                    username: payload.username,
-                    password: payload.password,
-                    secret: payload.secret,
-                    cookies: payload.cookies,
-                    jsonSchema: payload.jsonSchema,
-                    isUserScoped: payload.isUserScoped === true,
-                    isGlobal,
-                    agentPermanentId: shouldScopeToAgent ? currentAgentPermanentId : null,
-                }),
-            });
-
-            if (!response.ok) {
-                const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-                throw new Error(payload?.error || 'Failed to store wallet record.');
-            }
-
-            setPendingWalletRequest(null);
-            sendMessage('Wallet credential saved. Continue with the previous task.');
-        },
-        [currentAgentPermanentId, sendMessage],
-    );
-
-    /**
-     * Dismisses wallet request popup without saving.
-     */
-    const handleWalletRequestClose = useCallback(() => {
-        setPendingWalletRequest(null);
-    }, []);
-
     const promptParameters = useMemo(() => {
         const parameters: Record<string, unknown> = {
             selfLearningEnabled: effectiveSelfLearningEnabled,
@@ -1129,39 +359,147 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
 
     if (!agent) {
-        return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
+        return (
+            <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-950/70">
+                <ChatThreadLoadingSkeleton />
+            </div>
+        );
     }
+
+    const chatElement = (
+        <AgentChat
+            key={chatKey}
+            className="agent-chat-panel__chat h-full min-h-0 w-full"
+            style={chatBackgroundStyle}
+            agent={agent}
+            placeholderMessageContent={effectiveInputPlaceholder}
+            chatUiTranslations={{
+                inputPlaceholder: t('chat.inputPlaceholder'),
+                saveButtonLabel: t('chat.saveButtonLabel'),
+                newChatButtonLabel: t('chat.newChatButtonLabel'),
+                lifecycleSending: t('chat.lifecycleSending'),
+                lifecycleQueued: t('chat.lifecycleQueued'),
+                lifecycleRunning: t('chat.lifecycleRunning'),
+                lifecycleFailed: t('chat.lifecycleFailed'),
+                lifecycleCancelled: t('chat.lifecycleCancelled'),
+                lifecycleCompleted: t('chat.lifecycleCompleted'),
+                toolCallModalTitle: t('chat.toolCallModalTitle'),
+                toolCallModalCloseLabel: t('chat.toolCallModalCloseLabel'),
+                toolCallModalCopyLabel: t('chat.toolCallModalCopyLabel'),
+                toolCallModalSaveLabel: t('chat.toolCallModalSaveLabel'),
+                toolCallModalAdvancedLabel: t('chat.toolCallModalAdvancedLabel'),
+                toolCallModalSimpleLabel: t('chat.toolCallModalSimpleLabel'),
+                toolCallTimeoutTitle: t('chat.toolCallTimeoutTitle'),
+                toolCallTimeoutCancelledTitle: t('chat.toolCallTimeoutCancelledTitle'),
+                toolCallTimeoutUpdateTitle: t('chat.toolCallTimeoutUpdateTitle'),
+                toolCallTimeoutCancelButton: t('chat.toolCallTimeoutCancelButton'),
+                toolCallTimeoutSnoozeButton: t('chat.toolCallTimeoutSnoozeButton'),
+                toolCallTimeoutViewAdvancedButton: t('chat.toolCallTimeoutViewAdvancedButton'),
+                toolCallTimeoutLoadingMessage: t('chat.toolCallTimeoutLoadingMessage'),
+                toolCallTimeoutUnavailableMessage: t('chat.toolCallTimeoutUnavailableMessage'),
+                toolCallTimeoutDateLabel: t('chat.toolCallTimeoutDateLabel'),
+                toolCallTimeoutMessageLabel: t('chat.toolCallTimeoutMessageLabel'),
+                toolCallTimeoutTimezoneLabel: t('chat.toolCallTimeoutTimezoneLabel'),
+                toolCallTimeoutChipLabel: t('chat.toolCallTimeoutChipLabel'),
+                toolCallTimeoutChipCancelledLabel: t('chat.toolCallTimeoutChipCancelledLabel'),
+                toolCallTimeoutChipInactiveLabel: t('chat.toolCallTimeoutChipInactiveLabel'),
+                toolCallTimeoutChipUpdatedLabel: t('chat.toolCallTimeoutChipUpdatedLabel'),
+                toolCallTimeoutChipFallbackLabel: t('chat.toolCallTimeoutChipFallbackLabel'),
+                toolCallTimeoutPrimaryScheduledLabel: t('chat.toolCallTimeoutPrimaryScheduledLabel'),
+                toolCallTimeoutSecondaryDurationLabel: t('chat.toolCallTimeoutSecondaryDurationLabel'),
+                toolCallTimeoutPrimaryCancelledLabel: t('chat.toolCallTimeoutPrimaryCancelledLabel'),
+                toolCallTimeoutPrimaryInactiveLabel: t('chat.toolCallTimeoutPrimaryInactiveLabel'),
+                toolCallTimeoutPrimaryUpdatedLabel: t('chat.toolCallTimeoutPrimaryUpdatedLabel'),
+                toolCallTimeoutPrimaryFallbackLabel: t('chat.toolCallTimeoutPrimaryFallbackLabel'),
+                toolCallTimeoutActionGroupLabel: t('chat.toolCallTimeoutActionGroupLabel'),
+                toolCallTimeoutCancelAriaLabel: t('chat.toolCallTimeoutCancelAriaLabel'),
+                toolCallTimeoutSnoozeAriaLabel: t('chat.toolCallTimeoutSnoozeAriaLabel'),
+                toolCallTimeoutViewAdvancedAriaLabel: t('chat.toolCallTimeoutViewAdvancedAriaLabel'),
+                toolCallTimeTitle: t('chat.toolCallTimeTitle'),
+                toolCallTimeUnknown: t('chat.toolCallTimeUnknown'),
+                toolCallTimeTimestampLabel: t('chat.toolCallTimeTimestampLabel'),
+                toolCallTimeChipLabel: t('chat.toolCallTimeChipLabel'),
+                toolCallTimeRelativeLabel: t('chat.toolCallTimeRelativeLabel'),
+            }}
+            toolTitles={{
+                assistant_preparation: t('chat.toolTitle.assistantPreparation'),
+                wallet_credential_used: t('chat.toolTitle.walletCredentialUsed'),
+                'self-learning': t('chat.toolTitle.selfLearning'),
+                retrieve_user_memory: t('chat.toolTitle.memoryReader'),
+                store_user_memory: t('chat.toolTitle.memoryWriter'),
+                retrieve_wallet_records: t('chat.toolTitle.walletReader'),
+                store_wallet_record: t('chat.toolTitle.walletWriter'),
+                update_wallet_record: t('chat.toolTitle.walletUpdater'),
+                delete_wallet_record: t('chat.toolTitle.walletDeleter'),
+                request_wallet_record: t('chat.toolTitle.walletRequester'),
+                web_search: t('chat.toolTitle.webSearch'),
+                deep_search: t('chat.toolTitle.webSearch'),
+                useSearchEngine: t('chat.toolTitle.webSearch'),
+                search: t('chat.toolTitle.webSearch'),
+                useBrowser: t('chat.toolTitle.websiteScraping'),
+                browse: t('chat.toolTitle.websiteScraping'),
+                fetch_url_content: t('chat.toolTitle.websiteScraping'),
+                run_browser: t('chat.toolTitle.websiteScraping'),
+                get_current_time: t('chat.toolTitle.timeChecker'),
+                useTime: t('chat.toolTitle.timeChecker'),
+                set_timeout: t('chat.toolTitle.timeoutSetter'),
+                cancel_timeout: t('chat.toolTitle.timeoutCanceller'),
+                list_timeouts: t('chat.toolTitle.timeoutLister'),
+                update_timeout: t('chat.toolTitle.timeoutUpdater'),
+                get_user_location: t('chat.toolTitle.locationProvider'),
+                send_email: t('chat.toolTitle.emailSender'),
+                useEmail: t('chat.toolTitle.emailSender'),
+                spawn_agent: t('chat.toolTitle.agentSpawner'),
+                project_list_files: t('chat.toolTitle.projectFileLister'),
+                project_read_file: t('chat.toolTitle.projectFileReader'),
+                project_upsert_file: t('chat.toolTitle.projectFileWriter'),
+                project_delete_file: t('chat.toolTitle.projectFileDeleter'),
+                project_create_branch: t('chat.toolTitle.projectBranchCreator'),
+                project_create_pull_request: t('chat.toolTitle.projectPullRequestCreator'),
+                [AGENT_PROJECT_TOOL_CALL_NAME]: t('chat.toolTitle.agentProjectTouched'),
+            }}
+            feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
+            onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
+            onFileUpload={
+                allowFileAttachments && fileUploadAvailability.isUploadAvailable ? handleFileUpload : undefined
+            }
+            onError={handleError}
+            defaultMessage={defaultMessage}
+            autoExecuteMessage={effectiveAutoExecuteMessage}
+            autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
+            persistenceKey={persistenceKey}
+            onChange={handleChatMessagesChange}
+            onInputTextChange={onInputTextChange}
+            onActionButton={executeQuickActionButton}
+            sendMessage={sendMessage}
+            speechRecognition={speechRecognition}
+            layout="FULL_PAGE"
+            visualMode={chatVisualMode}
+            effectConfigs={effectConfigs}
+            soundSystem={soundSystem}
+            thinkingMessages={thinkingMessages}
+            speechRecognitionLanguage={speechRecognitionLanguage}
+            chatLocale={language}
+            enterBehavior={enterBehavior}
+            resolveEnterBehavior={resolveEnterBehavior}
+            isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
+            chatFailMessage={chatFailMessage}
+            promptParameters={promptParameters}
+            onReset={onStartNewChat}
+            resetMode={onStartNewChat ? 'delegate' : undefined}
+            teamAgentProfiles={teamAgentProfiles}
+            markdownInlineReferences={markdownInlineReferences}
+            resolveCitationLabel={resolveCitationLabel}
+        >
+            {allowFileAttachments && !fileUploadAvailability.isUploadAvailable && (
+                <FileUploadUnavailableNotice className="mx-4 mt-4" />
+            )}
+        </AgentChat>
+    );
 
     return (
         <>
-            <AgentChat
-                key={chatKey}
-                className={`w-full h-full`}
-                style={chatBackgroundStyle}
-                agent={agent}
-                onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
-                onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
-                onError={handleError}
-                defaultMessage={defaultMessage}
-                autoExecuteMessage={effectiveAutoExecuteMessage}
-                autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
-                persistenceKey={persistenceKey}
-                onChange={handleMessagesChange}
-                onInputTextChange={onInputTextChange}
-                sendMessage={sendMessage}
-                speechRecognition={speechRecognition}
-                visual="FULL_PAGE"
-                effectConfigs={effectConfigs}
-                soundSystem={soundSystem}
-                thinkingMessages={thinkingMessages}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
-                chatFailMessage={chatFailMessage}
-                promptParameters={promptParameters}
-                onReset={onStartNewChat}
-                resetMode={onStartNewChat ? 'delegate' : undefined}
-                teamAgentProfiles={teamAgentProfiles}
-            />
+            {chatElement}
             <PseudoUserChatDialog
                 isOpen={pendingPseudoUserInteraction !== null}
                 prompt={pendingPseudoUserInteraction?.prompt || ''}
@@ -1177,6 +515,10 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onClose={handleWalletRequestClose}
                 githubApp={{
                     isConfigured: githubAppStatus?.isConfigured === true,
+                    agentPermanentId: currentAgentPermanentId,
+                }}
+                calendarOAuth={{
+                    isConfigured: calendarOAuthStatus?.isConfigured === true,
                     agentPermanentId: currentAgentPermanentId,
                 }}
             />
@@ -1203,6 +545,4 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     );
 }
 
-/**
- * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- */
+// TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future

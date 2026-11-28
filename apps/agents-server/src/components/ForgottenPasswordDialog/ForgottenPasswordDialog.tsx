@@ -4,11 +4,17 @@ import { X } from 'lucide-react';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
+/**
+ * Props for forgotten password dialog.
+ */
 type ForgottenPasswordDialogProps = {
     onClose: () => void;
     adminEmail: string;
 };
 
+/**
+ * Handles forgotten password dialog.
+ */
 export function ForgottenPasswordDialog(props: ForgottenPasswordDialogProps) {
     const { onClose, adminEmail } = props;
     const { t } = useServerLanguage();

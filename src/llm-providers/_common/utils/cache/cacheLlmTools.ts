@@ -1,10 +1,10 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
-import spaceTrim from 'spacetrim';
-import { serializeError } from '../../../../_packages/utils.index';
+import { spaceTrim } from 'spacetrim';
 import { DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../../config';
 import { assertsError } from '../../../../errors/assertsError';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
+import { serializeError } from '../../../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
 import type {
     ChatPromptResult,
@@ -30,6 +30,7 @@ import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
  *
  * @param llmTools LLM tools to be intercepted with usage counting, it can contain extra methods like `totalUsage`
  * @returns Full proxy of LLM tools with same functionality with added caching
+ *
  * @public exported from `@promptbook/core`
  */
 export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(

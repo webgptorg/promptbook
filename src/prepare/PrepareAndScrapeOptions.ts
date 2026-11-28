@@ -1,5 +1,5 @@
 import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
-import type { string_dirname } from '../types/typeAliases';
+import type { string_dirname } from '../types/string_filename';
 
 /**
  * Options for preparation of the pipeline
@@ -53,7 +53,5 @@ export type PrepareAndScrapeOptions = {
     readonly isVerbose?: boolean;
 };
 
-/**
- * TODO: [🧠] Maybe extend from `CommonToolsOptions`
- * TODO: [🧠] Maybe split `PrepareAndScrapeOptions` and `ScrapeOptions` (`ScrapeOptions` should be extended from `PrepareAndScrapeOptions`)
- */
+// TODO: [🧠] Maybe extend from `CommonToolsOptions`
+// TODO: [🧠] Maybe split `PrepareAndScrapeOptions` and `ScrapeOptions` (`ScrapeOptions` should be extended from `PrepareAndScrapeOptions`)

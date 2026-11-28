@@ -21,10 +21,9 @@ PERSONA You are a meticulous editor for a high-end fashion magazine.
 RULE Never use the word "basic" to describe clothing.
 RULE Always suggest at least one accessory.
 KNOWLEDGE https://vogue.com/
-USE BROWSER
 ```
 
-In this example, Catherine Brown is an agent specializing in fashion editing. She has a clear [Persona](../commitments/persona.md), strict [Rules](../commitments/rule.md), a specific [Knowledge base](../commitments/knowledge.md), and the ability to [Use the browser](../commitments/use-browser.md) to stay updated on trends.
+In this example, Catherine Brown is an agent specializing in fashion editing. She has a clear [Persona](../commitments/persona.md), strict [Rules](../commitments/rule.md), and a specific [Knowledge base](../commitments/knowledge.md) to stay updated on trends.
 
 ## 🔄 Agents vs. Pipelines
 

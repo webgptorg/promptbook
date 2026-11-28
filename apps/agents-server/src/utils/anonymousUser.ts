@@ -1,13 +1,22 @@
 import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
 
+/**
+ * Type describing cookie reader.
+ */
 type CookieReader = {
     get(name: string): { value: string } | undefined;
 };
 
+/**
+ * Type describing cookie store.
+ */
 type CookieStore = CookieReader & {
     set?: (cookie: { name: string; value: string; httpOnly?: boolean; path?: string; maxAge?: number }) => void;
 };
 
+/**
+ * Type describing header reader.
+ */
 type HeaderReader = Pick<Headers, 'get'>;
 
 /**
@@ -20,8 +29,17 @@ export const ANONYMOUS_USER_COOKIE_NAME = 'anonymousUsername';
  */
 export const ANONYMOUS_USERNAME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365 * 2;
 
+/**
+ * Prefix for anonymous user.
+ */
 const ANONYMOUS_USER_PREFIX = 'anonymous-';
+/**
+ * Length of anonymous ID.
+ */
 const ANONYMOUS_ID_LENGTH = 14;
+/**
+ * Pattern matching anonymous suffix.
+ */
 const ANONYMOUS_SUFFIX_PATTERN = /^[1-9A-HJ-NP-Za-km-z]+$/;
 
 /**
@@ -70,22 +88,26 @@ export function getAnonymousUsernameFromCookies(cookies: CookieReader): string |
  * Ensures the anonymous username cookie exists and returns its value.
  */
 export function ensureAnonymousUsernameCookie(cookies: CookieStore, preferredUsername?: string): string {
+    const normalizedPreferredUsername =
+        preferredUsername && isAnonymousUsername(preferredUsername) ? preferredUsername : null;
     const existing = getAnonymousUsernameFromCookies(cookies);
+
+    if (normalizedPreferredUsername) {
+        if (existing !== normalizedPreferredUsername) {
+            setAnonymousUsernameCookie(cookies, normalizedPreferredUsername);
+        }
+
+        return normalizedPreferredUsername;
+    }
+
     if (existing) {
         return existing;
     }
 
-    const candidate =
-        preferredUsername && isAnonymousUsername(preferredUsername) ? preferredUsername : generateAnonymousUsername();
-    cookies.set?.({
-        name: ANONYMOUS_USER_COOKIE_NAME,
-        value: candidate,
-        httpOnly: true,
-        path: '/',
-        maxAge: ANONYMOUS_USERNAME_COOKIE_MAX_AGE_SECONDS,
-    });
+    const generatedUsername = generateAnonymousUsername();
+    setAnonymousUsernameCookie(cookies, generatedUsername);
 
-    return candidate;
+    return generatedUsername;
 }
 
 /**
@@ -99,4 +121,17 @@ export function getAnonymousUsernameFromHeaders(headers: HeaderReader): string |
 
     const normalized = value.trim();
     return isAnonymousUsername(normalized) ? normalized : null;
+}
+
+/**
+ * Persists one anonymous username value into cookies.
+ */
+function setAnonymousUsernameCookie(cookies: CookieStore, anonymousUsername: string): void {
+    cookies.set?.({
+        name: ANONYMOUS_USER_COOKIE_NAME,
+        value: anonymousUsername,
+        httpOnly: true,
+        path: '/',
+        maxAge: ANONYMOUS_USERNAME_COOKIE_MAX_AGE_SECONDS,
+    });
 }

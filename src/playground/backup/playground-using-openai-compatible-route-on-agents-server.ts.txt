@@ -46,6 +46,4 @@ async function playground() {
     console.info(`[ Done 🧸  Playground ]`);
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for archived playground [playground-using-openai-compatible-route-on-agents-server.ts](src/playground/backup/playground-using-openai-compatible-route-on-agents-server.ts.txt) should never be published in any package */

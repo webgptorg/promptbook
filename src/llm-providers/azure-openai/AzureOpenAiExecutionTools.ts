@@ -1,4 +1,4 @@
-import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
+import type { OpenAIClient } from '@azure/openai';
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
@@ -12,15 +12,13 @@ import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    string_completion_prompt,
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_name,
-    string_title,
-} from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_completion_prompt } from '../../types/string_prompt';
+import type { string_title } from '../../types/string_title';
+import type { string_date_iso8601 } from '../../types/string_token';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
+import { createLazyModuleLoader } from '../../utils/misc/createLazyModuleLoader';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -37,6 +35,15 @@ const AZURE_OPENAI_PROVIDER_PROFILE: ChatParticipant = {
 } as const;
 
 keepTypeImported<Usage>();
+
+/**
+ * Loads the Azure OpenAI SDK (`@azure/openai`) on demand
+ *
+ * Note: [🐌] Loaded lazily to keep the startup of the `ptbk` CLI utility fast
+ *
+ * @private internal utility of `AzureOpenAiExecutionTools`
+ */
+const loadAzureOpenAiModule = createLazyModuleLoader(() => import('@azure/openai'));
 
 /**
  * Execution Tools for calling Azure OpenAI API.
@@ -80,6 +87,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
 
     public async getClient(): Promise<OpenAIClient> {
         if (this.client === null) {
+            const { AzureKeyCredential, OpenAIClient } = await loadAzureOpenAiModule();
+
             this.client = new OpenAIClient(
                 `https://${this.options.resourceName}.openai.azure.com/`,
                 new AzureKeyCredential(this.options.apiKey),
@@ -398,9 +407,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
     }
 }
 
-/**
- * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom AzureOpenAiError
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- */
+// TODO: Maybe Create some common util for callChatModel and callCompletionModel
+// TODO: Maybe make custom AzureOpenAiError
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes

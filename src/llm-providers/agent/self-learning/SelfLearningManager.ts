@@ -1,7 +1,6 @@
 import colors from 'colors';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { linguisticHash, unwrapResult } from '../../../_packages/utils.index';
 import { extractOpenTeacherInstructions } from '../../../book-2.0/agent-source/extractOpenTeacherInstructions';
 import { padBook } from '../../../book-2.0/agent-source/padBook';
 import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
@@ -9,9 +8,10 @@ import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
 import type { Prompt } from '../../../types/Prompt';
-import type { ToolCall } from '../../../types/ToolCall';
-import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary } from '../../../types/ToolCall';
-import type { string_prompt } from '../../../types/typeAliases';
+import type { string_prompt } from '../../../types/string_prompt';
+import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary, ToolCall } from '../../../types/ToolCall';
+import { linguisticHash } from '../../../utils/linguistic-hash/linguisticHash';
+import { unwrapResult } from '../../../utils/normalization/unwrapResult';
 import { just } from '../../../utils/organization/just';
 
 /**
@@ -217,6 +217,7 @@ export class SelfLearningManager {
 
                 - Decide what the agent should learn from this interaction.
                 - Append new commitments at the end of the agent source.
+                - Return only newly learned commitments, never repeat commitments that are already present.
                 - Do not modify the current agent source, just return new commitments (KNOWLEDGE, RULE, etc.).
                 - If there is nothing new to learn, return empty book code block
                 - Wrap the commitments in a book code block.
@@ -233,6 +234,7 @@ export class SelfLearningManager {
                             - The agent source does not have an INITIAL MESSAGE defined, generate one.
                             - The INITIAL MESSAGE should be welcoming, informative about the agent capabilities and also should give some quick options to start the conversation with the agent.
                             - The quick option looks like \`[👋 Hello](?message=Hello, how are you?)\`
+                            - A browser action option looks like \`[🖨️ Print](?action=window.print%28%29)\` and runs only after the user clicks it.
                         `)
                         : // <- TODO: !!!!!!!! Is this working as intended
                           '',
@@ -282,9 +284,48 @@ export class SelfLearningManager {
      */
     private appendToAgentSource(section: string): void {
         const currentSource = this.options.getAgentSource();
-        const newSource = padBook(validateBook(spaceTrim(currentSource) + section));
+        const normalizedSection = normalizeBookSection(section);
+        if (!normalizedSection) {
+            return;
+        }
+
+        if (containsNormalizedBookSection(currentSource, normalizedSection)) {
+            return;
+        }
+
+        const newSource = padBook(validateBook(`${normalizeBookSection(currentSource)}\n\n${normalizedSection}`));
         this.options.updateAgentSource(newSource as string_book);
     }
+}
+
+/**
+ * Normalizes one book fragment for deduplication and append composition.
+ *
+ * @param section Raw fragment from self-learning workflow.
+ * @returns Trimmed fragment, or empty string when nothing remains.
+ *
+ * @private function of Agent
+ */
+function normalizeBookSection(section: string): string {
+    return spaceTrim(section).replace(/\r\n/g, '\n');
+}
+
+/**
+ * Checks whether one normalized fragment already exists inside the current source.
+ *
+ * @param agentSource Current source.
+ * @param normalizedSection Candidate fragment expected to be normalized first.
+ * @returns True when appending would duplicate an existing fragment.
+ *
+ * @private function of Agent
+ */
+function containsNormalizedBookSection(agentSource: string_book, normalizedSection: string): boolean {
+    if (!normalizedSection) {
+        return true;
+    }
+
+    const normalizedSource = normalizeBookSection(agentSource);
+    return normalizedSource.includes(normalizedSection);
 }
 
 /**
@@ -292,6 +333,7 @@ export class SelfLearningManager {
  *
  * @param responseFormat Prompt response format requirements
  * @returns True when JSON schema mode is active
+ *
  * @private function of Agent
  */
 function isJsonSchemaResponseFormat(
@@ -306,6 +348,7 @@ function isJsonSchemaResponseFormat(
  * @param content Original agent answer content
  * @param isJsonMode Whether the interaction requested JSON schema output
  * @returns Agent answer, wrapped in a formatted JSON code block when possible
+ *
  * @private function of Agent
  */
 function formatAgentMessageForJsonMode(content: string, isJsonMode: boolean): string {
@@ -338,6 +381,7 @@ function formatAgentMessageForJsonMode(content: string, isJsonMode: boolean): st
  *
  * @param content Text to parse as JSON
  * @returns Parsed JSON value or null when parsing fails
+ *
  * @private function of Agent
  */
 function tryParseJson(content: string): unknown | null {
@@ -353,6 +397,7 @@ function tryParseJson(content: string): unknown | null {
  *
  * @param options - Normalized sample parts.
  * @returns Book-language sample section ready to append into agent source.
+ *
  * @private function of Agent
  */
 function formatSelfLearningSample(options: {
@@ -382,6 +427,7 @@ function formatSelfLearningSample(options: {
  *
  * @param internalMessage Internal trace payload.
  * @returns Book-language INTERNAL MESSAGE block.
+ *
  * @private function of Agent
  */
 function formatInternalLearningMessage(internalMessage: InternalLearningMessagePayload): string {
@@ -398,6 +444,7 @@ function formatInternalLearningMessage(internalMessage: InternalLearningMessageP
  *
  * @param result Final chat result used in self-learning.
  * @returns Internal payloads that capture request/response/tool-call context.
+ *
  * @private function of Agent
  */
 function buildInternalLearningMessages(result: ChatPromptResult): Array<InternalLearningMessagePayload> {
@@ -430,6 +477,7 @@ function buildInternalLearningMessages(result: ChatPromptResult): Array<Internal
  *
  * @param toolCall Tool call produced during execution.
  * @returns Sanitized and serializable tool-call payload.
+ *
  * @private function of Agent
  */
 function sanitizeToolCallForLearning(toolCall: ToolCall): Record<string, unknown> {
@@ -450,6 +498,7 @@ function sanitizeToolCallForLearning(toolCall: ToolCall): Record<string, unknown
  *
  * @param payload Internal payload to serialize.
  * @returns Pretty JSON string that can be embedded in BOOK.
+ *
  * @private function of Agent
  */
 function stringifyInternalLearningPayload(payload: unknown): string {
@@ -513,6 +562,7 @@ function createEmptySelfLearningCommitmentCounts(): MutableSelfLearningCommitmen
  * Normalizes teacher commitments into trimmed, display-ready lines.
  *
  * @param commitments Raw teacher output
+ *
  * @private function of Agent
  */
 function getTeacherCommitmentLines(commitments: string): Array<string> {
@@ -526,6 +576,7 @@ function getTeacherCommitmentLines(commitments: string): Array<string> {
  * Summarizes teacher commitment lines into user-friendly counts for self-learning.
  *
  * @param lines Parsed teacher commitment lines
+ *
  * @private function of Agent
  */
 function summarizeTeacherCommitmentLines(lines: ReadonlyArray<string>): SelfLearningCommitmentTypeCounts {
@@ -559,6 +610,7 @@ function summarizeTeacherCommitmentLines(lines: ReadonlyArray<string>): SelfLear
  * @param commitments Raw teacher commitments
  * @param used Whether the teacher was invoked
  * @returns Summary of learned commitments
+ *
  * @private function of Agent
  */
 function buildTeacherSummary(commitments: string, used: boolean): SelfLearningTeacherSummary {

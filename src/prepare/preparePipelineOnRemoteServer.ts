@@ -9,11 +9,11 @@ import type { RemoteClientOptions } from '../remote-server/types/RemoteClientOpt
 /**
  * Prepare pipeline on remote server
  *
- * @see https://github.com/webgptorg/promptbook/discussions/196
- *
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process
  * Note: When the pipeline is already prepared, it returns the same pipeline
+ *
+ * @see https://github.com/webgptorg/promptbook/discussions/196
  *
  * @public exported from `@promptbook/remote-client`
  */
@@ -48,6 +48,4 @@ export async function preparePipelineOnRemoteServer<TCustomOptions = undefined>(
     return preparedPipeline;
 }
 
-/**
- * TODO: [🐚] Do not return `Promise<PipelineJson>` But `PreparationTask`
- */
+// TODO: [🐚] Do not return `Promise<PipelineJson>` But `PreparationTask`

@@ -4,7 +4,6 @@ import type { Message } from '../../../../src/types/Message';
 import type { OutboundEmail } from '../message-providers/email/_common/Email';
 import { parseEmailAddresses } from '../message-providers/email/_common/utils/parseEmailAddresses';
 import { SmtpMessageProvider } from '../message-providers/email/smtp/SmtpMessageProvider';
-import { humanizeOutboundEmail } from '../utils/messages/humanizeOutboundEmail';
 import { parseUseEmailSmtpCredential } from '../utils/messages/parseUseEmailSmtpCredential';
 import { isSendMessageDeliveryError, sendMessage, type SendMessageResult } from '../utils/messages/sendMessage';
 import {
@@ -15,7 +14,7 @@ import {
 } from '../utils/useEmailSmtpWalletConstants';
 
 /**
- * Hidden runtime context shape used by USE EMAIL server tool.
+ * Hidden runtime context shape used by the `send_email` server tool.
  */
 type UseEmailRuntimeContext = {
     email?: {
@@ -82,7 +81,7 @@ export async function send_email(args: SendEmailToolArgs): Promise<string> {
     }
 
     const smtpCredential = parseUseEmailSmtpCredential(smtpCredentialRaw);
-    const email = humanizeOutboundEmail(normalizeSendEmailPayload(args, smtpCredential.fromAddress || defaultFromAddress));
+    const email = normalizeSendEmailPayload(args, smtpCredential.fromAddress || defaultFromAddress);
     const smtpProvider = new SmtpMessageProvider({
         host: smtpCredential.host,
         port: smtpCredential.port,
@@ -111,7 +110,7 @@ export async function send_email(args: SendEmailToolArgs): Promise<string> {
 }
 
 /**
- * Builds wallet-required result payload for USE EMAIL.
+ * Builds wallet-required result payload for the `send_email` server tool.
  */
 function createEmailWalletCredentialRequiredResult(
     defaultFromAddress?: string,
@@ -171,7 +170,7 @@ function normalizeSendEmailPayload(args: SendEmailToolArgs, fallbackFromAddress?
     const sender = normalizeNonEmptyString(normalizedMessage?.sender) || fallbackFromAddress;
 
     if (!sender) {
-        throw new Error('Sender email is missing. Configure sender in USE EMAIL or in SMTP credential.');
+        throw new Error('Sender email is missing. Configure the sender in the SMTP credential.');
     }
     if (!recipientsInput || recipientsInput.length === 0) {
         throw new Error('At least one recipient email address is required.');

@@ -2,12 +2,14 @@
 
 import { CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
-import { string_css_class } from '../../types/typeAliases';
+import type { string_css_class } from '../../types/string_markdown';
 import { just } from '../../utils/organization/just';
 import { PromptbookAgentSeamlessIntegration } from './PromptbookAgentSeamlessIntegration';
 
 /**
- * @private props of PromptbookAgentIntegration component
+ * Props of PromptbookAgentIntegration component.
+ *
+ * @private
  */
 export type PromptbookAgentIntegrationProps = {
     /**
@@ -132,7 +134,5 @@ export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProp
     }
 }
 
-/**
- * TODO: !!! Load the full branding
- * TODO: !!! <promptbook-agent> element
- */
+// TODO: !!! Load the full branding
+// TODO: !!! <promptbook-agent> element

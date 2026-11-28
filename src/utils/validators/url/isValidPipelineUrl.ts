@@ -1,4 +1,4 @@
-import type { string_pipeline_url } from '../../../types/typeAliases';
+import type { string_pipeline_url } from '../../../types/string_pipeline_url';
 import type { really_unknown } from '../../organization/really_unknown';
 import { isValidUrl } from './isValidUrl';
 
@@ -36,6 +36,4 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
     return true;
 }
 
-/**
- * TODO: [🐠] Maybe more info why the URL is invalid
- */
+// TODO: [🐠] Maybe more info why the URL is invalid

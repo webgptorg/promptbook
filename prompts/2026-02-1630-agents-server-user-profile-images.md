@@ -1,7 +1,13 @@
 [x] ~$0.30 9 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
+
+---
+
+[ ]
+
 [✨🧋] Allow users to set their profile image
 
+- @@@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of the logged user profile before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)

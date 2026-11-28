@@ -3,8 +3,8 @@ import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href } from '../../types/string_href';
+import type { string_name } from '../../types/string_name';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../../utils/normalization/titleToName';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -146,10 +146,8 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
     return promptbookMermaid;
 }
 
-/**
- * TODO: [🧠] FOREACH in mermaid graph
- * TODO: [🧠] Knowledge in mermaid graph
- * TODO: [🧠] Personas in mermaid graph
- * TODO: Maybe use some Mermaid package instead of string templating
- * TODO: [🕌] When more than 2 functionalities, split into separate functions
- */
+// TODO: [🧠] FOREACH in mermaid graph
+// TODO: [🧠] Knowledge in mermaid graph
+// TODO: [🧠] Personas in mermaid graph
+// TODO: Maybe use some Mermaid package instead of string templating
+// TODO: [🕌] When more than 2 functionalities, split into separate functions

@@ -112,6 +112,10 @@ export type AgentOrganizationLoadOptions = {
      * Whether private agents should be returned even when no user session is present.
      */
     includePrivate?: boolean;
+    /**
+     * Forces the loader to skip the short-lived active snapshot cache.
+     */
+    bypassCache?: boolean;
 };
 
 /**

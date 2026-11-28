@@ -1,7 +1,16 @@
 'use server';
+import type { Metadata, ResolvingMetadata } from 'next';
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import type { AgentProjectItemInfo } from '@/src/components/AgentProjects/AgentProjectReferencesList';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { resolveAgentAccess } from '@/src/utils/agentAccess';
+import { resolveAgentChatProjectReferences } from '@/src/utils/agentProjects/resolveAgentChatProjectReferences';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { isUserGlobalAdmin } from '@/src/utils/isUserGlobalAdmin';
+import { peekShareTargetPayload } from '@/src/utils/shareTargetPayloads';
+import { getThinkingMessages, resolveThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -10,10 +19,23 @@ import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { PrintHeader } from '../../../../components/PrintHeader/PrintHeader';
 import { resolveAgentRouteTarget } from '../../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentName, getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
+import { FORCE_NEW_CHAT_QUERY_VALUE } from '../agentChatNavigationUtils';
 import { AgentChatHistoryClient } from './AgentChatHistoryClient';
+import { generateChatMetadata } from './generateChatMetadata';
 
-export const generateMetadata = generateAgentMetadata;
+/**
+ * Generates chat-page metadata that overrides the shared agent-name route title.
+ *
+ * @param _props - Route props required by Next.js metadata signature.
+ * @param parent - Resolved inherited metadata from parent layouts.
+ * @returns Metadata for the standalone agent chat route.
+ */
+export async function generateMetadata(
+    _props: { params: Promise<{ agentName: string }> },
+    parent: ResolvingMetadata,
+): Promise<Metadata> {
+    return generateChatMetadata(parent);
+}
 
 /**
  * Builds canonical standalone chat path while preserving supported query parameters.
@@ -24,7 +46,7 @@ export const generateMetadata = generateAgentMetadata;
  */
 function buildCanonicalAgentChatPath(
     canonicalAgentId: string,
-    search: { headless?: string; chat?: string; message?: string; newChat?: string },
+    search: { headless?: string; chat?: string; message?: string; newChat?: string; shareTarget?: string },
 ): string {
     const params = new URLSearchParams();
     if (search.headless !== undefined) {
@@ -39,24 +61,43 @@ function buildCanonicalAgentChatPath(
     if (search.newChat !== undefined) {
         params.set('newChat', search.newChat);
     }
+    if (search.shareTarget !== undefined) {
+        params.set('shareTarget', search.shareTarget);
+    }
 
     const query = params.toString();
     const pathname = `/agents/${encodeURIComponent(canonicalAgentId)}/chat`;
     return query ? `${pathname}?${query}` : pathname;
 }
 
+/**
+ * Handles agent chat page.
+ */
 export default async function AgentChatPage({
     params,
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ headless?: string; message?: string; chat?: string; newChat?: string }>;
+    searchParams: Promise<{
+        headless?: string;
+        message?: string;
+        chat?: string;
+        newChat?: string;
+        shareTarget?: string;
+    }>;
 }) {
-    const requestHeaders = await headers();
+    const requestHeadersPromise = headers();
+    const [agentName, currentSearchParams, requestHeaders] = await Promise.all([
+        getAgentName(params),
+        searchParams,
+        requestHeadersPromise,
+    ]);
     $sideEffect(requestHeaders);
-    const agentName = await getAgentName(params);
-    const currentSearchParams = await searchParams;
-    const { headless, message, chat, newChat } = currentSearchParams;
+    const { headless, message, chat, newChat, shareTarget } = currentSearchParams;
+    const isHeadless = headless !== undefined;
+
+    const isForcedNewChat = chat === FORCE_NEW_CHAT_QUERY_VALUE || parseBooleanFlag(newChat);
+    const effectiveChatId = chat === FORCE_NEW_CHAT_QUERY_VALUE ? undefined : chat;
 
     const routeTarget = await resolveAgentRouteTarget(agentName);
     if (routeTarget === null) {
@@ -76,9 +117,29 @@ export default async function AgentChatPage({
         redirect(buildCanonicalAgentChatPath(canonicalAgentId, currentSearchParams));
     }
 
-    const isDeleted = await isAgentDeleted(canonicalAgentId);
-    const agentProfile = await getAgentProfile(canonicalAgentId);
-    const isHeadless = headless !== undefined;
+    const access = await resolveAgentAccess(canonicalAgentId);
+    if (!access.isAllowed) {
+        return <ForbiddenPage />;
+    }
+
+    const isDeletedPromise = isAgentDeleted(canonicalAgentId);
+    const agentProfilePromise = getAgentProfile(canonicalAgentId);
+    const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
+    const currentUserPromise = getCurrentUser();
+    const chatConfigurationPromise = loadChatConfiguration();
+    const serverThinkingMessagesPromise = getThinkingMessages();
+    const providedServerPromise = $provideServer();
+    const agentProjectReferencesPromise = isHeadless
+        ? Promise.resolve<ReadonlyArray<AgentProjectItemInfo>>([])
+        : resolveAgentChatProjectReferences({ agentPermanentId: canonicalAgentId });
+    const shareTargetPayloadPromise = shareTarget
+        ? peekShareTargetPayload({
+              shareTargetId: shareTarget,
+              agentPermanentId: canonicalAgentId,
+          })
+        : Promise.resolve(null);
+
+    const isDeleted = await isDeletedPromise;
 
     if (isDeleted) {
         return (
@@ -88,37 +149,64 @@ export default async function AgentChatPage({
         );
     }
 
-    const agentUrl = `/agents/${encodeURIComponent(canonicalAgentId)}`;
-    const thinkingMessages = await getThinkingMessages();
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const historyIdentityAvailable = await ensureChatHistoryIdentity();
-    const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
+    const [
+        agentProfile,
+        historyIdentityAvailable,
+        currentUser,
+        { isFileAttachmentsEnabled, feedbackMode },
+        serverThinkingMessages,
+        { publicUrl },
+        agentProjectReferences,
+        shareTargetPayload,
+        isCurrentUserSuperAdmin,
+    ] = await Promise.all([
+        agentProfilePromise,
+        historyIdentityAvailablePromise,
+        currentUserPromise,
+        chatConfigurationPromise,
+        serverThinkingMessagesPromise,
+        providedServerPromise,
+        agentProjectReferencesPromise,
+        shareTargetPayloadPromise,
+        isUserGlobalAdmin(),
+    ]);
+    const thinkingMessages = resolveThinkingMessages(agentProfile.thinkingMessages, serverThinkingMessages);
+    const agentUrl = new URL(`/agents/${encodeURIComponent(canonicalAgentId)}`, publicUrl).href;
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
+    const inputPlaceholder = agentProfile.meta.inputPlaceholder?.trim() || undefined;
+    const initialAutoExecuteMessage = shareTargetPayload?.message || message;
+    const initialAutoExecuteMessageAttachments = shareTargetPayload?.attachments;
 
     return (
-        <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface print-export-chat-surface`}>
+        <main className={`agents-server-chat-route relative agent-chat-route-surface print-export-chat-surface`}>
             <PrintHeader title={`Chat with ${agentDisplayName}`} />
             <AgentChatHistoryClient
                 agentName={canonicalAgentId}
+                agentTitle={agentDisplayName}
                 agentUrl={agentUrl}
-                initialAutoExecuteMessage={message}
-                initialChatId={chat}
-                initialForceNewChat={parseBooleanFlag(newChat)}
+                initialAutoExecuteMessage={initialAutoExecuteMessage}
+                initialAutoExecuteMessageAttachments={initialAutoExecuteMessageAttachments}
+                initialShareTargetId={shareTargetPayload?.id}
+                initialChatId={effectiveChatId}
+                initialForceNewChat={isForcedNewChat}
+                initialAgentMessage={agentProfile.initialMessage}
                 brandColor={agentProfile.meta.color}
+                inputPlaceholder={inputPlaceholder}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isHistoryEnabled={historyIdentityAvailable}
-                chatFailMessage={chatFailMessage ?? undefined}
+                isCurrentUserAdmin={currentUser?.isAdmin === true}
+                isCurrentUserSuperAdmin={isCurrentUserSuperAdmin}
+                projectReferences={agentProjectReferences}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
+                feedbackMode={feedbackMode}
                 isHeadlessMode={isHeadless}
             />
         </main>
     );
 }
 
-/**
- * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
- */
+// TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents

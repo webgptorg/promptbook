@@ -1,12 +1,10 @@
-import type {
-    string_agent_hash,
-    string_agent_name,
-    string_agent_permanent_id,
-    string_agent_url,
-    string_color,
-    string_fonts,
-    string_url_image,
-} from '../../types/typeAliases';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
+import type { string_agent_hash, string_agent_name, string_agent_permanent_id } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_url_image } from '../../types/string_url_image';
+import type { AgentVisibility } from './agentSourceVisibility';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -38,27 +36,23 @@ export type BookParameter = {
 
 /**
  * Capability of the agent
- * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+ * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
  */
 export type AgentCapability = {
     /**
      * The type of the capability
      */
     type:
-        | 'browser'
-        | 'search-engine'
         | 'knowledge'
-        | 'time'
         | 'user-location'
         | 'inheritance'
         | 'import'
         | 'image-generator'
         | 'team'
-        | 'email'
         | 'popup'
         | 'privacy'
         | 'project'
-        | 'wallet';
+        | 'calendar';
 
     /**
      * The label to display for this capability
@@ -79,6 +73,9 @@ export type AgentCapability = {
     // <- Note: When creating new capabilities, look for [🪀] to add new icons
 };
 
+/**
+ * Information about agent basic.
+ */
 export type AgentBasicInformation = {
     /**
      * Name of the agent
@@ -99,7 +96,8 @@ export type AgentBasicInformation = {
 
     /**
      * Optional description of the agent
-     * This is the line starting with "PERSONA"
+     * This is derived from the last `GOAL` / `GOALS` commitment,
+     * falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.
      */
     personaDescription: string | null;
     // <- TODO: [🕛][🧠]  Maybe rename to just `description`
@@ -111,6 +109,14 @@ export type AgentBasicInformation = {
     initialMessage: string | null;
 
     /**
+     * Optional custom thinking placeholder variants shown while this agent is composing a reply.
+     *
+     * This is derived from `META THINKING MESSAGE` commitments.
+     * Multiple commitments are preserved as multiple variants.
+     */
+    thinkingMessages?: Array<string>;
+
+    /**
      * Metadata commitments parsed from META lines
      * Each META commitment has the format "META TYPE content"
      * When there are multiple meta commitments of the same type, later overrides earlier
@@ -119,12 +125,15 @@ export type AgentBasicInformation = {
         fullname?: string;
         description?: string;
         disclaimer?: string;
+        inputPlaceholder?: string;
         messageSuffix?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
         domain?: string;
         font?: string_fonts;
         color?: string_color;
         voice?: string;
+        visibility?: AgentVisibility;
         [key: string]: string | undefined;
     };
 
@@ -145,7 +154,7 @@ export type AgentBasicInformation = {
 
     /**
      * Capabilities of the agent
-     * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+     * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
      */
     capabilities: Array<AgentCapability>;
 
@@ -162,7 +171,5 @@ export type AgentBasicInformation = {
     knowledgeSources: Array<{ url: string; filename: string }>;
 };
 
-/**
- * TODO: [🐱‍🚀] Make all properties of `AgentBasicInformation` readonly
- * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
+// TODO: [🐱‍🚀] Make all properties of `AgentBasicInformation` readonly
+// TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

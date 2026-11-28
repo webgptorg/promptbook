@@ -1,53 +1,21 @@
 import { getMetadataMap } from '@/src/database/getMetadata';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    resolveDefaultAgentAvatarVisualId,
+} from '@/src/constants/defaultAgentAvatarVisual';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { resolveTeamCapabilitiesFromAgentSource } from '@/src/utils/agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
+import { createAgentForbiddenResponse, resolveAgentAccess } from '@/src/utils/agentAccess';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { computeAgentHash } from '@promptbook-local/core';
-import { AgentCapability } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { resolveAgentAvatarVisualId } from '../../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 
 /**
- * Replaces TEAM capabilities with resolver-backed entries while preserving capability order.
- *
- * @param capabilities - Original capability list parsed from agent source.
- * @param resolvedTeamCapabilities - TEAM capabilities resolved with compact references expanded.
- * @returns Capability list with TEAM entries replaced by resolved values.
+ * Handles options.
  */
-function mergeTeamCapabilities(
-    capabilities: ReadonlyArray<AgentCapability>,
-    resolvedTeamCapabilities: ReadonlyArray<AgentCapability>,
-): Array<AgentCapability> {
-    if (resolvedTeamCapabilities.length === 0) {
-        return [...capabilities];
-    }
-
-    const mergedCapabilities: Array<AgentCapability> = [];
-    let hasInsertedResolvedTeams = false;
-
-    for (const capability of capabilities) {
-        if (capability.type === 'team') {
-            if (!hasInsertedResolvedTeams) {
-                mergedCapabilities.push(...resolvedTeamCapabilities);
-                hasInsertedResolvedTeams = true;
-            }
-            continue;
-        }
-
-        mergedCapabilities.push(capability);
-    }
-
-    if (!hasInsertedResolvedTeams) {
-        mergedCapabilities.push(...resolvedTeamCapabilities);
-    }
-
-    return mergedCapabilities;
-}
-
 export async function OPTIONS(request: Request) {
     keepUnused(request);
     return new Response(null, {
@@ -55,46 +23,56 @@ export async function OPTIONS(request: Request) {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Promptbook-Team-Agent-Access-Token',
         },
     });
 }
 
+/**
+ * Handles get.
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    keepUnused(request /* <- Note: We dont need `request` parameter */);
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
 
     try {
+        const access = await resolveAgentAccess(agentName, { request, allowTeamInternalAccess: true });
+        if (!access.isAllowed && access.visibility !== null) {
+            return createAgentForbiddenResponse();
+        }
+
         const collection = await $provideAgentCollectionForServer();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveBookScopedAgentContext({
+        const resolvedAgentContext = await resolveServerAgentContext({
             collection,
             agentIdentifier: agentName,
             localServerUrl: new URL(request.url).origin,
             fallbackResolver: baseAgentReferenceResolver,
         });
         const agentSource = resolvedAgentContext.resolvedAgentSource;
-        const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-        const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
-        const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
-            adamAgentUrl,
-            agentReferenceResolver,
-        });
-        const resolvedTeamCapabilities = await resolveTeamCapabilitiesFromAgentSource(agentSource, agentReferenceResolver);
-
-        agentProfile.capabilities = mergeTeamCapabilities(agentProfile.capabilities, resolvedTeamCapabilities);
+        const agentProfile = { ...resolvedAgentContext.resolvedAgentProfile };
 
         const metadata = await getMetadataMap([
             'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
             'IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED',
+            DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
         ]);
         const agentHash = computeAgentHash(agentSource);
         const isVoiceCallingEnabled = metadata.IS_EXPERIMENTAL_VOICE_CALLING_ENABLED === 'true';
         const isVoiceTtsSttEnabled = metadata.IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED === 'true';
+        const isMetaImageExplicit = Boolean(agentProfile.meta.image);
+        const canonicalAgentId = agentProfile.permanentId || agentName;
+        const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
+            metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
+        );
+        const agentAvatarVisualId = resolveAgentAvatarVisualId(agentProfile, defaultAgentAvatarVisualId);
+        const defaultAvatarImageUrl =
+            !isMetaImageExplicit && !resolvedAgentContext.isBookScopedAgent
+                ? `/agents/${encodeURIComponent(canonicalAgentId)}/images/default-avatar.png`
+                : undefined;
 
-        if (!agentProfile.meta.image && !resolvedAgentContext.isBookScopedAgent) {
-            agentProfile.meta.image = `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`;
+        if (defaultAvatarImageUrl) {
+            agentProfile.meta.image = defaultAvatarImageUrl;
         }
 
         return new Response(
@@ -107,6 +85,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     isVoiceTtsSttEnabled, // [✨✷] Add TTS/STT availability
                     toolTitles: agentProfile.meta.toolTitles || {}, // <- [🧠] Should we have this in meta?
                     knowledgeSources: agentProfile.knowledgeSources || [], // <- [📚] Explicitly include knowledge sources for citation resolution
+                    isMetaImageExplicit,
+                    avatarVisualId: isMetaImageExplicit ? undefined : agentAvatarVisualId,
                 },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
@@ -142,6 +122,4 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     }
 }
 
-/**
- * TODO: [🍞] DRY - Make some common utility for API on one agent
- */
+// TODO: [🍞] DRY - Make some common utility for API on one agent

@@ -13,7 +13,5 @@ import { createPdfScraper } from './createPdfScraper';
  */
 export const _PdfScraperRegistration: Registration = $scrapersRegister.register(createPdfScraper);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

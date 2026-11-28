@@ -1,11 +1,13 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import type { string_javascript_name } from '../../types/string_person_fullname';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
-import { readToolRuntimeContextFromToolArgs, type UserLocationRuntimeContext } from '../_common/toolRuntimeContext';
+import type { UserLocationRuntimeContext } from '../_common/toolRuntimeContext';
+import { readToolRuntimeContextFromToolArgs } from '../_common/toolRuntimeContext';
 
 /**
  * Tool name used by the USE USER LOCATION commitment.
@@ -218,10 +220,11 @@ export class UseUserLocationCommitmentDefinition extends BaseCommitmentDefinitio
             },
             spaceTrim(
                 (block) => `
-                    User location:
-                    - Use "${GET_USER_LOCATION_TOOL_NAME}" only when location is needed for a better answer.
-                    - If the tool returns "unavailable" or "permission-denied", ask user to share location or provide city manually.
-                    - Do not invent coordinates or local facts when location is unavailable.
+                    ## User location
+
+                    -   Use \`${GET_USER_LOCATION_TOOL_NAME}\` only when location is needed for a better answer.
+                    -   If the tool returns "unavailable" or "permission-denied", ask user to share location or provide city manually.
+                    -   Do not invent coordinates or local facts when location is unavailable.
                     ${block(extraInstructions)}
                 `,
             ),
@@ -271,6 +274,4 @@ export class UseUserLocationCommitmentDefinition extends BaseCommitmentDefinitio
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

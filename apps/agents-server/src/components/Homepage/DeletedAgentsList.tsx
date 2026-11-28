@@ -5,9 +5,13 @@ import { useState } from 'react';
 import { showAlert, showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
+/**
+ * Props for deleted agents list.
+ */
 type DeletedAgentsListProps = {
     /**
      * List of deleted agents available for restoration
@@ -25,6 +29,9 @@ type DeletedAgentsListProps = {
     readonly publicUrl: URL;
 };
 
+/**
+ * Handles deleted agents list.
+ */
 export function DeletedAgentsList(props: DeletedAgentsListProps) {
     const { agents: initialAgents, isAdmin, publicUrl } = props;
     const [agents, setAgents] = useState(Array.from(initialAgents));
@@ -73,7 +80,7 @@ export function DeletedAgentsList(props: DeletedAgentsListProps) {
                     key={agent.permanentId || agent.agentName}
                     agent={agent}
                     publicUrl={publicUrl.href}
-                    href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
+                    href={buildFreshAgentChatHref(agent.permanentId || agent.agentName)}
                     isAdmin={isAdmin}
                     onRestore={handleRestore}
                 />

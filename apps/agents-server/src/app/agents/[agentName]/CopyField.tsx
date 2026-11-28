@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
+/**
+ * Props for copy field.
+ */
 type CopyFieldProps = {
     label: string;
     value: string;
@@ -10,6 +13,7 @@ type CopyFieldProps = {
 
 /**
  * Renders a read-only secret value with copy and visibility toggle controls.
+ *
  * @private Used inside the agent integration UI to guard API tokens.
  */
 export function CopyField({ label, value }: CopyFieldProps) {

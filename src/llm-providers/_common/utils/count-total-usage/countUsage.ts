@@ -21,6 +21,7 @@ import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTot
  *
  * @param llmTools - The LLM tools to be intercepted and tracked
  * @returns Full proxy of the tools with added usage tracking capabilities
+ *
  * @public exported from `@promptbook/core`
  */
 export function countUsage<TLlmTools extends LlmExecutionTools>(

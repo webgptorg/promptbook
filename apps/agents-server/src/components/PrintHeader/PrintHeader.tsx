@@ -1,5 +1,7 @@
 import { formatAgentNamingText } from '../../utils/agentNaming';
 import { getAgentNaming } from '../../utils/getAgentNaming';
+import { formatServerLanguageHumanReadableDate } from '../../utils/localization/formatServerLanguageHumanReadableDate';
+import { getRequestServerLanguage } from '../../utils/localization/getRequestServerLanguage';
 
 /**
  * Renders a print-only header with server branding.
@@ -8,7 +10,7 @@ import { getAgentNaming } from '../../utils/getAgentNaming';
  * @returns Print header markup.
  */
 export async function PrintHeader({ title }: { title?: string }) {
-    const agentNaming = await getAgentNaming();
+    const [agentNaming, language] = await Promise.all([getAgentNaming(), getRequestServerLanguage()]);
     return (
         <div className="hidden print:block mb-6 border-b-2 border-blue-600 pb-2">
             <div className="flex justify-between items-end">
@@ -23,7 +25,7 @@ export async function PrintHeader({ title }: { title?: string }) {
                 {title && <h2 className="text-lg font-semibold text-gray-700">{title}</h2>}
             </div>
             <div className="text-xs text-gray-400 mt-1 text-right">
-                {new Date().toLocaleDateString()}
+                {formatServerLanguageHumanReadableDate(new Date(), language, { isExactDateIncluded: true })}
             </div>
         </div>
     );

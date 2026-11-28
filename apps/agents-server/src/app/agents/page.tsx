@@ -2,12 +2,11 @@
 
 import HomePage from '../page';
 
-export default async function AgentsPage(props: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-    return <HomePage searchParams={props.searchParams} />;
+/**
+ * Handles agents page.
+ */
+export default async function AgentsPage() {
+    return <HomePage />;
 }
 
-/**
- * TODO: [🐱‍🚀] Distinguish between `/` and `/agents` pages
- */
+// TODO: [🐱‍🚀] Distinguish between `/` and `/agents` pages

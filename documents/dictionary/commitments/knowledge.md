@@ -34,5 +34,4 @@ In this example, Catherine has access to an online manual and specific brand col
 ## Related Concepts
 
 -   [**Agent**](../core/agent.md)
--   [**USE BROWSER**](./use-browser.md)
 -   [**Scraping**](../technical/scraping.md)

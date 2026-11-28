@@ -1,10 +1,11 @@
-import type { string_filename } from '../../../types/typeAliases';
+import type { string_filename } from '../../../types/string_filename';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**
  * Tests if given string is valid file path.
  *
  * Note: This does not check if the file exists only if the path is valid
+ *
  * @public exported from `@promptbook/utils`
  */
 export function isValidFilePath(filename: really_unknown): filename is string_filename {
@@ -64,6 +65,4 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
     return false;
 }
 
-/**
- * TODO: [🍏] Implement for MacOs
- */
+// TODO: [🍏] Implement for MacOs

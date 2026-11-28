@@ -1,5 +1,5 @@
 import type { PipelineJson } from './pipeline/PipelineJson/PipelineJson';
-import type { string_name } from './types/typeAliases';
+import type { string_name } from './types/string_name';
 import type { ExportJsonOptions } from './utils/serialization/exportJson';
 import { exportJson } from './utils/serialization/exportJson';
 
@@ -272,6 +272,4 @@ export const HTTP_STATUS_CODES = {
     TOO_MANY_REQUESTS: 429,
 } as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

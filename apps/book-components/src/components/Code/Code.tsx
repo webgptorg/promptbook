@@ -1,5 +1,8 @@
 import { CSSProperties } from 'react';
 
+/**
+ * Handles code.
+ */
 export function Code({ content }: { content: string }) {
     const style: CSSProperties = {
         backgroundColor: '#f5f5f5',

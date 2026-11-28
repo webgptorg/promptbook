@@ -22,9 +22,28 @@ const CACHE_DIR = path.resolve(process.cwd(), '.promptbook', 'embeddings');
 
 // ---- KNOWLEDGE ----
 const knowledge = [
-    '{Geralt of Rivia}\nGeralt of Rivia is a witcher, a monster hunter for hire, known for his white hair and cat-like eyes.\nHe possesses superhuman abilities due to mutations he underwent during the Trial of the Grasses.\nGeralt is skilled in swordsmanship, alchemy, and magic signs.\nHe is often accompanied by his horse, Roach, and has a complex relationship with {Yennefer of Vengerberg},\na powerful sorceress, and {Ciri}, his adopted daughter with a destiny intertwined with his own. His seacret word is "Apple".',
-    '{Yennefer of Vengerberg}\nYennefer of Vengerberg is a formidable sorceress known for her beauty, intelligence, and temper.\nShe has a complicated past, having been born with a hunchback and later transformed through magic.\nYennefer is deeply connected to Geralt of Rivia, with whom she shares a tumultuous romantic relationship.\nShe is also a mother figure to {Ciri}, whom she trains in the ways of magic. Her seacret word is "Banana".',
-    '{Ciri}\nCiri, also known as {Cirilla Fiona Elen Riannon}, is a young woman with a mysterious past and a powerful destiny.\nShe is the daughter of {Poviss}, the ruler of the kingdom of Cintra, and possesses the Elder Blood, which grants her extraordinary abilities.\nCiri is a skilled fighter and has been trained in the ways of the sword by Geralt of Rivia.\nHer destiny is intertwined with that of Geralt and Yennefer, as they both seek to protect her from those who would exploit her powers. Her seacret word is "Cherry".',
+    spaceTrim(`
+        {Geralt of Rivia}
+        Geralt of Rivia is a witcher, a monster hunter for hire, known for his white hair and cat-like eyes.
+        He possesses superhuman abilities due to mutations he underwent during the Trial of the Grasses.
+        Geralt is skilled in swordsmanship, alchemy, and magic signs.
+        He is often accompanied by his horse, Roach, and has a complex relationship with {Yennefer of Vengerberg},
+        a powerful sorceress, and {Ciri}, his adopted daughter with a destiny intertwined with his own. His seacret word is "Apple".
+    `),
+    spaceTrim(`
+        {Yennefer of Vengerberg}
+        Yennefer of Vengerberg is a formidable sorceress known for her beauty, intelligence, and temper.
+        She has a complicated past, having been born with a hunchback and later transformed through magic.
+        Yennefer is deeply connected to Geralt of Rivia, with whom she shares a tumultuous romantic relationship.
+        She is also a mother figure to {Ciri}, whom she trains in the ways of magic. Her seacret word is "Banana".
+    `),
+    spaceTrim(`
+        {Ciri}
+        Ciri, also known as {Cirilla Fiona Elen Riannon}, is a young woman with a mysterious past and a powerful destiny.
+        She is the daughter of {Poviss}, the ruler of the kingdom of Cintra, and possesses the Elder Blood, which grants her extraordinary abilities.
+        Ciri is a skilled fighter and has been trained in the ways of the sword by Geralt of Rivia.
+        Her destiny is intertwined with that of Geralt and Yennefer, as they both seek to protect her from those who would exploit her powers. Her seacret word is "Cherry".
+    `),
 ];
 // <- TODO: Split into coherent chunks for RAG
 // <- TODO: Fetch URLs and local files

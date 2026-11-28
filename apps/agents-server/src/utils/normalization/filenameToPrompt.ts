@@ -1,4 +1,4 @@
-import { capitalize } from '@promptbook/utils';
+import { capitalize } from '../../../../../src/utils/normalization/capitalize';
 
 /**
  * Converts a filename like "cat-sitting-on-keyboard.png" to a prompt like "Cat sitting on keyboard"
@@ -23,6 +23,4 @@ export function filenameToPrompt(filename: string): string {
     return capitalizedWords.join(' ');
 }
 
-/**
- * TODO: [🧠][🏰] Make standard normalization function exported from `@promptbook/utils`
- */
+// TODO: [🧠][🏰] Make standard normalization function exported from `@promptbook/utils`

@@ -5,6 +5,8 @@ import { BookEditor } from '@promptbook-local/components';
 import { validateBook } from '@promptbook-local/core';
 import { ChevronDown, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
+import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import { AgentsPanel } from './AgentsPanel';
 import { getStories, saveStories } from './actions';
 import {
@@ -16,6 +18,9 @@ import {
     type StoryMode,
 } from './storyUtils';
 
+/**
+ * Constant for story export formats.
+ */
 const STORY_EXPORT_FORMATS = [
     { format: 'txt', label: 'Plain text (.txt)' },
     { format: 'md', label: 'Markdown (.md)' },
@@ -27,6 +32,7 @@ const STORY_EXPORT_FORMATS = [
 type AgentsApiResponse = {
     agents?: Array<{
         agentName: string;
+        permanentId?: string;
         meta?: {
             fullname?: string | null;
         };
@@ -37,6 +43,7 @@ type AgentsApiResponse = {
  * Story writing client for `/experiments/story`.
  */
 export function StoryClient() {
+    const { promptbookTheme } = usePromptbookTheme();
     const [stories, setStories] = useState<Array<Story>>([]);
     const [activeStoryId, setActiveStoryId] = useState('');
     const [isLoadingStories, setIsLoadingStories] = useState(true);
@@ -67,7 +74,7 @@ export function StoryClient() {
             const data = (await response.json()) as AgentsApiResponse;
             const mappedAgents =
                 data.agents?.map((agent) => ({
-                    agentName: agent.agentName,
+                    agentName: agent.permanentId || agent.agentName,
                     label: agent.meta?.fullname?.trim() || agent.agentName,
                 })) || [];
 
@@ -336,6 +343,7 @@ export function StoryClient() {
                                 handleContentChange(newSource);
                             }}
                             isReadonly={false}
+                            theme={promptbookTheme}
                         />
                     </div>
                     <div className="px-4 pb-2 text-xs text-gray-500">
@@ -371,16 +379,18 @@ function buildStoryContinuationMessage(story: Story, agentLabel: string): string
             ? `You are ${agentLabel}. Continue the scene with one paragraph of dialogue that starts with "${agentLabel}:" and keeps the tone dramatic.`
             : `You are ${agentLabel}. Continue the narrative with one paragraph that flows naturally from the existing story.`;
 
-    return [
-        `Story title: ${title}`,
-        `Story mode: ${story.mode}`,
-        '',
-        'Current story:',
-        storyContext,
-        '',
-        instructions,
-        'Return only the paragraph you write and do not mention you are AI.',
-    ].join('\n');
+    return spaceTrim(
+        (block) => `
+            Story title: ${title}
+            Story mode: ${story.mode}
+
+            Current story:
+            ${block(storyContext)}
+
+            ${instructions}
+            Return only the paragraph you write and do not mention you are AI.
+        `,
+    );
 }
 
 /**

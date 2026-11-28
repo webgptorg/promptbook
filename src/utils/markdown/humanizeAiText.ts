@@ -1,4 +1,4 @@
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { humanizeAiTextEllipsis } from './humanizeAiTextEllipsis';
 import { humanizeAiTextEmdashed } from './humanizeAiTextEmdashed';
 import { humanizeAiTextQuotes } from './humanizeAiTextQuotes';
@@ -25,6 +25,4 @@ export function humanizeAiText(aiText: string_markdown): string_markdown {
     return cleanedText;
 }
 
-/**
- * TODO: [🧠] Maybe this should be exported from `@promptbook/utils` not `@promptbook/markdown-utils`
- */
+// TODO: [🧠] Maybe this should be exported from `@promptbook/utils` not `@promptbook/markdown-utils`

@@ -6,6 +6,9 @@ import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getUserDataValue, upsertUserDataValue } from '@/src/utils/userData';
 import { normalizeStories, type Story } from './storyUtils';
 
+/**
+ * Constant for stories user data key.
+ */
 const STORIES_USER_DATA_KEY = 'stories';
 
 /**

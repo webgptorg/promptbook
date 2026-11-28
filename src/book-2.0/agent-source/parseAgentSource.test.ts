@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { parseAgentSource } from './parseAgentSource';
 import { validateBook } from './string_book';
 
@@ -30,6 +30,31 @@ describe('parseAgentSource', () => {
             },
             parameters: [],
         });
+    });
+
+    it('parses agent profile text from GOAL and prefers the last goal', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                GOAL First goal
+                PERSONA Deprecated fallback
+                GOALS Final goal
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.personaDescription).toBe('Final goal');
+    });
+
+    it('falls back to PERSONA when no GOAL is present', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                PERSONA A helpful assistant
+                PERSONAE A more recent helper description
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.personaDescription).toBe('A more recent helper description');
     });
 
     it('parses agent with system message lines', () => {
@@ -117,25 +142,94 @@ describe('parseAgentSource', () => {
         // expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
-    it('parses agent with custom META commitments', () => {
-        const agentSource = validateBook(
-            spaceTrim(`
-                AI Avatar
+    it('parses META AVATAR as a normalized built-in avatar visual', () => {
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META AVATAR PIXEL_ART
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('pixel-art');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META AVATAR pixel art
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('pixel-art');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META AVATAR pixel-art
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('pixel-art');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META avatar Octopus 3
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('octopus3');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META avatar Octopus 3D
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('octopus3d');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META avatar Octopus 3D 2
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('octopus3d2');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META avatar Octopus 3D 3
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('octopus3d3');
+    });
 
-                PERSONA A friendly AI assistant that helps you with your tasks
-                META FOO foo
-            `),
-        );
-        const result = parseAgentSource(agentSource);
-        expect(result).toMatchObject({
-            agentName: 'ai-avatar',
-            personaDescription: 'A friendly AI assistant that helps you with your tasks',
-            meta: {
-                // image: '/agents/ai-avatar/images/default-avatar.png', // Should be a default avatar URL
-                foo: 'foo',
-            },
-            parameters: [],
-        });
+    it('parses META VISUAL as a normalized built-in avatar visual', () => {
+        const META_VISUAL_VARIANTS = ['Minecraft2', 'minecraft2', 'Minecraft 2', 'minecraft-2'] as const;
+
+        for (const visualValue of META_VISUAL_VARIANTS) {
+            expect(
+                parseAgentSource(
+                    validateBook(
+                        spaceTrim(`
+                            AI Avatar
+                            META VISUAL ${visualValue}
+                        `),
+                    ),
+                ).meta.avatar,
+            ).toBe('minecraft2');
+        }
     });
 
     it('parses agent with multiple META commitments and overrides', () => {
@@ -144,10 +238,10 @@ describe('parseAgentSource', () => {
                 AI Avatar
 
                 PERSONA A friendly AI assistant that helps you with your tasks
-                META FOO foo
+                META IMAGE ./other-picture.png
                 META IMAGE ./picture.png
-                META BAR bar
-                META foo foo2
+                META DESCRIPTION First description
+                META DESCRIPTION Second description
             `),
         );
         const result = parseAgentSource(agentSource);
@@ -155,9 +249,8 @@ describe('parseAgentSource', () => {
             agentName: 'ai-avatar',
             personaDescription: 'A friendly AI assistant that helps you with your tasks',
             meta: {
-                image: './picture.png',
-                foo: 'foo2', // Later should override earlier
-                bar: 'bar',
+                image: './picture.png', // Later should override earlier
+                description: 'Second description', // Later should override earlier
             },
             parameters: [],
         });
@@ -168,8 +261,6 @@ describe('parseAgentSource', () => {
             spaceTrim(`
                 AI Avatar
 
-                META TITLE My Title
-                META title Another Title
                 META Link https://example.com
                 META LINK https://example2.com
                 META Description First description
@@ -180,7 +271,6 @@ describe('parseAgentSource', () => {
 
         expect(result.meta).toMatchObject({
             fullname: 'AI Avatar',
-            title: 'Another Title', // Later should override earlier
             link: 'https://example2.com', // Later should override earlier
             description: 'Second description', // Later should override earlier
         });
@@ -250,6 +340,56 @@ describe('parseAgentSource', () => {
                 Final disclaimer line 2.
             `),
         );
+    });
+
+    it('parses META INPUT PLACEHOLDER and allows override', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Helper Agent
+                META INPUT PLACEHOLDER Start typing your request...
+                META INPUT PLACEHOLDER
+                Ask me anything about your tasks
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.inputPlaceholder).toBe('Ask me anything about your tasks');
+    });
+
+    it('parses META THINKING MESSAGE as custom thinking-message variants', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Helper Agent
+                META THINKING MESSAGE Thinking...
+                META THINKING MESSAGE Processing...
+                META THINKING MESSAGE
+
+                Doing
+                extra **hard** work
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.thinkingMessages).toEqual([
+            'Thinking...',
+            'Processing...',
+            spaceTrim(`
+                Doing
+                extra **hard** work
+            `),
+        ]);
+    });
+
+    it('parses META VISIBILITY and normalizes supported values', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Helper Agent
+                META VISIBILITY   public
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.visibility).toBe('PUBLIC');
     });
 
     it('parses MESSAGE SUFFIX with multiline markdown content', () => {
@@ -357,22 +497,6 @@ describe('parseAgentSource', () => {
         });
     });
 
-    it('parses USE EMAIL capability', () => {
-        const agentSource = validateBook(
-            spaceTrim(`
-                Agent Name
-                USE EMAIL agent@example.com
-            `),
-        );
-        const result = parseAgentSource(agentSource);
-
-        expect(result.capabilities).toContainEqual({
-            type: 'email',
-            label: 'Email',
-            iconName: 'Mail',
-        });
-    });
-
     it('parses USE PROJECT capability', () => {
         const agentSource = validateBook(
             spaceTrim(`
@@ -389,31 +513,19 @@ describe('parseAgentSource', () => {
         });
     });
 
-    it('ignores deprecated WALLET commitment and keeps USE EMAIL and USE PROJECT capabilities', () => {
+    it('parses USE CALENDAR capability', () => {
         const agentSource = validateBook(
             spaceTrim(`
                 Agent Name
-                WALLET
-                USE EMAIL agent@example.com
-                USE PROJECT https://github.com/example/project
+                USE CALENDAR https://calendar.google.com/calendar/u/0/r
             `),
         );
         const result = parseAgentSource(agentSource);
 
-        expect(result.capabilities).not.toContainEqual(
-            expect.objectContaining({
-                type: 'wallet',
-            }),
-        );
         expect(result.capabilities).toContainEqual({
-            type: 'email',
-            label: 'Email',
-            iconName: 'Mail',
-        });
-        expect(result.capabilities).toContainEqual({
-            type: 'project',
-            label: 'example/project',
-            iconName: 'Code',
+            type: 'calendar',
+            label: 'Calendar',
+            iconName: 'Calendar',
         });
     });
 
@@ -486,138 +598,155 @@ describe('parseAgentSource', () => {
         let agentSource = validateBook(
             spaceTrim(`
                 Agent Name
-                META TITLE My Title
+                META DESCRIPTION My Description
                 ---
                 Some non-commitment text
             `),
         );
         let result = parseAgentSource(agentSource);
-        expect(result.meta.title).toBe('My Title');
+        expect(result.meta.description).toBe('My Description');
 
         // Test with more hyphens -----
         agentSource = validateBook(
             spaceTrim(`
                 Agent Name
-                META TITLE My Title
+                META DESCRIPTION My Description
                 -----
                 Some non-commitment text
             `),
         );
         result = parseAgentSource(agentSource);
-        expect(result.meta.title).toBe('My Title');
+        expect(result.meta.description).toBe('My Description');
 
         // Test with spaces between hyphens
         agentSource = validateBook(
             spaceTrim(`
                 Agent Name
-                META TITLE My Title
+                META DESCRIPTION My Description
                 - - -
                 Some non-commitment text
             `),
         );
         result = parseAgentSource(agentSource);
-        expect(result.meta.title).toBe('My Title');
+        expect(result.meta.description).toBe('My Description');
     });
 
     it('parses COLOR with comma separator', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(
+            spaceTrim(`
+            Agent Name
             COLOR red, blue, green
             PERSONA You are a helper
-        `);
+        `),
+        );
         const result = parseAgentSource(agentSource);
         expect(result.meta.color).toBe('red, blue, green');
     });
 
     it('parses COLOR with space separator', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(
+            spaceTrim(`
+            Agent Name
             COLOR red blue green
             PERSONA You are a helper
-        `);
+        `),
+        );
         const result = parseAgentSource(agentSource);
         expect(result.meta.color).toBe('red, blue, green');
     });
 
     it('parses FONT with comma separator', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(
+            spaceTrim(`
+            Agent Name
             FONT Arial, sans-serif
             PERSONA You are a helper
-        `);
+        `),
+        );
         const result = parseAgentSource(agentSource);
         expect(result.meta.font).toBe('Arial, sans-serif');
     });
 
     it('parses FONT with space separator', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(
+            spaceTrim(`
+            Agent Name
             FONT Arial sans-serif
             PERSONA You are a helper
-        `);
+        `),
+        );
         const result = parseAgentSource(agentSource);
         expect(result.meta.font).toBe('Arial, sans-serif');
     });
 
     it('parses FONT with spaces in name (treated as list)', () => {
-        const agentSource = validateBook(`
+        const agentSource = validateBook(
+            spaceTrim(`
+            Agent Name
             FONT Times New Roman
             PERSONA You are a helper
-        `);
+        `),
+        );
         const result = parseAgentSource(agentSource);
         expect(result.meta.font).toBe('Times, New, Roman');
     });
 
-    it('parses agentName from first non-empty line that is not a commitment or horizontal line', () => {
+    it('parses agentName from the first non-empty line after leading whitespace-only lines', () => {
         // First non-empty is agent name
-        let agentSource = validateBook(`
+        let agentSource = validateBook(
+            spaceTrim(`
             John Doe
             PERSONA You are a helpful assistant.
-        `);
+        `),
+        );
         let result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('john-doe');
 
         // Empty lines before agent name
-        agentSource = validateBook(`
+        agentSource = validateBook(
+            spaceTrim(`
 
 
             John Doe
             PERSONA You are a helpful assistant.
-        `);
+        `),
+        );
         result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('john-doe');
 
-        // Horizontal line before agent name
-        agentSource = validateBook(`
-            ---
-
-            John Doe
-            PERSONA You are a helpful assistant.
-        `);
+        // Commitment-looking first non-empty line is still the agent name
+        agentSource = validateBook(
+            spaceTrim(`
+            COLOR red, blue, green
+            PERSONA You are a helper
+        `),
+        );
         result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('john-doe');
+        expect(result.agentName).toBe('color-red-blue-green');
+        expect(result.meta.fullname).toBe('COLOR red, blue, green');
+        expect(result.personaDescription).toBe('You are a helper');
 
         // Non-commitment line before agent name (should take first one)
-        agentSource = validateBook(`
+        agentSource = validateBook(
+            spaceTrim(`
             x
 
             John Doe
             PERSONA You are a helpful assistant.
-        `);
+        `),
+        );
         result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('x');
-
-        // Commitment as first non-empty (agentName should be null, fallback to default)
-        agentSource = validateBook(`
-            COLOR red, blue, green
-            PERSONA You are a helper
-        `);
-        result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('agent-3daa54'); // Default hash since no name
     });
 
     describe('parses linked agents', () => {
         it('parses FROM commitment (local)', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 FROM ./other-agent
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'inheritance',
@@ -628,10 +757,12 @@ describe('parseAgentSource', () => {
         });
 
         it('parses FROM commitment (remote)', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 FROM https://other-server.com/agents/other-agent
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'inheritance',
@@ -642,10 +773,12 @@ describe('parseAgentSource', () => {
         });
 
         it('parses IMPORT commitment (local)', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 IMPORT ./other-agent
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'import',
@@ -656,10 +789,12 @@ describe('parseAgentSource', () => {
         });
 
         it('parses IMPORT commitment (remote)', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 IMPORT https://other-server.com/agents/other-agent
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'import',
@@ -670,10 +805,12 @@ describe('parseAgentSource', () => {
         });
 
         it('parses TEAM commitment', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 TEAM https://agents.ptbk.ik/agents/joe-green
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'team',
@@ -684,19 +821,23 @@ describe('parseAgentSource', () => {
         });
 
         it('ignores Adam agent in FROM commitment', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 FROM Adam
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toEqual([]);
         });
 
         it('handles VOID agent in FROM commitment', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 FROM VOID
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'inheritance',
@@ -707,10 +848,12 @@ describe('parseAgentSource', () => {
         });
 
         it('handles `{Void}` pseudo-agent in FROM commitment', () => {
-            const agentSource = validateBook(`
+            const agentSource = validateBook(
+                spaceTrim(`
                 Agent Name
                 FROM {vOiD}
-            `);
+            `),
+            );
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'inheritance',

@@ -44,7 +44,7 @@ RULE Rule 3
 -   Agent model requirements are like a compiled version of the agent source containing the low-level things like system messages, temperature, model, etc.
 -   Now there are two model requirement types you are working with [`AgentModelRequirements`](src/book-2.0/agent-source/AgentModelRequirements.ts), the second one is deprecated.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 -   It should work in the [Agents Server](apps/agents-server)
 
 ---
@@ -54,7 +54,7 @@ RULE Rule 3
 [✨👱] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -63,7 +63,7 @@ RULE Rule 3
 [✨👱] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -72,4 +72,4 @@ RULE Rule 3
 [✨👱] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

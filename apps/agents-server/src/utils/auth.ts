@@ -2,6 +2,9 @@ import { createHash, randomBytes, scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { PASSWORD_SECURITY_CONFIG } from '../../../../security.config';
 
+/**
+ * Constant for scrypt async.
+ */
 const scryptAsync = promisify(scrypt);
 
 /**

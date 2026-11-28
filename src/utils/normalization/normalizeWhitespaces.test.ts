@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 // test normalizeWhitespaces
 import { describe, expect, it } from '@jest/globals';
 import { normalizeWhitespaces } from './normalizeWhitespaces';
@@ -9,11 +10,11 @@ describe('normalizeWhitespaces', () => {
     it('will normalize new lines', () => {
         expect(
             normalizeWhitespaces(
-                `
+                spaceTrim(`
                 foo
                 bar
                 baz
-                `,
+                `),
             ),
         ).toEqual(`foo bar baz`);
     });

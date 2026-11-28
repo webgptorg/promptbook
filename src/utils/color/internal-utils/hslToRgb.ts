@@ -1,6 +1,5 @@
-import type { number_integer } from '../../../types/typeAliases';
-import type { number_percent } from '../../../types/typeAliases';
-import type { number_positive } from '../../../types/typeAliases';
+import type { number_percent } from '../../../types/number_percent';
+import type { number_integer, number_positive } from '../../../types/number_positive';
 
 /**
  * Converts HSL values to RGB values
@@ -47,6 +46,4 @@ export function hslToRgb(
     return [Math.round(red * 255), Math.round(green * 255), Math.round(blue * 255)];
 }
 
-/**
- * TODO: Properly name all used internal variables
- */
+// TODO: Properly name all used internal variables

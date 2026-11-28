@@ -1,5 +1,14 @@
+/**
+ * Constant for transformation.
+ */
 const Transformation = require('./Transformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../ParseResult');
+/**
+ * Constant for { block to text }.
+ */
 const { blockToText } = require('../markdown/BlockType');
 
 module.exports = class ToTextBlocks extends Transformation {

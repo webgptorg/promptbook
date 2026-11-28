@@ -3,6 +3,7 @@ import { ConflictError } from '@promptbook-local/core';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { getCurrentUser } from '../../../utils/getCurrentUser';
+import { resolveCurrentUserIdentity } from '../../../utils/currentUserIdentity';
 import { parseFolderColor, parseFolderIcon } from '../../../utils/agentOrganization/folderAppearance';
 import { translateSupabaseUniqueConstraintError } from '../../../../../../src/utils/database/uniqueConstraint';
 
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
 
     const supabase = $provideSupabaseForServer();
     const folderTable = await $getTableName('AgentFolder');
+    const currentUserIdentity = await resolveCurrentUserIdentity();
 
     const sortOrderQuery = supabase
         .from(folderTable)
@@ -71,6 +73,7 @@ export async function POST(request: Request) {
     const insertResult = await supabase
         .from(folderTable)
         .insert({
+            userId: currentUserIdentity?.userId,
             name,
             parentId: normalizedParentId,
             sortOrder: nextSortOrder,

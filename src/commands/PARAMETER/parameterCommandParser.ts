@@ -1,8 +1,8 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
@@ -18,6 +18,7 @@ import type { ParameterCommand } from './ParameterCommand';
  * Parses the parameter command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {

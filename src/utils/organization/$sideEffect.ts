@@ -6,6 +6,7 @@ import { keepUnused } from './keepUnused';
  *
  * @param value any values
  * @returns void
+ *
  * @private within the repository
  */
 export function $sideEffect(...sideEffectSubjects: ReadonlyArray<chococake>): void {

@@ -22,8 +22,9 @@ export {
 /**
  * Creates a human-readable hash as a short, story-like phrase.
  *
- * @param wordCount how many words to include (defaults to {@link DEFAULT_LINGUISTIC_HASH_WORD_COUNT}, clamped to
  * {@link MIN_LINGUISTIC_HASH_WORD_COUNT}..{@link MAX_LINGUISTIC_HASH_WORD_COUNT})
+ *
+ * @param wordCount how many words to include (defaults to {@link DEFAULT_LINGUISTIC_HASH_WORD_COUNT}, clamped to
  * @param language optional language code (defaults to {@link DEFAULT_LINGUISTIC_HASH_LANGUAGE})
  *
  * @public exported from `@promptbook/utils`

@@ -1,4 +1,4 @@
-import type { string_email } from '../../../types/typeAliases';
+import type { string_email } from '../../../types/string_email';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**

@@ -5,6 +5,9 @@ import {
     isClientVersionCompatible,
 } from '../../../../src/utils/clientVersion';
 
+/**
+ * Constant for text encoder.
+ */
 const TEXT_ENCODER = new TextEncoder();
 
 /**

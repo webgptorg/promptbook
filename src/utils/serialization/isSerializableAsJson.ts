@@ -18,7 +18,6 @@ import { checkSerializableAsJson } from './checkSerializableAsJson';
  * - `Symbol` objects are not serializable
  * - And much more...
  *
- *
  * @public exported from `@promptbook/utils`
  */
 export function isSerializableAsJson(value: unknown): value is JsonValue {
@@ -30,7 +29,5 @@ export function isSerializableAsJson(value: unknown): value is JsonValue {
     }
 }
 
-/**
- * TODO: [🧠][main] !!3 In-memory cache of same values to prevent multiple checks
- * TODO: [🧠][💺] Can be done this on type-level?
- */
+// TODO: [🧠][main] !!3 In-memory cache of same values to prevent multiple checks
+// TODO: [🧠][💺] Can be done this on type-level?

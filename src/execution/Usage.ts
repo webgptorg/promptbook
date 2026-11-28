@@ -38,6 +38,4 @@ export type Usage = {
  */
 export type UsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
 
-/**
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🍙] Make some standard order of json properties

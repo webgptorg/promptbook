@@ -14,6 +14,4 @@ export async function pipelineCollectionToJson(collection: PipelineCollection): 
     return promptbooks;
 }
 
-/**
- * TODO: [🧠] Maybe clear `sourceFile` or clear when exposing through API or remote server
- */
+// TODO: [🧠] Maybe clear `sourceFile` or clear when exposing through API or remote server

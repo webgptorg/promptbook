@@ -30,7 +30,7 @@ without any links or references to files.
         - In the agent model requirements, we have the `knowledgeSources` which are the URLs. For the inline form, we can leverage the base64 encoded URLs.
     3. The logic of `knowledgeSources` using in the actual LLM SDK, for example in the OpenAI Agent Kit.
     -   Notice that this can be implemented by multiple LLM providers. For example, OpenAI Agent Kit can have different handling of the files in the knowledge sources compared to the Antropic Clause or Google Gemini. The purpose of `AgentModelRequirements` is to make some universal form to be processable by all the LLM providers.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -41,7 +41,7 @@ without any links or references to files.
 -   Change the inlined knowledge in a way that the file isn't Base64 URL encoded, but it is uploaded into the CDN and created a temporary CDN URL.
 -   This will be placed into Agent model requirements `knowledgeSources`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, reuse the uploading logic from other places in the project. Do not implement it separately here.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 

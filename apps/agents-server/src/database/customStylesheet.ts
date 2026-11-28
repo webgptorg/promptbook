@@ -8,7 +8,13 @@ import { $provideSupabase } from './$provideSupabase';
 const CUSTOM_STYLESHEET_TABLE_BASENAME = 'CustomStylesheet';
 
 /**
+ * Process-level cache lifetime for custom stylesheet rows.
+ */
+const CUSTOM_STYLESHEET_CACHE_TTL_MS = 30_000;
+
+/**
  * Stored CustomStylesheet row shape.
+ *
  * @public
  */
 export type CustomStylesheetRow = {
@@ -21,6 +27,7 @@ export type CustomStylesheetRow = {
 
 /**
  * Validation error thrown when CSS payload is invalid.
+ *
  * @public
  */
 export class CustomStylesheetValidationError extends Error {
@@ -40,6 +47,7 @@ type SupabaseErrorLike = {
 
 /**
  * Dynamic query interface for CustomStylesheet table operations.
+ *
  * @private
  */
 type DynamicCustomStylesheetTableQuery = {
@@ -72,12 +80,38 @@ type DynamicCustomStylesheetTableQuery = {
     };
 };
 
+/**
+ * Type describing dynamic supabase client.
+ */
 type DynamicSupabaseClient = {
     from: (tableName: string) => DynamicCustomStylesheetTableQuery;
 };
 
 /**
+ * Cached custom stylesheet rows keyed by the resolved table name.
+ *
+ * @private
+ */
+const cachedCustomStylesheetsByTableName = new Map<
+    string,
+    {
+        readonly loadedAt: number;
+        readonly rowsPromise: Promise<CustomStylesheetRow[]>;
+    }
+>();
+
+/**
+ * Clears process-level stylesheet cache after admin writes.
+ *
+ * @public
+ */
+export function invalidateCustomStylesheetCache(): void {
+    cachedCustomStylesheetsByTableName.clear();
+}
+
+/**
  * Resolves the prefixed table name for CustomStylesheet.
+ *
  * @private
  */
 async function getCustomStylesheetTableName(): Promise<string> {
@@ -87,6 +121,7 @@ async function getCustomStylesheetTableName(): Promise<string> {
 
 /**
  * Returns true when the Supabase error indicates a missing relation/table.
+ *
  * @private
  */
 function isMissingRelationError(error: unknown): boolean {
@@ -105,6 +140,7 @@ function isMissingRelationError(error: unknown): boolean {
 
 /**
  * Returns a typed supabase client for the CustomStylesheet table.
+ *
  * @private
  */
 function getCustomStylesheetClient(): DynamicSupabaseClient {
@@ -113,12 +149,42 @@ function getCustomStylesheetClient(): DynamicSupabaseClient {
 
 /**
  * Loads every custom stylesheet row in deterministic creation order.
+ *
  * @public
  */
 export async function listCustomStylesheets(): Promise<CustomStylesheetRow[]> {
     const table = await getCustomStylesheetTableName();
-    const supabase = getCustomStylesheetClient();
+    const cachedStylesheets = cachedCustomStylesheetsByTableName.get(table);
+    if (cachedStylesheets && Date.now() - cachedStylesheets.loadedAt < CUSTOM_STYLESHEET_CACHE_TTL_MS) {
+        return cachedStylesheets.rowsPromise;
+    }
 
+    const rowsPromise = loadCustomStylesheetsFromDatabase(table);
+    cachedCustomStylesheetsByTableName.set(table, {
+        loadedAt: Date.now(),
+        rowsPromise,
+    });
+
+    try {
+        return await rowsPromise;
+    } catch (error) {
+        if (cachedCustomStylesheetsByTableName.get(table)?.rowsPromise === rowsPromise) {
+            cachedCustomStylesheetsByTableName.delete(table);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Reads custom stylesheet rows from the database.
+ *
+ * @param table - Resolved CustomStylesheet table name.
+ * @returns Stored stylesheet rows.
+ *
+ * @private
+ */
+async function loadCustomStylesheetsFromDatabase(table: string): Promise<CustomStylesheetRow[]> {
+    const supabase = getCustomStylesheetClient();
     const { data, error } = await supabase.from(table).select('*').order('createdAt', { ascending: true });
 
     if (error) {
@@ -134,6 +200,7 @@ export async function listCustomStylesheets(): Promise<CustomStylesheetRow[]> {
 
 /**
  * Builds the aggregated custom CSS string from all saved stylesheets.
+ *
  * @public
  */
 export async function getAggregatedCustomStylesheetCss(): Promise<string> {
@@ -144,6 +211,7 @@ export async function getAggregatedCustomStylesheetCss(): Promise<string> {
 
 /**
  * Input payload used when saving a custom stylesheet.
+ *
  * @public
  */
 export type SaveCustomStylesheetFileInput = {
@@ -154,6 +222,7 @@ export type SaveCustomStylesheetFileInput = {
 
 /**
  * Persists a single custom stylesheet entry.
+ *
  * @public
  */
 export async function saveCustomStylesheetFile({
@@ -193,11 +262,13 @@ export async function saveCustomStylesheetFile({
         throw new Error(`Failed to save custom stylesheet: ${error.message || String(error)}`);
     }
 
+    invalidateCustomStylesheetCache();
     return data as CustomStylesheetRow;
 }
 
 /**
  * Deletes a persisted stylesheet row.
+ *
  * @public
  */
 export async function deleteCustomStylesheetFile(id: number): Promise<void> {
@@ -215,4 +286,6 @@ export async function deleteCustomStylesheetFile(id: number): Promise<void> {
 
         throw new Error(`Failed to delete custom stylesheet: ${error.message || String(error)}`);
     }
+
+    invalidateCustomStylesheetCache();
 }

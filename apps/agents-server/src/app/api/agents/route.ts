@@ -1,30 +1,43 @@
 import { $provideServer } from '@/src/tools/$provideServer';
-import { getPublicAgentProfileSeoRecords } from '@/src/utils/seo/getPublicAgentProfileSeoRecords';
+import { getMetadataMap } from '../../../database/getMetadata';
 import { NextResponse } from 'next/server';
-import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    resolveDefaultAgentAvatarVisualId,
+} from '../../../constants/defaultAgentAvatarVisual';
+import { loadLocalOrganizationSearchDataset } from '../../../search/createDefaultServerSearchProviders/loadLocalOrganizationSearchDataset';
 import { getFederatedServers } from '../../../utils/getFederatedServers';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const allAgents = await collection.listAgents();
-        const federatedServers = await getFederatedServers();
-        const { publicUrl } = await $provideServer();
-
-        const publicSeoRecords = await getPublicAgentProfileSeoRecords();
-        const publicCanonicalAgentIds = new Set(publicSeoRecords.map((record) => record.canonicalAgentId));
-        const publicAgents = allAgents.filter((agent) => publicCanonicalAgentIds.has(agent.permanentId || agent.agentName));
-
-        const agentsWithUrl = publicAgents.map((agent) => ({
-            ...agent,
+        const [dataset, federatedServers, { publicUrl }, metadata] = await Promise.all([
+            loadLocalOrganizationSearchDataset({ includePrivate: false }),
+            getFederatedServers(),
+            $provideServer(),
+            getMetadataMap([DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY]),
+        ]);
+        const agentsWithUrl = dataset.agents.map((agent) => ({
+            ...agent.resolvedAgentProfile,
+            agentName: agent.agentName,
+            permanentId: agent.permanentId || undefined,
             url: `${publicUrl.href}agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`,
         }));
+        const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
+            metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
+        );
 
         const response = NextResponse.json({
             agents: agentsWithUrl,
             federatedServers,
+            defaultAgentAvatarVisualId,
         });
 
         // Add CORS headers
@@ -39,6 +52,9 @@ export async function GET() {
     }
 }
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS() {
     const response = new NextResponse(null, { status: 200 });
     response.headers.set('Access-Control-Allow-Origin', '*');

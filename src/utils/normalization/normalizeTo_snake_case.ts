@@ -17,6 +17,7 @@ export type string_snake_case = string;
  * @returns The normalized text in snake_case format.
  * @example 'hello_world'
  * @example 'i_love_promptbook'
+ *
  * @public exported from `@promptbook/utils`
  */
 export function normalizeTo_snake_case(text: string): string_snake_case {

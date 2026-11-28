@@ -1,7 +1,18 @@
 import { basename } from 'path';
+import { findFirstNonEmptyLineIndex } from './findFirstNonEmptyLineIndex';
+import { extractPromptRunnerTokens } from './isPromptCompatibleWithRunner';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 import type { PromptStatus } from './types/PromptStatus';
+
+/**
+ * Matches the supported prompt status markers at the start of a line.
+ *
+ * A different bracketed prefix can be ordinary prompt content, for example an emoji tag.
+ *
+ * @private internal constant of `parsePromptFile`
+ */
+const PROMPT_STATUS_LINE_PATTERN = /^\[(?<marker> |-|\.|[xX]|\^|!)\](?<details>.*)$/u;
 
 /**
  * Parses a prompt markdown file into sections and metadata.
@@ -24,11 +35,11 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
         }
 
         const endLine = i - 1;
-        const firstNonEmptyLine = findFirstNonEmptyLine(lines, startLine, endLine);
+        const firstNonEmptyLine = findFirstNonEmptyLineIndex(lines, startLine, endLine);
         if (firstNonEmptyLine !== undefined) {
             const statusLine = (lines[firstNonEmptyLine] || '').trim();
             const parsedStatus = parseStatusLine(statusLine);
-            const status = parsedStatus?.status ?? 'not-ready';
+            const status = parsedStatus?.status ?? (PROMPT_STATUS_LINE_PATTERN.test(statusLine) ? 'not-ready' : 'todo');
             const priority = parsedStatus?.priority ?? 0;
 
             sections.push({
@@ -56,49 +67,46 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
 }
 
 /**
- * Parses a status line like "[ ] !!" or "[-]" or "[x] ~$0.65 21 minutes..." into status and priority.
- * For [x] done and [!] failed prompts, allow metadata after the status marker.
+ * Parses a status line like "[ ] !!", "[ ] use `gpt` !!!!!" or "[-]" into status and priority.
+ * For [x] done, [!] failed and [^] in-progress prompts, allow metadata after the status marker.
  */
 function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
-    // For done prompts [x], allow any content after (for cost/time metadata)
-    const doneMatch = line.match(/^\[(?<status>[xX])\]/);
-    if (doneMatch) {
+    const statusLineMatch = line.match(PROMPT_STATUS_LINE_PATTERN);
+    const marker = statusLineMatch?.groups?.marker;
+    const details = statusLineMatch?.groups?.details ?? '';
+
+    if (marker === 'x' || marker === 'X') {
+        // For done prompts [x], allow any content after (for cost/time metadata).
         return { status: 'done', priority: 0 };
     }
 
-    // For failed prompts [!], allow any content after (for failure metadata)
-    const failedMatch = line.match(/^\[(?<status>!)\]/);
-    if (failedMatch) {
+    if (marker === '!') {
+        // For failed prompts [!], allow any content after (for failure metadata).
         return { status: 'failed', priority: 0 };
     }
 
-    // For todo [ ] and not-ready [-], require clean end with optional priority markers
-    const match = line.match(/^\[(?<status>[ -])\]\s*(?<priority>!*)\s*$/);
-    if (!match) {
+    if (marker === '^') {
+        // For in-progress prompts [^], allow any content after (for the steps recorded so far).
+        return { status: 'in-progress', priority: 0 };
+    }
+
+    // Treat [.] as the alternative spelling of not-ready [-], preserving the historical clean-line syntax.
+    if ((marker === '-' || marker === '.') && /^[!\s]*$/u.test(details)) {
+        return { status: 'not-ready', priority: 0 };
+    }
+
+    if (marker !== ' ') {
         return undefined;
     }
-    const statusChar = match.groups?.status?.toLowerCase();
-    let status: PromptStatus;
 
-    if (statusChar === '-') {
-        status = 'not-ready';
-    } else {
-        status = 'todo';
+    // Todo [ ] may contain backtick-delimited model/harness tokens and priority markers
+    // before or after those tokens. Other trailing text remains an invalid status line.
+    const isPriorityOnly = /^[!\s]*$/u.test(details);
+    const hasPromptRunnerTokens = extractPromptRunnerTokens(line).length > 0;
+
+    if (details.trim() !== '' && !isPriorityOnly && !hasPromptRunnerTokens) {
+        return undefined;
     }
 
-    const priority = status === 'todo' ? match.groups?.priority?.length ?? 0 : 0;
-    return { status, priority };
-}
-
-/**
- * Finds the first non-empty line index between two bounds.
- */
-function findFirstNonEmptyLine(lines: string[], startLine: number, endLine: number): number | undefined {
-    for (let i = startLine; i <= endLine; i++) {
-        const line = lines[i];
-        if (line !== undefined && line.trim() !== '') {
-            return i;
-        }
-    }
-    return undefined;
+    return { status: 'todo', priority: details.match(/!/gu)?.length ?? 0 };
 }

@@ -1,14 +1,15 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { number_usd } from '../../types/typeAliases';
+import type { number_usd } from '../../types/number_usd';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { pricing } from '../_common/utils/pricing';
 
 /**
  * List of available Google models with descriptions
  *
- * Note: Synced with official API docs at 2025-11-19
+ * Note: Synced with official API docs at 2026-03-22
  *
  * @see https://ai.google.dev/models/gemini
+ *
  * @public exported from `@promptbook/google`
  */
 export const GOOGLE_MODELS: ReadonlyArray<
@@ -37,8 +38,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'State-of-the-art thinking model with 1M token context window capable of reasoning over complex problems in code, math, and STEM. Features enhanced thinking capabilities, advanced multimodal understanding, and superior performance on analytical tasks. Ideal for complex enterprise applications requiring maximum intelligence and reasoning.',
             pricing: {
-                prompt: pricing(`$7.00 / 1M tokens`),
-                output: pricing(`$21.00 / 1M tokens`),
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
             },
         },
         {
@@ -48,8 +49,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Best model in terms of price-performance with 1M token context window offering well-rounded capabilities. Features adaptive thinking, cost efficiency, and enhanced reasoning for large-scale processing. Ideal for low-latency, high-volume tasks that require thinking and agentic use cases.',
             pricing: {
-                prompt: pricing(`$0.35 / 1M tokens`),
-                output: pricing(`$1.05 / 1M tokens`),
+                prompt: pricing(`$0.30 / 1M tokens`),
+                output: pricing(`$2.50 / 1M tokens`),
             },
         },
         {
@@ -59,8 +60,8 @@ export const GOOGLE_MODELS: ReadonlyArray<
             modelDescription:
                 'Cost-efficient Gemini 2.5 Flash model optimized for high throughput with 1M token context window. Features thinking capabilities while maintaining the most cost-efficient pricing. Perfect for real-time, low-latency use cases requiring good quality at scale.',
             pricing: {
-                prompt: pricing(`$0.20 / 1M tokens`),
-                output: pricing(`$0.60 / 1M tokens`),
+                prompt: pricing(`$0.10 / 1M tokens`),
+                output: pricing(`$0.40 / 1M tokens`),
             },
         },
         {
@@ -259,9 +260,7 @@ export const GOOGLE_MODELS: ReadonlyArray<
     ],
 });
 
-/**
- * TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
- * TODO: [🎰] Some mechanism to auto-update available models
- * TODO: [🧠] Verify pricing information is current with Google's official documentation
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
+// TODO: [🎰] Some mechanism to auto-update available models
+// TODO: [🧠] Verify pricing information is current with Google's official documentation
+// Note: [💞] Ignore a discrepancy between file name and entity name

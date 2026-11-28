@@ -2,7 +2,9 @@
 // TODO: [🥺] Import directly from YML
 
 /**
- * @private [🥺] Decide how to expose this
+ * [🥺] Decide how to expose this.
+ *
+ * @private
  */
 export const openapiJson = {
     openapi: '3.0.0',
@@ -594,6 +596,4 @@ export const openapiJson = {
     ],
 };
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

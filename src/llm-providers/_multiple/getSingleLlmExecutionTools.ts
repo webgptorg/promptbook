@@ -20,7 +20,5 @@ export function getSingleLlmExecutionTools(
     return llmTools;
 }
 
-/**
- * TODO: [🙆] `getSingleLlmExecutionTools` vs `joinLlmExecutionTools` - explain difference or pick one
- * TODO: [👷‍♂️] Write a comprehensive manual about how to construct and use LLM execution tools in Promptbook
- */
+// TODO: [🙆] `getSingleLlmExecutionTools` vs `joinLlmExecutionTools` - explain difference or pick one
+// TODO: [👷‍♂️] Write a comprehensive manual about how to construct and use LLM execution tools in Promptbook

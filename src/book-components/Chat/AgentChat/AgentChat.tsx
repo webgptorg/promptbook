@@ -3,15 +3,21 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 /* Context removed – using attachable sendMessage from hook */
-import spaceTrim from 'spacetrim';
-import { Color, saturate } from '../../../_packages/color.index';
+import { spaceTrim } from 'spacetrim';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
-import { resolveAgentAvatarImageUrl } from '../../../utils/agents/resolveAgentAvatarImageUrl';
+import { resolveAgentAvatar } from '../../../utils/agents/resolveAgentAvatarImageUrl';
+import { Color } from '../../../utils/color/Color';
+import { saturate } from '../../../utils/color/operators/saturate';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';
 import type { AgentChatProps } from './AgentChatProps';
+
+/**
+ * Stable identifier for the seeded initial agent message.
+ */
+const AGENT_CHAT_INITIAL_MESSAGE_ID = 'agent-initial-message';
 
 /**
  * AgentChat component that provides chat functionality with LLM integration
@@ -29,7 +35,7 @@ export function AgentChat(props: AgentChatProps) {
     const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, teamAgentProfiles, ...restProps } = props;
 
     const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
-    const agentAvatarUrl = resolveAgentAvatarImageUrl({ agent });
+    const resolvedAgentAvatar = resolveAgentAvatar({ agent });
     const elevenLabsVoiceId = agent.meta.voice;
 
     return (
@@ -42,6 +48,7 @@ export function AgentChat(props: AgentChatProps) {
                 initialMessages={[
                     {
                         // channel: 'PROMPTBOOK_CHAT',
+                        id: AGENT_CHAT_INITIAL_MESSAGE_ID,
                         sender: 'AGENT',
                         content:
                             agent.initialMessage ||
@@ -58,7 +65,11 @@ export function AgentChat(props: AgentChatProps) {
                     {
                         name: 'AGENT',
                         fullname: agent.meta.fullname || agent.agentName || 'Agent',
-                        avatarSrc: agentAvatarUrl || undefined,
+                        avatarSrc: resolvedAgentAvatar?.type === 'image' ? resolvedAgentAvatar.imageUrl : undefined,
+                        avatarDefinition:
+                            resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : undefined,
+                        avatarVisualId:
+                            resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : undefined,
                         color: brandColor,
                         isMe: false,
                         agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: [🐱‍🚀] asValue */,
@@ -80,6 +91,4 @@ export function AgentChat(props: AgentChatProps) {
     );
 }
 
-/**
- * TODO: !!!! Search ACRY ".meta.color" and make sure that we count that we count color can be array
- */
+// TODO: !!!! Search ACRY ".meta.color" and make sure that we count that we count color can be array

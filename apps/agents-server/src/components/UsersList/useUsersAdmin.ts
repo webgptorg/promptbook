@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { PublicUser } from '../../utils/publicUser';
 import { showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
-export type AdminUser = {
-    id: number;
-    username: string;
-    createdAt: string;
-    updatedAt: string;
-    isAdmin: boolean;
-};
+/**
+ * Type describing admin user.
+ */
+export type AdminUser = PublicUser;
 
+/**
+ * Payload for create user.
+ */
 type CreateUserPayload = {
     username: string;
     password: string;

@@ -47,5 +47,4 @@ KNOWLEDGE https://pubmed.ncbi.nlm.nih.gov/
 ## Related
 - [🤖 Agent](../agents/README.md)
 - [🤝 Commitments](../commitments/README.md)
-- [🔍 `USE SEARCH ENGINE`](../commitments/use-search-engine.md)
-- [🌐 `USE BROWSER`](../commitments/use-browser.md)
+- [🧠 `KNOWLEDGE`](../commitments/knowledge.md)

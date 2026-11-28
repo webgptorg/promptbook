@@ -74,6 +74,4 @@ export class MetaDomainCommitmentDefinition extends BaseCommitmentDefinition<'ME
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

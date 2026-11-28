@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Describes a prompt notation example for documentation and tooling.
@@ -144,4 +144,7 @@ export function getPromptNotationRunnableCode(example: PromptNotationExample): s
  */
 const defaultExample = PROMPT_NOTATION_EXAMPLES[2] ?? PROMPT_NOTATION_EXAMPLES[0];
 
+/**
+ * Constant for default prompt code.
+ */
 export const DEFAULT_PROMPT_CODE = defaultExample ? getPromptNotationRunnableCode(defaultExample) : '';

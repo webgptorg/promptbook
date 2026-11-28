@@ -1,8 +1,13 @@
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
+import { getRequestServerLanguage } from '@/src/utils/localization/getRequestServerLanguage';
 import { HistoryIcon } from 'lucide-react';
 import { RestoreVersionButton } from './RestoreVersionButton';
+import { enforceCanonicalLocalAgentId, getAgentName } from '../_utils';
 
 /**
  * Generates metadata for the agent history page.
@@ -16,12 +21,27 @@ export async function generateMetadata() {
     };
 }
 
+/**
+ * Builds canonical history path for one local agent id.
+ */
+function buildCanonicalAgentHistoryPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/history`;
+}
+
+/**
+ * Handles agent history page.
+ */
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
-    const { agentName } = await params;
+    if (!(await getCurrentUser())) {
+        return <ForbiddenPage />;
+    }
+
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentHistoryPath);
     const collection = await $provideAgentCollectionForServer();
-    const agentId = await collection.getAgentPermanentId(agentName);
-    const history = await collection.listAgentHistory(agentId);
+    const history = await collection.listAgentHistory(agentName);
     const agentNaming = await getAgentNaming();
+    const language = await getRequestServerLanguage();
 
     return (
         <div className="container mx-auto p-6 max-w-4xl">
@@ -52,11 +72,16 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
                                         <time className="block mb-1 text-sm font-normal leading-none text-gray-400">
-                                            {new Date(item.createdAt).toLocaleString()}
+                                            {formatServerLanguageHumanReadableDate(item.createdAt, language, {
+                                                isExactDateIncluded: true,
+                                            })}
                                         </time>
                                         <h3 className="text-lg font-semibold text-gray-900">
-                                            Version {history.length - index}
+                                            {item.versionName || `Version ${history.length - index}`}
                                         </h3>
+                                        {item.versionName && (
+                                            <p className="text-xs text-gray-500">Version {history.length - index}</p>
+                                        )}
                                         <p className="text-sm text-gray-500">
                                             Hash:{' '}
                                             <code className="bg-gray-100 px-1 rounded">

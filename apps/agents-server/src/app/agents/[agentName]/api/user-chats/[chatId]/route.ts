@@ -1,21 +1,21 @@
-import type { ChatMessage } from '@promptbook-local/types';
-import { NextResponse } from 'next/server';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import {
-    createUserChatSummary,
+    createUserChatDetailPayload,
     deleteUserChat,
     getUserChat,
+    isUserChatViewOnly,
     updateUserChatMessages,
 } from '@/src/utils/userChat';
+import { UserChatReplyValidationError } from '@/src/utils/userChat/UserChatReplyValidationError';
+import { isUserChatNotFoundScopeError, UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
+import type { ChatMessage } from '@promptbook-local/types';
+import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../resolveUserChatScope';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Loads one chat for current user.
  */
-export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     void request;
 
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
@@ -30,12 +30,18 @@ export async function GET(
         if (scopeResult.error === 'UNAUTHORIZED') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {
         const chat = await getUserChat({
             userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+            viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -44,11 +50,7 @@ export async function GET(
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
         }
 
-        return NextResponse.json({
-            chat: createUserChatSummary(chat),
-            messages: chat.messages,
-            draftMessage: chat.draftMessage,
-        });
+        return NextResponse.json(await createUserChatDetailPayload(chat, { viewerUserId: scopeResult.scope.userId }));
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to load chat.' },
@@ -60,10 +62,7 @@ export async function GET(
 /**
  * Replaces stored messages for one chat.
  */
-export async function PATCH(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
@@ -77,10 +76,30 @@ export async function PATCH(
         if (scopeResult.error === 'UNAUTHORIZED') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {
+        const existingChat = await getUserChat({
+            userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+            viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
+            agentPermanentId: scopeResult.scope.agentPermanentId,
+            chatId,
+        });
+
+        if (!existingChat) {
+            return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isUserChatViewOnly({ chat: existingChat, viewerUserId: scopeResult.scope.userId })) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
+        }
+
         const body = (await request.json().catch(() => ({}))) as { messages?: unknown };
         if (!Array.isArray(body.messages)) {
             return NextResponse.json({ error: 'messages must be an array.' }, { status: 400 });
@@ -93,25 +112,71 @@ export async function PATCH(
             messages: body.messages as Array<ChatMessage>,
         });
 
-        return NextResponse.json({
-            chat: createUserChatSummary(updatedChat),
-            messages: updatedChat.messages,
-        });
-    } catch (error) {
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to update chat.' },
-            { status: 400 },
+            await createUserChatDetailPayload(updatedChat, { viewerUserId: scopeResult.scope.userId }),
+        );
+    } catch (error) {
+        if (error instanceof UserChatScopeError) {
+            return resolveUserChatUpdateScopeErrorResponse(error);
+        }
+
+        if (error instanceof UserChatReplyValidationError) {
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    code: error.code,
+                    details: error.details,
+                },
+                { status: 400 },
+            );
+        }
+
+        return NextResponse.json(
+            {
+                error: error instanceof Error ? error.message : 'Failed to update chat.',
+                code: 'USER_CHAT_UPDATE_FAILED',
+            },
+            { status: 500 },
         );
     }
 }
 
 /**
+ * Resolves one HTTP response for scoped user-chat message-save failures.
+ *
+ * @private route helper
+ */
+function resolveUserChatUpdateScopeErrorResponse(error: UserChatScopeError): NextResponse {
+    if (isUserChatNotFoundScopeError(error)) {
+        return NextResponse.json(
+            {
+                error: 'Chat not found.',
+                code: error.code,
+                details: error.details,
+            },
+            { status: 404 },
+        );
+    }
+
+    const status =
+        error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
+            ? 500
+            : 404;
+
+    return NextResponse.json(
+        {
+            error: error.message,
+            code: error.code,
+            details: error.details,
+        },
+        { status },
+    );
+}
+
+/**
  * Deletes one chat for current user.
  */
-export async function DELETE(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     void request;
 
     if (isPrivateModeEnabledFromRequest(request)) {
@@ -127,10 +192,30 @@ export async function DELETE(
         if (scopeResult.error === 'UNAUTHORIZED') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {
+        const existingChat = await getUserChat({
+            userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            viewerIsSuperAdmin: scopeResult.scope.viewerIsSuperAdmin,
+            viewerCanAccessAgentGoalChat: scopeResult.scope.viewerCanAccessAgentGoalChat,
+            agentPermanentId: scopeResult.scope.agentPermanentId,
+            chatId,
+        });
+
+        if (!existingChat) {
+            return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isUserChatViewOnly({ chat: existingChat, viewerUserId: scopeResult.scope.userId })) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
+        }
+
         const wasDeleted = await deleteUserChat({
             userId: scopeResult.scope.userId,
             agentPermanentId: scopeResult.scope.agentPermanentId,

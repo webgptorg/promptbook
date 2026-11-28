@@ -45,6 +45,30 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            ServerLimit: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    key: string;
+                    value: number;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    key: string;
+                    value: number;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    key?: string;
+                    value?: number;
+                };
+                Relationships: [];
+            };
             Agent: {
                 Row: {
                     id: number;
@@ -225,6 +249,7 @@ export type AgentsServerDatabase = {
                     previousAgentHash: string | null;
                     agentSource: string;
                     promptbookEngineVersion: string;
+                    versionName: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -235,6 +260,7 @@ export type AgentsServerDatabase = {
                     previousAgentHash?: string | null;
                     agentSource: string;
                     promptbookEngineVersion: string;
+                    versionName?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -245,6 +271,7 @@ export type AgentsServerDatabase = {
                     previousAgentHash?: string | null;
                     agentSource?: string;
                     promptbookEngineVersion?: string;
+                    versionName?: string | null;
                 };
                 Relationships: [
                     {
@@ -275,6 +302,8 @@ export type AgentsServerDatabase = {
                     actorType: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
                     usage: Json | null;
                     userId: number | null;
+                    chatId: string | null;
+                    taskId: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -295,6 +324,8 @@ export type AgentsServerDatabase = {
                     actorType?: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
                     usage?: Json | null;
                     userId?: number | null;
+                    chatId?: string | null;
+                    taskId?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -315,6 +346,8 @@ export type AgentsServerDatabase = {
                     actorType?: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
                     usage?: Json | null;
                     userId?: number | null;
+                    chatId?: string | null;
+                    taskId?: string | null;
                 };
                 Relationships: [
                     {
@@ -428,8 +461,10 @@ export type AgentsServerDatabase = {
                     createdAt: string;
                     updatedAt: string;
                     lastMessageAt: string | null;
+                    title: string | null;
                     userId: number;
                     agentPermanentId: string;
+                    source: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
                     messages: Json;
                     draftMessage: string | null;
                 };
@@ -438,8 +473,10 @@ export type AgentsServerDatabase = {
                     createdAt?: string;
                     updatedAt?: string;
                     lastMessageAt?: string | null;
+                    title?: string | null;
                     userId: number;
                     agentPermanentId: string;
+                    source?: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
                     messages?: Json;
                     draftMessage?: string | null;
                 };
@@ -448,8 +485,10 @@ export type AgentsServerDatabase = {
                     createdAt?: string;
                     updatedAt?: string;
                     lastMessageAt?: string | null;
+                    title?: string | null;
                     userId?: number;
                     agentPermanentId?: string;
+                    source?: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
                     messages?: Json;
                     draftMessage?: string | null;
                 };
@@ -462,6 +501,94 @@ export type AgentsServerDatabase = {
                     },
                     {
                         foreignKeyName: 'UserChat_agentPermanentId_fkey';
+                        columns: ['agentPermanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
+            };
+            UserChatJob: {
+                Row: {
+                    id: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    chatId: string;
+                    userId: number;
+                    agentPermanentId: string;
+                    userMessageId: string;
+                    assistantMessageId: string;
+                    clientMessageId: string;
+                    status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+                    parameters: Json;
+                    queuedAt: string;
+                    startedAt: string | null;
+                    completedAt: string | null;
+                    cancelRequestedAt: string | null;
+                    lastHeartbeatAt: string | null;
+                    leaseExpiresAt: string | null;
+                    attemptCount: number;
+                    provider: string | null;
+                    failureReason: string | null;
+                };
+                Insert: {
+                    id: string;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    chatId: string;
+                    userId: number;
+                    agentPermanentId: string;
+                    userMessageId: string;
+                    assistantMessageId: string;
+                    clientMessageId: string;
+                    status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+                    parameters?: Json;
+                    queuedAt?: string;
+                    startedAt?: string | null;
+                    completedAt?: string | null;
+                    cancelRequestedAt?: string | null;
+                    lastHeartbeatAt?: string | null;
+                    leaseExpiresAt?: string | null;
+                    attemptCount?: number;
+                    provider?: string | null;
+                    failureReason?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    chatId?: string;
+                    userId?: number;
+                    agentPermanentId?: string;
+                    userMessageId?: string;
+                    assistantMessageId?: string;
+                    clientMessageId?: string;
+                    status?: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+                    parameters?: Json;
+                    queuedAt?: string;
+                    startedAt?: string | null;
+                    completedAt?: string | null;
+                    cancelRequestedAt?: string | null;
+                    lastHeartbeatAt?: string | null;
+                    leaseExpiresAt?: string | null;
+                    attemptCount?: number;
+                    provider?: string | null;
+                    failureReason?: string | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'UserChatJob_chatId_fkey';
+                        columns: ['chatId'];
+                        referencedRelation: 'UserChat';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'UserChatJob_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'UserChatJob_agentPermanentId_fkey';
                         columns: ['agentPermanentId'];
                         referencedRelation: 'Agent';
                         referencedColumns: ['permanentId'];
@@ -792,7 +919,7 @@ export type AgentsServerDatabase = {
                     userId: number;
                     isUserScoped: boolean;
                     agentPermanentId: string | null;
-                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN' | 'BROWSER_PROFILE';
                     service: string;
                     key: string;
                     jsonSchema: Json | null;
@@ -810,7 +937,7 @@ export type AgentsServerDatabase = {
                     userId: number;
                     isUserScoped?: boolean;
                     agentPermanentId?: string | null;
-                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN' | 'BROWSER_PROFILE';
                     service: string;
                     key?: string;
                     jsonSchema?: Json | null;
@@ -828,7 +955,7 @@ export type AgentsServerDatabase = {
                     userId?: number;
                     isUserScoped?: boolean;
                     agentPermanentId?: string | null;
-                    recordType?: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    recordType?: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN' | 'BROWSER_PROFILE';
                     service?: string;
                     key?: string;
                     jsonSchema?: Json | null;

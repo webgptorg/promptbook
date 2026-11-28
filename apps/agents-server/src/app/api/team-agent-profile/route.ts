@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
+import {
+    createTeamInternalAgentAccessHeaders,
+    resolveTeamInternalAgentAccessToken,
+} from '../../../../../../src/commitments/_common/teamInternalAgentAccess';
 
 import {
     resolvePlaceholderImageUrl,
     resolveProfileImageUrl,
 } from '../../../../../../src/book-components/Chat/utils/loadAgentProfile';
+import { assertsError } from '../../../../../../src/errors/assertsError';
 import { isValidAgentUrl } from '../../../../../../src/utils/validators/url/isValidAgentUrl';
+import { assertSafeUrl } from '../../../utils/assertSafeUrl';
+import { getCurrentUser } from '../../../utils/getCurrentUser';
 
+/**
+ * Response for team agent profile.
+ */
 type TeamAgentProfileResponse = {
     url: string;
     label?: string;
@@ -32,12 +42,20 @@ function buildAgentProfileEndpoint(agentUrl: string): string {
  * @param agentUrl - Remote teammate agent URL.
  * @returns Profile metadata or `null` when fetching fails.
  */
-async function fetchAgentProfile(agentUrl: string): Promise<TeamAgentProfileResponse | null> {
+async function fetchAgentProfile(agentUrl: string, localServerUrl: string): Promise<TeamAgentProfileResponse | null> {
     try {
         const profileUrl = buildAgentProfileEndpoint(agentUrl);
+        const teamAccessHeaders = createTeamInternalAgentAccessHeaders({
+            agentUrl,
+            localServerUrl,
+            accessToken: resolveTeamInternalAgentAccessToken(),
+        });
         const response = await fetch(profileUrl, {
             method: 'GET',
-            headers: { Accept: 'application/json' },
+            headers: {
+                Accept: 'application/json',
+                ...teamAccessHeaders,
+            },
         });
 
         if (!response.ok) {
@@ -73,8 +91,17 @@ async function fetchAgentProfile(agentUrl: string): Promise<TeamAgentProfileResp
  *
  * The client uses this to render tool call chips without relying on direct cross-origin requests
  * to the teammate agent.
+ *
+ * Requires authentication to prevent unauthenticated SSRF abuse and exfiltration of the
+ * internal team access token. The destination URL is validated against private/internal
+ * IP ranges before any outbound request is made.
  */
 export async function GET(request: Request) {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const requestUrl = new URL(request.url);
     const agentUrl = requestUrl.searchParams.get('url');
 
@@ -82,8 +109,16 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Invalid agent URL' }, { status: 400 });
     }
 
+    // Guard against SSRF: reject private/internal IPs and non-HTTP(S) schemes
+    try {
+        assertSafeUrl(agentUrl);
+    } catch (error) {
+        assertsError(error);
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     const normalizedUrl = agentUrl.replace(/\/$/, '');
-    const profile = await fetchAgentProfile(normalizedUrl);
+    const profile = await fetchAgentProfile(normalizedUrl, requestUrl.origin);
 
     if (!profile) {
         return NextResponse.json({ url: normalizedUrl, error: 'Failed to load teammate profile' }, { status: 502 });

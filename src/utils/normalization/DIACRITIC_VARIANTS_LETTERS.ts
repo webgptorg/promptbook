@@ -1,3 +1,6 @@
+/**
+ * Collection of default diacritics removal map.
+ */
 const defaultDiacriticsRemovalMap = [
     {
         base: 'A',

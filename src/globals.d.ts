@@ -18,7 +18,5 @@ declare module '*.stl' {
     export default string; // <- TODO: string_url
 }
 
-/**
- * Note: When some module does not have types available, it is imported using `require`
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: When some module does not have types available, it is imported using `require`
+// Note: [💞] Ignore a discrepancy between file name and entity name

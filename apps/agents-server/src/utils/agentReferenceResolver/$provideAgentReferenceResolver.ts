@@ -7,7 +7,7 @@ import { createServerAgentReferenceResolver } from './createServerAgentReference
 /**
  * Lifetime for resolver cache entries.
  */
-const CACHE_TTL_MS = 5000;
+const CACHE_TTL_MS = 30_000;
 
 /**
  * Last successfully constructed resolver instance.
@@ -48,6 +48,7 @@ export function $invalidateProvidedAgentReferenceResolverCache(): void {
  *
  * @param options - Control cache invalidation behavior
  * @returns Resolver that expands `{name}`/`@id` tokens into URLs
+ *
  * @private
  */
 export async function $provideAgentReferenceResolver(options?: {

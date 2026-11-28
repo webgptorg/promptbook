@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
-import { getAgentName, getAgentProfile } from '../_utils';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 
 /**
  * Available image assets that Agents Server exposes per agent.
@@ -41,12 +41,20 @@ const AGENT_IMAGES = [
 ] as const;
 
 /**
+ * Builds canonical image gallery path for one local agent id.
+ */
+function buildCanonicalAgentImagesPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/images`;
+}
+
+/**
  * Renders the enhanced agent image gallery page in the Agents Server.
  *
  * @private @@@
  */
 export default async function AgentImagesPage({ params }: { params: Promise<{ agentName: string }> }) {
-    const agentName = await getAgentName(params);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentImagesPath);
     const agentProfile = await getAgentProfile(agentName);
     const agentNaming = await getAgentNaming();
 

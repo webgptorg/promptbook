@@ -1,6 +1,6 @@
-import { ToolFunction } from '../../_packages/types.index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { string_javascript_name } from '../../types/typeAliases';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { string_javascript_name } from '../../types/string_person_fullname';
 import { just } from '../../utils/organization/just';
 import { getAllCommitmentDefinitions } from './getAllCommitmentDefinitions';
 
@@ -15,6 +15,7 @@ export type CommitmentToolFunctions = Record<string_javascript_name, ToolFunctio
  * Collects tool functions from all commitment definitions.
  *
  * @returns Map of tool function implementations.
+ *
  * @private internal helper for commitment tool registry
  */
 export function collectCommitmentToolFunctions(): CommitmentToolFunctions {
@@ -43,6 +44,7 @@ export function collectCommitmentToolFunctions(): CommitmentToolFunctions {
  *
  * @param getFunctions - Provider of current tool functions.
  * @returns Proxy exposing tool functions as properties.
+ *
  * @private internal helper for commitment tool registry
  */
 export function createToolFunctionsProxy(getFunctions: () => CommitmentToolFunctions): CommitmentToolFunctions {
@@ -86,6 +88,4 @@ export function createToolFunctionsProxy(getFunctions: () => CommitmentToolFunct
     });
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -5,8 +5,14 @@ import { Volume2Icon, VolumeXIcon, VibrateIcon, VibrateOffIcon } from 'lucide-re
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
 
+/**
+ * Type describing icon component.
+ */
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
+/**
+ * Uses sound system toggle.
+ */
 function useSoundSystemToggle(getState: () => boolean, toggleState: () => boolean) {
     const [isEnabled, setIsEnabled] = useState(() => getState());
 
@@ -23,6 +29,9 @@ function useSoundSystemToggle(getState: () => boolean, toggleState: () => boolea
     return { isEnabled, handleToggle };
 }
 
+/**
+ * Props for chat setting toggle button.
+ */
 type ChatSettingToggleButtonProps = {
     readonly className?: string;
     readonly isEnabled: boolean;
@@ -35,6 +44,9 @@ type ChatSettingToggleButtonProps = {
     readonly titleOff: string;
 };
 
+/**
+ * Handles chat setting toggle button.
+ */
 function ChatSettingToggleButton(props: ChatSettingToggleButtonProps) {
     const { className, isEnabled, onToggle, iconOn, iconOff, labelOn, labelOff, titleOn, titleOff } = props;
     const buttonClass = className ?? styles.saveMenuItem;
@@ -157,6 +169,9 @@ export function ChatVibrationToggle(props: ChatVibrationToggleProps) {
     );
 }
 
+/**
+ * Props for feedback toggle button.
+ */
 type FeedbackToggleButtonProps = {
     readonly label: string;
     readonly description: string;
@@ -168,6 +183,9 @@ type FeedbackToggleButtonProps = {
     readonly IconOff: IconComponent;
 };
 
+/**
+ * Handles feedback toggle button.
+ */
 function FeedbackToggleButton(props: FeedbackToggleButtonProps) {
     const { label, description, stateLabel, isEnabled, onToggle, title, IconOn, IconOff } = props;
     const Icon = isEnabled ? IconOn : IconOff;

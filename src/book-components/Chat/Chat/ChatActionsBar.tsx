@@ -3,16 +3,18 @@
 import { useCallback, useEffect, useState, type MouseEvent, type MutableRefObject, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { Promisable } from 'type-fest';
-import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { classNames } from '../../_common/react-utils/classNames';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import type { ChatSaveFormatHandlerMap } from '../save/_common/ChatSaveFormatHandler';
+import { createChatExportFilename } from '../save/_common/createChatExportFilename';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import styles from './Chat.module.css';
+import type { ChatUiTranslations } from './ChatProps';
 
 /**
  * Props for the Chat actions toolbar.
@@ -26,15 +28,28 @@ export type ChatActionsBarProps = {
     participants: ReadonlyArray<ChatParticipant>;
     title: string;
     onReset?: () => Promisable<void>;
+    resetRequiresConfirmation?: boolean;
+    /**
+     * Optional navigation target for the "New chat" control.
+     *
+     * When provided, the control is rendered as a link so the host app can rely
+     * on browser-native navigation affordances such as opening in a new tab/window.
+     */
+    newChatButtonHref?: string;
     onUseTemplate?: () => void;
     extraActions?: ReactNode;
     saveFormats?: Array<string_chat_format_name>;
+    saveFormatHandlers?: ChatSaveFormatHandlerMap;
     isSaveButtonEnabled: boolean;
     shouldFadeActions: boolean;
     /**
      * Disables action interactions while scroll is active.
      */
     shouldDisableActions: boolean;
+    /**
+     * Optional localized labels for Chat UI strings such as button labels.
+     */
+    chatUiTranslations?: ChatUiTranslations;
     onButtonClick: (
         handler?: (event: MouseEvent<HTMLButtonElement>) => void,
     ) => (event: MouseEvent<HTMLButtonElement>) => void;
@@ -53,12 +68,16 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
         participants,
         title,
         onReset,
+        resetRequiresConfirmation = true,
+        newChatButtonHref,
         onUseTemplate,
         extraActions,
         saveFormats,
+        saveFormatHandlers,
         isSaveButtonEnabled,
         shouldFadeActions,
         shouldDisableActions,
+        chatUiTranslations,
         onButtonClick,
     } = props;
     const [showSaveMenu, setShowSaveMenu] = useState(false);
@@ -82,23 +101,28 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
 
     const handleDownload = useCallback(
         async (format: string_chat_format_name) => {
+            const customSaveFormatHandler = saveFormatHandlers?.[format];
+            if (customSaveFormatHandler) {
+                await customSaveFormatHandler({
+                    title,
+                    messages,
+                    participants,
+                });
+                setShowSaveMenu(false);
+                return;
+            }
+
             const formatDefinition = getChatSaveFormatDefinitions([format])[0];
             if (!formatDefinition) {
                 return;
             }
-
-            const date = new Date();
-            const dateName = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
-                .getDate()
-                .toString()
-                .padStart(2, '0')}`;
 
             const content = await formatDefinition.getContent({ title, messages, participants });
             const blob = new Blob([content], { type: formatDefinition.mimeType });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${normalizeToKebabCase(title)}-${dateName}.${formatDefinition.fileExtension}`;
+            link.download = createChatExportFilename(title, formatDefinition.fileExtension);
             document.body.appendChild(link);
             link.click();
             setTimeout(() => {
@@ -107,11 +131,12 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
             }, 100);
             setShowSaveMenu(false);
         },
-        [messages, participants, title],
+        [messages, participants, saveFormatHandlers, title],
     );
 
     const firstMessageFromUser = messages[0]?.sender === 'USER';
     const actionsAlignmentClass = classNames(styles.actions, firstMessageFromUser ? styles.left : styles.right);
+    const newChatButtonLabel = chatUiTranslations?.newChatButtonLabel || 'New chat';
 
     const actionsContent = (
         <div
@@ -123,21 +148,28 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                 shouldDisableActions && styles.actionsScrolling,
             )}
         >
-            {onReset && messages.length !== 0 && (
-                <button
-                    className={classNames(styles.chatButton)}
-                    onClick={onButtonClick(() => {
-                        if (!confirm(`Do you really want to reset the chat?`)) {
-                            return;
-                        }
+            {(onReset || newChatButtonHref) &&
+                messages.length !== 0 &&
+                (newChatButtonHref ? (
+                    <a className={classNames(styles.chatButton)} href={newChatButtonHref}>
+                        <ResetIcon />
+                        <span className={styles.chatButtonText}>{newChatButtonLabel}</span>
+                    </a>
+                ) : (
+                    <button
+                        className={classNames(styles.chatButton)}
+                        onClick={onButtonClick(() => {
+                            if (resetRequiresConfirmation && !confirm(`Do you really want to reset the chat?`)) {
+                                return;
+                            }
 
-                        onReset();
-                    })}
-                >
-                    <ResetIcon />
-                    <span className={styles.chatButtonText}>New chat</span>
-                </button>
-            )}
+                            void onReset?.();
+                        })}
+                    >
+                        <ResetIcon />
+                        <span className={styles.chatButtonText}>{newChatButtonLabel}</span>
+                    </button>
+                ))}
 
             {isSaveButtonEnabled && messages.length !== 0 && (
                 <div className={styles.saveButtonContainer}>
@@ -148,7 +180,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                         aria-expanded={showSaveMenu}
                     >
                         <SaveIcon size={18} />
-                        <span className={styles.chatButtonText}>Save</span>
+                        <span className={styles.chatButtonText}>{chatUiTranslations?.saveButtonLabel || 'Save'}</span>
                     </button>
                     {showSaveMenu && (
                         <div className={styles.saveMenu}>

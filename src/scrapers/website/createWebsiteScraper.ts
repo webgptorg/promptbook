@@ -20,6 +20,4 @@ export const createWebsiteScraper = Object.assign(
     websiteScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

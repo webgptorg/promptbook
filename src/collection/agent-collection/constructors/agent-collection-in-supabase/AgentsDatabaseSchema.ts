@@ -95,6 +95,7 @@ export type AgentsDatabaseSchema = {
                     previousAgentHash: string | null; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
                     promptbookEngineVersion: string; // <- `string_promptbook_version`
+                    versionName: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -105,6 +106,7 @@ export type AgentsDatabaseSchema = {
                     previousAgentHash?: string | null;
                     agentSource: string;
                     promptbookEngineVersion: string;
+                    versionName?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -115,6 +117,7 @@ export type AgentsDatabaseSchema = {
                     previousAgentHash?: string | null;
                     agentSource?: string;
                     promptbookEngineVersion?: string;
+                    versionName?: string | null;
                 };
                 Relationships: [
                     {

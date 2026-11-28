@@ -1,8 +1,9 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import type { string_javascript_name } from '../../types/string_person_fullname';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
 import { readToolRuntimeContextFromToolArgs } from '../_common/toolRuntimeContext';
@@ -184,11 +185,12 @@ export class UsePrivacyCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
             spaceTrim(
                 (block) => `
-                    Privacy mode:
-                    - Use "${TURN_PRIVACY_ON_TOOL_NAME}" when the user asks for a private/sensitive conversation.
-                    - This tool requests a UI confirmation dialog. Private mode is enabled only after user confirms.
-                    - Current implementation uses the existing chat private mode (no chat persistence, memory persistence, or self-learning while active).
-                    - Do not claim that end-to-end encryption is implemented yet.
+                    ## Privacy
+
+                    -   Use \`${TURN_PRIVACY_ON_TOOL_NAME}\` when the user asks for a private/sensitive conversation.
+                    -   This tool requests a UI confirmation dialog. Private mode is enabled only after user confirms.
+                    -   Current implementation uses the existing chat private mode (no chat persistence, memory persistence, or self-learning while active).
+                    -   Do not claim that end-to-end encryption is implemented yet.
                     ${block(extraInstructions)}
                 `,
             ),
@@ -220,6 +222,4 @@ export class UsePrivacyCommitmentDefinition extends BaseCommitmentDefinition<'US
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

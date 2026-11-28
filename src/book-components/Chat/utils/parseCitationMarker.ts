@@ -43,6 +43,7 @@ export function createCitationMarkerRegex(): RegExp {
  *
  * @param id - Citation identifier.
  * @param source - Citation source.
+ *
  * @private utility of `<Chat/>`
  */
 function buildFullCitationMarker(id: string, source: string): string {
@@ -57,6 +58,7 @@ function buildFullCitationMarker(id: string, source: string): string {
  * - simplified notation: `source`
  *
  * @param markerBody - Marker body without outer brackets.
+ *
  * @private utility of `<Chat/>`
  */
 function parseCitationMarkerBody(markerBody: string): Pick<CitationMarker, 'id' | 'source'> | null {

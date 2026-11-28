@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { book } from '../../_packages/core.index';
+import { book } from '../../pipeline/book-notation';
 import { extractOpenTeacherInstructions } from './extractOpenTeacherInstructions';
 
 describe('extractOpenTeacherInstructions', () => {

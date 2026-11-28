@@ -85,6 +85,4 @@ export const ALL_ERRORS = {
     ...COMMON_JAVASCRIPT_ERRORS,
 } as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,4 +1,4 @@
-import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_date_iso8601 } from '../../types/string_token';
 
 /**
  * Simple wrapper `new Date().toISOString()`
@@ -6,6 +6,7 @@ import type { string_date_iso8601 } from '../../types/typeAliases';
  * Note: `$` is used to indicate that this function is not a pure function - it is not deterministic because it depends on the current time
  *
  * @returns string_date branded type
+ *
  * @public exported from `@promptbook/utils`
  */
 export function $getCurrentDate(): string_date_iso8601 {

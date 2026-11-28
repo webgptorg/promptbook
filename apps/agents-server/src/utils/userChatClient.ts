@@ -1,6 +1,32 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
+import type { UserChatSource } from './userChat/UserChatSource';
+
+export { cancelAgentUserTimeout } from './userChatClient/cancelAgentUserTimeout';
+export { cancelUserChatJob } from './userChatClient/cancelUserChatJob';
+export { cancelUserChatTimeout } from './userChatClient/cancelUserChatTimeout';
+export { createUserChat } from './userChatClient/createUserChat';
+export { createUserChatClientMessageId } from './userChatClient/createUserChatClientMessageId';
+export { fetchAgentUserTimeouts } from './userChatClient/fetchAgentUserTimeouts';
+export { fetchUserChat } from './userChatClient/fetchUserChat';
+export { fetchUserChats } from './userChatClient/fetchUserChats';
+export { removeUserChat } from './userChatClient/removeUserChat';
+export { saveUserChatDraft } from './userChatClient/saveUserChatDraft';
+export { saveUserChatMessages } from './userChatClient/saveUserChatMessages';
+export { sendUserChatMessage } from './userChatClient/sendUserChatMessage';
+export { streamUserChat } from './userChatClient/streamUserChat';
+export { UserChatApiError } from './userChatClient/UserChatApiError';
+
+/**
+ * Optional fetch configuration for chat-save requests.
+ */
+export type UserChatSaveRequestOptions = {
+    /**
+     * Enables keepalive mode so save requests can continue during page unload.
+     */
+    keepalive?: boolean;
+};
 
 /**
  * Chat list item returned by user-chat API.
@@ -10,9 +36,113 @@ export type UserChatSummary = {
     createdAt: string;
     updatedAt: string;
     lastMessageAt: string | null;
+    source: UserChatSource;
+    /**
+     * Database user id owning the chat, used to link a super-admin to its owner.
+     */
+    userId?: number;
+    isReadOnly: boolean;
+    /**
+     * True when the chat belongs to a different user than the current viewer
+     * (visible only to admins/super-admins browsing external chats).
+     */
+    isExternalUserChat?: boolean;
+    /**
+     * True for the singleton goal chat the agent keeps with itself, which is pinned above
+     * every other chat and rendered with its own icon.
+     */
+    isAgentGoalChat?: boolean;
     messagesCount: number;
     title: string;
     preview: string;
+    runningActivity: {
+        count: number;
+    };
+    timeoutActivity: {
+        count: number;
+        nearestDueAt: string | null;
+    };
+};
+
+/**
+ * Active durable job linked to the currently open chat.
+ */
+export type UserChatJob = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    chatId: string;
+    userId: number;
+    agentPermanentId: string;
+    userMessageId: string;
+    assistantMessageId: string;
+    clientMessageId: string;
+    status: 'QUEUED' | 'RUNNING';
+    parameters: Record<string, unknown>;
+    queuedAt: string;
+    startedAt: string | null;
+    completedAt: string | null;
+    cancelRequestedAt: string | null;
+    lastHeartbeatAt: string | null;
+    leaseExpiresAt: string | null;
+    attemptCount: number;
+    provider: string | null;
+    failureReason: string | null;
+};
+
+/**
+ * Active durable timeout linked to the currently open chat.
+ */
+export type UserChatTimeout = {
+    id: string;
+    timeoutId: string;
+    createdAt: string;
+    updatedAt: string;
+    chatId: string;
+    userId: number;
+    agentPermanentId: string;
+    status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    message: string | null;
+    parameters: Record<string, unknown>;
+    durationMs: number;
+    dueAt: string;
+    recurrenceIntervalMs: number | null;
+    cronExpression: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    maxRunCount: number | null;
+    queuedAt: string;
+    startedAt: string | null;
+    completedAt: string | null;
+    cancelRequestedAt: string | null;
+    pausedAt: string | null;
+    leaseExpiresAt: string | null;
+    attemptCount: number;
+    runCount: number;
+    lastFiredAt: string | null;
+    failureReason: string | null;
+};
+
+/**
+ * Aggregated timeout counters used in the global agent timeout manager.
+ */
+export type AgentUserTimeoutCounters = {
+    allCount: number;
+    queuedCount: number;
+    runningCount: number;
+    pausedCount: number;
+    completedCount: number;
+    failedCount: number;
+    cancelledCount: number;
+};
+
+/**
+ * API payload for the agent-wide timeout list endpoint.
+ */
+export type AgentUserTimeoutListResponse = {
+    items: Array<UserChatTimeout>;
+    counters: AgentUserTimeoutCounters;
+    generatedAt: string;
 };
 
 /**
@@ -23,6 +153,18 @@ export type UserChatsSnapshot = {
     activeChatId: string | null;
     activeMessages: Array<ChatMessage>;
     activeDraftMessage?: string | null;
+    activeJobs: Array<UserChatJob>;
+    activeTimeouts: Array<UserChatTimeout>;
+};
+
+/**
+ * Optional query flags for loading user-chat snapshots.
+ */
+export type FetchUserChatsOptions = {
+    /**
+     * When true, admin users can include frozen external chats in the listing.
+     */
+    showExternalChats?: boolean;
 };
 
 /**
@@ -32,121 +174,27 @@ export type UserChatDetail = {
     chat: UserChatSummary;
     messages: Array<ChatMessage>;
     draftMessage?: string | null;
+    activeJobs: Array<UserChatJob>;
+    activeTimeouts: Array<UserChatTimeout>;
 };
 
 /**
- * Fetches chats for one agent and includes resolved active chat messages.
+ * API payload returned after enqueueing one durable turn.
  */
-export async function fetchUserChats(agentName: string, chatId?: string): Promise<UserChatsSnapshot> {
-    const query = new URLSearchParams();
-    if (chatId) {
-        query.set('chat', chatId);
-    }
-
-    const queryString = query.toString();
-    const response = await fetch(
-        `/agents/${encodeURIComponent(agentName)}/api/user-chats${queryString ? `?${queryString}` : ''}`,
-        {
-            method: 'GET',
-            cache: 'no-store',
-        },
-    );
-
-    if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || 'Failed to load chats.');
-    }
-
-    return (await response.json()) as UserChatsSnapshot;
-}
+export type UserChatEnqueueResult = UserChatDetail & {
+    job: UserChatJob;
+};
 
 /**
- * Creates a new empty chat for one agent.
+ * Callback hooks accepted by the canonical user-chat stream client.
  */
-export async function createUserChat(agentName: string): Promise<UserChatDetail> {
-    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/user-chats`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-    });
-
-    if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || 'Failed to create chat.');
-    }
-
-    return (await response.json()) as UserChatDetail;
-}
-
-/**
- * Loads a single chat detail by id.
- */
-export async function fetchUserChat(agentName: string, chatId: string): Promise<UserChatDetail> {
-    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}`, {
-        method: 'GET',
-        cache: 'no-store',
-    });
-
-    if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || 'Failed to load chat.');
-    }
-
-    return (await response.json()) as UserChatDetail;
-}
-
-/**
- * Replaces stored messages for one chat.
- */
-export async function saveUserChatMessages(
-    agentName: string,
-    chatId: string,
-    messages: ReadonlyArray<ChatMessage>,
-): Promise<UserChatDetail> {
-    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages }),
-    });
-
-    if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || 'Failed to save chat.');
-    }
-
-    return (await response.json()) as UserChatDetail;
-}
-
-/**
- * Saves the draft message for one chat without modifying messages.
- */
-export async function saveUserChatDraft(
-    agentName: string,
-    chatId: string,
-    draftMessage: string | null,
-): Promise<void> {
-    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}/draft`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draftMessage }),
-    });
-
-    if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || 'Failed to save chat draft.');
-    }
-}
-
-/**
- * Deletes one chat by id.
- */
-export async function removeUserChat(agentName: string, chatId: string): Promise<void> {
-    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}`, {
-        method: 'DELETE',
-    });
-
-    if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || 'Failed to delete chat.');
-    }
-}
+export type StreamUserChatOptions = {
+    /**
+     * Abort signal used to stop reading the long-lived stream.
+     */
+    signal?: AbortSignal;
+    /**
+     * Called whenever the server emits a refreshed canonical chat snapshot.
+     */
+    onSnapshot: (chatDetail: UserChatDetail) => void;
+};

@@ -45,6 +45,7 @@
 
 **3rd party integration example:**
 
+
 ```typescript
 import { PromptbookAgentIntegration } from '@promptbook/components';
 

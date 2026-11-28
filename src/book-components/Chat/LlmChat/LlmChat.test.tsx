@@ -5,6 +5,9 @@ import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { LlmChatProps } from './LlmChatProps';
 
+/**
+ * Props for captured chat.
+ */
 type CapturedChatProps = {
     messages: ReadonlyArray<ChatMessage>;
     onReset?: () => Promise<void> | void;
@@ -67,7 +70,7 @@ describe('LlmChat', () => {
         await act(async () => {
             const root = createRoot(container);
             root.render(
-                <LlmChat title="Test" llmTools={customLlmTools as TODO_any} thread={thread} visual="STANDALONE" />,
+                <LlmChat title="Test" llmTools={customLlmTools as TODO_any} thread={thread} layout="STANDALONE" />,
             );
         });
 
@@ -92,7 +95,7 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             placeholderMessageContent: 'Test placeholder',
-            visual: 'STANDALONE',
+            layout: 'STANDALONE',
         };
 
         expect(props.llmTools).toBe(mockLlmTools);
@@ -154,7 +157,7 @@ describe('LlmChat', () => {
         const validProps: LlmChatProps = {
             title: 'Test',
             llmTools: mockLlmTools,
-            visual: 'STANDALONE',
+            layout: 'STANDALONE',
         };
 
         expect(validProps.llmTools).toBeDefined();
@@ -177,7 +180,7 @@ describe('LlmChat', () => {
             isExperimental: true,
             isSaveButtonEnabled: false,
             exportHeaderMarkdown: '# Chat Export',
-            visual: 'STANDALONE',
+            layout: 'STANDALONE',
             onUseTemplate: () => {},
         };
 
@@ -209,7 +212,7 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             initialMessages,
-            visual: 'STANDALONE',
+            layout: 'STANDALONE',
         };
 
         expect(props.initialMessages).toBeDefined();
@@ -245,11 +248,33 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             sendMessage: fakeSend,
-            visual: 'STANDALONE',
+            layout: 'STANDALONE',
         };
 
         expect(typeof props.sendMessage).toBe('function');
         expect(typeof props.sendMessage?._attach).toBe('function');
+    });
+
+    it('should disable native reset confirmation when reset is delegated', async () => {
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        await act(async () => {
+            const root = createRoot(container);
+            root.render(
+                <LlmChat
+                    title="Delegated reset"
+                    llmTools={mockLlmTools}
+                    onReset={async () => {}}
+                    resetMode="delegate"
+                    layout="STANDALONE"
+                />,
+            );
+        });
+
+        const capturedProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;
+        expect(capturedProps).toBeDefined();
+        expect(capturedProps?.resetRequiresConfirmation).toBe(false);
     });
 
     it('should re-seed initialMessages after reset (New chat)', async () => {
@@ -279,7 +304,7 @@ describe('LlmChat', () => {
         await act(async () => {
             const root = createRoot(container);
             root.render(
-                <LlmChat title="Test" llmTools={mockLlmTools} initialMessages={initialMessages} visual="STANDALONE" />,
+                <LlmChat title="Test" llmTools={mockLlmTools} initialMessages={initialMessages} layout="STANDALONE" />,
             );
         });
 

@@ -7,6 +7,7 @@ import { FORMFACTOR_DEFINITIONS } from '../index';
  * to represent how a particular interface handles inputs, outputs, and behaviors.
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/172
  */
 export type FormfactorDefinition = (typeof FORMFACTOR_DEFINITIONS)[number];

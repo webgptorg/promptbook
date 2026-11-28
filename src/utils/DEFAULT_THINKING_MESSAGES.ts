@@ -9,5 +9,9 @@ export const DEFAULT_THINKING_MESSAGES = [
     'Sorting information...',
 ] as const;
 
-/** @internal */
+/**
+ * Type describing thinking message variant.
+ *
+ * @internal
+ */
 export type ThinkingMessageVariant = (typeof DEFAULT_THINKING_MESSAGES)[number];

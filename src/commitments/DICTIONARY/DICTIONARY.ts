@@ -91,29 +91,21 @@ export class DictionaryCommitmentDefinition extends BaseCommitmentDefinition<'DI
             return requirements;
         }
 
-        // Get existing dictionary entries from metadata
+        // Store the entry in metadata for debugging and inspection
         const existingDictionary = requirements._metadata?.DICTIONARY || '';
-
-        // Merge the new dictionary entry with existing entries
         const mergedDictionary = existingDictionary ? `${existingDictionary}\n${trimmedContent}` : trimmedContent;
 
-        // Store the merged dictionary in metadata for debugging and inspection
         const updatedMetadata = {
             ...requirements._metadata,
             DICTIONARY: mergedDictionary,
         };
 
-        // Create the dictionary section for the system message
-        // Format: "# DICTIONARY\nTerm: definition\nTerm: definition..."
-        const dictionarySection = `# DICTIONARY\n${mergedDictionary}`;
-
+        // Append each dictionary entry as a bullet point under ## Dictionary
         return {
-            ...this.appendToSystemMessage(requirements, dictionarySection),
+            ...this.appendBulletPointToSection(requirements, 'Dictionary', trimmedContent),
             _metadata: updatedMetadata,
         };
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

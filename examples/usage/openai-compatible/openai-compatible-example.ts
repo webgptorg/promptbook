@@ -13,8 +13,20 @@ import { basename } from 'path';
 import { createOpenAiCompatibleExecutionTools } from '../../../src/_packages/openai.index';
 import { assertsError } from '../../../src/errors/assertsError';
 
+import { spaceTrim } from 'spacetrim';
+
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: openai-compatible-example.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: A directory named 'promptbook' (root of the project)
+            `),
+        ),
+    );
     process.exit(1);
 }
 

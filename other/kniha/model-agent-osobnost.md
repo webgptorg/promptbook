@@ -1,6 +1,9 @@
 # AI: Modely, Agenti, Osobnosti
 
 
+https://www.instagram.com/reel/DU1iYgkjjDF/?igsh=MTQyMTh5eTlyczUxZg==
+
+
 
 ## Todos 
 

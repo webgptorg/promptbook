@@ -204,9 +204,9 @@ export class AgentCollectionInDirectory implements AgentCollection {
     }
 }
 
+/** Note: [🟢] Code for Node directory agent collection [AgentCollectionInDirectory](src/collection/agent-collection/constructors/agent-collection-in-directory/AgentCollectionInDirectory.ts.todo) should never be published into packages that could be imported into browser environment */
 /**
  * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
  * TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`
  * TODO: [🧠] Maybe add option `isImmutable`
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

@@ -1,5 +1,8 @@
 import type { Promisable } from 'type-fest';
 
+/**
+ * Options for for each async.
+ */
 type ForEachAsyncOptions = {
     /**
      * Maximum number of tasks running in parallel
@@ -15,8 +18,9 @@ type ForEachAsyncOptions = {
  * @param array - Array to iterate over
  * @param options - Options for the function
  * @param callbackfunction - Function to call for each item
- * @public exported from `@promptbook/utils`
  * @deprecated [🪂] Use queues instead
+ *
+ * @public exported from `@promptbook/utils`
  */
 export async function forEachAsync<TItem>(
     array: ReadonlyArray<TItem>,

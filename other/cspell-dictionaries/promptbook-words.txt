@@ -2,6 +2,7 @@ promptbook
 ptbk
 azureopenai
 deepseek
+deepsearch
 ollama
 markitdown
 prebuild
@@ -59,3 +60,5 @@ dall
 collboard
 colldev
 chococake
+asciioctopus
+blobby

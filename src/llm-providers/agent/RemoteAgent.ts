@@ -1,5 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import type { AgentCapability } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
@@ -7,20 +8,17 @@ import type { CallChatModelStreamOptions } from '../../execution/LlmExecutionToo
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
+import type { string_agent_hash, string_agent_name } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_date_iso8601 } from '../../types/string_token';
+import type { string_url_image } from '../../types/string_url_image';
 import { isAssistantPreparationToolCall } from '../../types/ToolCall';
-import type {
-    string_agent_hash,
-    string_agent_name,
-    string_agent_url,
-    string_color,
-    string_date_iso8601,
-    string_fonts,
-    string_url_image,
-} from '../../types/typeAliases';
 import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/decodeChatStreamWhitespaceFromTransport';
 import { attachClientVersionHeader } from '../../utils/clientVersion';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
+import { mergeToolCalls } from '../../utils/toolCalls/mergeToolCalls';
 import { resolveToolCallIdempotencyKey } from '../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
@@ -38,6 +36,7 @@ type RemoteAgentProfile = {
     meta?: {
         fullname?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
         link?: string;
         font?: string_fonts;
         color?: string_color;
@@ -51,7 +50,69 @@ type RemoteAgentProfile = {
     isVoiceCallingEnabled?: boolean;
     isVoiceTtsSttEnabled?: boolean;
     knowledgeSources?: Array<{ url: string; filename: string }>;
+    isMetaImageExplicit?: boolean;
+    avatarVisualId?: AvatarVisualId;
 };
+
+/**
+ * Error envelope returned by remote agent chat endpoints on non-2xx responses.
+ */
+type RemoteAgentErrorPayload = {
+    error?: {
+        message?: string;
+        type?: string;
+    };
+};
+
+/**
+ * Error object thrown when remote agent HTTP request fails.
+ */
+type RemoteAgentHttpError = Error & {
+    status: number;
+    error?: {
+        message?: string;
+        type?: string;
+    };
+};
+
+/**
+ * Parses one failed remote agent response into a structured error.
+ */
+async function createRemoteAgentHttpError(response: Response): Promise<RemoteAgentHttpError> {
+    const responseBody = await response.text().catch(() => '');
+    let parsedPayload: RemoteAgentErrorPayload | null = null;
+
+    if (responseBody) {
+        try {
+            parsedPayload = JSON.parse(responseBody) as RemoteAgentErrorPayload;
+        } catch {
+            parsedPayload = null;
+        }
+    }
+
+    const payloadMessage =
+        parsedPayload?.error && typeof parsedPayload.error.message === 'string'
+            ? parsedPayload.error.message
+            : undefined;
+    const fallbackMessage = `Remote chat request failed (${response.status} ${
+        response.statusText || 'Unknown error'
+    }).`;
+    const rawResponseMessage = responseBody.trim();
+    const resolvedMessage = payloadMessage || rawResponseMessage || fallbackMessage;
+
+    const error = new Error(resolvedMessage) as RemoteAgentHttpError;
+    error.name = 'RemoteAgentHttpError';
+    error.status = response.status;
+
+    if (parsedPayload?.error) {
+        error.error = {
+            message: parsedPayload.error.message,
+            type: parsedPayload.error.type,
+        };
+    }
+
+    return error;
+}
 
 /**
  * Resolve a remote META IMAGE value into an absolute URL when possible.
@@ -95,9 +156,11 @@ function formatMetaLine(label: string, value?: string): string | null {
  * Build a minimal agent source snapshot for remote agents.
  */
 function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentProfile['meta']): string_book {
+    const isMetaImageExplicit = profile.isMetaImageExplicit !== false;
     const metaLines = [
         formatMetaLine('FULLNAME', meta?.fullname),
-        formatMetaLine('IMAGE', meta?.image),
+        formatMetaLine('AVATAR', meta?.avatar),
+        formatMetaLine('IMAGE', isMetaImageExplicit ? meta?.image : undefined),
         formatMetaLine('DESCRIPTION', meta?.description),
         formatMetaLine('COLOR', meta?.color),
         formatMetaLine('FONT', meta?.font),
@@ -140,7 +203,7 @@ export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
         const agentProfileUrl = `${options.agentUrl}/api/profile`;
         const profileResponse = await fetch(agentProfileUrl, {
-            headers: attachClientVersionHeader(),
+            headers: attachClientVersionHeader(options.requestHeaders),
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
@@ -210,6 +273,8 @@ export class RemoteAgent extends Agent {
         remoteAgent._isVoiceCallingEnabled = profile.isVoiceCallingEnabled === true; // [✨✷] Store voice calling status
         remoteAgent._isVoiceTtsSttEnabled = profile.isVoiceTtsSttEnabled !== false;
         remoteAgent.knowledgeSources = profile.knowledgeSources || [];
+        remoteAgent.isMetaImageExplicit = profile.isMetaImageExplicit !== false;
+        remoteAgent.avatarVisualId = profile.avatarVisualId;
 
         return remoteAgent;
     }
@@ -218,11 +283,14 @@ export class RemoteAgent extends Agent {
      * The source of the agent
      */
     private agentUrl: string_agent_url;
+    private requestHeaders: Record<string, string>;
     private _remoteAgentName: string_agent_name | undefined;
     private _remoteAgentHash: string_agent_hash | undefined;
     public toolTitles: Record<string, string> = {};
     private _isVoiceCallingEnabled: boolean = false; // [✨✷] Track voice calling status
     private _isVoiceTtsSttEnabled: boolean = true;
+    public isMetaImageExplicit: boolean = true;
+    public avatarVisualId: AvatarVisualId | undefined = undefined;
 
     /**
      * Indicates whether the remote server allows text-to-speech and speech-to-text.
@@ -237,6 +305,7 @@ export class RemoteAgent extends Agent {
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
         this.agentUrl = options.agentUrl;
+        this.requestHeaders = options.requestHeaders || {};
     }
 
     public override get agentName(): string_agent_name {
@@ -286,7 +355,7 @@ export class RemoteAgent extends Agent {
 
             const response = await fetch(`${this.agentUrl}/api/voice`, {
                 method: 'POST',
-                headers: attachClientVersionHeader(),
+                headers: attachClientVersionHeader(this.requestHeaders),
                 body: formData,
             });
 
@@ -328,6 +397,7 @@ export class RemoteAgent extends Agent {
         const bookResponse = await fetch(`${this.agentUrl}/api/chat`, {
             method: 'POST',
             headers: attachClientVersionHeader({
+                ...this.requestHeaders,
                 'Content-Type': 'application/json',
             }),
             body: JSON.stringify({
@@ -340,6 +410,10 @@ export class RemoteAgent extends Agent {
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
+
+        if (!bookResponse.ok) {
+            throw await createRemoteAgentHttpError(bookResponse);
+        }
 
         let content = '';
         const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
@@ -354,28 +428,6 @@ export class RemoteAgent extends Agent {
                 ...toolCall,
                 createdAt: toolCall.createdAt ?? (new Date().toISOString() as string_date_iso8601),
                 idempotencyKey: toolCall.idempotencyKey ?? resolveToolCallIdempotencyKey(toolCall),
-            };
-        };
-
-        const getToolCallKey = (toolCall: NonNullable<ChatPromptResult['toolCalls']>[number]): string => {
-            return getToolCallIdentity(toolCall);
-        };
-
-        const mergeToolCall = (
-            existing: NonNullable<ChatPromptResult['toolCalls']>[number],
-            incoming: NonNullable<ChatPromptResult['toolCalls']>[number],
-        ): NonNullable<ChatPromptResult['toolCalls']>[number] => {
-            const incomingResult = incoming.result;
-            const shouldKeepExistingResult =
-                incomingResult === '' && existing.result !== undefined && existing.result !== '';
-
-            return {
-                ...existing,
-                ...incoming,
-                result: shouldKeepExistingResult ? existing.result : incomingResult ?? existing.result,
-                createdAt: existing.createdAt || incoming.createdAt,
-                errors: incoming.errors ? [...(existing.errors || []), ...incoming.errors] : existing.errors,
-                warnings: incoming.warnings ? [...(existing.warnings || []), ...incoming.warnings] : existing.warnings,
             };
         };
 
@@ -395,14 +447,9 @@ export class RemoteAgent extends Agent {
                 if (preparationToolCalls.length > 0) {
                     preparationToolCalls.length = 0;
                 }
-                const key = getToolCallKey(normalized);
-                const existingIndex = toolCalls.findIndex((existing) => getToolCallKey(existing) === key);
-
-                if (existingIndex === -1) {
-                    toolCalls.push(normalized);
-                } else {
-                    toolCalls[existingIndex] = mergeToolCall(toolCalls[existingIndex]!, normalized);
-                }
+                const mergedToolCalls = mergeToolCalls(toolCalls, [normalized]);
+                toolCalls.length = 0;
+                toolCalls.push(...mergedToolCalls);
             }
         };
 
@@ -594,7 +641,5 @@ export class RemoteAgent extends Agent {
     }
 }
 
-/**
- * TODO: [🧠][😰]Agent is not working with the parameters, should it be?
- * TODO: !!! Agent on remote server
- */
+// TODO: [🧠][😰]Agent is not working with the parameters, should it be?
+// TODO: !!! Agent on remote server

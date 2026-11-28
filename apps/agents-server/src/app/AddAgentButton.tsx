@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { FileCard } from '../components/Homepage/FileCard';
 import { useAgentNaming } from '../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../components/AsyncDialogs/asyncDialogs';
@@ -11,6 +10,8 @@ import { useServerLanguage } from '../components/ServerLanguage/ServerLanguagePr
  * Props for the AddAgentButton component.
  */
 type AddAgentButtonProps = {
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
     /**
      * Folder identifier for the current list view, or null for the root.
      */
@@ -20,16 +21,13 @@ type AddAgentButtonProps = {
 /**
  * Renders the add-agent card and creation dialog workflow.
  */
-export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
-    const router = useRouter();
+export function AddAgentButton({ currentFolderId, creationScope }: AddAgentButtonProps) {
     const { formatText } = useAgentNaming();
     const { t } = useServerLanguage();
     const addButtonLabel = formatText(t('agentCreation.addButtonLabel'));
 
     const { isPreparingDialog, openNewAgentDialog, dialog } = useNewAgentDialog({
-        onCreated: ({ permanentId }) => {
-            router.push(`/agents/${permanentId}`);
-        },
+        creationScope,
         onCreateFailed: async (error) => {
             console.error('Failed to create agent:', error);
             await showAlert({

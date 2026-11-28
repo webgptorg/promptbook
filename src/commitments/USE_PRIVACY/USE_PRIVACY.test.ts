@@ -17,7 +17,7 @@ describe('createAgentModelRequirementsWithCommitments with USE PRIVACY', () => {
                 name: 'turn_privacy_on',
             }),
         );
-        expect(requirements.systemMessage).toContain('"turn_privacy_on"');
+        expect(requirements.systemMessage).toContain('`turn_privacy_on`');
     });
 
     it('should include extra instructions in the system message when provided', async () => {

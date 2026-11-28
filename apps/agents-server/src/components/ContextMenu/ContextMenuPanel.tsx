@@ -1,8 +1,8 @@
 'use client';
 
-import { Barlow_Condensed } from 'next/font/google';
 import type { CSSProperties } from 'react';
 import type { ComponentType } from 'react';
+import { HeadlessLink, isSameOriginHref } from '../_utils/headlessParam';
 import { contextMenuViewportStyle } from './contextMenuUtils';
 
 /**
@@ -41,15 +41,6 @@ export type ContextMenuLinkItem = {
 export type ContextMenuItem = ContextMenuDividerItem | ContextMenuActionItem | ContextMenuLinkItem;
 
 /**
- * Shared condensed font used by context menu panels.
- */
-const barlowCondensed = Barlow_Condensed({
-    subsets: ['latin'],
-    weight: ['300', '400', '500', '600', '700'],
-    variable: '--font-barlow-condensed',
-});
-
-/**
  * Props for the reusable context menu panel.
  */
 type ContextMenuPanelProps = {
@@ -77,7 +68,7 @@ type ContextMenuPanelProps = {
 export function ContextMenuPanel({ menuItems, onClose, className = 'w-56', style }: ContextMenuPanelProps) {
     return (
         <div
-            className={`bg-white rounded-xl shadow-2xl border border-gray-100 py-2 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 ${className} ${barlowCondensed.className}`.trim()}
+            className={`bg-white rounded-xl shadow-2xl border border-gray-100 py-2 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 ${className} font-barlow-condensed`.trim()}
             style={{ ...contextMenuViewportStyle, ...style }}
         >
             {menuItems.map((item, index) => {
@@ -86,6 +77,20 @@ export function ContextMenuPanel({ menuItems, onClose, className = 'w-56', style
                 }
 
                 if (item.type === 'link') {
+                    if ((!item.target || item.target === '_self') && isSameOriginHref(item.href)) {
+                        return (
+                            <HeadlessLink
+                                key={index}
+                                href={item.href}
+                                className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                                onClick={onClose}
+                            >
+                                <item.icon className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm font-medium">{item.label}</span>
+                            </HeadlessLink>
+                        );
+                    }
+
                     return (
                         <a
                             key={index}

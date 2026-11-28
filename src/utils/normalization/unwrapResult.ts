@@ -32,6 +32,7 @@ type UnwrapResultOptions = {
  *
  * @param text optionally quoted text
  * @returns text without quotes
+ *
  * @public exported from `@promptbook/utils`
  */
 export function unwrapResult(text: string, options?: UnwrapResultOptions): string {
@@ -125,6 +126,4 @@ export function unwrapResult(text: string, options?: UnwrapResultOptions): strin
     }
 }
 
-/**
- * TODO: [🧠] Should this also unwrap the (parenthesis)
- */
+// TODO: [🧠] Should this also unwrap the (parenthesis)

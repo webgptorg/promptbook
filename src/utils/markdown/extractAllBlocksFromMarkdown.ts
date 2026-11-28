@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { capitalize } from '../normalization/capitalize';
 
 /**
@@ -35,6 +35,7 @@ export type MarkdownCodeBlock = {
  * @param markdown any valid markdown
  * @returns code blocks with language and content
  * @throws {ParseError} if block is not closed properly
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllBlocksFromMarkdown(markdown: string_markdown): ReadonlyArray<MarkdownCodeBlock> {
@@ -102,6 +103,4 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Readonl
     return codeBlocks;
 }
 
-/**
- * TODO: Maybe name for `blockNotation` instead of  '```' and '>'
- */
+// TODO: Maybe name for `blockNotation` instead of  '```' and '>'

@@ -8,6 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -19,14 +20,30 @@ import { formatGitHubIssue } from './formatGitHubIssue';
 import { slugify } from './slugify';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: import-github.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { commit: is commited }.
+ */
 const { commit: isCommited } = program.opts();
 
 importGitHub({ isCommited })
@@ -40,6 +57,9 @@ importGitHub({ isCommited })
         process.exit(0);
     });
 
+/**
+ * Imports git hub.
+ */
 async function importGitHub({ isCommited }: { isCommited: boolean }) {
     console.info(`🐙  Importing GitHub discussions and issues`);
 

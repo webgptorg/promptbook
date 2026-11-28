@@ -45,10 +45,10 @@ export type PackageMetadata = {
     packageFullname: string /* <- TODO: More specific */;
 
     /**
-     * List of dependencies for the package
+     * List of additional dependencies for the package
      *
      * Note: If undefined, dependencies are not yet known
-     * Note: [🧃] There are only dependencies (not devDependencies) to ensure that everything is always installed
+     * Note: [🧃] Generated packages use only `dependencies` (not `devDependencies`) to ensure that everything is installed
      */
     additionalDependencies:Array<string /* <- TODO: More specific */>;
 
@@ -61,7 +61,5 @@ export type PackageMetadata = {
     entities?: Array<EntityMetadata>;
 };
 
-/**
- * TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [PackageMetadata](scripts/generate-packages/PackageMetadata.ts) should never be published in any package
+// TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath

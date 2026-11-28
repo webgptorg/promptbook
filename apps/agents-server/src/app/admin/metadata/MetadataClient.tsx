@@ -1,14 +1,41 @@
 'use client';
 
-import { upload } from '@vercel/blob/client';
-import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
+import {
+    DownloadIcon,
+    FileTextIcon,
+    HashIcon,
+    ImageIcon,
+    ListIcon,
+    ShieldIcon,
+    ToggleLeftIcon,
+    TypeIcon,
+    UploadIcon,
+} from 'lucide-react';
+import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
-import { metadataDefaults } from '../../../database/metadataDefaults';
+import { useFileUploadAvailability } from '../../../components/FileUploadAvailability/FileUploadAvailabilityContext';
+import {
+    getDeprecatedLimitMetadataDefinition,
+    type DeprecatedLimitMetadataDefinition,
+} from '../../../constants/serverLimits';
+import {
+    getMetadataDefinition,
+    metadataDefaults,
+    validateMetadataValue,
+    type MetadataDefinition,
+} from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
+import { downloadBlob, parseFilenameFromContentDisposition } from '../../../utils/download/browserFileDownload';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
-import { MetadataType } from '../../../constants/metadataTypes';
+import { buildDefaultUserFileUploadPath, uploadFileToServer } from '../../../utils/upload/uploadFileToServer';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting } from '../_components/adminTableSorting';
 
+/**
+ * Type describing metadata entry.
+ */
 type MetadataEntry = {
     id: number;
     key: string;
@@ -17,7 +44,112 @@ type MetadataEntry = {
     createdAt: string;
     updatedAt: string;
     isDefault?: boolean;
-    type?: MetadataType;
+    definition?: MetadataDefinition;
+    deprecatedLimitMetadata?: DeprecatedLimitMetadataDefinition | null;
+};
+
+/**
+ * Sortable metadata table columns.
+ *
+ * @private
+ */
+type MetadataTableSortField = 'type' | 'key' | 'value' | 'note';
+
+/**
+ * Endpoint serving standalone metadata JSON exports.
+ *
+ * @private
+ */
+const METADATA_EXPORT_ENDPOINT = '/api/metadata/export';
+
+/**
+ * Endpoint accepting standalone metadata JSON imports.
+ *
+ * @private
+ */
+const METADATA_IMPORT_ENDPOINT = '/api/metadata/import';
+
+/**
+ * Fallback filename used when the export route omits a `Content-Disposition` filename.
+ *
+ * @private
+ */
+const DEFAULT_METADATA_EXPORT_FILENAME = 'promptbook-agents-server.metadata.json';
+
+/**
+ * Minimal API error payload returned by metadata transfer routes.
+ *
+ * @private
+ */
+type MetadataTransferErrorPayload = {
+    error?: string;
+    message?: string;
+};
+
+/**
+ * Import summary returned by the metadata import route.
+ *
+ * @private
+ */
+type MetadataImportSummary = {
+    importedCount?: number;
+    resetCount?: number;
+};
+
+/**
+ * One metadata entry from a standalone metadata import JSON file.
+ *
+ * @private
+ */
+type MetadataImportEntry = {
+    /**
+     * Metadata key.
+     */
+    readonly key: string;
+
+    /**
+     * Metadata value, omitted when the exported value matched the built-in default.
+     */
+    readonly value?: string;
+
+    /**
+     * Metadata note, omitted when the exported note matched the built-in default.
+     */
+    readonly note?: string | null;
+};
+
+/**
+ * Standalone metadata import payload parsed in the browser before upload.
+ *
+ * @private
+ */
+type MetadataImportPayload = {
+    /**
+     * Promptbook version that generated the import file.
+     */
+    readonly promptbookVersion: string;
+
+    /**
+     * Metadata entries included in the import file.
+     */
+    readonly metadata: ReadonlyArray<MetadataImportEntry>;
+};
+
+/**
+ * Result of browser-side metadata import parsing.
+ *
+ * @private
+ */
+type MetadataImportPayloadParseResult = {
+    /**
+     * Parsed payload when the import file is usable.
+     */
+    readonly payload: MetadataImportPayload | null;
+
+    /**
+     * User-facing error message when parsing failed.
+     */
+    readonly errorMessage: string | null;
 };
 
 /**
@@ -36,6 +168,34 @@ const METADATA_INPUT_CLASS_NAME =
 const METADATA_TEXTAREA_CLASS_NAME = `${METADATA_INPUT_CLASS_NAME} min-h-[100px]`;
 
 /**
+ * Endpoint used by the interactive import flow after the admin selected individual entries.
+ *
+ * @private
+ */
+const METADATA_IMPORT_WITHOUT_DEFAULT_RESET_ENDPOINT = `${METADATA_IMPORT_ENDPOINT}?isDefaultResetSkipped=true`;
+
+/**
+ * Maximum value preview length inside one metadata import choice dialog.
+ *
+ * @private
+ */
+const METADATA_IMPORT_VALUE_PREVIEW_MAX_LENGTH = 180;
+
+/**
+ * Label used when a metadata value is intentionally empty.
+ *
+ * @private
+ */
+const METADATA_IMPORT_EMPTY_VALUE_LABEL = '(empty)';
+
+/**
+ * Label used when a metadata key is not currently persisted.
+ *
+ * @private
+ */
+const METADATA_IMPORT_MISSING_VALUE_LABEL = '(not set)';
+
+/**
  * Normalizes metadata keys so they are safe to use as HTML id suffixes.
  *
  * @private
@@ -51,7 +211,6 @@ type MetadataFormState = {
     key: string;
     value: string;
     note: string;
-    type?: MetadataType;
 };
 
 /**
@@ -64,6 +223,295 @@ const createEmptyFormState = (): MetadataFormState => ({
     value: '',
     note: '',
 });
+
+/**
+ * Reads a user-facing error message from a failed metadata transfer response.
+ *
+ * @param response - Failed HTTP response.
+ * @param fallbackMessage - Message used when the response body is not useful JSON.
+ * @returns Error message for the admin UI.
+ *
+ * @private
+ */
+async function resolveMetadataTransferErrorMessage(response: Response, fallbackMessage: string): Promise<string> {
+    try {
+        const payload = (await response.json()) as MetadataTransferErrorPayload;
+        const message = payload.message || payload.error;
+
+        if (message && message.trim().length > 0) {
+            return message.trim();
+        }
+    } catch {
+        // Keep fallback when the failed response is not JSON.
+    }
+
+    return fallbackMessage;
+}
+
+/**
+ * Parses one metadata import JSON file for browser-side per-entry selection.
+ *
+ * @param fileContent - Raw JSON file content.
+ * @returns Parsed payload or user-facing error message.
+ *
+ * @private
+ */
+function parseMetadataImportPayloadForSelection(fileContent: string): MetadataImportPayloadParseResult {
+    try {
+        return normalizeMetadataImportPayloadForSelection(JSON.parse(fileContent));
+    } catch {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import must be valid JSON.',
+        };
+    }
+}
+
+/**
+ * Normalizes parsed metadata import JSON enough to ask the admin about each entry.
+ *
+ * @param payload - Parsed JSON import payload.
+ * @returns Parsed payload or user-facing error message.
+ *
+ * @private
+ */
+function normalizeMetadataImportPayloadForSelection(payload: unknown): MetadataImportPayloadParseResult {
+    if (!payload || typeof payload !== 'object') {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import must be a JSON object.',
+        };
+    }
+
+    const payloadRecord = payload as Record<string, unknown>;
+
+    if (typeof payloadRecord.promptbookVersion !== 'string' || payloadRecord.promptbookVersion.trim() === '') {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import is missing `promptbookVersion`.',
+        };
+    }
+
+    if (!Array.isArray(payloadRecord.metadata)) {
+        return {
+            payload: null,
+            errorMessage: 'Metadata import must contain a `metadata` array.',
+        };
+    }
+
+    const importedMetadataKeys = new Set<string>();
+    const metadataEntries: Array<MetadataImportEntry> = [];
+
+    for (const [index, rawMetadataEntry] of payloadRecord.metadata.entries()) {
+        const normalizedMetadataEntry = normalizeMetadataImportEntryForSelection(
+            rawMetadataEntry,
+            index,
+            importedMetadataKeys,
+        );
+
+        if (typeof normalizedMetadataEntry === 'string') {
+            return {
+                payload: null,
+                errorMessage: normalizedMetadataEntry,
+            };
+        }
+
+        metadataEntries.push(normalizedMetadataEntry);
+    }
+
+    return {
+        payload: {
+            promptbookVersion: payloadRecord.promptbookVersion,
+            metadata: metadataEntries,
+        },
+        errorMessage: null,
+    };
+}
+
+/**
+ * Normalizes one metadata import entry for browser-side selection.
+ *
+ * @param rawMetadataEntry - Untrusted entry from the import JSON.
+ * @param index - Zero-based entry index for error messages.
+ * @param importedMetadataKeys - Mutable set used to reject duplicate keys.
+ * @returns Normalized entry or user-facing error message.
+ *
+ * @private
+ */
+function normalizeMetadataImportEntryForSelection(
+    rawMetadataEntry: unknown,
+    index: number,
+    importedMetadataKeys: Set<string>,
+): MetadataImportEntry | string {
+    if (!rawMetadataEntry || typeof rawMetadataEntry !== 'object') {
+        return `Metadata entry #${index + 1} must be an object.`;
+    }
+
+    const rawMetadataEntryRecord = rawMetadataEntry as Record<string, unknown>;
+    const rawKey = rawMetadataEntryRecord.key;
+    if (typeof rawKey !== 'string' || rawKey.trim() === '') {
+        return `Metadata entry #${index + 1} is missing a non-empty \`key\`.`;
+    }
+
+    const key = rawKey.trim();
+    const isDuplicateKey = importedMetadataKeys.has(key);
+    if (isDuplicateKey) {
+        return `Metadata import contains duplicate key \`${key}\`.`;
+    }
+    importedMetadataKeys.add(key);
+
+    const metadataDefinition = getMetadataDefinition(key);
+    const isValueProvided = Object.prototype.hasOwnProperty.call(rawMetadataEntryRecord, 'value');
+    const isNoteProvided = Object.prototype.hasOwnProperty.call(rawMetadataEntryRecord, 'note');
+
+    if (isValueProvided && typeof rawMetadataEntryRecord.value !== 'string') {
+        return `Metadata entry \`${key}\` has invalid \`value\`; expected a string.`;
+    }
+
+    if (isNoteProvided && typeof rawMetadataEntryRecord.note !== 'string' && rawMetadataEntryRecord.note !== null) {
+        return `Metadata entry \`${key}\` has invalid \`note\`; expected a string or null.`;
+    }
+
+    if (!isValueProvided && !metadataDefinition) {
+        return spaceTrim(`
+            Metadata entry \`${key}\` is missing \`value\`.
+
+            Only built-in metadata keys can omit default values.
+        `);
+    }
+
+    const value = isValueProvided ? (rawMetadataEntryRecord.value as string) : metadataDefinition!.value;
+    const validationError = validateMetadataValue(key, value);
+
+    if (validationError) {
+        return validationError;
+    }
+
+    const metadataEntry: MetadataImportEntry = {
+        key,
+    };
+
+    if (isValueProvided) {
+        (metadataEntry as { value: string }).value = rawMetadataEntryRecord.value as string;
+    }
+
+    if (isNoteProvided) {
+        (metadataEntry as { note: string | null }).note = rawMetadataEntryRecord.note as string | null;
+    }
+
+    return metadataEntry;
+}
+
+/**
+ * Resolves the effective imported metadata value after omitted built-in defaults are applied.
+ *
+ * @param importEntry - Metadata import entry.
+ * @returns Effective imported value.
+ *
+ * @private
+ */
+function resolveImportedMetadataValue(importEntry: MetadataImportEntry): string {
+    const isValueProvided = Object.prototype.hasOwnProperty.call(importEntry, 'value');
+
+    if (isValueProvided) {
+        return importEntry.value!;
+    }
+
+    return getMetadataDefinition(importEntry.key)?.value ?? '';
+}
+
+/**
+ * Resolves the effective imported metadata note after omitted built-in defaults are applied.
+ *
+ * @param importEntry - Metadata import entry.
+ * @returns Effective imported note.
+ *
+ * @private
+ */
+function resolveImportedMetadataNote(importEntry: MetadataImportEntry): string | null {
+    const isNoteProvided = Object.prototype.hasOwnProperty.call(importEntry, 'note');
+
+    if (isNoteProvided) {
+        return importEntry.note!;
+    }
+
+    return getMetadataDefinition(importEntry.key)?.note ?? null;
+}
+
+/**
+ * Formats one metadata value for compact import choice dialogs.
+ *
+ * @param value - Raw value or note.
+ * @returns Single-line preview for the dialog body.
+ *
+ * @private
+ */
+function formatMetadataImportDialogValue(value: string | null | undefined): string {
+    if (value === null || value === undefined) {
+        return METADATA_IMPORT_EMPTY_VALUE_LABEL;
+    }
+
+    const normalizedValue = value.replace(/\s+/g, ' ').trim();
+
+    if (normalizedValue === '') {
+        return METADATA_IMPORT_EMPTY_VALUE_LABEL;
+    }
+
+    if (normalizedValue.length <= METADATA_IMPORT_VALUE_PREVIEW_MAX_LENGTH) {
+        return normalizedValue;
+    }
+
+    return `${normalizedValue.slice(0, METADATA_IMPORT_VALUE_PREVIEW_MAX_LENGTH)}...`;
+}
+
+/**
+ * Asks the admin which imported metadata entries should replace current values.
+ *
+ * @param importPayload - Parsed metadata import payload.
+ * @param currentMetadataEntries - Metadata entries currently displayed in the admin table.
+ * @returns Filtered import payload containing only selected entries.
+ *
+ * @private
+ */
+async function createSelectedMetadataImportPayload(
+    importPayload: MetadataImportPayload,
+    currentMetadataEntries: ReadonlyArray<MetadataEntry>,
+): Promise<MetadataImportPayload> {
+    const currentMetadataByKey = new Map<string, MetadataEntry>(
+        currentMetadataEntries.map((metadataEntry) => [metadataEntry.key, metadataEntry]),
+    );
+    const selectedMetadataEntries: Array<MetadataImportEntry> = [];
+
+    for (const importEntry of importPayload.metadata) {
+        const currentMetadataEntry = currentMetadataByKey.get(importEntry.key);
+        const currentValue = currentMetadataEntry?.value ?? METADATA_IMPORT_MISSING_VALUE_LABEL;
+        const currentNote = currentMetadataEntry?.note ?? null;
+        const importedValue = resolveImportedMetadataValue(importEntry);
+        const importedNote = resolveImportedMetadataNote(importEntry);
+        const isImportedSelected = await showConfirm({
+            title: `Import ${importEntry.key}`,
+            message: spaceTrim(`
+                Choose metadata for \`${importEntry.key}\`.
+
+                Current value: ${formatMetadataImportDialogValue(currentValue)}
+                Imported value: ${formatMetadataImportDialogValue(importedValue)}
+                Current note: ${formatMetadataImportDialogValue(currentNote)}
+                Imported note: ${formatMetadataImportDialogValue(importedNote)}
+            `),
+            confirmLabel: 'Use imported',
+            cancelLabel: 'Keep current',
+        }).catch(() => false);
+
+        if (isImportedSelected) {
+            selectedMetadataEntries.push(importEntry);
+        }
+    }
+
+    return {
+        promptbookVersion: importPayload.promptbookVersion,
+        metadata: selectedMetadataEntries,
+    };
+}
 
 /**
  * Validates whether the provided string is an IPv4, IPv6, or CIDR range.
@@ -91,10 +539,12 @@ const validateIpOrCidr = (ip: string): boolean => {
  * @private
  */
 type MetadataValueFieldProps = {
-    type?: MetadataType;
+    definition?: MetadataDefinition;
     value: string;
     onValueChange: (value: string) => void;
     isUploading: boolean;
+    isUploadAvailable: boolean;
+    uploadUnavailableMessage: string | null;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
     onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void> | void;
     fieldId: string;
@@ -109,14 +559,35 @@ type MetadataValueFieldProps = {
  * @private
  */
 const MetadataValueField = ({
-    type,
+    definition,
     value,
     onValueChange,
     isUploading,
+    isUploadAvailable,
+    uploadUnavailableMessage,
     fileInputRef,
     onFileUpload,
     fieldId,
 }: MetadataValueFieldProps) => {
+    if (definition?.options && definition.options.length > 0) {
+        return (
+            <select
+                id={fieldId}
+                value={value}
+                onChange={(e) => onValueChange(e.target.value)}
+                className={METADATA_INPUT_CLASS_NAME}
+            >
+                {definition.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+        );
+    }
+
+    const type = definition?.type;
+
     if (type === 'TEXT_SINGLE_LINE') {
         return (
             <input
@@ -143,17 +614,27 @@ const MetadataValueField = ({
                         className={METADATA_INPUT_CLASS_NAME}
                         placeholder="Image URL..."
                     />
-                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={onFileUpload} />
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        ref={fileInputRef}
+                        onChange={onFileUpload}
+                        disabled={!isUploadAvailable}
+                    />
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
+                        disabled={isUploading || !isUploadAvailable}
                         className="bg-gray-100 text-gray-700 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-200 flex items-center space-x-2 min-w-max"
                     >
-                        <Upload className="w-4 h-4" />
+                        <UploadIcon className="w-4 h-4" />
                         <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
                     </button>
                 </div>
+                {!isUploadAvailable && uploadUnavailableMessage && (
+                    <p className="text-sm text-amber-700">{uploadUnavailableMessage}</p>
+                )}
                 {value && (
                     <div className="mt-2 p-2 border border-gray-200 rounded-md bg-gray-50 inline-block">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -268,9 +749,12 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
     for (const entry of data) {
         const existing = byKey.get(entry.key);
         if (!existing || existing.isDefault) {
-            // Find type from defaults
-            const def = metadataDefaults.find((d) => d.key === entry.key);
-            byKey.set(entry.key, { ...entry, type: def?.type });
+            const definition = getMetadataDefinition(entry.key);
+            byKey.set(entry.key, {
+                ...entry,
+                definition,
+                deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(entry.key),
+            });
         }
     }
 
@@ -285,7 +769,8 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 isDefault: true,
-                type: def.type,
+                definition: def,
+                deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(def.key),
             });
         }
     }
@@ -294,21 +779,58 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
 }
 
 /**
+ * Resolves the type label used for metadata table sorting.
+ *
+ * @private
+ */
+function resolveMetadataTypeSortLabel(entry: MetadataEntry): string {
+    if (entry.deprecatedLimitMetadata) {
+        return 'Deprecated';
+    }
+
+    return entry.definition?.type || 'Unknown';
+}
+
+/**
+ * Resolves a comparable value for one metadata table row.
+ *
+ * @private
+ */
+function resolveMetadataSortValue(entry: MetadataEntry, sortBy: MetadataTableSortField) {
+    if (sortBy === 'type') {
+        return resolveMetadataTypeSortLabel(entry);
+    }
+
+    return entry[sortBy] ?? '';
+}
+
+/**
  * Renders the metadata management admin view with creation and inline editing helpers.
  *
  * @private @@@
  */
 export function MetadataClient() {
+    const fileUploadAvailability = useFileUploadAvailability();
     const [metadata, setMetadata] = useState<MetadataEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [editingKey, setEditingKey] = useState<string | null>(null);
     const [isAddUploading, setIsAddUploading] = useState(false);
     const [isEditUploading, setIsEditUploading] = useState(false);
+    const [isExportingMetadata, setIsExportingMetadata] = useState(false);
+    const [isImportingMetadata, setIsImportingMetadata] = useState(false);
     const addFileInputRef = useRef<HTMLInputElement | null>(null);
     const editFileInputRef = useRef<HTMLInputElement | null>(null);
+    const importFileInputRef = useRef<HTMLInputElement | null>(null);
     const [addFormState, setAddFormState] = useState<MetadataFormState>(createEmptyFormState);
     const [editingFormState, setEditingFormState] = useState<MetadataFormState>(createEmptyFormState);
+    const isMetadataTransferBusy = isExportingMetadata || isImportingMetadata;
+    const metadataSorting = useAdminTableSorting<MetadataEntry, MetadataTableSortField>({
+        rows: metadata,
+        defaultSortBy: 'key',
+        resolveSortValue: resolveMetadataSortValue,
+    });
 
     const fetchMetadata = async () => {
         try {
@@ -322,8 +844,8 @@ export function MetadataClient() {
             const mergedData = mergeMetadataWithDefaults(data);
 
             setMetadata(mergedData);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         } finally {
             setLoading(false);
         }
@@ -351,16 +873,126 @@ export function MetadataClient() {
         }
     };
 
+    /**
+     * Downloads the current metadata configuration as standalone JSON.
+     *
+     * @private
+     */
+    const handleExportMetadata = async () => {
+        if (isMetadataTransferBusy) {
+            return;
+        }
+
+        setError(null);
+        setSuccessMessage(null);
+        setIsExportingMetadata(true);
+
+        try {
+            const response = await fetch(METADATA_EXPORT_ENDPOINT, { method: 'GET' });
+
+            if (!response.ok) {
+                setError(await resolveMetadataTransferErrorMessage(response, 'Failed to export metadata.'));
+                return;
+            }
+
+            const filename =
+                parseFilenameFromContentDisposition(response.headers.get('Content-Disposition')) ||
+                DEFAULT_METADATA_EXPORT_FILENAME;
+
+            downloadBlob(await response.blob(), filename);
+            setSuccessMessage('Metadata export downloaded.');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Metadata export failed.');
+        } finally {
+            setIsExportingMetadata(false);
+        }
+    };
+
+    /**
+     * Opens the native file picker for metadata imports.
+     *
+     * @private
+     */
+    const handleImportMetadataClick = () => {
+        if (isMetadataTransferBusy) {
+            return;
+        }
+
+        importFileInputRef.current?.click();
+    };
+
+    /**
+     * Imports selected standalone metadata JSON and refreshes the table.
+     *
+     * @private
+     */
+    const handleImportMetadataFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || isMetadataTransferBusy) {
+            return;
+        }
+
+        setError(null);
+        setSuccessMessage(null);
+        setIsImportingMetadata(true);
+
+        try {
+            const parsedImportPayload = parseMetadataImportPayloadForSelection(await file.text());
+
+            if (parsedImportPayload.errorMessage || !parsedImportPayload.payload) {
+                setError(parsedImportPayload.errorMessage || 'Metadata import failed.');
+                return;
+            }
+
+            const selectedImportPayload = await createSelectedMetadataImportPayload(
+                parsedImportPayload.payload,
+                metadata,
+            );
+
+            if (selectedImportPayload.metadata.length === 0) {
+                setSuccessMessage('Metadata import skipped; all imported entries kept current.');
+                return;
+            }
+
+            const response = await fetch(METADATA_IMPORT_WITHOUT_DEFAULT_RESET_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(selectedImportPayload),
+            });
+
+            if (!response.ok) {
+                setError(await resolveMetadataTransferErrorMessage(response, 'Failed to import metadata.'));
+                return;
+            }
+
+            const importSummary = (await response.json()) as MetadataImportSummary;
+            await fetchMetadata();
+            setSuccessMessage(
+                `Imported ${importSummary.importedCount ?? 0} metadata entries and reset ${
+                    importSummary.resetCount ?? 0
+                } built-in defaults.`,
+            );
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Metadata import failed.');
+        } finally {
+            setIsImportingMetadata(false);
+            if (importFileInputRef.current) {
+                importFileInputRef.current.value = '';
+            }
+        }
+    };
+
     const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
+        setSuccessMessage(null);
 
         try {
             await saveMetadata('POST', addFormState);
             setAddFormState(createEmptyFormState());
             fetchMetadata();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         }
     };
 
@@ -368,6 +1000,7 @@ export function MetadataClient() {
         e.preventDefault();
         if (editingKey === null) return;
         setError(null);
+        setSuccessMessage(null);
 
         try {
             const isPersistedEntry = metadata.some((entry) => entry.key === editingKey && !entry.isDefault);
@@ -375,8 +1008,8 @@ export function MetadataClient() {
             await saveMetadata(method, editingFormState);
             handleCancel();
             fetchMetadata();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         }
     };
 
@@ -386,20 +1019,20 @@ export function MetadataClient() {
             key: entry.key,
             value: entry.value,
             note: entry.note || '',
-            type: entry.type,
         });
     };
 
     const handleDelete = async (key: string) => {
-        const confirmed = await showConfirm({
+        const isConfirmed = await showConfirm({
             title: 'Delete metadata',
             message: 'Are you sure you want to delete this metadata?',
             confirmLabel: 'Delete metadata',
             cancelLabel: 'Cancel',
         }).catch(() => false);
-        if (!confirmed) return;
+        if (!isConfirmed) return;
 
         try {
+            setSuccessMessage(null);
             const response = await fetch(`/api/metadata?key=${encodeURIComponent(key)}`, {
                 method: 'DELETE',
             });
@@ -410,8 +1043,8 @@ export function MetadataClient() {
             }
 
             fetchMetadata();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An error occurred');
         }
     };
 
@@ -420,7 +1053,12 @@ export function MetadataClient() {
         setEditingFormState(createEmptyFormState());
     };
 
-    const getTypeIcon = (type?: MetadataType) => {
+    const getTypeIcon = (definition?: MetadataDefinition) => {
+        if (definition?.options && definition.options.length > 0) {
+            return <ListIcon className="w-4 h-4" />;
+        }
+
+        const type = definition?.type;
         switch (type) {
             case 'TEXT_SINGLE_LINE':
                 return <TypeIcon className="w-4 h-4" />;
@@ -438,7 +1076,6 @@ export function MetadataClient() {
                 return <TypeIcon className="w-4 h-4" />;
         }
     };
-
 
     /**
      * Parameters required to upload an image and store the resulting URL in a metadata form.
@@ -468,26 +1105,32 @@ export function MetadataClient() {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        if (!fileUploadAvailability.isUploadAvailable) {
+            setError(fileUploadAvailability.message || 'File uploads are not available for this server.');
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            return;
+        }
+
         try {
             setUploading(true);
 
-            const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
             const normalizedFilename = normalizeUploadFilename(file.name);
-            const uploadPath = pathPrefix
-                ? `${pathPrefix}/user/files/${normalizedFilename}`
-                : `user/files/${normalizedFilename}`;
-            const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
-
-            const blob = await upload(safeUploadPath, file, {
-                access: 'public',
-                handleUploadUrl: '/api/upload',
-                clientPayload: JSON.stringify({
-                    purpose: formState.key || 'METADATA_IMAGE',
-                    contentType: file.type,
-                }),
+            const uploadPath = buildDefaultUserFileUploadPath(normalizedFilename);
+            const safeUploadPath = getSafeCdnPath({
+                pathname: uploadPath,
+                pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX,
             });
 
-            const fileUrl = blob.url;
+            const uploadResult = await uploadFileToServer({
+                file,
+                pathname: safeUploadPath,
+                purpose: formState.key || 'METADATA_IMAGE',
+                contentType: file.type,
+            });
+
+            const fileUrl = uploadResult.url;
 
             const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
                 .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
@@ -496,8 +1139,8 @@ export function MetadataClient() {
 
             const shortFileUrl = fileUrl.split(LONG_URL).join(SHORT_URL);
             setFormState((prev) => ({ ...prev, value: shortFileUrl }));
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to upload image');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Failed to upload image');
         } finally {
             setUploading(false);
             if (fileInputRef.current) {
@@ -529,12 +1172,60 @@ export function MetadataClient() {
     }
 
     return (
-        <div className="w-full px-2 sm:px-4 md:px-8 py-8 max-w-screen-lg mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Metadata Management</h1>
-
+        <div className="space-y-8">
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
             )}
+            {successMessage && (
+                <div className="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded mb-6">
+                    {successMessage}
+                </div>
+            )}
+
+            <div className="bg-white shadow rounded-lg p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-xl font-semibold">Import / Export Metadata</h2>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            onClick={() => void handleExportMetadata()}
+                            disabled={isMetadataTransferBusy}
+                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <DownloadIcon className="h-4 w-4" />
+                            <span>{isExportingMetadata ? 'Exporting...' : 'Export Metadata'}</span>
+                        </button>
+                        <input
+                            type="file"
+                            accept="application/json,.json"
+                            className="hidden"
+                            ref={importFileInputRef}
+                            onChange={(event) => void handleImportMetadataFileChange(event)}
+                            disabled={isMetadataTransferBusy}
+                        />
+                        <button
+                            type="button"
+                            onClick={handleImportMetadataClick}
+                            disabled={isMetadataTransferBusy}
+                            className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <UploadIcon className="h-4 w-4" />
+                            <span>{isImportingMetadata ? 'Importing...' : 'Import Metadata'}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                Deprecated limit-backed metadata stays visible here for backward compatibility. Update operational
+                quotas, upload caps, and rate limits on{' '}
+                <Link href="/admin/limits" className="font-semibold underline underline-offset-2">
+                    the Limits page
+                </Link>{' '}
+                instead.
+            </div>
 
             <div className="bg-white shadow rounded-lg p-6 mb-8">
                 <h2 className="text-xl font-semibold mb-4">Add New Metadata</h2>
@@ -558,11 +1249,13 @@ export function MetadataClient() {
                             Value
                         </label>
                         <MetadataValueField
+                            definition={getMetadataDefinition(addFormState.key)}
                             fieldId="add-metadata-value"
-                            type={addFormState.type}
                             value={addFormState.value}
                             onValueChange={(value) => setAddFormState((prev) => ({ ...prev, value }))}
                             isUploading={isAddUploading}
+                            isUploadAvailable={fileUploadAvailability.isUploadAvailable}
+                            uploadUnavailableMessage={fileUploadAvailability.message}
                             fileInputRef={addFileInputRef}
                             onFileUpload={handleAddFileUpload}
                         />
@@ -595,18 +1288,46 @@ export function MetadataClient() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="type"
+                                sortBy="type"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Type
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="key"
+                                sortBy="key"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Key
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="value"
+                                sortBy="value"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Value
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="note"
+                                sortBy="note"
+                                activeSortBy={metadataSorting.sortBy}
+                                sortOrder={metadataSorting.sortOrder}
+                                onSortChange={metadataSorting.handleSortChange}
+                            >
                                 Note
-                            </th>
+                            </AdminSortableTableHeaderCell>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
@@ -620,8 +1341,9 @@ export function MetadataClient() {
                                 </td>
                             </tr>
                         ) : (
-                            metadata.map((entry) => {
+                            metadataSorting.sortedRows.map((entry) => {
                                 const htmlIdSuffix = toHtmlIdSuffix(entry.key);
+                                const isDeprecatedLimitMetadata = Boolean(entry.deprecatedLimitMetadata);
                                 const editValueFieldId = `edit-metadata-value-${htmlIdSuffix}`;
                                 const editNoteFieldId = `edit-metadata-note-${htmlIdSuffix}`;
 
@@ -629,40 +1351,80 @@ export function MetadataClient() {
                                     <Fragment key={`${entry.key}-${entry.id}`}>
                                         <tr>
                                             <td className="px-4 py-2 whitespace-nowrap text-gray-500 text-sm sm:px-6 sm:py-4">
-                                                <div className="flex items-center" title={entry.type || 'Unknown'}>
-                                                    {getTypeIcon(entry.type)}
+                                                <div
+                                                    className="flex items-center"
+                                                    title={
+                                                        entry.definition?.options?.length
+                                                            ? `ENUM (${entry.definition.type})`
+                                                            : entry.definition?.type || 'Unknown'
+                                                    }
+                                                >
+                                                    {getTypeIcon(entry.definition)}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
-                                                {entry.key}
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span>{entry.key}</span>
+                                                    {isDeprecatedLimitMetadata && (
+                                                        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
+                                                            Deprecated
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">
                                                 {entry.value}
                                             </td>
                                             <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">
-                                                {entry.note || '-'}
+                                                <div className="space-y-2">
+                                                    <div>{entry.note || '-'}</div>
+                                                    {entry.deprecatedLimitMetadata && (
+                                                        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                                                            {entry.deprecatedLimitMetadata.message}{' '}
+                                                            <Link
+                                                                href={entry.deprecatedLimitMetadata.href}
+                                                                className="font-semibold underline underline-offset-2"
+                                                            >
+                                                                Open Limits
+                                                            </Link>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium sm:px-6 sm:py-4">
-                                                <button
-                                                    onClick={() => handleEdit(entry)}
-                                                    className="text-blue-600 hover:text-blue-900 mr-4"
-                                                >
-                                                    Edit
-                                                </button>
-                                                {!entry.isDefault && (
-                                                    <button
-                                                        onClick={() => handleDelete(entry.key)}
-                                                        className="text-red-600 hover:text-red-900"
+                                                {isDeprecatedLimitMetadata ? (
+                                                    <Link
+                                                        href={entry.deprecatedLimitMetadata!.href}
+                                                        className="text-amber-700 hover:text-amber-900"
                                                     >
-                                                        Delete
-                                                    </button>
-                                                )}
-                                                {entry.isDefault && (
-                                                    <span className="text-gray-400 text-xs italic ml-2">Default</span>
+                                                        Manage in Limits
+                                                    </Link>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEdit(entry)}
+                                                            className="text-blue-600 hover:text-blue-900 mr-4"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        {!entry.isDefault && (
+                                                            <button
+                                                                onClick={() => handleDelete(entry.key)}
+                                                                className="text-red-600 hover:text-red-900"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                        {entry.isDefault && (
+                                                            <span className="text-gray-400 text-xs italic ml-2">
+                                                                Default
+                                                            </span>
+                                                        )}
+                                                    </>
                                                 )}
                                             </td>
                                         </tr>
-                                        {editingKey === entry.key && (
+                                        {editingKey === entry.key && !isDeprecatedLimitMetadata && (
                                             <tr>
                                                 <td colSpan={5} className="bg-gray-50 px-6 py-4">
                                                     <form onSubmit={handleEditSubmit} className="space-y-4">
@@ -683,13 +1445,24 @@ export function MetadataClient() {
                                                                     Value
                                                                 </label>
                                                                 <MetadataValueField
+                                                                    definition={getMetadataDefinition(
+                                                                        editingFormState.key,
+                                                                    )}
                                                                     fieldId={editValueFieldId}
-                                                                    type={editingFormState.type}
                                                                     value={editingFormState.value}
                                                                     onValueChange={(value) =>
-                                                                        setEditingFormState((prev) => ({ ...prev, value }))
+                                                                        setEditingFormState((prev) => ({
+                                                                            ...prev,
+                                                                            value,
+                                                                        }))
                                                                     }
                                                                     isUploading={isEditUploading}
+                                                                    isUploadAvailable={
+                                                                        fileUploadAvailability.isUploadAvailable
+                                                                    }
+                                                                    uploadUnavailableMessage={
+                                                                        fileUploadAvailability.message
+                                                                    }
                                                                     fileInputRef={editFileInputRef}
                                                                     onFileUpload={handleEditFileUpload}
                                                                 />

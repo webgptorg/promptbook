@@ -3,6 +3,7 @@
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Hosts the embeddable Promptbook widget inside an iframe and synchronizes
@@ -10,9 +11,24 @@ import { useEffect, useMemo, useState } from 'react';
  */
 export default function EmbedPage() {
     const searchParams = useSearchParams();
-    const agentUrl = searchParams.get('agentUrl');
-    const metaParam = searchParams.get('meta');
-    const isInitiallyOpen = searchParams.get('open') === '1';
+    const agentUrl = searchParams?.get('agentUrl');
+    const metaParam = searchParams?.get('meta');
+    const isInitiallyOpen = searchParams?.get('open') === '1';
+    const embedGlobalStyles = spaceTrim(`
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent !important;
+            overflow: hidden;
+        }
+
+        #__next {
+            width: 100%;
+            height: 100%;
+        }
+    `);
     const [isOpen, setIsOpen] = useState(isInitiallyOpen);
 
     const meta = useMemo(() => {
@@ -56,21 +72,7 @@ export default function EmbedPage() {
 
     return (
         <>
-            <style jsx global>{`
-                html,
-                body {
-                    margin: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: transparent !important;
-                    overflow: hidden;
-                }
-
-                #__next {
-                    width: 100%;
-                    height: 100%;
-                }
-            `}</style>
+            <style jsx global>{embedGlobalStyles}</style>
             <PromptbookAgentIntegration
                 agentUrl={agentUrl}
                 meta={meta}

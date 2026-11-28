@@ -38,10 +38,8 @@ export const createAnthropicClaudeExecutionTools = Object.assign(
     },
 ) satisfies LlmExecutionToolsConstructor;
 
-/**
- * TODO: [🧠][main] !!4 Make anonymous this with all LLM providers
- * TODO: [🧠][🧱][main] !!4 Maybe change all `new AnthropicClaudeExecutionTools` -> `createAnthropicClaudeExecutionTools` in manual
- * TODO: [🧠] Maybe auto-detect usage in browser and determine default value of `isProxied`
- * TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🧠][main] !!4 Make anonymous this with all LLM providers
+// TODO: [🧠][🧱][main] !!4 Maybe change all `new AnthropicClaudeExecutionTools` -> `createAnthropicClaudeExecutionTools` in manual
+// TODO: [🧠] Maybe auto-detect usage in browser and determine default value of `isProxied`
+// TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

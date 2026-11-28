@@ -1,6 +1,22 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { Client } from 'pg';
+import type { Client } from 'pg';
+import { spaceTrim } from 'spacetrim';
+import { DatabaseError } from '../../../../src/errors/DatabaseError';
+import { type ServerRecord } from '../utils/serverRegistry';
+import {
+    acquireMigrationExecutionLock,
+    releaseMigrationExecutionLock,
+    type DatabaseMigrationExecutionLockMode,
+} from './acquireMigrationExecutionLock';
+import {
+    createDatabaseMigrationFailureError,
+    type DatabaseMigrationFailureContext,
+} from './createDatabaseMigrationFailureError';
+import { importRuntimeModule } from './importRuntimeModule';
+import { listRegisteredServersFromDatabase } from './listRegisteredServersFromDatabase';
+import { migratePrefix } from './migratePrefix';
+import { readMigrationFiles, resolveMigrationsDirectory } from './resolveMigrationsDirectory';
+import { selectPrefixesForMigration } from './selectPrefixesForMigration';
+import { listEnvironmentRegisteredServers } from '../utils/serverRegistry';
 
 /**
  * Allowed values describing who applied a migration record.
@@ -13,7 +29,8 @@ export const DATABASE_MIGRATION_APPLIED_BY = {
 /**
  * Value used in migration history to indicate whether a migration was applied automatically or manually.
  */
-export type DatabaseMigrationAppliedBy = (typeof DATABASE_MIGRATION_APPLIED_BY)[keyof typeof DATABASE_MIGRATION_APPLIED_BY];
+export type DatabaseMigrationAppliedBy =
+    (typeof DATABASE_MIGRATION_APPLIED_BY)[keyof typeof DATABASE_MIGRATION_APPLIED_BY];
 
 /**
  * Minimal logger contract used by the migration runner.
@@ -29,6 +46,10 @@ export type DatabaseMigrationRuntimeConfiguration = {
      */
     readonly prefixes: ReadonlyArray<string>;
     /**
+     * Registered servers loaded from the global `_Server` table.
+     */
+    readonly registeredServers: ReadonlyArray<ServerRecord>;
+    /**
      * Connection string for PostgreSQL used by migration runner.
      */
     readonly connectionString: string;
@@ -43,6 +64,10 @@ export type RunDatabaseMigrationsOptions = {
      */
     readonly prefixes: ReadonlyArray<string>;
     /**
+     * Registered servers used for `--only=production|preview|<server-name>` expansion.
+     */
+    readonly registeredServers?: ReadonlyArray<ServerRecord>;
+    /**
      * PostgreSQL connection string.
      */
     readonly connectionString: string;
@@ -51,9 +76,9 @@ export type RunDatabaseMigrationsOptions = {
      */
     readonly appliedBy: DatabaseMigrationAppliedBy;
     /**
-     * Optional subset of prefixes to migrate.
+     * Optional subset of migration targets to process.
      */
-    readonly onlyPrefixes?: ReadonlyArray<string> | null;
+    readonly onlyTargets?: ReadonlyArray<string> | null;
     /**
      * Optional custom migrations directory.
      */
@@ -66,6 +91,10 @@ export type RunDatabaseMigrationsOptions = {
      * If true, prints every SQL migration body before execution.
      */
     readonly logSqlStatements?: boolean;
+    /**
+     * Whether migration execution should wait for the advisory lock or skip when another process already owns it.
+     */
+    readonly executionLockMode?: DatabaseMigrationExecutionLockMode;
 };
 
 /**
@@ -80,6 +109,10 @@ export type DatabaseMigrationPrefixResult = {
      * Number of newly applied migration files.
      */
     readonly appliedCount: number;
+    /**
+     * Migration filenames newly applied for this prefix.
+     */
+    readonly appliedMigrationFiles: ReadonlyArray<string>;
 };
 
 /**
@@ -98,12 +131,26 @@ export type RunDatabaseMigrationsResult = {
      * Per-prefix summary.
      */
     readonly perPrefix: ReadonlyArray<DatabaseMigrationPrefixResult>;
+    /**
+     * Whether migration execution was skipped because another process already held the advisory lock.
+     */
+    readonly isSkippedDueToActiveMigrationLock: boolean;
 };
 
 /**
- * Environment variable with comma-separated prefix list.
+ * Constructor shape exposed by the `pg` package.
  */
-const SUPABASE_MIGRATION_PREFIXES_ENV_NAME = 'SUPABASE_MIGRATION_PREFIXES';
+type PostgresClientConstructor = new (options: {
+    readonly connectionString: string;
+    readonly ssl: {
+        readonly rejectUnauthorized: boolean;
+    };
+}) => Client;
+
+/**
+ * Environment variable used for the current/default table prefix.
+ */
+const SUPABASE_TABLE_PREFIX_ENV_NAME = 'SUPABASE_TABLE_PREFIX';
 
 /**
  * Candidate environment variables for PostgreSQL connection string.
@@ -111,347 +158,177 @@ const SUPABASE_MIGRATION_PREFIXES_ENV_NAME = 'SUPABASE_MIGRATION_PREFIXES';
 const DATABASE_CONNECTION_ENV_NAMES = ['POSTGRES_URL', 'DATABASE_URL'] as const;
 
 /**
- * Candidate directories where SQL migration files can be located.
- */
-const MIGRATIONS_DIRECTORY_CANDIDATES = [
-    path.join(__dirname, 'migrations'),
-    path.join(process.cwd(), 'src', 'database', 'migrations'),
-    path.join(process.cwd(), 'apps', 'agents-server', 'src', 'database', 'migrations'),
-] as const;
-
-/**
- * Cross-process advisory lock key guarding migration execution.
- */
-const DATABASE_MIGRATION_LOCK_KEY = 'promptbook_agents_server_migrations';
-
-/**
- * Reads migration runtime configuration from environment variables.
+ * Reads migration runtime configuration from environment variables and `_Server`.
  *
- * Returns `null` when prefixes are not configured.
- *
- * @param logger Logger used for warnings.
+ * @param logger - Logger used for warnings.
  * @returns Parsed configuration or `null` when migration should be skipped.
  */
-export function resolveDatabaseMigrationRuntimeConfiguration(
+export async function resolveDatabaseMigrationRuntimeConfiguration(
     logger: DatabaseMigrationLogger = console,
-): DatabaseMigrationRuntimeConfiguration | null {
-    const prefixes = parseMigrationPrefixesFromEnvironment(process.env[SUPABASE_MIGRATION_PREFIXES_ENV_NAME]);
-
-    if (process.env[SUPABASE_MIGRATION_PREFIXES_ENV_NAME] === undefined) {
-        logger.warn(`⚠️ ${SUPABASE_MIGRATION_PREFIXES_ENV_NAME} is not defined. Skipping migration.`);
-        return null;
-    }
-
-    if (prefixes.length === 0) {
-        logger.warn(`⚠️ No prefixes found in ${SUPABASE_MIGRATION_PREFIXES_ENV_NAME}. Skipping migration.`);
-        return null;
-    }
-
+): Promise<DatabaseMigrationRuntimeConfiguration | null> {
     const connectionString = resolveDatabaseMigrationConnectionStringFromEnvironment();
     if (!connectionString) {
-        throw new Error(`❌ ${DATABASE_CONNECTION_ENV_NAMES.join(' or ')} is not defined.`);
+        throw new DatabaseError(
+            spaceTrim(`
+                ${DATABASE_CONNECTION_ENV_NAMES.join(' or ')} is not defined.
+            `),
+        );
     }
 
-    return {
-        prefixes,
-        connectionString,
-    };
+    const client = await createPostgresClient(connectionString);
+
+    try {
+        await client.connect();
+
+        const registeredServers = mergeRegisteredServers(
+            await listRegisteredServersFromDatabase(client),
+            listEnvironmentRegisteredServers(),
+        );
+        const hasExplicitDefaultPrefix = process.env[SUPABASE_TABLE_PREFIX_ENV_NAME] !== undefined;
+        const configuredPrefixes = uniquePrefixes([
+            ...(hasExplicitDefaultPrefix
+                ? [process.env[SUPABASE_TABLE_PREFIX_ENV_NAME] || '']
+                : registeredServers.length === 0
+                ? ['']
+                : []),
+            ...registeredServers.map((server) => server.tablePrefix),
+        ]);
+
+        if (configuredPrefixes.length === 0) {
+            logger.warn(`⚠️ No migration prefixes resolved from \`${SUPABASE_TABLE_PREFIX_ENV_NAME}\` or \`_Server\`.`);
+            return null;
+        }
+
+        logger.info(`🗂️ Loaded ${registeredServers.length} registered servers from \`_Server\`.`);
+
+        return {
+            prefixes: configuredPrefixes,
+            registeredServers,
+            connectionString,
+        };
+    } finally {
+        await client.end();
+    }
 }
 
 /**
  * Executes pending SQL migrations for selected prefixes.
  *
- * @param options Migration execution options.
+ * @param options - Migration execution options.
  * @returns Aggregated migration summary.
  */
-export async function runDatabaseMigrations(options: RunDatabaseMigrationsOptions): Promise<RunDatabaseMigrationsResult> {
+export async function runDatabaseMigrations(
+    options: RunDatabaseMigrationsOptions,
+): Promise<RunDatabaseMigrationsResult> {
     const logger = options.logger ?? console;
-    const selectedPrefixes = selectPrefixesForMigration(options.prefixes, options.onlyPrefixes);
-    const migrationsDirectory = options.migrationsDirectory ?? resolveMigrationsDirectory();
-    const migrationFiles = readMigrationFiles(migrationsDirectory);
+    const failureContext: DatabaseMigrationFailureContext = {
+        stage: 'prepare-migration-plan',
+        onlyTargets: options.onlyTargets ?? null,
+        selectedPrefixes: [],
+        totalMigrationFiles: 0,
+        executionLockMode: options.executionLockMode ?? 'wait',
+    };
     const perPrefix: Array<DatabaseMigrationPrefixResult> = [];
-
-    logger.info(`📂 Found ${migrationFiles.length} migration files`);
-    logger.info(`📋 Found ${selectedPrefixes.length} prefixes to migrate: ${selectedPrefixes.join(', ')}`);
-
-    const client = new Client({
-        connectionString: options.connectionString,
-        ssl: { rejectUnauthorized: false },
-    });
-
+    let client: Client | null = null;
+    let selectedPrefixes: Array<string> = [];
+    let totalMigrationFiles = 0;
     let hasExecutionLock = false;
+    let isSkippedDueToActiveMigrationLock = false;
+    let migrationFailure: unknown = null;
+    let migrationsDirectory = '';
+    let migrationFiles: Array<string> = [];
 
     try {
+        selectedPrefixes = selectPrefixesForMigration(options.prefixes, options.registeredServers ?? [], options.onlyTargets);
+        failureContext.selectedPrefixes = selectedPrefixes;
+
+        migrationsDirectory = options.migrationsDirectory ?? (await resolveMigrationsDirectory());
+        migrationFiles = await readMigrationFiles(migrationsDirectory);
+        totalMigrationFiles = migrationFiles.length;
+        failureContext.totalMigrationFiles = totalMigrationFiles;
+
+        logger.info(`📂 Found ${totalMigrationFiles} migration files`);
+        logger.info(
+            `📋 Found ${selectedPrefixes.length} prefixes to migrate: ${selectedPrefixes
+                .map((prefix) => prefix || '<default>')
+                .join(', ')}`,
+        );
+
+        failureContext.stage = 'connect-to-database';
+        client = await createPostgresClient(options.connectionString);
         await client.connect();
         logger.info('🔌 Connected to database');
-        await acquireMigrationExecutionLock(client, logger);
-        hasExecutionLock = true;
+
+        failureContext.stage = 'acquire-migration-lock';
+        hasExecutionLock = await acquireMigrationExecutionLock(client, logger, options.executionLockMode ?? 'wait');
+
+        if (!hasExecutionLock) {
+            isSkippedDueToActiveMigrationLock = true;
+
+            return {
+                processedPrefixes: [],
+                totalMigrationFiles,
+                perPrefix,
+                isSkippedDueToActiveMigrationLock,
+            };
+        }
 
         for (const prefix of selectedPrefixes) {
+            const appliedMigrationFiles: Array<string> = [];
+            failureContext.stage = 'migrate-prefix';
+            failureContext.currentPrefix = prefix;
+            failureContext.currentPrefixStage = undefined;
+            failureContext.currentMigrationFile = undefined;
             logger.info(`\n🏗️ Migrating prefix: "${prefix}"`);
             const appliedCount = await migratePrefix({
                 prefix,
                 appliedBy: options.appliedBy,
+                manualAppliedByDefault: DATABASE_MIGRATION_APPLIED_BY.MANUAL,
                 client,
                 logger,
                 migrationFiles,
                 migrationsDirectory,
                 logSqlStatements: options.logSqlStatements ?? false,
+                onProgress: ({ prefix, stage, migrationFile }) => {
+                    failureContext.currentPrefix = prefix;
+                    failureContext.currentPrefixStage = stage;
+                    failureContext.currentMigrationFile = migrationFile;
+                },
+                onMigrationApplied: ({ migrationFile }) => {
+                    appliedMigrationFiles.push(migrationFile);
+                },
             });
-            perPrefix.push({ prefix, appliedCount });
-        }
-    } finally {
-        if (hasExecutionLock) {
-            await releaseMigrationExecutionLock(client, logger);
-        }
-        await client.end();
-    }
-
-    return {
-        processedPrefixes: selectedPrefixes,
-        totalMigrationFiles: migrationFiles.length,
-        perPrefix,
-    };
-}
-
-/**
- * Acquires advisory lock preventing concurrent migration execution across processes.
- *
- * @param client Connected PostgreSQL client.
- * @param logger Logger used for progress output.
- */
-async function acquireMigrationExecutionLock(client: Client, logger: DatabaseMigrationLogger): Promise<void> {
-    logger.info('🔒 Waiting for migration lock');
-    await client.query('SELECT pg_advisory_lock(hashtext($1));', [DATABASE_MIGRATION_LOCK_KEY]);
-    logger.info('🔒 Migration lock acquired');
-}
-
-/**
- * Releases advisory lock used for migration execution.
- *
- * @param client Connected PostgreSQL client.
- * @param logger Logger used for warnings.
- */
-async function releaseMigrationExecutionLock(client: Client, logger: DatabaseMigrationLogger): Promise<void> {
-    try {
-        await client.query('SELECT pg_advisory_unlock(hashtext($1));', [DATABASE_MIGRATION_LOCK_KEY]);
-    } catch (unlockError) {
-        logger.warn('⚠️ Failed to release migration lock');
-        logger.warn(String(unlockError));
-    }
-}
-
-/**
- * Context for one prefix migration pass.
- */
-type MigratePrefixOptions = {
-    /**
-     * Prefix to migrate.
-     */
-    readonly prefix: string;
-    /**
-     * Marker for migration records.
-     */
-    readonly appliedBy: DatabaseMigrationAppliedBy;
-    /**
-     * Connected PostgreSQL client.
-     */
-    readonly client: Client;
-    /**
-     * Logger for progress output.
-     */
-    readonly logger: DatabaseMigrationLogger;
-    /**
-     * Sorted list of SQL migration filenames.
-     */
-    readonly migrationFiles: ReadonlyArray<string>;
-    /**
-     * Path to migrations directory.
-     */
-    readonly migrationsDirectory: string;
-    /**
-     * If true, print SQL before execution.
-     */
-    readonly logSqlStatements: boolean;
-};
-
-/**
- * Runs migrations for one prefix in a single transaction.
- *
- * @param options Prefix migration options.
- * @returns Number of newly applied migrations.
- */
-async function migratePrefix(options: MigratePrefixOptions): Promise<number> {
-    const migrationsTableName = `${options.prefix}Migrations`;
-    const migrationsTableIdentifier = quoteIdentifier(migrationsTableName);
-
-    await ensureMigrationsTableSchema({
-        client: options.client,
-        migrationsTableIdentifier,
-    });
-
-    const { rows } = await options.client.query<{ filename: string }>(
-        `SELECT "filename" FROM ${migrationsTableIdentifier}`,
-    );
-    const appliedMigrations = new Set(rows.map((row) => row.filename));
-
-    let appliedCount = 0;
-    await options.client.query('BEGIN');
-    try {
-        for (const migrationFile of options.migrationFiles) {
-            if (appliedMigrations.has(migrationFile)) {
-                continue;
-            }
-
-            const migrationFilePath = path.join(options.migrationsDirectory, migrationFile);
-            options.logger.info(`  🔼 Applying ${migrationFilePath.split('\\').join('/')}...`);
-
-            const sql = fs.readFileSync(migrationFilePath, 'utf-8').replace(/prefix_/g, options.prefix);
-            if (options.logSqlStatements) {
-                options.logger.info(sql);
-            }
-
-            await options.client.query(sql);
-            await options.client.query(
-                `INSERT INTO ${migrationsTableIdentifier} ("filename", "appliedBy") VALUES ($1, $2)`,
-                [migrationFile, options.appliedBy],
-            );
-            appliedCount++;
-            options.logger.info(`  ✅ Applied ${migrationFile}`);
+            perPrefix.push({ prefix, appliedCount, appliedMigrationFiles });
         }
 
-        await options.client.query('COMMIT');
+        return {
+            processedPrefixes: selectedPrefixes,
+            totalMigrationFiles,
+            perPrefix,
+            isSkippedDueToActiveMigrationLock,
+        };
     } catch (error) {
-        await safeRollbackTransaction(options.client, options.logger, options.prefix);
-        throw error;
-    }
+        migrationFailure = createDatabaseMigrationFailureError(error, failureContext);
+    } finally {
+        if (client) {
+            if (hasExecutionLock) {
+                await releaseMigrationExecutionLock(client, logger);
+            }
 
-    return appliedCount;
-}
-
-/**
- * Context for migrations-table schema synchronization.
- */
-type EnsureMigrationsTableSchemaOptions = {
-    /**
-     * Connected PostgreSQL client.
-     */
-    readonly client: Client;
-    /**
-     * Pre-quoted migrations table identifier.
-     */
-    readonly migrationsTableIdentifier: string;
-};
-
-/**
- * Creates or upgrades the migrations table schema.
- *
- * This keeps the `appliedBy` column present even on old installations.
- *
- * @param options Migration table schema options.
- */
-async function ensureMigrationsTableSchema(options: EnsureMigrationsTableSchemaOptions): Promise<void> {
-    await options.client.query(`
-        CREATE TABLE IF NOT EXISTS ${options.migrationsTableIdentifier} (
-            "filename" TEXT PRIMARY KEY,
-            "appliedAt" TIMESTAMP WITH TIME ZONE DEFAULT now(),
-            "appliedBy" TEXT NOT NULL DEFAULT '${DATABASE_MIGRATION_APPLIED_BY.MANUAL}'
-        );
-    `);
-
-    await options.client.query(`
-        ALTER TABLE ${options.migrationsTableIdentifier}
-        ADD COLUMN IF NOT EXISTS "appliedBy" TEXT;
-    `);
-
-    await options.client.query(
-        `
-        UPDATE ${options.migrationsTableIdentifier}
-        SET "appliedBy" = $1
-        WHERE "appliedBy" IS NULL;
-        `,
-        [DATABASE_MIGRATION_APPLIED_BY.MANUAL],
-    );
-
-    await options.client.query(`
-        ALTER TABLE ${options.migrationsTableIdentifier}
-        ALTER COLUMN "appliedBy" SET DEFAULT '${DATABASE_MIGRATION_APPLIED_BY.MANUAL}';
-    `);
-
-    await options.client.query(`
-        ALTER TABLE ${options.migrationsTableIdentifier}
-        ALTER COLUMN "appliedBy" SET NOT NULL;
-    `);
-
-    await options.client.query(`
-        ALTER TABLE ${options.migrationsTableIdentifier}
-        ENABLE ROW LEVEL SECURITY;
-    `);
-}
-
-/**
- * Rolls back an opened transaction and logs failures without masking original errors.
- *
- * @param client Connected PostgreSQL client.
- * @param logger Logger used for rollback warnings.
- * @param prefix Prefix currently being migrated.
- */
-async function safeRollbackTransaction(client: Client, logger: DatabaseMigrationLogger, prefix: string): Promise<void> {
-    try {
-        await client.query('ROLLBACK');
-    } catch (rollbackError) {
-        logger.warn(`⚠️ Failed to rollback migration transaction for prefix "${prefix}"`);
-        logger.warn(String(rollbackError));
-    }
-}
-
-/**
- * Finds migrations directory in known runtime locations.
- *
- * @returns Absolute path to migrations directory.
- */
-function resolveMigrationsDirectory(): string {
-    for (const migrationsDirectoryCandidate of MIGRATIONS_DIRECTORY_CANDIDATES) {
-        if (fs.existsSync(migrationsDirectoryCandidate)) {
-            return migrationsDirectoryCandidate;
+            try {
+                await client.end();
+            } catch (clientEndError) {
+                if (migrationFailure === null) {
+                    migrationFailure = clientEndError;
+                } else {
+                    logger.warn('⚠️ Failed to close migration database connection');
+                    logger.warn(String(clientEndError));
+                }
+            }
         }
     }
 
-    throw new Error(
-        `❌ Migrations directory not found. Checked: ${MIGRATIONS_DIRECTORY_CANDIDATES.map((candidate) =>
-            candidate.split('\\').join('/'),
-        ).join(', ')}`,
-    );
-}
-
-/**
- * Reads migration files from directory and sorts them lexicographically.
- *
- * @param migrationsDirectory Directory containing SQL migrations.
- * @returns Sorted SQL migration filenames.
- */
-function readMigrationFiles(migrationsDirectory: string): Array<string> {
-    return fs
-        .readdirSync(migrationsDirectory)
-        .filter((file) => file.endsWith('.sql'))
-        .sort();
-}
-
-/**
- * Parses comma-separated prefix list.
- *
- * @param rawPrefixes Raw prefixes string from environment variable.
- * @returns Parsed non-empty prefixes.
- */
-function parseMigrationPrefixesFromEnvironment(rawPrefixes: string | undefined): Array<string> {
-    if (!rawPrefixes) {
-        return [];
-    }
-
-    return rawPrefixes
-        .split(',')
-        .map((prefix) => prefix.trim())
-        .filter((prefix) => prefix !== '');
+    throw migrationFailure;
 }
 
 /**
@@ -471,43 +348,62 @@ export function resolveDatabaseMigrationConnectionStringFromEnvironment(): strin
 }
 
 /**
- * Selects prefixes to migrate and validates `onlyPrefixes` filter.
+ * Returns unique non-empty prefixes while preserving input order.
  *
- * @param configuredPrefixes Prefixes configured for migration.
- * @param onlyPrefixes Optional filter from CLI.
- * @returns Prefixes selected for this run.
+ * @param prefixes - Raw prefixes.
+ * @returns Ordered unique prefixes.
  */
-function selectPrefixesForMigration(
-    configuredPrefixes: ReadonlyArray<string>,
-    onlyPrefixes: ReadonlyArray<string> | null | undefined,
-): Array<string> {
-    const normalizedConfiguredPrefixes = configuredPrefixes
-        .map((prefix) => prefix.trim())
-        .filter((prefix) => prefix !== '');
+function uniquePrefixes(prefixes: ReadonlyArray<string>): Array<string> {
+    const result: Array<string> = [];
 
-    if (onlyPrefixes === null || onlyPrefixes === undefined) {
-        return [...normalizedConfiguredPrefixes];
+    for (const prefix of prefixes) {
+        const normalizedPrefix = prefix.trim();
+        if (result.includes(normalizedPrefix)) {
+            continue;
+        }
+        result.push(normalizedPrefix);
     }
 
-    const normalizedOnlyPrefixes = onlyPrefixes.map((prefix) => prefix.trim()).filter((prefix) => prefix !== '');
-    const invalidPrefixes = normalizedOnlyPrefixes.filter((prefix) => !normalizedConfiguredPrefixes.includes(prefix));
-    if (invalidPrefixes.length > 0) {
-        throw new Error(
-            `❌ Invalid prefixes specified in --only: ${invalidPrefixes.join(
-                ', ',
-            )}. Available prefixes: ${normalizedConfiguredPrefixes.join(', ')}`,
-        );
-    }
-
-    return normalizedOnlyPrefixes;
+    return result;
 }
 
 /**
- * Quotes SQL identifiers safely for PostgreSQL.
+ * Combines database and environment registry rows, keeping database rows authoritative.
  *
- * @param identifier Raw identifier.
- * @returns Quoted identifier.
+ * @param databaseServers - Persistent `_Server` rows.
+ * @param environmentServers - Virtual rows derived from `SERVERS`.
+ * @returns Merged rows without duplicate domains.
  */
-function quoteIdentifier(identifier: string): string {
-    return `"${identifier.replace(/"/g, '""')}"`;
+function mergeRegisteredServers(
+    databaseServers: ReadonlyArray<ServerRecord>,
+    environmentServers: ReadonlyArray<ServerRecord>,
+): Array<ServerRecord> {
+    const seenDomains = new Set(databaseServers.map((server) => server.domain));
+    const mergedServers = [...databaseServers];
+
+    for (const environmentServer of environmentServers) {
+        if (seenDomains.has(environmentServer.domain)) {
+            continue;
+        }
+
+        mergedServers.push(environmentServer);
+        seenDomains.add(environmentServer.domain);
+    }
+
+    return mergedServers;
+}
+
+/**
+ * Creates one PostgreSQL client using the lazily loaded `pg` package.
+ *
+ * @param connectionString - PostgreSQL connection string.
+ * @returns Connected-client constructor instance ready to call `.connect()`.
+ */
+async function createPostgresClient(connectionString: string): Promise<Client> {
+    const { Client: PostgresClient } = await importRuntimeModule<{ Client: PostgresClientConstructor }>('pg');
+
+    return new PostgresClient({
+        connectionString,
+        ssl: { rejectUnauthorized: false },
+    });
 }

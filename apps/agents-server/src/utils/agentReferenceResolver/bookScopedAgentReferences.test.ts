@@ -98,6 +98,29 @@ describe('bookScopedAgentReferences', () => {
         );
     });
 
+    it('does not let an embedded Null agent shadow the special no-parent reference', async () => {
+        const source = book`
+            Main Agent
+            FROM @Null
+
+            ---
+
+            Null
+            PERSONA This is an embedded agent, not the pseudo-agent.
+        `;
+        const resolver = createBookScopedAgentReferenceResolver({
+            parentAgentSource: source,
+            parentAgentIdentifier: 'parent-123',
+            localServerUrl: 'https://local.example/',
+            fallbackResolver: {
+                resolveCommitmentContent: async (_commitmentType, content) =>
+                    content === '@Null' ? '{Void}' : content,
+            },
+        });
+
+        await expect(resolver.resolveCommitmentContent('FROM', '@Null')).resolves.toBe('{Void}');
+    });
+
     it('resolves embedded route identifiers to section sources', async () => {
         const parentSource = book`
             Main Agent
@@ -121,7 +144,9 @@ describe('bookScopedAgentReferences', () => {
 
         expect(context.isBookScopedAgent).toBe(true);
         expect(context.parentAgentPermanentId).toBe('parent');
+        expect(context.canonicalAgentIdentifier).toBe(embeddedIdentifier);
+        expect(context.canonicalAgentUrl).toBe(`https://local.example/agents/${encodeURIComponent(embeddedIdentifier)}`);
         expect(context.resolvedAgentName).toBe('copywriter');
-        expect(context.resolvedAgentSource).toContain('Copywriter');
+        expect(context.unresolvedAgentSource).toContain('Copywriter');
     });
 });

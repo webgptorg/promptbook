@@ -2,7 +2,7 @@
 
 import type { UIEvent } from 'react';
 import type { Promisable } from 'type-fest';
-import type { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -10,6 +10,7 @@ import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
+import { resolveChatRatingMessageKey } from './resolveChatRatingMessageKey';
 
 /**
  * Props for the Chat message list container.
@@ -26,17 +27,51 @@ export type ChatMessageListProps = {
     mode: 'LIGHT' | 'DARK';
     isCopyButtonEnabled?: boolean;
     isFeedbackEnabled?: boolean;
+    /**
+     * Chooses which feedback controls should be rendered.
+     */
+    feedbackMode?: ChatProps['feedbackMode'];
+    /**
+     * Optional localized labels used by feedback controls.
+     */
+    feedbackTranslations?: ChatProps['feedbackTranslations'];
+    /**
+     * Optional localized labels used by timestamp metadata.
+     */
+    timingTranslations?: ChatProps['timingTranslations'];
+    /**
+     * Optional resolver for turning technical citation sources into page/document titles.
+     */
+    resolveCitationLabel?: ChatProps['resolveCitationLabel'];
+    /**
+     * Optional moment locale used to format message timestamps.
+     */
+    chatLocale?: ChatProps['chatLocale'];
     onCopy?: () => void;
     onMessage?: (messageContent: string) => Promisable<void>;
+    onActionButton?: ChatProps['onActionButton'];
+    onQuickMessageButton?: ChatProps['onQuickMessageButton'];
+    onQuickMessageDraftButton?: ChatProps['onQuickMessageDraftButton'];
+    onReplyToMessage?: ChatProps['onReplyToMessage'];
+    canReplyToMessage?: ChatProps['canReplyToMessage'];
     onCreateAgent?: (bookContent: string) => void;
     toolTitles?: Record<string, string>;
     teammates?: ChatProps['teammates'];
     teamAgentProfiles?: ChatProps['teamAgentProfiles'];
+    /**
+     * Optional inline references rendered from `[[reference]]` tokens in message markdown.
+     */
+    markdownInlineReferences?: ChatProps['markdownInlineReferences'];
+    visualMode?: ChatProps['visualMode'];
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
     onCitationClick?: (citation: ParsedCitation) => void;
     soundSystem?: ChatProps['soundSystem'];
     isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
     elevenLabsVoiceId?: ChatProps['elevenLabsVoiceId'];
+    /**
+     * Optional localized labels for Chat UI elements such as lifecycle badges.
+     */
+    chatUiTranslations?: ChatProps['chatUiTranslations'];
     setChatMessagesElement: (element: HTMLDivElement | null) => void;
     onScroll: (event: UIEvent<HTMLDivElement>) => void;
     chatMessagesClassName?: string;
@@ -59,13 +94,25 @@ export function ChatMessageList(props: ChatMessageListProps) {
         mode,
         isCopyButtonEnabled,
         isFeedbackEnabled,
+        feedbackMode,
+        feedbackTranslations,
+        timingTranslations,
+        resolveCitationLabel,
+        chatLocale,
         onCopy,
         onMessage,
+        onActionButton,
+        onQuickMessageButton,
+        onQuickMessageDraftButton,
+        onReplyToMessage,
+        canReplyToMessage,
         onCreateAgent,
         toolTitles,
         teammates,
+        markdownInlineReferences,
         onToolCallClick,
         onCitationClick,
+        visualMode,
         soundSystem,
         isSpeechPlaybackEnabled,
         elevenLabsVoiceId,
@@ -74,6 +121,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         onScroll,
         chatMessagesClassName,
         hasActions,
+        chatUiTranslations,
     } = props;
 
     const firstMessage = messages[0];
@@ -96,17 +144,23 @@ export function ChatMessageList(props: ChatMessageListProps) {
             {messages.map((message, index) => {
                 const participant = participants.find((entry) => entry.name === message.sender);
                 const isLastMessage = index === messages.length - 1;
-                const isExpanded = expandedMessageId === message.id;
-                const currentRating = messageRatings.get(message.id || message.content /* <-[??] */) || 0;
+                const messageRatingKey = resolveChatRatingMessageKey(message);
+                const isExpanded = expandedMessageId === messageRatingKey;
+                const currentRating = messageRatings.get(messageRatingKey) || 0;
 
                 return (
                     <ChatMessageItem
-                        key={message.id}
+                        key={resolveRenderedMessageKey(message)}
                         message={message}
                         participant={participant}
                         participants={participants}
                         isLastMessage={isLastMessage}
                         onMessage={onMessage}
+                        onActionButton={onActionButton}
+                        onQuickMessageButton={onQuickMessageButton}
+                        onQuickMessageDraftButton={onQuickMessageDraftButton}
+                        onReplyToMessage={onReplyToMessage}
+                        canReplyToMessage={canReplyToMessage}
                         setExpandedMessageId={setExpandedMessageId}
                         isExpanded={isExpanded}
                         currentRating={currentRating}
@@ -114,16 +168,24 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         mode={mode}
                         isCopyButtonEnabled={isCopyButtonEnabled}
                         isFeedbackEnabled={isFeedbackEnabled}
+                        feedbackMode={feedbackMode}
+                        feedbackTranslations={feedbackTranslations}
+                        timingTranslations={timingTranslations}
+                        resolveCitationLabel={resolveCitationLabel}
+                        chatLocale={chatLocale}
                         onCopy={onCopy}
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}
                         teammates={teammates}
                         teamAgentProfiles={teamAgentProfiles}
+                        markdownInlineReferences={markdownInlineReferences}
+                        visualMode={visualMode}
                         onToolCallClick={onToolCallClick}
                         onCitationClick={onCitationClick}
                         soundSystem={soundSystem}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
                         elevenLabsVoiceId={elevenLabsVoiceId}
+                        chatUiTranslations={chatUiTranslations}
                     />
                 );
             })}
@@ -131,4 +193,21 @@ export function ChatMessageList(props: ChatMessageListProps) {
             <div style={{ height: 100 }}></div>
         </div>
     );
+}
+
+/**
+ * Resolves a stable React key for one rendered chat message.
+ *
+ * Canonical user messages echoed back from the server keep the same
+ * `clientMessageId` as their optimistic predecessor, so preferring that key
+ * lets React preserve the existing DOM node while the optimistic bubble is
+ * reconciled into the canonical transcript.
+ *
+ * @param message - Rendered chat message.
+ * @returns Stable React key for the message row.
+ *
+ * @private component of `<Chat/>`
+ */
+function resolveRenderedMessageKey(message: ChatMessage): id {
+    return message.clientMessageId || message.id || message.content;
 }

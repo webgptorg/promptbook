@@ -7,6 +7,7 @@ import { exportJson } from '../../utils/serialization/exportJson';
  * Note: Synced with official API docs at 2025-08-20
  *
  * @see https://ollama.com/library
+ *
  * @public exported from `@promptbook/ollama`
  */
 export const OLLAMA_MODELS: ReadonlyArray<AvailableModel> = exportJson({
@@ -290,7 +291,5 @@ export const OLLAMA_MODELS: ReadonlyArray<AvailableModel> = exportJson({
     ],
 });
 
-/**
- * TODO: [🚸] Not all models are compatible with JSON mode, add this information here and use it
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🚸] Not all models are compatible with JSON mode, add this information here and use it
+// Note: [💞] Ignore a discrepancy between file name and entity name

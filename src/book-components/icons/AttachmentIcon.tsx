@@ -1,3 +1,6 @@
+/**
+ * Props for attachment icon.
+ */
 type AttachmentIconProps = {
     size?: number;
     color?: string;
@@ -10,6 +13,7 @@ type AttachmentIconProps = {
  * upload or view files associated with a message.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function AttachmentIcon({ size = 24, color = 'currentColor' }: AttachmentIconProps) {

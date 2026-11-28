@@ -2,21 +2,28 @@
 
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { isAgentDeleted } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
+import { enforceCanonicalLocalAgentId, getAgentName, isAgentDeleted } from '../_utils';
 import { BookEditorWrapper } from './BookEditorWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 
-export const generateMetadata = generateAgentMetadata;
+/**
+ * Builds canonical book editor path for one local agent id.
+ */
+function buildCanonicalAgentBookPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/book`;
+}
 
+/**
+ * Handles agent book page.
+ */
 export default async function AgentBookPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
 
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentBookPath);
 
     const isDeleted = await isAgentDeleted(agentName);
 
@@ -28,13 +35,12 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
         );
     }
 
-    if (!(await isUserAdmin())) {
-        /* <- TODO: [👹] Here should be user permissions */
+    if (!(await getCurrentUser())) {
         return <ForbiddenPage />;
     }
 
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
+    const agentSource = await collection.getAgentSource(agentName);
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
@@ -43,6 +49,4 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
     );
 }
 
-/**
- * TODO: [🚗] Components and pages here should be just tiny UI wrapper around proper agent logic and components
- */
+// TODO: [🚗] Components and pages here should be just tiny UI wrapper around proper agent logic and components

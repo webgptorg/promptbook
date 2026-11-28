@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useId, useMemo, useR
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 import { AGENT_VISIBILITY_VALUES, type AgentVisibility } from '../../utils/agentVisibility';
 import {
     ModalDismissedError,
@@ -54,6 +55,9 @@ type AsyncDialogsProviderProps = {
     readonly children: ReactNode;
 };
 
+/**
+ * Constant for async dialogs context.
+ */
 const AsyncDialogsContext = createContext<ModalController | null>(null);
 
 /**
@@ -97,18 +101,22 @@ type DialogShellProps = {
      * Optional submit handler for form dialogs.
      */
     readonly onSubmit?: () => void;
+    /**
+     * When false, outside clicks do not dismiss the dialog.
+     */
+    readonly isBackdropDismissible?: boolean;
 };
 
 /**
  * Shared dialog shell used by alert, confirm, and prompt dialogs.
  */
 function DialogShell(props: DialogShellProps) {
-    const { title, description, onClose, children, footer, onSubmit } = props;
+    const { title, description, onClose, children, footer, onSubmit, isBackdropDismissible = true } = props;
     const Wrapper = onSubmit ? 'form' : 'div';
     const { t } = useServerLanguage();
 
     return (
-        <Dialog onClose={onClose} className="w-full max-w-md p-6">
+        <Dialog onClose={onClose} isBackdropDismissible={isBackdropDismissible} className="w-full max-w-md p-6">
             <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
@@ -304,9 +312,14 @@ function PromptDialog(props: PromptDialogProps) {
     const { title, message, confirmLabel, cancelLabel, defaultValue, placeholder, inputLabel, onConfirm, onCancel } =
         props;
     const { t } = useServerLanguage();
-    const [value, setValue] = useState(defaultValue ?? '');
+    const initialValue = defaultValue ?? '';
+    const [value, setValue] = useState(initialValue);
     const inputId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges: value !== initialValue,
+        onClose: onCancel,
+    });
 
     useEffect(() => {
         inputRef.current?.focus();
@@ -316,13 +329,13 @@ function PromptDialog(props: PromptDialogProps) {
         <DialogShell
             title={title || t('asyncDialog.defaultPromptTitle')}
             description={message}
-            onClose={onCancel}
+            onClose={requestClose}
             onSubmit={() => onConfirm(value)}
             footer={
                 <>
                     <button
                         type="button"
-                        onClick={onCancel}
+                        onClick={requestClose}
                         className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
                     >
                         {cancelLabel || t('common.cancel')}
@@ -414,16 +427,21 @@ function VisibilityDialog(props: VisibilityDialogProps) {
     const [currentVisibility, setCurrentVisibility] = useState<AgentVisibility>(
         initialVisibility ?? AGENT_VISIBILITY_VALUES[0],
     );
+    const initialResolvedVisibility = initialVisibility ?? AGENT_VISIBILITY_VALUES[0];
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges: currentVisibility !== initialResolvedVisibility,
+        onClose: onCancel,
+    });
 
     useEffect(() => {
-        setCurrentVisibility(initialVisibility ?? AGENT_VISIBILITY_VALUES[0]);
-    }, [initialVisibility]);
+        setCurrentVisibility(initialResolvedVisibility);
+    }, [initialResolvedVisibility]);
 
     const footer = (
         <>
             <button
                 type="button"
-                onClick={onCancel}
+                onClick={requestClose}
                 className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
             >
                 {cancelLabel || t('common.cancel')}
@@ -441,7 +459,7 @@ function VisibilityDialog(props: VisibilityDialogProps) {
         <DialogShell
             title={title || 'Update visibility'}
             description={description}
-            onClose={onCancel}
+            onClose={requestClose}
             onSubmit={() => onConfirm(currentVisibility)}
             footer={footer}
         >

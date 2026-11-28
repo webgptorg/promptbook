@@ -2,12 +2,18 @@
 
 import { Copy } from 'lucide-react';
 
+/**
+ * Props for copy button.
+ */
 type CopyButtonProps = {
     text: string;
     className?: string;
     children?: React.ReactNode;
 };
 
+/**
+ * Handles copy button.
+ */
 export default function CopyButton({ text, className = '', children }: CopyButtonProps) {
     const copyToClipboard = (textToCopy: string) => {
         navigator.clipboard.writeText(textToCopy);
@@ -25,8 +31,5 @@ export default function CopyButton({ text, className = '', children }: CopyButto
     );
 }
 
-
-/**
- * TODO: !!! Move either to `/src` or `/apps/_common/components`
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: !!! Move either to `/src` or `/apps/_common/components`
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

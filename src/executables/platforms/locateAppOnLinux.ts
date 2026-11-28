@@ -1,5 +1,5 @@
 import { assertsError } from '../../errors/assertsError';
-import type { string_executable_path } from '../../types/typeAliases';
+import type { string_executable_path } from '../../types/string_filename';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import type { LocateAppOptions } from '../locateApp';
 
@@ -23,7 +23,5 @@ export async function locateAppOnLinux({
     }
 }
 
-/**
- * TODO: [🧠][♿] Maybe export through `@promptbook/node`
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node executable locator [locateAppOnLinux](src/executables/platforms/locateAppOnLinux.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][♿] Maybe export through `@promptbook/node`

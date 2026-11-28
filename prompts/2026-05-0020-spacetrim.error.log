@@ -1,0 +1,19 @@
+Timestamp: 2026-08-08T23:09:06.443Z
+Prompt: prompts/2026-05-0020-spacetrim.md#10
+Prompt file: C:\Users\me\work\ai\promptbook\prompts\2026-05-0020-spacetrim.md
+Prompt section: 2
+Prompt summary: Leverage the use of `spaceTrim` across the repository.
+Runner: OpenAI Codex (gpt-5.6-terra)
+
+CLI output and error:
+Error: EPERM: operation not permitted, open 'C:\Users\me\work\ai\promptbook\.promptbook\coder-prompts\2026-05-0020-spacetrim-2.sh'
+    at async open (node:internal/fs/promises:638:25)
+    at async writeFile (node:internal/fs/promises:1208:14)
+    at async withTempScript (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\common\runGoScript\withTempScript.ts:17:5)
+    at async $runGoScriptUntilMarkerIdle (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\common\runGoScript\$runGoScriptUntilMarkerIdle.ts:10:12)
+    at async OpenAiCodexRunner.runPrompt (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\runners\openai-codex\OpenAiCodexRunner.ts:127:32)
+    at async runRunnerPromptStep (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\testing\runPromptWithTestFeedback.ts:170:20)
+    at async runPromptWithTestFeedback (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\testing\runPromptWithTestFeedback.ts:98:24)
+    at async preserveArtifactsOnSuccess (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\main\runPromptRound.ts:134:36)
+    at async withPromptRuntimeLog (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\common\runGoScript\withPromptRuntimeLog.ts:18:16)
+    at async runPromptRound (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\main\runPromptRound.ts:125:5)

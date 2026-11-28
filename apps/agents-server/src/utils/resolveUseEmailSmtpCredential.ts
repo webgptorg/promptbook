@@ -4,7 +4,7 @@ import {
 } from './userWallet';
 
 /**
- * Resolves SMTP credential payload for USE EMAIL from wallet records.
+ * Resolves SMTP credential payload for agent email from wallet records.
  */
 export async function resolveUseEmailSmtpCredential(
     options: ResolveUseEmailSmtpCredentialOptions,

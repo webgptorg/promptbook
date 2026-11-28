@@ -1,17 +1,14 @@
 import type { string_formfactor_name } from '../../formfactors/_common/string_formfactor_name';
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import type { string_relative_filename } from '../../types/typeAliases';
-import type { string_semantic_version } from '../../types/typeAliases';
+import type { string_filename, string_relative_filename } from '../../types/string_filename';
+import type { string_markdown_text } from '../../types/string_markdown';
+import type { string_pipeline_url } from '../../types/string_pipeline_url';
+import type { string_semantic_version } from '../../types/string_sha256';
 import type { PipelineString } from '../PipelineString';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
 import type { ParameterJson } from './ParameterJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { TaskJson } from './TaskJson';
 

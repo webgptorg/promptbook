@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { id } from '../../../types/typeAliases';
+import type { id } from '../../../types/string_token';
 import { ConfettiEffect } from './components/ConfettiEffect';
 import { HeartsEffect } from './components/HeartsEffect';
 import type { ChatEffect } from './types/ChatEffect';

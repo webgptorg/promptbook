@@ -1,7 +1,7 @@
-import { parseAgentSource } from '../../../../src/_packages/core.index'; // <- [🚾]
 import type { AgentBasicInformation, string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
-import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
+import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
+import { resolveAgentStateFromSource } from './resolveAgentStateFromSource';
 
 /**
  * Options for resolving profile fields through `FROM` inheritance.
@@ -15,11 +15,14 @@ type ResolveAgentProfileWithInheritanceOptions = {
      * Optional compact-reference resolver used for FROM/IMPORT/TEAM commitments.
      */
     readonly agentReferenceResolver?: AgentReferenceResolver;
+    /**
+     * Retry configuration used when loading imported agents from federated servers.
+     */
+    readonly federatedAgentImportConfiguration?: FederatedAgentImportConfiguration;
 };
 
 /**
- * Resolves inherited profile fields (`META`, `INITIAL MESSAGE`, etc.) while preserving
- * capability parsing semantics from the original source.
+ * Resolves the canonical profile from the materialized inherited/imported source.
  *
  * @param agentSource - Original agent source.
  * @param options - Inheritance resolution options.
@@ -29,16 +32,6 @@ export async function resolveAgentProfileWithInheritance(
     agentSource: string_book,
     options: ResolveAgentProfileWithInheritanceOptions,
 ): Promise<AgentBasicInformation> {
-    const baseProfile = parseAgentSource(agentSource);
-    const inheritedAgentSource = await resolveInheritedAgentSource(agentSource, options);
-    const inheritedProfile = parseAgentSource(inheritedAgentSource);
-
-    return {
-        ...baseProfile,
-        personaDescription: inheritedProfile.personaDescription,
-        initialMessage: inheritedProfile.initialMessage,
-        meta: inheritedProfile.meta,
-        links: inheritedProfile.links,
-        knowledgeSources: inheritedProfile.knowledgeSources,
-    };
+    const resolvedAgentState = await resolveAgentStateFromSource(agentSource, options);
+    return resolvedAgentState.resolvedAgentProfile;
 }

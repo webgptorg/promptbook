@@ -1,35 +1,33 @@
 'use client';
 
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-    type CSSProperties,
-    type ChangeEvent,
-    type ClipboardEvent,
-    type DragEvent,
-    type MouseEvent,
-} from 'react';
-import spaceTrim from 'spacetrim';
+import { type CSSProperties, type MouseEvent } from 'react';
 import { USER_CHAT_COLOR } from '../../../config';
-import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
 import { lighten } from '../../../utils/color/operators/lighten';
-import { countLines } from '../../../utils/expectation-counters/countLines';
-import { resolveSpeechRecognitionLanguage } from '../../../utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
-import { classNames } from '../../_common/react-utils/classNames';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
-import { CloseIcon } from '../../icons/CloseIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { SendIcon } from '../../icons/SendIcon';
+import { classNames } from '../../_common/react-utils/classNames';
+import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
+import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
 import styles from './Chat.module.css';
+import { chatCssClassNames } from './chatCssClassNames';
+import { ChatInputAreaDictationPanel } from './ChatInputAreaDictationPanel';
+import type { ChatInputUploadedFile } from './ChatInputUploadedFile';
+import type { ChatMessageAttachment } from './ChatMessageAttachments';
+import { ChatMessageAttachments } from './ChatMessageAttachments';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
+import { ChatReplyPreview } from './ChatReplyPreview';
+import type { SpeechRecognitionUiDescriptor } from './resolveSpeechRecognitionUiDescriptor';
+import { useChatInputAreaAttachments } from './useChatInputAreaAttachments';
+import type { ChatComposerDraft } from './useChatInputAreaComposer';
+import { useChatInputAreaComposer } from './useChatInputAreaComposer';
+import { useChatInputAreaDictation } from './useChatInputAreaDictation';
 
 /**
  * Wrapper for consistent button-click sound handling.
@@ -39,17 +37,6 @@ import type { ChatProps, ChatSoundSystem } from './ChatProps';
 export type ChatInputButtonClickHandler = (
     handler?: (event: MouseEvent<HTMLButtonElement>) => void,
 ) => (event: MouseEvent<HTMLButtonElement>) => void;
-
-/**
- * Internal representation of an uploaded file in the chat input.
- *
- * @private component of `<Chat/>`
- */
-export type ChatInputUploadedFile = {
-    id: string;
-    file: File;
-    content: string;
-};
 
 /**
  * Props for the chat input area.
@@ -63,6 +50,11 @@ export type ChatInputAreaProps = {
     speechRecognition?: ChatProps['speechRecognition'];
     speechRecognitionLanguage?: ChatProps['speechRecognitionLanguage'];
     defaultMessage?: string;
+    draftMessage?: ChatComposerDraft;
+    replyingToMessage?: ChatMessage | null;
+    onCancelReply?: ChatProps['onCancelReply'];
+    enterBehavior?: ChatProps['enterBehavior'];
+    resolveEnterBehavior?: ChatProps['resolveEnterBehavior'];
     placeholderMessageContent?: string;
     isFocusedOnLoad?: boolean;
     isMobile: boolean;
@@ -72,93 +64,457 @@ export type ChatInputAreaProps = {
     soundSystem?: ChatSoundSystem;
     onButtonClick: ChatInputButtonClickHandler;
     chatInputClassName?: string;
+    chatUiTranslations?: ChatProps['chatUiTranslations'];
+    mode?: 'LIGHT' | 'DARK';
 };
 
 /**
- * Visual tone used by the floating speech-status bubble.
+ * Render model for the optional reply preview shown above the composer.
  *
- * @private component of `<Chat/>`
+ * @private component of `<ChatInputArea/>`
  */
-type SpeechStatusBubbleTone = 'neutral' | 'recording' | 'processing' | 'error';
-
-/**
- * UI metadata derived from the current speech-recognition state.
- *
- * @private component of `<Chat/>`
- */
-type SpeechRecognitionUiDescriptor = {
-    /**
-     * Tooltip and assistive text for the microphone button.
-     */
-    readonly buttonTitle: string;
-    /**
-     * Optional floating-bubble text shown while speech processing is active.
-     */
-    readonly bubbleText?: string;
-    /**
-     * Visual color variant for the speech-status bubble.
-     */
-    readonly bubbleTone?: SpeechStatusBubbleTone;
-    /**
-     * Whether the voice button should use active styling.
-     */
-    readonly isButtonActive: boolean;
-    /**
-     * Whether the voice button should be disabled.
-     */
-    readonly isButtonDisabled: boolean;
+type ChatInputAreaReplyPreviewModel = {
+    readonly label: string;
+    readonly senderLabel: string;
+    readonly previewText: string;
+    readonly dismissLabel: string;
+    readonly onDismiss?: ChatProps['onCancelReply'];
 };
 
 /**
- * Shared mapping from recognizer state to the chat voice-control UI.
+ * Color-derived styles shared across the composer surface and primary buttons.
  *
- * @private component of `<Chat/>`
+ * @private component of `<ChatInputArea/>`
  */
-const SPEECH_RECOGNITION_UI_DESCRIPTORS: Record<SpeechRecognitionState, SpeechRecognitionUiDescriptor> = {
-    IDLE: {
-        buttonTitle: 'Start voice input',
-        isButtonActive: false,
-        isButtonDisabled: false,
-    },
-    STARTING: {
-        buttonTitle: 'Starting microphone...',
-        bubbleText: 'Starting microphone...',
-        bubbleTone: 'neutral',
-        isButtonActive: true,
-        isButtonDisabled: true,
-    },
-    RECORDING: {
-        buttonTitle: 'Stop recording',
-        bubbleText: 'Listening... Speak now.',
-        bubbleTone: 'recording',
-        isButtonActive: true,
-        isButtonDisabled: false,
-    },
-    TRANSCRIBING: {
-        buttonTitle: 'Transcribing...',
-        bubbleText: 'Transcribing your speech...',
-        bubbleTone: 'processing',
-        isButtonActive: true,
-        isButtonDisabled: true,
-    },
-    ERROR: {
-        buttonTitle: 'Speech recognition failed. Tap to retry.',
-        bubbleText: 'Speech recognition failed. Tap the microphone to retry.',
-        bubbleTone: 'error',
-        isButtonActive: false,
-        isButtonDisabled: false,
-    },
+type ChatInputAreaColorModel = {
+    readonly inputContainerStyle: CSSProperties;
+    readonly primaryButtonStyle: CSSProperties;
 };
 
 /**
- * Resolves voice-button and floating-bubble UI from a speech-recognition state.
+ * Converts one pending composer upload into the message attachment payload.
  *
- * @param state Current speech-recognition state.
- * @returns Voice-control UI descriptor.
- * @private component of `<Chat/>`
+ * @private function of `<ChatInputArea/>`
  */
-function resolveSpeechRecognitionUiDescriptor(state: SpeechRecognitionState): SpeechRecognitionUiDescriptor {
-    return SPEECH_RECOGNITION_UI_DESCRIPTORS[state];
+function createUploadedFileAttachment(uploadedFile: ChatInputUploadedFile): ChatMessageAttachment {
+    return {
+        name: uploadedFile.file.name,
+        type: uploadedFile.file.type,
+        url: uploadedFile.content,
+    };
+}
+
+/**
+ * Creates the shared color styles used by the composer.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function createChatInputAreaColorModel(
+    participants: ReadonlyArray<ChatParticipant>,
+    buttonColor: WithTake<Color>,
+): ChatInputAreaColorModel {
+    const myColor = participants.find((participant) => participant.isMe)?.color || USER_CHAT_COLOR;
+    const inputBgColor = Color.from(myColor).then(lighten(0.4)).then(grayscale(0.7));
+    const inputTextColor = inputBgColor.then(textColor);
+
+    return {
+        inputContainerStyle: {
+            '--chat-placeholder-color': '#fff',
+            '--input-bg-color': inputBgColor.toHex(),
+            '--input-text-color': inputTextColor.toHex(),
+            '--brand-color': buttonColor.toHex(),
+        } as CSSProperties,
+        primaryButtonStyle: {
+            backgroundColor: buttonColor.toHex(),
+            color: buttonColor.then(textColor).toHex(),
+        },
+    };
+}
+
+/**
+ * Builds the reply preview view model when the composer is replying to a message.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function createChatInputAreaReplyPreviewModel(params: {
+    readonly replyingToMessage?: ChatMessage | null;
+    readonly participants: ReadonlyArray<ChatParticipant>;
+    readonly chatUiTranslations?: ChatProps['chatUiTranslations'];
+    readonly onCancelReply?: ChatProps['onCancelReply'];
+}): ChatInputAreaReplyPreviewModel | null {
+    const { replyingToMessage, participants, chatUiTranslations, onCancelReply } = params;
+
+    if (!replyingToMessage) {
+        return null;
+    }
+
+    const previewText = resolveChatMessageReplyPreviewText(replyingToMessage, {
+        maxLength: 180,
+        emptyLabel: 'Original message',
+    });
+    const senderLabel = resolveChatMessageReplySenderLabel({
+        sender: replyingToMessage.sender,
+        participants,
+    });
+
+    if (!previewText || !senderLabel) {
+        return null;
+    }
+
+    return {
+        label: chatUiTranslations?.replyingToLabel || 'Replying to',
+        senderLabel,
+        previewText,
+        dismissLabel: chatUiTranslations?.cancelReplyLabel || 'Cancel reply',
+        onDismiss: onCancelReply || undefined,
+    };
+}
+
+/**
+ * Adds drag-and-drop handlers only when uploads are enabled.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function createChatInputAreaRootProps(params: {
+    readonly onFileUpload?: ChatProps['onFileUpload'];
+    readonly handleDrop: ReturnType<typeof useChatInputAreaAttachments>['handleDrop'];
+    readonly handleDragOver: ReturnType<typeof useChatInputAreaAttachments>['handleDragOver'];
+    readonly handleDragLeave: ReturnType<typeof useChatInputAreaAttachments>['handleDragLeave'];
+}) {
+    const { onFileUpload, handleDrop, handleDragOver, handleDragLeave } = params;
+
+    if (!onFileUpload) {
+        return {};
+    }
+
+    return {
+        onDrop: handleDrop,
+        onDragOver: handleDragOver,
+        onDragLeave: handleDragLeave,
+    };
+}
+
+/**
+ * Formats uploaded file sizes for the preview chips.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+/**
+ * Renders the optional reply preview section.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaReplyPreviewSection({ replyPreview }: { replyPreview: ChatInputAreaReplyPreviewModel | null }) {
+    if (!replyPreview) {
+        return null;
+    }
+
+    return (
+        <ChatReplyPreview
+            label={replyPreview.label}
+            senderLabel={replyPreview.senderLabel}
+            previewText={replyPreview.previewText}
+            className={styles.replyComposerPreview}
+            dismissLabel={replyPreview.dismissLabel}
+            onDismiss={replyPreview.onDismiss}
+        />
+    );
+}
+
+/**
+ * Renders uploaded file previews above the composer.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaUploadedFilesSection(props: {
+    readonly uploadedFiles: ReadonlyArray<ChatInputUploadedFile>;
+    readonly removeUploadedFile: (fileId: string) => void;
+    readonly inputContainerStyle: CSSProperties;
+    readonly mode: 'LIGHT' | 'DARK';
+}) {
+    const { uploadedFiles, removeUploadedFile, inputContainerStyle, mode } = props;
+
+    if (uploadedFiles.length === 0) {
+        return null;
+    }
+
+    const attachments = uploadedFiles.map(createUploadedFileAttachment);
+
+    return (
+        <ChatMessageAttachments
+            attachments={attachments}
+            className={styles.filePreviewContainer}
+            mode={mode}
+            onRemoveAttachment={(_attachment, attachmentIndex) => {
+                const uploadedFile = uploadedFiles[attachmentIndex];
+                if (uploadedFile) {
+                    removeUploadedFile(uploadedFile.id);
+                }
+            }}
+            style={inputContainerStyle}
+        />
+    );
+}
+
+/**
+ * Renders the hidden file input and attachment trigger when uploads are enabled.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaAttachmentButton(props: {
+    readonly onFileUpload?: ChatProps['onFileUpload'];
+    readonly fileInputRef: ReturnType<typeof useChatInputAreaAttachments>['fileInputRef'];
+    readonly handleFileInputChange: ReturnType<typeof useChatInputAreaAttachments>['handleFileInputChange'];
+    readonly onButtonClick: ChatInputButtonClickHandler;
+    readonly openFilePicker: ReturnType<typeof useChatInputAreaAttachments>['openFilePicker'];
+    readonly isUploading: boolean;
+    readonly primaryButtonStyle: CSSProperties;
+}) {
+    const {
+        onFileUpload,
+        fileInputRef,
+        handleFileInputChange,
+        onButtonClick,
+        openFilePicker,
+        isUploading,
+        primaryButtonStyle,
+    } = props;
+
+    if (!onFileUpload) {
+        return null;
+    }
+
+    return (
+        <>
+            <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                style={{ display: 'none' }}
+                onChange={handleFileInputChange}
+            />
+            <button
+                type="button"
+                style={primaryButtonStyle}
+                className={classNames(styles.attachmentButton, chatCssClassNames.inputAttachmentButton)}
+                onClick={onButtonClick(openFilePicker)}
+                disabled={isUploading}
+                title="Attach file"
+            >
+                <AttachmentIcon size={20} />
+            </button>
+        </>
+    );
+}
+
+/**
+ * Creates the voice button colors from the current dictation state.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function createVoiceButtonStyle(params: {
+    readonly buttonColor: WithTake<Color>;
+    readonly speechRecognitionUiDescriptor: SpeechRecognitionUiDescriptor;
+}): CSSProperties {
+    const { buttonColor, speechRecognitionUiDescriptor } = params;
+
+    if (speechRecognitionUiDescriptor.isButtonActive) {
+        return {
+            backgroundColor: Color.from('#ff4444').toHex(),
+            color: Color.from('#ffffff').toHex(),
+        };
+    }
+
+    return {
+        backgroundColor: buttonColor.toHex(),
+        color: buttonColor.then(textColor).toHex(),
+    };
+}
+
+/**
+ * Renders the voice input trigger when speech recognition is available.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaVoiceButton(props: {
+    readonly speechRecognition?: ChatProps['speechRecognition'];
+    readonly isVoiceCalling?: boolean;
+    readonly buttonColor: WithTake<Color>;
+    readonly speechRecognitionUiDescriptor: SpeechRecognitionUiDescriptor;
+    readonly onButtonClick: ChatInputButtonClickHandler;
+    readonly handleToggleVoiceInput: () => void;
+}) {
+    const {
+        speechRecognition,
+        isVoiceCalling,
+        buttonColor,
+        speechRecognitionUiDescriptor,
+        onButtonClick,
+        handleToggleVoiceInput,
+    } = props;
+
+    if (!speechRecognition) {
+        return null;
+    }
+
+    return (
+        <button
+            data-button-type="voice"
+            disabled={speechRecognitionUiDescriptor.isButtonDisabled}
+            style={createVoiceButtonStyle({
+                buttonColor,
+                speechRecognitionUiDescriptor,
+            })}
+            className={classNames(
+                styles.voiceButton,
+                chatCssClassNames.inputVoiceButton,
+                (isVoiceCalling || speechRecognitionUiDescriptor.isButtonActive) && styles.voiceButtonActive,
+            )}
+            onClick={onButtonClick((event) => {
+                event.preventDefault();
+                handleToggleVoiceInput();
+            })}
+            title={speechRecognitionUiDescriptor.buttonTitle}
+            aria-label={speechRecognitionUiDescriptor.buttonTitle}
+        >
+            <MicIcon size={25} />
+        </button>
+    );
+}
+
+/**
+ * Renders the composer send button.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaSendButton(props: {
+    readonly primaryButtonStyle: CSSProperties;
+    readonly onButtonClick: ChatInputButtonClickHandler;
+    readonly handleSend: () => Promise<void>;
+}) {
+    const { primaryButtonStyle, onButtonClick, handleSend } = props;
+
+    return (
+        <button
+            data-button-type="call-to-action"
+            className={chatCssClassNames.inputSendButton}
+            style={primaryButtonStyle}
+            onClick={onButtonClick((event) => {
+                event.preventDefault();
+                /* not await */ handleSend();
+            })}
+        >
+            <SendIcon size={25} />
+        </button>
+    );
+}
+
+/**
+ * Renders the optional dictation panel below the composer.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaDictationPanelSection(
+    props: {
+        readonly speechRecognition?: ChatProps['speechRecognition'];
+    } & Pick<
+        ReturnType<typeof useChatInputAreaDictation>,
+        | 'speechRecognitionUiDescriptor'
+        | 'shouldShowDictationPanel'
+        | 'isDictationPanelExpanded'
+        | 'dictationInterimText'
+        | 'dictationError'
+        | 'dictationLastFinalChunk'
+        | 'dictationEditableChunk'
+        | 'canBacktrack'
+        | 'dictationSettings'
+        | 'isBrowserSpeechFallbackSupported'
+        | 'canOpenBrowserSettings'
+        | 'toggleDictationPanel'
+        | 'expandDictationPanel'
+        | 'setDictationEditableChunk'
+        | 'handleRetryPermissionRequest'
+        | 'handleOpenBrowserSettings'
+        | 'handleApplyCorrection'
+        | 'handleBacktrackLastChunk'
+        | 'handleDictationSettingChange'
+    >,
+) {
+    const { speechRecognition } = props;
+
+    if (!speechRecognition) {
+        return null;
+    }
+
+    return (
+        <ChatInputAreaDictationPanel
+            bubbleText={props.speechRecognitionUiDescriptor.bubbleText}
+            bubbleTone={props.speechRecognitionUiDescriptor.bubbleTone}
+            shouldShowPanel={props.shouldShowDictationPanel}
+            isExpanded={props.isDictationPanelExpanded}
+            interimText={props.dictationInterimText}
+            error={props.dictationError}
+            lastFinalChunk={props.dictationLastFinalChunk}
+            editableChunk={props.dictationEditableChunk}
+            canBacktrack={props.canBacktrack}
+            dictationSettings={props.dictationSettings}
+            isBrowserSpeechFallbackSupported={props.isBrowserSpeechFallbackSupported}
+            canOpenBrowserSettings={props.canOpenBrowserSettings}
+            onToggleExpanded={props.toggleDictationPanel}
+            onExpand={props.expandDictationPanel}
+            onEditableChunkChange={props.setDictationEditableChunk}
+            onRetryPermissionRequest={props.handleRetryPermissionRequest}
+            onOpenBrowserSettings={props.handleOpenBrowserSettings}
+            onApplyCorrection={props.handleApplyCorrection}
+            onBacktrackLastChunk={props.handleBacktrackLastChunk}
+            onDictationSettingChange={props.handleDictationSettingChange}
+        />
+    );
+}
+
+/**
+ * Renders the temporary upload progress indicator.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaUploadProgress({ isUploading }: { isUploading: boolean }) {
+    if (!isUploading) {
+        return null;
+    }
+
+    return (
+        <div className={styles.uploadProgress}>
+            <div className={styles.uploadProgressBar}>
+                <div className={styles.uploadProgressFill}></div>
+            </div>
+            <span>Uploading files...</span>
+        </div>
+    );
+}
+
+/**
+ * Renders the drag-and-drop overlay when uploads are enabled and active.
+ *
+ * @private component of `<ChatInputArea/>`
+ */
+function ChatInputAreaDragOverlay(props: {
+    readonly isDragOver: boolean;
+    readonly onFileUpload?: ChatProps['onFileUpload'];
+}) {
+    const { isDragOver, onFileUpload } = props;
+
+    if (!isDragOver || !onFileUpload) {
+        return null;
+    }
+
+    return (
+        <div className={styles.dragOverlay}>
+            <div className={styles.dragOverlayContent}>
+                <AttachmentIcon size={48} />
+                <span>Drop files here to upload</span>
+            </div>
+        </div>
+    );
 }
 
 /**
@@ -174,6 +530,11 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         speechRecognition,
         speechRecognitionLanguage,
         defaultMessage,
+        draftMessage,
+        replyingToMessage,
+        onCancelReply,
+        enterBehavior,
+        resolveEnterBehavior,
         placeholderMessageContent,
         isFocusedOnLoad,
         isMobile,
@@ -183,424 +544,175 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         soundSystem,
         onButtonClick,
         chatInputClassName,
+        chatUiTranslations,
+        mode = 'LIGHT',
     } = props;
-    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [uploadedFiles, setUploadedFiles] = useState<Array<ChatInputUploadedFile>>([]);
-    const [isDragOver, setIsDragOver] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
-    const [speechRecognitionState, setSpeechRecognitionState] = useState<SpeechRecognitionState>('IDLE');
-    const speechRecognitionUiDescriptor = useMemo(
-        () => resolveSpeechRecognitionUiDescriptor(speechRecognitionState),
-        [speechRecognitionState],
-    );
-    const resolvedSpeechRecognitionLanguage = useMemo(
-        () => resolveSpeechRecognitionLanguage({ overrideLanguage: speechRecognitionLanguage }),
-        [speechRecognitionLanguage],
-    );
+    const {
+        fileInputRef,
+        uploadedFiles,
+        uploadedFilesRef,
+        isDragOver,
+        isUploading,
+        handleDrop,
+        handleDragOver,
+        handleDragLeave,
+        handlePaste,
+        handleFileInputChange,
+        removeUploadedFile,
+        clearUploadedFiles,
+        openFilePicker,
+    } = useChatInputAreaAttachments({
+        onFileUpload,
+    });
 
-    useEffect(
-        (/* Focus textarea on page load */) => {
-            if (!textareaRef.current) {
-                return;
-            }
+    const {
+        textareaRef,
+        messageContent,
+        messageContentRef,
+        applyMessageContent,
+        handleTextInputChange,
+        handleComposerKeyDown,
+        handleSend,
+    } = useChatInputAreaComposer({
+        onMessage,
+        onChange,
+        defaultMessage,
+        draftMessage,
+        enterBehavior,
+        resolveEnterBehavior,
+        isFocusedOnLoad,
+        isMobile,
+        uploadedFiles,
+        uploadedFilesRef,
+        clearUploadedFiles,
+        replyingToMessage,
+        onCancelReply,
+        soundSystem,
+    });
 
-            const shouldFocus = isFocusedOnLoad ?? !isMobile;
-
-            if (shouldFocus) {
-                textareaRef.current.focus();
-            }
-        },
-        [textareaRef, isMobile, isFocusedOnLoad],
-    );
-
-    useEffect(() => {
-        if (!speechRecognition) {
-            return;
-        }
-
-        const unsubscribe = speechRecognition.subscribe((event: SpeechRecognitionEvent) => {
-            if (event.type === 'START') {
-                setSpeechRecognitionState('RECORDING');
-            } else if (event.type === 'TRANSCRIBING') {
-                setSpeechRecognitionState('TRANSCRIBING');
-            } else if (event.type === 'RESULT') {
-                if (textareaRef.current) {
-                    const textarea = textareaRef.current;
-                    const currentValue = textarea.value;
-                    const separator =
-                        currentValue && !currentValue.endsWith(' ') && !currentValue.endsWith('\n') ? ' ' : '';
-                    textarea.value += separator + event.text;
-
-                    if (onChange) {
-                        onChange(textarea.value);
-                    }
-                }
-            } else if (event.type === 'ERROR') {
-                setSpeechRecognitionState('ERROR');
-                alert(`Speech recognition error: ${event.message}`);
-            } else if (event.type === 'STOP') {
-                setSpeechRecognitionState('IDLE');
-            }
-        });
-
-        return () => {
-            unsubscribe();
-        };
-    }, [speechRecognition, onChange]);
-
-    useEffect(() => {
-        return () => {
-            speechRecognition?.$stop();
-        };
-    }, [speechRecognition]);
-
-    const handleToggleVoiceInput = useCallback(() => {
-        if (!speechRecognition) {
-            return;
-        }
-
-        if (speechRecognition.state === 'IDLE' || speechRecognition.state === 'ERROR') {
-            setSpeechRecognitionState('STARTING');
-            speechRecognition.$start({ language: resolvedSpeechRecognitionLanguage });
-        } else {
-            setSpeechRecognitionState('TRANSCRIBING');
-            speechRecognition.$stop();
-        }
-    }, [speechRecognition, resolvedSpeechRecognitionLanguage]);
-
-    const handleFileUpload = useCallback(
-        async (files: FileList | File[]) => {
-            if (!onFileUpload) {
-                return;
-            }
-
-            setIsUploading(true);
-            const fileArray = Array.from(files);
-
-            try {
-                const newUploadedFiles: Array<ChatInputUploadedFile> = [];
-                for (const file of fileArray) {
-                    const content = await onFileUpload(file);
-                    newUploadedFiles.push({
-                        id: Math.random().toString(36).substring(2),
-                        file,
-                        content,
-                    });
-                }
-
-                setUploadedFiles((previous) => [...previous, ...newUploadedFiles]);
-            } catch (error) {
-                console.error('File upload failed:', error);
-                alert('File upload failed. Please try again.');
-            } finally {
-                setIsUploading(false);
-            }
-        },
-        [onFileUpload],
-    );
-
-    const handleDrop = useCallback(
-        (event: DragEvent) => {
-            event.preventDefault();
-            setIsDragOver(false);
-
-            if (!onFileUpload) {
-                return;
-            }
-
-            const files = event.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileUpload(files);
-            }
-        },
-        [onFileUpload, handleFileUpload],
-    );
-
-    const handleDragOver = useCallback((event: DragEvent) => {
-        event.preventDefault();
-        setIsDragOver(true);
-    }, []);
-
-    const handleDragLeave = useCallback((event: DragEvent) => {
-        event.preventDefault();
-        setIsDragOver(false);
-    }, []);
-
-    const handlePaste = useCallback(
-        (event: ClipboardEvent) => {
-            if (!onFileUpload) {
-                return;
-            }
-
-            const files = event.clipboardData.files;
-            if (files.length > 0) {
-                handleFileUpload(files);
-            }
-        },
-        [onFileUpload, handleFileUpload],
-    );
-
-    const handleFileInputChange = useCallback(
-        (event: ChangeEvent<HTMLInputElement>) => {
-            const files = event.target.files;
-            if (files && files.length > 0) {
-                handleFileUpload(files);
-            }
-            event.target.value = '';
-        },
-        [handleFileUpload],
-    );
-
-    const removeUploadedFile = useCallback((fileId: string) => {
-        setUploadedFiles((previous) => previous.filter((file) => file.id !== fileId));
-    }, []);
-
-    const handleSend = useCallback(async () => {
-        if (!onMessage) {
-            throw new Error(`Can not find onMessage callback`);
-        }
-
-        const textareaElement = textareaRef.current;
-
-        if (!textareaElement) {
-            throw new Error(`Can not find textarea`);
-        }
-
-        const wasTextareaFocused = document.activeElement === textareaElement;
-
-        try {
-            const messageContent = textareaElement.value;
-            const attachments = uploadedFiles.map((uploadedFile) => ({
-                name: uploadedFile.file.name,
-                type: uploadedFile.file.type,
-                url: uploadedFile.content,
-            }));
-
-            if (spaceTrim(messageContent) === '' && attachments.length === 0) {
-                throw new Error(`You need to write some text or upload a file`);
-            }
-
-            if (soundSystem) {
-                /* not await */ soundSystem.play('message_send');
-            }
-
-            textareaElement.value = '';
-            setUploadedFiles([]);
-
-            if (wasTextareaFocused) {
-                textareaElement.focus();
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (onMessage as any)(messageContent, attachments).catch((error: unknown) => {
-                console.error(error);
-                if (error instanceof Error) {
-                    alert(error.message);
-                } else {
-                    alert(String(error));
-                }
-            });
-        } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
-
-            console.error(error);
-            alert(error.message);
-        }
-    }, [onMessage, uploadedFiles, soundSystem]);
+    const {
+        speechRecognitionUiDescriptor,
+        shouldShowDictationPanel,
+        isDictationPanelExpanded,
+        toggleDictationPanel,
+        expandDictationPanel,
+        dictationInterimText,
+        dictationError,
+        dictationLastFinalChunk,
+        dictationEditableChunk,
+        setDictationEditableChunk,
+        canBacktrack,
+        dictationSettings,
+        handleDictationSettingChange,
+        handleToggleVoiceInput,
+        handleBacktrackLastChunk,
+        handleApplyCorrection,
+        handleRetryPermissionRequest,
+        handleOpenBrowserSettings,
+        canOpenBrowserSettings,
+        isBrowserSpeechFallbackSupported,
+    } = useChatInputAreaDictation({
+        speechRecognition,
+        speechRecognitionLanguage,
+        textareaRef,
+        messageContentRef,
+        applyMessageContent,
+    });
 
     if (!onMessage) {
         return null;
     }
 
-    const myColor = participants.find((participant) => participant.isMe)?.color || USER_CHAT_COLOR;
-    const inputBgColor = Color.from(myColor).then(lighten(0.4)).then(grayscale(0.7));
-    const inputTextColor = inputBgColor.then(textColor);
+    const { inputContainerStyle, primaryButtonStyle } = createChatInputAreaColorModel(participants, buttonColor);
+    const replyPreview = createChatInputAreaReplyPreviewModel({
+        replyingToMessage,
+        participants,
+        chatUiTranslations,
+        onCancelReply,
+    });
+    const rootProps = createChatInputAreaRootProps({
+        onFileUpload,
+        handleDrop,
+        handleDragOver,
+        handleDragLeave,
+    });
 
     return (
-        <div
-            className={classNames(styles.chatInput, chatInputClassName, isDragOver && styles.dragOver)}
-            {...(onFileUpload
-                ? {
-                      onDrop: handleDrop,
-                      onDragOver: handleDragOver,
-                      onDragLeave: handleDragLeave,
-                  }
-                : {})}
-        >
-            {uploadedFiles.length > 0 && (
-                <div className={styles.filePreviewContainer}>
-                    {uploadedFiles.map((uploadedFile) => (
-                        <div key={uploadedFile.id} className={styles.filePreview}>
-                            <div className={styles.fileIcon}>📎</div>
-                            <div className={styles.fileInfo}>
-                                <div className={styles.fileName}>{uploadedFile.file.name}</div>
-                                <div className={styles.fileSize}>{(uploadedFile.file.size / 1024).toFixed(1)} KB</div>
-                            </div>
-                            <button
-                                className={styles.removeFileButton}
-                                onClick={() => removeUploadedFile(uploadedFile.id)}
-                                title="Remove file"
-                            >
-                                <CloseIcon />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
+        <div className={classNames(styles.chatInput, chatInputClassName, isDragOver && styles.dragOver)} {...rootProps}>
+            <ChatInputAreaReplyPreviewSection replyPreview={replyPreview} />
+
+            <ChatInputAreaUploadedFilesSection
+                uploadedFiles={uploadedFiles}
+                removeUploadedFile={removeUploadedFile}
+                inputContainerStyle={inputContainerStyle}
+                mode={mode}
+            />
 
             <div
-                className={styles.inputContainer}
-                style={
-                    {
-                        '--chat-placeholder-color': '#fff',
-                        '--input-bg-color': inputBgColor.toHex(),
-                        '--input-text-color': inputTextColor.toHex(),
-                        '--brand-color': buttonColor.toHex(),
-                    } as CSSProperties
-                }
+                className={classNames(styles.inputContainer, chatCssClassNames.inputContainer)}
+                style={inputContainerStyle}
             >
                 <textarea
-                    ref={(element) => {
-                        textareaRef.current = element;
-                    }}
+                    ref={textareaRef}
+                    className={chatCssClassNames.inputTextarea}
                     onPaste={handlePaste}
-                    style={{
-                        height:
-                            Math.max(
-                                countLines(textareaRef.current?.value || defaultMessage || ''),
-                                (textareaRef.current?.value || defaultMessage || '').split(/\r?\n/).length,
-                                3,
-                            ) *
-                                25 +
-                            10,
-                    }}
-                    defaultValue={defaultMessage}
+                    value={messageContent}
                     placeholder={placeholderMessageContent || 'Write a message...'}
-                    onKeyDown={(event) => {
-                        if (event.shiftKey) {
-                            return;
-                        }
-                        if (event.key !== 'Enter') {
-                            return;
-                        }
-
-                        event.preventDefault();
-                        /* not await */ handleSend();
-                    }}
-                    onKeyUp={() => {
-                        if (!onChange) {
-                            return;
-                        }
-
-                        onChange(textareaRef.current?.value || '');
-                    }}
+                    onChange={handleTextInputChange}
+                    onKeyDown={handleComposerKeyDown}
                 />
 
-                {onFileUpload && (
-                    <>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            style={{ display: 'none' }}
-                            onChange={handleFileInputChange}
-                        />
-                        <button
-                            type="button"
-                            style={{
-                                backgroundColor: buttonColor.toHex(),
-                                color: buttonColor.then(textColor).toHex(),
-                            }}
-                            className={styles.attachmentButton}
-                            onClick={onButtonClick(() => fileInputRef.current?.click())}
-                            disabled={isUploading}
-                            title="Attach file"
-                        >
-                            <AttachmentIcon size={20} />
-                        </button>
-                    </>
-                )}
+                <ChatInputAreaAttachmentButton
+                    onFileUpload={onFileUpload}
+                    fileInputRef={fileInputRef}
+                    handleFileInputChange={handleFileInputChange}
+                    onButtonClick={onButtonClick}
+                    openFilePicker={openFilePicker}
+                    isUploading={isUploading}
+                    primaryButtonStyle={primaryButtonStyle}
+                />
 
-                {speechRecognition && (
-                    <button
-                        data-button-type="voice"
-                        disabled={speechRecognitionUiDescriptor.isButtonDisabled}
-                        style={{
-                            backgroundColor: speechRecognitionUiDescriptor.isButtonActive
-                                ? Color.from('#ff4444').toHex()
-                                : buttonColor.toHex(),
-                            color: speechRecognitionUiDescriptor.isButtonActive
-                                ? Color.from('#ffffff').toHex()
-                                : buttonColor.then(textColor).toHex(),
-                        }}
-                        className={classNames(
-                            styles.voiceButton,
-                            (isVoiceCalling || speechRecognitionUiDescriptor.isButtonActive) &&
-                                styles.voiceButtonActive,
-                        )}
-                        onClick={onButtonClick((event) => {
-                            event.preventDefault();
-                            handleToggleVoiceInput();
-                        })}
-                        title={speechRecognitionUiDescriptor.buttonTitle}
-                        aria-label={speechRecognitionUiDescriptor.buttonTitle}
-                    >
-                        <MicIcon size={25} />
-                    </button>
-                )}
+                <ChatInputAreaVoiceButton
+                    speechRecognition={speechRecognition}
+                    isVoiceCalling={isVoiceCalling}
+                    buttonColor={buttonColor}
+                    speechRecognitionUiDescriptor={speechRecognitionUiDescriptor}
+                    onButtonClick={onButtonClick}
+                    handleToggleVoiceInput={handleToggleVoiceInput}
+                />
 
-                <button
-                    data-button-type="call-to-action"
-                    style={{
-                        backgroundColor: buttonColor.toHex(),
-                        color: buttonColor.then(textColor).toHex(),
-                    }}
-                    onClick={onButtonClick((event) => {
-                        event.preventDefault();
-                        /* not await */ handleSend();
-                    })}
-                >
-                    <SendIcon size={25} />
-                </button>
+                <ChatInputAreaSendButton
+                    primaryButtonStyle={primaryButtonStyle}
+                    onButtonClick={onButtonClick}
+                    handleSend={handleSend}
+                />
             </div>
 
-            {speechRecognition && speechRecognitionUiDescriptor.bubbleText && (
-                <div
-                    className={classNames(
-                        styles.speechStatusBubble,
-                        speechRecognitionUiDescriptor.bubbleTone === 'recording' && styles.speechStatusBubbleRecording,
-                        speechRecognitionUiDescriptor.bubbleTone === 'processing' &&
-                            styles.speechStatusBubbleProcessing,
-                        speechRecognitionUiDescriptor.bubbleTone === 'error' && styles.speechStatusBubbleError,
-                    )}
-                    aria-live="polite"
-                    role="status"
-                >
-                    <span className={styles.speechStatusBubbleDot} aria-hidden="true" />
-                    <span>{speechRecognitionUiDescriptor.bubbleText}</span>
-                </div>
-            )}
+            <ChatInputAreaDictationPanelSection
+                speechRecognition={speechRecognition}
+                speechRecognitionUiDescriptor={speechRecognitionUiDescriptor}
+                shouldShowDictationPanel={shouldShowDictationPanel}
+                isDictationPanelExpanded={isDictationPanelExpanded}
+                dictationInterimText={dictationInterimText}
+                dictationError={dictationError}
+                dictationLastFinalChunk={dictationLastFinalChunk}
+                dictationEditableChunk={dictationEditableChunk}
+                canBacktrack={canBacktrack}
+                dictationSettings={dictationSettings}
+                isBrowserSpeechFallbackSupported={isBrowserSpeechFallbackSupported}
+                canOpenBrowserSettings={canOpenBrowserSettings}
+                toggleDictationPanel={toggleDictationPanel}
+                expandDictationPanel={expandDictationPanel}
+                setDictationEditableChunk={setDictationEditableChunk}
+                handleRetryPermissionRequest={handleRetryPermissionRequest}
+                handleOpenBrowserSettings={handleOpenBrowserSettings}
+                handleApplyCorrection={handleApplyCorrection}
+                handleBacktrackLastChunk={handleBacktrackLastChunk}
+                handleDictationSettingChange={handleDictationSettingChange}
+            />
 
-            {isUploading && (
-                <div className={styles.uploadProgress}>
-                    <div className={styles.uploadProgressBar}>
-                        <div className={styles.uploadProgressFill}></div>
-                    </div>
-                    <span>Uploading files...</span>
-                </div>
-            )}
-
-            {isDragOver && onFileUpload && (
-                <div className={styles.dragOverlay}>
-                    <div className={styles.dragOverlayContent}>
-                        <AttachmentIcon size={48} />
-                        <span>Drop files here to upload</span>
-                    </div>
-                </div>
-            )}
+            <ChatInputAreaUploadProgress isUploading={isUploading} />
+            <ChatInputAreaDragOverlay isDragOver={isDragOver} onFileUpload={onFileUpload} />
         </div>
     );
 }

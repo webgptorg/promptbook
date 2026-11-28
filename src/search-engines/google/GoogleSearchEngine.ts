@@ -1,5 +1,6 @@
 import type { Promisable } from 'type-fest';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_title } from '../../types/string_title';
 import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
@@ -65,7 +66,9 @@ export class GoogleSearchEngine implements SearchEngine {
 }
 
 /**
- * @see https://developers.google.com/custom-search/v1/reference/rest/v1/Search
+ * Https://developers.google.com/custom-search/v1/reference/rest/v1/Search.
+ *
+ * @see
  */
 type GoogleSearchResponse = {
     items?: Array<{
