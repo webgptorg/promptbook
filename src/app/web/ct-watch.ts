@@ -24,23 +24,28 @@ export function certificatePublicKeyHash(certificate: X509Certificate): string {
 }
 
 /** Queries crt.sh over verified HTTPS; unbounded, malformed or partial answers are failures, never a clean result. @private App TLS */
-export function publicCtSource(env: NodeJS.ProcessEnv): CtSource {
+export function publicCtSource(env: NodeJS.ProcessEnv, request: typeof httpsRequest = httpsRequest): CtSource {
     return async (hostname, signal) => {
         const get = async (url: string, maxResponseBytes: number): Promise<Buffer> => {
             signal.throwIfAborted();
-            const response = await httpsRequest({ url, method: 'GET', headers: { accept: 'application/json, application/pkix-cert' }, maxResponseBytes, timeoutMs: 10_000, env });
+            const response = await request({ url, method: 'GET', headers: { accept: 'application/json, application/pkix-cert' }, maxResponseBytes, timeoutMs: 10_000, env });
             signal.throwIfAborted();
             if (response.status !== 200) throw new Error('Certificate log unavailable.');
             return response.body;
         };
-        const rows: unknown = JSON.parse((await get(`https://crt.sh/?q=${encodeURIComponent(hostname)}&output=json`, 1024 * 1024)).toString('utf8'));
-        if (!Array.isArray(rows) || rows.length > 2000) throw new Error('Invalid certificate log answer.');
+        // A wildcard at the immediate parent also covers this hostname. Exact matching avoids unrelated suffix
+        // matches, and a failed query of either identity cannot silently become a clean scan.
+        const identities = [hostname, ...(hostname.includes('.') ? ['*.' + hostname.slice(hostname.indexOf('.') + 1)] : [])];
         const ids = new Set<string>();
-        for (const row of rows) {
-            if (!row || typeof row !== 'object' || !/^[0-9]{1,20}$/.test(String(row.id)) || typeof row.not_after !== 'string') throw new Error('Invalid certificate log entry.');
-            const expiry = Date.parse(row.not_after.endsWith('Z') ? row.not_after : row.not_after + 'Z');
-            if (!Number.isFinite(expiry)) throw new Error('Invalid certificate expiry.');
-            if (expiry > Date.now()) ids.add(String(row.id));
+        for (const identity of identities) {
+            const rows: unknown = JSON.parse((await get(`https://crt.sh/?q=${encodeURIComponent(identity)}&match=%3D&exclude=expired&output=json`, 1024 * 1024)).toString('utf8'));
+            if (!Array.isArray(rows) || rows.length > 2000) throw new Error('Invalid certificate log answer.');
+            for (const row of rows) {
+                if (!row || typeof row !== 'object' || !/^[0-9]{1,20}$/.test(String(row.id)) || typeof row.not_after !== 'string') throw new Error('Invalid certificate log entry.');
+                const expiry = Date.parse(row.not_after.endsWith('Z') ? row.not_after : row.not_after + 'Z');
+                if (!Number.isFinite(expiry)) throw new Error('Invalid certificate expiry.');
+                if (expiry > Date.now()) ids.add(String(row.id));
+            }
         }
         if (ids.size > MAX_CT_CERTIFICATES) throw new Error('Certificate log result exceeds the scan bound.');
         const certificates: Uint8Array[] = [];

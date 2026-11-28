@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { X509Certificate } from 'node:crypto';
 import { test } from 'node:test';
-import { CertificateTransparencyWatch, certificatePublicKeyHash } from '../dist/app/web/ct-watch.js';
+import { CertificateTransparencyWatch, certificatePublicKeyHash, publicCtSource } from '../dist/app/web/ct-watch.js';
 import { createLocalCa, issueLocalLeaf } from '../dist/app/web/x509.js';
 
 /** Genuine independent certificates for one engine origin, including another key and another hostname. */
@@ -42,4 +42,22 @@ test('CT: no scan before an own key exists, one scan per hour, concurrent scans 
     const joined=watch.check();assert.equal(calls,1);finish();await joined;assert.equal(watch.view().result,'ok');
     t.mock.timers.tick(3_600_000);assert.equal(calls,2);const pending=watch.check();watch.stop();finish();await pending;
     assert.equal(watch.view().result,'ok');
+});
+
+
+test('CT transport searches the exact identity and covering wildcard; partial index failures cannot report a clean scan',async()=>{
+    const {own,other,key}=await certificates();const queries=[];let rejectWildcard=false;
+    const source=publicCtSource({},async({url})=>{
+        const parsed=new URL(url);queries.push(parsed);const identity=parsed.searchParams.get('q');
+        if(identity){
+            assert.equal(parsed.searchParams.get('match'),'=');assert.equal(parsed.searchParams.get('exclude'),'expired');
+            if(identity==='*.example'&&rejectWildcard)return {status:503,headers:{},body:Buffer.from('unavailable')};
+            return {status:200,headers:{},body:Buffer.from(JSON.stringify([{id:identity==='engine.example'?1:2,not_after:'2099-01-01T00:00:00'}]))};
+        }
+        return {status:200,headers:{},body:Buffer.from(parsed.searchParams.get('d')==='1'?own.certificatePem:other.certificatePem)};
+    });
+    const watch=new CertificateTransparencyWatch({hostname:'engine.example',knownKeys:()=>[key],source,changed:()=>{}});
+    await watch.check();assert.deepEqual(queries.filter(q=>q.searchParams.has('q')).map(q=>q.searchParams.get('q')),['engine.example','*.example']);
+    assert.equal(watch.view().result,'unexpected-certificate');
+    rejectWildcard=true;await watch.check();assert.equal(watch.view().result,'failed');watch.stop();
 });
