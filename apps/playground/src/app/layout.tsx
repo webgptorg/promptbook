@@ -3,11 +3,17 @@ import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
 import './globals.css';
 
+/**
+ * Constant for barlow condensed.
+ */
 const barlowCondensed = Barlow_Condensed({
     subsets: ['latin'],
     weight: ['300', '400', '500', '600', '700'],
 });
 
+/**
+ * Map of metadata.
+ */
 export const metadata: Metadata = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://playground.ptbk.io'),
     title: 'Promptbook Playground',
@@ -38,6 +44,9 @@ export const metadata: Metadata = {
     },
 };
 
+/**
+ * Handles root layout.
+ */
 export default function RootLayout({
     children,
 }: Readonly<{

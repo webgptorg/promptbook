@@ -6,8 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // Note: Do not import from `../../package.json` because it would be included in the bundle
 // TODO: [🧠] Is there a better way to get the version?
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
-import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
-import { AboutPromptbookInformation } from '../../utils/misc/xAboutPromptbookInformation';
 import { AboutIcon } from '../icons/AboutIcon';
 import { AttachmentIcon } from '../icons/AttachmentIcon';
 import { CameraIcon } from '../icons/CameraIcon';
@@ -15,10 +13,15 @@ import { DownloadIcon } from '../icons/DownloadIcon';
 import { ExitFullscreenIcon } from '../icons/ExitFullscreenIcon';
 import { FullscreenIcon } from '../icons/FullscreenIcon';
 import { Dropdown } from '../_common/Dropdown/Dropdown';
-import { HoistedMenuItem, useMenuHoisting } from '../_common/MenuHoisting/MenuHoistingContext';
+import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
+import { useMenuHoisting } from '../_common/MenuHoisting/MenuHoistingContext';
 import { Modal } from '../_common/Modal/Modal';
 import styles from './BookEditor.module.css';
+import { BookEditorAboutPromptbookInformation } from './BookEditorAboutPromptbookInformation';
 
+/**
+ * Props for book editor actionbar.
+ */
 type BookEditorActionbarProps = {
     value: string | undefined;
     isDownloadButtonShown?: boolean;
@@ -30,9 +33,42 @@ type BookEditorActionbarProps = {
     onUploadDocument?: () => void;
     onTakePhoto?: () => void;
     isFullscreen?: boolean;
+    hoistedMenuItems?: ReadonlyArray<HoistedMenuItem>;
 };
 
+function induceBookDownloadInBrowser(book: string): void {
+    const filename = `${normalizeBookDownloadName(extractBookTitle(book) || 'AI Avatar')}.book`;
+    const objectUrl = URL.createObjectURL(new Blob([book], { type: 'application/json' }));
+    const link = window.document.createElement('a');
+
+    link.href = objectUrl;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(objectUrl);
+}
+
+function extractBookTitle(book: string): string | null {
+    return (
+        book
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .find(Boolean) || null
+    );
+}
+
+function normalizeBookDownloadName(value: string): string {
+    return (
+        value
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^\dA-Za-z]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .toLowerCase() || 'ai-avatar'
+    );
+}
+
 /**
+ * Handles book editor actionbar.
  *
  * @private Internal component used by `BookEditor`
  */
@@ -48,6 +84,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
         onUploadDocument,
         onTakePhoto,
         isFullscreen,
+        hoistedMenuItems,
     } = props;
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
     const menuHoisting = useMenuHoisting();
@@ -60,11 +97,11 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
 
     const handleDownload = useCallback(() => {
         const book = validateBook(valueRef.current || DEFAULT_BOOK);
-        /* not await */ $induceBookDownload(book);
+        induceBookDownloadInBrowser(book);
     }, []);
 
     const actions = useMemo(() => {
-        const _actions: HoistedMenuItem[] = [];
+        const _actions: HoistedMenuItem[] = [...(hoistedMenuItems || [])];
 
         if (isUploadButtonShown && onUploadDocument) {
             _actions.push({
@@ -107,6 +144,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
         }
         return _actions;
     }, [
+        hoistedMenuItems,
         isUploadButtonShown,
         onUploadDocument,
         isCameraButtonShown,
@@ -149,7 +187,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                             setIsAboutModalOpen(false);
                         }}
                     >
-                        <AboutPromptbookInformation />
+                        <BookEditorAboutPromptbookInformation />
                     </Modal>
                 )}
             </>
@@ -175,7 +213,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
                         setIsAboutModalOpen(false);
                     }}
                 >
-                    <AboutPromptbookInformation />
+                    <BookEditorAboutPromptbookInformation />
                 </Modal>
             )}
         </div>

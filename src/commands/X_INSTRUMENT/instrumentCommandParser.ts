@@ -1,6 +1,6 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -11,6 +11,7 @@ import type { InstrumentCommand } from './InstrumentCommand';
  * Parses the instrument command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentCommand> = {
@@ -85,6 +86,4 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
     },
 };
 
-/**
- * Note: [⛱] There are two types of INSTRUMENT commands *...(read more in [⛱])*
- */
+// Note: [⛱] There are two types of INSTRUMENT commands *...(read more in [⛱])*

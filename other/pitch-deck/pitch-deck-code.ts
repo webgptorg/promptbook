@@ -7,10 +7,20 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import OpenAI from 'openai';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: pitch-deck-code.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
@@ -92,6 +102,4 @@ async function playground() {
     console.info(`[ Done 🧸  Playground ]`);
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for pitch-deck generator [pitch-deck-code](other/pitch-deck/pitch-deck-code.ts) should never be published in any package */

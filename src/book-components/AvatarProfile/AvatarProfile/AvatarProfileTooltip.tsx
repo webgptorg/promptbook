@@ -5,12 +5,16 @@ import { classNames } from '../../_common/react-utils/classNames';
 import { AvatarProfileFromSource } from './AvatarProfileFromSource';
 import styles from './AvatarProfileTooltip.module.css';
 
+/**
+ * Props for avatar profile tooltip.
+ */
 type AvatarProfileTooltipProps = {
     agentSource: string_book;
     position: { top: number; left: number };
 };
 
 /**
+ * Constant for avatar profile tooltip.
  *
  * @private internal subcomponent of `<Chat>` component
  */

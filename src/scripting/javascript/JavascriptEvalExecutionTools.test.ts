@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
 
 describe('JavascriptEvalExecutionTools', () => {
@@ -8,11 +9,13 @@ describe('JavascriptEvalExecutionTools', () => {
         {
             isVerbose: true,
             // Note: [🕎] Custom functions are tested elsewhere
+
+            functions: getAllCommitmentsToolFunctionsForNode(),
         },
     );
 
-    it('should evaluate supersimple statement', () => {
-        expect(
+    it('should evaluate supersimple statement', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -21,7 +24,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 script: 'animal',
             }),
         ).resolves.toEqual('cat');
-        expect(
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -32,8 +35,8 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('cat');
     });
 
-    it('should evaluate single statement', () => {
-        expect(
+    it('should evaluate single statement', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -44,8 +47,8 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('t-a-c');
     });
 
-    it('should evaluate build-in function', () => {
-        expect(
+    it('should evaluate build-in function', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -55,7 +58,7 @@ describe('JavascriptEvalExecutionTools', () => {
             }),
         ).resolves.toEqual('cat');
 
-        expect(
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -66,10 +69,20 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('dog');
     });
 
+    it('should evaluate function `open_popup` from `USE POPUP`', async () => {
+        await expect(
+            javascriptEvalExecutionTools.execute({
+                scriptLanguage: 'javascript',
+                parameters: {},
+                script: 'return open_popup({ url: "https://ptbk.io" })',
+            }),
+        ).resolves.toContain('Popup window with URL "https://ptbk.io" was requested.');
+    });
+
     /*/
     TODO: Make this unit test work
-    it('should evaluate multiple statements', () => {
-        expect(
+    it('should evaluate multiple statements', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -108,8 +121,8 @@ describe('JavascriptEvalExecutionTools', () => {
             ).rejects.toThrowError('Some error');
     });
 
-    it('should evaluate custom function', () => {
-        expect(
+    it('should evaluate custom function', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -126,8 +139,8 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('cat makes meow.');
     });
 
-    it('should fail on python script', () => {
-        expect(
+    it('should fail on python script', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'python',
                 parameters: {
@@ -141,6 +154,4 @@ describe('JavascriptEvalExecutionTools', () => {
     });
 });
 
-/**
- * TODO: Make shared test between JavascriptEvalExecutionTools and JavascriptExecutionTools to test the same functionality when implemented via vm2
- */
+// TODO: Make shared test between JavascriptEvalExecutionTools and JavascriptExecutionTools to test the same functionality when implemented via vm2

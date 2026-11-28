@@ -4,6 +4,7 @@ import type { IndexedDbStorageOptions } from './IndexedDbStorageOptions';
 /**
  * Creates a PromptbookStorage backed by IndexedDB.
  * Uses a single object store named 'promptbook'.
+ *
  * @private for `getIndexedDbStorage`
  */
 export function makePromptbookStorageFromIndexedDb<TValue>(

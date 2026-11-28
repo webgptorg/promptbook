@@ -1,0 +1,20 @@
+# Promptbook vs Agno
+
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
+Agno (formerly known as Phidata) is a lightweight framework for building AI agents with memory, knowledge, and tools. It focuses on making agents "portable" and easy to integrate into any Python application, with a strong emphasis on structured output and tool calling.
+
+While Agno is an excellent developer tool for Python-centric environments, Promptbook takes the concept of "portability" further by creating a dedicated, model-agnostic language (Book) and a federated server ecosystem (Promptbook Server) that allows agents to exist and interact across different languages and platforms.
+
+## Side-by-Side Comparison
+
+| Promptbook                                                                                                                                                   | Agno                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ✔ **Book Language**: A standalone, declarative language for AI agents.                                                                                       | ✔ **Pythonic Design**: Native Python integration with familiar syntax.                                                                                             |
+| ✔ **Federated Ecosystem**: Run and connect agents across multiple servers.                                                                                   | ✔ **Lightweight**: Minimal dependencies and easy to integrate.                                                                                                     |
+| ✔ **Commitment System**: Explicit `PERSONA`, `KNOWLEDGE`, and `RULE` definitions.                                                                            | ✔ **Tool Integration**: Exceptional support for function calling and tools.                                                                                        |
+| ✔ **Adversary Enforcement**: Multi-agent verification of rules and safety.                                                                                   | ✔ **Structured Output**: Strong emphasis on typed, validated responses.                                                                                            |
+| ✔ **Web UI & Server Included**: Built-in server and playground for agent management.                                                                         | ✘ **Headless**: Developers must build their own UI or use third-party tools.                                                                                       |
+| ✘ **Python Only Partially Supported**: Primary focus is on JavaScript/TypeScript.                                                                            | ✘ **Python Ecosystem Only**: Not portable to other programming languages.                                                                                          |
+| 💡 **Agent "Being"**: Focuses on the identity and commitments of the agent.                                                                                  | 💡 **Developer Experience**: Fast prototyping for Python-centric workflows.                                                                                        |
+| **Best for:** Building standardized, reliable, and federated AI agents that can be shared and run across different environments with multi-language support. | **Best for:** Python developers who need a robust, lightweight library to add agentic capabilities to their existing applications with excellent tool integration. |

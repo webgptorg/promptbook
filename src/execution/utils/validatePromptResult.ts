@@ -5,7 +5,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
 import type { Expectations } from '../../pipeline/PipelineJson/Expectations';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
-import type { string_postprocessing_function_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/string_person_fullname';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { checkExpectations } from './checkExpectations';
 
@@ -59,11 +59,12 @@ export type ValidatePromptResultResult = {
  * Validates a prompt result against expectations and format requirements.
  * This function provides a common abstraction for result validation that can be used
  * by both execution logic and caching logic to ensure consistency.
- * 
+ *
  * Note: [🔂] This function is idempotent.
  *
  * @param options - The validation options including result string, expectations, and format
  * @returns Validation result with processed string and validity status
+ *
  * @private internal function of `createPipelineExecutor` and `cacheLlmTools`
  */
 export function validatePromptResult(options: ValidatePromptResultOptions): ValidatePromptResultResult {

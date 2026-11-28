@@ -1,5 +1,8 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of chat with feedback scenario.
+ */
 export const chatWithFeedbackScenario = {
     name: 'Chat with feedback',
     messages: [

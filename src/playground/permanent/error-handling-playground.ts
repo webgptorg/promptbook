@@ -18,7 +18,17 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PipelineString } from '../../pipeline/PipelineString';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: error-handling-playground.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
@@ -32,6 +42,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Error handling Playground`);
 
@@ -87,6 +100,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for permanent playground [error-handling-playground](src/playground/permanent/error-handling-playground.ts) should never be published in any package

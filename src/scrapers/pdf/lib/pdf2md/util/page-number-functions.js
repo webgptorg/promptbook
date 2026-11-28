@@ -1,3 +1,6 @@
+/**
+ * Constant for { remove leading whitespaces, remove trailing whitespaces, is number }.
+ */
 const { removeLeadingWhitespaces, removeTrailingWhitespaces, isNumber } = require('./string-functions');
 
 /**
@@ -6,7 +9,6 @@ const { removeLeadingWhitespaces, removeTrailingWhitespaces, isNumber } = requir
  * @param {number} numerator - arbitrary number to search
  * @param {number} denominator - arbitrary number to search
  * @param {number} length - length of textContent.items array
- *
  * @returns {number} A range of where to loop and search
  */
 const searchRange = (numerator, denominator, length) => {
@@ -19,7 +21,6 @@ const searchRange = (numerator, denominator, length) => {
  * @param {array} range
  * @param {object} pageIndexNumMap object
  * @param {number} pageIndex - index of the page
- *
  * @returns {object} pageIndexNumMap object
  */
 const searchArea = (range, pageIndexNumMap, pageIndex) => {

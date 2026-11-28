@@ -3,11 +3,13 @@ import { assertsError } from '../../errors/assertsError';
 import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
-import type { Parameters, string_markdown, string_parameter_value } from '../../types/typeAliases';
+import type { Parameters } from '../../types/Parameters';
+import type { Prompt } from '../../types/Prompt';
+import type { string_markdown } from '../../types/string_markdown';
+import type { string_parameter_value } from '../../types/string_name';
 import type { ExecutionTools } from '../ExecutionTools';
 import { computeCosineSimilarity } from './computeCosineSimilarity';
 import { knowledgePiecesToString } from './knowledgePiecesToString';
-import { Prompt } from '../../types/Prompt';
 
 /**
  * Options for retrieving relevant knowledge for a specific task during pipeline execution.
@@ -73,7 +75,9 @@ export async function getKnowledgeForTask(
         const knowledgePiecesWithRelevance = preparedPipeline.knowledgePieces.map((knowledgePiece) => {
             const { index } = knowledgePiece;
 
-            const knowledgePieceIndex = index.find((i) => i.modelName === firstKnowledgeIndex.modelName);
+            const knowledgePieceIndex = index.find(
+                (knowledgePieceIndex) => knowledgePieceIndex.modelName === firstKnowledgeIndex.modelName,
+            );
             // <- TODO: Do not use just first knowledge piece and first index to determine embedding model
 
             if (knowledgePieceIndex === undefined) {
@@ -122,7 +126,5 @@ export async function getKnowledgeForTask(
     }
 }
 
-/**
- * TODO: [♨] Implement Better - use keyword search
- * TODO: [♨] Examples of values
- */
+// TODO: [♨] Implement Better - use keyword search
+// TODO: [♨] Examples of values

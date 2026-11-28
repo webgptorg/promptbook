@@ -1,41 +1,79 @@
 'use server';
 
 import type { Metadata } from 'next';
+import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
+import { resolveAgentProjectsAccess } from '../../../utils/agentProjects/agentProjectAccess';
+import { hasAgentProjects } from '../../../utils/agentProjects/hasAgentProjects';
+import { ActiveAgentBreadcrumbBinder } from './ActiveAgentBreadcrumbBinder';
 import { getAgentName, getAgentProfile } from './_utils';
+import { generateAgentMetadata } from './generateAgentMetadata';
+import type { ActiveAgentBreadcrumbInfo } from '../../../components/Header/ActiveAgentBreadcrumbContext';
 
+/**
+ * Generates shared branded metadata for all pages under `/agents/[agentName]`.
+ *
+ * @param params - Dynamic route parameters with `agentName`.
+ * @returns Metadata used by Next.js head rendering.
+ */
 export async function generateMetadata({ params }: { params: Promise<{ agentName: string }> }): Promise<Metadata> {
-    const agentName = await getAgentName(params);
+    return generateAgentMetadata({ params });
+}
 
+/**
+ * Resolves the breadcrumb info for the route's active agent so the Header can show its name
+ * instead of falling back to the URL identifier. Failures are swallowed because the layout
+ * must keep rendering even when the agent cannot be resolved (the page will handle the error).
+ *
+ * @param rawAgentIdentifier - Decoded route parameter for the active agent.
+ * @returns Breadcrumb info for the active agent or `null` when unavailable.
+ *
+ * @private function of agent routes
+ */
+async function tryResolveActiveAgentBreadcrumbInfo(
+    rawAgentIdentifier: string,
+): Promise<ActiveAgentBreadcrumbInfo | null> {
     try {
-        const agentProfile = await getAgentProfile(agentName);
+        const routeTarget = await resolveAgentRouteTarget(rawAgentIdentifier);
+        if (!routeTarget || routeTarget.kind !== 'local') {
+            return null;
+        }
 
-        const title = agentProfile.meta.fullname || agentProfile.agentName;
-        const description = agentProfile.meta.description || agentProfile.personaDescription || undefined;
-
-        // Use the agent's icon-256.png as the favicon for all agent pages and subpages
-        const iconUrl = `/agents/${encodeURIComponent(agentName)}/images/icon-256.png`;
+        const [agentProfile, projectsAccess] = await Promise.all([
+            getAgentProfile(routeTarget.canonicalAgentId),
+            resolveAgentProjectsAccess(routeTarget.canonicalAgentId),
+        ]);
+        const isProjectsViewVisible =
+            projectsAccess.isProjectOverviewVisible && (await hasAgentProjects(routeTarget.canonicalAgentId));
 
         return {
-            title,
-            description,
-            icons: {
-                icon: iconUrl,
-                shortcut: iconUrl,
-                apple: iconUrl,
-            },
+            agentName: agentProfile.agentName,
+            agentHash: agentProfile.agentHash,
+            permanentId: agentProfile.permanentId,
+            meta: agentProfile.meta,
+            isProjectsViewVisible,
         };
-    } catch (error) {
-        console.warn(`Failed to generate metadata for agent ${agentName}`, error);
-        return {
-            title: agentName,
-        };
+    } catch {
+        return null;
     }
 }
 
+/**
+ * Shared route layout for all pages under `/agents/[agentName]`.
+ */
 export default async function AgentLayout({
     children,
+    params,
 }: Readonly<{
     children: React.ReactNode;
+    params: Promise<{ agentName: string }>;
 }>) {
-    return <>{children}</>;
+    const rawAgentIdentifier = await getAgentName(params);
+    const activeAgentBreadcrumbInfo = await tryResolveActiveAgentBreadcrumbInfo(rawAgentIdentifier);
+
+    return (
+        <>
+            {activeAgentBreadcrumbInfo && <ActiveAgentBreadcrumbBinder agent={activeAgentBreadcrumbInfo} />}
+            {children}
+        </>
+    );
 }

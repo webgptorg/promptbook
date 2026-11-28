@@ -1,16 +1,47 @@
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
+import { formatServerLanguageHumanReadableDate } from '@/src/utils/localization/formatServerLanguageHumanReadableDate';
+import { getRequestServerLanguage } from '@/src/utils/localization/getRequestServerLanguage';
 import { HistoryIcon } from 'lucide-react';
-import Link from 'next/link';
 import { RestoreVersionButton } from './RestoreVersionButton';
+import { enforceCanonicalLocalAgentId, getAgentName } from '../_utils';
 
-export const metadata = {
-    title: 'Agent History',
-};
+/**
+ * Generates metadata for the agent history page.
+ *
+ * @returns Metadata for the page.
+ */
+export async function generateMetadata() {
+    const agentNaming = await getAgentNaming();
+    return {
+        title: formatAgentNamingText('Agent History', agentNaming),
+    };
+}
 
+/**
+ * Builds canonical history path for one local agent id.
+ */
+function buildCanonicalAgentHistoryPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/history`;
+}
+
+/**
+ * Handles agent history page.
+ */
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
-    const { agentName } = await params;
+    if (!(await getCurrentUser())) {
+        return <ForbiddenPage />;
+    }
+
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentHistoryPath);
     const collection = await $provideAgentCollectionForServer();
     const history = await collection.listAgentHistory(agentName);
+    const agentNaming = await getAgentNaming();
+    const language = await getRequestServerLanguage();
 
     return (
         <div className="container mx-auto p-6 max-w-4xl">
@@ -18,10 +49,10 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                 <div className="bg-blue-100 p-3 rounded-full">
                     <HistoryIcon className="w-8 h-8 text-blue-600" />
                 </div>
-                <div>
+                <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900">History: {agentName}</h1>
                     <p className="text-gray-600">
-                        Previous versions of this agent. <Link href={`/agents/${agentName}`} className="text-blue-600 hover:underline">Back to agent</Link>
+                        {formatAgentNamingText('Previous versions of this agent.', agentNaming)}
                     </p>
                 </div>
             </header>
@@ -41,13 +72,21 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
                                         <time className="block mb-1 text-sm font-normal leading-none text-gray-400">
-                                            {new Date(item.createdAt).toLocaleString()}
+                                            {formatServerLanguageHumanReadableDate(item.createdAt, language, {
+                                                isExactDateIncluded: true,
+                                            })}
                                         </time>
                                         <h3 className="text-lg font-semibold text-gray-900">
-                                            Version {history.length - index}
+                                            {item.versionName || `Version ${history.length - index}`}
                                         </h3>
+                                        {item.versionName && (
+                                            <p className="text-xs text-gray-500">Version {history.length - index}</p>
+                                        )}
                                         <p className="text-sm text-gray-500">
-                                            Hash: <code className="bg-gray-100 px-1 rounded">{item.agentHash.substring(0, 8)}</code>
+                                            Hash:{' '}
+                                            <code className="bg-gray-100 px-1 rounded">
+                                                {item.agentHash.substring(0, 8)}
+                                            </code>
                                         </p>
                                     </div>
                                     <RestoreVersionButton agentName={agentName} historyId={item.id} />

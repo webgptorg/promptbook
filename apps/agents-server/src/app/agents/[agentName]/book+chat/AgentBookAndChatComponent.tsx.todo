@@ -79,6 +79,7 @@ export function AgentBookAndChatComponent() {
             },
             agentSource: [agentSource, setAgentSource],
             isVerbose: true,
+             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
         return agent;

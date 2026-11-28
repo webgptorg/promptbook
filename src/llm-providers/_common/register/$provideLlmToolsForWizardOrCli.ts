@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { Promisable } from 'type-fest';
+import type { Promisable } from 'type-fest';
 import { DEFAULT_EXECUTION_CACHE_DIRNAME, DEFAULT_REMOTE_SERVER_URL } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
@@ -10,7 +10,8 @@ import { promptbookTokenToIdentification } from '../../../remote-server/socket-t
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { $EnvStorage } from '../../../storage/env-storage/$EnvStorage';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
-import type { string_app_id, string_promptbook_token, string_url } from '../../../types/typeAliases';
+import type { string_app_id, string_promptbook_token } from '../../../types/string_token';
+import type { string_url } from '../../../types/string_url';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import type { chococake } from '../../../utils/organization/really_any';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
@@ -20,6 +21,9 @@ import { countUsage } from '../utils/count-total-usage/countUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 
+/**
+ * Options for provide Llm tools for wizard or Cli.
+ */
 type ProvideLlmToolsForWizardOrCliOptions = {
     /**
      * If true, user will be always prompted for login
@@ -145,10 +149,8 @@ export async function $provideLlmToolsForWizardOrCli(
     );
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
- * TODO: [🥃] Allow `ptbk make` without llm tools
- * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
- * TODO: [®] DRY Register logic
- */
+// Note: [🟢] Code for Node environment helper [$provideLlmToolsForWizardOrCli](src/llm-providers/_common/register/$provideLlmToolsForWizardOrCli.ts) should never be published into packages that could be imported into browser environment
+// TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
+// TODO: [🥃] Allow `ptbk make` without llm tools
+// TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
+// TODO: [®] DRY Register logic

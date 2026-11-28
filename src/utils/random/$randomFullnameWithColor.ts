@@ -1,11 +1,22 @@
-import type { string_color, string_person_firstname, string_person_fullname, string_person_lastname } from '../../types/typeAliases';
+import type {
+    string_color,
+    string_person_firstname,
+    string_person_fullname,
+    string_person_lastname,
+} from '../../types/string_person_fullname';
 import { $randomItem } from './$randomItem';
 
+/**
+ * Result of random fullname with color.
+ */
 export type RandomFullnameWithColorResult = {
     fullname: string_person_fullname;
     color: string_color;
 };
 
+/**
+ * Collection of firstnames.
+ */
 const FIRSTNAMES: ReadonlyArray<string_person_firstname> = [
     'Paul',
     'George',
@@ -43,6 +54,9 @@ const FIRSTNAMES: ReadonlyArray<string_person_firstname> = [
     'Christopher',
 ];
 
+/**
+ * Collection of lastnames with colors.
+ */
 const LASTNAMES_WITH_COLORS: ReadonlyArray<{ lastname: string_person_lastname; color: string_color }> = [
     { lastname: 'Green', color: '#008000' },
     { lastname: 'Brown', color: '#A52A2A' },
@@ -53,6 +67,7 @@ const LASTNAMES_WITH_COLORS: ReadonlyArray<{ lastname: string_person_lastname; c
 ];
 
 /**
+ * Handles random fullname with color.
  *
  * @private internal helper function
  */
@@ -66,6 +81,4 @@ export function $randomFullnameWithColor(): RandomFullnameWithColorResult {
     };
 }
 
-/**
- * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
- */
+// TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

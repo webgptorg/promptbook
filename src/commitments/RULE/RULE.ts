@@ -18,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 'RULES'> {
-    constructor(type: 'RULE' | 'RULES' = 'RULE') {
+    public constructor(type: 'RULE' | 'RULES' = 'RULE') {
         super(type);
     }
 
@@ -27,6 +27,13 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
      */
     get description(): string {
         return 'Add behavioral rules the agent must follow.';
+    }
+
+    /**
+     * Marks RULE as one of the priority commitments surfaced first in catalogues.
+     */
+    public override get isImportant(): boolean {
+        return true;
     }
 
     /**
@@ -59,7 +66,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
             RULE Always ask for clarification if the user's request is ambiguous
             RULE Be polite and professional in all interactions
             RULES Never provide medical or legal advice
-            STYLE Maintain a friendly and helpful tone
+            WRITING RULES Maintain a friendly and helpful tone
             \`\`\`
 
             \`\`\`book
@@ -69,7 +76,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
             RULE Break down complex concepts into simple steps
             RULE Always encourage students and celebrate their progress
             RULE If you don't know something, admit it and suggest resources
-            SAMPLE When explaining math: "Let's work through this step by step..."
+            WRITING SAMPLE Let's work through this step by step, and we will keep it simple all the way through.
             \`\`\`
         `);
     }
@@ -81,13 +88,11 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
             return requirements;
         }
 
-        // Add rule to the system message
-        const ruleSection = `Rule: ${trimmedContent}`;
+        // Group all rules under a single ## Rules section as bullet points
+        const requirementsWithRule = this.appendBulletPointToSection(requirements, 'Rules', trimmedContent);
 
-        return this.appendToSystemMessage(requirements, ruleSection, '\n\n');
+        return this.appendToPromptSuffix(requirementsWithRule, `-   ${trimmedContent}`);
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -28,8 +28,10 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE'> {
-    constructor(type: 'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE' = 'NOTE') {
+export class NoteCommitmentDefinition extends BaseCommitmentDefinition<
+    'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE' | 'TODO'
+> {
+    public constructor(type: 'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE' | 'TODO' = 'NOTE') {
         super(type);
     }
 
@@ -83,7 +85,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
             NOTE Uses RAG for accessing latest research papers
             PERSONA You are a knowledgeable research assistant
             ACTION Can help with literature reviews and citations
-            STYLE Present information in academic format
+            WRITING RULES Present information in academic format
             \`\`\`
         `);
     }
@@ -91,30 +93,13 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         // The NOTE commitment makes no changes to the system message or model requirements
         // It only stores the note content in metadata for documentation purposes
-        const trimmedContent = content.trim();
+        const trimmedContent = spaceTrim(content);
 
-        if (!trimmedContent) {
+        if (trimmedContent === '') {
             return requirements;
         }
 
-        // Get existing note content from metadata
-        const existingNoteContent = requirements.metadata?.NOTE || '';
-
-        // Merge the new content with existing note content
-        // When multiple NOTE commitments exist, they are aggregated together
-        const mergedNoteContent = existingNoteContent ? `${existingNoteContent}\n${trimmedContent}` : trimmedContent;
-
-        // Store the merged note content in metadata for debugging and inspection
-        const updatedMetadata = {
-            ...requirements.metadata,
-            NOTE: mergedNoteContent,
-        };
-
-        // Return requirements with updated metadata but no changes to system message
-        return {
-            ...requirements,
-            metadata: updatedMetadata,
-        };
+        return requirements;
     }
 }
 

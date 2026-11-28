@@ -1,5 +1,9 @@
+import type { AvatarDefinition } from '../../../avatars/types/AvatarDefinition';
+import type { AvatarVisualId } from '../../../avatars/types/AvatarVisualDefinition';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import type { id, string_color, string_person_fullname, string_url_image } from '../../../types/typeAliases';
+import type { string_color, string_person_fullname } from '../../../types/string_person_fullname';
+import type { id } from '../../../types/string_token';
+import type { string_url_image } from '../../../types/string_url_image';
 import { Color } from '../../../utils/color/Color';
 
 /**
@@ -29,6 +33,16 @@ export type ChatParticipant = {
     avatarSrc?: string_url_image;
 
     /**
+     * Deterministic avatar definition used when no static image should be shown.
+     */
+    avatarDefinition?: AvatarDefinition;
+
+    /**
+     * Built-in avatar visual id used with `avatarDefinition`.
+     */
+    avatarVisualId?: AvatarVisualId;
+
+    /**
      * Color associated with the participant
      */
     color?: string_color | Color;
@@ -38,8 +52,12 @@ export type ChatParticipant = {
      * Agent source for avatar profile
      */
     agentSource?: string_book;
+
+    /**
+     * Knowledge sources (documents, URLs) used by the agent
+     * Used for resolving document citations when the agent references sources
+     */
+    knowledgeSources?: ReadonlyArray<{ url: string; filename: string }>;
 };
 
-/**
- * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
+// TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

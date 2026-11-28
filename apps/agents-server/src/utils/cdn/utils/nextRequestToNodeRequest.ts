@@ -2,6 +2,9 @@ import { TODO_any } from '@promptbook-local/types';
 import { NextRequest } from 'next/server';
 import { Readable } from 'node:stream';
 
+/**
+ * Handles next request to node request.
+ */
 export async function nextRequestToNodeRequest(nextRequest: NextRequest): Promise<Readable> {
     const reader = nextRequest.body?.getReader();
 

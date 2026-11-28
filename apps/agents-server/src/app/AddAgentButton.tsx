@@ -1,41 +1,68 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Card } from '../components/Homepage/Card';
-import { $createAgentAction } from './actions';
+import { FileCard } from '../components/Homepage/FileCard';
+import { useAgentNaming } from '../components/AgentNaming/AgentNamingContext';
+import { showAlert } from '../components/AsyncDialogs/asyncDialogs';
+import { useNewAgentDialog } from '../components/NewAgentDialog/useNewAgentDialog';
+import { useServerLanguage } from '../components/ServerLanguage/ServerLanguageProvider';
 
-export function AddAgentButton() {
-    const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
+/**
+ * Props for the AddAgentButton component.
+ */
+type AddAgentButtonProps = {
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
+    /**
+     * Folder identifier for the current list view, or null for the root.
+     */
+    readonly currentFolderId: number | null;
+};
 
-    const handleAddAgent = async () => {
-        setIsLoading(true);
-        const { /*agentName,*/ permanentId } = await $createAgentAction();
-        // TODO: Add proper error handling and UI feedback
-        if (permanentId) {
-            router.push(`/agents/${permanentId}`);
-        } else {
-            router.refresh();
-            setIsLoading(false);
-        }
-    };
+/**
+ * Renders the add-agent card and creation dialog workflow.
+ */
+export function AddAgentButton({ currentFolderId, creationScope }: AddAgentButtonProps) {
+    const { formatText } = useAgentNaming();
+    const { t } = useServerLanguage();
+    const addButtonLabel = formatText(t('agentCreation.addButtonLabel'));
+
+    const { isPreparingDialog, openNewAgentDialog, dialog } = useNewAgentDialog({
+        creationScope,
+        onCreateFailed: async (error) => {
+            console.error('Failed to create agent:', error);
+            await showAlert({
+                title: t('agentCreation.createFailedTitle'),
+                message: error instanceof Error ? error.message : t('agentCreation.createFailedMessage'),
+            }).catch(() => undefined);
+        },
+        onPrepareFailed: async (error) => {
+            console.error('Failed to generate agent boilerplate', error);
+            await showAlert({
+                title: t('agentCreation.createFailedTitle'),
+                message: error instanceof Error ? error.message : t('agentCreation.createFailedMessage'),
+            }).catch(() => undefined);
+        },
+    });
 
     return (
-        <div
-            onClick={isLoading ? undefined : handleAddAgent}
-            className={`cursor-pointer h-full group ${isLoading ? 'pointer-events-none' : ''}`}
-        >
-            <Card className="flex items-center justify-center text-lg font-medium text-gray-500 group-hover:text-blue-500 group-hover:border-blue-400 border-dashed border-2">
-                {isLoading ? (
-                    <>
-                        <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                        Creating agent...
-                    </>
-                ) : (
-                    '+ Add New Agent'
-                )}
-            </Card>
-        </div>
+        <>
+            <div
+                onClick={isPreparingDialog ? undefined : () => void openNewAgentDialog({ folderId: currentFolderId })}
+                className={`cursor-pointer h-full group ${isPreparingDialog ? 'pointer-events-none' : ''}`}
+            >
+                <FileCard className="flex items-center justify-center text-sm font-medium text-gray-500 group-hover:text-blue-500 group-hover:border-blue-400 border-dashed border-2 border-gray-300">
+                    {isPreparingDialog ? (
+                        <>
+                            <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                            {t('agentCreation.preparing')}
+                        </>
+                    ) : (
+                        addButtonLabel
+                    )}
+                </FileCard>
+            </div>
+
+            {dialog}
+        </>
     );
 }

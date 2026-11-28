@@ -1,9 +1,10 @@
-import type { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/string_name';
 
 /**
  * Parsed JOKER command
  *
  * @see ./jokerCommandParser.ts for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export type JokerCommand = {

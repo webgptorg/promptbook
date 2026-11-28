@@ -1,4 +1,4 @@
-import type { string_email } from '../../../types/typeAliases';
+import type { string_email } from '../../../types/string_email';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**
@@ -11,7 +11,7 @@ export function isValidEmail(email: really_unknown): email is string_email {
         return false;
     }
 
-    if (email.split('\n').length > 1) {
+    if (email.split(/\r?\n/).length > 1) {
         return false;
     }
 

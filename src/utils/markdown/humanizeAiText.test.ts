@@ -9,9 +9,9 @@ describe('how `humanizeAiText` works', () => {
         expect(
             humanizeAiText(
                 spaceTrim(`
-                    This is an example of AI-generated text — it may contain some “smart quotes” and unprintable hard spaces.
+                    This is an example of AI-generated text - it may contain some “smart quotes” and unprintable hard spaces.
 
-                    Let's see how it handles ellipses… and em-dashes — as well as other characters like «guillemets» and ‚single low-9 quotes‘.
+                    Let's see how it handles ellipses… and em-dashes - as well as other characters like «guillemets» and ‚single low-9 quotes‘.
                 `),
             ),
         ).toBe(
@@ -20,6 +20,29 @@ describe('how `humanizeAiText` works', () => {
                     This is an example of AI-generated text - it may contain some "smart quotes" and unprintable hard spaces.
 
                     Let's see how it handles ellipses... and em-dashes - as well as other characters like "guillemets" and 'single low-9 quotes'.
+                `),
+            ),
+        ));
+
+    it('should normalize additional punctuation variants', () =>
+        expect(
+            humanizeAiText(
+                spaceTrim(`
+                    Here are more cases: \u201fDouble quotes\u201d and \u00abguillemets\u00bb.
+                    Single quotes: \u201bHigh-9\u2019 and \u2039single\u203a.
+                    Dashes: en\u2013dash, non\u2011breaking, minus\u2212sign, full width\uFF0Ddash.
+                    Ellipsis: midline\u22ef and dot leader . . .
+                    Spaces: 10\u202f000 with thin\u2009space and zero\u200b width.
+                `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Here are more cases: "Double quotes" and "guillemets".
+                    Single quotes: 'High-9' and 'single'.
+                    Dashes: en-dash, non-breaking, minus-sign, full width-dash.
+                    Ellipsis: midline... and dot leader ...
+                    Spaces: 10 000 with thin space and zero width.
                 `),
             ),
         ));
@@ -48,11 +71,32 @@ describe('how `humanizeAiText` works', () => {
             ),
         ));
 
+    it('should remove source artifacts', () => {
+        const sourceMarker = '\u30105:1\u2020source\u3011';
+        const sourceMarkerTwo = '\u301012:4\u2020source\u3011';
+
+        expect(
+            humanizeAiText(
+                spaceTrim(`
+                    Example text${sourceMarker}.
+                    Another line ${sourceMarkerTwo} should stay readable.
+                `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Example text.
+                    Another line should stay readable.
+                `),
+            ),
+        );
+    });
+
     it('should be idempotent', () => {
         const originalText = spaceTrim(`
-            This is an example of AI-generated text — it may contain some “smart quotes” and unprintable hard spaces.
+            This is an example of AI-generated text - it may contain some “smart quotes” and unprintable hard spaces.
 
-            Let's see how it handles ellipses… and em-dashes — as well as other characters like «guillemets» and ‚single low-9 quotes‘.
+            Let's see how it handles ellipses… and em-dashes - as well as other characters like «guillemets» and ‚single low-9 quotes‘.
         `);
 
         const firstPass = humanizeAiText(originalText);

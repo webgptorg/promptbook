@@ -4,17 +4,39 @@ import { ResizablePanelsAuto } from '@common/components/ResizablePanelsAuto/Resi
 import { string_agent_url, string_book } from '@promptbook-local/types';
 import { Book, MessageSquare } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { AgentSplitEditorChatLoadingSkeleton } from '../../../../components/Skeleton/AgentSplitEditorChatLoadingSkeleton';
+import type { ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { BookEditorWrapper } from '../book/BookEditorWrapper';
 
+/**
+ * Props for agent book and chat.
+ */
 type AgentBookAndChatProps = {
     agentName: string;
     initialAgentSource: string_book;
     agentUrl: string_agent_url;
+    thinkingMessages?: ReadonlyArray<string>;
+    speechRecognitionLanguage?: string;
+    chatFailMessage?: string;
+    areFileAttachmentsEnabled: boolean;
+    feedbackMode: ChatFeedbackMode;
 };
 
+/**
+ * Handles agent book and chat.
+ */
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
-    const { agentName, initialAgentSource, agentUrl } = props;
+    const {
+        agentName,
+        initialAgentSource,
+        agentUrl,
+        thinkingMessages,
+        speechRecognitionLanguage,
+        chatFailMessage,
+        areFileAttachmentsEnabled,
+        feedbackMode,
+    } = props;
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'book' | 'chat'>('chat');
     const [isMounted, setIsMounted] = useState(false);
@@ -28,7 +50,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
     }, []);
 
     if (!isMounted) {
-        return <div className="w-full h-full bg-white" />;
+        return <AgentSplitEditorChatLoadingSkeleton />;
     }
 
     if (isMobile) {
@@ -39,7 +61,15 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                         <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
                     </div>
                     <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
-                        <AgentChatWrapper agentUrl={agentUrl} />
+                        <AgentChatWrapper
+                            agentName={agentName}
+                            agentUrl={agentUrl}
+                            thinkingMessages={thinkingMessages}
+                            speechRecognitionLanguage={speechRecognitionLanguage}
+                            areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                            feedbackMode={feedbackMode}
+                            chatFailMessage={chatFailMessage}
+                        />
                     </div>
                 </div>
                 <div className="flex-shrink-0 h-16 bg-white border-t border-gray-200 flex shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
@@ -69,7 +99,15 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
     return (
         <ResizablePanelsAuto name={`agent-book-and-chat-${agentName}`} className="w-full h-full">
             <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
-            <AgentChatWrapper agentUrl={agentUrl} />
+            <AgentChatWrapper
+                agentName={agentName}
+                agentUrl={agentUrl}
+                thinkingMessages={thinkingMessages}
+                speechRecognitionLanguage={speechRecognitionLanguage}
+                areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                feedbackMode={feedbackMode}
+                chatFailMessage={chatFailMessage}
+            />
         </ResizablePanelsAuto>
     );
 }

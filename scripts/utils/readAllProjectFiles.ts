@@ -1,10 +1,15 @@
 import { readFile } from 'fs/promises';
-import { findAllProjectFiles } from './findAllProjectFiles';
+import { FindAllProjectFilesOptions, findAllProjectFiles } from './findAllProjectFiles';
 
-export async function readAllProjectFiles(): Promise<ReadonlyArray<{ path: string; content: string }>> {
+/**
+ * Reads all project files.
+ */
+export async function readAllProjectFiles(
+    options: FindAllProjectFilesOptions = {},
+): Promise<ReadonlyArray<{ path: string; content: string }>> {
     return await Promise.all(
         (
-            await findAllProjectFiles()
+            await findAllProjectFiles(options)
         ).map(async (path) => ({
             path,
             content: await readFile(path, 'utf-8'),
@@ -12,7 +17,5 @@ export async function readAllProjectFiles(): Promise<ReadonlyArray<{ path: strin
     );
 }
 
-/**
- * TODO: Use fs/promises instead of fs
- * Note: [⚫] Code in this file should never be published in any package
- */
+// Note: [⚫] Code for repository script [readAllProjectFiles](scripts/utils/readAllProjectFiles.ts) should never be published in any package
+// TODO: Use fs/promises instead of fs

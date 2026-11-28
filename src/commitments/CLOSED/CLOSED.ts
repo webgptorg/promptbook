@@ -18,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED'> {
-    constructor() {
+    public constructor() {
         super('CLOSED');
     }
 
@@ -68,18 +68,11 @@ export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED
     applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
         keepUnused(_content);
 
-        const updatedMetadata = {
-            ...requirements.metadata,
-            isClosed: true,
-        };
-
         return {
             ...requirements,
-            metadata: updatedMetadata,
+            isClosed: true,
         };
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

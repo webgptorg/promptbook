@@ -1,9 +1,24 @@
 // @flow
 
+/**
+ * Constant for to line item block transformation.
+ */
 const ToLineItemBlockTransformation = require('../ToLineItemBlockTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for word.
+ */
 const Word = require('../../Word');
+/**
+ * Constant for { modified annotation, unchanged annotation }.
+ */
 const { MODIFIED_ANNOTATION, UNCHANGED_ANNOTATION } = require('../../Annotation');
+/**
+ * Constant for block type.
+ */
 const BlockType = require('../../markdown/BlockType');
 
 // Cares for proper sub-item spacing/leveling

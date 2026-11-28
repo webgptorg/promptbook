@@ -30,7 +30,6 @@ export async function $provideExecutablesForNode(options?: PrepareAndScrapeOptio
     };
 }
 
-/**
- * TODO: [🧠] Allow to override the executables without need to call `locatePandoc` / `locateLibreoffice` in case of provided
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node executable locator [$provideExecutablesForNode](src/executables/$provideExecutablesForNode.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠] Allow to override the executables without need to call `locatePandoc` / `locateLibreoffice` in case of provided
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

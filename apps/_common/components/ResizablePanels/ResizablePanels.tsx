@@ -5,6 +5,9 @@ import { just } from '../../../../src/utils/organization/just';
 import { TODO_USE } from '../../../../src/utils/organization/TODO_USE';
 import styles from './ResizablePanels.module.css';
 
+/**
+ * Props for resizable panels.
+ */
 type ResizablePanelsProps = {
     /**
      * Content of panels
@@ -568,7 +571,5 @@ export function ResizablePanels(props: ResizablePanelsProps) {
     );
 }
 
-/**
- * TODO: [👰] Persist the size
- * TODO: [☎] !!! Mobile view for PromptbookStudio
- */
+// TODO: [👰] Persist the size
+// TODO: [☎] !!! Mobile view for PromptbookStudio

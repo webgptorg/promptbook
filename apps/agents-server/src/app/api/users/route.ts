@@ -1,9 +1,13 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
-import { hashPassword } from '../../../utils/auth';
+import { getPasswordValidationMessage, hashPassword } from '../../../utils/auth';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { PUBLIC_USER_SELECT_COLUMNS, toPublicUser, type PublicUser } from '../../../utils/publicUser';
 import { NextResponse } from 'next/server';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -13,20 +17,23 @@ export async function GET() {
         const supabase = $provideSupabaseForServer();
         const { data: users, error } = await supabase
             .from(await $getTableName('User'))
-            .select('id, username, createdAt, updatedAt, isAdmin')
+            .select(PUBLIC_USER_SELECT_COLUMNS)
             .order('username');
 
         if (error) {
             throw error;
         }
 
-        return NextResponse.json(users);
+        return NextResponse.json(((users || []) as unknown as PublicUser[]).map(toPublicUser));
     } catch (error) {
         console.error('List users error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: Request) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -52,20 +59,26 @@ export async function POST(request: Request) {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             })
-            .select('id, username, createdAt, updatedAt, isAdmin')
+            .select(PUBLIC_USER_SELECT_COLUMNS)
             .single();
 
         if (error) {
-            if (error.code === '23505') { // unique_violation
-                 return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
+            if (error.code === '23505') {
+                // unique_violation
+                return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
             }
             throw error;
         }
 
-        return NextResponse.json(newUser);
-
+        return NextResponse.json(toPublicUser(newUser as unknown as PublicUser));
     } catch (error) {
         console.error('Create user error:', error);
+        const passwordValidationMessage = getPasswordValidationMessage(error);
+
+        if (passwordValidationMessage) {
+            return NextResponse.json({ error: passwordValidationMessage }, { status: 400 });
+        }
+
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

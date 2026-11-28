@@ -1,20 +1,42 @@
-import type { AgentsByServer } from '../../utils/getFederatedAgents';
-import { AgentCard } from './AgentCard';
-import { Section } from './Section';
+import type { AgentsByServer } from '../../utils/AgentsByServer';
+import { AgentCardsSection } from './AgentCardsSection';
+import { formatAgentNamingText } from '../../utils/agentNaming';
+import { getAgentNaming } from '../../utils/getAgentNaming';
+import { getServerHeadingLabel } from './getServerHeadingLabel';
 
+/**
+ * Props for external agents section.
+ */
 type ExternalAgentsSectionProps = {
-    agentsByServer: AgentsByServer[];
+    /**
+     * Agents grouped by their originating server for federated display
+     */
+    readonly agentsByServer: AgentsByServer[];
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: URL;
 };
 
-export function ExternalAgentsSection({ agentsByServer }: ExternalAgentsSectionProps) {
+/**
+ * Handles external agents section.
+ */
+export async function ExternalAgentsSection(props: ExternalAgentsSectionProps) {
+    const { agentsByServer, publicUrl } = props;
+    const agentNaming = await getAgentNaming();
     return (
         <>
             {agentsByServer.map(({ serverUrl, agents }) => (
-                <Section key={serverUrl} title={`Agents from ${new URL(serverUrl).hostname} (${agents.length})`}>
-                    {agents.map((agent) => (
-                        <AgentCard key={agent.url} agent={agent} href={agent.url} />
-                    ))}
-                </Section>
+                <AgentCardsSection
+                    key={serverUrl}
+                    title={`${formatAgentNamingText('Agents from', agentNaming)} ${getServerHeadingLabel(serverUrl)} (${
+                        agents.length
+                    })`}
+                    publicUrl={publicUrl.href}
+                    agents={agents}
+                    hideWhenEmpty={true}
+                />
             ))}
         </>
     );

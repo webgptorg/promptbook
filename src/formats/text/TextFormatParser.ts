@@ -30,7 +30,7 @@ export const TextFormatParser: FormatParser<string, string, TODO_any /* <- [1] *
             subvalueName: 'LINE',
             async mapValues(options) {
                 const { value, mapCallback, onProgress } = options;
-                const lines = value.split('\n');
+                const lines = value.split(/\r?\n/);
 
                 TODO_USE(
                     onProgress /* <- TODO: [🛕] Report progress here, report all the data including pending ones, use `PENDING_VALUE_PLACEHOLDER` */,
@@ -57,12 +57,10 @@ export const TextFormatParser: FormatParser<string, string, TODO_any /* <- [1] *
     ],
 };
 
-/**
- * TODO: [1] Make type for XML Text and Schema
- * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
- * TODO: [🍓] In `TextFormatParser` implement simple `isValid`
- * TODO: [🍓] In `TextFormatParser` implement partial `canBeValid`
- * TODO: [🍓] In `TextFormatParser` implement `heal
- * TODO: [🍓] In `TextFormatParser` implement `subvalueParsers`
- * TODO: [🏢] Allow to expect something inside each item of list and other formats
- */
+// TODO: [1] Make type for XML Text and Schema
+// TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages available as subvalues
+// TODO: [🍓] In `TextFormatParser` implement simple `isValid`
+// TODO: [🍓] In `TextFormatParser` implement partial `canBeValid`
+// TODO: [🍓] In `TextFormatParser` implement `heal
+// TODO: [🍓] In `TextFormatParser` implement `subvalueParsers`
+// TODO: [🏢] Allow to expect something inside each item of list and other formats

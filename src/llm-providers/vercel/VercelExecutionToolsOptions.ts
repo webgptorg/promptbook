@@ -24,7 +24,12 @@ export type VercelExecutionToolsOptions = CommonToolsOptions &
         //       and not to pass it as a separate parameter
 
         /**
-         * Additional settings for chat models when calling `vercelProvider.chat('model-name', settings)`
+         * Additional settings for chat models, for example `temperature` or `providerOptions`
+         *
+         * Note: Since Vercel AI SDK v5 these settings belong to the model call, not to
+         *       `vercelProvider.chat('model-name')` which takes just the model name
          */
-        readonly additionalChatSettings?: Partial<Parameters<VercelProvider['chat']>[1]>;
+        readonly additionalChatSettings?: Partial<
+            Omit<Parameters<ReturnType<VercelProvider['chat']>['doGenerate']>[0], 'prompt'>
+        >;
     };

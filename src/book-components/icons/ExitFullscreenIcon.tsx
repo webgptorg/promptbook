@@ -1,4 +1,4 @@
-import { JSX } from 'react';
+import type { JSX } from 'react';
 import iconAsset from './ExitFullscreenIcon.svg';
 // <- TODO: [😺] Is this type of SVG import working correctly?
 // <- TODO: [😺] Try also the png import if SVG works

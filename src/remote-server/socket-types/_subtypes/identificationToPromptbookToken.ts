@@ -1,4 +1,4 @@
-import type { string_promptbook_token } from '../../../types/typeAliases';
+import type { string_promptbook_token } from '../../../types/string_token';
 import type { really_unknown } from '../../../utils/organization/really_unknown';
 import type { ApplicationModeIdentification } from './Identification';
 

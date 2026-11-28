@@ -1,41 +1,77 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { useState } from 'react';
 import { LoginForm } from '../LoginForm/LoginForm';
-import { Portal } from '../Portal/Portal';
+import { Dialog } from '../Portal/Dialog';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
+/**
+ * Props for login dialog.
+ */
 type LoginDialogProps = {
-    isOpen: boolean;
-    onClose: () => void;
+    /**
+     * Optional heading shown in the dialog.
+     */
+    readonly title?: string;
+    /**
+     * Optional description shown under the heading.
+     */
+    readonly description?: string;
+    /**
+     * When true, refreshes the current route after a successful login.
+     */
+    readonly refreshAfterSuccess?: boolean;
+    /**
+     * Called when the user successfully logs in.
+     */
+    readonly onSuccess: () => void | Promise<void>;
+    /**
+     * Called when the dialog is dismissed without logging in.
+     */
+    readonly onCancel: () => void;
 };
 
+/**
+ * Renders the login dialog inside the async modal shell.
+ *
+ * @param props - Dialog configuration.
+ *
+ * @private @@@
+ */
 export function LoginDialog(props: LoginDialogProps) {
-    const { isOpen, onClose } = props;
-
-    if (!isOpen) {
-        return null;
-    }
+    const { title, description, refreshAfterSuccess, onSuccess, onCancel } = props;
+    const { t } = useServerLanguage();
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges,
+        onClose: onCancel,
+    });
+    const dialogTitle = title ?? t('login.dialogTitle');
+    const dialogDescription = description ?? t('login.dialogDescription');
 
     return (
-        <Portal>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="relative w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-200 p-6 animate-in zoom-in-95 duration-200">
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                        <span className="sr-only">Close</span>
-                    </button>
+        <Dialog onClose={requestClose} className="w-full max-w-md p-6">
+            <button
+                onClick={requestClose}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
+                type="button"
+            >
+                <X className="w-5 h-5" />
+                <span className="sr-only">{t('common.close')}</span>
+            </button>
 
-                    <div className="mb-6">
-                        <h2 className="text-xl font-semibold text-gray-900">Log in</h2>
-                        <p className="text-sm text-gray-500 mt-1">Enter your credentials to access the admin area</p>
-                    </div>
-
-                    <LoginForm onSuccess={onClose} />
-                </div>
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">{dialogTitle}</h2>
+                <p className="text-sm text-gray-500 mt-1">{dialogDescription}</p>
             </div>
-        </Portal>
+
+            <LoginForm
+                onSuccess={onSuccess}
+                refreshAfterSuccess={refreshAfterSuccess}
+                onDirtyChange={setHasUnsavedChanges}
+            />
+        </Dialog>
     );
 }

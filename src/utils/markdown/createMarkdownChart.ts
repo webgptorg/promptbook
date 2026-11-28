@@ -1,4 +1,4 @@
-import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
 import type { FromtoItems } from '../misc/FromtoItems';
 import { removeEmojis } from '../normalization/removeEmojis';
 import { numberToString } from '../parameters/numberToString';

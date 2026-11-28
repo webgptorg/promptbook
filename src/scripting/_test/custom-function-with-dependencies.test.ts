@@ -13,7 +13,9 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
     it('should use custom postprocessing function', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(pipelineExecutor({ yourName: 'Matthew' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'Matthew' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -21,7 +23,9 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'Mark' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'Mark' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -29,7 +33,9 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'Luke' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'Luke' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -37,7 +43,9 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -47,6 +55,9 @@ describe('createPipelineExecutor + custom function with dependencies', () => {
     });
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`
@@ -83,10 +94,10 @@ async function getPipelineExecutor() {
 
                     // Note: [🕎]
                     functions: {
-                        addHello(value) {
+                        addHello(value: string): string {
                             return `Hello ${value}`;
                         },
-                        withStatistics(value) {
+                        withStatistics(value: string): string {
                             // Note: Testing custom function with dependencies
                             return value + ` (${countCharacters(value)} characters, ${countWords(value)} words)`;
                         },

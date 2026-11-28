@@ -9,7 +9,7 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoExecutionTools with example chat prompt', () => {
     it('should work when joker is used', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(
+        await expect(
             pipelineExecutor({ yourName: 'Good name' }).asPromise({ isCrashedOnError: true }),
         ).resolves.toMatchObject({
             isSuccessful: true,
@@ -37,6 +37,9 @@ describe('createPipelineExecutor + MockedEchoExecutionTools with example chat pr
     });
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`
@@ -75,6 +78,4 @@ async function getPipelineExecutor() {
     });
 }
 
-/**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
- */
+// TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"

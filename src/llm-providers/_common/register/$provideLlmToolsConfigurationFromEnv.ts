@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import type { string_name } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/string_name';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $provideEnvFilename } from './$provideEnvFilename';
@@ -13,11 +13,12 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  *
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`
- * - `process.env.ANTHROPIC_CLAUDE_API_KEY`
+ * - `process.env.ANTHROPIC_API_KEY` (or the deprecated `process.env.ANTHROPIC_CLAUDE_API_KEY`)
  * - ...
  *
  * @see Environment variables documentation or .env file for required variables.
  * @returns A promise that resolves to the LLM tools configuration, or null if configuration is incomplete or missing.
+ *
  * @public exported from `@promptbook/node`
  */
 export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsConfiguration> {
@@ -39,6 +40,4 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
     return llmToolsConfiguration;
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+// Note: [🟢] Code for Node environment helper [$provideLlmToolsConfigurationFromEnv](src/llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv.ts) should never be published into packages that could be imported into browser environment

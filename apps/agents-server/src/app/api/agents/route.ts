@@ -1,50 +1,43 @@
-import { $getTableName } from '@/src/database/$getTableName';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { getMetadataMap } from '../../../database/getMetadata';
 import { NextResponse } from 'next/server';
-import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
-import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
-import { getFederatedServersFromMetadata } from '../../../utils/getFederatedServersFromMetadata';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    resolveDefaultAgentAvatarVisualId,
+} from '../../../constants/defaultAgentAvatarVisual';
+import { loadLocalOrganizationSearchDataset } from '../../../search/createDefaultServerSearchProviders/loadLocalOrganizationSearchDataset';
+import { getFederatedServers } from '../../../utils/getFederatedServers';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const allAgents = await collection.listAgents();
-        const federatedServers = await getFederatedServersFromMetadata();
-        const { publicUrl } = await $provideServer();
-
-        // Filter to only include PUBLIC agents for federated API
-        const supabase = $provideSupabaseForServer();
-        const visibilityResult = await supabase
-            .from(await $getTableName(`Agent`))
-            .select('agentName, visibility')
-            .is('deletedAt', null);
-
-        let publicAgents = allAgents;
-        if (!visibilityResult.error) {
-            const visibilityMap = new Map(
-                visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [
-                    item.agentName,
-                    item.visibility,
-                ]),
-            );
-
-            // Only include PUBLIC agents in federated API
-            publicAgents = allAgents.filter((agent) => {
-                const visibility = visibilityMap.get(agent.agentName);
-                return visibility === 'PUBLIC';
-            });
-        }
-
-        const agentsWithUrl = publicAgents.map((agent) => ({
-            ...agent,
+        const [dataset, federatedServers, { publicUrl }, metadata] = await Promise.all([
+            loadLocalOrganizationSearchDataset({ includePrivate: false }),
+            getFederatedServers(),
+            $provideServer(),
+            getMetadataMap([DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY]),
+        ]);
+        const agentsWithUrl = dataset.agents.map((agent) => ({
+            ...agent.resolvedAgentProfile,
+            agentName: agent.agentName,
+            permanentId: agent.permanentId || undefined,
             url: `${publicUrl.href}agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`,
         }));
+        const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
+            metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
+        );
 
         const response = NextResponse.json({
             agents: agentsWithUrl,
             federatedServers,
+            defaultAgentAvatarVisualId,
         });
 
         // Add CORS headers
@@ -59,6 +52,9 @@ export async function GET() {
     }
 }
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS() {
     const response = new NextResponse(null, { status: 200 });
     response.headers.set('Access-Control-Allow-Origin', '*');

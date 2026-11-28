@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaFontCommitmentDefinition extends BaseCommitmentDefinition<'META FONT'> {
-    constructor() {
+    public constructor() {
         super('META FONT', ['FONT']);
     }
 
@@ -92,6 +92,4 @@ export class MetaFontCommitmentDefinition extends BaseCommitmentDefinition<'META
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

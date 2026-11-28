@@ -1,0 +1,20 @@
+Ukázková bezpečnostní pravidla
+
+Hesla a přístupy:
+- používej správce hesel
+- hesla nesdílej přes chat ani email
+- vícefaktorové ověření je povinné u klíčových systémů
+
+Podezřelé zprávy:
+- phishingový email přepošli bezpečnostnímu týmu
+- neotevírej přílohy ani odkazy, pokud si nejsi jistý odesílatelem
+- incident je lepší nahlásit jednou zbytečně než vůbec
+
+Práce s daty:
+- interní dokumenty nesdílej mimo firmu bez schválení
+- osobní údaje stahuj jen pokud jsou nutné pro práci
+- citlivé exporty ukládej jen do schválených úložišť
+
+Zařízení:
+- ztracené nebo odcizené zařízení ihned nahlas IT
+- veřejná Wi-Fi bez VPN není vhodná pro práci s interními systémy

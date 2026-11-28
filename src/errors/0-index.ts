@@ -2,6 +2,7 @@ import { CsvFormatError } from '../formats/csv/CsvFormatError';
 import { AbstractFormatError } from './AbstractFormatError';
 import { AuthenticationError } from './AuthenticationError';
 import { CollectionError } from './CollectionError';
+import { ConflictError } from './ConflictError';
 import { DatabaseError } from './DatabaseError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
 import { ExpectError } from './ExpectError';
@@ -45,6 +46,7 @@ export const PROMPTBOOK_ERRORS = {
     WrappedError,
     NotAllowed,
     DatabaseError,
+    ConflictError,
     // TODO: [🪑]> VersionMismatchError,
 } as const;
 
@@ -83,6 +85,4 @@ export const ALL_ERRORS = {
     ...COMMON_JAVASCRIPT_ERRORS,
 } as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

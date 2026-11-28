@@ -1,9 +1,15 @@
 import type { Promisable } from 'type-fest';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { Prompt } from '../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../types/string_markdown';
+import type { string_title } from '../types/string_title';
 import type { AvailableModel } from './AvailableModel';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult } from './PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    ImagePromptResult,
+} from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -14,10 +20,26 @@ import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, I
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
- * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ * - `OpenAiAssistantExecutionTools` - (Deprecated) which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities
+ * - `OpenAiAgentKitExecutionTools` - which is a specific implementation of `LlmExecutionTools` backed by OpenAI AgentKit
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @see https://github.com/webgptorg/promptbook#llm-execution-tools
+ */
+/**
+ * Options that fine-tune streaming execution.
+ *
+ * @private internal helper for streaming helpers
+ */
+export type CallChatModelStreamOptions = {
+    /**
+     * Optional signal that can cancel the streaming request.
+     */
+    readonly signal?: AbortSignal;
+};
+
+/**
+ * Type describing Llm execution tools.
  */
 export type LlmExecutionTools = {
     /**
@@ -65,7 +87,8 @@ export type LlmExecutionTools = {
      */
     callChatModelStream?(
         prompt: Prompt /* <- TODO: [🩱] ChatPrompt */,
-        onProgress: (chunk: ChatPromptResult) => void,
+        onProgress: (chunk: ChatPromptResult & { isFinished?: boolean }) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult>;
 
     /**
@@ -92,12 +115,10 @@ export type LlmExecutionTools = {
     callEmbeddingModel?(prompt: Prompt /* <- TODO: [🩱] EmbeddingPrompt */): Promise<EmbeddingPromptResult>;
 };
 
-/**
- * TODO: [🕛] Extend this from sth class -  like `AgentBasicInformation` / `ModelBasicInformation``
- * TODO: [🍚] Implement destroyable pattern to free resources
- * TODO: [🏳] Add `callTranslationModel`
- * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
- * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
- * TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel
- * TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
- */
+// TODO: [🕛] Extend this from sth class -  like `AgentBasicInformation` / `ModelBasicInformation``
+// TODO: [🍚] Implement destroyable pattern to free resources
+// TODO: [🏳] Add `callTranslationModel`
+// TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
+// TODO: [🍓][♐] Some heuristic to pick the best model in listed models
+// TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel
+// TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?

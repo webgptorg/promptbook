@@ -1,36 +1,75 @@
 // Client Component for rendering deleted agents
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { showAlert, showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
+/**
+ * Props for deleted agents list.
+ */
 type DeletedAgentsListProps = {
-    agents: readonly AgentBasicInformation[];
-    isAdmin: boolean;
+    /**
+     * List of deleted agents available for restoration
+     */
+    readonly agents: readonly AgentBasicInformation[];
+
+    /**
+     * Indicates if the current user has administrative privileges for managing agents
+     */
+    readonly isAdmin: boolean;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: URL;
 };
 
-export function DeletedAgentsList({ agents: initialAgents, isAdmin }: DeletedAgentsListProps) {
+/**
+ * Handles deleted agents list.
+ */
+export function DeletedAgentsList(props: DeletedAgentsListProps) {
+    const { agents: initialAgents, isAdmin, publicUrl } = props;
     const [agents, setAgents] = useState(Array.from(initialAgents));
+    const { formatText } = useAgentNaming();
 
     const handleRestore = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
-        if (!window.confirm(`Restore agent "${agent.agentName}"?`)) return;
+        const confirmed = await showConfirm({
+            title: formatText('Restore agent'),
+            message: `${formatText('Restore agent')} "${agent.agentName}"?`,
+            confirmLabel: formatText('Restore agent'),
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
+            return;
+        }
 
         try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/restore`, { method: 'POST' });
+            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/restore`, {
+                method: 'POST',
+            });
             if (response.ok) {
                 // Update local state immediately
                 setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
                 // Note: router.refresh() is not needed here as the local state update is sufficient
                 // and prevents the brief empty list issue during refresh
             } else {
-                alert('Failed to restore agent');
+                await showAlert({
+                    title: 'Restore failed',
+                    message: formatText('Failed to restore agent'),
+                }).catch(() => undefined);
             }
         } catch (error) {
-            alert('Failed to restore agent');
+            await showAlert({
+                title: 'Restore failed',
+                message: formatText('Failed to restore agent'),
+            }).catch(() => undefined);
         }
     };
 
@@ -40,7 +79,8 @@ export function DeletedAgentsList({ agents: initialAgents, isAdmin }: DeletedAge
                 <AgentCard
                     key={agent.permanentId || agent.agentName}
                     agent={agent}
-                    href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
+                    publicUrl={publicUrl.href}
+                    href={buildFreshAgentChatHref(agent.permanentId || agent.agentName)}
                     isAdmin={isAdmin}
                     onRestore={handleRestore}
                 />

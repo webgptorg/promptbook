@@ -13,7 +13,7 @@ import { BaseCommitmentDefinition } from './BaseCommitmentDefinition';
 export class NotYetImplementedCommitmentDefinition<
     TBookCommitment extends string,
 > extends BaseCommitmentDefinition<TBookCommitment> {
-    constructor(type: TBookCommitment) {
+    public constructor(type: TBookCommitment) {
         super(type);
     }
 

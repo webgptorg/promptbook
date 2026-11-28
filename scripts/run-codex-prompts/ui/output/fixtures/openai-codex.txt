@@ -1,0 +1,20 @@
+OpenAI Codex (fixture)
+--------
+workdir: /fixture
+model: fixture-model
+--------
+user
+Inspect the example.
+thinking
+Checking the supplied files.
+codex
+I’ll inspect src/世界.ts 👩‍💻.
+exec
+/bin/bash -lc 'npm test' in /fixture succeeded in 30ms:
+PASS src/example.test.ts
+file update
+M src/世界.ts
+codex
+The tests passed.
+tokens used
+15

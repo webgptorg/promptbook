@@ -4,20 +4,30 @@ import { getVisibleCommitmentDefinitions } from '../../../utils/getVisibleCommit
 import { DocsToolbar } from '../../../components/DocsToolbar/DocsToolbar';
 import { PrintHeader } from '../../../components/PrintHeader/PrintHeader';
 import { DocumentationContent } from '../../../components/DocumentationContent/DocumentationContent';
+import { getBookLanguageDocumentationAgentOptions } from '../../../utils/bookLanguageDocumentation/getBookLanguageDocumentationAgents';
 
+/**
+ * Props for doc page.
+ */
 type DocPageProps = {
     params: Promise<{
         docId: string;
     }>;
 };
 
+/**
+ * Handles doc page.
+ */
 export default async function DocPage(props: DocPageProps) {
     const { docId } = await props.params;
+    const agents = await getBookLanguageDocumentationAgentOptions();
 
     // Decode the docId in case it contains encoded characters (though types usually don't)
     const commitmentType = decodeURIComponent(docId) as BookCommitment;
     const groupedCommitments = getVisibleCommitmentDefinitions();
-    const group = groupedCommitments.find((g) => g.primary.type === commitmentType || g.aliases.includes(commitmentType));
+    const group = groupedCommitments.find(
+        (g) => g.primary.type === commitmentType || g.aliases.includes(commitmentType),
+    );
 
     if (!group) {
         notFound();
@@ -26,16 +36,12 @@ export default async function DocPage(props: DocPageProps) {
     const { primary, aliases } = group;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
             <div className="container mx-auto px-4 py-16">
-                <DocsToolbar />
+                <DocsToolbar agents={agents} />
                 <PrintHeader title={primary.type} />
-                
-                <DocumentationContent 
-                    primary={primary} 
-                    aliases={aliases} 
-                    isPrintOnly={false} 
-                />
+
+                <DocumentationContent primary={primary} aliases={aliases} isPrintOnly={false} />
             </div>
         </div>
     );

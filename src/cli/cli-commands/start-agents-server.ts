@@ -2,10 +2,11 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DEFAULT_AGENTS_DIRNAME } from '../../config';
+import { NETWORK_LIMITS } from '../../constants';
 import { startAgentServer } from '../../remote-server/startAgentServer';
-import type { number_port } from '../../types/typeAliases';
+import type { number_port } from '../../types/number_positive';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { handleActionErrors } from './common/handleActionErrors';
@@ -44,7 +45,7 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
             // TODO: [🐱‍🚀] [🌕] DRY
 
             const port: number_port = parseInt(portRaw, 10);
-            if (isNaN(port) || port <= 0 || port > 65535) {
+            if (isNaN(port) || port <= 0 || port > NETWORK_LIMITS.MAX_PORT) {
                 console.error(colors.red(`Invalid port number: ${portRaw}`));
                 return process.exit(1);
             }
@@ -112,7 +113,5 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
     );
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [start-agents-server](src/cli/cli-commands/start-agents-server.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

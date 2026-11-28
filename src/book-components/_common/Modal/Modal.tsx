@@ -1,9 +1,10 @@
-import { ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames } from '../react-utils/classNames';
 import styles from './Modal.module.css';
 
 /**
+ * Handles modal.
  *
  * @private internal subcomponent used by various components
  */
@@ -43,6 +44,4 @@ export function Modal({
     );
 }
 
-/**
- * TODO: Use this also for feedback modal in Chat component - Make modals DRY
- */
+// TODO: Use this also for feedback modal in Chat component - Make modals DRY

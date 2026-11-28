@@ -10,6 +10,7 @@
  *
  * @param text optionally quoted text
  * @returns text without quotes
+ *
  * @public exported from `@promptbook/utils`
  */
 export function removeQuotes(text: string): string {

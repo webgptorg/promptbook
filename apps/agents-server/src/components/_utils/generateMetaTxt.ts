@@ -1,28 +1,109 @@
 // Utility to generate content for robots.txt, security.txt, and humans.txt [DRY]
 
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { getServerVisibility } from '@/src/utils/getServerVisibility';
+import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
+import { spaceTrim } from 'spacetrim';
 
-// Get base URL from environment or config
-const baseUrl = NEXT_PUBLIC_SITE_URL?.href || process.env.PUBLIC_URL || 'https://ptbk.io';
+/**
+ * Agent sub-routes that should not be indexed directly.
+ */
+const AGENT_PROFILE_DISALLOWED_SUBPATHS = [
+    '/agents/*/api/',
+    '/agents/*/book',
+    '/agents/*/book+chat',
+    '/agents/*/chat',
+    '/agents/*/export-as-transpiled-code',
+    '/agents/*/history',
+    '/agents/*/images',
+    '/agents/*/integration',
+    '/agents/*/system-message',
+    '/agents/*/goal',
+    '/agents/*/website-integration',
+] as const;
 
-export function generateRobotsTxt(): string {
-    return ['User-agent: *', `Sitemap: ${baseUrl}sitemap.xml`, ''].join('\n');
-}
+/**
+ * Global routes that are not intended for search indexing.
+ */
+const GLOBAL_DISALLOWED_PATHS = ['/admin/', '/api/', '/recycle-bin/', '/restricted', '/search', '/system/'] as const;
 
-export function generateSecurityTxt(): string {
-    // See https://securitytxt.org/ for more fields
-    return [
-        `Contact: mailto:security@ptbk.io`,
-        `Expires: ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}`,
-        `Canonical: ${baseUrl}security.txt`,
-        '',
-    ].join('\n');
-}
-
-export function generateHumansTxt(): string {
-    return ['/* TEAM */', 'Developer: Promptbook Team', `Site: https://ptbk.io`, `Instance: ${baseUrl}`].join('\n');
+/**
+ * Builds static line set for a private robots policy.
+ *
+ * @returns Robots lines for private servers.
+ */
+function createPrivateRobotsTxtLines(): ReadonlyArray<string> {
+    return ['User-agent: *', 'Disallow: /'];
 }
 
 /**
- * TODO: Use `spaceTrim`
+ * Builds static line set for a public robots policy.
+ *
+ * @param sitemapUrl - Absolute sitemap index URL.
+ * @returns Robots lines for public servers.
  */
+function createPublicRobotsTxtLines(sitemapUrl: string): ReadonlyArray<string> {
+    return [
+        'User-agent: *',
+        'Allow: /',
+        ...AGENT_PROFILE_DISALLOWED_SUBPATHS.map((path) => `Disallow: ${path}`),
+        ...GLOBAL_DISALLOWED_PATHS.map((path) => `Disallow: ${path}`),
+        `Sitemap: ${sitemapUrl}`,
+    ];
+}
+
+/**
+ * Converts robots line arrays into canonical text output.
+ *
+ * @param lines - Robots directives.
+ * @returns Serialized robots.txt content.
+ */
+function stringifyRobotsTxt(lines: ReadonlyArray<string>): string {
+    return [...lines, ''].join('\n');
+}
+
+/**
+ * Builds the dynamic `robots.txt` content for this server instance.
+ *
+ * @returns Robots file text.
+ */
+export async function generateRobotsTxt(): Promise<string> {
+    const { publicUrl } = await $provideServer();
+    const serverVisibility = await getServerVisibility();
+
+    if (!isPublicServerVisibility(serverVisibility)) {
+        return stringifyRobotsTxt(createPrivateRobotsTxtLines());
+    }
+
+    return stringifyRobotsTxt(createPublicRobotsTxtLines(`${publicUrl.href}sitemap.xml`));
+}
+
+/**
+ * Builds the dynamic `security.txt` content for this server instance.
+ *
+ * @returns Security file text.
+ */
+export async function generateSecurityTxt(): Promise<string> {
+    const { publicUrl } = await $provideServer();
+    // See https://securitytxt.org/ for more fields
+    return spaceTrim(`
+        Contact: mailto:security@ptbk.io
+        Expires: ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+        Canonical: ${publicUrl.href}security.txt
+    `);
+}
+
+/**
+ * Builds the dynamic `humans.txt` content for this server instance.
+ *
+ * @returns Humans file text.
+ */
+export async function generateHumansTxt(): Promise<string> {
+    const { publicUrl } = await $provideServer();
+    return spaceTrim(`
+        /* TEAM */
+        Developer: Promptbook Team
+        Site: https://ptbk.io
+        Instance: ${publicUrl.href}
+    `);
+}

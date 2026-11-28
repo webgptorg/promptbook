@@ -18,6 +18,4 @@ export function $isRunningInWebWorker(): boolean {
     }
 }
 
-/**
- * TODO: [🎺]
- */
+// TODO: [🎺]

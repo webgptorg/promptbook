@@ -1,4 +1,4 @@
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import { getParserForCommand } from './getParserForCommand';
 import type { Command } from './types/Command';
 
@@ -7,8 +7,8 @@ import type { Command } from './types/Command';
  *
  * @returns stringified command
  * @throws {UnexpectedError} if the command is invalid
- *
  * @deprecated Option to convert JSON back to string is outdated and will be removed
+ *
  * @private within the compilePipeline
  */
 export function stringifyCommand(command: Command): string_markdown_text {

@@ -33,4 +33,9 @@ describe('how filenameToPrompt works', () => {
         expect(filenameToPrompt('Cat-Sitting-On-Keyboard.png')).toEqual('Cat sitting on keyboard');
         expect(filenameToPrompt('HELLO-WORLD.png')).toEqual('HELLO world');
     });
+
+    it('will remove attachment hash', () => {
+        expect(filenameToPrompt('cat-attach-12345.png')).toEqual('Cat');
+        expect(filenameToPrompt('cat-sitting-attach-xyz.png')).toEqual('Cat sitting');
+    });
 });

@@ -6,6 +6,9 @@ import { MessageProvider } from '../../interfaces/MessageProvider';
 import { OutboundEmail } from '../_common/Email';
 import { parseEmailAddress } from '../_common/utils/parseEmailAddress';
 
+/**
+ * Class implementing sendgrid message provider.
+ */
 export class SendgridMessageProvider implements MessageProvider {
     constructor(private readonly apiKey: string) {
         sendgridEmailClient.setApiKey(this.apiKey);
@@ -27,11 +30,11 @@ export class SendgridMessageProvider implements MessageProvider {
                 email: fullEmail,
                 name: fullName || undefined,
             },
-            to: recipients.map((r) => {
-                const { fullEmail, fullName } = parseEmailAddress(r.email || r.baseEmail || r);
+            to: recipients.map((recipient) => {
+                const { fullEmail, fullName } = parseEmailAddress(recipient.email || recipient.baseEmail || recipient);
                 return {
                     email: fullEmail,
-                    name: r.name || fullName || undefined,
+                    name: recipient.name || fullName || undefined,
                 };
             }),
             subject: message.metadata?.subject || 'No Subject',

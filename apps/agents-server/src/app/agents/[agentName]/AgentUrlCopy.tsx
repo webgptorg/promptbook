@@ -2,9 +2,14 @@
 
 import { string_agent_url } from '@promptbook-local/types';
 import { useState } from 'react';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 
+/**
+ * Handles agent Url copy.
+ */
 export function AgentUrlCopy({ agentUrl }: { agentUrl: string_agent_url }) {
     const [copied, setCopied] = useState(false);
+    const { formatText } = useAgentNaming();
 
     const handleCopy = async () => {
         try {
@@ -18,7 +23,7 @@ export function AgentUrlCopy({ agentUrl }: { agentUrl: string_agent_url }) {
 
     return (
         <div className="w-full">
-            <label className="block text-xs text-gray-500 font-semibold mb-1">Agent Page URL</label>
+            <label className="block text-xs text-gray-500 font-semibold mb-1">{formatText('Agent Page URL')}</label>
             <div className="flex gap-2 items-center">
                 <input
                     type="text"

@@ -1,15 +1,18 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { ErrorPage } from '../ErrorPage/ErrorPage';
 import { LoginForm } from '../LoginForm/LoginForm';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
+/**
+ * Renders a forbidden page with a login form.
+ */
 export function ForbiddenPage() {
-    const router = useRouter();
+    const { t } = useServerLanguage();
 
     return (
-        <ErrorPage title="403 Forbidden" message="You do not have permission to access this page.">
-            <LoginForm onSuccess={() => router.refresh()} />
+        <ErrorPage title={t('forbidden.title')} message={t('forbidden.message')}>
+            <LoginForm />
         </ErrorPage>
     );
 }

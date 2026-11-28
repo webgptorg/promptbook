@@ -6,6 +6,9 @@ import { DEFAULT_BOOK } from '@promptbook-local/core';
 import type { string_book } from '@promptbook-local/types';
 import { useState } from 'react';
 
+/**
+ * Handles two editors page.
+ */
 export default function TwoEditorsPage() {
     const [book, setBook] = useState<string_book>(DEFAULT_BOOK);
 

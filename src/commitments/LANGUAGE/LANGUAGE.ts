@@ -17,7 +17,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANGUAGE' | 'LANGUAGES'> {
-    constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
+    public constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
         super(type);
     }
 
@@ -70,14 +70,16 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
             return requirements;
         }
 
-        // Add language rule to the system message
-        const languageSection = `Language: ${trimmedContent}`;
+        const languageSection = spaceTrim(
+            (block) => `
+                ## Language
+
+                -   Your language is ${block(trimmedContent)}
+            `,
+        );
 
         return this.appendToSystemMessage(requirements, languageSection, '\n\n');
     }
 }
 
-
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

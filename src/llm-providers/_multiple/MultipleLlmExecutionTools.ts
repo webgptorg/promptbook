@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -13,7 +13,9 @@ import type {
     PromptResult,
 } from '../../execution/PromptResult';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, ImagePrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import type { chococake } from '../../utils/organization/really_any';
 
 /**
@@ -29,6 +31,7 @@ const MULTIPLE_PROVIDER_PROFILE: ChatParticipant = {
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
  *
  * Note: Internal utility of `joinLlmExecutionTools` but exposed type
+ *
  * @public exported from `@promptbook/core`
  */
 export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {

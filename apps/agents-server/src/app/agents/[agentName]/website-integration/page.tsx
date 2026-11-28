@@ -1,29 +1,64 @@
 'use server';
 
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
-import { parseAgentSource } from '@promptbook-local/core';
 import { headers } from 'next/headers';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
-import { generateAgentMetadata } from '../generateAgentMetadata';
+import { enforceCanonicalLocalAgentId, getAgentName, getAgentProfile } from '../_utils';
 import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
-export const generateMetadata = generateAgentMetadata;
+/**
+ * Formats an integration-page comment for use inside a copyable code snippet.
+ *
+ * @param integrationPageUrl - Absolute integration-page URL.
+ * @param style - Comment syntax matching the snippet language.
+ * @returns Comment line linking back to the integration page.
+ */
+function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash' | 'hash' | 'html'): string {
+    const commentPrefix = style === 'hash' ? '# ' : style === 'html' ? '<!-- ' : '// ';
 
+    const commentSuffix = style === 'html' ? ' -->' : '';
+
+    return `${commentPrefix}${integrationPageUrl}${commentSuffix}`;
+}
+
+/**
+ * Builds canonical website-integration path for one local agent id.
+ */
+function buildCanonicalAgentWebsiteIntegrationPath(canonicalAgentId: string): string {
+    return `/agents/${encodeURIComponent(canonicalAgentId)}/website-integration`;
+}
+
+/**
+ * Renders website integration guidance for a single agent.
+ *
+ * @param params - Route params containing the agent name.
+ * @returns Website integration page UI.
+ */
 export default async function WebsiteIntegrationAgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentIdentifier = await getAgentName(params);
+    const agentName = await enforceCanonicalLocalAgentId(agentIdentifier, buildCanonicalAgentWebsiteIntegrationPath);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return <ForbiddenPage />;
+    }
 
-    const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(agentName);
-    const { meta } = parseAgentSource(agentSource);
+    const agentNaming = await getAgentNaming();
+    const agentProfile = await getAgentProfile(agentName);
+    const { meta } = agentProfile;
     const { fullname, color, image, ...restMeta } = meta;
     const { publicUrl } = await $provideServer();
     const agentUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
+    const integrationPageUrl = `${publicUrl.href}agents/${encodeURIComponent(
+        agentProfile.permanentId || agentName,
+    )}/integration`;
 
     const reactCode = spaceTrim(
         (block) => `
@@ -31,6 +66,7 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
 
             export function YourComponent() {
                 return(
+                    ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
                     <PromptbookAgentIntegration
                         agentUrl="${agentUrl}"
                         meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
@@ -46,6 +82,7 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
         (block) => `
             <script src="${publicUrl.href}api/embed.js" async defer></script>
 
+            ${formatIntegrationPageComment(integrationPageUrl, 'html')}
             <promptbook-agent-integration
                 agent-url="${agentUrl}"
                 meta='${block(metaJsonString)}'
@@ -54,11 +91,15 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     );
 
     return (
-        <main className="w-screen h-screen p-4">
-            <h1 className="text-2xl font-bold p-4 border-b">{meta.fullname || agentName} Integration Code</h1>
+        <main className="agents-server-viewport-width min-h-[calc(100dvh-60px)] p-4">
+            <div className="flex items-center gap-4 p-4 border-b">
+                <h1 className="text-2xl font-bold flex-1">{meta.fullname || agentName} Integration Code</h1>
+            </div>
             <p className="mt-4 mb-8 text-gray-600">
-                Use the following code to integrate the <strong>{meta.fullname || agentName}</strong> agent into your
-                React application using the <code>{'<PromptbookAgent />'}</code> component.
+                {formatAgentNamingText('Use the following code to integrate the', agentNaming)}{' '}
+                <strong>{meta.fullname || agentName}</strong>{' '}
+                {formatAgentNamingText('agent into your React application using the', agentNaming)}{' '}
+                <code>{'<PromptbookAgent />'}</code> component.
             </p>
 
             <WebsiteIntegrationTabs reactCode={reactCode} htmlCode={htmlCode} />
@@ -83,7 +124,5 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     );
 }
 
-/**
- * TODO: Make this page better, bring from Promptbook.Studio
- * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
- */
+// TODO: Make this page better, bring from Promptbook.Studio
+// TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents

@@ -1,8 +1,8 @@
 import colors from 'colors';
 import type {
-  Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { CLAIM } from '../../config';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
@@ -59,9 +59,7 @@ export function $initializeAboutCommand(program: Program): $side_effect {
     );
 }
 
-/**
- * TODO: [🕋] Use here `aboutPromptbookInformation`
- * TODO: [🗽] Unite branding and make single place for it
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [about](src/cli/cli-commands/about.ts) should never be published outside of `@promptbook/cli`
+// TODO: [🕋] Use here `aboutPromptbookInformation`
+// TODO: [🗽] Unite branding and make single place for it
+// Note: [💞] Ignore a discrepancy between file name and entity name

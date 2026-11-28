@@ -1,7 +1,6 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/string_name';
 import { union } from '../sets/union';
 
 /**
@@ -27,6 +26,7 @@ type MakeapAvailableToExpectedParametersOptions = {
  * 2) Then, if there are unmatched expected and available parameters, map them by order.
  *
  * @throws {PipelineExecutionError} If the number of unmatched expected and available parameters does not match, or mapping is ambiguous.
+ *
  * @private within the repository used in `createPipelineExecutor`
  */
 export function mapAvailableToExpectedParameters(

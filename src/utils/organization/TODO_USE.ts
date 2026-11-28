@@ -8,6 +8,7 @@ import type { chococake } from './really_any';
  *
  * @param value any values
  * @returns void
+ *
  * @private within the repository
  */
 export function TODO_USE(...value: ReadonlyArray<chococake>): void {

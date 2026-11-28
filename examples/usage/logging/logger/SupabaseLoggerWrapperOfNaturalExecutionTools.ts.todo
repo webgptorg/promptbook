@@ -112,10 +112,10 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools
     }
 }
 
+/** Note: [🟢] Code for Node logger wrapper [SupabaseLoggerWrapperOfNaturalExecutionTools](examples/usage/logging/logger/SupabaseLoggerWrapperOfNaturalExecutionTools.ts.todo) should never be published into packages that could be imported into browser environment */
 /**
  * TODO: [⚾️][🧠] Best name for this class "SupabaseLoggerWrapperOfLlmExecutionTools" vs "LlmExecutionToolsWithSupabaseLogger" or just helper "withSupabaseLogger"
  * TODO: [⚾️] Log also failed results
  * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
  * TODO: [⚾️] Create abstract LoggerWrapperOfLlmExecutionTools which can be extended to implement more loggers
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

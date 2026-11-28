@@ -1,12 +1,24 @@
 'use client';
+import { spaceTrim } from 'spacetrim';
 
-import { AgentBasicInformation } from '@promptbook-local/types';
+
+import { colorToDataUrl } from '@promptbook-local/color';
+import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
+import { resolveAgentAvatar } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT, AgentCapabilityChips } from './AgentCapabilityChips';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
+import { AgentProfileDescription } from './AgentProfileDescription';
+import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
+/**
+ * Props for agent profile.
+ */
 type AgentProfileProps = {
     /**
      * The agent to display
@@ -14,11 +26,21 @@ type AgentProfileProps = {
     readonly agent: AgentBasicInformation;
 
     /**
+     * The permanent ID of the agent
+     */
+    readonly permanentId: string_agent_permanent_id;
+
+    /**
      * URL of the agent page
      *
      * @default undefined - If not provided, some features like QR code for link might be disabled or use generic link
      */
     readonly agentUrl?: string;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: string_url;
 
     /**
      * Email of the agent
@@ -53,27 +75,44 @@ type AgentProfileProps = {
     readonly className?: string;
 };
 
+/**
+ * Handles agent profile.
+ */
 export function AgentProfile(props: AgentProfileProps) {
+    const { formatText } = useAgentNaming();
     const {
         agent,
         agentUrl = '',
         agentEmail = '',
+        publicUrl,
         renderMenu,
         children,
         actions,
         isHeadless = false,
         className,
     } = props;
+
     const { meta, agentName } = agent;
-    const fullname = (meta.fullname as string) || agentName || 'Agent';
-    const personaDescription = agent.personaDescription || '';
-    const imageUrl = (meta.image as string) || null;
+    const fallbackName = formatText('Agent');
+    const fullname = (meta.fullname as string) || agentName || fallbackName;
+    const personaDescription = meta.description || agent.personaDescription || '';
+    const showMoreLabel = formatText('Show more');
+    const showLessLabel = formatText('Show less');
+    const resolvedAgentAvatar = resolveAgentAvatar({ agent, baseUrl: publicUrl });
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
 
     // Dynamic Font Loading
     const fontString = meta.font;
+    const primaryFontFamily = fontString ? (fontString.split(',')[0] || '').trim().replace(/['"]/g, '') : '';
+    const PRIMARY_FONT_IMPORT_STYLES = primaryFontFamily
+        ? spaceTrim(
+              (block) => `
+                  @import url('https://fonts.googleapis.com/css2?family=${block(encodeURIComponent(primaryFontFamily))}:wght@400;600;700&display=swap');
+              `,
+          )
+        : '';
     let fontStyle: React.CSSProperties = {};
 
     if (fontString) {
@@ -89,12 +128,8 @@ export function AgentProfile(props: AgentProfileProps) {
 
     return (
         <>
-            {fontString && (
-                <style jsx global>{`
-                    @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(
-                        fontString.split(',')[0].trim().replace(/['"]/g, ''),
-                    )}:wght@400;600;700&display=swap');
-                `}</style>
+            {primaryFontFamily && (
+                <style jsx global>{PRIMARY_FONT_IMPORT_STYLES}</style>
             )}
 
             {/* Full-screen background with agent color */}
@@ -111,20 +146,20 @@ export function AgentProfile(props: AgentProfileProps) {
             >
                 {/* Options menu in top right */}
                 {!isHeadless && renderMenu && (
-                    <div className="absolute top-4 right-4 z-[9999]">
+                    <div className="absolute top-4 right-4 z-20">
                         {renderMenu({ onShowQrCode: () => setIsQrModalOpen(true) })}
                     </div>
                 )}
 
                 {/* Main profile content */}
-                <div className="relative z-10 grid grid-cols-[auto_1fr] gap-x-6 gap-y-4 md:gap-12 max-w-5xl w-full items-start">
+                <div className="relative z-10 flex flex-col md:grid md:grid-cols-[auto_1fr] gap-y-6 md:gap-y-4 md:gap-x-12 max-w-5xl w-full items-center md:items-start">
                     {/* Agent image card (Flippable) */}
                     <div
-                        className="flex-shrink-0 perspective-1000 group row-start-1 col-start-1 md:row-span-3"
+                        className="flex-shrink-0 perspective-1000 group w-full md:w-auto md:row-start-1 md:col-start-1 md:row-span-3"
                         style={{ perspective: '1000px' }}
                     >
                         <div
-                            className="relative w-24 md:w-80 transition-all duration-700 transform-style-3d cursor-pointer"
+                            className="relative w-full md:w-80 transition-all duration-700 transform-style-3d cursor-pointer max-w-sm mx-auto md:max-w-none md:mx-0"
                             style={{
                                 aspectRatio: '1 / 1.618', // Golden Ratio
                                 transformStyle: 'preserve-3d',
@@ -137,7 +172,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                 className="absolute inset-0 w-full h-full backface-hidden rounded-lg md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden backdrop-blur-sm"
                                 style={{
                                     backfaceVisibility: 'hidden',
-                                    backgroundColor: brandColorDarkHex,
+                                    background: `radial-gradient(circle at 30% 18%, ${brandColorLightHex}d9 0%, ${brandColorHex} 42%, ${brandColorDarkHex} 100%)`,
                                     boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
 
                                     // Note: Make it squircle
@@ -145,15 +180,36 @@ export function AgentProfile(props: AgentProfileProps) {
                                     // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
-                                {imageUrl ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={imageUrl} alt={fullname} className="w-full h-full object-cover" />
+                                {resolvedAgentAvatar?.type === 'image' ? (
+                                    <AgentProfileImage
+                                        src={resolvedAgentAvatar.imageUrl}
+                                        alt={fullname}
+                                        className="w-full h-full"
+                                        imageClassName="agent-avatar-pixelated w-full h-full object-contain"
+                                        style={{
+                                            backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
+                                        }}
+                                    />
                                 ) : (
-                                    <div
-                                        className="w-full h-full flex items-center justify-center text-3xl md:text-8xl font-bold text-white/80"
-                                        style={{ backgroundColor: brandColorDarkHex }}
-                                    >
-                                        {fullname.charAt(0).toUpperCase()}
+                                    <div className="flex h-full w-full items-center justify-center overflow-hidden p-4 md:p-8">
+                                        {/* Keep built-in visuals inside a centered square stage so different avatar renderers fit the tall profile card consistently. */}
+                                        <div className="flex aspect-square w-[80%] items-center justify-center">
+                                            <AgentAvatar
+                                                agent={agent}
+                                                baseUrl={publicUrl}
+                                                surface="transparent"
+                                                size={420}
+                                                alt={fullname}
+                                                className="!h-full !w-full pointer-events-none select-none"
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    maxWidth: '100%',
+                                                    maxHeight: '100%',
+                                                    filter: 'drop-shadow(0 24px 30px rgba(0, 0, 0, 0.28))',
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
@@ -193,7 +249,7 @@ export function AgentProfile(props: AgentProfileProps) {
                     </div>
 
                     {/* Agent info - Header Area */}
-                    <div className="row-start-1 col-start-2 flex flex-col justify-center md:justify-start h-full md:h-auto gap-1 md:gap-6">
+                    <div className="w-full md:w-auto md:row-start-1 md:col-start-2 flex flex-col justify-center md:justify-start items-center md:items-start h-auto gap-4 md:gap-6 text-center md:text-left">
                         {/* Agent name with custom font */}
                         <h1
                             className="text-2xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight"
@@ -205,17 +261,22 @@ export function AgentProfile(props: AgentProfileProps) {
                         </h1>
 
                         {/* Short description */}
-                        <p className="text-sm md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
-                            {personaDescription}
-                        </p>
+                        <AgentProfileDescription
+                            text={personaDescription}
+                            className="text-sm md:text-xl text-gray-700 max-w-lg"
+                            collapsedLabel={showMoreLabel}
+                            expandedLabel={showLessLabel}
+                        />
+
+                        <AgentCapabilityChips agent={agent} maxChips={AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT} />
                     </div>
 
                     {/* Chat Area */}
-                    <div className="col-span-2 md:col-span-1 md:col-start-2 w-full mt-2 md:mt-0">{children}</div>
+                    <div className="w-full md:col-span-1 md:col-start-2 mt-4 md:mt-0">{children}</div>
 
                     {/* Secondary Actions */}
                     {!isHeadless && (
-                        <div className="col-span-2 md:col-span-1 md:col-start-2 flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
+                        <div className="w-full md:col-span-1 md:col-start-2 flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-4 md:mt-2">
                             {actions}
                         </div>
                     )}
@@ -231,20 +292,19 @@ export function AgentProfile(props: AgentProfileProps) {
             </div>
 
             {/* QR Code Modal */}
-            <QrCodeModal
-                isOpen={isQrModalOpen}
-                onClose={() => setIsQrModalOpen(false)}
-                agentName={agentName}
-                meta={meta}
-                personaDescription={personaDescription}
-                agentUrl={agentUrl}
-                agentEmail={agentEmail}
-                brandColorHex={brandColorHex}
-            />
+            {isQrModalOpen && (
+                <QrCodeModal
+                    onClose={() => setIsQrModalOpen(false)}
+                    agentName={agentName}
+                    meta={meta}
+                    personaDescription={personaDescription}
+                    agentUrl={agentUrl}
+                    agentEmail={agentEmail}
+                    brandColorHex={brandColorHex}
+                />
+            )}
         </>
     );
 }
 
-/**
- * TODO: !!!! Use 3D badge @see https://vercel.com/blog/building-an-interactive-3d-event-badge-with-react-three-fiber
- */
+// TODO: !!!! Use 3D badge @see https://vercel.com/blog/building-an-interactive-3d-event-badge-with-react-three-fiber

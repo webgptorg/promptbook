@@ -1,70 +1,36 @@
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { TODO_any } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { Color } from '../../../../../../../../src/utils/color/Color';
-import { textColor } from '../../../../../../../../src/utils/color/operators/furthest';
-import { grayscale } from '../../../../../../../../src/utils/color/operators/grayscale';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
-import { getAgentName, getAgentProfile } from '../../_utils';
+import { createAgentScreenshotLayout, getAgentImageContext } from '../_shared';
 
+/**
+ * Target size for the portrait screenshot preview.
+ *
+ * @private
+ */
 const size = {
     width: 1080,
     height: 1920,
 };
 
+/**
+ * Renders the portrait screenshot preview for the agent.
+ *
+ * @private @@@
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
 
     try {
-        const agentName = await getAgentName(params);
-        const agentProfile = await getAgentProfile(agentName);
-        const agentColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
-        const backgroundColor = agentColor.then(grayscale(0.5));
+        const context = await getAgentImageContext(params);
+        const layout = createAgentScreenshotLayout(context, 'portrait');
 
-        return new ImageResponse(
-            (
-                <div
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: backgroundColor.toHex(),
-                        color: agentColor.then(textColor).toHex(),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <div
-                        style={{
-                            width: '40%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        {/* Note: `next/image` is not working propperly with `next/og` */}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            style={{
-                                width: '80%',
-                                backgroundColor: agentColor.toHex(),
-                                borderRadius: '50%',
-                            }}
-                            src={agentProfile.meta.image!}
-                            alt="Agent Icon"
-                        />
-                    </div>
-                    <div style={{ width: '60%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <h1 style={{ fontSize: '110px' }}>{agentProfile.meta.fullname || agentName}</h1>
-                    </div>
-                </div>
-            ),
-            {
-                ...size,
-                emoji: 'openmoji',
-            },
-        );
+        return new ImageResponse(layout as TODO_any, {
+            ...size,
+            emoji: 'openmoji',
+        });
     } catch (error) {
         assertsError(error);
 
@@ -85,8 +51,3 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         );
     }
 }
-
-/**
- * TODO: [🦚] DRY
- * TODO: [🦚] This should be the true screenshot NOT just image + Agent name
- */

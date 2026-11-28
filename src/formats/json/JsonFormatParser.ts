@@ -41,14 +41,12 @@ export const JsonFormatParser: FormatParser<
     subvalueParsers: [],
 };
 
-/**
- * TODO: [🧠] Maybe proper instance of object
- * TODO: [0] Make string_serialized_json
- * TODO: [1] Make type for JSON Settings and Schema
- * TODO: [🧠] What to use for validating JSONs - JSON Schema, ZoD, typescript types/interfaces,...?
- * TODO: [🍓] In `JsonFormatParser` implement simple `isValid`
- * TODO: [🍓] In `JsonFormatParser` implement partial `canBeValid`
- * TODO: [🍓] In `JsonFormatParser` implement `heal
- * TODO: [🍓] In `JsonFormatParser` implement `subvalueParsers`
- * TODO: [🏢] Allow to expect something inside JSON objects and other formats
- */
+// TODO: [🧠] Maybe proper instance of object
+// TODO: [0] Make string_serialized_json
+// TODO: [1] Make type for JSON Settings and Schema
+// TODO: [🧠] What to use for validating JSONs - JSON Schema, ZoD, typescript types/interfaces,...?
+// TODO: [🍓] In `JsonFormatParser` implement simple `isValid`
+// TODO: [🍓] In `JsonFormatParser` implement partial `canBeValid`
+// TODO: [🍓] In `JsonFormatParser` implement `heal
+// TODO: [🍓] In `JsonFormatParser` implement `subvalueParsers`
+// TODO: [🏢] Allow to expect something inside JSON objects and other formats

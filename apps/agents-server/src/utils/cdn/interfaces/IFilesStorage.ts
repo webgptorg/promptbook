@@ -1,6 +1,9 @@
 import type { string_mime_type } from '../../../../../../src/types/typeAliases';
 import type { IStorage } from './IStorage';
 
+/**
+ * Type describing file.
+ */
 export type IFile = {
     // Maybe TODO name: string_name;
     type: string_mime_type;
@@ -22,6 +25,11 @@ export type IFile = {
      * Note: This is optional, if not provided, the size of the buffer is used
      */
     fileSize?: number;
+
+    /**
+     * Optional file security result collected before the file is tracked.
+     */
+    securityResult?: Record<string, unknown>;
 };
 
 /**
@@ -38,13 +46,11 @@ export type IIFilesStorageWithCdn = IFilesStorage & {
     getItemUrl(key: string): URL;
 };
 
-/**
- * TODO: Probably not deterministic and async getItemUrl
- * TODO: Probably just createUrlMaker
- * TODO: List method
- * TODO: Glob method
- * TODO: Subfolder (similar to PrefixStorage) method
- * TODO: Subscribe, list, sub(folder) should be part of LIB everstorage
- * TODO: Probably implement observe through RxJS
- * TODO: [☹️] Unite with `PromptbookStorage` and move to `/src/...`
- */
+// TODO: Probably not deterministic and async getItemUrl
+// TODO: Probably just createUrlMaker
+// TODO: List method
+// TODO: Glob method
+// TODO: Subfolder (similar to PrefixStorage) method
+// TODO: Subscribe, list, sub(folder) should be part of LIB everstorage
+// TODO: Probably implement observe through RxJS
+// TODO: [☹️] Unite with `PromptbookStorage` and move to `/src/...`

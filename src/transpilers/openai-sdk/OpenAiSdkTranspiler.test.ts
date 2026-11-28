@@ -1,4 +1,4 @@
-import { describe, it } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { book } from '../../pipeline/book-notation';
 import { OpenAiSdkTranspiler } from './OpenAiSdkTranspiler';
@@ -61,5 +61,26 @@ describe('OpenAiSdkTranspiler', () => {
         expect(code).toContain('const knowledgeSources =');
         expect(code).toContain('https://example.com/witcher-lore.txt');
         expect(code).toContain('index = await VectorStoreIndex.fromDocuments(documents)');
+    });
+
+    it('transpiles a book with USE POPUP and includes tool definitions and implementation', async () => {
+        const agentSource = book`
+            Time Keeper
+
+            PERSONA You are a time-aware assistant
+            USE POPUP
+        `;
+
+        const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+
+        expect(code).toContain('const tools = {');
+        expect(code).toContain('async open_popup(args) {');
+        expect(code).not.toContain('open_popup: async open_popup(args)');
+        expect(code).toContain('const toolDefinitions = [');
+        expect(code).toContain('"name": "open_popup"');
+        expect(code).toContain("tools: toolDefinitions.map(tool => ({ type: 'function', function: tool }))");
+        expect(code).toContain('if (message.tool_calls && message.tool_calls.length > 0)');
+        expect(code).toContain('result = await tools[functionName](functionArgs)');
     });
 });

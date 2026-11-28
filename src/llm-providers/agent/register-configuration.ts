@@ -34,8 +34,6 @@ export const _AgentMetadata = $llmToolsMetadataRegister.register({
     },
 });
 
-/**
- * TODO: [🧠] Consider adding a special trust level for AgentLlmExecutionTools
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠] Consider adding a special trust level for AgentLlmExecutionTools
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

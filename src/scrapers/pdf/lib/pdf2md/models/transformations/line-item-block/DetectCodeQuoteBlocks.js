@@ -1,9 +1,24 @@
 // @flow
 
+/**
+ * Constant for to line item block transformation.
+ */
 const ToLineItemBlockTransformation = require('../ToLineItemBlockTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for { detected annotation }.
+ */
 const { DETECTED_ANNOTATION } = require('../../Annotation');
+/**
+ * Constant for block type.
+ */
 const BlockType = require('../../markdown/BlockType');
+/**
+ * Constant for { min x from blocks }.
+ */
 const { minXFromBlocks } = require('../../../util/page-item-functions');
 
 // Detect items which are code/quote blocks
@@ -33,6 +48,9 @@ module.exports = class DetectCodeQuoteBlocks extends ToLineItemBlockTransformati
     }
 };
 
+/**
+ * Handles looks like code block.
+ */
 function looksLikeCodeBlock(minX, items, mostUsedHeight) {
     if (items.length === 0) {
         return false;

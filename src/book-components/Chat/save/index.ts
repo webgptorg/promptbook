@@ -20,6 +20,4 @@ export const CHAT_SAVE_FORMATS = [
     pdfSaveFormatDefinition,
 ] as const satisfies ReadonlyArray<ChatSaveFormatDefinition>;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

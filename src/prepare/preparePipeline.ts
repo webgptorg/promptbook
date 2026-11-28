@@ -25,11 +25,12 @@ import { prepareTasks } from './prepareTasks';
 /**
  * Prepare pipeline locally
  *
- * @see https://github.com/webgptorg/promptbook/discussions/196
- *
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process
  * Note: When the pipeline is already prepared, it returns the same pipeline
+ *
+ * @see https://github.com/webgptorg/promptbook/discussions/196
+ *
  * @public exported from `@promptbook/core`
  */
 export async function preparePipeline(

@@ -1,4 +1,4 @@
-import type { string_color, string_person_fullname } from '../../types/typeAliases';
+import type { string_color, string_person_fullname } from '../../types/string_person_fullname';
 
 /**
  * Result of generating a name

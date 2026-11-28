@@ -101,8 +101,8 @@ import { Chat } from '@promptbook/components';
 const messages = [
     {
         id: '1',
-        date: new Date(),
-        from: 'USER',
+        createdAt: new Date().toISOString(),
+        sender: 'USER',
         content: '**Hello!** This is *markdown* content with `code`.',
         isComplete: true,
     },
@@ -132,6 +132,13 @@ The markdown renderer is configured with:
 -   Code blocks with syntax highlighting classes
 -   Links open in new windows
 -   Header IDs prefixed with `chat-header-`
+
+## Chat Visual Mode
+
+`<Chat/>` accepts `CHAT_VISUAL_MODE` with these values:
+
+-   `BUBBLE_MODE` (default): user and agent messages render as bubbles.
+-   `ARTICLE_MODE`: user messages stay in bubbles, while agent messages render as seamless article-style blocks.
 
 ## Implementation Details
 

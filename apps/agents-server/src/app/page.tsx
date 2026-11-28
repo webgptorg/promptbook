@@ -1,142 +1,165 @@
-'use server';
-
-import { getSingleLlmExecutionTools } from '@promptbook-local/core';
-import moment from 'moment';
 import { headers } from 'next/headers';
-import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
-import { AgentsList } from '../components/Homepage/AgentsList';
-import { ExternalAgentsSectionClient } from '../components/Homepage/ExternalAgentsSectionClient';
-import { ModelsSection } from '../components/Homepage/ModelsSection';
-import { Section } from '../components/Homepage/Section';
-import { TechInfoCard } from '../components/Homepage/TechInfoCard';
-import { UsersList } from '../components/UsersList/UsersList';
-import VercelDeploymentCard from '../components/VercelDeploymentCard/VercelDeploymentCard';
-import { $getTableName } from '../database/$getTableName';
-import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
-import { getLongRunningTask } from '../deamons/longRunningTask';
-import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
-import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
+import { ForbiddenPage } from '../components/ForbiddenPage/ForbiddenPage';
+import { DefaultAgentsStatusNotice } from '../components/Homepage/DefaultAgentsStatusNotice';
+import { HomepagePrimarySections } from '../components/Homepage/HomepagePrimarySections';
 import { $provideServer } from '../tools/$provideServer';
-import { getCurrentUser } from '../utils/getCurrentUser';
+import { resolveDefaultAgentsStatus } from '../utils/defaultAgents/resolveDefaultAgentsStatus';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
+import { createServerPublicUrl, resolveRegisteredServerByHost, type ServerRecord } from '../utils/serverRegistry';
+import { listRegisteredServersUsingServiceRole } from '../utils/serverRegistryNode';
+import { isStandaloneVpsRawIpBootstrapActive } from '../utils/standaloneVpsRawIpBootstrap';
+import { getHomePageAgents } from './_data/getHomePageAgents';
 
-// Add calendar formats that include seconds
-const calendarWithSeconds = {
-    sameDay: '[Today at] LTS',
-    nextDay: '[Tomorrow at] LTS',
-    nextWeek: 'dddd [at] LTS',
-    lastDay: '[Yesterday at] LTS',
-    lastWeek: '[Last] dddd [at] LTS',
-    sameElse: 'L [at] LTS',
-};
-
+/**
+ * Renders the simplified agents home page with local and federated agents.
+ */
 export default async function HomePage() {
-    $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
+    const headerStore = await headers();
+    $sideEffect(/* Note: [??] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headerStore);
 
-    const currentUser = await getCurrentUser();
-    const isAdmin = await isUserAdmin(); /* <- TODO: [👹] Here should be user permissions */
-
-    const collection = await $provideAgentCollectionForServer();
-    const allAgents = await collection.listAgents();
-
-    // Filter agents based on visibility and user authentication
-    const supabase = $provideSupabaseForServer();
-    // const { tablePrefix } = await $provideServer();
-
-    // Get visibility for all agents
-    const visibilityResult = await supabase
-        .from(await $getTableName(`Agent`))
-        .select('agentName, visibility')
-        .is('deletedAt', null);
-
-    let agents: typeof allAgents;
-    if (visibilityResult.error) {
-        console.error('Error fetching agent visibility:', visibilityResult.error);
-        // Fallback to showing all agents if visibility fetch fails
-        agents = allAgents;
-    } else {
-        const visibilityMap = new Map(
-            visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [
-                item.agentName,
-                item.visibility,
-            ]),
-        );
-
-        // Filter agents based on user authentication and visibility
-        agents = allAgents
-            .filter((agent) => {
-                const visibility = visibilityMap.get(agent.agentName);
-                if (!visibility) return false; // If no visibility info, hide the agent
-
-                // Admins can see all agents
-                if (currentUser?.isAdmin) return true;
-
-                // Authenticated users can see PUBLIC and PRIVATE agents
-                if (currentUser) return true;
-
-                // Unauthenticated users can only see PUBLIC agents
-                return visibility === 'PUBLIC';
-            })
-            .map((agent) => ({
-                ...agent,
-                visibility: visibilityMap.get(agent.agentName) as 'PUBLIC' | 'PRIVATE',
-            }));
+    const ipAddressRouting = await resolveIpAddressRouting(headerStore.get('host'));
+    if (ipAddressRouting === 'LOGIN') {
+        return <ForbiddenPage />;
     }
 
-    const longRunningTask = getLongRunningTask();
+    if (ipAddressRouting === 'CONFIGURE') {
+        redirect('/superadmin/servers?setup=1');
+    }
 
-    const executionTools = await $provideExecutionToolsForServer();
-    const models = await getSingleLlmExecutionTools(executionTools.llm).listModels();
+    if (Array.isArray(ipAddressRouting)) {
+        return <IpAddressDomainChooser servers={ipAddressRouting} />;
+    }
 
-    const host = (await headers()).get('host') || 'unknown';
+    const [{ publicUrl }, isAdmin, { agents, folders, homepageMessage, currentUser }] = await Promise.all([
+        $provideServer(),
+        isUserAdmin() /* <- TODO: [??] Here should be user permissions */,
+        getHomePageAgents(),
+    ]);
+
+    // Note: The missing-agents notice is only relevant to admins, who alone can reinstate the bundled agents.
+    const defaultAgentsStatus = isAdmin
+        ? await resolveDefaultAgentsStatus().catch((error) => {
+              console.error('Failed to resolve default agents status:', error);
+              return null;
+          })
+        : null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="agents-server-route-shell min-h-screen">
             <div className="container mx-auto px-4 py-16">
-                <AgentsList agents={[...agents]} isAdmin={isAdmin} />
-
-                <ExternalAgentsSectionClient />
-
-                {isAdmin && <UsersList allowCreate={false} />}
-
-                {isAdmin && <ModelsSection models={models} maxVisible={11} showViewAllLink />}
-
-                {isAdmin && (
-                    <>
-                        {/* Note: Shown in <AboutPromptbookInformation />: <h2 className="text-3xl text-gray-900 mt-16 mb-4">About Promptbook</h2> */}
-                        <AboutPromptbookInformation />
-                    </>
+                {defaultAgentsStatus && (
+                    <DefaultAgentsStatusNotice
+                        isAnyCoreAgentMissing={defaultAgentsStatus.isAnyCoreAgentMissing}
+                        isAnyDefaultAgentMissing={defaultAgentsStatus.isAnyDefaultAgentMissing}
+                        missingCoreAgentTitles={defaultAgentsStatus.coreAgents
+                            .filter((coreAgent) => !coreAgent.isPresent)
+                            .map((coreAgent) => coreAgent.title)}
+                        missingDefaultAgentTitles={defaultAgentsStatus.defaultAgents
+                            .filter((defaultAgent) => !defaultAgent.isPresent)
+                            .map((defaultAgent) => defaultAgent.title)}
+                    />
                 )}
-
-                {isAdmin && (
-                    <Section title="Technical Information">
-                        <TechInfoCard title={`Long running task ${longRunningTask.taskId}`}>
-                            <p className="text-gray-600">Tick: {longRunningTask.tick}</p>
-                            <p className="text-gray-600">
-                                Created At: {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
-                            </p>
-                            <p className="text-gray-600">
-                                Updated At: {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
-                            </p>
-                        </TechInfoCard>
-
-                        <VercelDeploymentCard />
-
-                        <TechInfoCard title="HTTP Information">
-                            <p className="text-gray-600">Host: {host}</p>
-                        </TechInfoCard>
-
-                        <TechInfoCard title="Server">
-                            <pre>{JSON.stringify(await $provideServer(), null, 2)}</pre>
-                        </TechInfoCard>
-                    </Section>
-                )}
+                <HomepagePrimarySections
+                    creationScope={JSON.stringify([publicUrl.href, currentUser?.username])}
+                    agents={agents}
+                    folders={folders}
+                    isAdmin={isAdmin}
+                    canOrganize={Boolean(currentUser)}
+                    publicUrl={publicUrl.href}
+                    homepageMessage={homepageMessage}
+                />
             </div>
         </div>
     );
 }
 
 /**
- * TODO: [🕋] Use here `AboutPromptbookInformation`
+ * Resolves special raw-IP behavior for standalone VPS access.
+ *
+ * @param host - Request host header.
+ * @returns Routing instruction or `null` when normal homepage rendering should continue.
  */
+async function resolveIpAddressRouting(
+    host: string | null,
+): Promise<'LOGIN' | 'CONFIGURE' | ReadonlyArray<ServerRecord> | null> {
+    if (!host || !isIpAddressHost(host)) {
+        return null;
+    }
+
+    const registeredServers = await listRegisteredServersUsingServiceRole().catch(() => []);
+    if (resolveRegisteredServerByHost(host, registeredServers)) {
+        return null;
+    }
+
+    if (registeredServers.length === 0) {
+        return (await isUserGlobalAdmin()) ? 'CONFIGURE' : 'LOGIN';
+    }
+
+    if (
+        isStandaloneVpsRawIpBootstrapActive({
+            nextPublicSiteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+            publicIpAddress: process.env.PTBK_PUBLIC_IP_ADDRESS,
+        })
+    ) {
+        return null;
+    }
+
+    if (registeredServers.length === 1) {
+        redirect(createServerPublicUrl(registeredServers[0]!.domain).href);
+    }
+
+    return registeredServers;
+}
+
+/**
+ * Checks whether the request host is a raw IPv4 or IPv6 address.
+ *
+ * @param host - Raw host header.
+ * @returns `true` for IP-address access.
+ */
+function isIpAddressHost(host: string): boolean {
+    const hostname = host
+        .trim()
+        .replace(/^\[(.+)\](?::\d+)?$/u, '$1')
+        .replace(/:\d+$/u, '');
+
+    return /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(hostname) || hostname.includes(':');
+}
+
+/**
+ * Simple domain chooser shown when a raw IP has multiple configured domains.
+ *
+ * @param props - Configured server list.
+ */
+function IpAddressDomainChooser(props: { readonly servers: ReadonlyArray<ServerRecord> }) {
+    return (
+        <div className="min-h-screen bg-slate-50 px-4 py-24">
+            <div className="mx-auto max-w-2xl space-y-6">
+                <div>
+                    <h1 className="text-3xl font-light text-slate-900">Choose a domain</h1>
+                    <p className="mt-2 text-sm text-slate-600">
+                        This VPS has multiple Agents Server domains configured. Open the domain you want to use.
+                    </p>
+                </div>
+                <div className="grid gap-3">
+                    {props.servers.map((server) => {
+                        const url = createServerPublicUrl(server.domain).href;
+                        return (
+                            <Link
+                                key={server.id}
+                                href={url}
+                                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-blue-300 hover:text-blue-700"
+                            >
+                                {server.domain}
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+}

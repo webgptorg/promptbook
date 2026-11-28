@@ -1,8 +1,8 @@
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/string_markdown';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { BookTranspiler } from '../_common/BookTranspiler';
+import { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 
 /**
@@ -18,7 +18,7 @@ export const FormattedBookInMarkdownTranspiler = {
     transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): string_markdown {
         keepUnused(tools, options);
 
-        let lines = book.trim(/* <- Note: Not using `spaceTrim` because its not needed */).split('\n');
+        let lines = book.trim(/* <- Note: Not using `spaceTrim` because its not needed */).split(/\r?\n/);
 
         if (lines[0]) {
             lines[0] = `**<ins>${lines[0]}</ins>**`;
@@ -42,4 +42,4 @@ export const FormattedBookInMarkdownTranspiler = {
 
         return lines.join('\n');
     },
-} as const satisfies BookTranspiler;
+} as const satisfies BookTranspiler; /* <- Note: [🤛] */

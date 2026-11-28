@@ -1,118 +1,159 @@
 // Client Component for rendering and deleting agents
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { TrashIcon } from 'lucide-react';
-import Link from 'next/link';
-import { AddAgentButton } from '../../app/AddAgentButton';
-import { AgentCard } from './AgentCard';
-import { Section } from './Section';
+import { string_url } from '@promptbook-local/types';
+import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { AgentsListDialogs } from './AgentsListDialogs';
+import { AgentsListHeader } from './AgentsListHeader';
+import { AgentsListListView } from './AgentsListListView';
+import { useAgentsListState } from './useAgentsListState';
 
-import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-
-type AgentWithVisibility = AgentBasicInformation & {
-    visibility?: 'PUBLIC' | 'PRIVATE';
-};
-
+/**
+ * Props for the agents list component.
+ */
 type AgentsListProps = {
-    agents: AgentWithVisibility[];
-    isAdmin: boolean;
+    /** Authenticated user/server scope used to abandon a manGo draft when the host changes. */
+    readonly creationScope?: string;
+    /**
+     * List of agents to display, each with basic information and visibility status
+     */
+    readonly agents: AgentOrganizationAgent[];
+
+    /**
+     * List of folders to display in the hierarchy
+     */
+    readonly folders: AgentOrganizationFolder[];
+
+    /**
+     * Indicates if the current user has administrative privileges for managing agents
+     */
+    readonly isAdmin: boolean;
+
+    /**
+     * Indicates if the current user can organize agents and folders
+     */
+    readonly canOrganize: boolean;
+
+    /**
+     * Base URL of the agents server
+     *
+     * Note: [??] Using `string_url`, not `URL` object because we are passing prop from server to client.
+     */
+    readonly publicUrl: string_url;
 };
 
-export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) {
-    const router = useRouter();
-    const [agents, setAgents] = useState(Array.from(initialAgents));
-
-    const handleDelete = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
-        if (!agent) return;
-        if (!window.confirm(`Delete agent "${agent.agentName}"? It will be moved to Recycle Bin.`)) return;
-
-        try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
-            if (response.ok) {
-                // Update local state immediately
-                setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
-                // Note: router.refresh() is not needed here as the local state update is sufficient
-                // and prevents the brief empty list issue during refresh
-            } else {
-                alert('Failed to delete agent');
-            }
-        } catch (error) {
-            alert('Failed to delete agent');
-        }
-    };
-
-    const handleClone = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
-        if (!agent) return;
-        if (!window.confirm(`Clone agent "${agent.agentName}"?`)) return;
-
-        try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, { method: 'POST' });
-            if (response.ok) {
-                const newAgent = await response.json();
-                setAgents([...agents, newAgent]);
-                router.refresh(); // Refresh server data to ensure consistency
-            } else {
-                alert('Failed to clone agent');
-            }
-        } catch (error) {
-            alert('Failed to clone agent');
-        }
-    };
-
-    const handleToggleVisibility = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
-        if (!agent) return;
-
-        const newVisibility = agent.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
-        if (!window.confirm(`Make agent "${agent.agentName}" ${newVisibility.toLowerCase()}?`)) return;
-
-        const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ visibility: newVisibility }),
-        });
-
-        if (response.ok) {
-            // Update the local state
-            setAgents(agents.map(a =>
-                a.permanentId === agent.permanentId || a.agentName === agent.agentName
-                    ? { ...a, visibility: newVisibility }
-                    : a
-            ));
-            router.refresh(); // Refresh server data to ensure consistency
-        } else {
-            alert('Failed to update agent visibility');
-        }
-    };
+/**
+ * Renders the agents list with folder navigation and organization controls.
+ */
+export function AgentsList(props: AgentsListProps) {
+    const { creationScope, canOrganize, isAdmin, publicUrl } = props;
+    const state = useAgentsListState(props);
+    const contextMenuFolder = state.contextMenuFolder;
+    const onDeleteContextMenuFolder =
+        canOrganize && contextMenuFolder ? () => state.handleDeleteFolder(contextMenuFolder.id) : undefined;
+    const onOpenContextMenuFolder = contextMenuFolder ? () => state.navigateToFolder(contextMenuFolder.id) : undefined;
+    const onRenameContextMenuFolder =
+        canOrganize && contextMenuFolder ? () => state.handleRenameFolder(contextMenuFolder.id) : undefined;
+    const onRequestContextMenuFolderVisibilityUpdate =
+        isAdmin && contextMenuFolder
+            ? () => state.handleRequestFolderVisibilityUpdate(contextMenuFolder.id)
+            : undefined;
 
     return (
-        <Section title={`Agents (${agents.length})`}>
-            {agents.map((agent) => (
-                <AgentCard
-                    key={agent.permanentId || agent.agentName}
-                    agent={agent}
-                    href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
-                    isAdmin={isAdmin}
-                    onDelete={handleDelete}
-                    onClone={handleClone}
-                    onToggleVisibility={handleToggleVisibility}
-                    visibility={agent.visibility}
-                />
-            ))}
-            {isAdmin && <AddAgentButton />}
-            {isAdmin && (
-                <Link
-                    href="/recycle-bin"
-                    className="flex items-center gap-2 px-4 py-2 mt-4 text-gray-600 hover:text-red-600 transition-colors"
-                >
-                    <TrashIcon className="w-4 h-4" />
-                    Open Recycle Bin
-                </Link>
+        <section
+            className={`relative mt-16 first:mt-4 mb-4 ${
+                state.isAgentsImportDragActive ? 'rounded-xl ring-2 ring-blue-400 ring-offset-4' : ''
+            }`}
+            onDragEnter={isAdmin ? state.handleAgentsFileDragEnter : undefined}
+            onDragLeave={isAdmin ? state.handleAgentsFileDragLeave : undefined}
+            onDragOver={isAdmin ? state.handleAgentsFileDragOver : undefined}
+            onDrop={isAdmin ? state.handleAgentsFileDrop : undefined}
+        >
+            {isAdmin && state.isAgentsImportDragActive && (
+                <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl border-2 border-dashed border-blue-400 bg-blue-50/85 text-sm font-medium text-blue-800 shadow-sm">
+                    Drop books or ZIP archives to import agents
+                </div>
             )}
-        </Section>
+            <AgentsListHeader
+                agentCount={state.agentCount}
+                allAgentsLabel={state.allAgentsLabel}
+                breadcrumbFolders={state.breadcrumbFolders}
+                canOrganize={canOrganize}
+                hasHiddenFolders={state.hasHiddenFolders}
+                headingTitle={state.headingTitle}
+                isAdmin={isAdmin}
+                isAgentsExporting={state.isAgentsExporting}
+                isAgentsImporting={state.isAgentsImporting}
+                isHiddenFoldersVisible={state.isHiddenFoldersVisible}
+                onCreateFolder={state.handleCreateFolder}
+                onExportAgents={() => void state.handleAgentsExport()}
+                onNavigateToFolder={state.navigateToFolder}
+                onSetHiddenFoldersVisible={state.setHiddenFoldersVisible}
+            />
+            <AgentsListListView
+                creationScope={creationScope}
+                activeAgent={state.activeAgent}
+                activeDragItemType={state.activeDragItemType}
+                activeFolder={state.activeFolder}
+                allowFullCardDrag={state.allowFullCardDrag}
+                canOrganize={canOrganize}
+                currentFolderId={state.currentFolderId}
+                dragAgentLabel={state.dragAgentLabel}
+                dragFolderLabel={state.dragFolderLabel}
+                dropIndicator={state.dropIndicator}
+                getAgentDragId={state.getAgentDragId}
+                getFolderDragId={state.getFolderDragId}
+                getFolderPreviewAgents={state.getFolderPreviewAgents}
+                handleAgentContextMenu={state.handleAgentContextMenu}
+                handleDelete={state.handleDelete}
+                handleDeleteFolder={state.handleDeleteFolder}
+                handleDragCancel={state.handleDragCancel}
+                handleDragEnd={state.handleDragEnd}
+                handleDragOver={state.handleDragOver}
+                handleDragStart={state.handleDragStart}
+                handleAgentsFileDropIntoFolder={state.handleAgentsFileDropIntoFolder}
+                handleFolderContextMenu={state.handleFolderContextMenu}
+                handleRenameFolder={state.handleRenameFolder}
+                handleRequestAgentVisibilityChange={state.handleRequestAgentVisibilityChange}
+                isAdmin={isAdmin}
+                onNavigateToFolder={state.navigateToFolder}
+                parentFolderInfo={state.parentFolderInfo}
+                publicUrl={publicUrl}
+                sensors={state.sensors}
+                visibleAgentDragIds={state.visibleAgentDragIds}
+                visibleAgents={state.visibleAgents}
+                visibleFolderDragIds={state.visibleFolderDragIds}
+                visibleFolders={state.visibleFolders}
+            />
+            <AgentsListDialogs
+                contextMenuAgent={state.contextMenuAgent}
+                contextMenuAgentAnchorPoint={state.contextMenuAgentAnchorPoint}
+                contextMenuAgentEmail={state.contextMenuAgentEmail}
+                contextMenuAgentUrl={state.contextMenuAgentUrl}
+                contextMenuFolder={state.contextMenuFolder}
+                contextMenuFolderAnchorPoint={state.contextMenuFolderAnchorPoint}
+                contextMenuFolderContext={state.contextMenuFolderContext}
+                contextMenuIdentifier={state.contextMenuIdentifier}
+                folderEditDialogInitialValues={state.folderEditDialogInitialValues}
+                folderEditDialogMode={state.folderEditDialogMode}
+                isFolderEditSubmitting={state.isFolderEditSubmitting}
+                isAdmin={isAdmin}
+                isAuthenticated={canOrganize}
+                onAgentRenamed={state.handleContextMenuAgentRenamed}
+                onCloseContextMenu={state.handleCloseContextMenu}
+                onCloseFolderContextMenu={state.handleCloseFolderContextMenu}
+                onCloseFolderEditDialog={state.handleCloseFolderEditDialog}
+                onCloseQrCode={state.handleCloseQrCode}
+                onDeleteContextMenuFolder={onDeleteContextMenuFolder}
+                onOpenContextMenuFolder={onOpenContextMenuFolder}
+                onRenameContextMenuFolder={onRenameContextMenuFolder}
+                onRequestContextMenuFolderVisibilityUpdate={onRequestContextMenuFolderVisibilityUpdate}
+                onShowQrCode={state.handleShowQrCode}
+                onSubmitFolderEdit={state.handleSubmitFolderEdit}
+                qrCodeAgent={state.qrCodeAgent}
+                qrCodeAgentEmail={state.qrCodeAgentEmail}
+                qrCodeAgentUrl={state.qrCodeAgentUrl}
+            />
+        </section>
     );
 }

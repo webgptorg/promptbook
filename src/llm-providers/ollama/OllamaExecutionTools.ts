@@ -3,7 +3,9 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { Usage } from '../../execution/Usage';
 import { ZERO_VALUE } from '../../execution/utils/usage-constants';
-import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/string_markdown';
+import type { string_name } from '../../types/string_name';
+import type { string_title } from '../../types/string_title';
 import { computeOpenAiUsage } from '../openai/computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from '../openai/OpenAiCompatibleExecutionTools';
 import { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
@@ -106,6 +108,4 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
     // <- Note: [🤖] getDefaultXxxModel
 }
 
-/**
- * TODO: [🛄] Some way how to re-wrap the errors from `OpenAiCompatibleExecutionTools`
- */
+// TODO: [🛄] Some way how to re-wrap the errors from `OpenAiCompatibleExecutionTools`

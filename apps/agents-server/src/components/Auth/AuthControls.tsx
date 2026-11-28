@@ -1,11 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
+/**
+ * Props for auth controls.
+ */
 type AuthControlsProps = {
     initialUser: { username: string; isAdmin: boolean } | null;
 };
 
+/**
+ * Handles auth controls.
+ */
 export function AuthControls({ initialUser }: AuthControlsProps) {
     // const router = useRouter();
     const [user] = useState(initialUser);
@@ -91,13 +98,12 @@ export function AuthControls({ initialUser }: AuthControlsProps) {
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-700 mb-1">Password</label>
-                                <input
-                                    type="password"
+                                <SecretInput
+                                    label="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded"
                                     required
+                                    inputClassName="h-auto py-2"
                                 />
                             </div>
                             <div className="flex justify-end space-x-2">

@@ -1,31 +1,65 @@
 import { BehaviorSubject } from 'rxjs';
-import spaceTrim from 'spacetrim';
-import type { AgentBasicInformation, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
+import type {
+    AgentBasicInformation,
+    AgentCapability,
+    BookParameter,
+} from '../../book-2.0/agent-source/AgentBasicInformation';
 import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
 import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaultAgentName';
-import { padBook } from '../../book-2.0/agent-source/padBook';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { validateBook } from '../../book-2.0/agent-source/string_book';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { getAllCommitmentsToolTitles } from '../../commitments/_common/getAllCommitmentsToolTitles';
+import { PROMPT_PARAMETER_SELF_LEARNING_ENABLED } from '../../constants';
+import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    string_agent_hash,
-    string_agent_name,
-    string_agent_url,
-    string_color,
-    string_date_iso8601,
-    string_fonts,
-    string_markdown,
-    string_prompt,
-    string_url_image,
-} from '../../types/typeAliases';
+import type { string_agent_hash, string_agent_name } from '../../types/string_agent_name';
+import type { string_agent_url } from '../../types/string_agent_url';
+import type { string_fonts, string_markdown } from '../../types/string_markdown';
+import type { string_color } from '../../types/string_person_fullname';
+import type { string_prompt } from '../../types/string_prompt';
+import type { string_date_iso8601 } from '../../types/string_token';
+import type { string_url_image } from '../../types/string_url_image';
+import type { SelfLearningToolCallResult, ToolCall } from '../../types/ToolCall';
 import { asUpdatableSubject } from '../../types/Updatable';
 import { normalizeMessageText } from '../../utils/normalization/normalizeMessageText';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
+import { SelfLearningManager } from './self-learning/SelfLearningManager';
+
+/**
+ * Parses boolean prompt parameters, defaulting when the value is missing or invalid.
+ *
+ * @private
+ */
+function parseBooleanPromptParameter(value: string | undefined, fallback: boolean): boolean {
+    if (value === undefined) {
+        return fallback;
+    }
+
+    const normalized = value.trim().toLowerCase();
+
+    if (normalized === 'true') {
+        return true;
+    }
+
+    if (normalized === 'false') {
+        return false;
+    }
+
+    try {
+        const parsed = JSON.parse(value);
+        if (typeof parsed === 'boolean') {
+            return parsed;
+        }
+    } catch {
+        // If JSON parsing fails, fall back to the default.
+    }
+
+    return fallback;
+}
 
 /**
  * Represents one AI Agent
@@ -34,7 +68,8 @@ import type { AgentOptions } from './AgentOptions';
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
- * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ * - `OpenAiAssistantExecutionTools` - (Deprecated) which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities
+ * - `OpenAiAgentKitExecutionTools` - which is a specific implementation of `LlmExecutionTools` backed by OpenAI AgentKit
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/core`
@@ -65,6 +100,24 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public links: Array<string_agent_url> = [];
 
     /**
+     * Capabilities of the agent
+     * This is parsed from commitments like USE CALENDAR, USE PROJECT, KNOWLEDGE, etc.
+     */
+    public capabilities: Array<AgentCapability> = [];
+
+    /**
+     * List of sample conversations (question/answer pairs)
+     */
+    public samples: Array<{ question: string | null; answer: string }> = [];
+
+    /**
+     * Knowledge sources (documents, URLs) used by the agent
+     * This is parsed from KNOWLEDGE commitments
+     * Used for resolving document citations when the agent references sources
+     */
+    public knowledgeSources: Array<{ url: string; filename: string }> = [];
+
+    /**
      * Computed hash of the agent source for integrity verification
      */
     public get agentHash(): string_agent_hash {
@@ -77,6 +130,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public meta: {
         fullname?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
         link?: string;
         font?: string_fonts;
         color?: string_color;
@@ -86,37 +140,66 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     } = {};
 
     /**
+     * Human-readable titles for tool functions
+     */
+    public toolTitles: Record<string, string> = {};
+
+    /**
      * Not used in Agent, always returns empty array
      */
-    get parameters(): BookParameter[] {
+    get parameters(): Array<BookParameter> {
         return [
             /* [😰] */
         ];
     }
 
     public readonly agentSource: BehaviorSubject<string_book>;
+    private readonly selfLearningManager: SelfLearningManager;
 
-    constructor(options: AgentOptions) {
+    public constructor(options: AgentOptions) {
         const agentSource = asUpdatableSubject(options.agentSource);
 
         super({
             isVerbose: options.isVerbose,
             llmTools: getSingleLlmExecutionTools(options.executionTools.llm),
+            assistantPreparationMode: options.assistantPreparationMode,
             agentSource: agentSource.value, // <- TODO: [🐱‍🚀] Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
+            precomputedModelRequirements: options.precomputedModelRequirements,
         });
         // TODO: [🐱‍🚀] Add `Agent` simple "mocked" learning by appending to agent source
         // TODO: [🐱‍🚀] Add `Agent` learning by promptbookAgent
 
         this.agentSource = agentSource;
+        this.selfLearningManager = new SelfLearningManager({
+            teacherAgent: options.teacherAgent,
+            getAgentSource: () => this.agentSource.value,
+            updateAgentSource: (source) => this.agentSource.next(source),
+        });
         this.agentSource.subscribe((source) => {
             this.updateAgentSource(source);
 
-            const { agentName, personaDescription, initialMessage, links, meta } = parseAgentSource(source);
+            const {
+                agentName,
+                personaDescription,
+                initialMessage,
+                links,
+                meta,
+                capabilities,
+                samples,
+                knowledgeSources,
+            } = parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
             this.initialMessage = initialMessage;
             this.links = links;
+            this.capabilities = capabilities;
+            this.samples = samples;
+            this.knowledgeSources = knowledgeSources;
             this.meta = { ...this.meta, ...meta };
+            this.toolTitles = {
+                ...getAllCommitmentsToolTitles(),
+                'self-learning': 'Self learning',
+            };
         });
     }
 
@@ -128,12 +211,15 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public async callChatModelStream(
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         // [1] Check if the user is asking the same thing as in the samples
-        const modelRequirements = await this.getAgentModelRequirements();
+        const modelRequirements = await this.getModelRequirements();
         if (modelRequirements.samples) {
             const normalizedPrompt = normalizeMessageText(prompt.content);
-            const sample = modelRequirements.samples.find((s) => normalizeMessageText(s.question) === normalizedPrompt);
+            const sample = modelRequirements.samples.find(
+                (sample) => sample.question !== null && normalizeMessageText(sample.question) === normalizedPrompt,
+            );
 
             if (sample) {
                 const now = new Date().toISOString() as string_date_iso8601;
@@ -146,6 +232,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
                     },
                     usage: {
                         price: { value: 0, isUncertain: true },
+                        duration: { value: 0, isUncertain: true },
                         input: {
                             tokensCount: { value: 0, isUncertain: true },
                             charactersCount: { value: 0, isUncertain: true },
@@ -174,43 +261,64 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             }
         }
 
-        const result = await super.callChatModelStream(prompt, onProgress);
+        const result = await super.callChatModelStream(prompt, onProgress, options);
 
         if (result.rawResponse && 'sample' in result.rawResponse) {
             return result;
         }
 
-        if (modelRequirements.metadata?.isClosed) {
+        if (modelRequirements.isClosed) {
             return result;
         }
 
-        // TODO: !!! Extract learning to separate method
-        // Learning: Append the conversation sample to the agent source
-        const learningExample = spaceTrim(
-            (block) => `
-
-                ---
-
-                USER MESSAGE
-                ${block(prompt.content)}
-
-                AGENT MESSAGE
-                ${block(result.content)}
-
-            `,
+        const shouldSelfLearn = parseBooleanPromptParameter(
+            prompt.parameters?.[PROMPT_PARAMETER_SELF_LEARNING_ENABLED],
+            true,
         );
 
-        // Append to the current source
-        const currentSource = this.agentSource.value;
-        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample));
+        if (!shouldSelfLearn) {
+            return result;
+        }
 
-        // Update the source (which will trigger the subscription and update the underlying tools)
-        this.agentSource.next(newSource as string_book);
+        // Note: [0] Notify start of self-learning
+        const selfLearningToolCall: ToolCall = {
+            name: 'self-learning',
+            arguments: {},
+            createdAt: new Date().toISOString() as string_date_iso8601,
+        };
 
-        return result;
+        const resultWithLearning = {
+            ...result,
+            toolCalls: [...(result.toolCalls || []), selfLearningToolCall],
+        };
+
+        onProgress(resultWithLearning);
+
+        const teacherSummary = await this.selfLearningManager.runSelfLearning(prompt, result);
+
+        // Note: [4] Notify end of self-learning
+        const completedAt = new Date().toISOString() as string_date_iso8601;
+        const selfLearningResult: SelfLearningToolCallResult = {
+            success: true,
+            startedAt: selfLearningToolCall.createdAt,
+            completedAt,
+            samplesAdded: 1,
+            teacher: teacherSummary || undefined,
+        };
+        const completedSelfLearningToolCall: ToolCall = {
+            ...selfLearningToolCall,
+            result: selfLearningResult,
+        };
+
+        const finalResult = {
+            ...result,
+            toolCalls: [...(result.toolCalls || []), completedSelfLearningToolCall],
+        };
+
+        onProgress(finalResult);
+
+        return finalResult;
     }
 }
 
-/**
- * TODO: [🧠][😰]Agent is not working with the parameters, should it be?
- */
+// TODO: [🧠][😰]Agent is not working with the parameters, should it be?

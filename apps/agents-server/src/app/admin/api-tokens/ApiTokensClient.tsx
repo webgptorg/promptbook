@@ -2,31 +2,85 @@
 
 import { Copy, Plus, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import { SecretInput } from '../../../components/SecretInput/SecretInput';
+import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { ApiTokenEntry, createApiToken, deleteApiToken, fetchApiTokens } from '../../../utils/apiTokensClient';
+import { formatServerLanguageHumanReadableDate } from '../../../utils/localization/formatServerLanguageHumanReadableDate';
+import { AdminSortableTableHeaderCell } from '../_components/AdminSortableTableHeaderCell';
+import { useAdminTableSorting, type AdminTableSortOrder } from '../_components/adminTableSorting';
 
-type ApiTokenEntry = {
-    id: number;
+/**
+ * Props for rendering a single API token in a masked input.
+ */
+type TokenSecretFieldProps = {
     token: string;
-    note: string | null;
-    createdAt: string;
-    updatedAt: string;
-    isRevoked: boolean;
+    onCopy: (text: string) => void;
 };
 
+/**
+ * Sortable API token table columns.
+ */
+type ApiTokenTableSortField = 'token' | 'note' | 'createdAt';
+
+/**
+ * Renders one token value using the shared secret field with visibility toggle and copy action.
+ */
+function TokenSecretField({ token, onCopy }: TokenSecretFieldProps) {
+    return (
+        <SecretInput
+            value={token}
+            readOnly
+            aria-label="API token"
+            onFocus={(event) => event.currentTarget.select()}
+            inputClassName="font-mono text-xs sm:text-sm"
+            endAdornment={
+                <button
+                    type="button"
+                    onClick={() => onCopy(token)}
+                    className="rounded p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-promptbook-blue"
+                    title="Copy to clipboard"
+                    aria-label="Copy token to clipboard"
+                >
+                    <Copy className="w-4 h-4" />
+                </button>
+            }
+        />
+    );
+}
+
+/**
+ * Resolves the initial direction used when switching API token sort fields.
+ */
+function resolveApiTokenDefaultSortOrder(sortBy: ApiTokenTableSortField): AdminTableSortOrder {
+    return sortBy === 'createdAt' ? 'desc' : 'asc';
+}
+
+/**
+ * Resolves a comparable value for one API token row.
+ */
+function resolveApiTokenSortValue(entry: ApiTokenEntry, sortBy: ApiTokenTableSortField) {
+    return entry[sortBy];
+}
+
+/**
+ * Renders the admin API token management UI.
+ */
 export function ApiTokensClient() {
+    const { language } = useServerLanguage();
     const [tokens, setTokens] = useState<ApiTokenEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [note, setNote] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
+    /**
+     * Loads the current API tokens for display.
+     */
     const fetchTokens = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/api-tokens');
-            if (!response.ok) {
-                throw new Error('Failed to fetch tokens');
-            }
-            const data: ApiTokenEntry[] = await response.json();
+            const data = await fetchApiTokens();
             setTokens(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
@@ -39,23 +93,16 @@ export function ApiTokensClient() {
         fetchTokens();
     }, []);
 
+    /**
+     * Creates a new API token using the provided note.
+     */
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsCreating(true);
 
         try {
-            const response = await fetch('/api/api-tokens', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ note }),
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to create token');
-            }
-
+            await createApiToken(note);
             setNote('');
             fetchTokens();
         } catch (err) {
@@ -65,29 +112,41 @@ export function ApiTokensClient() {
         }
     };
 
+    /**
+     * Deletes a token after confirming with the user.
+     */
     const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this token?')) return;
+        const confirmed = await showConfirm({
+            title: 'Delete API token',
+            message: 'Are you sure you want to delete this token?',
+            confirmLabel: 'Delete token',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) return;
 
         try {
-            const response = await fetch(`/api/api-tokens?id=${id}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to delete token');
-            }
-
+            await deleteApiToken(id);
             fetchTokens();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         }
     };
 
+    /**
+     * Copies a token value to the clipboard.
+     */
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         // You could add a toast notification here
     };
+
+    const tokenSorting = useAdminTableSorting<ApiTokenEntry, ApiTokenTableSortField>({
+        rows: tokens,
+        defaultSortBy: 'createdAt',
+        defaultSortOrder: 'desc',
+        resolveDefaultSortOrder: resolveApiTokenDefaultSortOrder,
+        resolveSortValue: resolveApiTokenSortValue,
+    });
 
     if (loading && tokens.length === 0) {
         return <div className="p-8 text-center">Loading tokens...</div>;
@@ -126,15 +185,36 @@ export function ApiTokensClient() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="token"
+                                sortBy="token"
+                                activeSortBy={tokenSorting.sortBy}
+                                sortOrder={tokenSorting.sortOrder}
+                                onSortChange={tokenSorting.handleSortChange}
+                            >
                                 Token
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="note"
+                                sortBy="note"
+                                activeSortBy={tokenSorting.sortBy}
+                                sortOrder={tokenSorting.sortOrder}
+                                onSortChange={tokenSorting.handleSortChange}
+                            >
                                 Note
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </AdminSortableTableHeaderCell>
+                            <AdminSortableTableHeaderCell
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                label="created at"
+                                sortBy="createdAt"
+                                activeSortBy={tokenSorting.sortBy}
+                                sortOrder={tokenSorting.sortOrder}
+                                onSortChange={tokenSorting.handleSortChange}
+                            >
                                 Created At
-                            </th>
+                            </AdminSortableTableHeaderCell>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
@@ -148,23 +228,14 @@ export function ApiTokensClient() {
                                 </td>
                             </tr>
                         ) : (
-                            tokens.map((entry) => (
+                            tokenSorting.sortedRows.map((entry) => (
                                 <tr key={entry.id}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">
-                                        <div className="flex items-center gap-2">
-                                            <span>{entry.token}</span>
-                                            <button
-                                                onClick={() => copyToClipboard(entry.token)}
-                                                className="text-gray-400 hover:text-gray-600"
-                                                title="Copy to clipboard"
-                                            >
-                                                <Copy className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                        <TokenSecretField token={entry.token} onCopy={copyToClipboard} />
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{entry.note || '-'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {new Date(entry.createdAt).toLocaleDateString()}
+                                        {formatServerLanguageHumanReadableDate(entry.createdAt, language)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button

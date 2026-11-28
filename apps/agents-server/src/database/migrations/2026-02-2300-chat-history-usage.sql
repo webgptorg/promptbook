@@ -1,0 +1,2 @@
+
+ALTER TABLE "prefix_ChatHistory" ADD COLUMN "usage" JSONB;

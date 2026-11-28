@@ -1,0 +1,21 @@
+# Promptbook vs ChatGPT
+
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
+ChatGPT is a general-purpose conversational AI developed by OpenAI, designed to assist users across a wide range of topics through natural language interactions. It leverages advanced machine learning techniques to generate human-like responses based on the input it receives.
+
+While ChatGPT is highly capable, it primarily functions as a raw model interface or a simple chatbot. It lacks a structured way to define complex agent personalities, enforceable rules, and deeply integrated knowledge bases that are portable and model-agnostic. In the enterprise context, ChatGPT often suffers from "jailbreaking" vulnerabilities where instructions are bypassed, a problem Promptbook solves through **Adversary Enforcement**.
+
+## Side-by-Side Comparison
+
+| Promptbook                                                                                                                                                       | ChatGPT                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| ✔ **Agents with defined personalities**: Structured `PERSONA` commitment.                                                                                        | ✔ **Instant Access**: No setup required, immediately available to use.                                                                    |
+| ✔ **Enforceable Rules**: `RULE` commitment with adversary agent checks.                                                                                          | ✔ **Wide Knowledge**: Extensive training on diverse topics and domains.                                                                   |
+| ✔ **Model Agnostic**: Agents can be ported across different LLM providers.                                                                                       | ✔ **Advanced Reasoning**: State-of-the-art language understanding.                                                                        |
+| ✔ **Structured Knowledge**: `KNOWLEDGE` commitment with automatic RAG/context management.                                                                        | ✔ **Image & Voice Support**: Native multimodal capabilities built-in.                                                                     |
+| ✔ **Team Collaboration**: `TEAM` commitment to simulate expert consultation.                                                                                     | ✘ **Solo Interaction**: Interaction is typically 1-on-1 with the model.                                                                   |
+| ✔ **Prompt Integrity**: Adversary agents actively check for rule violations.                                                                                     | ✘ **Vulnerable**: High susceptibility to prompt injection/jailbreaking.                                                                   |
+| ✘ **Setup Required**: Requires defining agents and potentially hosting servers.                                                                                  | ✘ **Vendor Locked**: Tied specifically to OpenAI's models and platform.                                                                   |
+| 💡 **Book Language**: A dedicated language for defining AI agents reliably.                                                                                      | 💡 **Natural Language**: Highly flexible for creative and varied tasks.                                                                   |
+| **Best for:** Creating specialized, reliable AI agents with strict behavior rules and portable definitions for professional use cases where consistency matters. | **Best for:** General conversational assistance, quick tasks, creative brainstorming, and immediate access to AI without technical setup. |

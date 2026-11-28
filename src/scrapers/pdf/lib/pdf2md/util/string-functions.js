@@ -1,7 +1,22 @@
+/**
+ * Constant for min digit char code.
+ */
 const MIN_DIGIT_CHAR_CODE = 48;
+/**
+ * Constant for max digit char code.
+ */
 const MAX_DIGIT_CHAR_CODE = 57;
+/**
+ * Constant for whitespace char code.
+ */
 const WHITESPACE_CHAR_CODE = 32;
+/**
+ * Constant for tab char code.
+ */
 const TAB_CHAR_CODE = 9;
+/**
+ * Constant for dot char code.
+ */
 const DOT_CHAR_CODE = 46;
 
 exports.removeLeadingWhitespaces = function removeLeadingWhitespaces(string) {
@@ -119,6 +134,6 @@ exports.isNumberedListItem = function isNumberedListItem(string) {
 exports.wordMatch = function wordMatch(string1, string2) {
     const words1 = new Set(string1.toUpperCase().split(' '));
     const words2 = new Set(string2.toUpperCase().split(' '));
-    const intersection = new Set([...words1].filter((x) => words2.has(x)));
+    const intersection = new Set([...words1].filter((word) => words2.has(word)));
     return intersection.size / Math.max(words1.size, words2.size);
 };

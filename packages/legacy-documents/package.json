@@ -1,7 +1,7 @@
 {
     "name": "@promptbook/legacy-documents",
-    "version": "0.104.0-5",
-    "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
+    "version": "0.114.0-50",
+    "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -93,17 +93,17 @@
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/legacy-documents.index.d.ts",
+    "types": "./esm/src/_packages/legacy-documents.index.d.ts",
+    "typings": "./esm/src/_packages/legacy-documents.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.104.0-5"
+        "@promptbook/core": "0.114.0-50"
     },
     "dependencies": {
         "colors": "1.4.0",
-        "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "papaparse": "5.4.1",
         "rxjs": "7.8.2",
         "spacetrim": "0.11.60",
-        "waitasecond": "1.11.160"
+        "waitasecond": "1.11.164"
     }
 }

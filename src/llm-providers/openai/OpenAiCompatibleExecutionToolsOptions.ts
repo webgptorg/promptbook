@@ -1,5 +1,6 @@
 import type { ClientOptions } from 'openai';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { RemoteClientOptions } from '../../remote-server/types/RemoteClientOptions';
 
 /**
@@ -18,6 +19,7 @@ export type OpenAiCompatibleExecutionToolsOptions =
  * Options for directly used `OpenAiCompatibleExecutionTools`
  *
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
+ *
  * @public exported from `@promptbook/openai`
  */
 export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions &
@@ -34,6 +36,11 @@ export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions
          */
         baseURL?: string;
 
+        /**
+         * Tools for executing the scripts
+         */
+        readonly executionTools?: Pick<ExecutionTools, 'script'>;
+
         isProxied?: false;
     };
 
@@ -41,6 +48,7 @@ export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions
  * Options for proxied `OpenAiCompatibleExecutionTools`
  *
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
+ *
  * @public exported from `@promptbook/openai`
  */
 export type OpenAiCompatibleExecutionToolsProxiedOptions = CommonToolsOptions &

@@ -1,9 +1,11 @@
 {
     "name": "book-components",
     "scripts": {
-        "dev": "(npx kill-port 4022 || true) && next dev -p 4022 --turbopack",
+        "predev": "npx kill-port 4022",
+        "dev": "next dev -p 4022 --turbopack",
         "test-build": "npm run build",
-        "build": "(npx kill-port 4022 || true) && next build",
+        "prebuild": "npx kill-port 4022",
+        "build": "next build",
         "start": "next start -p 4022",
         "lint": "next lint --max-warnings=0",
         "postinstall": "cd ../../ && npm ci"

@@ -1,9 +1,21 @@
 import type { AgentsServerDatabase } from '../database/schema';
 
+/**
+ * Type describing chat feedback row.
+ */
 export type ChatFeedbackRow = AgentsServerDatabase['public']['Tables']['ChatFeedback']['Row'];
+/**
+ * Type describing chat feedback sort field.
+ */
 export type ChatFeedbackSortField = 'createdAt' | 'agentName' | 'id';
+/**
+ * Type describing chat feedback sort order.
+ */
 export type ChatFeedbackSortOrder = 'asc' | 'desc';
 
+/**
+ * Response for chat feedback list.
+ */
 export type ChatFeedbackListResponse = {
     items: ChatFeedbackRow[];
     total: number;
@@ -13,6 +25,9 @@ export type ChatFeedbackListResponse = {
     sortOrder: ChatFeedbackSortOrder;
 };
 
+/**
+ * Type describing chat feedback list params.
+ */
 export type ChatFeedbackListParams = {
     page?: number;
     pageSize?: number;

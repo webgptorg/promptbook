@@ -1,37 +1,101 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
-import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
 import { NotFoundError } from '../../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
-import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import type { string_agent_name } from '../../../../types/typeAliases';
-import { keepUnused } from '../../../../utils/organization/keepUnused';
+import type { string_agent_name, string_agent_permanent_id } from '../../../../types/string_agent_name';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
-import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
+import type { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
+import { buildAgentNameOrPermanentIdFilter } from './buildAgentNameOrPermanentIdFilter';
+import type { CreateAgentPersistenceRecordsOptions } from './createAgentPersistenceRecords';
+import { createAgentPersistenceRecords } from './createAgentPersistenceRecords';
+import { prepareAgentSourceForPersistence } from './prepareAgentSourceForPersistence';
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
 // <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
 
 /**
- * Agent collection stored in Supabase table
+ * Options for creating a new agent entry.
+ */
+type CreateAgentOptions = CreateAgentPersistenceRecordsOptions;
+
+/**
+ * Optional controls for persisting one source update.
+ */
+type UpdateAgentSourceOptions = {
+    /**
+     * Optional human-readable history milestone name saved with the snapshot.
+     */
+    readonly versionName?: string | null;
+};
+
+/**
+ * Normalizes optional history version name before persistence.
  *
- * Note: This object can work both from Node.js and browser environment depending on the Supabase client provided
+ * @param versionName - Raw input value.
+ * @returns Trimmed non-empty name, otherwise `null`.
+ */
+function normalizeHistoryVersionName(versionName: string | null | undefined): string | null {
+    if (typeof versionName !== 'string') {
+        return null;
+    }
+
+    const normalizedVersionName = versionName.trim();
+    return normalizedVersionName.length > 0 ? normalizedVersionName : null;
+}
+
+/**
+ * One saved Agent history row without the full source payload.
+ */
+type AgentHistoryMetadata = {
+    readonly id: number;
+    readonly createdAt: string;
+    readonly agentName: string;
+    readonly agentHash: string;
+    readonly previousAgentHash: string | null;
+    readonly promptbookEngineVersion: string;
+    readonly versionName: string | null;
+};
+
+/**
+ * One saved Agent history row including the full source snapshot.
+ */
+type AgentHistorySnapshot = AgentHistoryMetadata & {
+    readonly agentSource: string;
+};
+
+/**
+ * Minimal database row used to build public agent information.
+ *
+ * @private internal type of `AgentCollectionInSupabase`
+ */
+type AgentBasicInformationRow = Pick<
+    AgentsDatabaseSchema['public']['Tables']['Agent']['Row'],
+    'agentName' | 'agentProfile' | 'permanentId'
+>;
+
+/**
+ * Agent collection stored in a Supabase table.
+ *
+ * This class provides a way to manage a collection of agents (pipelines) using Supabase
+ * as the storage backend. It supports listing, creating, updating, and soft-deleting agents.
+ *
+ * Note: This object can work both from Node.js and browser environment depending on the Supabase client provided.
+ *
+ * TODO: [🐱‍🚀] Move to `@promptbook/supabase` package
  *
  * @public exported from `@promptbook/core`
- * <- TODO: [🐱‍🚀] Move to `@promptbook/supabase` package
  */
-export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent */ {
+export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements AgentCollection */ {
     /**
-     * @param rootPath - path to the directory with agents
-     * @param tools - Execution tools to be used in [🐱‍🚀] `Agent` itself and listing the agents
-     * @param options - Options for the collection creation
+     * @param supabaseClient - The initialized Supabase client
+     * @param options - Configuration options for the collection (e.g., table prefix, verbosity)
      */
     public constructor(
         private readonly supabaseClient: SupabaseClient<AgentsDatabaseSchema>,
@@ -74,44 +138,164 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             console.info(`Found ${selectResult.data.length} agents in directory`);
         }
 
-        return selectResult.data.map(({ agentName, agentProfile, permanentId }) => {
-            if (isVerbose && (agentProfile as AgentBasicInformation).agentName !== agentName) {
-                console.warn(
-                    spaceTrim(`
+        return selectResult.data.map((row) => this.mapAgentBasicInformationRow(row, isVerbose));
+    }
+
+    /**
+     * Finds one active agent profile by its human-readable name or permanent id.
+     *
+     * This keeps route-level lookups from loading the whole agent collection when only
+     * one canonical route identifier is needed.
+     *
+     * @param agentNameOrPermanentId - Agent name or stable permanent identifier.
+     * @returns Matching active agent profile or `null` when not found.
+     *
+     * @public exported from `@promptbook/core`
+     */
+    public async findAgentBasicInformation(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+    ): Promise<AgentBasicInformation | null> {
+        const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
+        const selectResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('agentName,agentProfile,permanentId')
+            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId))
+            .is('deletedAt', null)
+            .order('createdAt', { ascending: true })
+            .limit(1);
+
+        if (selectResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+
+                        Error fetching agent "${agentNameOrPermanentId}" from Supabase:
+
+                        ${block(selectResult.error.message)}
+                    `,
+                ),
+            );
+        }
+
+        const row = selectResult.data?.[0];
+        return row ? this.mapAgentBasicInformationRow(row, isVerbose) : null;
+    }
+
+    /**
+     * Converts one database row into public agent information.
+     *
+     * @param row - Database row carrying the persisted profile snapshot.
+     * @param isVerbose - Whether profile-name mismatches should be logged.
+     * @returns Agent profile with canonical database name and permanent id.
+     *
+     * @private internal helper of `AgentCollectionInSupabase`
+     */
+    private mapAgentBasicInformationRow(
+        { agentName, agentProfile, permanentId }: AgentBasicInformationRow,
+        isVerbose: boolean,
+    ): AgentBasicInformation {
+        if (isVerbose && (agentProfile as AgentBasicInformation).agentName !== agentName) {
+            console.warn(
+                spaceTrim(`
                         Agent name mismatch for agent "${agentName}". Using name from database.
 
                         agentName: "${agentName}"
                         agentProfile.agentName: "${(agentProfile as AgentBasicInformation).agentName}"
                     `),
-                );
-            }
+            );
+        }
 
-            return {
-                ...(agentProfile as AgentBasicInformation),
-                agentName,
-                permanentId: permanentId || (agentProfile as AgentBasicInformation).permanentId,
-            };
-        });
+        return {
+            ...(agentProfile as AgentBasicInformation),
+            agentName,
+            permanentId: permanentId || (agentProfile as AgentBasicInformation).permanentId,
+        };
     }
 
     /**
-     * [🐱‍🚀]@@@
+     * Retrieves the permanent ID of an agent by its name or permanent ID.
+     *
+     * An agent that still exists always wins over a soft-deleted one, so a name that was deleted and
+     * later created again resolves to the agent that is live now instead of to the recycle-bin leftover.
+     * Soft-deleted agents stay resolvable as a fallback because the recycle bin restores them by name
+     * or permanent id.
      */
-    public async getAgentSource(agentName: string_agent_name): Promise<string_book> {
+    public async getAgentPermanentId(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+    ): Promise<string_agent_permanent_id> {
+        const activeAgentPermanentId = await this.findAgentPermanentId(agentNameOrPermanentId, {
+            isDeletedAgentIncluded: false,
+        });
+
+        if (activeAgentPermanentId !== null) {
+            return activeAgentPermanentId;
+        }
+
+        const deletedAgentPermanentId = await this.findAgentPermanentId(agentNameOrPermanentId, {
+            isDeletedAgentIncluded: true,
+        });
+
+        if (deletedAgentPermanentId !== null) {
+            return deletedAgentPermanentId;
+        }
+
+        throw new NotFoundError(`Agent with name or id "${agentNameOrPermanentId}" not found`);
+    }
+
+    /**
+     * Looks up the permanent id of the oldest agent matching one name or permanent id.
+     *
+     * @param agentNameOrPermanentId - Agent name or stable permanent identifier to match.
+     * @param options - Whether soft-deleted agents may be matched as well.
+     * @returns Permanent id of the matched agent, or `null` when nothing matches.
+     *
+     * @private internal helper of `AgentCollectionInSupabase`
+     */
+    private async findAgentPermanentId(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+        options: { readonly isDeletedAgentIncluded: boolean },
+    ): Promise<string_agent_permanent_id | null> {
+        const selectQuery = this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('permanentId')
+            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId));
+
+        if (!options.isDeletedAgentIncluded) {
+            selectQuery.is('deletedAt', null);
+        }
+
+        const selectResult = await selectQuery
+            .order('createdAt', { ascending: true }) // Pick oldest if multiple match by name
+            .limit(1);
+
+        if (selectResult.error || !selectResult.data || selectResult.data.length === 0) {
+            return null;
+        }
+
+        return selectResult.data[0]!.permanentId as string_agent_permanent_id;
+    }
+
+    /**
+     * Retrieves the source code of an agent by its name or permanent ID.
+     */
+    public async getAgentSource(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+    ): Promise<string_book> {
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentSource')
-            .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`);
+            .or(buildAgentNameOrPermanentIdFilter(agentNameOrPermanentId))
+            .is('deletedAt', null)
+            .order('createdAt', { ascending: true }) // Pick oldest if multiple match by name
+            .limit(1);
 
         if (selectResult.data && selectResult.data.length === 0) {
-            throw new NotFoundError(`Agent "${agentName}" not found`);
-        } else if (selectResult.data && selectResult.data.length > 1) {
-            throw new UnexpectedError(`More agents with agentName="${agentName}" found`);
+            throw new NotFoundError(`Agent "${agentNameOrPermanentId}" not found`);
         } else if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error fetching agent "${agentName}" from Supabase:
+                        Error fetching agent "${agentNameOrPermanentId}" from Supabase:
                         
                         ${block(selectResult.error.message)}
                     `,
@@ -126,44 +310,28 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      * Creates a new agent in the collection
      *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
+     *
+     * @param agentSource - Source content of the agent.
+     * @param options - Optional folder placement and ordering data.
      */
     public async createAgent(
         agentSource: string_book,
+        options: CreateAgentOptions = {},
     ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>> {
-        let agentProfile = parseAgentSource(agentSource as string_book);
-        //     <- TODO: [🕛]
-        const { agentName, agentHash } = agentProfile;
-        let { permanentId } = agentProfile;
+        const createdAt = new Date().toISOString();
+        const { createdAgent, agentInsertRecord, agentHistoryInsertRecord } = createAgentPersistenceRecords(
+            agentSource,
+            options,
+            createdAt,
+        );
 
-        if (!permanentId) {
-            permanentId = $randomBase58(14);
-            const lines = agentSource.split('\n');
-            if (lines.length > 0) {
-                lines.splice(1, 0, `META ID ${permanentId}`);
-                agentSource = lines.join('\n') as string_book;
-            } else {
-                agentSource = `META ID ${permanentId}\n${agentSource}` as string_book;
-            }
-            agentProfile = parseAgentSource(agentSource as string_book);
-        }
-
-        const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert({
-            agentName,
-            agentHash,
-            permanentId,
-            agentProfile,
-            createdAt: new Date().toISOString(),
-            updatedAt: null,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            usage: ZERO_USAGE,
-            agentSource: agentSource,
-        });
+        const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert(agentInsertRecord);
 
         if (insertAgentResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error creating agent "${agentProfile.agentName}" in Supabase:
+                        Error creating agent "${createdAgent.agentName}" in Supabase:
                         
                         ${block(insertAgentResult.error.message)}
                     `,
@@ -171,31 +339,23 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
-            createdAt: new Date().toISOString(),
-            agentName,
-            agentHash,
-            previousAgentHash: null,
-            agentSource,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-        });
+        await this.insertAgentHistoryRow(agentHistoryInsertRecord);
 
-        keepUnused(insertAgentHistoryResult);
-        // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
-
-        return { ...agentProfile, permanentId };
+        return createdAgent;
     }
 
     /**
      * Updates an existing agent in the collection
      */
-    public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
-        console.log('!!! updateAgentSource', { agentName });
-
+    public async updateAgentSource(
+        permanentId: string_agent_permanent_id,
+        agentSource: string_book,
+        options: UpdateAgentSourceOptions = {},
+    ): Promise<void> {
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
-            .select('agentHash,agentName,permanentId')
-            .eq('agentName', agentName)
+            .select('agentHash,agentName,permanentId,visibility')
+            .eq('permanentId', permanentId)
             .single();
 
         if (selectPreviousAgentResult.error) {
@@ -203,7 +363,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
                 spaceTrim(
                     (block) => `
                 
-                        Error fetching agent "${agentName}" from Supabase:
+                        Error fetching agent "${permanentId}" from Supabase:
                         
                         ${block(selectPreviousAgentResult.error.message)}
                     `,
@@ -215,22 +375,29 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const previousAgentName = selectPreviousAgentResult.data.agentName;
         const previousAgentHash = selectPreviousAgentResult.data.agentHash;
         const previousPermanentId = selectPreviousAgentResult.data.permanentId;
+        const previousVisibility = selectPreviousAgentResult.data.visibility;
 
-        let agentProfile = parseAgentSource(agentSource as string_book);
-        //     <- TODO: [🕛]
-        const { agentHash } = agentProfile;
-        let { permanentId } = agentProfile;
+        const preparedAgentSource = prepareAgentSourceForPersistence(agentSource, {
+            visibility: previousVisibility,
+        });
+        const { agentProfile, agentSource: normalizedAgentSource, visibility } = preparedAgentSource;
+        let { permanentId: newPermanentId } = preparedAgentSource;
 
-        if (!permanentId && previousPermanentId) {
-            permanentId = previousPermanentId;
-            const lines = agentSource.split('\n');
-            if (lines.length > 0) {
-                lines.splice(1, 0, `META ID ${permanentId}`);
-                agentSource = lines.join('\n') as string_book;
-            } else {
-                agentSource = `META ID ${permanentId}\n${agentSource}` as string_book;
-            }
-            agentProfile = parseAgentSource(agentSource as string_book);
+        const { agentHash, agentName } = agentProfile;
+
+        if (!newPermanentId && previousPermanentId) {
+            newPermanentId = previousPermanentId;
+        }
+
+        if (!newPermanentId) {
+            newPermanentId = $randomBase58(14);
+        }
+
+        if (newPermanentId !== permanentId) {
+            // [🧠] Should be allowed to change permanentId?
+            throw new UnexpectedError(
+                `Permanent ID mismatch: "${permanentId}" (argument) !== "${newPermanentId}" (in source)`,
+            );
         }
 
         // TODO: [🐱‍🚀] What about agentName change
@@ -242,15 +409,16 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const updateAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .update({
-                // TODO: [🐱‍🚀] Compare not update> agentName: agentProfile.agentName || '[🐱‍🚀]' /* <- TODO: [🐱‍🚀] Remove */,
+                agentName,
                 permanentId,
                 agentProfile,
                 updatedAt: new Date().toISOString(),
                 agentHash: agentProfile.agentHash,
-                agentSource,
+                agentSource: normalizedAgentSource,
+                visibility: visibility ?? previousVisibility,
                 promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             })
-            .eq('agentName', agentName);
+            .eq('permanentId', permanentId);
 
         // console.log('[🐱‍🚀] updateAgent', updateResult);
         // console.log('[🐱‍🚀] old', oldAgentSource);
@@ -260,7 +428,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error updating agent "${agentName}" in Supabase:
+                        Error updating agent "${permanentId}" in Supabase:
                         
                         ${block(updateAgentResult.error.message)}
                     `,
@@ -268,20 +436,19 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
+        await this.insertAgentHistoryRow({
             createdAt: new Date().toISOString(),
             agentName,
+            permanentId,
             agentHash,
             previousAgentHash,
-            agentSource,
+            agentSource: normalizedAgentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            versionName: normalizeHistoryVersionName(options.versionName),
         });
-
-        keepUnused(insertAgentHistoryResult);
-        // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
     }
 
-    // TODO: [🐱‍🚀] public async getAgentSourceSubject(agentName: string_agent_name): Promise<BehaviorSubject<string_book>>
+    // TODO: [🐱‍🚀] public async getAgentSourceSubject(permanentId: string_agent_permanent_id): Promise<BehaviorSubject<string_book>>
     //            Use Supabase realtime logic
 
     /**
@@ -334,44 +501,37 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      * List history of an agent
      */
     public async listAgentHistory(
-        agentName: string_agent_name,
-    ): Promise<ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>> {
-        const result = await this.supabaseClient
-            .from(this.getTableName('AgentHistory'))
-            .select('id, createdAt, agentHash, promptbookEngineVersion')
-            .eq('agentName', agentName)
-            .order('createdAt', { ascending: false });
+        permanentId: string_agent_permanent_id,
+    ): Promise<ReadonlyArray<AgentHistoryMetadata>> {
+        const historyRows = await this.listAgentHistoryInternal(permanentId, false);
+        return historyRows as ReadonlyArray<AgentHistoryMetadata>;
+    }
 
-        if (result.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                    Error listing history for agent "${agentName}" from Supabase:
-
-                    ${block(result.error.message)}
-                `,
-                ),
-            );
-        }
-
-        return result.data;
+    /**
+     * List history snapshots of an agent including full source snapshots.
+     */
+    public async listAgentHistorySnapshots(
+        permanentId: string_agent_permanent_id,
+    ): Promise<ReadonlyArray<AgentHistorySnapshot>> {
+        const historyRows = await this.listAgentHistoryInternal(permanentId, true);
+        return historyRows as ReadonlyArray<AgentHistorySnapshot>;
     }
 
     /**
      * Restore a soft-deleted agent by setting deletedAt to NULL
      */
-    public async restoreAgent(agentIdentifier: string): Promise<void> {
+    public async restoreAgent(permanentId: string_agent_permanent_id): Promise<void> {
         const updateResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .update({ deletedAt: null })
-            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+            .eq('permanentId', permanentId)
             .not('deletedAt', 'is', null);
 
         if (updateResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                    Error restoring agent "${agentIdentifier}" from Supabase:
+                    Error restoring agent "${permanentId}" from Supabase:
 
                     ${block(updateResult.error.message)}
                 `,
@@ -385,11 +545,14 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      *
      * This will update the current agent with the source from the history entry
      */
-    public async restoreAgentFromHistory(historyId: number): Promise<void> {
+    public async restoreAgentFromHistory(
+        historyId: number,
+        expectedPermanentId?: string_agent_permanent_id,
+    ): Promise<void> {
         // First, get the history entry
         const historyResult = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
-            .select('agentName, agentSource')
+            .select('permanentId, agentSource')
             .eq('id', historyId)
             .single();
 
@@ -409,27 +572,33 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             throw new NotFoundError(`History entry with id "${historyId}" not found`);
         }
 
-        const { agentName, agentSource } = historyResult.data;
+        const { permanentId, agentSource } = historyResult.data;
+
+        if (expectedPermanentId && permanentId !== expectedPermanentId) {
+            throw new NotFoundError(
+                `History entry with id "${historyId}" does not belong to agent "${expectedPermanentId}"`,
+            );
+        }
 
         // Update the agent with the source from the history entry
-        await this.updateAgentSource(agentName as string_agent_name, agentSource as string_book);
+        await this.updateAgentSource(permanentId as string_agent_permanent_id, agentSource as string_book);
     }
 
     /**
      * Soft delete an agent by setting deletedAt to current timestamp
      */
-    public async deleteAgent(agentIdentifier: string): Promise<void> {
+    public async deleteAgent(permanentId: string_agent_permanent_id): Promise<void> {
         const updateResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .update({ deletedAt: new Date().toISOString() })
-            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+            .eq('permanentId', permanentId)
             .is('deletedAt', null);
 
         if (updateResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                    Error deleting agent "${agentIdentifier}" from Supabase:
+                    Error deleting agent "${permanentId}" from Supabase:
 
                     ${block(updateResult.error.message)}
                 `,
@@ -448,11 +617,89 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const { tablePrefix = '' } = this.options || {};
 
         return `${tablePrefix}${tableName}` as TTable;
+        // <- TODO: [🏧] DRY
+    }
+
+    /**
+     * Persists one agent history row and throws when the insert fails.
+     *
+     * @param historyRow - Row to insert into `AgentHistory`.
+     */
+    private async insertAgentHistoryRow(
+        historyRow: AgentsDatabaseSchema['public']['Tables']['AgentHistory']['Insert'],
+    ): Promise<void> {
+        const insertResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert(historyRow);
+
+        if (insertResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                        Error creating agent history snapshot for "${historyRow.permanentId}" in Supabase:
+
+                        ${block(insertResult.error.message)}
+                    `,
+                ),
+            );
+        }
+    }
+
+    /**
+     * Shared loader for Agent history rows.
+     *
+     * @param permanentId - Agent permanent identifier.
+     * @param includeSource - Whether to include full source snapshots.
+     * @returns Agent history rows sorted by creation time descending.
+     */
+    private async listAgentHistoryInternal(
+        permanentId: string_agent_permanent_id,
+        includeSource: boolean,
+    ): Promise<ReadonlyArray<AgentHistoryMetadata | AgentHistorySnapshot>> {
+        if (includeSource) {
+            const result = await this.supabaseClient
+                .from(this.getTableName('AgentHistory'))
+                .select(
+                    'id,createdAt,agentName,agentHash,previousAgentHash,agentSource,promptbookEngineVersion,versionName',
+                )
+                .eq('permanentId', permanentId)
+                .order('createdAt', { ascending: false });
+
+            if (result.error) {
+                throw new DatabaseError(
+                    spaceTrim(
+                        (block) => `
+                        Error listing history for agent "${permanentId}" from Supabase:
+
+                        ${block(result.error.message)}
+                    `,
+                    ),
+                );
+            }
+
+            return result.data as ReadonlyArray<AgentHistorySnapshot>;
+        }
+
+        const result = await this.supabaseClient
+            .from(this.getTableName('AgentHistory'))
+            .select('id,createdAt,agentName,agentHash,previousAgentHash,promptbookEngineVersion,versionName')
+            .eq('permanentId', permanentId)
+            .order('createdAt', { ascending: false });
+
+        if (result.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error listing history for agent "${permanentId}" from Supabase:
+
+                    ${block(result.error.message)}
+                `,
+                ),
+            );
+        }
+
+        return result.data as ReadonlyArray<AgentHistoryMetadata>;
     }
 }
 
-/**
- * TODO: [🐱‍🚀] Implement it here correctly and update JSDoc comments here, and on interface + other implementations
- * TODO: Write unit test
- * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
- */
+// TODO: [🐱‍🚀] Implement it here correctly and update JSDoc comments here, and on interface + other implementations
+// TODO: Write unit test
+// TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention

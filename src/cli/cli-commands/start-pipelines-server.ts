@@ -2,7 +2,7 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forEver } from 'waitasecond';
 import { createPipelineCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';
@@ -13,7 +13,8 @@ import { startRemoteServer } from '../../remote-server/startRemoteServer';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../scrapers/_common/register/$provideScriptingForNode';
-import type { number_port, string_url } from '../../types/typeAliases';
+import type { number_port } from '../../types/number_positive';
+import type { string_url } from '../../types/string_url';
 import { suffixUrl } from '../../utils/normalization/suffixUrl';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -57,7 +58,7 @@ export function $initializeStartPipelinesServerCommand(program: Program): $side_
         spaceTrim(`
             Starts a remote server to execute books
 
-            Note: You want probably to use "ptbk start-agents-server" to start agents server instead of pipelines server
+            Note: You want probably to use "ptbk agents-server start" to start agents server instead of pipelines server
         `),
     );
 
@@ -120,7 +121,6 @@ export function $initializeStartPipelinesServerCommand(program: Program): $side_
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
                 script: await $provideScriptingForNode(prepareAndScrapeOptions),
             } satisfies ExecutionTools; /* <- Note: [🤛] */
-
             // TODO: [🧟‍♂️][◽] DRY:
             const collection = await createPipelineCollectionFromDirectory(path, tools, {
                 isVerbose,
@@ -164,8 +164,6 @@ export function $initializeStartPipelinesServerCommand(program: Program): $side_
     );
 }
 
-/**
- * TODO: [🕋] Use here `aboutPromptbookInformation`
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+// Note: [🟡] Code for CLI command [start-pipelines-server](src/cli/cli-commands/start-pipelines-server.ts) should never be published outside of `@promptbook/cli`
+// TODO: [🕋] Use here `aboutPromptbookInformation`
+// Note: [💞] Ignore a discrepancy between file name and entity name

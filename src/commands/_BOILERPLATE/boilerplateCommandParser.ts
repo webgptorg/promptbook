@@ -1,9 +1,14 @@
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/string_markdown';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson, $TaskJson, CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
@@ -12,6 +17,7 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
  * Note: @@ This command is used as boilerplate for new commands - it should NOT be used in any `.book` file
  *
  * @see `documentationUrl` for more details
+ *
  * @private within the commands folder
  */
 export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateCommand> = {

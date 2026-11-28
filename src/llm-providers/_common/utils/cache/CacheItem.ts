@@ -1,7 +1,7 @@
 import type { PromptResult } from '../../../../execution/PromptResult';
 import type { Prompt } from '../../../../types/Prompt';
-import type { string_date_iso8601 } from '../../../../types/typeAliases';
-import type { string_semantic_version } from '../../../../types/typeAliases';
+import type { string_semantic_version } from '../../../../types/string_sha256';
+import type { string_date_iso8601 } from '../../../../types/string_token';
 import type { string_promptbook_version } from '../../../../version';
 
 /**
@@ -34,6 +34,4 @@ export type CacheItem = {
     promptResult: PromptResult;
 };
 
-/**
- * TODO: [🧠] Should be this exported alongsite `cacheLlmTools` through `@promptbook/utils` OR through `@promptbook/types`
- */
+// TODO: [🧠] Should be this exported alongsite `cacheLlmTools` through `@promptbook/utils` OR through `@promptbook/types`

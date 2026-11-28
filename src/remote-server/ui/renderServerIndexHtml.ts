@@ -3,8 +3,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import type { ServerInfo } from './types';
 
+/**
+ * Constant for h.
+ */
 const h = createElement;
 
+/**
+ * Handles key val.
+ */
 function KeyVal(props: { label: string; value: ReactNode }) {
     return h(
         'div',
@@ -14,6 +20,9 @@ function KeyVal(props: { label: string; value: ReactNode }) {
     );
 }
 
+/**
+ * Handles list.
+ */
 function List(props: { items: ReadonlyArray<string> }) {
     if (!props.items?.length) return h('span', { className: 'text-gray-500' }, 'none');
     return h(
@@ -23,6 +32,9 @@ function List(props: { items: ReadonlyArray<string> }) {
     );
 }
 
+/**
+ * Handles section.
+ */
 function Section(props: { title: string; children?: ReactNode }) {
     return h(
         'section',
@@ -32,6 +44,9 @@ function Section(props: { title: string; children?: ReactNode }) {
     );
 }
 
+/**
+ * Handles server body.
+ */
 function ServerBody({ info }: { info: ServerInfo }) {
     return h(
         'div',
@@ -98,6 +113,9 @@ function ServerBody({ info }: { info: ServerInfo }) {
     );
 }
 
+/**
+ * Handles Html doc.
+ */
 function HtmlDoc({ info }: { info: ServerInfo }) {
     return h(
         'html',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { isValidPipelineUrl } from './isValidPipelineUrl';
 
-describe(`validation of urls`, () => {
+describe(`validation of pipeline urls`, () => {
     it(`is valid pipeline url`, () => {
         expect(isValidPipelineUrl(`https://promptbook.studio/library/promptbook.book`)).toBe(true);
         expect(isValidPipelineUrl(`https://promptbook.studio/library/promptbook.book`)).toBe(true);

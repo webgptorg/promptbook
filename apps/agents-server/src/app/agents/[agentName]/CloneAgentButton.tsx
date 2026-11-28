@@ -2,31 +2,35 @@
 
 import { CopyIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { promptCloneAgent } from '../../../components/AgentCloning/cloneAgent';
 
+/**
+ * Props for clone agent button.
+ */
 type CloneAgentButtonProps = {
     agentName: string;
 };
 
+/**
+ * Handles clone agent button.
+ */
 export function CloneAgentButton({ agentName }: CloneAgentButtonProps) {
     const router = useRouter();
+    const { formatText } = useAgentNaming();
 
     const handleClone = async () => {
-        if (!window.confirm(`Clone agent "${agentName}"?`)) return;
-
-        try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentName)}/clone`, { method: 'POST' });
-
-            if (!response.ok) {
-                throw new Error('Failed to clone agent');
-            }
-
-            const newAgent = await response.json();
-            router.push(`/${newAgent.agentName}`);
-            router.refresh();
-        } catch (error) {
-            alert('Failed to clone agent');
-            console.error(error);
+        const clonedAgent = await promptCloneAgent({
+            agentIdentifier: agentName,
+            agentName,
+            formatText,
+        });
+        if (!clonedAgent) {
+            return;
         }
+
+        router.push(`/agents/${encodeURIComponent(clonedAgent.permanentId || clonedAgent.agentName)}`);
+        router.refresh();
     };
 
     return (

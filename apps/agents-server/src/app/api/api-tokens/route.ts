@@ -3,8 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
+import { resolveCurrentUserIdentity } from '../../../utils/currentUserIdentity';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest) {
     keepUnused(request);
 
@@ -12,10 +16,19 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const currentUserIdentity = await resolveCurrentUserIdentity();
+    if (!currentUserIdentity) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const supabase = $provideSupabase();
     const table = await $getTableName('ApiTokens');
 
-    const { data, error } = await supabase.from(table).select('*').order('createdAt', { ascending: false });
+    const { data, error } = await supabase
+        .from(table)
+        .select('*')
+        .eq('userId', currentUserIdentity.userId as never)
+        .order('createdAt', { ascending: false });
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -24,8 +37,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest) {
     if (!(await isUserAdmin())) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const currentUserIdentity = await resolveCurrentUserIdentity();
+    if (!currentUserIdentity) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,7 +59,11 @@ export async function POST(request: NextRequest) {
         const supabase = $provideSupabase();
         const table = await $getTableName('ApiTokens');
 
-        const { data, error } = await supabase.from(table).insert({ token, note }).select().single();
+        const { data, error } = await supabase
+            .from(table)
+            .insert({ token, note, userId: currentUserIdentity.userId } as never)
+            .select()
+            .single();
 
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 });
@@ -50,8 +75,16 @@ export async function POST(request: NextRequest) {
     }
 }
 
+/**
+ * Handles delete.
+ */
 export async function DELETE(request: NextRequest) {
     if (!(await isUserAdmin())) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const currentUserIdentity = await resolveCurrentUserIdentity();
+    if (!currentUserIdentity) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -65,7 +98,11 @@ export async function DELETE(request: NextRequest) {
     const supabase = $provideSupabase();
     const table = await $getTableName('ApiTokens');
 
-    const { error } = await supabase.from(table).delete().eq('id', parseInt(id, 10));
+    const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', parseInt(id, 10))
+        .eq('userId', currentUserIdentity.userId as never);
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
