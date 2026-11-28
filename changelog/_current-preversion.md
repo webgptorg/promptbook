@@ -4,6 +4,8 @@
 
 # Unreleased
 
+- Reopen a project passkey prompt in place during owner setup, joining, sign-in or confirmation. Switching to unlock a password manager no longer means starting the flow again.
+
 - Desktop update checks stay quiet when there is no newer installer. A compact **Update available** button opens a matching installer from the project chooser, console or open project.
 
 - Keep the Windows notification area, title bar and taskbar icons visible in light, dark and mixed themes, including pinned shortcuts when Promptbook is closed.
@@ -14,6 +16,8 @@
 
 - Export `Book` and the dedenting `book` template tag from `ptbk` for browser and Node.js consumers. Books support source-preserving edits to names, commitments and MODEL alternatives. The VS Code extension highlights embedded Books in JS, JSX, TS and TSX.
 - Use the user’s Git identity and signing configuration for Promptbook commits. The author name includes the responsible agent, or Promptbook when no agent is known. Remove the legacy coding-agent Git identity and signing-key overrides.
+
+- Set up the first passkey on a new DigitalOcean Droplet in the browser. The project verifies the provisioning DigitalOcean user, team and Droplet before opening its existing passkey ceremony.
 
 - Offer Local models last in CLI and paired setup with an engine-calculated additional disk estimate. Both pickers preselect detected installations and keep optional integrations under More. A local-only paired project prepares and verifies its credential-free model on the engine host.
 

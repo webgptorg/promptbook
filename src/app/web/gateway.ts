@@ -5,6 +5,7 @@ import { decodeBase64Url, encodeBase64Url } from '../encoding.js';
 import type { EngineFingerprint } from '../identity.js';
 import type { AccessStore, AccessTicket, Actor, NewPasskey, StoredPasskey } from './access.js';
 import { SESSION_ABSOLUTE_TIMEOUT_MS } from './access.js';
+import { cloudOwnerMarker, DigitalOceanOwner } from './digitalocean-owner.js';
 import type { SecureConnectionInfo } from './tls.js';
 
 /**
@@ -186,6 +187,7 @@ type Challenge = { readonly purpose: 'setup' | 'sign-in' | 'step-up' | 'join'; r
  */
 export class Gateway {
     private files?: GatewayFiles;
+    private readonly digitalOceanOwner = new DigitalOceanOwner();
     private readonly challenges = new Map<string, Challenge>();
     private readonly rates = new Map<string, { windowStart: number; count: number }>();
 
@@ -225,6 +227,18 @@ export class Gateway {
         const actor = token ? this.options.access.authenticate(token, client) : undefined;
 
         if (path.startsWith(GATEWAY_ASSET_PATH) && request.method === 'GET') return await this.asset(path.slice(GATEWAY_ASSET_PATH.length));
+        if ((path === '/setup/digitalocean' || path === '/setup/digitalocean/callback') && request.method === 'GET') {
+            const limited = this.limited(client);
+            if (limited) return limited;
+            const marker = this.options.access.canBootstrapOwner && await cloudOwnerMarker(this.options.engineId);
+            if (!marker) return contractProblem('not-found');
+            return await this.digitalOceanOwner.handle(request, connection.hostname, marker,
+                async () => (await this.options.access.createSetupSecret(true)).secret);
+        }
+        if (path === '/' && request.method === 'GET' && !actor && this.options.access.canBootstrapOwner &&
+            await cloudOwnerMarker(this.options.engineId)) {
+            return new Response(null, { status: 303, headers: { location: '/setup/digitalocean', 'cache-control': 'no-store' } });
+        }
         if (path === SETUP_PATH && request.method === 'GET') return await this.page('setup.html', request, connection);
         if (path === SIGN_IN_PATH && request.method === 'GET') return await this.page('sign-in.html', request, connection);
         if (path === `${SETUP_PATH}/options` && request.method === 'POST') return this.limited(client) ?? (await this.setupOptions(request, connection));
